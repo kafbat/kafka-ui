@@ -66,8 +66,8 @@ dependencies:
     specifier: ^4.17.21
     version: 4.17.21
   lossless-json:
-    specifier: ^2.0.8
-    version: 2.0.11
+    specifier: ^4.0.1
+    version: 4.0.1
   pretty-ms:
     specifier: 7.0.1
     version: 7.0.1
@@ -5073,8 +5073,8 @@ packages:
     dependencies:
       js-tokens: 4.0.0
 
-  /lossless-json@2.0.11:
-    resolution: {integrity: sha512-BP0vn+NGYvzDielvBZaFain/wgeJ1hTvURCqtKvhr1SCPePdaaTanmmcplrHfEJSJOUql7hk4FHwToNJjWRY3g==}
+  /lossless-json@4.0.1:
+    resolution: {integrity: sha512-l0L+ppmgPDnb+JGxNLndPtJZGNf6+ZmVaQzoxQm3u6TXmhdnsA+YtdVR8DjzZd/em58686CQhOFDPewfJ4l7MA==}
     dev: false
 
   /lru-cache@6.0.0:
