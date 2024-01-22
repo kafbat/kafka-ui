@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>kafka-ui</artifactId>
-        <groupId>com.provectus</groupId>
+        <groupId>io.kafbat</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
@@ -68,8 +68,8 @@
                                     <generateApiTests>false</generateApiTests>
                                     <generateModelTests>false</generateModelTests>
                                     <configOptions>
-                                        <modelPackage>com.provectus.kafka.ui.api.model</modelPackage>
-                                        <apiPackage>com.provectus.kafka.ui.api.api</apiPackage>
+                                        <modelPackage>io.kafbat.ui.api.model</modelPackage>
+                                        <apiPackage>io.kafbat.ui.api.api</apiPackage>
                                         <sourceFolder>kafka-ui-client</sourceFolder>
                                         <asyncNative>true</asyncNative>
                                         <library>webclient</library>
@@ -90,8 +90,8 @@
                                     <generatorName>spring</generatorName>
                                     <modelNameSuffix>DTO</modelNameSuffix>
                                     <configOptions>
-                                        <modelPackage>com.provectus.kafka.ui.model</modelPackage>
-                                        <apiPackage>com.provectus.kafka.ui.api</apiPackage>
+                                        <modelPackage>io.kafbat.ui.model</modelPackage>
+                                        <apiPackage>io.kafbat.ui.api</apiPackage>
                                         <sourceFolder>kafka-ui-contract</sourceFolder>
                                         <reactive>true</reactive>
                                         <interfaceOnly>true</interfaceOnly>
@@ -116,8 +116,8 @@
                                     <generateApiTests>false</generateApiTests>
                                     <generateModelTests>false</generateModelTests>
                                     <configOptions>
-                                        <modelPackage>com.provectus.kafka.ui.connect.model</modelPackage>
-                                        <apiPackage>com.provectus.kafka.ui.connect.api</apiPackage>
+                                        <modelPackage>io.kafbat.ui.connect.model</modelPackage>
+                                        <apiPackage>io.kafbat.ui.connect.api</apiPackage>
                                         <sourceFolder>kafka-connect-client</sourceFolder>
                                         <asyncNative>true</asyncNative>
                                         <library>webclient</library>
@@ -140,8 +140,8 @@
                                     <generateApiTests>false</generateApiTests>
                                     <generateModelTests>false</generateModelTests>
                                     <configOptions>
-                                        <modelPackage>com.provectus.kafka.ui.sr.model</modelPackage>
-                                        <apiPackage>com.provectus.kafka.ui.sr.api</apiPackage>
+                                        <modelPackage>io.kafbat.ui.sr.model</modelPackage>
+                                        <apiPackage>io.kafbat.ui.sr.api</apiPackage>
                                         <sourceFolder>kafka-sr-client</sourceFolder>
                                         <asyncNative>true</asyncNative>
                                         <library>webclient</library>

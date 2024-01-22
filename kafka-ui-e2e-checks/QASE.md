@@ -23,10 +23,10 @@ To set up integration locally add next VM option `-DQASEIO_API_TOKEN='%s'`
 All new test cases can be added into TMS by default if they have no QaseId and QaseTitle matching already existing
 cases.
 But to handle `@Suite` and `@Automation` we added custom QaseCreateListener. To create new test case for next sync with
-Qase (see example `kafka-ui-e2e-checks/src/test/java/com/provectus/kafka/ui/qaseSuite/Template.java`):
+Qase (see example `kafka-ui-e2e-checks/src/test/java/io/kafbat/ui/qaseSuite/Template.java`):
 
-1. Create new class in `kafka-ui-e2e-checks/src/test/java/com/provectus/kafka/ui/qaseSuite/suit`
-2. Inherit it from `kafka-ui-e2e-checks/src/test/java/com/provectus/kafka/ui/qaseSuite/BaseQaseTest.java`
+1. Create new class in `kafka-ui-e2e-checks/src/test/java/io/kafbat/ui/qaseSuite/suit`
+2. Inherit it from `kafka-ui-e2e-checks/src/test/java/io/kafbat/ui/qaseSuite/BaseQaseTest.java`
 3. Create new test method with some name inside the class and annotate it with:
 
 - `@Automation` (optional - Not automated by default) - to set one of automation states: NOT_AUTOMATED, TO_BE_AUTOMATED,
@@ -47,7 +47,7 @@ Qase (see example `kafka-ui-e2e-checks/src/test/java/com/provectus/kafka/ui/qase
 - sync can be performed locally - run new test classes with
   already [set up Qase.io integration](#Set up Qase.io integration)
 - also you can commit and push your changes, then
-  run [E2E Manual suite](https://github.com/provectus/kafka-ui/actions/workflows/e2e-manual.yml) on your branch
+  run [E2E Manual suite](https://github.com/kafbat/kafka-ui/actions/workflows/e2e-manual.yml) on your branch
 
 8. No test run in Qase.io will be created, new test case will be stored defined directory
    in [project's repository](https://app.qase.io/project/KAFKAUI)
@@ -63,7 +63,7 @@ To handle manual test cases with status `Skipped` we added custom QaseResultList
 - run can be performed locally - run test classes (or suites) with
   already [set up Qase.io integration](#Set up Qase.io integration), they will be labeled as `Automation CUSTOM suite`
 - also you can commit and push your changes, then
-  run [E2E Automation suite](https://github.com/provectus/kafka-ui/actions/workflows/e2e-automation.yml) on your branch
+  run [E2E Automation suite](https://github.com/kafbat/kafka-ui/actions/workflows/e2e-automation.yml) on your branch
 
 3. All new test runs will be added into [project's test runs](https://app.qase.io/run/KAFKAUI) with corresponding label
    using QaseId to identify existing cases

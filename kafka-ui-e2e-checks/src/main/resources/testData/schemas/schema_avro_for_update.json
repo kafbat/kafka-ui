@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Message",
-  "namespace": "com.provectus.kafka",
+  "namespace": "io.kafbat.ui",
   "fields": [
     {
       "name": "text",

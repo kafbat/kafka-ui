@@ -3,7 +3,7 @@ version: '3.4'
 services:
   kafka-ui:
     container_name: kafka-ui
-    image: provectuslabs/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:latest
     ports:
       - 8080:8080
     depends_on:

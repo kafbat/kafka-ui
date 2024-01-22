@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>kafka-ui</artifactId>
-        <groupId>com.provectus</groupId>
+        <groupId>io.kafbat</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
@@ -197,7 +197,7 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.provectus</groupId>
+            <groupId>io.kafbat</groupId>
             <artifactId>kafka-ui-contract</artifactId>
             <version>${kafka-ui-contract}</version>
         </dependency>

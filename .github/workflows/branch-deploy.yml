@@ -73,13 +73,13 @@ jobs:
     steps:
       - name: clone
         run: |
-          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/provectus/kafka-ui-infra.git --branch envs
+          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/kafka-ui-infra.git --branch envs
       - name: create deployment
         run: |
           cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
           echo "Branch:${{ needs.build.outputs.tag }}"
           ./kafka-ui-deployment-from-branch.sh ${{ needs.build.outputs.tag }} ${{ github.event.label.name }} ${{ secrets.FEATURE_TESTING_UI_PASSWORD }}
-          git config --global user.email "infra-tech@provectus.com"
+          git config --global user.email "infra@kafbat.io"
           git config --global user.name "infra-tech"
           git add ../kafka-ui-from-branch/
           git commit -m "added env:${{ needs.build.outputs.deploy }}" && git push || true
@@ -92,7 +92,7 @@ jobs:
           context: "Click Details button to open custom deployment page"
           state: "success"
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: "http://${{ needs.build.outputs.tag }}.internal.kafka-ui.provectus.io"
+          target_url: "http://${{ needs.build.outputs.tag }}.internal.ui.kafbat.dev"
 
       - name: update status check for public deployment
         if: ${{ github.event.label.name == 'status/feature_testing_public' }}
@@ -102,4 +102,4 @@ jobs:
           context: "Click Details button to open custom deployment page"
           state: "success"
           sha: ${{ github.event.pull_request.head.sha  || github.sha }}
-          target_url: "http://${{ needs.build.outputs.tag }}.internal.kafka-ui.provectus.io"
+          target_url: "http://${{ needs.build.outputs.tag }}.internal.ui.kafbat.dev"

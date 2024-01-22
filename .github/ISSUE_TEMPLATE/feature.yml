@@ -17,9 +17,9 @@ body:
       label: Issue submitter TODO list
       description: By you checking these checkboxes we can be sure you've done the essential things.
       options:
-        - label: I've searched for an already existing issues [here](https://github.com/provectus/kafka-ui/issues)
+        - label: I've searched for an already existing issues [here](https://github.com/kafbat/kafka-ui/issues)
           required: true
-        - label: I'm running a supported version of the application which is listed [here](https://github.com/provectus/kafka-ui/blob/master/SECURITY.md) and the feature is not present there
+        - label: I'm running a supported version of the application which is listed [here](https://github.com/kafbat/kafka-ui/blob/master/SECURITY.md) and the feature is not present there
           required: true
 
   - type: textarea

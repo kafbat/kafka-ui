@@ -80,8 +80,8 @@ jobs:
           provenance: false
           push: true
           tags: |
-            provectuslabs/kafka-ui:${{ steps.build.outputs.version }}
-            provectuslabs/kafka-ui:latest
+            ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
+            ghcr.io/kafbat/kafka-ui:latest
           build-args: |
             JAR_FILE=kafka-ui-api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -95,6 +95,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
-          repository: provectus/kafka-ui-charts
+          repository: kafbat/-ui-charts
           event-type: prepare-helm-release
           client-payload: '{"appversion": "${{ needs.release.outputs.version }}"}'

@@ -41,7 +41,7 @@ jobs:
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.event.pull_request.head.sha }}
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=com.provectus:kafka-ui_backend \
+          -Dsonar.projectKey=io.kafbat:kafka-ui_backend \
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
@@ -53,4 +53,4 @@ jobs:
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=com.provectus:kafka-ui_backend
+          -Dsonar.projectKey=io.kafbat:kafka-ui_backend

@@ -1,7 +1,7 @@
 logging:
   level:
     root: INFO
-    com.provectus: DEBUG
+    io.kafbat: DEBUG
     #org.springframework.http.codec.json.Jackson2JsonEncoder: DEBUG
     #org.springframework.http.codec.json.Jackson2JsonDecoder: DEBUG
     reactor.netty.http.server.AccessLog: INFO
@@ -69,7 +69,7 @@ auth:
         user-name-attribute: email
         custom-params:
           type: google
-          allowedDomain: provectus.com
+          allowedDomain: kafbat.dev
       github:
         provider: github
         clientId: # CLIENT ID
@@ -88,14 +88,14 @@ rbac:
       subjects:
         - provider: oauth_google
           type: domain
-          value: "provectus.com"
+          value: "kafbat.dev"
         - provider: oauth_google
           type: user
-          value: "name@provectus.com"
+          value: "name@kafbat.dev"
 
         - provider: oauth_github
           type: organization
-          value: "provectus"
+          value: "kafbat"
         - provider: oauth_github
           type: user
           value: "memelord"

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>kafka-ui</artifactId>
-        <groupId>com.provectus</groupId>
+        <groupId>io.kafbat</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -38,12 +38,12 @@
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.provectus</groupId>
+            <groupId>io.kafbat</groupId>
             <artifactId>kafka-ui-contract</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.provectus</groupId>
+            <groupId>io.kafbat</groupId>
             <artifactId>kafka-ui-serde-api</artifactId>
             <version>${kafka-ui-serde-api.version}</version>
         </dependency>
@@ -485,7 +485,7 @@
                             <verbose>true</verbose>
                             <images>
                                 <image>
-                                    <name>provectuslabs/kafka-ui:${git.revision}</name>
+                                    <name>ghcr.io/kafbat/kafka-ui:${git.revision}</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
