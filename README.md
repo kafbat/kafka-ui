@@ -41,6 +41,11 @@ UI for Apache Kafka is a simple tool that makes your data flows observable, help
 * **Role based access control** - [manage permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) to access the UI with granular precision
 * **Data masking** - [obfuscate](https://ui.docs.kafbat.io/configuration/data-masking) sensitive data in topic messages
 
+## Feature overview
+
+<details>
+    <summary>Click here for the feature overview</summary>
+
 # The Interface
 UI for Apache Kafka wraps major functions of Apache Kafka with an intuitive user interface.
 
@@ -72,6 +77,8 @@ with a few clicks in a user-friendly interface.
 
 ![Avro Schema Topic](documentation/images/Schema_Topic.gif)
 
+</details>
+
 # Getting Started
 
 To run UI for Apache Kafka, you can use either a pre-built Docker image or build it (or a jar file) yourself.
@@ -79,7 +86,7 @@ To run UI for Apache Kafka, you can use either a pre-built Docker image or build
 ## Quick start (Demo run)
 
 ```
-docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true kafbat/kafka-ui
+docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true image: ghcr.io/kafbat/kafka-ui
 ```
 
 Then access the web UI at [http://localhost:8080](http://localhost:8080)
@@ -92,7 +99,7 @@ The command is sufficient to try things out. When you're done trying things out,
 services:
   kafka-ui:
     container_name: kafka-ui
-    image: kafbat/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:latest
     ports:
       - 8080:8080
     environment:
