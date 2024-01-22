@@ -10,7 +10,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@reduxjs/toolkit": "^1.8.3",
     "@szhsin/react-menu": "^3.5.3",
-    "@tanstack/react-query": "^4.0.5",
+    "@tanstack/react-query": "^5.17.19",
     "@tanstack/react-table": "^8.5.10",
     "@testing-library/react": "^14.0.0",
     "@types/testing-library__jest-dom": "^5.14.5",
