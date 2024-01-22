@@ -1,18 +1,18 @@
-*                           @Haarolean
+*                           @kafbat/maintainers
 
 
 # BACKEND
-/pom.xml                    @provectus/kafka-backend
+/pom.xml                    @kafbat/backend
 
-/kafka-ui-contract/         @provectus/kafka-backend
+/kafka-ui-contract/         @kafbat/backend
 
-/kafka-ui-api/              @provectus/kafka-backend
+/kafka-ui-api/              @kafbat/backend
 
 # FRONTEND
-/kafka-ui-react-app/        @provectus/kafka-frontend
+/kafka-ui-react-app/        @kafbat/frontend
 
 # TESTS
-/kafka-ui-e2e-checks/       @provectus/kafka-qa
+/kafka-ui-e2e-checks/       @kafbat/qa
 
 # INFRA
-/.github/workflows/         @provectus/kafka-devops
+/.github/workflows/         @kafbat/devops
