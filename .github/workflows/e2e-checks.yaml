@@ -10,8 +10,6 @@ on:
       - "pom.xml"
 permissions: # TODO remove when public
   statuses: write
-  checks: write
-  pull-requests: write
   contents: read
 jobs:
   build-and-test:

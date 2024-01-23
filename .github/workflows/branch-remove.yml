@@ -3,13 +3,11 @@ on:
   workflow_dispatch:
   pull_request:
     types: ['unlabeled', 'closed']
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
 jobs:
   remove:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     if: ${{ (github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public') || (github.event.action == 'closed' && (contains(github.event.pull_request.labels.*.name, 'status/feature_testing') || contains(github.event.pull_request.labels.*.name, 'status/feature_testing_public'))) }}
     steps:
       - uses: actions/checkout@v4

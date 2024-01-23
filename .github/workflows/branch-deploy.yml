@@ -4,14 +4,12 @@ on:
 
   pull_request:
     types: ['labeled']
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
 jobs:
   build:
     if: ${{ github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public' }}
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

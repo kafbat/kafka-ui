@@ -3,14 +3,11 @@ on:
   schedule:
     - cron: '0 1 * * 1'
 
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

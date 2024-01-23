@@ -3,14 +3,11 @@ on:
   release:
     types: [published]
 
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:

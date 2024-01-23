@@ -8,10 +8,6 @@ on:
     paths:
       - "kafka-ui-contract/**"
       - "kafka-ui-react-app/**"
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
 
 jobs:
   build-and-test:
@@ -19,6 +15,8 @@ jobs:
       CI: true
       NODE_ENV: dev
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

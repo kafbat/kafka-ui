@@ -1,14 +1,11 @@
 name: "Infra: Release: Serde API"
 on: workflow_dispatch
 
-permissions: # TODO remove when public
-  checks: write
-  pull-requests: write
-  contents: read
-
 jobs:
   release-serde-api:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
