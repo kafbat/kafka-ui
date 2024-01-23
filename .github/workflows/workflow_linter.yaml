@@ -8,6 +8,12 @@ on:
       - "edited"
     paths:
       - ".github/workflows/**"
+
+permissions: # TODO remove when public
+  checks: write
+  pull-requests: write
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

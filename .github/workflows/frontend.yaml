@@ -8,9 +8,11 @@ on:
     paths:
       - "kafka-ui-contract/**"
       - "kafka-ui-react-app/**"
-permissions:
+permissions: # TODO remove when public
   checks: write
   pull-requests: write
+  contents: read
+
 jobs:
   build-and-test:
     env:

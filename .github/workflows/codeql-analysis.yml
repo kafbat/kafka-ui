@@ -25,6 +25,11 @@ on:
   schedule:
     - cron: '39 15 * * 6'
 
+permissions: # TODO remove when public
+  checks: write
+  pull-requests: write
+  contents: read
+
 jobs:
   analyze:
     name: Analyze

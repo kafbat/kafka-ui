@@ -8,8 +8,11 @@ on:
       - "kafka-ui-react-app/**"
       - "kafka-ui-e2e-checks/**"
       - "pom.xml"
-permissions:
+permissions: # TODO remove when public
   statuses: write
+  checks: write
+  pull-requests: write
+  contents: read
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

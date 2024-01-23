@@ -7,6 +7,11 @@ on:
         required: true
         default: 'demo'
 
+permissions: # TODO remove when public
+  checks: write
+  pull-requests: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

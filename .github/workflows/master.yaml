@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "main" ]
 
+permissions: # TODO remove when public
+  checks: write
+  pull-requests: write
+  contents: read
+  
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   pull_request:
     types: ['labeled']
+permissions: # TODO remove when public
+  checks: write
+  pull-requests: write
+  contents: read
 jobs:
   build:
     if: ${{ github.event.label.name == 'status/image_testing' }}
