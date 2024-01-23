@@ -12,5 +12,6 @@ jobs:
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: dekinderfiets/pr-description-enforcer@0.0.1
+        if: false # TODO remove when public
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
