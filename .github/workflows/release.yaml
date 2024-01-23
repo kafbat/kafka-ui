@@ -6,6 +6,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:

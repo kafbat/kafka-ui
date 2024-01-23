@@ -15,10 +15,12 @@ on:
         description: 'Set Qase token to enable integration'
         required: false
         type: string
-
+  
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

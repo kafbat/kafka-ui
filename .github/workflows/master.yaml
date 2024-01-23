@@ -3,10 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
-
+  
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

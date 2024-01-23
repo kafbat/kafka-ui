@@ -4,6 +4,8 @@ on: workflow_dispatch
 jobs:
   release-serde-api:
     runs-on: ubuntu-latest
+    permissions: # TODO remove when public
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
