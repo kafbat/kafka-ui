@@ -1,4 +1,4 @@
-This guide is an exact copy of the same documented located [in our official docs](https://docs.kafka-ui.provectus.io/development/contributing). If there are any differences between the documents, the one located in our official docs should prevail.
+This guide is an exact copy of the same documented located [in our official docs](https://ui.docs.kafbat.io/development/contributing). If there are any differences between the documents, the one located in our official docs should prevail.
 
 This guide aims to walk you through the process of working on issues and Pull Requests (PRs).
 
@@ -13,16 +13,16 @@ Please note that we have a code of conduct (`CODE-OF-CONDUCT.md`). Make sure tha
 ## Choosing an issue
 
 There are two options to look for the issues to contribute to. <br/>
-The first is our ["Up for grabs"](https://github.com/provectus/kafka-ui/projects/11) board. There the issues are sorted by a required experience level (beginner, intermediate, expert).
+The first is our ["Up for grabs"](https://github.com/orgs/kafbat/projects/2) board. There the issues are sorted by a required experience level (beginner, intermediate, expert).
 
-The second option is to search for ["good first issue"](https://github.com/provectus/kafka-ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)-labeled issues. Some of them might not be displayed on the aforementioned board, or vice versa.
+The second option is to search for ["good first issue"](https://github.com/kafbat/kafka-ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)-labeled issues. Some of them might not be displayed on the aforementioned board, or vice versa.
 
 You also need to consider labels. You can sort the issues by scope labels, such as `scope/backend`, `scope/frontend` or even `scope/k8s`. If any issue covers several specific areas, and you do not have a required expertise for one of them, just do your part of work — others will do the rest.
 
 ## Grabbing the issue
 
 There is a bunch of criteria that make an issue feasible for development. <br/>
-The implementation of any features and/or their enhancements should be reasonable, must be backed by justified requirements (demanded by the community, [roadmap](https://docs.kafka-ui.provectus.io/project/roadmap) plans, etc.). The final decision is left for the maintainers' discretion.
+The implementation of any features and/or their enhancements should be reasonable, must be backed by justified requirements (demanded by the community, [roadmap](https://ui.docs.kafbat.io/project/roadmap) plans, etc.). The final decision is left for the maintainers' discretion.
 
 All bugs should be confirmed as such (i.e. the behavior is unintended).
 
@@ -41,7 +41,7 @@ To keep the status of the issue clear to everyone, please keep the card's status
 
 ## Setting up a local development environment
 
-Please refer to [this guide](https://docs.kafka-ui.provectus.io/development/contributing).
+Please refer to [this guide](https://ui.docs.kafbat.io/development/contributing).
 
 # Pull Requests
 

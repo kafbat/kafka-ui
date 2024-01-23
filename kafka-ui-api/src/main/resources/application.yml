@@ -15,7 +15,7 @@ management:
 logging:
   level:
     root: INFO
-    com.provectus: DEBUG
+    io.kafbat: DEBUG
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
 

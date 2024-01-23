@@ -8,7 +8,7 @@
     "tasks.max": "1",
     "github.service.url": "https://api.github.com",
     "github.access.token": "",
-    "github.repositories": "provectus/kafka-ui",
+    "github.repositories": "kafbat/kafka-ui",
     "github.resources": "issues,commits,pull_requests",
     "github.since": "2019-01-01",
     "topic.name.pattern": "github-${resourceName}",

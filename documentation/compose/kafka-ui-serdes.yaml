@@ -4,7 +4,7 @@ services:
 
     kafka-ui:
         container_name: kafka-ui
-        image: provectuslabs/kafka-ui:latest
+        image: ghcr.io/kafbat/kafka-ui:latest
         ports:
             - 8080:8080
         depends_on:
@@ -42,14 +42,14 @@ services:
             kafka.clusters.0.serde.1.topicValuesPattern: "json-events|text-events"
 
             kafka.clusters.0.serde.2.name: AsciiString
-            kafka.clusters.0.serde.2.className: com.provectus.kafka.ui.serdes.builtin.StringSerde
+            kafka.clusters.0.serde.2.className: io.kafbat.ui.serdes.builtin.StringSerde
             kafka.clusters.0.serde.2.properties.encoding: "ASCII"
 
             kafka.clusters.0.serde.3.name: SchemaRegistry # will be configured automatically using cluster SR
             kafka.clusters.0.serde.3.topicValuesPattern: "sr-topic.*"
 
             kafka.clusters.0.serde.4.name: AnotherSchemaRegistry
-            kafka.clusters.0.serde.4.className: com.provectus.kafka.ui.serdes.builtin.sr.SchemaRegistrySerde
+            kafka.clusters.0.serde.4.className: io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde
             kafka.clusters.0.serde.4.properties.url: http://schemaregistry0:8085
             kafka.clusters.0.serde.4.properties.keySchemaNameTemplate: "%s-key"
             kafka.clusters.0.serde.4.properties.schemaNameTemplate: "%s-value"

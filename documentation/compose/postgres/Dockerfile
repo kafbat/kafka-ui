@@ -2,7 +2,7 @@ ARG image
 
 FROM ${image}
 
-MAINTAINER Provectus Team
+MAINTAINER Kafbat Team
 
 ADD data.sql /docker-entrypoint-initdb.d
 

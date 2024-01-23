@@ -84,10 +84,7 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
           onChange={setThemeMode}
           isThemeMode
         />
-        <S.SocialLink
-          href="https://github.com/provectus/kafka-ui"
-          target="_blank"
-        >
+        <S.SocialLink href="https://github.com/kafbat/kafka-ui" target="_blank">
           <GitIcon />
         </S.SocialLink>
         <S.SocialLink

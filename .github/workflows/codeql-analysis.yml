@@ -40,9 +40,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        token: ${{ github.token }} # TODO remove when public
 
-    # Initializes the CodeQL tools for scanning.
+      # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:

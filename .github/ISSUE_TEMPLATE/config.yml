@@ -1,14 +1,14 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report helm issue
-    url: https://github.com/provectus/kafka-ui-charts
+    url: https://github.com/kafbat/kafka-ui-charts
     about: Our helm charts are located in another repo. Please raise issues/PRs regarding charts in that repo.
   - name: Official documentation
-    url: https://docs.kafka-ui.provectus.io/
+    url: https://ui.docs.kafbat.io/
     about: Before reaching out for support, please refer to our documentation. Read "FAQ" and "Common problems", also try using search there.
   - name: Community Discord
     url: https://discord.gg/4DWzD7pGE5
     about: Chat with other users, get some support or ask questions.
   - name: GitHub Discussions
-    url: https://github.com/provectus/kafka-ui/discussions
+    url: https://github.com/kafbat/kafka-ui/discussions
     about: An alternative place to ask questions or to get some support.

@@ -8,9 +8,10 @@ jobs:
     if: ${{ github.event.label.name == 'status/image_testing' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }} # TODO remove when public
       - name: get branch name
         id: extract_branch
         run: |
@@ -59,7 +60,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: kafka-ui-api
           push: true
-          tags: public.ecr.aws/provectus/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+          tags: public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
           build-args: |
             JAR_FILE=kafka-ui-api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -69,6 +70,6 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Image published at public.ecr.aws/provectus/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+            Image published at public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
     outputs:
       tag: ${{ steps.extract_branch.outputs.tag }}

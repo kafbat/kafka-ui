@@ -15,8 +15,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
+          token: ${{ github.token }} # TODO remove when public
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up JDK
@@ -38,10 +39,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
+          SKIP_SONAR: "true" # TODO remove when public
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.event.pull_request.head.sha }}
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=com.provectus:kafka-ui_backend \
+          -Dsonar.skip=${SKIP_SONAR} \
+          -Dsonar.projectKey=io.kafbat:kafka-ui_backend \
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
@@ -50,7 +53,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
+          SKIP_SONAR: "true" # TODO remove when public
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=com.provectus:kafka-ui_backend
+          -Dsonar.skip=${SKIP_SONAR} \
+          -Dsonar.projectKey=io.kafbat:kafka-ui_backend

@@ -11,9 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }} # TODO remove when public
       - name: get branch name
         id: extract_branch
         run: |
@@ -76,13 +77,13 @@ jobs:
     steps:
       - name: clone
         run: |
-          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/provectus/kafka-ui-infra.git --branch envs
+          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch envs
 
       - name: separate env create
         run: |
           cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
           bash separate_env_create.sh ${{ github.event.inputs.ENV_NAME }} ${{ secrets.FEATURE_TESTING_UI_PASSWORD }} ${{ needs.build.outputs.tag }}
-          git config --global user.email "infra-tech@provectus.com"
+          git config --global user.email "infra@kafbat.io"
           git config --global user.name "infra-tech"
           git add -A
           git commit -m "separate env added: ${{ github.event.inputs.ENV_NAME }}" && git push || true
@@ -90,5 +91,5 @@ jobs:
       - name: echo separate environment public link
         run: |
           echo "Please note, separate environment creation takes up to 5-10 minutes."
-          echo "Separate environment will be available at http://${{ github.event.inputs.ENV_NAME }}.kafka-ui.provectus.io"
+          echo "Separate environment will be available at http://${{ github.event.inputs.ENV_NAME }}.-ui.kafbat.io"
           echo "Username: admin"
