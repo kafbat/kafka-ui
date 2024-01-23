@@ -1,8 +1,8 @@
-name: "Backend: PR/master build & test"
+name: "Backend: PR/main build & test"
 on:
   push:
     branches:
-      - master
+      - main
   pull_request_target:
     types: ["opened", "edited", "reopened", "synchronize"]
     paths:
@@ -48,7 +48,7 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
-      - name: Build and analyze push master
+      - name: Build and analyze push main
         if: ${{ github.event_name == 'push' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

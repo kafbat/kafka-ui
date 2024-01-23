@@ -1,8 +1,8 @@
-name: "Frontend: PR/master build & test"
+name: "Frontend: PR/main build & test"
 on:
   push:
     branches:
-      - master
+      - main
   pull_request_target:
     types: ["opened", "edited", "reopened", "synchronize"]
     paths:

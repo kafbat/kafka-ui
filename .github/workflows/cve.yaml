@@ -1,4 +1,4 @@
-name: CVE checks docker master
+name: CVE checks docker main
 on:
   workflow_dispatch:
   schedule:

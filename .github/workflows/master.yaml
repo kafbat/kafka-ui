@@ -1,8 +1,8 @@
-name: "Master: Build & deploy"
+name: "Main: Build & deploy"
 on:
   workflow_dispatch:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -58,20 +58,20 @@ jobs:
           push: true
           tags: |
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
-            ghcr.io/kafbat/kafka-ui:master
+            ghcr.io/kafbat/kafka-ui:main
           build-args: |
             JAR_FILE=kafka-ui-api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 #################################
 #                               #
-#   Master image digest update  #
+#   Main image digest update    #
 #                               #
 #################################
       - name: update-master-deployment
         if: false # TODO remove after infra fix
         run: |
-          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch master
+          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch main
           cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
           echo "Image digest is:${{ steps.docker_build_and_push.outputs.digest }}"
           ./kafka-ui-update-master-digest.sh ${{ steps.docker_build_and_push.outputs.digest }}

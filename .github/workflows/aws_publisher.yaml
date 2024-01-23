@@ -5,7 +5,7 @@ on:
       KafkaUIInfraBranch:
         description: 'Branch name of Kafka-UI-Infra repo, build commands will be executed from this branch'
         required: true
-        default: 'master'
+        default: 'main'
       KafkaUIReleaseVersion:
         description: 'Version of KafkaUI'
         required: true
