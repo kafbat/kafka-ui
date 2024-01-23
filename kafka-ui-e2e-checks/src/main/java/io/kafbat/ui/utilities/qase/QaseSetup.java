@@ -1,5 +1,6 @@
 package io.kafbat.ui.utilities.qase;
 
+import static io.kafbat.ui.settings.BaseSource.SUITE_NAME;
 import static org.apache.commons.lang3.BooleanUtils.FALSE;
 import static org.apache.commons.lang3.BooleanUtils.TRUE;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -21,13 +22,13 @@ public class QaseSetup {
       System.setProperty("QASE_ENABLE", FALSE);
     } else {
       log.warn("Integration with Qase is enabled. Find this run at https://app.qase.io/run/KAFKAUI.");
-      String automation = BaseSource.SUITE_NAME.equalsIgnoreCase(Suite.MANUAL) ? "" : "Automation ";
+      String automation = SUITE_NAME.equalsIgnoreCase(Suite.MANUAL) ? "" : "Automation ";
       System.setProperty("QASE_ENABLE", TRUE);
       System.setProperty("QASE_PROJECT_CODE", "KAFKAUI");
       System.setProperty("QASE_API_TOKEN", qaseApiToken);
       System.setProperty("QASE_USE_BULK", TRUE);
       System.setProperty("QASE_RUN_NAME", DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-          .format(OffsetDateTime.now(ZoneOffset.UTC)) + ": " + automation + BaseSource.SUITE_NAME.toUpperCase() + " suite");
+          .format(OffsetDateTime.now(ZoneOffset.UTC)) + ": " + automation + SUITE_NAME.toUpperCase() + " suite");
     }
   }
 }

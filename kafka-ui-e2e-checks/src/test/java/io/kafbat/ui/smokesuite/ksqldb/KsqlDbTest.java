@@ -3,10 +3,10 @@ package io.kafbat.ui.smokesuite.ksqldb;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.kafbat.ui.BaseTest;
-import io.kafbat.ui.pages.ksqldb.models.Stream;
-import io.kafbat.ui.pages.ksqldb.models.Table;
 import io.kafbat.ui.pages.ksqldb.enums.KsqlMenuTabs;
 import io.kafbat.ui.pages.ksqldb.enums.KsqlQueryConfig;
+import io.kafbat.ui.pages.ksqldb.models.Stream;
+import io.kafbat.ui.pages.ksqldb.models.Table;
 import io.qameta.allure.Step;
 import io.qase.api.annotation.QaseId;
 import java.util.ArrayList;

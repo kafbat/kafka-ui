@@ -1,5 +1,7 @@
 package io.kafbat.ui.smokesuite.connectors;
 
+import static io.kafbat.ui.pages.BasePage.AlertHeader.SUCCESS;
+import static io.kafbat.ui.utilities.FileUtils.getResourceAsString;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.kafbat.ui.BaseTest;
@@ -32,10 +34,10 @@ public class ConnectorsTest extends BaseTest {
       .setMessageValue(MESSAGE_CONTENT).setMessageKey(MESSAGE_KEY);
   private static final Connector CONNECTOR_FOR_DELETE = new Connector()
       .setName("connector-for-delete-" + randomAlphabetic(5))
-      .setConfig(FileUtils.getResourceAsString("testData/connectors/delete_connector_config.json"));
+      .setConfig(getResourceAsString("testData/connectors/delete_connector_config.json"));
   private static final Connector CONNECTOR_FOR_UPDATE = new Connector()
       .setName("connector-for-update-and-delete-" + randomAlphabetic(5))
-      .setConfig(FileUtils.getResourceAsString("testData/connectors/config_for_create_connector_via_api.json"));
+      .setConfig(getResourceAsString("testData/connectors/config_for_create_connector_via_api.json"));
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
@@ -53,7 +55,7 @@ public class ConnectorsTest extends BaseTest {
   public void createConnector() {
     Connector connectorForCreate = new Connector()
         .setName("connector-for-create-" + randomAlphabetic(5))
-        .setConfig(FileUtils.getResourceAsString("testData/connectors/config_for_create_connector.json"));
+        .setConfig(getResourceAsString("testData/connectors/config_for_create_connector.json"));
     navigateToConnectors();
     kafkaConnectList
         .clickCreateConnectorBtn();
@@ -79,7 +81,7 @@ public class ConnectorsTest extends BaseTest {
         .openConfigTab()
         .setConfig(CONNECTOR_FOR_UPDATE.getConfig())
         .clickSubmitButton();
-    Assert.assertTrue(connectorDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS, "Config successfully updated."),
+    Assert.assertTrue(connectorDetails.isAlertWithMessageVisible(SUCCESS, "Config successfully updated."),
         "isAlertWithMessageVisible()");
     navigateToConnectors();
     Assert.assertTrue(kafkaConnectList.isConnectorVisible(CONNECTOR_FOR_UPDATE.getName()), "isConnectorVisible()");

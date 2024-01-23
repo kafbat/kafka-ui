@@ -1,5 +1,6 @@
 package io.kafbat.ui.smokesuite.topics;
 
+import static io.kafbat.ui.pages.BasePage.AlertHeader.SUCCESS;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
@@ -145,7 +146,7 @@ public class TopicsTest extends BaseTest {
         .setMaxSizeOnDiskInGB(TOPIC_TO_UPDATE_AND_DELETE.getMaxSizeOnDisk())
         .setMaxMessageBytes(TOPIC_TO_UPDATE_AND_DELETE.getMaxMessageBytes())
         .clickSaveTopicBtn();
-    softly.assertTrue(topicDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS, "Topic successfully updated."),
+    softly.assertTrue(topicDetails.isAlertWithMessageVisible(SUCCESS, "Topic successfully updated."),
         "isAlertWithMessageVisible()");
     softly.assertTrue(topicDetails.isTopicHeaderVisible(TOPIC_TO_UPDATE_AND_DELETE.getName()),
         "isTopicHeaderVisible()");
@@ -176,7 +177,7 @@ public class TopicsTest extends BaseTest {
         .openDotMenuByTopicName(TOPIC_TO_UPDATE_AND_DELETE.getName())
         .clickRemoveTopicBtn()
         .clickConfirmBtnMdl();
-    Assert.assertTrue(topicsList.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
+    Assert.assertTrue(topicsList.isAlertWithMessageVisible(SUCCESS,
             String.format("Topic %s successfully deleted!", TOPIC_TO_UPDATE_AND_DELETE.getName())),
         "isAlertWithMessageVisible()");
     TOPIC_LIST.remove(TOPIC_TO_UPDATE_AND_DELETE);
@@ -485,7 +486,7 @@ public class TopicsTest extends BaseTest {
     Assert.assertTrue(topicDetails.isConfirmationMdlVisible(), "isConfirmationMdlVisible()");
     topicDetails
         .clickConfirmBtnMdl();
-    Assert.assertTrue(topicDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
+    Assert.assertTrue(topicDetails.isAlertWithMessageVisible(SUCCESS,
             String.format("Topic %s successfully recreated!", topicToRecreate.getName())),
         "isAlertWithMessageVisible()");
   }

@@ -1,8 +1,8 @@
 package io.kafbat.ui.manualsuite;
 
 import io.kafbat.ui.settings.listeners.QaseResultListener;
-import io.kafbat.ui.utilities.qase.annotations.Automation;
 import io.kafbat.ui.utilities.qase.QaseSetup;
+import io.kafbat.ui.utilities.qase.annotations.Automation;
 import io.kafbat.ui.utilities.qase.enums.State;
 import java.lang.reflect.Method;
 import org.testng.SkipException;

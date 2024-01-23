@@ -1,9 +1,9 @@
 package io.kafbat.ui.manualsuite.backlog;
 
 import io.kafbat.ui.manualsuite.BaseManualTest;
+import io.kafbat.ui.qasesuite.BaseQaseTest;
 import io.kafbat.ui.utilities.qase.annotations.Automation;
 import io.kafbat.ui.utilities.qase.annotations.Suite;
-import io.kafbat.ui.qasesuite.BaseQaseTest;
 import io.kafbat.ui.utilities.qase.enums.State;
 import io.qase.api.annotation.QaseId;
 import org.testng.annotations.Test;
