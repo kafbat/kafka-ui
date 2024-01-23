@@ -19,8 +19,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
+          token: ${{ github.token }} # TODO remove when public
           ref: ${{ github.sha }}
       - name: Set up environment
         id: set_env_values
