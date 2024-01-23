@@ -1,9 +1,9 @@
 package io.kafbat.ui.emitter;
 
+import groovy.json.JsonSlurper;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.MessageFilterTypeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
-import groovy.json.JsonSlurper;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.script.CompiledScript;

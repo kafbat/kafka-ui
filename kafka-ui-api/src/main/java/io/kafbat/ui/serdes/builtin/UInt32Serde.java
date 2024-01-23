@@ -4,8 +4,8 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInteger;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
-import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.Map;
 import java.util.Optional;
 

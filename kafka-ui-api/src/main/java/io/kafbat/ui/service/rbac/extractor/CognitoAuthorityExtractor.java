@@ -1,5 +1,7 @@
 package io.kafbat.ui.service.rbac.extractor;
 
+import static io.kafbat.ui.model.rbac.provider.Provider.Name.COGNITO;
+
 import com.google.common.collect.Sets;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
@@ -19,7 +21,7 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
 
   @Override
   public boolean isApplicable(String provider, Map<String, String> customParams) {
-    return Provider.Name.COGNITO.equalsIgnoreCase(provider) || Provider.Name.COGNITO.equalsIgnoreCase(customParams.get(TYPE));
+    return COGNITO.equalsIgnoreCase(provider) || COGNITO.equalsIgnoreCase(customParams.get(TYPE));
   }
 
   @Override

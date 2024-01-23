@@ -1,5 +1,7 @@
 package io.kafbat.ui.service.rbac.extractor;
 
+import static io.kafbat.ui.model.rbac.provider.Provider.Name.OAUTH;
+
 import com.google.common.collect.Sets;
 import io.kafbat.ui.config.auth.OAuthProperties;
 import io.kafbat.ui.model.rbac.Role;
@@ -30,7 +32,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
       return false;
     }
 
-    return Provider.Name.OAUTH.equalsIgnoreCase(provider) || Provider.Name.OAUTH.equalsIgnoreCase(customParams.get(TYPE));
+    return OAUTH.equalsIgnoreCase(provider) || OAUTH.equalsIgnoreCase(customParams.get(TYPE));
   }
 
   @Override

@@ -1,5 +1,7 @@
 package io.kafbat.ui.service.rbac.extractor;
 
+import static io.kafbat.ui.model.rbac.provider.Provider.Name.GOOGLE;
+
 import com.google.common.collect.Sets;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
@@ -19,7 +21,7 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
 
   @Override
   public boolean isApplicable(String provider, Map<String, String> customParams) {
-    return Provider.Name.GOOGLE.equalsIgnoreCase(provider) || Provider.Name.GOOGLE.equalsIgnoreCase(customParams.get(TYPE));
+    return GOOGLE.equalsIgnoreCase(provider) || GOOGLE.equalsIgnoreCase(customParams.get(TYPE));
   }
 
   @Override

@@ -2,8 +2,8 @@ package io.kafbat.ui.serdes.builtin;
 
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
-import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;

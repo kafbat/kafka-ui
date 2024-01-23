@@ -1,19 +1,12 @@
 package io.kafbat.ui.serdes.builtin.sr;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.BASIC_AUTH_CREDENTIALS_SOURCE;
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.USER_INFO_CONFIG;
 import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeAvro;
 import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeJson;
 import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeProto;
-import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.BASIC_AUTH_CREDENTIALS_SOURCE;
-import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.USER_INFO_CONFIG;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.kafbat.ui.exception.ValidationException;
-import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.PropertyResolver;
-import io.kafbat.ui.serde.api.SchemaDescription;
-import io.kafbat.ui.serdes.BuiltInSerde;
-import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
-import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
@@ -26,6 +19,13 @@ import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
+import io.kafbat.ui.exception.ValidationException;
+import io.kafbat.ui.serde.api.DeserializeResult;
+import io.kafbat.ui.serde.api.PropertyResolver;
+import io.kafbat.ui.serde.api.SchemaDescription;
+import io.kafbat.ui.serdes.BuiltInSerde;
+import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
+import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.HashMap;

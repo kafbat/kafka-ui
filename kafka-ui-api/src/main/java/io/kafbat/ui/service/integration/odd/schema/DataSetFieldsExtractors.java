@@ -1,10 +1,10 @@
 package io.kafbat.ui.service.integration.odd.schema;
 
-import io.kafbat.ui.sr.model.SchemaSubject;
-import io.kafbat.ui.sr.model.SchemaType;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import io.kafbat.ui.sr.model.SchemaSubject;
+import io.kafbat.ui.sr.model.SchemaType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

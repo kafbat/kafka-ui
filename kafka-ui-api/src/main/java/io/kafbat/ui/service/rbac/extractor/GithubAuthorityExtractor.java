@@ -1,5 +1,7 @@
 package io.kafbat.ui.service.rbac.extractor;
 
+import static io.kafbat.ui.model.rbac.provider.Provider.Name.GITHUB;
+
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
@@ -35,7 +37,8 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
 
   @Override
   public boolean isApplicable(String provider, Map<String, String> customParams) {
-    return Provider.Name.GITHUB.equalsIgnoreCase(provider) || Provider.Name.GITHUB.equalsIgnoreCase(customParams.get(TYPE));
+    return GITHUB.equalsIgnoreCase(provider)
+        || GITHUB.equalsIgnoreCase(customParams.get(TYPE));
   }
 
   @Override

@@ -1,10 +1,10 @@
 package io.kafbat.ui.serdes.builtin;
 
+import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.RecordHeaders;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
-import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;

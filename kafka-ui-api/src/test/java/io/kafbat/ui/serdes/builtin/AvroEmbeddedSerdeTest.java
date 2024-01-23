@@ -3,10 +3,10 @@ package io.kafbat.ui.serdes.builtin;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.PropertyResolverImpl;
-import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.apache.avro.Schema;

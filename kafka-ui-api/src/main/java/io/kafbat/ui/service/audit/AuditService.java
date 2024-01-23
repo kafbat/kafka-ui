@@ -7,8 +7,8 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.AdminClientService;
 import io.kafbat.ui.service.ClustersStorage;
-import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.MessagesService;
+import io.kafbat.ui.service.ReactiveAdminClient;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
@@ -60,7 +60,8 @@ public class AuditService implements Closeable {
     Map<String, AuditWriter> auditWriters = new HashMap<>();
     for (var cluster : clustersStorage.getKafkaClusters()) {
       Supplier<ReactiveAdminClient> adminClientSupplier = () -> adminClientService.get(cluster).block(BLOCK_TIMEOUT);
-      createAuditWriter(cluster, adminClientSupplier, () -> MessagesService.createProducer(cluster, AUDIT_PRODUCER_CONFIG))
+      createAuditWriter(cluster, adminClientSupplier,
+          () -> MessagesService.createProducer(cluster, AUDIT_PRODUCER_CONFIG))
           .ifPresent(writer -> auditWriters.put(cluster.getName(), writer));
     }
     this.auditWriters = auditWriters;
@@ -81,7 +82,8 @@ public class AuditService implements Closeable {
     }
     boolean topicAudit = Optional.ofNullable(auditProps.getTopicAuditEnabled()).orElse(false);
     boolean consoleAudit = Optional.ofNullable(auditProps.getConsoleAuditEnabled()).orElse(false);
-    boolean alterLogOnly = Optional.ofNullable(auditProps.getLevel()).map(lvl -> lvl == ClustersProperties.AuditProperties.LogLevel.ALTER_ONLY).orElse(true);
+    boolean alterLogOnly = Optional.ofNullable(auditProps.getLevel())
+        .map(lvl -> lvl == ClustersProperties.AuditProperties.LogLevel.ALTER_ONLY).orElse(true);
     if (!topicAudit && !consoleAudit) {
       return Optional.empty();
     }
