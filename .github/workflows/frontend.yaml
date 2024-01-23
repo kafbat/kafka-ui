@@ -50,6 +50,7 @@ jobs:
           cd kafka-ui-react-app/
           pnpm test:CI
       - name: SonarCloud Scan
+        if: false # TODO remove when public
         uses: sonarsource/sonarcloud-github-action@master
         with:
           projectBaseDir: ./kafka-ui-react-app
