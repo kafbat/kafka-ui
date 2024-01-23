@@ -6,7 +6,7 @@ on:
   pull_request_target:
     types: ["opened", "edited", "reopened", "synchronize"]
     paths:
-      - "kafka-ui-api/**"
+      - "api/**"
       - "pom.xml"
 permissions: # TODO remove when public
   checks: write
@@ -45,7 +45,7 @@ jobs:
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.event.pull_request.head.sha }}
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.skip=${SKIP_SONAR} \
-          -Dsonar.projectKey=io.kafbat:kafka-ui_backend \
+          -Dsonar.projectKey=io.kafbat:kafbat-ui_backend \
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
@@ -59,4 +59,4 @@ jobs:
           ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.skip=${SKIP_SONAR} \
-          -Dsonar.projectKey=io.kafbat:kafka-ui_backend
+          -Dsonar.projectKey=io.kafbat:kafbat-ui_backend

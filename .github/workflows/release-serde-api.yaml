@@ -30,4 +30,4 @@ jobs:
 
       - name: Publish to Maven Central
         run: |
-          mvn source:jar  javadoc:jar  package  gpg:sign -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dserver.username=${{ secrets.NEXUS_USERNAME }} -Dserver.password=${{ secrets.NEXUS_PASSWORD }} nexus-staging:deploy   -pl kafka-ui-serde-api  -s settings.xml
+          mvn source:jar  javadoc:jar  package  gpg:sign -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dserver.username=${{ secrets.NEXUS_USERNAME }} -Dserver.password=${{ secrets.NEXUS_PASSWORD }} nexus-staging:deploy   -pl serde-api  -s settings.xml

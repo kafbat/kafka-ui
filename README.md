@@ -1,10 +1,10 @@
-![UI for Apache Kafka logo](documentation/images/kafka-ui-logo.png) UI for Apache Kafka&nbsp;
+![logo](documentation/images/logo.png) Kafbat UI&nbsp;
 ------------------
 #### Versatile, fast and lightweight web UI for managing Apache Kafka® clusters. Built by developers, for developers.
 <br/>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/kafbat/kafka-ui/blob/main/LICENSE)
-![UI for Apache Kafka Price Free](documentation/images/free-open-source.svg)
+![Price free](documentation/images/free-open-source.svg)
 [![Release version](https://img.shields.io/github/v/release/kafbat/kafka-ui)](https://github.com/kafbat/kafka-ui/releases)
 [![Chat with us](https://img.shields.io/discord/897805035122077716)](https://discord.gg/4DWzD7pGE5)
 [![Docker pulls](https://img.shields.io/docker/pulls/kafbat/kafka-ui)](https://hub.docker.com/r/kafbat/kafka-ui)
@@ -22,9 +22,9 @@
   <img src="https://repobeats.axiom.co/api/embed/2e8a7c2d711af9daddd34f9791143e7554c35d0f.svg" />
 </p>
 
-#### UI for Apache Kafka is a free, open-source web UI to monitor and manage Apache Kafka clusters.
+#### Kafbat UI is a free, open-source web UI to monitor and manage Apache Kafka clusters.
 
-UI for Apache Kafka is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
+Kafbat UI is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
 
 ![Interface](documentation/images/Interface.gif)
 
@@ -47,12 +47,12 @@ UI for Apache Kafka is a simple tool that makes your data flows observable, help
     <summary>Click here for the feature overview</summary>
 
 # The Interface
-UI for Apache Kafka wraps major functions of Apache Kafka with an intuitive user interface.
+Kafbat UI wraps major functions of Apache Kafka with an intuitive user interface.
 
 ![Interface](documentation/images/Interface.gif)
 
 ## Topics
-UI for Apache Kafka makes it easy for you to create topics in your browser by several clicks,
+Kafbat UI makes it easy for you to create topics in your browser by several clicks,
 pasting your own parameters, and viewing topics in the list.
 
 ![Create Topic](documentation/images/Create_topic_kafka-ui.gif)
@@ -63,7 +63,7 @@ connectors, overview topic settings.
 ![Connector_Topic_Consumer](documentation/images/Connector_Topic_Consumer.gif)
 
 ### Messages
-Let's say we want to produce messages for our topic. With the UI for Apache Kafka we can send or write data/messages to the Kafka topics without effort by specifying parameters, and viewing messages in the list.
+Let's say we want to produce messages for our topic. With the Kafbat UI we can send or write data/messages to the Kafka topics without effort by specifying parameters, and viewing messages in the list.
 
 ![Produce Message](documentation/images/Create_message_kafka-ui.gif)
 
@@ -81,7 +81,7 @@ with a few clicks in a user-friendly interface.
 
 # Getting Started
 
-To run UI for Apache Kafka, you can use either a pre-built Docker image or build it (or a jar file) yourself.
+To run Kafbat UI, you can use either a pre-built Docker image or build it (or a jar file) yourself.
 
 ## Quick start (Demo run)
 
@@ -97,8 +97,8 @@ The command is sufficient to try things out. When you're done trying things out,
 
 ```
 services:
-  kafka-ui:
-    container_name: kafka-ui
+  kafbat-ui:
+    container_name: kafbat-ui
     image: ghcr.io/kafbat/kafka-ui:latest
     ports:
       - 8080:8080

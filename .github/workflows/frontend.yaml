@@ -6,8 +6,8 @@ on:
   pull_request_target:
     types: ["opened", "edited", "reopened", "synchronize"]
     paths:
-      - "kafka-ui-contract/**"
-      - "kafka-ui-react-app/**"
+      - "contract/**"
+      - "frontend/**"
 
 jobs:
   build-and-test:
@@ -32,28 +32,28 @@ jobs:
         with:
           node-version: "18.17.1"
           cache: "pnpm"
-          cache-dependency-path: "./kafka-ui-react-app/pnpm-lock.yaml"
+          cache-dependency-path: "./frontend/pnpm-lock.yaml"
       - name: Install Node dependencies
         run: |
-          cd kafka-ui-react-app/
+          cd frontend/
           pnpm install --frozen-lockfile
       - name: Generate sources
         run: |
-          cd kafka-ui-react-app/
+          cd frontend/
           pnpm gen:sources
       - name: Linter
         run: |
-          cd kafka-ui-react-app/
+          cd frontend/
           pnpm lint:CI
       - name: Tests
         run: |
-          cd kafka-ui-react-app/
+          cd frontend/
           pnpm test:CI
       - name: SonarCloud Scan
         if: false # TODO remove when public
         uses: sonarsource/sonarcloud-github-action@master
         with:
-          projectBaseDir: ./kafka-ui-react-app
+          projectBaseDir: ./frontend
           args: -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
