@@ -15,7 +15,7 @@ management:
 logging:
   level:
     root: INFO
-    io.kafbat: DEBUG
+    io.kafbat.ui: DEBUG
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
 

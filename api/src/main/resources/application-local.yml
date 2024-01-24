@@ -1,7 +1,7 @@
 logging:
   level:
     root: INFO
-    io.kafbat: DEBUG
+    io.kafbat.ui: DEBUG
     #org.springframework.http.codec.json.Jackson2JsonEncoder: DEBUG
     #org.springframework.http.codec.json.Jackson2JsonDecoder: DEBUG
     reactor.netty.http.server.AccessLog: INFO
