@@ -14,7 +14,7 @@
     <properties>
         <maven.surefire-plugin.version>3.0.0-M8</maven.surefire-plugin.version>
         <contract>${project.version}</contract>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
         <httpcomponents.version>5.2.1</httpcomponents.version>
         <selenium.version>4.8.1</selenium.version>
         <selenide.version>6.12.3</selenide.version>
