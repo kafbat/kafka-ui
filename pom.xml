@@ -21,7 +21,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <frontend-generated-sources-directory>..//kafbat-ui-react-app/src/generated-sources
+        <frontend-generated-sources-directory>..//frontend/src/generated-sources
         </frontend-generated-sources-directory>
 
         <sonar.organization>kafbat</sonar.organization>
