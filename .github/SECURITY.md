@@ -6,16 +6,10 @@ Following versions of the project are currently being supported with security up
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.7.x   | :white_check_mark: |
-| 0.6.x   | :x:                |
-| 0.5.x   | :x:                |
-| 0.4.x   | :x:                |
-| 0.3.x   | :x:                |
-| 0.2.x   | :x:                |
-| 0.1.x   | :x:                |
+| 1.x.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-Please **DO NOT** file a publicly available github issues regarding security vulnerabilities.
+Please **DO NOT** file publicly available github issues regarding security vulnerabilities.
 Send us details via email (maintainers "at" kafbat.io).
 Consider adding something like "security vulnerability report" in the title of an email.
