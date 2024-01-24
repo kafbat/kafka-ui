@@ -4,7 +4,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '0 8 15 * *'
-  
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -48,14 +48,14 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          context: kafka-ui-api
+          context: api
           platforms: linux/amd64
           push: false
           load: true
           tags: |
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
           build-args: |
-            JAR_FILE=kafka-ui-api-${{ steps.build.outputs.version }}.jar
+            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 

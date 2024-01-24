@@ -6,7 +6,7 @@
     "topics": "github-issues, github-pull_requests, github-commits",
     "tasks.max": "1",
     "s3.region": "eu-central-1",
-    "s3.bucket.name": "kafka-ui-s3-sink-connector",
+    "s3.bucket.name": "kafbat-ui-s3-sink-connector",
     "s3.part.size": "5242880",
     "flush.size": "3",
     "storage.class": "io.confluent.connect.s3.storage.S3Storage",

@@ -16,12 +16,12 @@ services:
     volumes:
       - ./traefik:/etc/traefik
 
-  kafka-ui:
-    container_name: kafka-ui
+  kafbat-ui:
+    container_name: kafbat-ui
     image: ghcr.io/kafbat/kafka-ui:latest
     ports:
       - 8082:8080
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      SERVER_SERVLET_CONTEXT_PATH: /kafka-ui
+      SERVER_SERVLET_CONTEXT_PATH: /kafbat-ui

@@ -4,15 +4,15 @@
 # BACKEND
 /pom.xml                    @kafbat/backend
 
-/kafka-ui-contract/         @kafbat/backend
+/contract/         @kafbat/backend
 
-/kafka-ui-api/              @kafbat/backend
+/api/              @kafbat/backend
 
 # FRONTEND
-/kafka-ui-react-app/        @kafbat/frontend
+/frontend/        @kafbat/frontend
 
 # TESTS
-/kafka-ui-e2e-checks/       @kafbat/qa
+/e2e-tests/       @kafbat/qa
 
 # INFRA
 /.github/workflows/         @kafbat/devops

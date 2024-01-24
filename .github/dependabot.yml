@@ -12,7 +12,7 @@ updates:
     - "scope/backend"
     - "type/dependencies"
 - package-ecosystem: npm
-  directory: "/kafka-ui-react-app"
+  directory: "/frontend"
   schedule:
     interval: weekly
     time: "10:00"

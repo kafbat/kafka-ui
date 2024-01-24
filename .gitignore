@@ -29,7 +29,7 @@ build/
 
 ### VS Code ###
 .vscode/
-/kafka-ui-api/app/node
+/api/app/node
 
 ### SDKMAN ###
 .sdkmanrc

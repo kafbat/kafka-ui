@@ -15,7 +15,7 @@ on:
         description: 'Set Qase token to enable integration'
         required: false
         type: string
-  
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - name: Set up environment
         id: set_env_values
         run: |
-          cat "./kafka-ui-e2e-checks/.env.ci" >> "./kafka-ui-e2e-checks/.env"
+          cat "./e2e-tests/.env.ci" >> "./e2e-tests/.env"
       - name: Pull with Docker
         id: pull_chrome
         run: |
@@ -55,18 +55,18 @@ jobs:
         id: compose_app
         # use the following command until #819 will be fixed
         run: |
-          docker-compose -f kafka-ui-e2e-checks/docker/selenoid-git.yaml up -d
+          docker-compose -f e2e-tests/docker/selenoid-git.yaml up -d
           docker-compose -f ./documentation/compose/e2e-tests.yaml up -d
       - name: Run test suite
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.sha }}
-          ./mvnw -B -V -ntp -DQASEIO_API_TOKEN=${{ github.event.inputs.qase_token }} -Dsurefire.suiteXmlFiles='src/test/resources/${{ github.event.inputs.test_suite }}.xml' -Dsuite=${{ github.event.inputs.test_suite }} -f 'kafka-ui-e2e-checks' test -Pprod
+          ./mvnw -B -V -ntp -DQASEIO_API_TOKEN=${{ github.event.inputs.qase_token }} -Dsurefire.suiteXmlFiles='src/test/resources/${{ github.event.inputs.test_suite }}.xml' -Dsuite=${{ github.event.inputs.test_suite }} -f 'e2e-tests' test -Pprod
       - name: Generate Allure report
         uses: simple-elf/allure-report-action@master
         if: always()
         id: allure-report
         with:
-          allure_results: ./kafka-ui-e2e-checks/allure-results
+          allure_results: ./e2e-tests/allure-results
           gh_pages: allure-results
           allure_report: allure-report
           subfolder: allure-results

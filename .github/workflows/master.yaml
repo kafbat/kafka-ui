@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          context: kafka-ui-api
+          context: api
           platforms: linux/amd64,linux/arm64
           provenance: false
           push: true
@@ -62,7 +62,7 @@ jobs:
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
             ghcr.io/kafbat/kafka-ui:main
           build-args: |
-            JAR_FILE=kafka-ui-api-${{ steps.build.outputs.version }}.jar
+            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 #################################

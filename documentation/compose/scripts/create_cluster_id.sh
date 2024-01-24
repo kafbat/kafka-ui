@@ -1,1 +1,1 @@
-kafka-storage random-uuid > /workspace/kafka-ui/documentation/compose/clusterID
+kafka-storage random-uuid > /workspace/kafbat-ui/documentation/compose/clusterID

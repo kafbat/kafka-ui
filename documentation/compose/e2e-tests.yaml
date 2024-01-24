@@ -2,8 +2,8 @@
 version: '3.5'
 services:
 
-  kafka-ui:
-    container_name: kafka-ui
+  kafbat-ui:
+    container_name: kafbat-ui
     image: ghcr.io/kafbat/kafka-ui:latest
     ports:
       - 8080:8080
