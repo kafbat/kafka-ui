@@ -1,0 +1,95 @@
+version: "0.1"
+
+settings:
+
+maintainers:
+#  teams: [ "maintainers" ]
+  users: [ "haarolean" ]
+
+triage:
+  enabled: true
+
+  label: "status/triage"
+  remove-assignees: false
+
+  skip:
+    enabled: false
+    do-manual-triage: false
+    labels:
+      add: [ "status/triage/skipped" ]
+      remove: [ ]
+    conditions:
+      labels: [ "needs-attention", "needs-discussion" ]
+      authors:
+        teams: [ "maintainers" ]
+    comment:
+      enabled: false
+      message: "Automated triaging skipped."
+
+  manual:
+    enabled: true
+    label: "status/triage/manual"
+    labels:
+      add: []
+      remove: []
+    assign-maintainers: true
+    comment:
+      enabled: false
+      message: "Automated triaging completed. Pending human maintainer 🤖"
+
+  repeating:
+    enabled: true
+    triggers:
+      reopen: false
+      triage-labels: true
+      labels: [ "status/retriage" ]
+    only-manual: false
+
+  completed:
+    labels:
+      add: [ "status/triage/completed" ]
+      remove: []
+
+keyword-labeling:
+  enabled: true
+  case-sensitive: false
+  match-title: true
+  match-body: true
+  rules:
+    # <keyword>: <label>
+    - backend: scope/backend
+    - be: scope/backend
+    - frontend: scope/frontend
+    - fe: scope/frontend
+    - infra: scope/infrastructure
+    - bug: type/bug
+    - feature: type/feature
+    - enh: type/enhancement
+    - rbac: area/rbac
+
+feedback-management:
+  enabled: true
+  labels:
+    requested: "status/feedback-requested"
+    received: "status/feedback-received"
+  only-author-replies: false
+  assign-author: true
+  assign-maintainers: false
+  comments:
+    requested: "Further user feedback is requested. Please reply within 7 days or we might close the issue."
+    received: "Thanks for the additional feedback! We'll get back to your issue soon."
+    closed: "No feedback received within 7 days. Auto closing."
+  auto-close:
+    enabled: true
+    close-days: 7
+    labels:
+      add: [ "status/stale" ]
+      remove: [ "status/feedback-requested" ]
+
+locking:
+  enabled: false
+
+auto-rebase:
+  enabled: true
+  rebase-on-label: false
+  labels: [ "status/auto-merge" ]
