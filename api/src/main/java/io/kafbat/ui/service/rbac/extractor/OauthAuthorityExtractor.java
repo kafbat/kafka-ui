@@ -26,13 +26,19 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
 
   @Override
   public boolean isApplicable(String provider, Map<String, String> customParams) {
+    var typeMatch = OAUTH.equalsIgnoreCase(provider) || OAUTH.equalsIgnoreCase(customParams.get(TYPE));
+
+    if (!typeMatch) {
+      return false;
+    }
+
     var containsRolesFieldNameParam = customParams.containsKey(ROLES_FIELD_PARAM_NAME);
     if (!containsRolesFieldNameParam) {
       log.debug("Provider [{}] doesn't contain a roles field param name, mapping won't be performed", provider);
       return false;
     }
 
-    return OAUTH.equalsIgnoreCase(provider) || OAUTH.equalsIgnoreCase(customParams.get(TYPE));
+    return true;
   }
 
   @Override
@@ -47,11 +53,14 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    var provider = (OAuthProperties.OAuth2Provider) additionalParams.get("provider");
-    Assert.notNull(provider, "provider is null");
-    var rolesFieldName = provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME);
+    var usernameRoles = extractUsernameRoles(acs, principal);
+    var roles = extractRoles(acs, principal, additionalParams);
 
-    Set<String> rolesByUsername = acs.getRoles()
+    return Mono.just(Sets.union(usernameRoles, roles));
+  }
+
+  private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
+    return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
@@ -60,8 +69,18 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
             .anyMatch(s -> s.getValue().equals(principal.getName())))
         .map(Role::getName)
         .collect(Collectors.toSet());
+  }
 
-    Set<String> rolesByRolesField = acs.getRoles()
+  private Set<String> extractRoles(AccessControlService acs, DefaultOAuth2User principal,
+                                   Map<String, Object> additionalParams) {
+    var provider = (OAuthProperties.OAuth2Provider) additionalParams.get("provider");
+    Assert.notNull(provider, "provider is null");
+    var rolesFieldName = provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME);
+
+    var principalRoles = convertRoles(principal.getAttribute(rolesFieldName));
+    log.debug("Token's groups: [{}]", String.join(",", principalRoles));
+
+    Set<String> roles = acs.getRoles()
         .stream()
         .filter(role -> role.getSubjects()
             .stream()
@@ -69,22 +88,15 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
             .filter(s -> s.getType().equals("role"))
             .anyMatch(subject -> {
               var roleName = subject.getValue();
-              var principalRoles = convertRoles(principal.getAttribute(rolesFieldName));
-              var roleMatched = principalRoles.contains(roleName);
-
-              if (roleMatched) {
-                log.debug("Assigning role [{}] to user [{}]", roleName, principal.getName());
-              } else {
-                log.trace("Role [{}] not found in user [{}] roles", roleName, principal.getName());
-              }
-
-              return roleMatched;
+              return principalRoles.contains(roleName);
             })
         )
         .map(Role::getName)
         .collect(Collectors.toSet());
 
-    return Mono.just(Sets.union(rolesByUsername, rolesByRolesField));
+    log.debug("Matched roles: [{}]", String.join(", ", roles));
+
+    return roles;
   }
 
   @SuppressWarnings("unchecked")

@@ -3,8 +3,8 @@ version: "0.1"
 settings:
 
 maintainers:
-#  teams: [ "maintainers" ]
-  users: [ "haarolean" ]
+  teams: [ "maintainers" ]
+  users: []
 
 triage:
   enabled: true

@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,23 +37,38 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    Set<String> groupsByUsername = acs.getRoles()
+    var usernameRoles = extractUsernameRoles(acs, principal);
+    var groupRoles = extractGroupRoles(acs, principal);
+
+    return Mono.just(Sets.union(usernameRoles, groupRoles));
+  }
+
+  private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
+    Set<String> rolesByUsername = acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH_COGNITO))
             .filter(s -> s.getType().equals("user"))
-            .anyMatch(s -> s.getValue().equals(principal.getName())))
+            .anyMatch(s -> s.getValue().equalsIgnoreCase(principal.getName())))
         .map(Role::getName)
         .collect(Collectors.toSet());
 
+    log.debug("Matched user roles: [{}]", String.join(", ", rolesByUsername));
+
+    return rolesByUsername;
+  }
+
+  private Set<String> extractGroupRoles(AccessControlService acs, DefaultOAuth2User principal) {
     List<String> groups = principal.getAttribute(COGNITO_GROUPS_ATTRIBUTE_NAME);
     if (groups == null) {
       log.debug("Cognito groups param is not present");
-      return Mono.just(groupsByUsername);
+      return Collections.emptySet();
     }
 
-    Set<String> groupsByGroups = acs.getRoles()
+    log.debug("Token's groups: [{}]", String.join(",", groups));
+
+    Set<String> rolesByGroups = acs.getRoles()
         .stream()
         .filter(role -> role.getSubjects()
             .stream()
@@ -60,12 +76,14 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
             .filter(s -> s.getType().equals("group"))
             .anyMatch(subject -> groups
                 .stream()
-                .anyMatch(cognitoGroup -> cognitoGroup.equals(subject.getValue()))
+                .anyMatch(cognitoGroup -> cognitoGroup.equalsIgnoreCase(subject.getValue()))
             ))
         .map(Role::getName)
         .collect(Collectors.toSet());
 
-    return Mono.just(Sets.union(groupsByUsername, groupsByGroups));
+    log.debug("Matched group roles: [{}]", String.join(", ", rolesByGroups));
+
+    return rolesByGroups;
   }
 
 }

@@ -7,7 +7,6 @@ import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +42,8 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
 
   @Override
   public Mono<Set<String>> extract(AccessControlService acs, Object value, Map<String, Object> additionalParams) {
+    log.debug("Extracting github user authorities");
+
     DefaultOAuth2User principal;
     try {
       principal = (DefaultOAuth2User) value;
@@ -51,21 +52,7 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    Set<String> rolesByUsername = new HashSet<>();
-    String username = principal.getAttribute(USERNAME_ATTRIBUTE_NAME);
-    if (username == null) {
-      log.debug("Github username param is not present");
-    } else {
-      acs.getRoles()
-          .stream()
-          .filter(r -> r.getSubjects()
-              .stream()
-              .filter(s -> s.getProvider().equals(Provider.OAUTH_GITHUB))
-              .filter(s -> s.getType().equals("user"))
-              .anyMatch(s -> s.getValue().equals(username)))
-          .map(Role::getName)
-          .forEach(rolesByUsername::add);
-    }
+    var usernameRoles = extractUsernameRoles(principal, acs);
 
     OAuth2UserRequest req = (OAuth2UserRequest) additionalParams.get("request");
     String infoEndpoint = req.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUri();
@@ -81,13 +68,35 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
     }
     var webClient = WebClient.create(infoEndpoint);
 
-    Mono<Set<String>> rolesByOrganization = getOrganizationRoles(principal, additionalParams, acs, webClient);
-    Mono<Set<String>> rolesByTeams = getTeamRoles(webClient, additionalParams, acs);
+    Mono<Set<String>> organizationRoles = getOrganizationRoles(principal, additionalParams, acs, webClient);
+    Mono<Set<String>> teamRoles = getTeamRoles(webClient, additionalParams, acs);
 
-    return Mono.zip(rolesByOrganization, rolesByTeams)
-        .map((t) -> Stream.of(t.getT1(), t.getT2(), rolesByUsername)
+    return Mono.zip(organizationRoles, teamRoles)
+        .map((t) -> Stream.of(t.getT1(), t.getT2(), usernameRoles)
             .flatMap(Collection::stream)
             .collect(Collectors.toSet()));
+  }
+
+  private Set<String> extractUsernameRoles(DefaultOAuth2User principal, AccessControlService acs) {
+    String username = principal.getAttribute(USERNAME_ATTRIBUTE_NAME);
+    if (username == null) {
+      log.debug("Github username param is not present");
+      return Collections.emptySet();
+    }
+
+    var rolesByUsername = acs.getRoles()
+        .stream()
+        .filter(r -> r.getSubjects()
+            .stream()
+            .filter(s -> s.getProvider().equals(Provider.OAUTH_GITHUB))
+            .filter(s -> s.getType().equals("user"))
+            .anyMatch(s -> s.getValue().equals(username)))
+        .map(Role::getName)
+        .collect(Collectors.toSet());
+
+    log.debug("Matched user roles: [{}]", String.join(", ", rolesByUsername));
+
+    return rolesByUsername;
   }
 
   private Mono<Set<String>> getOrganizationRoles(DefaultOAuth2User principal, Map<String, Object> additionalParams,
