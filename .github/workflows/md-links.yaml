@@ -1,4 +1,4 @@
-name: "Infra: Docs: URL linter"
+name: "Infra: Markdown: URL linter"
 on:
   pull_request:
     types:
