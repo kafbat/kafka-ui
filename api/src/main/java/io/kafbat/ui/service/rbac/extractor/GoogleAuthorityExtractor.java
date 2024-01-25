@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,24 +37,32 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    Set<String> groupsByUsername = acs.getRoles()
+    var usernameRoles = extractUsernameRoles(acs, principal);
+    var domainRoles = extractDomainRoles(acs, principal);
+
+    return Mono.just(Sets.union(usernameRoles, domainRoles));
+  }
+
+  private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
+    return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH_GOOGLE))
             .filter(s -> s.getType().equals("user"))
-            .anyMatch(s -> s.getValue().equals(principal.getAttribute(EMAIL_ATTRIBUTE_NAME))))
+            .anyMatch(s -> s.getValue().equalsIgnoreCase(principal.getAttribute(EMAIL_ATTRIBUTE_NAME))))
         .map(Role::getName)
         .collect(Collectors.toSet());
+  }
 
-
+  private Set<String> extractDomainRoles(AccessControlService acs, DefaultOAuth2User principal) {
     String domain = principal.getAttribute(GOOGLE_DOMAIN_ATTRIBUTE_NAME);
     if (domain == null) {
       log.debug("Google domain param is not present");
-      return Mono.just(groupsByUsername);
+      return Collections.emptySet();
     }
 
-    Set<String> groupsByDomain = acs.getRoles()
+    return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
@@ -62,8 +71,6 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
             .anyMatch(s -> s.getValue().equals(domain)))
         .map(Role::getName)
         .collect(Collectors.toSet());
-
-    return Mono.just(Sets.union(groupsByUsername, groupsByDomain));
   }
 
 }
