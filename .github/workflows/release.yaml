@@ -1,7 +1,10 @@
 name: "Infra: Release"
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - infra/replace_docker_hub_images_with_github_packages
+#  release:
+#   types: [published]
 
 jobs:
   release:
@@ -67,19 +70,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Build and push
-        if: false # TODO fix for github images
-        id: docker_build_and_push
         uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
           platforms: linux/amd64,linux/arm64
-          provenance: false
+          load: false
           push: true
           tags: |
-            ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
-            ghcr.io/kafbat/kafka-ui:latest
+            ghcr.io/${{ github.repository_owner }}/kafka-ui:${{ steps.build.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/kafka-ui:latest
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
