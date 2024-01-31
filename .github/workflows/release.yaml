@@ -1,16 +1,14 @@
 name: "Infra: Release"
 on:
-  push:
-    branches:
-      - infra/replace_docker_hub_images_with_github_packages
-#  release:
-#   types: [published]
+  release:
+    types: [published]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions: # TODO remove when public
-      contents: read
+       contents: write
+       packages: write
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
