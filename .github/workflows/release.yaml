@@ -86,7 +86,7 @@ jobs:
           load: false
           push: true
           tags: |
-            ghcr.io/kafbatkafka-ui:${{ steps.build.outputs.version }}
+            ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
             ghcr.io/kafbat/kafka-ui:latest
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
