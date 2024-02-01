@@ -59,6 +59,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
     return topicCreationMono.flatMap(topicCreation -> {
       var context = AccessContext.builder()
           .cluster(clusterName)
+          .topic(topicCreation.getName())
           .topicActions(CREATE)
           .operationName("createTopic")
           .operationParams(topicCreation)
