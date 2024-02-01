@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { NOT_SET, BYTES_IN_GB } from 'lib/constants';
 import { ClusterName, TopicConfigParams, TopicName } from 'redux/interfaces';
@@ -12,6 +12,8 @@ import { StyledForm } from 'components/common/Form/Form.styled';
 import { clusterTopicPath } from 'lib/paths';
 import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
+import { ResourceType } from 'generated-sources';
+import { useGetUserInfo } from 'lib/hooks/api/roles';
 
 import CustomParams from './CustomParams/CustomParams';
 import TimeToRetain from './TimeToRetain';
@@ -70,9 +72,11 @@ const TopicForm: React.FC<Props> = ({
     reset,
   } = useFormContext();
   const navigate = useNavigate();
+  const { data } = useGetUserInfo();
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const getCleanUpPolicy =
     getCleanUpPolicyValue(cleanUpPolicy) || CleanupPolicyOptions[0].value;
+  const [topicNameValue, setTopicNameValue] = React.useState(topicName);
 
   const getRetentionBytes =
     RetentionBytesOptions.find((option: SelectOption) => {
@@ -83,6 +87,17 @@ const TopicForm: React.FC<Props> = ({
     reset();
     navigate(clusterTopicPath(clusterName, topicName));
   };
+
+  const canUpdate = useMemo(() => {
+    if (!data?.rbacEnabled) return true;
+    return !!data?.userInfo?.permissions.some((permission) => {
+      const resourceMatched = permission.resource === ResourceType.TOPIC;
+      const nameMatched = permission?.value
+        ? topicName?.match(permission?.value)
+        : false;
+      return resourceMatched && nameMatched;
+    });
+  }, [data, topicNameValue]);
 
   return (
     <StyledForm onSubmit={onSubmit} aria-label="topic form">
@@ -98,6 +113,7 @@ const TopicForm: React.FC<Props> = ({
                 placeholder="Topic Name"
                 defaultValue={topicName}
                 autoComplete="off"
+                onChange={({ target }) => setTopicNameValue(target?.value)}
               />
               <FormError>
                 <ErrorMessage errors={errors} name="name" />
@@ -262,7 +278,7 @@ const TopicForm: React.FC<Props> = ({
             type="submit"
             buttonType="primary"
             buttonSize="L"
-            disabled={!isValid || isSubmitting || !isDirty}
+            disabled={!isValid || isSubmitting || !isDirty || !canUpdate}
           >
             {isEditing ? 'Update topic' : 'Create topic'}
           </Button>
