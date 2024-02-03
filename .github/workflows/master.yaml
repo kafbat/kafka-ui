@@ -57,7 +57,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        if: false # TODO fix for github images
         id: docker_build_and_push
         uses: docker/build-push-action@v5
         with:
