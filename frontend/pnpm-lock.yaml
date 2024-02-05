@@ -192,7 +192,7 @@ devDependencies:
     version: 3.0.0(vite@4.0.5)
   dotenv:
     specifier: ^16.0.1
-    version: 16.0.1
+    version: 16.4.1
   eslint:
     specifier: ^8.3.0
     version: 8.48.0
@@ -2980,8 +2980,8 @@ packages:
       webidl-conversions: 7.0.0
     dev: true
 
-  /dotenv@16.0.1:
-    resolution: {integrity: sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==}
+  /dotenv@16.4.1:
+    resolution: {integrity: sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==}
     engines: {node: '>=12'}
     dev: true
 
