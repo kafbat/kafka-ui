@@ -10,9 +10,9 @@ import Table, { LinkCell, SizeCell } from 'components/common/NewTable';
 import CheckMarkRoundIcon from 'components/common/Icons/CheckMarkRoundIcon';
 import { ColumnDef } from '@tanstack/react-table';
 import { clusterBrokerPath } from 'lib/paths';
+import { keyBy } from 'lib/functions/keyBy';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ColoredCell from 'components/common/NewTable/ColoredCell';
-import keyBy from 'lodash/keyBy';
 
 import SkewHeader from './SkewHeader/SkewHeader';
 import * as S from './BrokersList.styled';
