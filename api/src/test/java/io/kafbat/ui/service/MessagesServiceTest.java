@@ -11,6 +11,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SeekDirectionDTO;
 import io.kafbat.ui.model.SeekTypeDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
+import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
@@ -74,16 +75,16 @@ class MessagesServiceTest extends AbstractIntegrationTest {
       producer.send(testTopic, "message2").get();
 
       Flux<TopicMessageDTO> msgsFlux = messagesService.loadMessages(
-          cluster,
-          testTopic,
-          new ConsumerPosition(SeekTypeDTO.BEGINNING, testTopic, null),
-          null,
-          null,
-          100,
-          SeekDirectionDTO.FORWARD,
-          StringSerde.name(),
-          StringSerde.name()
-      ).filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
+              cluster,
+              testTopic,
+              new ConsumerPosition(SeekTypeDTO.BEGINNING, testTopic, null),
+              null,
+              null,
+              100,
+              SeekDirectionDTO.FORWARD,
+              StringSerde.name(),
+              StringSerde.name()
+          ).filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
           .map(TopicMessageEventDTO::getMessage);
 
       // both messages should be masked
@@ -96,22 +97,27 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     }
   }
 
-  // TODO: resolve CEL null-check issue and fix the test
-  // @Test
-  // void execSmartFilterTestReturnsExecutionResult() {
-  //   var params = new SmartFilterTestExecutionDTO()
-  //       .filterCode("key != null && value != null && headers != null && timestampMs != null && offset != null")
-  //       .key("1234")
-  //       .value("{ \"some\" : \"value\" } ")
-  //       .headers(Map.of("h1", "hv1"))
-  //       .offset(12345L)
-  //       .timestampMs(System.currentTimeMillis())
-  //       .partition(1);
-  //   assertThat(execSmartFilterTest(params).getResult()).isTrue();
+  @Test
+  void execSmartFilterTestReturnsExecutionResult() {
+    var params = new SmartFilterTestExecutionDTO()
+        .filterCode("has(record.key) && has(record.value) && record.headers.size() != 0 "
+            + "&& has(record.timestampMs) && has(record.offset)")
+        .key("1234")
+        .value("{ \"some\" : \"value\" } ")
+        .headers(Map.of("h1", "hv1"))
+        .offset(12345L)
+        .timestampMs(System.currentTimeMillis())
+        .partition(1);
 
-  //   params.setFilterCode("false");
-  //   assertThat(execSmartFilterTest(params).getResult()).isFalse();
-  // }
+    var actual = execSmartFilterTest(params);
+    assertThat(actual.getError()).isNull();
+    assertThat(actual.getResult()).isTrue();
+
+    params.setFilterCode("false");
+    actual = execSmartFilterTest(params);
+    assertThat(actual.getError()).isNull();
+    assertThat(actual.getResult()).isFalse();
+  }
 
   @Test
   void execSmartFilterTestCompilesToNonBooleanExpression() {

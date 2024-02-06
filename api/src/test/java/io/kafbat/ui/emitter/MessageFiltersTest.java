@@ -69,28 +69,28 @@ class MessageFiltersTest {
 
     @Test
     void canCheckPartition() {
-      var f = celScriptFilter("partition == 1");
+      var f = celScriptFilter("record.partition == 1");
       assertTrue(f.test(msg().partition(1)));
       assertFalse(f.test(msg().partition(0)));
     }
 
     @Test
     void canCheckOffset() {
-      var f = celScriptFilter("offset == 100");
+      var f = celScriptFilter("record.offset == 100");
       assertTrue(f.test(msg().offset(100L)));
       assertFalse(f.test(msg().offset(200L)));
     }
 
     @Test
     void canCheckHeaders() {
-      var f = celScriptFilter("headers.size() == 2 && headers['k1'] == 'v1'");
+      var f = celScriptFilter("record.headers.size() == 2 && record.headers['k1'] == 'v1'");
       assertTrue(f.test(msg().headers(Map.of("k1", "v1", "k2", "v2"))));
       assertFalse(f.test(msg().headers(Map.of("k1", "unexpected", "k2", "v2"))));
 
-      f = celScriptFilter("headers.size() == 1 && !has(headers.k1)");
+      f = celScriptFilter("record.headers.size() == 1 && !has(record.headers.k1) && record.headers['k2'] == 'v2'");
       assertTrue(f.test(msg().headers(Map.of("k2", "v2"))));
 
-      f = celScriptFilter("headers.size() == 0");
+      f = celScriptFilter("!has(record.headers) || record.headers.size() == 0");
       assertTrue(f.test(msg().headers(Map.of())));
       assertTrue(f.test(msg()));
     }
@@ -98,28 +98,28 @@ class MessageFiltersTest {
     @Test
     void canCheckTimestampMs() {
       var ts = OffsetDateTime.now();
-      var f = celScriptFilter("timestampMs == " + ts.toInstant().toEpochMilli());
+      var f = celScriptFilter("record.timestampMs == " + ts.toInstant().toEpochMilli());
       assertTrue(f.test(msg().timestamp(ts)));
       assertFalse(f.test(msg().timestamp(ts.plus(1L, ChronoUnit.SECONDS))));
     }
 
     @Test
     void canCheckValueAsText() {
-      var f = celScriptFilter("valueAsText == 'some text'");
+      var f = celScriptFilter("record.valueAsText == 'some text'");
       assertTrue(f.test(msg().content("some text")));
       assertFalse(f.test(msg().content("some other text")));
     }
 
     @Test
     void canCheckKeyAsText() {
-      var f = celScriptFilter("keyAsText == 'some text'");
+      var f = celScriptFilter("record.keyAsText == 'some text'");
       assertTrue(f.test(msg().key("some text")));
       assertFalse(f.test(msg().key("some other text")));
     }
 
     @Test
     void canCheckKeyAsJsonObjectIfItCanBeParsedToJson() {
-      var f = celScriptFilter("has(key.name.first) && key.name.first == 'user1'");
+      var f = celScriptFilter("has(record.key.name.first) && record.key.name.first == 'user1'");
       assertTrue(f.test(msg().key("{ \"name\" : { \"first\" : \"user1\" } }")));
       assertFalse(f.test(msg().key("{ \"name\" : { \"first\" : \"user2\" } }")));
       assertFalse(f.test(msg().key("{ \"name\" : { \"second\" : \"user2\" } }")));
@@ -127,22 +127,22 @@ class MessageFiltersTest {
 
     @Test
     void keySetToKeyStringIfCantBeParsedToJson() {
-      var f = celScriptFilter("key == \"not json\"");
+      var f = celScriptFilter("has(record.keyAsText) && record.keyAsText == 'not json' && record.key == 'not json'");
       assertTrue(f.test(msg().key("not json")));
     }
 
     @Test
     void keyAndKeyAsTextSetToNullIfRecordsKeyIsNull() {
-      var f = celScriptFilter("key.size() == 0");
+      var f = celScriptFilter("!has(record.key)");
       assertTrue(f.test(msg().key(null)));
 
-      f = celScriptFilter("keyAsText.size() == 0");
+      f = celScriptFilter("!has(record.keyAsText)");
       assertTrue(f.test(msg().key(null)));
     }
 
     @Test
     void canCheckValueAsJsonObjectIfItCanBeParsedToJson() {
-      var f = celScriptFilter("has(value.name.first) && value.name.first == 'user1'");
+      var f = celScriptFilter("has(record.value.name.first) && record.value.name.first == 'user1'");
       assertTrue(f.test(msg().content("{ \"name\" : { \"first\" : \"user1\" } }")));
       assertFalse(f.test(msg().content("{ \"name\" : { \"first\" : \"user2\" } }")));
       assertFalse(f.test(msg().content("{ \"name\" : { \"second\" : \"user2\" } }")));
@@ -150,22 +150,22 @@ class MessageFiltersTest {
 
     @Test
     void valueSetToContentStringIfCantBeParsedToJson() {
-      var f = celScriptFilter("value == \"not json\"");
+      var f = celScriptFilter("record.value == \"not json\"");
       assertTrue(f.test(msg().content("not json")));
     }
 
     @Test
     void valueAndValueAsTextSetToNullIfRecordsContentIsNull() {
-      var f = celScriptFilter("value.size() == 0");
+      var f = celScriptFilter("!has(record.value)");
       assertTrue(f.test(msg().content(null)));
 
-      f = celScriptFilter("valueAsText.size() == 0");
+      f = celScriptFilter("!has(record.valueAsText)");
       assertTrue(f.test(msg().content(null)));
     }
 
     @Test
     void filterSpeedIsAtLeast5kPerSec() {
-      var f = celScriptFilter("value.name.first == 'user1' && keyAsText.startsWith('a') ");
+      var f = celScriptFilter("record.value.name.first == 'user1' && record.keyAsText.startsWith('a') ");
 
       List<TopicMessageDTO> toFilter = new ArrayList<>();
       for (int i = 0; i < 5_000; i++) {
