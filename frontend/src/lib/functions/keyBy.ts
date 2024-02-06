@@ -1,18 +1,21 @@
-type PropertyExtractorByKey<A, K extends keyof A> = {
-  [P in A[K] as A[K] extends PropertyKey ? A[K] : never]: A;
+type AvailableKeys<A extends object> = keyof {
+  [P in keyof A as A[P] extends PropertyKey ? P : never]: unknown;
 };
 
-export function keyBy<
-  A extends object,
-  K extends keyof {
-    [P in keyof A as A[P] extends PropertyKey ? P : never]: unknown;
-  }
->(collection: A[] | undefined | null, property: K) {
+export function keyBy<A extends object, K extends AvailableKeys<A>>(
+  collection: A[] | undefined | null,
+  property: K
+) {
   if (collection === undefined || collection === null) {
-    return {} as PropertyExtractorByKey<A, K>;
+    return {} as Record<PropertyKey, A>;
   }
 
-  return collection.reduce((acc, cur) => {
-    return { ...acc, [cur[property] as unknown as PropertyKey]: cur };
-  }, {} as PropertyExtractorByKey<A, K>);
+  return collection.reduce<Record<PropertyKey, A>>((acc, cur) => {
+    const key = cur[property] as unknown as PropertyKey;
+
+    // eslint-disable-next-line no-param-reassign
+    acc[key] = cur;
+
+    return acc;
+  }, {});
 }
