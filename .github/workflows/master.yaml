@@ -78,7 +78,6 @@ jobs:
 #                               #
 #################################
       - name: update-master-deployment
-        if: false # TODO remove after infra fix
         run: |
           git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch main
           cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
