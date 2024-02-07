@@ -83,7 +83,6 @@ jobs:
           context: api
           platforms: linux/amd64,linux/arm64
           provenance: false
-          load: false
           push: true
           tags: |
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
