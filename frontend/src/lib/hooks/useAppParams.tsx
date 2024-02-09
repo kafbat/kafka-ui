@@ -5,11 +5,15 @@ export default function useAppParams<
   T extends { [K in keyof Params]?: string }
 >() {
   const params = useParams<T>() as T;
-  
-  const hasClusterName = (params: T): params is T & ClusterNameRoute => typeof params.clusterName !== "undefined"
+
+  const hasClusterName = (
+    checkingParams: T
+  ): checkingParams is T & ClusterNameRoute =>
+    typeof checkingParams.clusterName !== 'undefined';
+
   if (hasClusterName(params)) {
-    params.clusterName = decodeURIComponent(params.clusterName)
+    params.clusterName = decodeURIComponent(params.clusterName);
   }
-  
-  return params
+
+  return params;
 }

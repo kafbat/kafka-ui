@@ -24,7 +24,12 @@ export const accessErrorPage = '/403';
 
 export const clusterPath = (
   clusterName: ClusterName = RouteParams.clusterName
-) => `/ui/clusters/${clusterName === RouteParams.clusterName ? clusterName : encodeURIComponent(clusterName)}`;
+) =>
+  `/ui/clusters/${
+    clusterName === RouteParams.clusterName
+      ? clusterName
+      : encodeURIComponent(clusterName)
+  }`;
 
 export type ClusterNameRoute = { clusterName: ClusterName };
 
