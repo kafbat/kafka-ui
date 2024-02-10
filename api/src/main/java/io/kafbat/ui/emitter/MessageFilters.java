@@ -56,7 +56,7 @@ public class MessageFilters {
         || StringUtils.contains(msg.getContent(), string);
   }
 
-  static Predicate<TopicMessageDTO> celScriptFilter(String script) {
+  public static Predicate<TopicMessageDTO> celScriptFilter(String script) {
     CelValidationResult celValidationResult = CEL_COMPILER.compile(script);
     if (celValidationResult.hasError()) {
       throw new CelException(script, celValidationResult.getErrorString());

@@ -100,10 +100,7 @@ public class MessagesService {
   public static SmartFilterTestExecutionResultDTO execSmartFilterTest(SmartFilterTestExecutionDTO execData) {
     Predicate<TopicMessageDTO> predicate;
     try {
-      predicate = MessageFilters.createMsgFilter(
-          execData.getFilterCode(),
-          MessageFilterTypeDTO.CEL_SCRIPT
-      );
+      predicate = MessageFilters.celScriptFilter(execData.getFilterCode());
     } catch (Exception e) {
       log.info("Smart filter '{}' compilation error", execData.getFilterCode(), e);
       return new SmartFilterTestExecutionResultDTO()
@@ -332,7 +329,7 @@ public class MessagesService {
         .toString()
         .substring(0, 8);
     if (registeredFilters.getIfPresent(filterId) == null) {
-      registeredFilters.put(filterId, MessageFilters.celFilter(celCode));
+      registeredFilters.put(filterId, MessageFilters.celScriptFilter(celCode));
     }
     return filterId;
   }
