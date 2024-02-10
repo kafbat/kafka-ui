@@ -2,7 +2,6 @@ package io.kafbat.ui.emitter;
 
 import groovy.json.JsonSlurper;
 import io.kafbat.ui.exception.ValidationException;
-import io.kafbat.ui.model.MessageFilterTypeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -22,23 +21,16 @@ public class MessageFilters {
   private MessageFilters() {
   }
 
-  public static Predicate<TopicMessageDTO> createMsgFilter(String query, MessageFilterTypeDTO type) {
-    switch (type) {
-      case STRING_CONTAINS:
-        return containsStringFilter(query);
-      case GROOVY_SCRIPT:
-        return groovyScriptFilter(query);
-      default:
-        throw new IllegalStateException("Unknown query type: " + type);
-    }
+  public static Predicate<TopicMessageDTO> noop() {
+    return e -> true;
   }
 
-  static Predicate<TopicMessageDTO> containsStringFilter(String string) {
+  public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
     return msg -> StringUtils.contains(msg.getKey(), string)
         || StringUtils.contains(msg.getContent(), string);
   }
 
-  static Predicate<TopicMessageDTO> groovyScriptFilter(String script) {
+  public static Predicate<TopicMessageDTO> groovyScriptFilter(String script) {
     var engine = getGroovyEngine();
     var compiledScript = compileScript(engine, script);
     var jsonSlurper = new JsonSlurper();
