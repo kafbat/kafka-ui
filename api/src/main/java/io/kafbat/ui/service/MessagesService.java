@@ -100,7 +100,10 @@ public class MessagesService {
   public static SmartFilterTestExecutionResultDTO execSmartFilterTest(SmartFilterTestExecutionDTO execData) {
     Predicate<TopicMessageDTO> predicate;
     try {
-      predicate = MessageFilters.groovyScriptFilter(execData.getFilterCode());
+      predicate = MessageFilters.createMsgFilter(
+          execData.getFilterCode(),
+          MessageFilterTypeDTO.CEL_SCRIPT
+      );
     } catch (Exception e) {
       log.info("Smart filter '{}' compilation error", execData.getFilterCode(), e);
       return new SmartFilterTestExecutionResultDTO()
@@ -322,14 +325,14 @@ public class MessagesService {
         .orElse(defaultPageSize);
   }
 
-  public String registerMessageFilter(String groovyCode) {
-    String saltedCode = groovyCode + SALT_FOR_HASHING;
+  public String registerMessageFilter(String celCode) {
+    String saltedCode = celCode + SALT_FOR_HASHING;
     String filterId = Hashing.sha256()
         .hashString(saltedCode, Charsets.UTF_8)
         .toString()
         .substring(0, 8);
     if (registeredFilters.getIfPresent(filterId) == null) {
-      registeredFilters.put(filterId, MessageFilters.groovyScriptFilter(groovyCode));
+      registeredFilters.put(filterId, MessageFilters.celFilter(celCode));
     }
     return filterId;
   }

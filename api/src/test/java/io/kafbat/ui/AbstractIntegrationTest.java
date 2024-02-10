@@ -33,7 +33,10 @@ public abstract class AbstractIntegrationTest {
   public static final String LOCAL = "local";
   public static final String SECOND_LOCAL = "secondLocal";
 
-  private static final String CONFLUENT_PLATFORM_VERSION = "7.2.1"; // Append ".arm64" for a local run
+  private static final boolean IS_ARM =
+      System.getProperty("os.arch").contains("arm") || System.getProperty("os.arch").contains("aarch64");
+
+  private static final String CONFLUENT_PLATFORM_VERSION = IS_ARM ? "7.2.1.arm64" : "7.2.1";
 
   public static final KafkaContainer kafka = new KafkaContainer(
       DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
@@ -71,7 +74,8 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.0.name", LOCAL);
       System.setProperty("kafka.clusters.0.bootstrapServers", kafka.getBootstrapServers());
       // List unavailable hosts to verify failover
-      System.setProperty("kafka.clusters.0.schemaRegistry", String.format("http://localhost:%1$s,http://localhost:%1$s,%2$s",
+      System.setProperty("kafka.clusters.0.schemaRegistry",
+          String.format("http://localhost:%1$s,http://localhost:%1$s,%2$s",
               TestSocketUtils.findAvailableTcpPort(), schemaRegistry.getUrl()));
       System.setProperty("kafka.clusters.0.kafkaConnect.0.name", "kafka-connect");
       System.setProperty("kafka.clusters.0.kafkaConnect.0.userName", "kafka-connect");
