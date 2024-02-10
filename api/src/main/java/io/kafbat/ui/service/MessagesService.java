@@ -88,7 +88,7 @@ public class MessagesService {
     try {
       predicate = MessageFilters.createMsgFilter(
           execData.getFilterCode(),
-          MessageFilterTypeDTO.GROOVY_SCRIPT
+          MessageFilterTypeDTO.CEL_SCRIPT
       );
     } catch (Exception e) {
       log.info("Smart filter '{}' compilation error", execData.getFilterCode(), e);
