@@ -814,7 +814,6 @@ paths:
         - name: mode
           in: query
           description: Messages polling mode
-          required: true
           schema:
             $ref: "#/components/schemas/PollingMode"
         - name: partitions
@@ -863,7 +862,7 @@ paths:
             type: string
         - name: cursor
           in: query
-          description: "id of the cursor for pagination"
+          description: "id of the cursor for pagination, if passed - all other query params ignored"
           schema:
             type: string
       responses:
@@ -2897,6 +2896,8 @@ components:
             - PHASE
             - MESSAGE
             - CONSUMING
+            # if event type == DONE && cursor field is null -> topic was fully polled and ui should stop calling get messages,
+            # otherwise ui should pass cursor param to continue polling
             - DONE
         message:
           $ref: "#/components/schemas/TopicMessage"

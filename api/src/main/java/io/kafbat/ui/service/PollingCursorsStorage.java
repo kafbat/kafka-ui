@@ -20,7 +20,6 @@ public class PollingCursorsStorage {
       .maximumSize(MAX_SIZE)
       .build();
 
-
   public Cursor.Tracking createNewCursor(ConsumerRecordDeserializer deserializer,
                                          ConsumerPosition originalPosition,
                                          Predicate<TopicMessageDTO> filter,
