@@ -111,8 +111,8 @@ class CursorTest extends AbstractIntegrationTest {
     List<TopicMessageEventDTO> events = Flux.create(emitter)
         .collectList()
         .block();
-   assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE).count())
-       .isEqualTo(expectedMsgsCnt);
+    assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE).count())
+        .isEqualTo(expectedMsgsCnt);
   }
 
   private BackwardEmitter createBackwardEmitter(ConsumerPosition position) {
