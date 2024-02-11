@@ -1,9 +1,9 @@
 package io.kafbat.ui.controller;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_PRODUCE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
-import static java.util.stream.Collectors.toMap;
 
 import io.kafbat.ui.api.MessagesApi;
 import io.kafbat.ui.exception.ValidationException;
@@ -123,7 +123,7 @@ public class MessagesController extends AbstractController implements MessagesAp
       messagesFlux = messagesService.loadMessages(
           getCluster(clusterName),
           topicName,
-          ConsumerPosition.create(mode, topicName, partitions, timestamp, offset),
+          ConsumerPosition.create(checkNotNull(mode), checkNotNull(topicName), partitions, timestamp, offset),
           stringFilter,
           smartFilterId,
           limit,
