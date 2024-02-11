@@ -26,7 +26,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
+
 
 class CursorTest extends AbstractIntegrationTest {
 
@@ -55,7 +55,7 @@ class CursorTest extends AbstractIntegrationTest {
   void backwardEmitter() {
     var consumerPosition = new ConsumerPosition(PollingModeDTO.LATEST, TOPIC, List.of(), null, null);
     var emitter = createBackwardEmitter(consumerPosition);
-    emitMessages(emitter, PAGE_SIZE);
+    waitMgsgEmitted(emitter, PAGE_SIZE);
     var cursor = assertCursor(
         PollingModeDTO.TO_OFFSET,
         offsets -> assertThat(offsets)
@@ -65,7 +65,7 @@ class CursorTest extends AbstractIntegrationTest {
 
     // polling remaining records using registered cursor
     emitter = createBackwardEmitterWithCursor(cursor);
-    emitMessages(emitter, MSGS_IN_PARTITION - PAGE_SIZE);
+    waitMgsgEmitted(emitter, MSGS_IN_PARTITION - PAGE_SIZE);
     //checking no new cursors registered
     assertThat(cursorsStorage.asMap()).hasSize(1).containsValue(cursor);
   }
@@ -74,7 +74,7 @@ class CursorTest extends AbstractIntegrationTest {
   void forwardEmitter() {
     var consumerPosition = new ConsumerPosition(PollingModeDTO.EARLIEST, TOPIC, List.of(), null, null);
     var emitter = createForwardEmitter(consumerPosition);
-    emitMessages(emitter, PAGE_SIZE);
+    waitMgsgEmitted(emitter, PAGE_SIZE);
     var cursor = assertCursor(
         PollingModeDTO.FROM_OFFSET,
         offsets -> assertThat(offsets)
@@ -84,7 +84,7 @@ class CursorTest extends AbstractIntegrationTest {
 
     //polling remaining records using registered cursor
     emitter = createForwardEmitterWithCursor(cursor);
-    emitMessages(emitter, MSGS_IN_PARTITION - PAGE_SIZE);
+    waitMgsgEmitted(emitter, MSGS_IN_PARTITION - PAGE_SIZE);
     //checking no new cursors registered
     assertThat(cursorsStorage.asMap()).hasSize(1).containsValue(cursor);
   }
@@ -107,14 +107,12 @@ class CursorTest extends AbstractIntegrationTest {
     return registeredCursor;
   }
 
-  private void emitMessages(AbstractEmitter emitter, int expectedCnt) {
-    StepVerifier.create(
-            Flux.create(emitter)
-                .filter(e -> e.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-                .map(e -> e.getMessage().getContent())
-        )
-        .expectNextCount(expectedCnt)
-        .verifyComplete();
+  private void waitMgsgEmitted(AbstractEmitter emitter, int expectedMsgsCnt) {
+    List<TopicMessageEventDTO> events = Flux.create(emitter)
+        .collectList()
+        .block();
+   assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE).count())
+       .isEqualTo(expectedMsgsCnt);
   }
 
   private BackwardEmitter createBackwardEmitter(ConsumerPosition position) {
