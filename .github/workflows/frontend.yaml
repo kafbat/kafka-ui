@@ -2,13 +2,15 @@ name: "Frontend: PR/main build & test"
 on:
   push:
     branches: [ "main" ]
-    paths: &frontend_paths
+    paths:
       - "contract/**"
       - "frontend/**"
 
   pull_request_target:
     types: [ "opened", "reopened", "synchronize" ]
-    paths: *frontend_paths
+    paths:
+      - "contract/**"
+      - "frontend/**"
 
 jobs:
   build-and-test:

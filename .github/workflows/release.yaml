@@ -1,14 +1,14 @@
 name: "Infra: Release"
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions: # TODO remove when public
-       contents: write
-       packages: write
+      contents: write
+      packages: write
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
@@ -49,11 +49,11 @@ jobs:
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
-#################
-#               #
-# Docker images #
-#               #
-#################
+      #################
+      #               #
+      # Docker images #
+      #               #
+      #################
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
