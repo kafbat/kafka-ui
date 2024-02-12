@@ -28,7 +28,7 @@
     "pretty-ms": "7.0.1",
     "react": "^18.1.0",
     "react-ace": "^10.1.0",
-    "react-datepicker": "^4.10.0",
+    "react-datepicker": "^6.1.0",
     "react-dom": "^18.1.0",
     "react-error-boundary": "^3.1.4",
     "react-hook-form": "7.43.1",
