@@ -8,8 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
+    permissions: 
+       contents: read # TODO remove when public
        packages: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
