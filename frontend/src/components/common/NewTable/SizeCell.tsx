@@ -6,7 +6,7 @@ import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 type AsAny = any;
 
 const SizeCell: React.FC<
-  CellContext<AsAny, unknown> & { renderSegments?: boolean; precision?: number }
+  CellContext<AsAny, AsAny> & { renderSegments?: boolean; precision?: number }
 > = ({ getValue, row, renderSegments = false, precision = 0 }) => (
   <>
     <BytesFormatted value={getValue<string | number>()} precision={precision} />
