@@ -45,7 +45,7 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
 
       - name: Archive JAR
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
