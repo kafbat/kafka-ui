@@ -6,16 +6,39 @@ import Search from 'components/common/Search/Search';
 import * as Metrics from 'components/common/Metrics';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import { ActionButton } from 'components/common/ActionComponent';
+import Tooltip from 'components/common/Tooltip/Tooltip';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { Action, ConnectorState, ResourceType } from 'generated-sources';
-import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
 
 import List from './List';
+
+interface CreateConnectorButtonProps {
+  disabled?: boolean;
+}
+
+const CreateConnectorButton: React.FC<CreateConnectorButtonProps> = ({
+  disabled = false,
+}) => (
+  <ActionButton
+    buttonType="primary"
+    buttonSize="M"
+    disabled={disabled}
+    to={clusterConnectorNewRelativePath}
+    permission={{
+      resource: ResourceType.CONNECT,
+      action: Action.CREATE,
+    }}
+  >
+    Create Connector
+  </ActionButton>
+);
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { data: connects = [] } = useConnects(clusterName);
 
   // Fetches all connectors from the API, without search criteria. Used to display general metrics.
   const { data: connectorsMetrics, isLoading } = useConnectors(clusterName);
@@ -32,19 +55,16 @@ const ListPage: React.FC = () => {
   return (
     <>
       <PageHeading text="Connectors">
-        {!isReadOnly && (
-          <ActionButton
-            buttonType="primary"
-            buttonSize="M"
-            to={clusterConnectorNewRelativePath}
-            permission={{
-              resource: ResourceType.CONNECT,
-              action: Action.CREATE,
-            }}
-          >
-            Create Connector
-          </ActionButton>
-        )}
+        {!isReadOnly &&
+          (connects && connects.length > 0 ? (
+            <CreateConnectorButton />
+          ) : (
+            <Tooltip
+              value={<CreateConnectorButton disabled />}
+              content="No connects available"
+              placement="left"
+            />
+          ))}
       </PageHeading>
       <Metrics.Wrapper>
         <Metrics.Section>
