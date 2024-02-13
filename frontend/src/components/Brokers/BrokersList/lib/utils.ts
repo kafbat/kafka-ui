@@ -16,12 +16,16 @@ type GetBrokersTableRowsParams = {
   brokers: Broker[] | undefined;
   diskUsage: BrokerDiskUsage[] | undefined;
   activeControllers: number | undefined;
+  onlinePartitionCount: number | undefined;
+  offlinePartitionCount: number | undefined;
 };
 
 export const getBrokersTableRows = ({
   brokers = [],
   diskUsage = [],
   activeControllers,
+  onlinePartitionCount,
+  offlinePartitionCount,
 }: GetBrokersTableRowsParams): BrokersTableRow[] => {
   const brokersResource = diskUsage.length
     ? diskUsage
@@ -39,7 +43,8 @@ export const getBrokersTableRows = ({
       partitionsLeader: broker?.partitionsLeader,
       partitionsSkew: broker?.partitionsSkew,
       leadersSkew: broker?.leadersSkew,
-      inSyncPartitions: broker?.inSyncPartitions ?? 0,
+      onlinePartitionCount: onlinePartitionCount ?? 0,
+      offlinePartitionCount: offlinePartitionCount ?? 0,
       activeControllers,
     };
   });
@@ -66,7 +71,7 @@ export const getBrokersTableColumns = () => {
       header: 'Leader skew',
       cell: Cell.Skew,
     }),
-    columnHelper.accessor('inSyncPartitions', {
+    columnHelper.accessor('onlinePartitionCount', {
       header: 'Online partitions',
       cell: Cell.OnlinePartitions,
     }),
