@@ -13,6 +13,13 @@ updates:
   labels:
     - "type/dependencies"
     - "scope/backend"
+  groups:
+    backend:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
 
 - package-ecosystem: npm
   directory: "/frontend"
@@ -27,6 +34,13 @@ updates:
   labels:
     - "type/dependencies"
     - "scope/frontend"
+  groups:
+    dev-dependencies:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
 
 - package-ecosystem: "github-actions"
   directory: "/"
