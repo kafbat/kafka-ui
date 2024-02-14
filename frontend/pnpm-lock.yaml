@@ -78,8 +78,8 @@ dependencies:
     specifier: ^10.1.0
     version: 10.1.0(react-dom@18.1.0)(react@18.2.0)
   react-datepicker:
-    specifier: ^6.1.0
-    version: 6.1.0(react-dom@18.1.0)(react@18.2.0)
+    specifier: ^4.10.0
+    version: 4.10.0(react-dom@18.1.0)(react@18.2.0)
   react-dom:
     specifier: ^18.1.0
     version: 18.1.0(react@18.2.0)
@@ -909,13 +909,6 @@ packages:
       '@floating-ui/core': 1.2.1
     dev: false
 
-  /@floating-ui/dom@1.6.3:
-    resolution: {integrity: sha512-RnDthu3mzPlQ31Ss/BTwQ1zjzIhr3lk1gZB1OC56h/1vEtaXkESrOqL5fQVMfXpwGtRwX+YsZBdyHtJMQnkArw==}
-    dependencies:
-      '@floating-ui/core': 1.2.1
-      '@floating-ui/utils': 0.2.1
-    dev: false
-
   /@floating-ui/react-dom@1.3.0(react-dom@18.1.0)(react@18.2.0):
     resolution: {integrity: sha512-htwHm67Ji5E/pROEAr7f8IKFShuiCKHwUC/UY4vC3I5jiSvGFAYnSYiZO5MlGmads+QqvUkR9ANHEguGrDv72g==}
     peerDependencies:
@@ -923,17 +916,6 @@ packages:
       react-dom: '>=16.8.0'
     dependencies:
       '@floating-ui/dom': 1.2.1
-      react: 18.2.0
-      react-dom: 18.1.0(react@18.2.0)
-    dev: false
-
-  /@floating-ui/react-dom@2.0.8(react-dom@18.1.0)(react@18.2.0):
-    resolution: {integrity: sha512-HOdqOt3R3OGeTKidaLvJKcgg75S6tibQ3Tif4eyd91QnIJWr0NLvoXFpJA/j8HqkFSL68GDca9AuyWEHlhyClw==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      '@floating-ui/dom': 1.6.3
       react: 18.2.0
       react-dom: 18.1.0(react@18.2.0)
     dev: false
@@ -951,23 +933,6 @@ packages:
       tabbable: 6.1.1
     transitivePeerDependencies:
       - '@types/react'
-    dev: false
-
-  /@floating-ui/react@0.26.9(react-dom@18.1.0)(react@18.2.0):
-    resolution: {integrity: sha512-p86wynZJVEkEq2BBjY/8p2g3biQ6TlgT4o/3KgFKyTWoJLU1GZ8wpctwRqtkEl2tseYA+kw7dBAIDFcednfI5w==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      '@floating-ui/react-dom': 2.0.8(react-dom@18.1.0)(react@18.2.0)
-      '@floating-ui/utils': 0.2.1
-      react: 18.2.0
-      react-dom: 18.1.0(react@18.2.0)
-      tabbable: 6.1.1
-    dev: false
-
-  /@floating-ui/utils@0.2.1:
-    resolution: {integrity: sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==}
     dev: false
 
   /@hookform/error-message@2.0.1(react-dom@18.1.0)(react-hook-form@7.43.1)(react@18.2.0):
@@ -1450,7 +1415,6 @@ packages:
 
   /@popperjs/core@2.9.2:
     resolution: {integrity: sha512-VZMYa7+fXHdwIq1TDhSXoVmSPEGM/aa+6Aiq3nVVJ9bXr24zScr+NlKFKC3iPljA7ho/GAZr+d2jOf5GIRC30Q==}
-    dev: true
 
   /@reduxjs/toolkit@1.8.3(react-redux@8.0.2)(react@18.2.0):
     resolution: {integrity: sha512-lU/LDIfORmjBbyDLaqFN2JB9YmAT1BElET9y0ZszwhSBa5Ef3t6o5CrHupw5J1iOXwd+o92QfQZ8OJpwXvsssg==}
@@ -2887,11 +2851,6 @@ packages:
   /date-fns@2.27.0:
     resolution: {integrity: sha512-sj+J0Mo2p2X1e306MHq282WS4/A8Pz/95GIFcsPNMPMZVI3EUrAdSv90al1k+p74WGLCruMXk23bfEDZa71X9Q==}
     engines: {node: '>=0.11'}
-    dev: true
-
-  /date-fns@3.3.1:
-    resolution: {integrity: sha512-y8e109LYGgoQDveiEBD3DYXKba1jWf5BA8YU1FL5Tvm0BTdEfy54WLCwnuYWZNnzzvALy/QQ4Hov+Q9RVRv+Zw==}
-    dev: false
 
   /debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -5747,19 +5706,20 @@ packages:
       react-dom: 18.1.0(react@18.2.0)
     dev: false
 
-  /react-datepicker@6.1.0(react-dom@18.1.0)(react@18.2.0):
-    resolution: {integrity: sha512-8uz+hAOpvHqZGvD4Ky1hJ0/tLI4S9B0Gu9LV7LtLxRKXODs/xrxEay0aMVp7AW9iizTeImZh/6aA00fFaRZpJw==}
+  /react-datepicker@4.10.0(react-dom@18.1.0)(react@18.2.0):
+    resolution: {integrity: sha512-6IfBCZyWj54ZZGLmEZJ9c4Yph0s9MVfEGDC2evOvf9AmVz+RRcfP2Czqad88Ff9wREbcbqa4dk7IFYeXF1d3Ag==}
     peerDependencies:
       react: ^16.9.0 || ^17 || ^18
       react-dom: ^16.9.0 || ^17 || ^18
     dependencies:
-      '@floating-ui/react': 0.26.9(react-dom@18.1.0)(react@18.2.0)
+      '@popperjs/core': 2.9.2
       classnames: 2.3.1
-      date-fns: 3.3.1
+      date-fns: 2.27.0
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.1.0(react@18.2.0)
-      react-onclickoutside: 6.13.0(react-dom@18.1.0)(react@18.2.0)
+      react-onclickoutside: 6.12.2(react-dom@18.1.0)(react@18.2.0)
+      react-popper: 2.3.0(@popperjs/core@2.9.2)(react-dom@18.1.0)(react@18.2.0)
     dev: false
 
   /react-dom@18.1.0(react@18.2.0):
@@ -5783,7 +5743,6 @@ packages:
 
   /react-fast-compare@3.2.0:
     resolution: {integrity: sha512-rtGImPZ0YyLrscKI9xTpV8psd6I8VAtjKCzQDlzyDvqJA8XOW78TXYQwNRNd8g8JZnDu8q9Fu/1v4HPAVwVdHA==}
-    dev: true
 
   /react-hook-form@7.43.1(react@18.2.0):
     resolution: {integrity: sha512-+s3+s8LLytRMriwwuSqeLStVjRXFGxgjjx2jED7Z+wz1J/88vpxieRQGvJVvzrzVxshZ0BRuocFERb779m2kNg==}
@@ -5827,8 +5786,8 @@ packages:
       react-dom: 18.1.0(react@18.2.0)
     dev: false
 
-  /react-onclickoutside@6.13.0(react-dom@18.1.0)(react@18.2.0):
-    resolution: {integrity: sha512-ty8So6tcUpIb+ZE+1HAhbLROvAIJYyJe/1vRrrcmW+jLsaM+/powDRqxzo6hSh9CuRZGSL1Q8mvcF5WRD93a0A==}
+  /react-onclickoutside@6.12.2(react-dom@18.1.0)(react@18.2.0):
+    resolution: {integrity: sha512-NMXGa223OnsrGVp5dJHkuKxQ4czdLmXSp5jSV9OqiCky9LOpPATn3vLldc+q5fK3gKbEHvr7J1u0yhBh/xYkpA==}
     peerDependencies:
       react: ^15.5.x || ^16.x || ^17.x || ^18.x
       react-dom: ^15.5.x || ^16.x || ^17.x || ^18.x
@@ -5848,6 +5807,20 @@ packages:
       react-fast-compare: 3.2.0
       warning: 4.0.3
     dev: true
+
+  /react-popper@2.3.0(@popperjs/core@2.9.2)(react-dom@18.1.0)(react@18.2.0):
+    resolution: {integrity: sha512-e1hj8lL3uM+sgSR4Lxzn5h1GxBlpa4CQz0XLF8kx4MDrDRWY0Ena4c97PUeSX9i5W3UAfDP0z0FXCTQkoXUl3Q==}
+    peerDependencies:
+      '@popperjs/core': ^2.0.0
+      react: ^16.8.0 || ^17 || ^18
+      react-dom: ^16.8.0 || ^17 || ^18
+    dependencies:
+      '@popperjs/core': 2.9.2
+      react: 18.2.0
+      react-dom: 18.1.0(react@18.2.0)
+      react-fast-compare: 3.2.0
+      warning: 4.0.3
+    dev: false
 
   /react-redux@8.0.2(@types/react-dom@18.0.5)(@types/react@18.2.21)(react-dom@18.1.0)(react@18.2.0)(redux@4.2.0):
     resolution: {integrity: sha512-nBwiscMw3NoP59NFCXFf02f8xdo+vSHT/uZ1ldDwF7XaTpzm+Phk97VT4urYBl5TYAPNVaFm12UHAEyzkpNzRA==}
@@ -6844,7 +6817,6 @@ packages:
     resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==}
     dependencies:
       loose-envify: 1.4.0
-    dev: true
 
   /wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
