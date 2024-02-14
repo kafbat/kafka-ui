@@ -55,6 +55,8 @@ export interface TableProps<TData> {
 
   onRowHover?: (row: Row<TData>) => void;
   onMouseLeave?: () => void;
+
+  setRowId?: (originalRow: Row<TData>) => string;
 }
 
 type UpdaterFn<T> = (previousState: T) => T;
@@ -132,6 +134,7 @@ const Table: React.FC<TableProps<any>> = ({
   onRowClick,
   onRowHover,
   onMouseLeave,
+  setRowId
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -164,8 +167,7 @@ const Table: React.FC<TableProps<any>> = ({
       rowSelection,
     },
     getRowId: (originalRow, index) => {
-      const rowId = originalRow.name ? originalRow.name : `${index}`;
-      return originalRow.connect ? `${rowId}-${originalRow.connect}` : rowId;
+      return setRowId?.(originalRow) || (originalRow.name ? originalRow.name : `${index}`);
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
