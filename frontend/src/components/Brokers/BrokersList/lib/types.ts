@@ -1,13 +1,13 @@
 export type BrokersTableRow = {
   brokerId: number;
-  size: string | number;
-  count: string | number;
+  size: number | undefined;
+  count: number | undefined;
   port: number | undefined;
   host: string | undefined;
   partitionsLeader: number | undefined;
   partitionsSkew: number | undefined;
   leadersSkew: number | undefined;
-  onlinePartitionCount: number;
-  offlinePartitionCount: number;
+  onlinePartitionCount: number | undefined;
+  offlinePartitionCount: number | undefined;
   activeControllers: number | undefined;
 };

@@ -2,15 +2,10 @@ import { Broker, BrokerDiskUsage } from 'generated-sources';
 import * as Cell from 'components/Brokers/BrokersList/TableCells/TableCells';
 import SkewHeader from 'components/Brokers/BrokersList/SkewHeader/SkewHeader';
 import { createColumnHelper } from '@tanstack/react-table';
+import { keyBy } from 'lib/functions/keyBy';
 
 import { BrokersTableRow } from './types';
-import { NA } from './constants';
-
-const brokerResourceMapper = (broker: Broker) => ({
-  brokerId: broker.id,
-  segmentSize: NA,
-  segmentCount: NA,
-});
+import { NA_DISK_USAGE } from './constants';
 
 type GetBrokersTableRowsParams = {
   brokers: Broker[] | undefined;
@@ -27,24 +22,27 @@ export const getBrokersTableRows = ({
   onlinePartitionCount,
   offlinePartitionCount,
 }: GetBrokersTableRowsParams): BrokersTableRow[] => {
-  const brokersResource = diskUsage.length
-    ? diskUsage
-    : brokers.map(brokerResourceMapper);
+  if (!brokers || brokers.length === 0) {
+    return [];
+  }
 
-  return brokersResource.map(({ brokerId, segmentSize, segmentCount }) => {
-    const broker = brokers?.find(({ id }) => id === brokerId);
+  const diskUsageByBroker = keyBy(diskUsage, 'brokerId');
+
+  return brokers.map((broker) => {
+    const diskUse = diskUsageByBroker[broker.id] || NA_DISK_USAGE;
 
     return {
-      brokerId,
-      size: segmentSize || NA,
-      count: segmentCount || NA,
-      port: broker?.port,
-      host: broker?.host,
-      partitionsLeader: broker?.partitionsLeader,
-      partitionsSkew: broker?.partitionsSkew,
-      leadersSkew: broker?.leadersSkew,
-      onlinePartitionCount: onlinePartitionCount ?? 0,
-      offlinePartitionCount: offlinePartitionCount ?? 0,
+      brokerId: broker.id,
+      size: diskUse.segmentSize,
+      count: diskUse.segmentCount,
+      port: broker.port,
+      host: broker.host,
+      partitionsLeader: broker.partitionsLeader,
+      partitionsSkew: broker.partitionsSkew,
+      leadersSkew: broker.leadersSkew,
+      inSyncPartitions: broker.inSyncPartitions,
+      onlinePartitionCount,
+      offlinePartitionCount,
       activeControllers,
     };
   });
