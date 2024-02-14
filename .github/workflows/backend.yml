@@ -3,7 +3,7 @@ name: "Backend: PR/main build & test"
 on:
   push:
     branches: [ "main" ]
-    paths: &backend_paths
+    paths:
       - "pom.xml"
       - "contract/**"
       - "api/**"
@@ -11,7 +11,11 @@ on:
 
   pull_request_target:
     types: [ "opened", "reopened", "synchronize" ]
-    paths: *backend_paths
+    paths:
+      - "pom.xml"
+      - "contract/**"
+      - "api/**"
+      - "serde-api/**"
 
 permissions:
   checks: write
