@@ -10,6 +10,7 @@ import Table, { LinkCell, SizeCell } from 'components/common/NewTable';
 import CheckMarkRoundIcon from 'components/common/Icons/CheckMarkRoundIcon';
 import { ColumnDef } from '@tanstack/react-table';
 import { clusterBrokerPath } from 'lib/paths';
+import { keyBy } from 'lib/functions/keyBy';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ColoredCell from 'components/common/NewTable/ColoredCell';
 
@@ -17,6 +18,10 @@ import SkewHeader from './SkewHeader/SkewHeader';
 import * as S from './BrokersList.styled';
 
 const NA = 'N/A';
+const NA_DISK_USAGE = {
+  segmentCount: NA,
+  segmentSize: NA,
+};
 
 const BrokersList: React.FC = () => {
   const navigate = useNavigate();
@@ -37,32 +42,25 @@ const BrokersList: React.FC = () => {
   } = clusterStats;
 
   const rows = React.useMemo(() => {
-    let brokersResource;
-    if (!diskUsage || !diskUsage?.length) {
-      brokersResource =
-        brokers?.map((broker) => {
-          return {
-            brokerId: broker.id,
-            segmentSize: NA,
-            segmentCount: NA,
-          };
-        }) || [];
-    } else {
-      brokersResource = diskUsage;
+    if (!brokers || brokers.length === 0) {
+      return [];
     }
 
-    return brokersResource.map(({ brokerId, segmentSize, segmentCount }) => {
-      const broker = brokers?.find(({ id }) => id === brokerId);
+    const diskUsageByBroker = keyBy(diskUsage, 'brokerId');
+
+    return brokers.map((broker) => {
+      const diskUse = diskUsageByBroker[broker.id] || NA_DISK_USAGE;
+
       return {
-        brokerId,
-        size: segmentSize || NA,
-        count: segmentCount || NA,
-        port: broker?.port,
-        host: broker?.host,
-        partitionsLeader: broker?.partitionsLeader,
-        partitionsSkew: broker?.partitionsSkew,
-        leadersSkew: broker?.leadersSkew,
-        inSyncPartitions: broker?.inSyncPartitions,
+        brokerId: broker.id,
+        size: diskUse.segmentSize,
+        count: diskUse.segmentCount,
+        port: broker.port,
+        host: broker.host,
+        partitionsLeader: broker.partitionsLeader,
+        partitionsSkew: broker.partitionsSkew,
+        leadersSkew: broker.leadersSkew,
+        inSyncPartitions: broker.inSyncPartitions,
       };
     });
   }, [diskUsage, brokers]);
