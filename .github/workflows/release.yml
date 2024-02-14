@@ -99,6 +99,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
-          repository: kafbat/-ui-charts
+          repository: kafbat/helm-charts
           event-type: prepare-helm-release
           client-payload: '{"appversion": "${{ needs.release.outputs.version }}"}'
