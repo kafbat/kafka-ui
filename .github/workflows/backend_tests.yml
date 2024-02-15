@@ -40,7 +40,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: "Pull request: Maven tests & sonar"
-        if: ${{ inputs.event_name == 'pull_request' }}
+        if: ${{ inputs.event_name == 'pull_request' || inputs.event_name == 'pull_request_target' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
