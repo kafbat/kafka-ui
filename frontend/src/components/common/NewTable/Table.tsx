@@ -134,7 +134,7 @@ const Table: React.FC<TableProps<any>> = ({
   onRowClick,
   onRowHover,
   onMouseLeave,
-  setRowId
+  setRowId,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -167,7 +167,10 @@ const Table: React.FC<TableProps<any>> = ({
       rowSelection,
     },
     getRowId: (originalRow, index) => {
-      return setRowId?.(originalRow) || (originalRow.name ? originalRow.name : `${index}`);
+      return (
+        setRowId?.(originalRow) ||
+        (originalRow.name ? originalRow.name : `${index}`)
+      );
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
