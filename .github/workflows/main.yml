@@ -5,11 +5,13 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # TODO remove when public
       packages: write
 
     steps:
@@ -17,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3

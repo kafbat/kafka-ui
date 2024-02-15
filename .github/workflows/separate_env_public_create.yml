@@ -7,16 +7,18 @@ on:
         required: true
         default: 'demo'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
+
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
       - name: get branch name
         id: extract_branch
         run: |

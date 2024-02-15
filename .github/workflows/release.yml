@@ -3,10 +3,13 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
+    permissions:
       contents: write
       packages: write
     outputs:
@@ -16,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - run: |
           git config user.name github-actions

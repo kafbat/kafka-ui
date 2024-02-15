@@ -5,15 +5,17 @@ on:
     # * is a special character in YAML so you have to quote this string
     - cron: '0 8 15 * *'
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
+
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
