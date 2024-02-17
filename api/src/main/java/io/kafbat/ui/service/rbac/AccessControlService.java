@@ -122,7 +122,8 @@ public class AccessControlService {
                   && isSchemaAccessible(context, user)
                   && isKsqlAccessible(context, user)
                   && isAclAccessible(context, user)
-                  && isAuditAccessible(context, user);
+                  && isAuditAccessible(context, user)
+                  && isClientQuotaAccessible(context, user);
 
           if (!accessGranted) {
             throw new AccessDeniedException(ACCESS_DENIED);

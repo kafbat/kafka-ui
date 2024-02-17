@@ -41,6 +41,7 @@ public class FeatureService {
     features.add(topicDeletionEnabled(adminClient));
     features.add(aclView(adminClient));
     features.add(aclEdit(adminClient, clusterDescription));
+    features.add(quotaManagement(adminClient));
 
     return Flux.fromIterable(features).flatMap(m -> m).collectList();
   }

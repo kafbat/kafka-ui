@@ -3,6 +3,7 @@ package io.kafbat.ui.model.rbac;
 import static io.kafbat.ui.model.rbac.Resource.ACL;
 import static io.kafbat.ui.model.rbac.Resource.APPLICATIONCONFIG;
 import static io.kafbat.ui.model.rbac.Resource.AUDIT;
+import static io.kafbat.ui.model.rbac.Resource.CLIENT_QUOTAS;
 import static io.kafbat.ui.model.rbac.Resource.CLUSTERCONFIG;
 import static io.kafbat.ui.model.rbac.Resource.KSQL;
 
@@ -88,6 +89,7 @@ public class Permission {
       case KSQL -> Arrays.stream(KsqlAction.values()).map(Enum::toString).toList();
       case ACL -> Arrays.stream(AclAction.values()).map(Enum::toString).toList();
       case AUDIT -> Arrays.stream(AuditAction.values()).map(Enum::toString).toList();
+      case CLIENT_QUOTAS -> Arrays.stream(ClientQuotaAction.values()).map(Enum::toString).toList();
     };
   }
 

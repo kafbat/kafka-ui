@@ -3,6 +3,7 @@ package io.kafbat.ui.model.rbac;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ApplicationConfigAction;
 import io.kafbat.ui.model.rbac.permission.AuditAction;
+import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
@@ -69,6 +70,7 @@ public class AccessContext {
     private Collection<KsqlAction> ksqlActions = Collections.emptySet();
     private Collection<AclAction> aclActions = Collections.emptySet();
     private Collection<AuditAction> auditActions = Collections.emptySet();
+    private Collection<ClientQuotaAction> clientQuotaActions = Collections.emptySet();
 
     private String operationName;
     private Object operationParams;
@@ -184,7 +186,7 @@ public class AccessContext {
           connect, connectActions,
           connector,
           schema, schemaActions,
-          ksqlActions, aclActions, auditActions,
+          ksqlActions, aclActions, auditActions, clientQuotaActions,
           operationName, operationParams);
     }
   }
