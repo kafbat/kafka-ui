@@ -57,20 +57,20 @@ public class ClientQuotasController extends AbstractController implements Client
                                                        Mono<ClientQuotasDTO> quotasDto,
                                                        ServerWebExchange exchange) {
     return quotasDto.flatMap(
-        newQuotas -> {
+        quotasUpd -> {
           var context = AccessContext.builder()
               .cluster(clusterName)
               .operationName("upsertClientQuotas")
-              .operationParams(Map.of("newQuotas", newQuotas))
+              .operationParams(Map.of("quotasUpdate", quotasUpd))
               .clientQuotaActions(ClientQuotaAction.EDIT)
               .build();
 
           Mono<ResponseEntity<Void>> operation = clientQuotaService.upsert(
                   getCluster(clusterName),
-                  newQuotas.getUser(),
-                  newQuotas.getClientId(),
-                  newQuotas.getIp(),
-                  Optional.ofNullable(newQuotas.getQuotas()).orElse(Map.of())
+                  quotasUpd.getUser(),
+                  quotasUpd.getClientId(),
+                  quotasUpd.getIp(),
+                  Optional.ofNullable(quotasUpd.getQuotas()).orElse(Map.of())
                       .entrySet()
                       .stream()
                       .collect(toMap(Map.Entry::getKey, e -> e.getValue().doubleValue()))

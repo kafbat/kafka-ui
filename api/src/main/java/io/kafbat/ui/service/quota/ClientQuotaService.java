@@ -52,11 +52,11 @@ public class ClientQuotaService {
         .flatMap(ac ->
             findQuotas(ac, quotaEntity)
                 .flatMap(currentQuotas -> {
-                  HttpStatus result = HttpStatus.OK; //updated
+                  HttpStatus result = HttpStatus.OK; //updated(200)
                   if (newQuotas.isEmpty()) {
-                    result = HttpStatus.NO_CONTENT; //deleted
+                    result = HttpStatus.NO_CONTENT; //deleted(204)
                   } else if (currentQuotas.isEmpty()) {
-                    result = HttpStatus.CREATED;
+                    result = HttpStatus.CREATED; //created(201)
                   }
                   var alteration = createAlteration(quotaEntity, currentQuotas, newQuotas);
                   return ac.alterClientQuota(alteration)
