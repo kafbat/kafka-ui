@@ -1,11 +1,7 @@
 name: "Infra: Workflow linter"
 on:
   pull_request:
-    types:
-      - "opened"
-      - "reopened"
-      - "synchronize"
-      - "edited"
+    types: ["opened", "reopened", "synchronize"]
     paths:
       - ".github/workflows/**"
 

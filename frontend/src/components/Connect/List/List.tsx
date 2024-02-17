@@ -43,6 +43,7 @@ const List: React.FC = () => {
         navigate(clusterConnectConnectorPath(clusterName, connect, name))
       }
       emptyMessage="No connectors found"
+      setRowId={(originalRow) => `${originalRow.name}-${originalRow.connect}`}
     />
   );
 };

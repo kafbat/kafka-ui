@@ -1,38 +1,48 @@
 name: "Backend: PR/main build & test"
+
 on:
   push:
-    branches:
-      - main
-  pull_request_target:
-    types: ["opened", "edited", "reopened", "synchronize"]
-    paths:
-      - "api/**"
+    branches: [ "main" ]
+    paths: &backend_paths
       - "pom.xml"
-permissions: # TODO remove when public
+      - "contract/**"
+      - "api/**"
+      - "serde-api/**"
+
+  pull_request_target:
+    types: [ "opened", "reopened", "synchronize" ]
+    paths: *backend_paths
+
+permissions:
   checks: write
   pull-requests: write
-  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           token: ${{ github.token }} # TODO remove when public
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'zulu'
           cache: 'maven'
+
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Build and analyze pull request target
         if: ${{ github.event_name == 'pull_request' }}
         env:
@@ -49,6 +59,7 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
+
       - name: Build and analyze push main
         if: ${{ github.event_name == 'push' }}
         env:

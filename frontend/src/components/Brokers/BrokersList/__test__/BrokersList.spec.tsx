@@ -154,23 +154,48 @@ describe('BrokersList Component', () => {
             expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
           );
         });
-      });
-    });
 
-    describe('when diskUsage is empty', () => {
-      beforeEach(() => {
-        (useBrokers as jest.Mock).mockImplementation(() => ({
-          data: brokersPayload,
-        }));
-        (useClusterStats as jest.Mock).mockImplementation(() => ({
-          data: { ...clusterStatsPayload, diskUsage: undefined },
-        }));
+        describe('when diskUsage', () => {
+          describe('is empty', () => {
+            beforeEach(() => {
+              (useClusterStats as jest.Mock).mockImplementation(() => ({
+                data: { ...clusterStatsPayload, diskUsage: undefined },
+              }));
+            });
+
+            it('renders list of all brokers', async () => {
+              renderComponent();
+              expect(screen.getByRole('table')).toBeInTheDocument();
+              expect(screen.getAllByRole('row').length).toEqual(3);
+            });
+          });
+
+          describe('was NOT set for second broker', () => {
+            beforeEach(() => {
+              (useClusterStats as jest.Mock).mockImplementation(() => ({
+                data: {
+                  ...clusterStatsPayload,
+                  diskUsage: [clusterStatsPayload.diskUsage[0]],
+                },
+              }));
+            });
+
+            it('renders list of all brokers', async () => {
+              renderComponent();
+              expect(screen.getByRole('table')).toBeInTheDocument();
+              expect(screen.getAllByRole('row').length).toEqual(3);
+            });
+          });
+        });
       });
 
-      describe('when it has no brokers', () => {
+      describe('when the brokers list is empty', () => {
         beforeEach(() => {
           (useBrokers as jest.Mock).mockImplementation(() => ({
             data: [],
+          }));
+          (useClusterStats as jest.Mock).mockImplementation(() => ({
+            data: clusterStatsPayload,
           }));
         });
 
@@ -181,22 +206,6 @@ describe('BrokersList Component', () => {
             screen.getByRole('row', { name: 'No clusters are online' })
           ).toBeInTheDocument();
         });
-      });
-
-      it('renders list of all brokers', async () => {
-        renderComponent();
-        expect(screen.getByRole('table')).toBeInTheDocument();
-        expect(screen.getAllByRole('row').length).toEqual(3);
-      });
-      it('opens broker when row clicked', async () => {
-        renderComponent();
-        await userEvent.click(screen.getByRole('cell', { name: '100' }));
-
-        await waitFor(() =>
-          expect(mockedUsedNavigate).toBeCalledWith(
-            clusterBrokerPath(clusterName, '100')
-          )
-        );
       });
     });
   });

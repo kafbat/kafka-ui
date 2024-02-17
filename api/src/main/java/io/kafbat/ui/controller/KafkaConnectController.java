@@ -106,7 +106,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.EDIT)
+        .connectActions(connectName, ConnectAction.DELETE)
         .operationName("deleteConnector")
         .operationParams(Map.of(CONNECTOR_NAME, connectName))
         .build();

@@ -9,7 +9,6 @@ import io.kafbat.ui.service.AdminClientService;
 import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.MessagesService;
 import io.kafbat.ui.service.ReactiveAdminClient;
-import io.kafbat.ui.service.rbac.AccessControlService;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
@@ -26,6 +25,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -36,13 +36,13 @@ import reactor.core.publisher.Signal;
 @Service
 public class AuditService implements Closeable {
 
-  private static final Mono<AuthenticatedUser> NO_AUTH_USER = Mono.just(new AuthenticatedUser("Unknown", Set.of()));
+  private static final AuthenticatedUser UNKNOWN_USER = new AuthenticatedUser("Unknown", Set.of());
   private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(5);
 
   private static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
   private static final int DEFAULT_AUDIT_TOPIC_PARTITIONS = 1;
   private static final Map<String, String> DEFAULT_AUDIT_TOPIC_CONFIG = Map.of(
-      "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(7)),
+      "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(90)),
       "cleanup.policy", "delete"
   );
   private static final Map<String, Object> AUDIT_PRODUCER_CONFIG = Map.of(
@@ -170,6 +170,33 @@ public class AuditService implements Closeable {
     log.error("-----------------------------------------------------------------");
   }
 
+  private Mono<AuthenticatedUser> extractUser(Signal<?> sig) {
+    //see ReactiveSecurityContextHolder for impl details
+    Object key = SecurityContext.class;
+
+    if (!sig.getContextView().hasKey(key)) {
+      return Mono.just(UNKNOWN_USER);
+    }
+
+    return sig.getContextView().<Mono<SecurityContext>>get(key)
+        .map(context -> context.getAuthentication().getPrincipal())
+        .map(AuditService::extractUser)
+        .switchIfEmpty(Mono.just(UNKNOWN_USER));
+  }
+
+  private static AuthenticatedUser extractUser(Object principal) {
+    if (principal instanceof UserDetails u) {
+      return new AuthenticatedUser(u.getUsername(), Collections.emptySet());
+    } else if (principal instanceof AuthenticatedPrincipal p) {
+      return new AuthenticatedUser(p.getName(), Collections.emptySet());
+    } else {
+      if (principal != null) {
+        log.trace("Principal type: [{}]", principal.getClass().getName());
+      }
+      return UNKNOWN_USER;
+    }
+  }
+
   public boolean isAuditTopic(KafkaCluster cluster, String topic) {
     var writer = auditWriters.get(cluster.getName());
     return writer != null
@@ -178,19 +205,18 @@ public class AuditService implements Closeable {
   }
 
   public void audit(AccessContext acxt, Signal<?> sig) {
+    if (auditWriters.isEmpty()) {
+      return;
+    }
     if (sig.isOnComplete()) {
-      extractUser()
+      extractUser(sig)
           .doOnNext(u -> sendAuditRecord(acxt, u))
           .subscribe();
     } else if (sig.isOnError()) {
-      extractUser()
+      extractUser(sig)
           .doOnNext(u -> sendAuditRecord(acxt, u, sig.getThrowable()))
           .subscribe();
     }
-  }
-
-  private Mono<AuthenticatedUser> extractUser() {
-    return AccessControlService.getUser().switchIfEmpty(NO_AUTH_USER);
   }
 
   private void sendAuditRecord(AccessContext ctx, AuthenticatedUser user) {

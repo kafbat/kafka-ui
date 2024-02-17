@@ -1,16 +1,19 @@
 name: "E2E: PR healthcheck"
 on:
   pull_request_target:
-    types: [ "opened", "edited", "reopened", "synchronize" ]
+    types: [ "opened", "reopened", "synchronize" ]
     paths:
-      - "api/**"
+      - "pom.xml"
       - "contract/**"
+      - "api/**"
+      - "serde-api/**"
       - "frontend/**"
       - "e2e-tests/**"
-      - "pom.xml"
+
 permissions: # TODO remove when public
   statuses: write
   contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

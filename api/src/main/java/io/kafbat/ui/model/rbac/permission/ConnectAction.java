@@ -9,7 +9,8 @@ public enum ConnectAction implements PermissibleAction {
   VIEW,
   EDIT(VIEW),
   CREATE(VIEW),
-  RESTART(VIEW)
+  RESTART(VIEW),
+  DELETE(VIEW)
 
   ;
 
@@ -19,7 +20,7 @@ public enum ConnectAction implements PermissibleAction {
     this.dependantActions = dependantActions;
   }
 
-  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, RESTART);
+  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, RESTART);
 
   @Nullable
   public static ConnectAction fromString(String name) {
