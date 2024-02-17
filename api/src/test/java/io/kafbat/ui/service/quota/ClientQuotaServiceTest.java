@@ -35,9 +35,9 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
   )
   void createUpdateDelete(String user, String clientId, String ip) {
     var initialQuotas = Map.of(
-        "producer_byte_rate", 123.0,
-        "consumer_byte_rate", 234.0,
-        "request_percentage", 10.0
+        "producer_byte_rate", 123.0, //should not have decimals
+        "consumer_byte_rate", 234.0,  //should not have decimals
+        "request_percentage", 10.3 //can have decimal part
     );
 
     //creating new
