@@ -45,6 +45,8 @@ public class AccessContext {
 
   Collection<AuditAction> auditAction;
 
+  Collection<ClientQuotaAction> clientQuotaActions;
+
   String operationName;
   Object operationParams;
 
@@ -159,6 +161,12 @@ public class AccessContext {
     public AccessContextBuilder auditActions(AuditAction... actions) {
       Assert.isTrue(actions.length > 0, ACTIONS_NOT_PRESENT);
       this.auditActions = List.of(actions);
+      return this;
+    }
+
+    public AccessContextBuilder clientQuotaActions(ClientQuotaAction... actions) {
+      Assert.isTrue(actions.length > 0, ACTIONS_NOT_PRESENT);
+      this.clientQuotaActions = List.of(actions);
       return this;
     }
 

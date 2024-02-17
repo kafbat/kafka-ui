@@ -10,6 +10,7 @@ import static io.kafbat.ui.model.rbac.Resource.KSQL;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ApplicationConfigAction;
 import io.kafbat.ui.model.rbac.permission.AuditAction;
+import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;

@@ -417,6 +417,23 @@ public class AccessControlService {
     return isAccessible(Resource.AUDIT, null, user, context, requiredActions);
   }
 
+  private boolean isClientQuotaAccessible(AccessContext context, AuthenticatedUser user) {
+    if (!rbacEnabled) {
+      return true;
+    }
+
+    if (context.getClientQuotaActions().isEmpty()) {
+      return true;
+    }
+
+    Set<String> requiredActions = context.getClientQuotaActions()
+        .stream()
+        .map(a -> a.toString().toUpperCase())
+        .collect(Collectors.toSet());
+
+    return isAccessible(Resource.CLIENT_QUOTAS, null, user, context, requiredActions);
+  }
+
   public Set<ProviderAuthorityExtractor> getOauthExtractors() {
     return oauthExtractors;
   }

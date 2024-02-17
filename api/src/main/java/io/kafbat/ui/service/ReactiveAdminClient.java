@@ -664,6 +664,15 @@ public class ReactiveAdminClient implements Closeable {
     return toMono(client.alterReplicaLogDirs(replicaAssignment).all());
   }
 
+  public Mono<Map<ClientQuotaEntity, Map<String, Double>>> getClientQuotas(ClientQuotaFilter filter) {
+    return toMono(client.describeClientQuotas(filter).entities());
+  }
+
+  public Mono<Void> alterClientQuota(ClientQuotaAlteration alteration) {
+    return toMono(client.alterClientQuotas(List.of(alteration)).all());
+  }
+
+
   // returns tp -> list of active producer's states (if any)
   public Mono<Map<TopicPartition, List<ProducerState>>> getActiveProducersState(String topic) {
     return describeTopic(topic)
