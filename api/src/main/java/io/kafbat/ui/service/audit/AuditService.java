@@ -44,7 +44,7 @@ public class AuditService implements Closeable {
   private static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
   private static final int DEFAULT_AUDIT_TOPIC_PARTITIONS = 1;
   private static final Map<String, String> DEFAULT_AUDIT_TOPIC_CONFIG = Map.of(
-      "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(7)),
+      "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(90)),
       "cleanup.policy", "delete"
   );
   private static final Map<String, Object> AUDIT_PRODUCER_CONFIG = Map.of(
