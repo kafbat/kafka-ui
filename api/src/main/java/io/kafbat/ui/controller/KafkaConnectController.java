@@ -72,7 +72,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.CREATE)
+        .connectActions(connectName, ConnectAction.CREATE)
         .operationName("createConnector")
         .build();
 

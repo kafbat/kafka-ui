@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
@@ -186,9 +187,9 @@ public class AuditService implements Closeable {
 
   private static AuthenticatedUser extractUser(Object principal) {
     if (principal instanceof UserDetails u) {
-      return new AuthenticatedUser(u.getUsername(), Collections.emptySet());
+      return new AuthenticatedUser(u.getUsername(), Set.of());
     } else if (principal instanceof AuthenticatedPrincipal p) {
-      return new AuthenticatedUser(p.getName(), Collections.emptySet());
+      return new AuthenticatedUser(p.getName(), Set.of());
     } else {
       if (principal != null) {
         log.trace("Principal type: [{}]", principal.getClass().getName());
