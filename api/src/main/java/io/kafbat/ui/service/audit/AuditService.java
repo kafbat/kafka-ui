@@ -180,7 +180,9 @@ public class AuditService implements Closeable {
   }
 
   public void audit(AccessContext acxt, Signal<?> sig) {
-    if (auditWriters.isEmpty()) return;
+    if (auditWriters.isEmpty()) {
+      return;
+    }
     if (sig.isOnComplete()) {
       extractUser(sig)
           .doOnNext(u -> sendAuditRecord(acxt, u))
