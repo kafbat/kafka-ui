@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 
 public record AccessContext(String cluster,
-                            List<ResourceAccess> accesses,
+                            List<ResourceAccess> accessedResources,
                             String operationName,
                             @Nullable Object operationParams) {
 
@@ -38,6 +38,15 @@ public record AccessContext(String cluster,
   record SingleResourceAccess(@Nullable String name,
                               Resource resourceType,
                               Collection<PermissibleAction> requestedActions) implements ResourceAccess {
+
+    SingleResourceAccess(@Nullable String name,
+                         Resource resourceType,
+                         Collection<PermissibleAction> requestedActions) {
+      Preconditions.checkArgument(!requestedActions.isEmpty(), "actions not present");
+      this.name = name;
+      this.resourceType = resourceType;
+      this.requestedActions = requestedActions;
+    }
 
     SingleResourceAccess(Resource type, List<PermissibleAction> requestedActions) {
       this(null, type, requestedActions);
@@ -71,7 +80,7 @@ public record AccessContext(String cluster,
   }
 
   public boolean isAccessible(List<Permission> userPermissions) {
-    return accesses().stream()
+    return accessedResources().stream()
         .allMatch(resourceAccess -> resourceAccess.isAccessible(userPermissions));
   }
 
@@ -80,7 +89,7 @@ public record AccessContext(String cluster,
     private String cluster;
     private String operationName;
     private Object operationParams;
-    private final List<ResourceAccess> accesses = new ArrayList<>();
+    private final List<ResourceAccess> accessedResources = new ArrayList<>();
 
     private AccessContextBuilder() {
     }
@@ -91,61 +100,52 @@ public record AccessContext(String cluster,
     }
 
     public AccessContextBuilder applicationConfigActions(ApplicationConfigAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(Resource.APPLICATIONCONFIG, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.APPLICATIONCONFIG, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder clusterConfigActions(ClusterConfigAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(Resource.CLUSTERCONFIG, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.CLUSTERCONFIG, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder topicActions(String topic, TopicAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(topic, Resource.TOPIC, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(topic, Resource.TOPIC, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder consumerGroupActions(String consumerGroup, ConsumerGroupAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(consumerGroup, Resource.CONSUMER, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(consumerGroup, Resource.CONSUMER, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder connectActions(String connect, ConnectAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(connect, Resource.CONNECT, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(connect, Resource.CONNECT, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder schemaActions(String schema, SchemaAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(schema, Resource.SCHEMA, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(schema, Resource.SCHEMA, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder schemaGlobalCompatChange() {
-      accesses.add(new SingleResourceAccess(Resource.SCHEMA, List.of(SchemaAction.MODIFY_GLOBAL_COMPATIBILITY)));
+      accessedResources.add(new SingleResourceAccess(Resource.SCHEMA, List.of(SchemaAction.MODIFY_GLOBAL_COMPATIBILITY)));
       return this;
     }
 
     public AccessContextBuilder ksqlActions(KsqlAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(Resource.KSQL, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.KSQL, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder aclActions(AclAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(Resource.ACL, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.ACL, List.of(actions)));
       return this;
     }
 
     public AccessContextBuilder auditActions(AuditAction... actions) {
-      Preconditions.checkArgument(actions.length > 0, "actions not present");
-      accesses.add(new SingleResourceAccess(Resource.AUDIT, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.AUDIT, List.of(actions)));
       return this;
     }
 
@@ -160,7 +160,7 @@ public record AccessContext(String cluster,
     }
 
     public AccessContext build() {
-      return new AccessContext(cluster, accesses, operationName, operationParams);
+      return new AccessContext(cluster, accessedResources, operationName, operationParams);
     }
   }
 }
