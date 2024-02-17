@@ -1,15 +1,15 @@
-import { HeaderContext } from '@tanstack/react-table';
 import React from 'react';
 import IndeterminateCheckbox from 'components/common/IndeterminateCheckbox/IndeterminateCheckbox';
+import { HeaderContext } from '@tanstack/react-table';
 
-const SelectRowHeader: React.FC<HeaderContext<unknown, unknown>> = ({
-  table,
-}) => (
-  <IndeterminateCheckbox
-    checked={table.getIsAllRowsSelected()}
-    indeterminate={table.getIsSomeRowsSelected()}
-    onChange={table.getToggleAllRowsSelectedHandler()}
-  />
-);
+function SelectRowHeader<T>({ table }: HeaderContext<T, unknown>) {
+  return (
+    <IndeterminateCheckbox
+      checked={table.getIsAllRowsSelected()}
+      indeterminate={table.getIsSomeRowsSelected()}
+      onChange={table.getToggleAllRowsSelectedHandler()}
+    />
+  );
+}
 
 export default SelectRowHeader;
