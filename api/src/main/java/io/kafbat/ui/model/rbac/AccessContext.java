@@ -152,7 +152,7 @@ public record AccessContext(String cluster,
     }
 
     public AccessContextBuilder clientQuotaActions(ClientQuotaAction... actions) {
-      accessedResources.add(new SingleResourceAccess(Resource.ACL, List.of(actions)));
+      accessedResources.add(new SingleResourceAccess(Resource.CLIENT_QUOTAS, List.of(actions)));
       return this;
     }
 
