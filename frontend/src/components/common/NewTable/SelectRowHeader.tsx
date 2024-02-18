@@ -2,7 +2,7 @@ import React from 'react';
 import IndeterminateCheckbox from 'components/common/IndeterminateCheckbox/IndeterminateCheckbox';
 import { HeaderContext } from '@tanstack/react-table';
 
-function SelectRowHeader<T>({ table }: HeaderContext<T, unknown>) {
+function SelectRowHeader<T, V = unknown>({ table }: HeaderContext<T, V>) {
   return (
     <IndeterminateCheckbox
       checked={table.getIsAllRowsSelected()}

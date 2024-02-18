@@ -26,10 +26,10 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 
-export interface TableProps<TData> {
+export interface TableProps<TData, TValue> {
   data: TData[];
   pageCount?: number;
-  columns: ColumnDef<TData>[];
+  columns: ColumnDef<TData, TValue>[];
 
   // Server-side processing: sorting, pagination
   serverSideProcessing?: boolean;
@@ -118,7 +118,7 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
  */
 
-function Table<TData>({
+function Table<TData, TValue = unknown>({
   data,
   pageCount,
   columns,
@@ -134,7 +134,7 @@ function Table<TData>({
   onRowHover,
   onMouseLeave,
   setRowId,
-}: TableProps<TData>) {
+}: TableProps<TData, TValue>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [rowSelection, setRowSelection] = React.useState({});

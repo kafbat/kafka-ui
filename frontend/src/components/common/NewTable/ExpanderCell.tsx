@@ -3,7 +3,7 @@ import React from 'react';
 
 import * as S from './Table.styled';
 
-function ExpanderCell<T>({ row }: CellContext<T, unknown>) {
+function ExpanderCell<T, V = unknown>({ row }: CellContext<T, V>) {
   return (
     <S.ExpaderButton
       width="16"
