@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ApplicationConfigAction;
 import io.kafbat.ui.model.rbac.permission.AuditAction;
+import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
@@ -15,6 +16,7 @@ import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -149,6 +151,11 @@ public record AccessContext(String cluster,
       return this;
     }
 
+    public AccessContextBuilder clientQuotaActions(ClientQuotaAction... actions) {
+      accessedResources.add(new SingleResourceAccess(Resource.CLIENT_QUOTAS, List.of(actions)));
+      return this;
+    }
+
     public AccessContextBuilder operationName(String operationName) {
       this.operationName = operationName;
       return this;
@@ -156,6 +163,11 @@ public record AccessContext(String cluster,
 
     public AccessContextBuilder operationParams(Object operationParams) {
       this.operationParams = operationParams;
+      return this;
+    }
+
+    public AccessContextBuilder operationParams(Map<String, Object> paramsMap) {
+      this.operationParams = paramsMap;
       return this;
     }
 
