@@ -16,6 +16,7 @@ import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -76,6 +77,10 @@ public record AccessContext(String cluster,
     }
   }
 
+  public static AccessContextBuilder builder() {
+    return new AccessContextBuilder();
+  }
+
   public boolean isAccessible(List<Permission> userPermissions) {
     return accessedResources().stream()
         .allMatch(resourceAccess -> resourceAccess.isAccessible(userPermissions));
@@ -83,6 +88,7 @@ public record AccessContext(String cluster,
 
   public static final class AccessContextBuilder {
 
+    private String cluster;
     private String operationName;
     private Object operationParams;
     private final List<ResourceAccess> accessedResources = new ArrayList<>();
