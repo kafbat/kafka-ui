@@ -12,7 +12,6 @@ import io.kafbat.ui.service.ReactiveAdminClient;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -188,9 +187,9 @@ public class AuditService implements Closeable {
 
   private static AuthenticatedUser extractUser(Object principal) {
     if (principal instanceof UserDetails u) {
-      return new AuthenticatedUser(u.getUsername(), Collections.emptySet());
+      return new AuthenticatedUser(u.getUsername(), Set.of());
     } else if (principal instanceof AuthenticatedPrincipal p) {
-      return new AuthenticatedUser(p.getName(), Collections.emptySet());
+      return new AuthenticatedUser(p.getName(), Set.of());
     } else {
       if (principal != null) {
         log.trace("Principal type: [{}]", principal.getClass().getName());
@@ -227,8 +226,8 @@ public class AuditService implements Closeable {
 
   private void sendAuditRecord(AccessContext ctx, AuthenticatedUser user, @Nullable Throwable th) {
     try {
-      if (ctx.getCluster() != null) {
-        var writer = auditWriters.get(ctx.getCluster());
+      if (ctx.cluster() != null) {
+        var writer = auditWriters.get(ctx.cluster());
         if (writer != null) {
           writer.write(ctx, user, th);
         }
