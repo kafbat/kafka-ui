@@ -1,39 +1,18 @@
 import React, { Suspense } from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
-import { clusterConnectorNewRelativePath, ClusterNameRoute } from 'lib/paths';
+import { ClusterNameRoute } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import Search from 'components/common/Search/Search';
 import * as Metrics from 'components/common/Metrics';
 import PageHeading from 'components/common/PageHeading/PageHeading';
-import { ActionButton } from 'components/common/ActionComponent';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import { Action, ConnectorState, ResourceType } from 'generated-sources';
+import { ConnectorState } from 'generated-sources';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
 
+import CreateConnectorButton from './CreateConnectorButton';
 import List from './List';
-
-interface CreateConnectorButtonProps {
-  disabled?: boolean;
-}
-
-const CreateConnectorButton: React.FC<CreateConnectorButtonProps> = ({
-  disabled = false,
-}) => (
-  <ActionButton
-    buttonType="primary"
-    buttonSize="M"
-    disabled={disabled}
-    to={clusterConnectorNewRelativePath}
-    permission={{
-      resource: ResourceType.CONNECT,
-      action: Action.CREATE,
-    }}
-  >
-    Create Connector
-  </ActionButton>
-);
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
