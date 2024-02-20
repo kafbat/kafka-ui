@@ -15,7 +15,13 @@ export function useAppConfig() {
   return useQuery(['app', 'config'], () => api.getCurrentConfig());
 }
 
-export function useUpdateAppConfig({ initialName }: { initialName?: string }) {
+export function useUpdateAppConfig({
+  initialName,
+  deleteCluster,
+}: {
+  initialName?: string;
+  deleteCluster?: boolean;
+}) {
   const client = useQueryClient();
   return useMutation(
     async (cluster: ApplicationConfigPropertiesKafkaClusters) => {
@@ -27,10 +33,12 @@ export function useUpdateAppConfig({ initialName }: { initialName?: string }) {
       if (existingClusters.length > 0) {
         if (!initialName) {
           clusters = [...existingClusters, cluster];
-        } else {
+        } else if (!deleteCluster) {
           clusters = existingClusters.map((c) =>
             c.name === initialName ? cluster : c
           );
+        } else {
+          clusters = existingClusters.filter((c) => c.name !== initialName);
         }
       } else {
         clusters = [cluster];
