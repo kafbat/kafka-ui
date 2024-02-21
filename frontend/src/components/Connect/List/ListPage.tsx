@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterNameRoute } from 'lib/paths';
+import { ClusterNameRoute, clusterConnectorNewRelativePath } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import Search from 'components/common/Search/Search';
 import * as Metrics from 'components/common/Metrics';
@@ -8,10 +8,10 @@ import PageHeading from 'components/common/PageHeading/PageHeading';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import { ConnectorState } from 'generated-sources';
+import { ConnectorState, Action, ResourceType } from 'generated-sources';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
+import { ActionButton } from 'components/common/ActionComponent';
 
-import CreateConnectorButton from './CreateConnectorButton';
 import List from './List';
 
 const ListPage: React.FC = () => {
@@ -34,16 +34,27 @@ const ListPage: React.FC = () => {
   return (
     <>
       <PageHeading text="Connectors">
-        {!isReadOnly &&
-          (connects && connects.length > 0 ? (
-            <CreateConnectorButton />
-          ) : (
-            <Tooltip
-              value={<CreateConnectorButton disabled />}
-              content="No connects available"
-              placement="left"
-            />
-          ))}
+        {!isReadOnly && (
+          <Tooltip
+            value={
+              <ActionButton
+                buttonType="primary"
+                buttonSize="M"
+                disabled={!connects.length}
+                to={clusterConnectorNewRelativePath}
+                permission={{
+                  resource: ResourceType.CONNECT,
+                  action: Action.CREATE,
+                }}
+              >
+                Create Connector
+              </ActionButton>
+            }
+            showTooltip={!connects.length}
+            content="No Connects available"
+            placement="left"
+          />
+        )}
       </PageHeading>
       <Metrics.Wrapper>
         <Metrics.Section>
