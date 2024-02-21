@@ -1,5 +1,6 @@
 package io.kafbat.ui.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -10,13 +11,13 @@ import reactor.core.publisher.Mono;
 public class CustomWebFilter implements WebFilter {
 
   @Override
-  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+  public @NotNull Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
 
     final String basePath = exchange.getRequest().getPath().contextPath().value();
 
     final String path = exchange.getRequest().getPath().pathWithinApplication().value();
 
-    if (path.startsWith("/ui") || path.equals("") || path.equals("/")) {
+    if (path.startsWith("/ui") || path.isEmpty() || path.equals("/")) {
       return chain.filter(
           exchange.mutate().request(
               exchange.getRequest().mutate()

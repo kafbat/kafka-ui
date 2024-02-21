@@ -26,15 +26,15 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 
-export interface TableProps<TData> {
+export interface TableProps<TData, TValue> {
   data: TData[];
   pageCount?: number;
-  columns: ColumnDef<TData>[];
+  columns: ColumnDef<TData, TValue>[];
 
   // Server-side processing: sorting, pagination
   serverSideProcessing?: boolean;
 
-  // Expandeble rows
+  // Expandable rows
   getRowCanExpand?: (row: Row<TData>) => boolean; // Enables the ability to expand row. Use `() => true` when want to expand all rows.
   renderSubComponent?: React.FC<{ row: Row<TData> }>; // Component to render expanded row.
 
@@ -55,6 +55,8 @@ export interface TableProps<TData> {
 
   onRowHover?: (row: Row<TData>) => void;
   onMouseLeave?: () => void;
+
+  setRowId?: (originalRow: TData) => string;
 }
 
 type UpdaterFn<T> = (previousState: T) => T;
@@ -116,8 +118,7 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Table: React.FC<TableProps<any>> = ({
+function Table<TData, TValue = unknown>({
   data,
   pageCount,
   columns,
@@ -132,7 +133,8 @@ const Table: React.FC<TableProps<any>> = ({
   onRowClick,
   onRowHover,
   onMouseLeave,
-}) => {
+  setRowId,
+}: TableProps<TData, TValue>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [rowSelection, setRowSelection] = React.useState({});
@@ -154,7 +156,7 @@ const Table: React.FC<TableProps<any>> = ({
     [searchParams, location]
   );
 
-  const table = useReactTable({
+  const table = useReactTable<TData>({
     data,
     pageCount,
     columns,
@@ -164,7 +166,16 @@ const Table: React.FC<TableProps<any>> = ({
       rowSelection,
     },
     getRowId: (originalRow, index) => {
-      return originalRow.name ? originalRow.name : `${index}`;
+      if (setRowId) {
+        return setRowId(originalRow);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      if ('name' in (originalRow as {})) {
+        return (originalRow as unknown as { name: string }).name;
+      }
+
+      return index.toString();
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
@@ -181,7 +192,7 @@ const Table: React.FC<TableProps<any>> = ({
     enableRowSelection,
   });
 
-  const handleRowClick = (row: Row<typeof data>) => (e: React.MouseEvent) => {
+  const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
     // If row selection is enabled do not handle row click.
     if (enableRowSelection) return undefined;
 
@@ -199,7 +210,7 @@ const Table: React.FC<TableProps<any>> = ({
     return undefined;
   };
 
-  const handleRowHover = (row: Row<typeof data>) => (e: React.MouseEvent) => {
+  const handleRowHover = (row: Row<TData>) => (e: React.MouseEvent) => {
     if (onRowHover) {
       e.stopPropagation();
       return onRowHover(row);
@@ -232,7 +243,7 @@ const Table: React.FC<TableProps<any>> = ({
                 {!!enableRowSelection && (
                   <S.Th key={`${headerGroup.id}-select`}>
                     {flexRender(
-                      SelectRowHeader,
+                      SelectRowHeader<TData>,
                       headerGroup.headers[0].getContext()
                     )}
                   </S.Th>
@@ -281,7 +292,7 @@ const Table: React.FC<TableProps<any>> = ({
                   {!!enableRowSelection && (
                     <td key={`${row.id}-select`} style={{ width: '1px' }}>
                       {flexRender(
-                        SelectRowCell,
+                        SelectRowCell<TData>,
                         row.getVisibleCells()[0].getContext()
                       )}
                     </td>
@@ -289,7 +300,7 @@ const Table: React.FC<TableProps<any>> = ({
                   {table.getCanSomeRowsExpand() && (
                     <td key={`${row.id}-expander`} style={{ width: '1px' }}>
                       {flexRender(
-                        ExpanderCell,
+                        ExpanderCell<TData>,
                         row.getVisibleCells()[0].getContext()
                       )}
                     </td>
@@ -391,6 +402,6 @@ const Table: React.FC<TableProps<any>> = ({
       )}
     </>
   );
-};
+}
 
 export default Table;

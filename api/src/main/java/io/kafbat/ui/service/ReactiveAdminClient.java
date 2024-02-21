@@ -77,8 +77,12 @@ import org.apache.kafka.common.errors.GroupNotEmptyException;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.apache.kafka.common.errors.SecurityDisabledException;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
+import org.apache.kafka.common.errors.UnknownServerException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
+import org.apache.kafka.common.quota.ClientQuotaAlteration;
+import org.apache.kafka.common.quota.ClientQuotaEntity;
+import org.apache.kafka.common.quota.ClientQuotaFilter;
 import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import reactor.core.publisher.Flux;
@@ -96,7 +100,8 @@ public class ReactiveAdminClient implements Closeable {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
     CONFIG_DOCUMENTATION_RETRIEVAL(2.6f),
     DESCRIBE_CLUSTER_INCLUDE_AUTHORIZED_OPERATIONS(2.3f),
-    AUTHORIZED_SECURITY_ENABLED(ReactiveAdminClient::isAuthorizedSecurityEnabled);
+    AUTHORIZED_SECURITY_ENABLED(ReactiveAdminClient::isAuthorizedSecurityEnabled),
+    CLIENT_QUOTA_MANAGEMENT(2.6f);
 
     private final BiFunction<AdminClient, Float, Mono<Boolean>> predicate;
 
@@ -246,8 +251,10 @@ public class ReactiveAdminClient implements Closeable {
     return listTopics(true).flatMap(topics -> getTopicsConfig(topics, false));
   }
 
-  //NOTE: skips not-found topics (for which UnknownTopicOrPartitionException was thrown by AdminClient)
-  //and topics for which DESCRIBE_CONFIGS permission is not set (TopicAuthorizationException was thrown)
+  /*
+  NOTE: skips not-found topics (for which UnknownTopicOrPartitionException or UnknownServerException was thrown by
+  AdminClient) and topics for which DESCRIBE_CONFIGS permission is not set (TopicAuthorizationException was thrown)
+   */
   public Mono<Map<String, List<ConfigEntry>>> getTopicsConfig(Collection<String> topicNames, boolean includeDoc) {
     var includeDocFixed = includeDoc && getClusterFeatures().contains(SupportedFeature.CONFIG_DOCUMENTATION_RETRIEVAL);
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
@@ -269,6 +276,7 @@ public class ReactiveAdminClient implements Closeable {
             resources,
             new DescribeConfigsOptions().includeSynonyms(true).includeDocumentation(includeDoc)).values(),
         UnknownTopicOrPartitionException.class,
+        UnknownServerException.class,
         TopicAuthorizationException.class
     ).map(config -> config.entrySet().stream()
         .collect(toMap(
@@ -659,6 +667,15 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Void> alterReplicaLogDirs(Map<TopicPartitionReplica, String> replicaAssignment) {
     return toMono(client.alterReplicaLogDirs(replicaAssignment).all());
   }
+
+  public Mono<Map<ClientQuotaEntity, Map<String, Double>>> getClientQuotas(ClientQuotaFilter filter) {
+    return toMono(client.describeClientQuotas(filter).entities());
+  }
+
+  public Mono<Void> alterClientQuota(ClientQuotaAlteration alteration) {
+    return toMono(client.alterClientQuotas(List.of(alteration)).all());
+  }
+
 
   // returns tp -> list of active producer's states (if any)
   public Mono<Map<TopicPartition, List<ProducerState>>> getActiveProducersState(String topic) {
