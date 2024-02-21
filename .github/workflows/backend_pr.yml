@@ -1,0 +1,26 @@
+name: "Backend: PR: Build and test"
+
+on:
+
+  pull_request_target:
+    types: [ "opened", "reopened", "synchronize" ]
+    paths:
+      - "pom.xml"
+      - "contract/**"
+      - "api/**"
+      - "serde-api/**"
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/backend_tests.yml
+    with:
+      event_name: ${{ github.event_name }}
