@@ -128,7 +128,7 @@ public class DynamicConfigOperations {
     Path targetDir = Path.of(targetDirStr);
     if (!Files.exists(targetDir)) {
       try {
-        Files.createDirectories(targetDir);
+          Files.createDirectories(targetDir);
       } catch (IOException e) {
         return Mono.error(
             new FileUploadException("Error creating directory for uploads %s".formatted(targetDir), e));
