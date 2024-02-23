@@ -1,19 +1,15 @@
-name: "Backend: PR/main build & test"
+name: "Backend: build and test"
 
 on:
-  push:
-    branches: [ "main" ]
-    paths: &backend_paths
-      - "pom.xml"
-      - "contract/**"
-      - "api/**"
-      - "serde-api/**"
-
-  pull_request_target:
-    types: [ "opened", "reopened", "synchronize" ]
-    paths: *backend_paths
+  workflow_call:
+    inputs:
+      event_name:
+        description: 'Original github.event_name'
+        required: true
+        type: string
 
 permissions:
+  contents: read
   checks: write
   pull-requests: write
 
@@ -25,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -43,8 +39,8 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Build and analyze pull request target
-        if: ${{ github.event_name == 'pull_request' }}
+      - name: "Pull request: Maven tests & sonar"
+        if: ${{ inputs.event_name == 'pull_request' || inputs.event_name == 'pull_request_target' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}
@@ -60,8 +56,8 @@ jobs:
           -Dsonar.pullrequest.branch=$HEAD_REF \
           -Dsonar.pullrequest.base=$BASE_REF
 
-      - name: Build and analyze push main
-        if: ${{ github.event_name == 'push' }}
+      - name: "Main: Maven tests & sonar"
+        if: ${{ inputs.event_name == 'push' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACKEND }}

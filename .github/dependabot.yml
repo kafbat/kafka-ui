@@ -39,4 +39,4 @@ updates:
   open-pull-requests-limit: 10
   labels:
     - "type/dependencies"
-    - "scope/infrastructure"
+    - "scope/infra"

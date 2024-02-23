@@ -17,12 +17,13 @@ on:
   schedule:
     - cron: '39 15 * * 6'
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -32,10 +33,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
@@ -47,7 +48,7 @@ jobs:
           cache: 'maven'
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3

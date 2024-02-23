@@ -15,15 +15,16 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
           ref: ${{ github.sha }}
       - name: Set up environment
         id: set_env_values
