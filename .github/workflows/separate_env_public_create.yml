@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
 
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
       tag: ${{ steps.extract_branch.outputs.tag }}
 
   separate-env-create:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     needs: build
     steps:
       - name: clone

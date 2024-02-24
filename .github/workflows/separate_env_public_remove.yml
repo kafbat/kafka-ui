@@ -9,7 +9,7 @@ on:
 
 jobs:
   separate-env-remove:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     steps:
       - name: clone
         run: |

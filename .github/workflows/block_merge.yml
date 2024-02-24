@@ -4,7 +4,7 @@ on:
     types: [opened, labeled, unlabeled, synchronize]
 jobs:
   block_merge:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     steps:
       - uses: mheap/github-action-required-labels@v5
         with:

@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     permissions:
       contents: write
       packages: write
@@ -95,7 +95,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
 
   charts:
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     needs: release
     steps:
       - name: Repository Dispatch

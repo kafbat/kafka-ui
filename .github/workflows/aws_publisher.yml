@@ -19,7 +19,7 @@ on:
 jobs:
   build-ami:
     name: Build AMI
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     steps:
       - name: Clone infra repo
         run: |
