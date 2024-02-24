@@ -1,19 +1,26 @@
-name: CVE checks docker main
+name: "Main: Build & deploy"
 on:
   workflow_dispatch:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '0 8 15 * *'
+
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
+    permissions:
       contents: read
+      packages: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }}
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -22,19 +29,21 @@ jobs:
           distribution: 'zulu'
           cache: 'maven'
 
-      - name: Build project
+      - name: Build a jar
         id: build
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -B -V -ntp clean package -DskipTests
+          ./mvnw -V -B -ntp clean package -Pprod -DskipTests
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      # docker images
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
         uses: actions/cache@v3
@@ -44,24 +53,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build docker image
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push docker image
+        id: docker_build_and_push
         uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
-          platforms: linux/amd64
-          push: false
-          load: true
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+          push: true
           tags: |
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
+            ghcr.io/kafbat/kafka-ui:main
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-
-      - name: Run CVE checks
-        uses: aquasecurity/trivy-action@0.12.0
-        with:
-          image-ref: "ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}"
-          format: "table"
-          exit-code: "1"

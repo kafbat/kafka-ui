@@ -3,7 +3,7 @@ import React from 'react';
 
 import * as S from './Table.styled';
 
-const ExpanderCell: React.FC<CellContext<unknown, unknown>> = ({ row }) => {
+function ExpanderCell<T, V = unknown>({ row }: CellContext<T, V>) {
   return (
     <S.ExpaderButton
       width="16"
@@ -31,6 +31,6 @@ const ExpanderCell: React.FC<CellContext<unknown, unknown>> = ({ row }) => {
       )}
     </S.ExpaderButton>
   );
-};
+}
 
 export default ExpanderCell;

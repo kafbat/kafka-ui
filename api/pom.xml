@@ -12,7 +12,7 @@
     <artifactId>api</artifactId>
 
     <properties>
-        <jacoco.version>0.8.10</jacoco.version>
+        <jacoco.version>0.8.11</jacoco.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
@@ -239,17 +239,6 @@
             <artifactId>spring-security-ldap</artifactId>
         </dependency>
 
-
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-            <version>${groovy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-json</artifactId>
-            <version>${groovy.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.datasketches</groupId>
             <artifactId>datasketches-java</artifactId>
@@ -259,6 +248,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>dev.cel</groupId>
+            <artifactId>cel</artifactId>
         </dependency>
 
     </dependencies>
