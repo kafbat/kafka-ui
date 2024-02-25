@@ -5,9 +5,15 @@ import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsAny = any;
 
-const SizeCell: React.FC<
-  CellContext<AsAny, AsAny> & { renderSegments?: boolean; precision?: number }
-> = ({ getValue, row, renderSegments = false, precision = 0 }) => (
+const SizeCell = <TValue = unknown,>({
+  getValue,
+  row,
+  renderSegments = false,
+  precision = 0,
+}: CellContext<AsAny, TValue> & {
+  renderSegments?: boolean;
+  precision?: number;
+}) => (
   <>
     <BytesFormatted value={getValue<string | number>()} precision={precision} />
     {renderSegments ? `, ${row?.original.count} segment(s)` : null}

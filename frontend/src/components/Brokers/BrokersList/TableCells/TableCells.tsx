@@ -39,7 +39,7 @@ export const DiscUsage = ({
   renderValue,
   row,
 }: DiscUsageProps) => {
-  if (getValue() === NA) return NA;
+  if (getValue() === undefined) return NA;
 
   return (
     <SizeCell
@@ -80,6 +80,13 @@ type OnlinePartitionsProps = CellContext<
 
 export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
   const { onlinePartitionCount, offlinePartitionCount } = row.original;
+
+  if (
+    onlinePartitionCount === undefined ||
+    offlinePartitionCount === undefined
+  ) {
+    return null;
+  }
 
   return (
     <ColoredCell

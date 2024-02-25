@@ -1,8 +1,8 @@
 import { Broker, BrokerDiskUsage } from 'generated-sources';
 import * as Cell from 'components/Brokers/BrokersList/TableCells/TableCells';
-import SkewHeader from 'components/Brokers/BrokersList/SkewHeader/SkewHeader';
 import { createColumnHelper } from '@tanstack/react-table';
 import { keyBy } from 'lib/functions/keyBy';
+import SkewHeader from 'components/Brokers/BrokersList/SkewHeader/SkewHeader';
 
 import { BrokersTableRow } from './types';
 import { NA_DISK_USAGE } from './constants';
@@ -40,7 +40,6 @@ export const getBrokersTableRows = ({
       partitionsLeader: broker.partitionsLeader,
       partitionsSkew: broker.partitionsSkew,
       leadersSkew: broker.leadersSkew,
-      inSyncPartitions: broker.inSyncPartitions,
       onlinePartitionCount,
       offlinePartitionCount,
       activeControllers,
