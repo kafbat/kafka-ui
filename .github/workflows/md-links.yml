@@ -9,15 +9,17 @@ on:
     paths:
       - '**.md'
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
+    runs-on: gha-private-runner
+
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
       - name: Check URLs in files
         uses: urlstechie/urlchecker-action@0.0.34
         with:

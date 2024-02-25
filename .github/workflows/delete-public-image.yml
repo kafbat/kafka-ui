@@ -6,7 +6,7 @@ on:
 jobs:
   remove:
     if: ${{ github.event.label.name == 'status/image_testing' || ( github.event.action == 'closed' && (contains(github.event.pull_request.labels, 'status/image_testing'))) }}
-    runs-on: ubuntu-latest
+    runs-on: gha-private-runner
     steps:
       - name: get branch name
         id: extract_branch
@@ -15,7 +15,7 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Configure AWS credentials for Kafka-UI account
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

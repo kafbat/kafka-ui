@@ -1,5 +1,7 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.service.ReactiveAdminClient.SupportedFeature.CLIENT_QUOTA_MANAGEMENT;
+
 import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
@@ -41,6 +43,7 @@ public class FeatureService {
     features.add(topicDeletionEnabled(adminClient));
     features.add(aclView(adminClient));
     features.add(aclEdit(adminClient, clusterDescription));
+    features.add(quotaManagement(adminClient));
 
     return Flux.fromIterable(features).flatMap(m -> m).collectList();
   }
@@ -48,6 +51,12 @@ public class FeatureService {
   private Mono<ClusterFeature> topicDeletionEnabled(ReactiveAdminClient adminClient) {
     return adminClient.isTopicDeletionEnabled()
         ? Mono.just(ClusterFeature.TOPIC_DELETION)
+        : Mono.empty();
+  }
+
+  private Mono<ClusterFeature> quotaManagement(ReactiveAdminClient adminClient) {
+    return adminClient.getClusterFeatures().contains(CLIENT_QUOTA_MANAGEMENT)
+        ? Mono.just(ClusterFeature.CLIENT_QUOTA_MANAGEMENT)
         : Mono.empty();
   }
 
