@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrokersTableRow } from 'components/Brokers/BrokersList/lib/types';
 import { CellContext } from '@tanstack/react-table';
-import { LinkCell, SizeCell } from 'components/common/NewTable';
+import { LinkCell } from 'components/common/NewTable';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import CheckMarkRoundIcon from 'components/common/Icons/CheckMarkRoundIcon';
 import { NA } from 'components/Brokers/BrokersList/lib';
 import ColoredCell from 'components/common/NewTable/ColoredCell';
+import SizeCellCount from 'components/common/NewTable/SizeCellCount';
 
 import * as S from './TableCells.styled';
 
@@ -42,14 +43,13 @@ export const DiscUsage = ({
   if (getValue() === undefined) return NA;
 
   return (
-    <SizeCell
+    <SizeCellCount
       table={table}
       column={column}
       row={row}
       cell={cell}
       getValue={getValue}
       renderValue={renderValue}
-      renderSegments
       precision={2}
     />
   );

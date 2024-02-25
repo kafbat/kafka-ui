@@ -26,10 +26,13 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 
-export interface TableProps<TData, TValue> {
+export interface TableProps<TData> {
   data: TData[];
   pageCount?: number;
-  columns: ColumnDef<TData, TValue>[];
+
+  // https://github.com/TanStack/table/issues/4382
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: ColumnDef<TData, any>[];
 
   // Server-side processing: sorting, pagination
   serverSideProcessing?: boolean;
@@ -118,7 +121,7 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
  */
 
-function Table<TData, TValue = unknown>({
+function Table<TData>({
   data,
   pageCount,
   columns,
@@ -134,7 +137,7 @@ function Table<TData, TValue = unknown>({
   onRowHover,
   onMouseLeave,
   setRowId,
-}: TableProps<TData, TValue>) {
+}: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [rowSelection, setRowSelection] = React.useState({});
