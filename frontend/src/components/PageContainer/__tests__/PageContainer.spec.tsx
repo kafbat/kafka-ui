@@ -30,7 +30,7 @@ describe('Page Container', () => {
       })),
     });
     render(
-      <PageContainer setDarkMode={jest.fn()}>
+      <PageContainer>
         <div>child</div>
       </PageContainer>,
       {

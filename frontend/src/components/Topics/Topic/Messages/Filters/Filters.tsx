@@ -152,7 +152,7 @@ const Filters: React.FC<FiltersProps> = ({
 
   const [queryType, setQueryType] = React.useState<MessageFilterType>(
     activeFilter.name
-      ? MessageFilterType.GROOVY_SCRIPT
+      ? MessageFilterType.CEL_SCRIPT
       : MessageFilterType.STRING_CONTAINS
   );
   const [query, setQuery] = React.useState<string>(searchParams.get('q') || '');
@@ -206,7 +206,7 @@ const Filters: React.FC<FiltersProps> = ({
     const nextAttempt = Number(searchParams.get('attempt') || 0) + 1;
     const props: Query = {
       q:
-        queryType === MessageFilterType.GROOVY_SCRIPT
+        queryType === MessageFilterType.CEL_SCRIPT
           ? activeFilter.code
           : query,
       filterQueryType: queryType,
@@ -309,7 +309,7 @@ const Filters: React.FC<FiltersProps> = ({
       JSON.stringify({ index, ...newActiveFilter })
     );
     setActiveFilter({ index, ...newActiveFilter });
-    setQueryType(MessageFilterType.GROOVY_SCRIPT);
+    setQueryType(MessageFilterType.CEL_SCRIPT);
   };
 
   const composeMessageFilter = (filter: FilterEdit): ActiveMessageFilter => ({
