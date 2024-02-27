@@ -130,8 +130,16 @@ export const ListItem = styled.li`
   color: ${({ theme }) => theme.table.td.color.normal};
 `;
 
+export const InfoHeading = styled.div`
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  color: ${({ theme }) => theme.table.td.color.normal};
+`;
+
 export const InfoParagraph = styled.div`
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
   margin-bottom: 10px;

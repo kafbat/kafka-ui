@@ -127,7 +127,7 @@ class MessageFiltersTest {
 
     @Test
     void keySetToKeyStringIfCantBeParsedToJson() {
-      var f = celScriptFilter("has(record.keyAsText) && record.keyAsText == 'not json' && record.key == 'not json'");
+      var f = celScriptFilter("has(record.keyAsText) && record.keyAsText == 'not json' && record.key == 'not json'"); // TODO this one is weird
       assertTrue(f.test(msg().key("not json")));
     }
 
