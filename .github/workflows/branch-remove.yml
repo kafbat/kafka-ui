@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   remove:
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     if: ${{ (github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public') || (github.event.action == 'closed' && (contains(github.event.pull_request.labels.*.name, 'status/feature_testing') || contains(github.event.pull_request.labels.*.name, 'status/feature_testing_public'))) }}
     steps:
       - uses: actions/checkout@v4

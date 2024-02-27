@@ -6,7 +6,7 @@ on:
 jobs:
   remove:
     if: ${{ github.event.label.name == 'status/image_testing' || ( github.event.action == 'closed' && (contains(github.event.pull_request.labels, 'status/image_testing'))) }}
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     steps:
       - name: get branch name
         id: extract_branch

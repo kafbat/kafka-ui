@@ -6,7 +6,7 @@ permissions:
   checks: write
 jobs:
   task-check:
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     steps:
       - uses: kentaro-m/task-completed-checker-action@v0.1.2
         with:

@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   update_release_draft:
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
