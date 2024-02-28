@@ -7,6 +7,7 @@ import type {
   ConfigUnit,
   UpdateBrokerConfigCallback,
 } from 'components/Brokers/Broker/Configs/lib/types';
+import { CONFIG_SOURCE_NAME_MAP } from 'components/Brokers/Broker/Configs/lib/constants';
 
 const getConfigFieldMatch = (field: string, query: string) =>
   field.toLocaleLowerCase().includes(query.toLocaleLowerCase());
@@ -51,6 +52,7 @@ export const getBrokerConfigsTableColumns = (
     }),
     columnHelper.accessor('source', {
       header: BrokerConfigTableComponents.ConfigSourceHeader,
+      cell: ({ getValue }) => CONFIG_SOURCE_NAME_MAP[getValue()],
     }),
   ];
 };
