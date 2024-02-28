@@ -51,9 +51,10 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_JMX_PORT: 9997
+#      KAFKA_JMX_HOSTNAME: localhost # uncomment this line and comment the next one if running with kafka-ui as a jar
       KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
     volumes:
-      - ./scripts/update_run.sh:/tmp/update_run.sh
+      - ../documentation/compose/scripts/update_run.sh:/tmp/update_run.sh
     command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"
 
   schema-registry0:
@@ -95,7 +96,7 @@ services:
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect0
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/usr/local/share/kafka/plugins,/usr/share/filestream-connectors"
 
   ksqldb0:
     image: confluentinc/ksqldb-server:0.18.0
@@ -118,7 +119,7 @@ services:
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.2.1.arm64
     volumes:
-      - ./data/message.json:/data/message.json
+      - ../documentation/compose/data/message.json:/data/message.json
     depends_on:
       - kafka0
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
