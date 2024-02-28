@@ -10,6 +10,7 @@ interface InputCellViewModeProps {
   unit: ConfigUnit | undefined;
   onEdit: () => void;
   isDynamic: boolean;
+  isSensitive: boolean;
 }
 
 const InputCellViewMode: FC<InputCellViewModeProps> = ({
@@ -17,12 +18,22 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   unit,
   onEdit,
   isDynamic,
+  isSensitive,
 }) => {
-  const valueWithUnit = unit ? `${value} ${unit}` : value;
+  let displayValue: string;
+  let title: string;
+
+  if (isSensitive) {
+    displayValue = '**********';
+    title = 'Sensitive Value';
+  } else {
+    displayValue = unit ? `${value} ${unit}` : value;
+    title = displayValue;
+  }
 
   return (
     <S.ValueWrapper $isDynamic={isDynamic}>
-      <S.Value title={valueWithUnit}>{valueWithUnit}</S.Value>
+      <S.Value title={title}>{displayValue}</S.Value>
       <Button
         buttonType="primary"
         buttonSize="S"

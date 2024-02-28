@@ -2,7 +2,7 @@ import { type BrokerConfig } from 'generated-sources';
 
 export type BrokerConfigsTableRow = Pick<
   BrokerConfig,
-  'name' | 'value' | 'source'
+  'name' | 'value' | 'source' | 'isReadOnly' | 'isSensitive'
 >;
 
 export type UpdateBrokerConfigCallback = (

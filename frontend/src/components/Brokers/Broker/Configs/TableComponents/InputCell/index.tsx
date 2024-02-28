@@ -19,7 +19,7 @@ interface InputCellProps
 const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
   const [isEdit, setIsEdit] = useState(false);
   const confirm = useConfirm();
-  const { name, source, value: initialValue } = row.original;
+  const { name, source, value: initialValue, isSensitive } = row.original;
 
   const handleSave = (newValue: string) => {
     if (newValue !== initialValue) {
@@ -35,16 +35,17 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
 
   return isEdit ? (
     <InputCellEditMode
-      initialValue={initialValue}
+      initialValue={String(initialValue)}
       onSave={handleSave}
       onCancel={() => setIsEdit(false)}
     />
   ) : (
     <InputCellViewMode
       unit={configUnit}
-      value={initialValue}
+      value={String(initialValue)}
       onEdit={() => setIsEdit(true)}
       isDynamic={isDynamic}
+      isSensitive={isSensitive}
     />
   );
 };
