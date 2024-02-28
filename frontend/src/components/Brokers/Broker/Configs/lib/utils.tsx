@@ -2,12 +2,13 @@ import React from 'react';
 import { type BrokerConfig, ConfigSource } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import * as BrokerConfigTableComponents from 'components/Brokers/Broker/Configs/TableComponents/index';
+
 import type {
   BrokerConfigsTableRow,
   ConfigUnit,
   UpdateBrokerConfigCallback,
-} from 'components/Brokers/Broker/Configs/lib/types';
-import { CONFIG_SOURCE_NAME_MAP } from 'components/Brokers/Broker/Configs/lib/constants';
+} from './types';
+import { CONFIG_SOURCE_NAME_MAP, CONFIG_SOURCE_PRIORITY } from './constants';
 
 const getConfigFieldMatch = (field: string, query: string) =>
   field.toLocaleLowerCase().includes(query.toLocaleLowerCase());
@@ -21,9 +22,14 @@ const filterConfigsBySearchQuery =
     return nameMatch ? true : valueMatch;
   };
 
+const getConfigSourcePriority = (source: ConfigSource): number =>
+  CONFIG_SOURCE_PRIORITY[source];
+
 const sortBrokersBySource = (a: BrokerConfig, b: BrokerConfig) => {
-  if (a.source === b.source) return 0;
-  return a.source === ConfigSource.DYNAMIC_BROKER_CONFIG ? -1 : 1;
+  const priorityA = getConfigSourcePriority(a.source);
+  const priorityB = getConfigSourcePriority(b.source);
+
+  return priorityA - priorityB;
 };
 
 export const getConfigTableData = (

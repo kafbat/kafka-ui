@@ -9,3 +9,17 @@ export const CONFIG_SOURCE_NAME_MAP: Record<ConfigSource, string> = {
   [ConfigSource.DEFAULT_CONFIG]: 'Default config',
   [ConfigSource.UNKNOWN]: 'Unknown',
 };
+
+export const CONFIG_SOURCE_PRIORITY: Record<
+  ConfigSource | 'UNHANDLED',
+  number
+> = {
+  [ConfigSource.DYNAMIC_TOPIC_CONFIG]: 1,
+  [ConfigSource.DYNAMIC_BROKER_LOGGER_CONFIG]: 1,
+  [ConfigSource.DYNAMIC_BROKER_CONFIG]: 1,
+  [ConfigSource.DYNAMIC_DEFAULT_BROKER_CONFIG]: 1,
+  [ConfigSource.STATIC_BROKER_CONFIG]: 2,
+  [ConfigSource.DEFAULT_CONFIG]: 3,
+  [ConfigSource.UNKNOWN]: 4,
+  UNHANDLED: 5,
+};
