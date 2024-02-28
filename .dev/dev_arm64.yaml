@@ -4,8 +4,11 @@
 # ARM64 supported images for kafka can be found here
 # https://hub.docker.com/r/confluentinc/cp-kafka/tags?page=1&name=arm64
 ---
-version: '2'
+version: '3.8'
+name: "kafbat-dev"
+
 services:
+
   kafbat-ui:
     container_name: kafbat-ui
     image: ghcr.io/kafbat/kafka-ui:latest
