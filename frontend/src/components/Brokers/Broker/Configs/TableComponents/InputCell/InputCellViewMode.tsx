@@ -2,6 +2,7 @@ import React, { type FC } from 'react';
 import { Button } from 'components/common/Button/Button';
 import EditIcon from 'components/common/Icons/EditIcon';
 import type { ConfigUnit } from 'components/Brokers/Broker/Configs/lib/types';
+import Tooltip from 'components/common/Tooltip/Tooltip';
 
 import * as S from './styled';
 
@@ -11,6 +12,7 @@ interface InputCellViewModeProps {
   onEdit: () => void;
   isDynamic: boolean;
   isSensitive: boolean;
+  isReadOnly: boolean;
 }
 
 const InputCellViewMode: FC<InputCellViewModeProps> = ({
@@ -19,6 +21,7 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   onEdit,
   isDynamic,
   isSensitive,
+  isReadOnly,
 }) => {
   let displayValue: string;
   let title: string;
@@ -34,14 +37,22 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   return (
     <S.ValueWrapper $isDynamic={isDynamic}>
       <S.Value title={title}>{displayValue}</S.Value>
-      <Button
-        buttonType="primary"
-        buttonSize="S"
-        aria-label="editAction"
-        onClick={onEdit}
-      >
-        <EditIcon /> Edit
-      </Button>
+      <Tooltip
+        value={
+          <Button
+            buttonType="primary"
+            buttonSize="S"
+            aria-label="editAction"
+            onClick={onEdit}
+            disabled={isReadOnly}
+          >
+            <EditIcon /> Edit
+          </Button>
+        }
+        showTooltip={isReadOnly}
+        content="Property is read-only"
+        placement="left"
+      />
     </S.ValueWrapper>
   );
 };

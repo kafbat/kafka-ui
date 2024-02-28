@@ -19,7 +19,13 @@ interface InputCellProps
 const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
   const [isEdit, setIsEdit] = useState(false);
   const confirm = useConfirm();
-  const { name, source, value: initialValue, isSensitive } = row.original;
+  const {
+    name,
+    source,
+    value: initialValue,
+    isSensitive,
+    isReadOnly,
+  } = row.original;
 
   const handleSave = (newValue: string) => {
     if (newValue !== initialValue) {
@@ -46,6 +52,7 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
       onEdit={() => setIsEdit(true)}
       isDynamic={isDynamic}
       isSensitive={isSensitive}
+      isReadOnly={isReadOnly}
     />
   );
 };
