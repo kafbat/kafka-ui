@@ -6,6 +6,7 @@ import {
   BrokerConfigsTableRow,
   UpdateBrokerConfigCallback,
 } from 'components/Brokers/Broker/Configs/lib/types';
+import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
 
 import InputCellViewMode from './InputCellViewMode';
 import InputCellEditMode from './InputCellEditMode';
@@ -15,21 +16,22 @@ interface InputCellProps
   onUpdate: UpdateBrokerConfigCallback;
 }
 
-const InputCell: FC<InputCellProps> = ({ row, getValue, onUpdate }) => {
-  const initialValue = getValue();
+const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
   const [isEdit, setIsEdit] = useState(false);
   const confirm = useConfirm();
+  const { name, source, value: initialValue } = row.original;
 
   const handleSave = (newValue: string) => {
     if (newValue !== initialValue) {
       confirm('Are you sure you want to change the value?', () =>
-        onUpdate(row?.original?.name, newValue)
+        onUpdate(name, newValue)
       );
     }
     setIsEdit(false);
   };
 
-  const isDynamic = row?.original?.source === 'DYNAMIC_BROKER_CONFIG';
+  const isDynamic = source === 'DYNAMIC_BROKER_CONFIG';
+  const configUnit = getConfigUnit(name);
 
   return isEdit ? (
     <InputCellEditMode
@@ -39,6 +41,7 @@ const InputCell: FC<InputCellProps> = ({ row, getValue, onUpdate }) => {
     />
   ) : (
     <InputCellViewMode
+      unit={configUnit}
       value={initialValue}
       onEdit={() => setIsEdit(true)}
       isDynamic={isDynamic}

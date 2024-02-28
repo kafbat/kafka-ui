@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 
-export const ValueWrapper = styled.div`
+export const ValueWrapper = styled.div<{ $isDynamic: boolean }>`
   display: flex;
   justify-content: space-between;
+  font-weight: ${({ $isDynamic }) => ($isDynamic ? 600 : 400)};
 
   button {
     margin: 0 10px;

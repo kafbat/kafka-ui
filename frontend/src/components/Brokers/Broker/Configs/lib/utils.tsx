@@ -2,8 +2,9 @@ import React from 'react';
 import { type BrokerConfig, ConfigSource } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import * as BrokerConfigTableComponents from 'components/Brokers/Broker/Configs/TableComponents/index';
-import {
+import type {
   BrokerConfigsTableRow,
+  ConfigUnit,
   UpdateBrokerConfigCallback,
 } from 'components/Brokers/Broker/Configs/lib/types';
 
@@ -52,4 +53,17 @@ export const getBrokerConfigsTableColumns = (
       header: BrokerConfigTableComponents.ConfigSourceHeader,
     }),
   ];
+};
+
+const unitPatterns = {
+  ms: /\.ms$/,
+  bytes: /\.bytes$/,
+};
+
+export const getConfigUnit = (configName: string): ConfigUnit | undefined => {
+  const found = Object.entries(unitPatterns).find(([_, pattern]) =>
+    pattern.test(configName)
+  );
+
+  return found ? (found[0] as ConfigUnit) : undefined;
 };
