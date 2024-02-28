@@ -19,7 +19,7 @@ const Configs: FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { clusterName, brokerId } = useAppParams<ClusterBrokerParam>();
   const { data: configs = [] } = useBrokerConfig(clusterName, Number(brokerId));
-  const { mutateAsync } = useUpdateBrokerConfigByName(
+  const updateBrokerConfigByName = useUpdateBrokerConfigByName(
     clusterName,
     Number(brokerId)
   );
@@ -32,7 +32,8 @@ const Configs: FC = () => {
   const onUpdateInputCell = async (
     name: BrokerConfig['name'],
     value: BrokerConfig['value']
-  ) => mutateAsync({ name, brokerConfigItem: { value } });
+  ) =>
+    updateBrokerConfigByName.mutateAsync({ name, brokerConfigItem: { value } });
 
   const columns = useMemo(
     () => getBrokerConfigsTableColumns(onUpdateInputCell),
