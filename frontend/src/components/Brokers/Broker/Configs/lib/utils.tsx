@@ -69,7 +69,7 @@ const unitPatterns = {
 };
 
 export const getConfigUnit = (configName: string): ConfigUnit | undefined => {
-  const found = Object.entries(unitPatterns).find(([_, pattern]) =>
+  const found = Object.entries(unitPatterns).find(([, pattern]) =>
     pattern.test(configName)
   );
 
