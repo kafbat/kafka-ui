@@ -1,3 +1,6 @@
+# This is a compose file designed for arm64/Apple Silicon systems
+# To adapt this to x86 please find and replace ".arm64" with empty
+
 # ARM64 supported images for kafka can be found here
 # https://hub.docker.com/r/confluentinc/cp-kafka/tags?page=1&name=arm64
 ---
@@ -12,6 +15,7 @@ services:
       - kafka0
       - schema-registry0
       - kafka-connect0
+      - ksqldb0
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:29092
@@ -19,7 +23,8 @@ services:
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry0:8085
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect0:8083
-      DYNAMIC_CONFIG_ENABLED: 'true'  # not necessary, added for tests
+      KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb0:8088
+      DYNAMIC_CONFIG_ENABLED: 'true'
       KAFKA_CLUSTERS_0_AUDIT_TOPICAUDITENABLED: 'true'
       KAFKA_CLUSTERS_0_AUDIT_CONSOLEAUDITENABLED: 'true'
 
@@ -92,10 +97,28 @@ services:
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect0
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
 
+  ksqldb0:
+    image: confluentinc/ksqldb-server:0.18.0
+    depends_on:
+      - kafka0
+      - kafka-connect0
+      - schema-registry0
+    environment:
+      KSQL_CUB_KAFKA_TIMEOUT: 120
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_BOOTSTRAP_SERVERS: PLAINTEXT://kafka0:29092
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+      KSQL_KSQL_CONNECT_URL: http://kafka-connect0:8083
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry0:8085
+      KSQL_KSQL_SERVICE_ID: my_ksql_1
+      KSQL_KSQL_HIDDEN_TOPICS: '^_.*'
+      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
+
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.2.1.arm64
     volumes:
-       - ./data/message.json:/data/message.json
+      - ./data/message.json:/data/message.json
     depends_on:
       - kafka0
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
