@@ -89,9 +89,9 @@ class MessagesProcessing {
   @VisibleForTesting
   static Iterable<ConsumerRecord<Bytes, Bytes>> sortForSending(Iterable<ConsumerRecord<Bytes, Bytes>> records,
                                                                boolean asc) {
-    Comparator<ConsumerRecord> offsetComparator = asc
+    Comparator<ConsumerRecord<Bytes, Bytes>> offsetComparator = asc
         ? Comparator.comparingLong(ConsumerRecord::offset)
-        : Comparator.<ConsumerRecord>comparingLong(ConsumerRecord::offset).reversed();
+        : Comparator.<ConsumerRecord<Bytes, Bytes>>comparingLong(ConsumerRecord::offset).reversed();
 
     // partition -> sorted by offsets records
     Map<Integer, List<ConsumerRecord<Bytes, Bytes>>> perPartition = Streams.stream(records)
@@ -101,9 +101,9 @@ class MessagesProcessing {
                 TreeMap::new,
                 collectingAndThen(toList(), lst -> lst.stream().sorted(offsetComparator).toList())));
 
-    Comparator<ConsumerRecord> tsComparator = asc
+    Comparator<ConsumerRecord<Bytes, Bytes>> tsComparator = asc
         ? Comparator.comparing(ConsumerRecord::timestamp)
-        : Comparator.<ConsumerRecord>comparingLong(ConsumerRecord::timestamp).reversed();
+        : Comparator.<ConsumerRecord<Bytes, Bytes>>comparingLong(ConsumerRecord::timestamp).reversed();
 
     // merge-sorting records from partitions one by one using timestamp comparator
     return Iterables.mergeSorted(perPartition.values(), tsComparator);
