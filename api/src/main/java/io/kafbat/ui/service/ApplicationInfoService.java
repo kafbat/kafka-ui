@@ -17,6 +17,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ApplicationInfoService {
@@ -70,7 +71,7 @@ public class ApplicationInfoService {
   // updating on startup and every hour
   @Scheduled(fixedRateString = "${github-release-info-update-rate:3600000}")
   public void updateGithubReleaseInfo() {
-    githubReleaseInfo.refresh().block();
+    githubReleaseInfo.refresh().subscribe();
   }
 
 }
