@@ -13,7 +13,7 @@ import {
 } from 'generated-sources';
 import React, { useContext } from 'react';
 import omitBy from 'lodash/omitBy';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import { Option } from 'react-multi-select-component';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
@@ -55,11 +55,17 @@ export interface FiltersProps {
   meta: TopicMessageConsuming;
   isFetching: boolean;
   messageEventType?: string;
+
   addMessage(content: { message: TopicMessage; prepend: boolean }): void;
+
   resetMessages(): void;
+
   updatePhase(phase: string): void;
+
   updateMeta(meta: TopicMessageConsuming): void;
+
   setIsFetching(status: boolean): void;
+
   setMessageType(messageType: string): void;
 }
 
@@ -152,7 +158,7 @@ const Filters: React.FC<FiltersProps> = ({
 
   const [queryType, setQueryType] = React.useState<MessageFilterType>(
     activeFilter.name
-      ? MessageFilterType.GROOVY_SCRIPT
+      ? MessageFilterType.CEL_SCRIPT
       : MessageFilterType.STRING_CONTAINS
   );
   const [query, setQuery] = React.useState<string>(searchParams.get('q') || '');
@@ -205,10 +211,7 @@ const Filters: React.FC<FiltersProps> = ({
   const handleFiltersSubmit = (currentOffset: string) => {
     const nextAttempt = Number(searchParams.get('attempt') || 0) + 1;
     const props: Query = {
-      q:
-        queryType === MessageFilterType.GROOVY_SCRIPT
-          ? activeFilter.code
-          : query,
+      q: queryType === MessageFilterType.CEL_SCRIPT ? activeFilter.code : query,
       filterQueryType: queryType,
       attempt: nextAttempt,
       limit: PER_PAGE,
@@ -309,7 +312,7 @@ const Filters: React.FC<FiltersProps> = ({
       JSON.stringify({ index, ...newActiveFilter })
     );
     setActiveFilter({ index, ...newActiveFilter });
-    setQueryType(MessageFilterType.GROOVY_SCRIPT);
+    setQueryType(MessageFilterType.CEL_SCRIPT);
   };
 
   const composeMessageFilter = (filter: FilterEdit): ActiveMessageFilter => ({

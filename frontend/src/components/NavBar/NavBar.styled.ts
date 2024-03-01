@@ -130,18 +130,20 @@ export const Hyperlink = styled(Link)(
     align-items: center;
     gap: 8px;
 
-    margin: 0;
+    margin: 0 0 0 8px;
     padding: 0.5rem 0.75rem;
 
     font-family: Inter, sans-serif;
     font-style: normal;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 22px;
     line-height: 16px;
     color: ${theme.default.color.normal};
+
     &:hover {
       color: ${theme.default.color.normal};
     }
+
     text-decoration: none;
     word-break: break-word;
     cursor: pointer;
