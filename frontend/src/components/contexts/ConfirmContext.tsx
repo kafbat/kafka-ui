@@ -22,9 +22,7 @@ interface ConfirmContextType {
 
 export const ConfirmContext = createContext<ConfirmContextType | null>(null);
 
-export const ConfirmContextProvider: FC<PropsWithChildren<unknown>> = ({
-  children,
-}) => {
+export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const [content, setContent] = useState<ReactNode>(null);
   const [confirm, setConfirm] = useState<(() => void) | undefined>(undefined);
   const [dangerButton, setDangerButton] = useState(false);
