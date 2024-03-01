@@ -20,7 +20,7 @@ describe('NavBar', () => {
       })),
     });
 
-    render(<NavBar onBurgerClick={jest.fn()} setDarkMode={jest.fn()} />);
+    render(<NavBar onBurgerClick={jest.fn()} />);
   });
 
   it('correctly renders header', () => {
