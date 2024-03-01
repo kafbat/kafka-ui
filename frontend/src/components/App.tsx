@@ -50,7 +50,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <GlobalSettingsProvider>
         <ThemeProvider theme={isDarkMode ? darkTheme : theme}>
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<PageLoader fullSize />}>
             <UserInfoRolesAccessProvider>
               <ConfirmContextProvider>
                 <GlobalCSS />
