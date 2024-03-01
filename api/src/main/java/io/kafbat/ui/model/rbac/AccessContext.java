@@ -1,5 +1,7 @@
 package io.kafbat.ui.model.rbac;
 
+import static io.kafbat.ui.model.rbac.permission.SchemaAction.MODIFY_GLOBAL_COMPATIBILITY;
+
 import com.google.common.base.Preconditions;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ApplicationConfigAction;
@@ -132,7 +134,7 @@ public record AccessContext(String cluster,
     }
 
     public AccessContextBuilder schemaGlobalCompatChange() {
-      accessedResources.add(new SingleResourceAccess(Resource.SCHEMA, List.of(SchemaAction.MODIFY_GLOBAL_COMPATIBILITY)));
+      accessedResources.add(new SingleResourceAccess(Resource.SCHEMA, List.of(MODIFY_GLOBAL_COMPATIBILITY)));
       return this;
     }
 

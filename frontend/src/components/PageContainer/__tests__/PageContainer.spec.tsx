@@ -9,9 +9,11 @@ import { Cluster, ServerStatus } from 'generated-sources';
 const burgerButtonOptions = { name: 'burger' };
 
 jest.mock('components/Version/Version', () => () => <div>Version</div>);
+
 interface DataType {
   data: Cluster[] | undefined;
 }
+
 jest.mock('lib/hooks/api/clusters');
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -30,7 +32,7 @@ describe('Page Container', () => {
       })),
     });
     render(
-      <PageContainer setDarkMode={jest.fn()}>
+      <PageContainer>
         <div>child</div>
       </PageContainer>,
       {
