@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4

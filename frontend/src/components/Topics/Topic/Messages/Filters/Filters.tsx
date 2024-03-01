@@ -13,7 +13,7 @@ import {
 } from 'generated-sources';
 import React, { useContext } from 'react';
 import omitBy from 'lodash/omitBy';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import { Option } from 'react-multi-select-component';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
@@ -55,11 +55,17 @@ export interface FiltersProps {
   meta: TopicMessageConsuming;
   isFetching: boolean;
   messageEventType?: string;
+
   addMessage(content: { message: TopicMessage; prepend: boolean }): void;
+
   resetMessages(): void;
+
   updatePhase(phase: string): void;
+
   updateMeta(meta: TopicMessageConsuming): void;
+
   setIsFetching(status: boolean): void;
+
   setMessageType(messageType: string): void;
 }
 
@@ -205,10 +211,7 @@ const Filters: React.FC<FiltersProps> = ({
   const handleFiltersSubmit = (currentOffset: string) => {
     const nextAttempt = Number(searchParams.get('attempt') || 0) + 1;
     const props: Query = {
-      q:
-        queryType === MessageFilterType.CEL_SCRIPT
-          ? activeFilter.code
-          : query,
+      q: queryType === MessageFilterType.CEL_SCRIPT ? activeFilter.code : query,
       filterQueryType: queryType,
       attempt: nextAttempt,
       limit: PER_PAGE,

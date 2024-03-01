@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
     if: ${{ github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public' }}
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,7 +75,7 @@ jobs:
       tag: ${{ steps.extract_branch.outputs.tag }}
   make-branch-env:
     needs: build
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     steps:
       - name: clone
         run: |

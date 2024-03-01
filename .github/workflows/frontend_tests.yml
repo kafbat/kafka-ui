@@ -11,7 +11,7 @@ jobs:
     env:
       CI: true
       NODE_ENV: dev
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
