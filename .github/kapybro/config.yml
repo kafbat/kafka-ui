@@ -1,95 +1,118 @@
-version: "0.1"
+version: "0.2"
 
 settings:
 
-maintainers:
+
+maintainers: &maintainers
   teams: [ "maintainers" ]
-  users: []
+  users: [ ]
 
-triage:
-  enabled: true
+anchors:
 
-  label: "status/triage"
-  remove-assignees: false
-
-  skip:
+  skip_main: &skip_off
     enabled: false
-    do-manual-triage: false
-    labels:
-      add: [ "status/triage/skipped" ]
-      remove: [ ]
-    conditions:
-      labels: [ "needs-attention", "needs-discussion" ]
-      authors:
-        teams: [ "maintainers" ]
-    comment:
-      enabled: false
-      message: "Automated triaging skipped."
 
-  manual:
+  skip_maintainers: &skip_maintainers
     enabled: true
+    conditions:
+      authors: *maintainers
+
+  keyword-labeling: &keyword-labeling
+    enabled: true
+    case-sensitive: false
+    scan:
+      title: true
+      body: false
+    rules:
+      # <alias>: [ <labels> ]
+      acl: [ "area/acl" ]
+      audit: [ "area/audit" ]
+      auth: [ "area/auth" ]
+      consumers: [ "area/consumers" ]
+      messages: [ "area/messages" ]
+      rbac: [ "area/rbac" ]
+      serde: [ "area/serde" ]
+      SR: [ "area/sr" ]
+      topics: [ "area/topics" ]
+      ux: [ "area/ux" ]
+      wizard: [ "area/wizard" ]
+      ###
+      backend: [ "scope/backend" ]
+      frontend: [ "scope/frontend" ]
+      infra: [ "scope/infra" ]
+      ###
+      bug: [ "type/bug" ]
+      feature: [ "type/feature" ]
+      enh: [ "type/enhancement" ]
+
+  automatic: &automatic
+    enabled: true
+    skip: *skip_off
+    label: "status/triage"
+    remove-assignees: false
+    keyword-labeling: *keyword-labeling
+    completed:
+      labels:
+        add: [ "status/triage/completed" ]
+        remove: []
+
+  manual: &manual
+    enabled: true
+    skip: *skip_maintainers
     label: "status/triage/manual"
     labels:
-      add: []
-      remove: []
-    assign-maintainers: true
-    comment:
-      enabled: false
-      message: "Automated triaging completed. Pending human maintainer 🤖"
+      add: [ ]
+      remove: [ ]
+    assign-maintainers: false
 
-  repeating:
-    enabled: true
+  repeating: &repeating
+    enabled: false
+    skip: *skip_maintainers
     triggers:
       reopen: false
-      triage-labels: true
+      triage-labels: false
       labels: [ "status/retriage" ]
-    only-manual: false
 
-  completed:
+  feedback-management: &feedback-management
+    enabled: true
     labels:
-      add: [ "status/triage/completed" ]
-      remove: []
+      requested: "status/feedback-requested"
+      received: "status/feedback-received"
+    only-author-replies: false
+    assign-author: true
+    assign-maintainers: false
+    auto-close:
+      enabled: true
+      close-days: 7
+      labels:
+        add: [ "status/stale" ]
+        remove: [ "status/feedback-requested" ]
 
-keyword-labeling:
-  enabled: true
-  case-sensitive: false
-  match-title: true
-  match-body: true
-  rules:
-    # <keyword>: <label>
-    - backend: scope/backend
-    - be: scope/backend
-    - frontend: scope/frontend
-    - fe: scope/frontend
-    - infra: scope/infrastructure
-    - bug: type/bug
-    - feature: type/feature
-    - enh: type/enhancement
-    - rbac: area/rbac
+  locking: &locking
+    enabled: false
 
-feedback-management:
-  enabled: true
-  labels:
-    requested: "status/feedback-requested"
-    received: "status/feedback-received"
-  only-author-replies: false
-  assign-author: true
-  assign-maintainers: false
-  comments:
+  triage: &triage
+    enabled: true
+
+    automatic: *automatic
+    manual: *manual
+    repeating: *repeating
+
+issues:
+  triage: *triage
+  feedback-management: *feedback-management
+  locking: *locking
+
+prs:
+  triage: *triage
+  feedback-management: *feedback-management
+  locking: *locking
+
+  auto-rebase:
+    enabled: false
+
+comments:
+  feedback:
     requested: "Further user feedback is requested. Please reply within 7 days or we might close the issue."
     received: "Thanks for the additional feedback! We'll get back to your issue soon."
     closed: "No feedback received within 7 days. Auto closing."
-  auto-close:
-    enabled: true
-    close-days: 7
-    labels:
-      add: [ "status/stale" ]
-      remove: [ "status/feedback-requested" ]
-
-locking:
-  enabled: false
-
-auto-rebase:
-  enabled: true
-  rebase-on-label: false
-  labels: [ "status/auto-merge" ]

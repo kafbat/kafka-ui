@@ -7,13 +7,20 @@ import org.jetbrains.annotations.Nullable;
 public enum ConnectAction implements PermissibleAction {
 
   VIEW,
-  EDIT,
-  CREATE,
-  RESTART
+  EDIT(VIEW),
+  CREATE(VIEW),
+  RESTART(VIEW),
+  DELETE(VIEW)
 
   ;
 
-  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, RESTART);
+  private final ConnectAction[] dependantActions;
+
+  ConnectAction(ConnectAction... dependantActions) {
+    this.dependantActions = dependantActions;
+  }
+
+  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, RESTART);
 
   @Nullable
   public static ConnectAction fromString(String name) {
@@ -23,5 +30,10 @@ public enum ConnectAction implements PermissibleAction {
   @Override
   public boolean isAlter() {
     return ALTER_ACTIONS.contains(this);
+  }
+
+  @Override
+  public PermissibleAction[] dependantActions() {
+    return dependantActions;
   }
 }

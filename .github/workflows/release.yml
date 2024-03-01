@@ -1,13 +1,17 @@
 name: "Infra: Release"
 on:
   release:
-    types: [published]
+    types: [ published ]
+
+permissions:
+  contents: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
+    permissions:
+      contents: write
+      packages: write
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
@@ -15,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - run: |
           git config user.name github-actions
@@ -44,20 +48,20 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
 
       - name: Archive JAR
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
-#################
-#               #
-# Docker images #
-#               #
-#################
+      #################
+      #               #
+      # Docker images #
+      #               #
+      #################
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
         uses: actions/cache@v3
@@ -67,8 +71,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
-        if: false # TODO fix for github images
         id: docker_build_and_push
         uses: docker/build-push-action@v5
         with:
@@ -93,6 +102,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
-          repository: kafbat/-ui-charts
+          repository: kafbat/helm-charts
           event-type: prepare-helm-release
           client-payload: '{"appversion": "${{ needs.release.outputs.version }}"}'

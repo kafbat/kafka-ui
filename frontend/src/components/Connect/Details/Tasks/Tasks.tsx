@@ -50,7 +50,11 @@ const Tasks: React.FC = () => {
       data={data}
       emptyMessage="No tasks found"
       enableSorting
-      getRowCanExpand={(row) => row.original.status.trace?.length > 0}
+      getRowCanExpand={(row) => {
+        const { trace } = row.original.status;
+        if (trace === undefined) return false;
+        return trace.length > 0;
+      }}
       renderSubComponent={ExpandedTaskRow}
     />
   );

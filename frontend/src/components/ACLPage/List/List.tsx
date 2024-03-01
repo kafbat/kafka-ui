@@ -1,5 +1,5 @@
 import React from 'react';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 import { useTheme } from 'styled-components';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import Table from 'components/common/NewTable';
@@ -130,9 +130,9 @@ const ACList: React.FC = () => {
     [rowId]
   );
 
-  const onRowHover = (value: unknown) => {
-    if (value && typeof value === 'object' && 'id' in value) {
-      setRowId(value.id as string);
+  const onRowHover = (value: Row<KafkaAcl>) => {
+    if (value) {
+      setRowId(value.id);
     }
   };
 
