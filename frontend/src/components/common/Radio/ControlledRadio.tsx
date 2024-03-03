@@ -16,7 +16,7 @@ const ControlledRadio: FC<ControlledRadioProps> = ({ name, options }) => {
           <Radio
             options={options}
             onChange={onChange}
-            value={value ?? options[0].value}
+            value={value ?? options[0]?.value}
           />
         );
       }}
