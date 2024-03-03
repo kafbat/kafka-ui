@@ -29,7 +29,7 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
   const DetailedForm = DETAILED_FORM_COMPONENTS[aclType];
 
   return (
-    <S.Wrapper $open={open}>
+    <S.Wrapper data-testid="aclForm" $open={open}>
       <Heading level={3}>
         <S.Title>Create ACL</S.Title>
         <S.CloseSidebar onClick={formContext?.close}>
