@@ -12,7 +12,7 @@ const useTopicsOptions = (clusterName: string) => {
         };
       }) || []
     );
-  }, [clusterName]);
+  }, [data]);
 
   return topics;
 };

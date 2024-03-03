@@ -1,8 +1,8 @@
 import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import { useMemo } from 'react';
 
-const useConsumerGroupsOptions = (clusterName: string, search: string) => {
-  const { data } = useConsumerGroups({ clusterName, search });
+const useConsumerGroupsOptions = (clusterName: string) => {
+  const { data } = useConsumerGroups({ clusterName, search: '' });
   const consumerGroups = useMemo(() => {
     return (
       data?.consumerGroups?.map((cg) => {
@@ -12,7 +12,7 @@ const useConsumerGroupsOptions = (clusterName: string, search: string) => {
         };
       }) || []
     );
-  }, [clusterName, search]);
+  }, [data]);
 
   return consumerGroups;
 };

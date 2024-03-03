@@ -38,7 +38,7 @@ const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   };
 
   const topics = useTopicsOptions(clusterName);
-  const consumerGroups = useConsumerGroupsOptions(clusterName, '');
+  const consumerGroups = useConsumerGroupsOptions(clusterName);
 
   const onTopicTypeChange = (value: string) => {
     if (value === MatchType.EXACT) {
