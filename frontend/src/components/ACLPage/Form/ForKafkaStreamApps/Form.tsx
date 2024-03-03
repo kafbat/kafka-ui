@@ -7,15 +7,15 @@ import useAppParams from 'lib/hooks/useAppParams';
 import Input from 'components/common/Input/Input';
 import ControlledMultiSelect from 'components/common/MultiSelect/ControlledMultiSelect';
 import * as S from 'components/ACLPage/Form/Form.styled';
-import { AclFormProps } from 'components/ACLPage/Form/types';
+import { AclDetailedFormProps } from 'components/ACLPage/Form/types';
+import useTopicsOptions from 'components/ACLPage/lib/useTopicsOptions';
+import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 
 import { toRequest } from './lib';
 import formSchema from './schema';
 import { FormValues } from './types';
-import useTopicsOptions from 'components/ACLPage/lib/useTopicsOptions';
-import ACLFormContext from '../AclFormContext';
 
-const ForKafkaStreamAppsForm: FC<AclFormProps> = ({ formRef }) => {
+const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const { onClose: closeForm } = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',

@@ -1,4 +1,4 @@
-import { RefObject, createContext } from 'react';
+import { createContext } from 'react';
 
 interface ACLFormContextProps {
   onClose: () => void;

@@ -1,10 +1,14 @@
 import { RefObject } from 'react';
 
-export type AclFormProps = {
+export interface AclDetailedFormProps {
   formRef: RefObject<HTMLFormElement> | null;
-};
+}
 
-export enum PrefixType {
+export interface ACLFormProps {
+  isOpen: boolean;
+}
+
+export enum MatchType {
   EXACT = 'EXACT',
   PREFIXED = 'PREFIXED',
 }

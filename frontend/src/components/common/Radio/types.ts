@@ -13,3 +13,8 @@ export type RadioProps = {
   options: ReadonlyArray<RadioOption>;
   onChange: (value: string) => void;
 };
+
+export interface ControlledRadioProps {
+  name: string;
+  options: ReadonlyArray<RadioOption>;
+}

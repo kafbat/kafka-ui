@@ -3,14 +3,14 @@ import {
   KafkaAclPermissionEnum,
   KafkaAclResourceType,
 } from 'generated-sources';
-import { PrefixType } from 'components/ACLPage/Form/types';
+import { MatchType } from 'components/ACLPage/Form/types';
 
-export type FormValues = {
+export interface FormValues {
   resourceType: KafkaAclResourceType;
   resourceName: string;
-  namePatternType: PrefixType;
+  namePatternType: MatchType;
   principal: string;
   host: string;
   operation: KafkaAclOperationEnum;
   permission: KafkaAclPermissionEnum;
-};
+}

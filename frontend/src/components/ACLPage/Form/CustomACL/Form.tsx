@@ -5,24 +5,24 @@ import { useCreateCustomAcl } from 'lib/hooks/api/acl';
 import ControlledRadio from 'components/common/Radio/ControlledRadio';
 import Input from 'components/common/Input/Input';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
-import { prefixOptions } from 'components/ACLPage/Form/constants';
-import { AclFormProps } from 'components/ACLPage/Form//types';
+import { matchTypeOptions } from 'components/ACLPage/Form/constants';
+import { AclDetailedFormProps } from 'components/ACLPage/Form//types';
 import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterName } from 'redux/interfaces';
 import * as S from 'components/ACLPage/Form/Form.styled';
+import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 
 import formSchema from './schema';
 import { FormValues } from './types';
-import { toFormValue, toRequest } from './lib';
+import { toRequest } from './lib';
 import {
   defaultValues,
   operations,
   permissions,
   resourceTypes,
 } from './constants';
-import ACLFormContext from '../AclFormContext';
 
-const CustomACLForm: FC<AclFormProps> = ({ formRef }) => {
+const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const { onClose: closeForm } = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
@@ -74,7 +74,10 @@ const CustomACLForm: FC<AclFormProps> = ({ formRef }) => {
         <S.Field>
           <S.Field>Matching pattern</S.Field>
           <S.ControlList>
-            <ControlledRadio name="namePatternType" options={prefixOptions} />
+            <ControlledRadio
+              name="namePatternType"
+              options={matchTypeOptions}
+            />
             <Input name="resourceName" id="resourceName" withError />
           </S.ControlList>
         </S.Field>

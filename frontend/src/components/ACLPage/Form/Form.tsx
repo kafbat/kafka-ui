@@ -4,19 +4,14 @@ import Heading from 'components/common/heading/Heading.styled';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import { Button } from 'components/common/Button/Button';
 
-import { ACLType, AclFormProps } from './types';
+import { ACLFormProps, ACLType, AclDetailedFormProps } from './types';
 import { ACLTypeOptions } from './constants';
 import * as S from './Form.styled';
 import ACLFormContext from './AclFormContext';
-import PageLoader from 'components/common/PageLoader/PageLoader';
-
-interface ACLFormProps {
-  isOpen: boolean;
-}
 
 const DETAILED_FORM_COMPONENTS: Record<
   keyof typeof ACLType,
-  FC<AclFormProps>
+  FC<AclDetailedFormProps>
 > = {
   [ACLType.CUSTOM_ACL]: React.lazy(() => import('./CustomACL/Form')),
   [ACLType.FOR_CONSUMERS]: React.lazy(() => import('./ForConsumers/Form')),
@@ -52,8 +47,8 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
             onChange={(option) => setAclType(option as ACLType)}
           />
         </S.Field>
-        <Suspense fallback={<></>}>
-          <DetailedForm formRef={formRef}></DetailedForm>
+        <Suspense fallback={<div />}>
+          <DetailedForm formRef={formRef} />
         </Suspense>
       </S.Content>
 

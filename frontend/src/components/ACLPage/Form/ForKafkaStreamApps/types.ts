@@ -1,9 +1,9 @@
 import { Option } from 'react-multi-select-component';
 
-export type FormValues = {
+export interface FormValues {
   principal: string;
   host: string;
   inputTopics: Option[];
   outputTopics: Option[];
   applicationId: string;
-};
+}

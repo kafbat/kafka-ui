@@ -1,13 +1,13 @@
 import { SelectOption } from 'components/common/Select/Select';
 import { RadioOption } from 'components/common/Radio/types';
 
-import { ACLType, PrefixType } from './types';
+import { ACLType, MatchType } from './types';
 
-export const prefixOptions: RadioOption[] = [
+export const matchTypeOptions: RadioOption[] = [
   {
-    value: PrefixType.EXACT,
+    value: MatchType.EXACT,
   },
-  { value: PrefixType.PREFIXED },
+  { value: MatchType.PREFIXED },
 ];
 
 export const ACLTypeOptions: SelectOption[] = [

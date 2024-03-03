@@ -9,10 +9,10 @@ import { RadioOption } from 'components/common/Radio/types';
 import { FormValues } from './types';
 
 function toOptionsArray<T extends object, O extends keyof T>(
-  v: T,
+  enumerable: T,
   unknown: O
 ): Array<SelectOption> {
-  return Object.values(v).reduce<SelectOption[]>((acc, cur) => {
+  return Object.values(enumerable).reduce<SelectOption[]>((acc, cur) => {
     if (cur !== unknown) {
       const option: SelectOption = { label: cur, value: cur };
       acc.push(option);

@@ -1,13 +1,8 @@
 import React, { FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import { RadioOption } from './types';
+import { ControlledRadioProps } from './types';
 import { Radio } from './Radio';
-
-type ControlledRadioProps = {
-  name: string;
-  options: ReadonlyArray<RadioOption>;
-};
 
 const ControlledRadio: FC<ControlledRadioProps> = ({ name, options }) => {
   const { control } = useFormContext();
@@ -20,9 +15,7 @@ const ControlledRadio: FC<ControlledRadioProps> = ({ name, options }) => {
         return (
           <Radio
             options={options}
-            onChange={(t) => {
-              onChange(t);
-            }}
+            onChange={onChange}
             value={value ?? options[0].value}
           />
         );

@@ -1,4 +1,4 @@
-import React, { FC, useContext, useState } from 'react';
+import React, { FC, useContext } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ClusterName } from 'redux/interfaces';
@@ -7,18 +7,17 @@ import useAppParams from 'lib/hooks/useAppParams';
 import ControlledMultiSelect from 'components/common/MultiSelect/ControlledMultiSelect';
 import Input from 'components/common/Input/Input';
 import * as S from 'components/ACLPage/Form/Form.styled';
-import { prefixOptions } from 'components/ACLPage/Form/constants';
-import { AclFormProps, PrefixType } from 'components/ACLPage/Form/types';
-
-import { FormValues } from './types';
-import { toRequest } from './lib';
-import formSchema from './schema';
-import Radio from 'components/common/Radio/Radio';
+import { AclDetailedFormProps, MatchType } from 'components/ACLPage/Form/types';
 import useTopicsOptions from 'components/ACLPage/lib/useTopicsOptions';
 import useConsumerGroupsOptions from 'components/ACLPage/lib/useConsumerGroupsOptions';
-import ACLFormContext from '../AclFormContext';
+import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
+import MatchTypeSelector from 'components/ACLPage/Form/components/MatchTypeSelector';
 
-const ForConsumersForm: FC<AclFormProps> = ({ formRef }) => {
+import formSchema from './schema';
+import { toRequest } from './lib';
+import { FormValues } from './types';
+
+const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const { onClose: closeForm } = useContext(ACLFormContext);
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const create = useCreateConsumersAcl(clusterName);
@@ -42,24 +41,20 @@ const ForConsumersForm: FC<AclFormProps> = ({ formRef }) => {
   const topics = useTopicsOptions(clusterName);
   const consumerGroups = useConsumerGroupsOptions(clusterName, '');
 
-  const [topicType, setTopicType] = useState(PrefixType.EXACT);
   const onTopicTypeChange = (value: string) => {
-    if (value == PrefixType.EXACT) {
+    if (value === MatchType.EXACT) {
       setValue('topicsPrefix', undefined);
     } else {
       setValue('topics', undefined);
     }
-    setTopicType(value as PrefixType);
   };
 
-  const [cgType, setCgType] = useState(PrefixType.EXACT);
-  const onCgTypeChange = (value: string) => {
-    if (value == PrefixType.EXACT) {
+  const onConsumerGroupTypeChange = (value: string) => {
+    if (value === MatchType.EXACT) {
       setValue('consumerGroupsPrefix', undefined);
     } else {
       setValue('consumerGroups', undefined);
     }
-    setCgType(value as PrefixType);
   };
 
   return (
@@ -80,38 +75,29 @@ const ForConsumersForm: FC<AclFormProps> = ({ formRef }) => {
         <S.Field>
           <S.Label>From Topic(s)</S.Label>
           <S.ControlList>
-            <Radio
-              value={topicType}
-              options={prefixOptions}
+            <MatchTypeSelector
+              exact={<ControlledMultiSelect name="topics" options={topics} />}
+              prefixed={<Input name="topicsPrefix" placeholder="Prefix..." />}
               onChange={onTopicTypeChange}
             />
-            {topicType === PrefixType.EXACT ? (
-              <ControlledMultiSelect name="topics" options={topics} />
-            ) : (
-              <Input name="topicsPrefix" placeholder="Prefix..."></Input>
-            )}
           </S.ControlList>
         </S.Field>
 
         <S.Field>
           <S.Field>Consumer group(s)</S.Field>
           <S.ControlList>
-            <Radio
-              value={cgType}
-              options={prefixOptions}
-              onChange={onCgTypeChange}
+            <MatchTypeSelector
+              exact={
+                <ControlledMultiSelect
+                  name="consumerGroups"
+                  options={consumerGroups}
+                />
+              }
+              prefixed={
+                <Input name="consumerGroupsPrefix" placeholder="Prefix..." />
+              }
+              onChange={onConsumerGroupTypeChange}
             />
-            {cgType === PrefixType.EXACT ? (
-              <ControlledMultiSelect
-                name="consumerGroups"
-                options={consumerGroups}
-              />
-            ) : (
-              <Input
-                name="consumerGroupsPrefix"
-                placeholder="Prefix..."
-              ></Input>
-            )}
           </S.ControlList>
         </S.Field>
       </S.Form>
