@@ -24,22 +24,3 @@ export function toRequest(formValue: FormValues): KafkaAcl {
     permission: formValue.permission,
   };
 }
-
-export function toFormValue(acl: KafkaAcl): FormValues {
-  let namePatternType: MatchType;
-  if (acl.namePatternType === KafkaAclNamePatternType.PREFIXED) {
-    namePatternType = MatchType.PREFIXED;
-  } else {
-    namePatternType = MatchType.EXACT;
-  }
-
-  return {
-    resourceType: acl.resourceType,
-    resourceName: acl.resourceName,
-    principal: acl.principal,
-    host: acl.host,
-    operation: acl.operation,
-    permission: acl.permission,
-    namePatternType,
-  };
-}

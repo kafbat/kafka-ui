@@ -32,7 +32,7 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
     <S.Wrapper $open={open}>
       <Heading level={3}>
         <S.Title>Create ACL</S.Title>
-        <S.CloseSidebar onClick={formContext?.onClose}>
+        <S.CloseSidebar onClick={formContext?.close}>
           <CloseIcon />
         </S.CloseSidebar>
       </Heading>
@@ -56,7 +56,7 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
         <Button
           buttonSize="M"
           buttonType="secondary"
-          onClick={formContext?.onClose}
+          onClick={formContext?.close}
         >
           Cancel
         </Button>

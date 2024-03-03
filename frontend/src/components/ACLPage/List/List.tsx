@@ -160,7 +160,7 @@ const ACList: React.FC = () => {
       />
       <ACLFormContext.Provider
         value={{
-          onClose: closeForm,
+          close: closeForm,
         }}
       >
         {isFormOpen && <ACLForm isOpen={isFormOpen} />}

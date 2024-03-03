@@ -17,14 +17,14 @@ export const Radio: FC<RadioProps> = ({ options, onChange, value }) => {
 
   return (
     <S.Container>
-      {options.map((tab) => (
+      {options.map((option) => (
         <S.Item
-          key={tab.value}
-          onClick={() => handleChange(tab.value)}
-          $isActive={selectedValue === tab.value}
-          $activeState={tab.activeState}
+          key={option.value}
+          onClick={() => handleChange(option.value)}
+          $isActive={selectedValue === option.value}
+          $activeState={option.activeState}
         >
-          {tab.value}
+          {option.value}
         </S.Item>
       ))}
     </S.Container>

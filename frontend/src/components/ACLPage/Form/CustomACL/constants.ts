@@ -33,7 +33,7 @@ export const operations = toOptionsArray(
   KafkaAclOperationEnum.UNKNOWN
 );
 
-export const permissions = (theme: DefaultTheme): RadioOption[] => [
+export const getPermissions = (theme: DefaultTheme): RadioOption[] => [
   {
     value: KafkaAclPermissionEnum.ALLOW,
     activeState: {

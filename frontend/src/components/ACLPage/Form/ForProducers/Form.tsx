@@ -18,7 +18,7 @@ import { FormValues } from './types';
 import formSchema from './schema';
 
 const ForProducersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
-  const { onClose: closeForm } = useContext(ACLFormContext);
+  const context = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
@@ -48,7 +48,7 @@ const ForProducersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const onSubmit = async (data: FormValues) => {
     try {
       await create.createResource(toRequest(data));
-      closeForm();
+      context?.close();
     } catch (e) {
       // exception
     }

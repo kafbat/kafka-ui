@@ -18,7 +18,7 @@ import { toRequest } from './lib';
 import { FormValues } from './types';
 
 const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
-  const { onClose: closeForm } = useContext(ACLFormContext);
+  const context = useContext(ACLFormContext);
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const create = useCreateConsumersAcl(clusterName);
   const methods = useForm<FormValues>({
@@ -31,7 +31,7 @@ const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const onSubmit = async (data: FormValues) => {
     try {
       await create.createResource(toRequest(data));
-      closeForm();
+      context?.close();
     } catch (e) {
       console.error(e);
       // exception handle

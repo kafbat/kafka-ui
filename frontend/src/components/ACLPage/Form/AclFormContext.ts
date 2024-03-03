@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 
 interface ACLFormContextProps {
-  onClose: () => void;
+  close: () => void;
 }
 const ACLFormContext = createContext<ACLFormContextProps | null>(null);
 

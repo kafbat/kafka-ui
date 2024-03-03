@@ -16,7 +16,7 @@ import formSchema from './schema';
 import { FormValues } from './types';
 
 const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
-  const { onClose: closeForm } = useContext(ACLFormContext);
+  const context = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
@@ -30,7 +30,7 @@ const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
     try {
       const resource = toRequest(data);
       await create.createResource(resource);
-      closeForm();
+      context?.close();
     } catch (e) {
       console.error(e);
     }

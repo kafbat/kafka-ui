@@ -19,7 +19,7 @@ import { toRequest } from './lib';
 import {
   defaultValues,
   operations,
-  permissions,
+  getPermissions,
   resourceTypes,
 } from './constants';
 
@@ -41,7 +41,7 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
     try {
       const resource = toRequest(data);
       await create.createResource(resource);
-      context?.onClose();
+      context?.close();
     } catch (e) {
       // error
     }
@@ -70,7 +70,10 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <S.Field>
           <S.Label>Operations</S.Label>
           <S.ControlList>
-            <ControlledRadio name="permission" options={permissions(theme)} />
+            <ControlledRadio
+              name="permission"
+              options={getPermissions(theme)}
+            />
             <ControlledSelect options={operations} name="operation" />
           </S.ControlList>
         </S.Field>
