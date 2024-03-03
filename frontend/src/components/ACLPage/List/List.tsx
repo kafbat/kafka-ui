@@ -1,9 +1,7 @@
-import React from 'react';
-import { ColumnDef, Row } from '@tanstack/react-table';
-import { useTheme } from 'styled-components';
+import React, { useState } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import Table from 'components/common/NewTable';
-import DeleteIcon from 'components/common/Icons/DeleteIcon';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useAcls, useDeleteAcl } from 'lib/hooks/api/acl';
@@ -13,24 +11,38 @@ import {
   KafkaAclNamePatternType,
   KafkaAclPermissionEnum,
 } from 'generated-sources';
+import useBoolean from 'lib/hooks/useBoolean';
+import { Button } from 'components/common/Button/Button';
+import ACLForm from 'components/ACLPage/Form/Form';
 
 import * as S from './List.styled';
+import ActionsCell from './ActionsCell';
 
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const theme = useTheme();
   const { data: aclList } = useAcls(clusterName);
   const { deleteResource } = useDeleteAcl(clusterName);
   const modal = useConfirm(true);
+  const {
+    value: isFormOpen,
+    setFalse: closeForm,
+    setTrue: openFrom,
+  } = useBoolean();
 
-  const [rowId, setRowId] = React.useState('');
+  const handleDeleteClick = (acl: KafkaAcl) => {
+    modal('Are you sure want to delete this ACL record?', () =>
+      deleteResource(acl)
+    );
+  };
+  const [currentAcl, setAcl] = useState<KafkaAcl | null>(null);
 
-  const onDeleteClick = (acl: KafkaAcl | null) => {
-    if (acl) {
-      modal('Are you sure want to delete this ACL record?', () =>
-        deleteResource(acl)
-      );
-    }
+  const handleEditClick = (acl: KafkaAcl) => {
+    setAcl(acl);
+    openFrom();
+  };
+  const handleCreateClick = () => {
+    setAcl(null);
+    openFrom();
   };
 
   const columns = React.useMemo<ColumnDef<KafkaAcl>[]>(
@@ -111,42 +123,35 @@ const ACList: React.FC = () => {
         size: 111,
       },
       {
-        id: 'delete',
+        id: 'actions',
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ row }) => {
           return (
-            <S.DeleteCell onClick={() => onDeleteClick(row.original)}>
-              <DeleteIcon
-                fill={
-                  rowId === row.id ? theme.acl.table.deleteIcon : 'transparent'
-                }
-              />
-            </S.DeleteCell>
+            <ActionsCell
+              onDelete={() => handleDeleteClick(row.original)}
+              onEdit={() => handleEditClick(row.original)}
+            />
           );
         },
-        size: 76,
       },
     ],
-    [rowId]
+    []
   );
 
-  const onRowHover = (value: Row<KafkaAcl>) => {
-    if (value) {
-      setRowId(value.id);
-    }
-  };
-
   return (
-    <>
-      <PageHeading text="Access Control List" />
+    <S.Container>
+      <PageHeading text="Access Control List">
+        <Button buttonType="primary" buttonSize="M" onClick={handleCreateClick}>
+          + Create ACL
+        </Button>
+      </PageHeading>
       <Table
         columns={columns}
         data={aclList ?? []}
         emptyMessage="No ACL items found"
-        onRowHover={onRowHover}
-        onMouseLeave={() => setRowId('')}
       />
-    </>
+      <ACLForm open={isFormOpen} onClose={closeForm} acl={currentAcl} />
+    </S.Container>
   );
 };
 

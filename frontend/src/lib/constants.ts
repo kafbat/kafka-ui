@@ -8,7 +8,7 @@ declare global {
 }
 
 export const BASE_PARAMS: ConfigurationParameters = {
-  basePath: window.basePath || '',
+  basePath: 'https://test.kafbat.dev' || '',
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',

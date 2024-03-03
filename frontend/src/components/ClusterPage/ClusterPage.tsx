@@ -100,12 +100,10 @@ const ClusterPage: React.FC = () => {
                 element={<KsqlDb />}
               />
             )}
-            {contextValue.hasAclViewConfigured && (
-              <Route
-                path={getNonExactPath(clusterAclRelativePath)}
-                element={<AclPage />}
-              />
-            )}
+            <Route
+              path={getNonExactPath(clusterAclRelativePath)}
+              element={<AclPage />}
+            />
             {appInfo.hasDynamicConfig && (
               <Route
                 path={getNonExactPath(clusterConfigRelativePath)}
