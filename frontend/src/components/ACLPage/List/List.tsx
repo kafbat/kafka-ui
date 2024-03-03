@@ -141,7 +141,7 @@ const ACList: React.FC = () => {
         size: 76,
       },
     ],
-    []
+    [rowId]
   );
 
   return (
