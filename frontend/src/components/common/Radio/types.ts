@@ -1,18 +1,20 @@
-export type ActiveColor = {
+import { PropsWithChildren } from 'react';
+
+export type ActiveState = {
   background: string;
   color: string;
 };
 
 export type RadioOption = {
   value: string;
-  activeColor?: ActiveColor;
+  activeState?: ActiveState;
 };
 
-export type RadioProps = {
+export interface RadioProps extends PropsWithChildren {
   value: string;
   options: ReadonlyArray<RadioOption>;
   onChange: (value: string) => void;
-};
+}
 
 export interface ControlledRadioProps {
   name: string;

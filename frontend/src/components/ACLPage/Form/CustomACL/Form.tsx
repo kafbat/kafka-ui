@@ -6,11 +6,12 @@ import ControlledRadio from 'components/common/Radio/ControlledRadio';
 import Input from 'components/common/Input/Input';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
 import { matchTypeOptions } from 'components/ACLPage/Form/constants';
-import { AclDetailedFormProps } from 'components/ACLPage/Form//types';
 import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterName } from 'redux/interfaces';
 import * as S from 'components/ACLPage/Form/Form.styled';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
+import { useTheme } from 'styled-components';
+import { AclDetailedFormProps } from 'components/ACLPage/Form/types';
 
 import formSchema from './schema';
 import { FormValues } from './types';
@@ -23,7 +24,10 @@ import {
 } from './constants';
 
 const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
-  const { onClose: closeForm } = useContext(ACLFormContext);
+  const context = useContext(ACLFormContext);
+
+  const theme = useTheme();
+
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
@@ -37,7 +41,7 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
     try {
       const resource = toRequest(data);
       await create.createResource(resource);
-      closeForm();
+      context?.onClose();
     } catch (e) {
       // error
     }
@@ -66,7 +70,7 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <S.Field>
           <S.Label>Operations</S.Label>
           <S.ControlList>
-            <ControlledRadio name="permission" options={permissions} />
+            <ControlledRadio name="permission" options={permissions(theme)} />
             <ControlledSelect options={operations} name="operation" />
           </S.ControlList>
         </S.Field>

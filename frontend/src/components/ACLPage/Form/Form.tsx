@@ -23,7 +23,7 @@ const DETAILED_FORM_COMPONENTS: Record<
 
 const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
   const [aclType, setAclType] = useState(ACLType.CUSTOM_ACL);
-  const { onClose } = useContext(ACLFormContext);
+  const formContext = useContext(ACLFormContext);
 
   const formRef = useRef<HTMLFormElement>(null);
   const DetailedForm = DETAILED_FORM_COMPONENTS[aclType];
@@ -32,7 +32,7 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
     <S.Wrapper $open={open}>
       <Heading level={3}>
         <S.Title>Create ACL</S.Title>
-        <S.CloseSidebar onClick={onClose}>
+        <S.CloseSidebar onClick={formContext?.onClose}>
           <CloseIcon />
         </S.CloseSidebar>
       </Heading>
@@ -53,7 +53,11 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
       </S.Content>
 
       <S.Footer>
-        <Button buttonSize="M" buttonType="primary" onClick={onClose}>
+        <Button
+          buttonSize="M"
+          buttonType="secondary"
+          onClick={formContext?.onClose}
+        >
           Cancel
         </Button>
         <Button

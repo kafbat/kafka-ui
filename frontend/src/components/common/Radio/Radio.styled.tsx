@@ -1,30 +1,33 @@
 import styled, { css } from 'styled-components';
 
-import { ActiveColor } from './types';
+import { ActiveState } from './types';
 
 export const Item = styled.div<{
   $isActive?: boolean;
-  $activeBg?: ActiveColor;
+  $activeState?: ActiveState;
 }>`
-  background-color: white;
-  border: 1px solid #e3e6e8;
-  color: #73848c;
+  background-color: ${({ theme }) => theme.radio.default.backgroundColor};
+  border: 1px solid ${({ theme }) => theme.radio.default.borderColor};
+  color: ${({ theme }) => theme.radio.default.color};
   padding: 0 16px;
   cursor: pointer;
   height: 32px;
   line-height: 32px;
 
-  ${({ $isActive, $activeBg }) => {
+  ${({ $isActive, $activeState, theme }) => {
     if ($isActive) {
       return css`
-        color: ${$activeBg?.color || 'black'};
-        background-color: ${$activeBg?.background || '#E3E6E8'};
-        border-color: ${$activeBg?.background || '#E3E6E8'};
+        color: ${$activeState?.color || theme.radio.default.activeColor};
+        background-color: ${$activeState?.background ||
+        theme.radio.default.activeBackgroundColor};
+        border-color: ${$activeState?.background ||
+        theme.radio.default.borderColor};
       `;
     }
     return css``;
   }}
 `;
+
 export const Container = styled.div`
   display: flex;
 

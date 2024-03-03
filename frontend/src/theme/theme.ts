@@ -309,6 +309,23 @@ const baseTheme = {
       color: Colors.neutral[85],
     },
   },
+  radio: {
+    allow: {
+      backgroundColor: Colors.green[50],
+      color: Colors.neutral[0],
+    },
+    deny: {
+      backgroundColor: Colors.red[50],
+      color: Colors.neutral[0],
+    },
+    default: {
+      backgroundColor: Colors.neutral[0],
+      color: Colors.neutral[50],
+      borderColor: Colors.neutral[10],
+      activeColor: Colors.neutral[100],
+      activeBackgroundColor: Colors.neutral[10],
+    },
+  },
 };
 
 export const theme = {

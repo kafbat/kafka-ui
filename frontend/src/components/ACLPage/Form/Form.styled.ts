@@ -71,5 +71,7 @@ export const Content = styled.div`
   padding: 16px;
 `;
 
-export const CloseSidebar = styled.div``;
+export const CloseSidebar = styled.div`
+  cursor: pointer;
+`;
 export const Title = styled.span``;

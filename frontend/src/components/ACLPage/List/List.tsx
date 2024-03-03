@@ -14,11 +14,11 @@ import {
 import useBoolean from 'lib/hooks/useBoolean';
 import { Button } from 'components/common/Button/Button';
 import ACLForm from 'components/ACLPage/Form/Form';
-
-import * as S from './List.styled';
 import DeleteIcon from 'components/common/Icons/DeleteIcon';
 import { useTheme } from 'styled-components';
-import ACLFormContext from '../Form/AclFormContext';
+import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
+
+import * as S from './List.styled';
 
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
@@ -158,7 +158,11 @@ const ACList: React.FC = () => {
         onRowHover={handleRowHover}
         onMouseLeave={() => setRowId('')}
       />
-      <ACLFormContext.Provider value={{ onClose: closeForm }}>
+      <ACLFormContext.Provider
+        value={{
+          onClose: closeForm,
+        }}
+      >
         {isFormOpen && <ACLForm isOpen={isFormOpen} />}
       </ACLFormContext.Provider>
     </S.Container>
