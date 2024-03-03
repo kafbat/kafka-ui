@@ -1,8 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ClusterName } from 'redux/interfaces';
-import { topicsPayload } from 'lib/fixtures/topics';
 import { useCreateStreamAppAcl } from 'lib/hooks/api/acl';
 import useAppParams from 'lib/hooks/useAppParams';
 import Input from 'components/common/Input/Input';
@@ -13,14 +12,19 @@ import { AclFormProps } from 'components/ACLPage/Form/types';
 import { toRequest } from './lib';
 import formSchema from './schema';
 import { FormValues } from './types';
+import useTopicsOptions from 'components/ACLPage/lib/useTopicsOptions';
+import ACLFormContext from '../AclFormContext';
 
-const ForKafkaStreamAppsForm: FC<AclFormProps> = ({ formRef, closeForm }) => {
-  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const create = useCreateStreamAppAcl(clusterName);
+const ForKafkaStreamAppsForm: FC<AclFormProps> = ({ formRef }) => {
+  const { onClose: closeForm } = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
   });
+
+  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+  const create = useCreateStreamAppAcl(clusterName);
+  const topics = useTopicsOptions(clusterName);
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -28,16 +32,9 @@ const ForKafkaStreamAppsForm: FC<AclFormProps> = ({ formRef, closeForm }) => {
       await create.createResource(resource);
       closeForm();
     } catch (e) {
-      // exception
+      console.error(e);
     }
   };
-
-  const topics = topicsPayload.map((topic) => {
-    return {
-      label: topic.name,
-      value: topic.name,
-    };
-  });
 
   return (
     <FormProvider {...methods}>
@@ -55,11 +52,11 @@ const ForKafkaStreamAppsForm: FC<AclFormProps> = ({ formRef, closeForm }) => {
         <hr />
         <S.Field>
           <S.Label>From topic(s)</S.Label>
-          <ControlledMultiSelect name="topics" options={topics} />
+          <ControlledMultiSelect name="inputTopics" options={topics} />
         </S.Field>
         <S.Field>
           <S.Label>To topic(s)</S.Label>
-          <ControlledMultiSelect name="topics" options={topics} />
+          <ControlledMultiSelect name="outputTopics" options={topics} />
         </S.Field>
         <S.Field>
           <S.Label>Application.id</S.Label>

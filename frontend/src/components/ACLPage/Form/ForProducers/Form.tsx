@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useContext, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCreateProducerAcl } from 'lib/hooks/api/acl';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -11,26 +11,46 @@ import ControlledMultiSelect from 'components/common/MultiSelect/ControlledMulti
 import Checkbox from 'components/common/Checkbox/Checkbox';
 import * as S from 'components/ACLPage/Form/Form.styled';
 import { prefixOptions } from 'components/ACLPage/Form/constants';
-import { AclFormProps } from 'components/ACLPage/Form/types';
+import { AclFormProps, PrefixType } from 'components/ACLPage/Form/types';
 
 import { toRequest } from './lib';
 import { FormValues } from './types';
 import formSchema from './schema';
+import Radio from 'components/common/Radio/Radio';
+import useTopicsOptions from 'components/ACLPage/lib/useTopicsOptions';
+import ACLFormContext from '../AclFormContext';
 
-const ForProducersForm: FC<AclFormProps> = ({ formRef, closeForm }) => {
-  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const create = useCreateProducerAcl(clusterName);
+const ForProducersForm: FC<AclFormProps> = ({ formRef }) => {
+  const { onClose: closeForm } = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
   });
+  const { setValue } = methods;
 
-  const topics = topicsPayload.map((topic) => {
-    return {
-      label: topic.name,
-      value: topic.name,
-    };
-  });
+  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+  const create = useCreateProducerAcl(clusterName);
+  const topics = useTopicsOptions(clusterName);
+  const [topicType, setTopicType] = useState(PrefixType.EXACT);
+  const [transactionIdType, setTransactionIdType] = useState(PrefixType.EXACT);
+
+  const onTopicTypeChange = (value: string) => {
+    if (value == PrefixType.EXACT) {
+      setValue('topicsPrefix', undefined);
+    } else {
+      setValue('topics', undefined);
+    }
+    setTopicType(value as PrefixType);
+  };
+
+  const onTransactionIdTypeChange = (value: string) => {
+    if (value == PrefixType.EXACT) {
+      setValue('transactionsIdPrefix', undefined);
+    } else {
+      setValue('transactionalId', undefined);
+    }
+    setTransactionIdType(value as PrefixType);
+  };
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -58,19 +78,32 @@ const ForProducersForm: FC<AclFormProps> = ({ formRef, closeForm }) => {
         <S.Field>
           <S.Label>To Topic(s)</S.Label>
           <S.ControlList>
-            <ControlledRadio name="topicsPrefix" options={prefixOptions} />
-            <ControlledMultiSelect name="topics" options={topics} />
+            <Radio
+              value={topicType}
+              options={prefixOptions}
+              onChange={onTopicTypeChange}
+            />
+            {topicType === PrefixType.EXACT ? (
+              <ControlledMultiSelect name="topics" options={topics} />
+            ) : (
+              <Input name="topicsPrefix" placeholder="Prefix..."></Input>
+            )}
           </S.ControlList>
         </S.Field>
 
         <S.Field>
           <S.Field>Transaction ID</S.Field>
           <S.ControlList>
-            <ControlledRadio
-              name="transactionsIdPrefix"
+            <Radio
+              value={transactionIdType}
               options={prefixOptions}
+              onChange={onTransactionIdTypeChange}
             />
-            <Input name="transactionalId" id="transactionalId" />
+            {transactionIdType === PrefixType.EXACT ? (
+              <Input name="transactionalId" />
+            ) : (
+              <Input name="transactionsIdPrefix" />
+            )}
           </S.ControlList>
         </S.Field>
         <hr />

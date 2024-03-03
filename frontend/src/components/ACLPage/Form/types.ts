@@ -1,10 +1,7 @@
-import { KafkaAcl } from 'generated-sources';
 import { RefObject } from 'react';
 
 export type AclFormProps = {
-  formRef: RefObject<HTMLFormElement>;
-  closeForm: () => void;
-  acl?: KafkaAcl | null;
+  formRef: RefObject<HTMLFormElement> | null;
 };
 
 export enum PrefixType {

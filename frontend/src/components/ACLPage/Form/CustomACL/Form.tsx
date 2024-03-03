@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useCreateCustomAcl } from 'lib/hooks/api/acl';
@@ -20,16 +20,18 @@ import {
   permissions,
   resourceTypes,
 } from './constants';
+import ACLFormContext from '../AclFormContext';
 
-const CustomACLForm: FC<AclFormProps> = ({ formRef, acl, closeForm }) => {
-  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const create = useCreateCustomAcl(clusterName);
-
+const CustomACLForm: FC<AclFormProps> = ({ formRef }) => {
+  const { onClose: closeForm } = useContext(ACLFormContext);
   const methods = useForm<FormValues>({
     mode: 'all',
     resolver: yupResolver(formSchema),
-    defaultValues: { ...defaultValues, ...(acl ? toFormValue(acl) : {}) },
+    defaultValues: { ...defaultValues },
   });
+
+  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+  const create = useCreateCustomAcl(clusterName);
 
   const onSubmit = async (data: FormValues) => {
     try {

@@ -1,38 +1,37 @@
-import React, { FC, ReactNode, useRef, useState } from 'react';
+import React, { FC, Suspense, useContext, useRef, useState } from 'react';
 import Select from 'components/common/Select/Select';
 import Heading from 'components/common/heading/Heading.styled';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import { Button } from 'components/common/Button/Button';
-import { KafkaAcl } from 'generated-sources';
 
-import { ACLType } from './types';
+import { ACLType, AclFormProps } from './types';
 import { ACLTypeOptions } from './constants';
 import * as S from './Form.styled';
-import CustomACLForm from './CustomACL/Form';
-import ForConsumersForm from './ForConsumers/Form';
-import ForProducersForm from './ForProducers/Form';
-import ForKafkaStreamAppsForm from './ForKafkaStreamApps/Form';
+import ACLFormContext from './AclFormContext';
+import PageLoader from 'components/common/PageLoader/PageLoader';
 
 interface ACLFormProps {
-  open: boolean;
-  onClose: () => void;
-  acl: KafkaAcl | null;
+  isOpen: boolean;
 }
 
-const ACLForm: FC<ACLFormProps> = ({ open, onClose, acl }) => {
-  const [aclType, setAclType] = useState(ACLType.CUSTOM_ACL);
-  const formRef = useRef<HTMLFormElement>(null);
+const DETAILED_FORM_COMPONENTS: Record<
+  keyof typeof ACLType,
+  FC<AclFormProps>
+> = {
+  [ACLType.CUSTOM_ACL]: React.lazy(() => import('./CustomACL/Form')),
+  [ACLType.FOR_CONSUMERS]: React.lazy(() => import('./ForConsumers/Form')),
+  [ACLType.FOR_PRODUCERS]: React.lazy(() => import('./ForProducers/Form')),
+  [ACLType.FOR_KAFKA_STREAM_APPS]: React.lazy(
+    () => import('./ForKafkaStreamApps/Form')
+  ),
+};
 
-  let content: ReactNode;
-  if (aclType === ACLType.CUSTOM_ACL) {
-    content = <CustomACLForm formRef={formRef} acl={acl} closeForm={onClose} />;
-  } else if (aclType === ACLType.FOR_CONSUMERS) {
-    content = <ForConsumersForm formRef={formRef} closeForm={onClose} />;
-  } else if (aclType === ACLType.FOR_PRODUCERS) {
-    content = <ForProducersForm formRef={formRef} closeForm={onClose} />;
-  } else {
-    content = <ForKafkaStreamAppsForm formRef={formRef} closeForm={onClose} />;
-  }
+const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
+  const [aclType, setAclType] = useState(ACLType.CUSTOM_ACL);
+  const { onClose } = useContext(ACLFormContext);
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const DetailedForm = DETAILED_FORM_COMPONENTS[aclType];
 
   return (
     <S.Wrapper $open={open}>
@@ -53,7 +52,9 @@ const ACLForm: FC<ACLFormProps> = ({ open, onClose, acl }) => {
             onChange={(option) => setAclType(option as ACLType)}
           />
         </S.Field>
-        {content}
+        <Suspense fallback={<></>}>
+          <DetailedForm formRef={formRef}></DetailedForm>
+        </Suspense>
       </S.Content>
 
       <S.Footer>
