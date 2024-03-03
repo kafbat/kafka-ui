@@ -32,7 +32,7 @@ const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
       await create.createResource(resource);
       context?.close();
     } catch (e) {
-      console.error(e);
+      // no custom error
     }
   };
 

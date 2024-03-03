@@ -43,7 +43,7 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
       await create.createResource(resource);
       context?.close();
     } catch (e) {
-      // error
+      // no custom error
     }
   };
 

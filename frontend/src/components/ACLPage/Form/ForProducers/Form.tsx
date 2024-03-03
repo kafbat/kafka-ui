@@ -50,7 +50,7 @@ const ForProducersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
       await create.createResource(toRequest(data));
       context?.close();
     } catch (e) {
-      // exception
+      // no custom error
     }
   };
 

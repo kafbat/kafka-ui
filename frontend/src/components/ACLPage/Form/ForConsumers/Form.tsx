@@ -33,8 +33,7 @@ const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
       await create.createResource(toRequest(data));
       context?.close();
     } catch (e) {
-      console.error(e);
-      // exception handle
+      // no custom error
     }
   };
 
