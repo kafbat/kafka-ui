@@ -53,8 +53,7 @@ public class MessagesController extends AbstractController implements MessagesAp
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topic(topicName)
-        .topicActions(MESSAGES_DELETE)
+        .topicActions(topicName, MESSAGES_DELETE)
         .build();
 
     return validateAccess(context).<ResponseEntity<Void>>then(
@@ -106,8 +105,7 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                              ServerWebExchange exchange) {
     var contextBuilder = AccessContext.builder()
         .cluster(clusterName)
-        .topic(topicName)
-        .topicActions(MESSAGES_READ)
+        .topicActions(topicName, MESSAGES_READ)
         .operationName("getTopicMessages");
 
     if (auditService.isAuditTopic(getCluster(clusterName), topicName)) {
@@ -143,8 +141,7 @@ public class MessagesController extends AbstractController implements MessagesAp
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topic(topicName)
-        .topicActions(MESSAGES_PRODUCE)
+        .topicActions(topicName, MESSAGES_PRODUCE)
         .operationName("sendTopicMessages")
         .build();
 
@@ -162,8 +159,7 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                  ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topic(topicName)
-        .topicActions(TopicAction.VIEW)
+        .topicActions(topicName, TopicAction.VIEW)
         .operationName("getSerdes")
         .build();
 

@@ -20,13 +20,13 @@ describe('NavBar', () => {
       })),
     });
 
-    render(<NavBar onBurgerClick={jest.fn()} setDarkMode={jest.fn()} />);
+    render(<NavBar onBurgerClick={jest.fn()} />);
   });
 
   it('correctly renders header', () => {
     const header = screen.getByLabelText('Page Header');
     expect(header).toBeInTheDocument();
-    expect(within(header).getByText('Kafbat UI')).toBeInTheDocument();
+    expect(within(header).getByText('kafbat UI')).toBeInTheDocument();
     expect(within(header).getAllByRole('separator').length).toEqual(3);
     expect(
       within(header).getByRole('button', burgerButtonOptions)

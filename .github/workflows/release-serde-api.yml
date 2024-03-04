@@ -1,16 +1,19 @@
 name: "Infra: Release: Serde API"
+
 on: workflow_dispatch
+
+permissions:
+  contents: read
 
 jobs:
   release-serde-api:
     runs-on: ubuntu-latest
-    permissions: # TODO remove when public
-      contents: read
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ github.token }} # TODO remove when public
+          token: ${{ github.token }}
 
       - run: |
           git config user.name github-actions

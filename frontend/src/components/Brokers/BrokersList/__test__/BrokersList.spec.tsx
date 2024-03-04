@@ -72,11 +72,13 @@ describe('BrokersList Component', () => {
           },
         }));
         renderComponent();
-        const onlineWidget = screen.getByText(
+        const onlineWidgets = screen.getAllByText(
           clusterStatsPayload.onlinePartitionCount
         );
-        expect(onlineWidget).toBeInTheDocument();
-        expect(onlineWidget).toHaveStyle({ color: '#E51A1A' });
+        onlineWidgets.forEach((widget) => {
+          expect(widget).toBeInTheDocument();
+          expect(widget).toHaveStyle({ color: '#E51A1A' });
+        });
       });
       it('shows right count when offlinePartitionCount > 0', async () => {
         (useClusterStats as jest.Mock).mockImplementation(() => ({

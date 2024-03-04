@@ -3,7 +3,7 @@ import PageHeading from 'components/common/PageHeading/PageHeading';
 import Search from 'components/common/Search/Search';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import {
-  ConsumerGroupDetails,
+  ConsumerGroup,
   ConsumerGroupOrdering,
   ConsumerGroupState,
   SortOrder,
@@ -33,7 +33,7 @@ const List = () => {
     search: searchParams.get('q') || '',
   });
 
-  const columns = React.useMemo<ColumnDef<ConsumerGroupDetails>[]>(
+  const columns = React.useMemo<ColumnDef<ConsumerGroup>[]>(
     () => [
       {
         id: ConsumerGroupOrdering.NAME,

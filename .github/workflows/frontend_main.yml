@@ -1,0 +1,19 @@
+name: "Frontend: Main: Build and test"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "contract/**"
+      - "frontend/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/frontend_tests.yml
