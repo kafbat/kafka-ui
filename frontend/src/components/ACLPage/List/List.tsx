@@ -17,6 +17,7 @@ import ACLForm from 'components/ACLPage/Form/Form';
 import DeleteIcon from 'components/common/Icons/DeleteIcon';
 import { useTheme } from 'styled-components';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
+import PlusIcon from 'components/common/Icons/PlusIcon';
 
 import * as S from './List.styled';
 
@@ -148,7 +149,7 @@ const ACList: React.FC = () => {
     <S.Container>
       <PageHeading text="Access Control List">
         <Button buttonType="primary" buttonSize="M" onClick={openFrom}>
-          + Create ACL
+          <PlusIcon /> Create ACL
         </Button>
       </PageHeading>
       <Table
@@ -157,6 +158,7 @@ const ACList: React.FC = () => {
         emptyMessage="No ACL items found"
         onRowHover={handleRowHover}
         onMouseLeave={() => setRowId('')}
+        enableSorting
       />
       <ACLFormContext.Provider
         value={{

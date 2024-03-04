@@ -1,13 +1,15 @@
 import { PropsWithChildren } from 'react';
+import { ThemeType } from 'theme/theme';
 
 export type ActiveState = {
   background: string;
   color: string;
 };
+export type RadioItemType = keyof ThemeType['acl']['create']['radioButtons'];
 
 export type RadioOption = {
   value: string;
-  activeState?: ActiveState;
+  itemType?: RadioItemType;
 };
 
 export interface RadioProps extends PropsWithChildren {

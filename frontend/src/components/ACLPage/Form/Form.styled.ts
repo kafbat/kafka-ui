@@ -41,6 +41,7 @@ export const Form = styled(StyledForm)`
 `;
 
 export const Field = styled.div`
+  ${({ theme }) => theme.input.label};
   display: flex;
   justify-content: space-between;
 
@@ -60,7 +61,6 @@ export const ControlList = styled.div`
 `;
 
 export const Footer = styled.div`
-  border-top: 1px solid #e3e6e8;
   display: flex;
   justify-content: end;
   gap: 8px;

@@ -1,30 +1,39 @@
 import styled, { css } from 'styled-components';
 
-import { ActiveState } from './types';
+import { RadioItemType } from './types';
 
 export const Item = styled.div<{
   $isActive?: boolean;
-  $activeState?: ActiveState;
+  $itemType: RadioItemType;
 }>`
-  background-color: ${({ theme }) => theme.radio.default.backgroundColor};
-  border: 1px solid ${({ theme }) => theme.radio.default.borderColor};
-  color: ${({ theme }) => theme.radio.default.color};
-  padding: 0 16px;
-  cursor: pointer;
-  height: 32px;
-  line-height: 32px;
+  ${({ theme, $itemType }) => css`
+    background-color: ${theme.acl.create.radioButtons[$itemType].normal
+      .background};
+    border: 1px solid ${theme.acl.create.radioButtons[$itemType].normal.border};
+    color: ${theme.acl.create.radioButtons[$itemType].normal.text};
+    padding: 0 16px;
+    cursor: pointer;
+    height: 32px;
+    line-height: 32px;
+  `}
 
-  ${({ $isActive, $activeState, theme }) => {
+  ${({ $isActive, $itemType, theme }) => {
     if ($isActive) {
       return css`
-        color: ${$activeState?.color || theme.radio.default.activeColor};
-        background-color: ${$activeState?.background ||
-        theme.radio.default.activeBackgroundColor};
-        border-color: ${$activeState?.background ||
-        theme.radio.default.borderColor};
+        color: ${theme.acl.create.radioButtons[$itemType].active.text};
+        background-color: ${theme.acl.create.radioButtons[$itemType].active.background};
+        border-color: ${theme.acl.create.radioButtons[$itemType].active.background}};
       `;
     }
-    return css``;
+    return css`
+      &:hover {
+        background: ${theme.acl.create.radioButtons[$itemType].hover
+          .background};
+        border: 1px solid
+          ${theme.acl.create.radioButtons[$itemType].hover.border};
+        color: ${theme.acl.create.radioButtons[$itemType].hover.text};
+      }
+    `;
   }}
 `;
 

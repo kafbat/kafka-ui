@@ -42,12 +42,17 @@ const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <hr />
         <S.Field>
           <S.Label htmlFor="principal">Principal</S.Label>
-          <Input name="principal" id="principal" withError />
+          <Input
+            name="principal"
+            id="principal"
+            placeholder="Principal"
+            withError
+          />
         </S.Field>
 
         <S.Field>
           <S.Label htmlFor="host">Host restriction</S.Label>
-          <Input name="host" id="host" withError />
+          <Input name="host" id="host" placeholder="Host" withError />
         </S.Field>
         <hr />
         <S.Field>
@@ -60,7 +65,7 @@ const ForKafkaStreamAppsForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         </S.Field>
         <S.Field>
           <S.Label>Application.id</S.Label>
-          <Input name="applicationId" />
+          <Input name="applicationId" placeholder="Application ID" />
         </S.Field>
       </S.Form>
     </FormProvider>

@@ -51,7 +51,7 @@ const ACLForm: FC<ACLFormProps> = ({ isOpen: open }) => {
           <DetailedForm formRef={formRef} />
         </Suspense>
       </S.Content>
-
+      <hr />
       <S.Footer>
         <Button
           buttonSize="M"

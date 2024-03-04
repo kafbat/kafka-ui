@@ -5,7 +5,6 @@ import {
   KafkaAclResourceType,
 } from 'generated-sources';
 import { RadioOption } from 'components/common/Radio/types';
-import { DefaultTheme } from 'styled-components';
 
 import { FormValues } from './types';
 
@@ -33,20 +32,14 @@ export const operations = toOptionsArray(
   KafkaAclOperationEnum.UNKNOWN
 );
 
-export const getPermissions = (theme: DefaultTheme): RadioOption[] => [
+export const permissions: RadioOption[] = [
   {
     value: KafkaAclPermissionEnum.ALLOW,
-    activeState: {
-      background: theme.radio.allow.backgroundColor,
-      color: theme.radio.allow.color,
-    },
+    itemType: 'green',
   },
   {
     value: KafkaAclPermissionEnum.DENY,
-    activeState: {
-      background: theme.radio.deny.backgroundColor,
-      color: theme.radio.deny.color,
-    },
+    itemType: 'red',
   },
 ];
 

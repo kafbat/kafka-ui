@@ -62,12 +62,17 @@ const ForConsumersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <hr />
         <S.Field>
           <S.Label htmlFor="principal">Principal</S.Label>
-          <Input name="principal" id="principal" withError />
+          <Input
+            name="principal"
+            id="principal"
+            placeholder="Principal"
+            withError
+          />
         </S.Field>
 
         <S.Field>
           <S.Label htmlFor="host">Host restriction</S.Label>
-          <Input name="host" id="host" withError />
+          <Input name="host" id="host" placeholder="Host" withError />
         </S.Field>
         <hr />
 

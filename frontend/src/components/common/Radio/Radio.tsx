@@ -22,7 +22,7 @@ export const Radio: FC<RadioProps> = ({ options, onChange, value }) => {
           key={option.value}
           onClick={() => handleChange(option.value)}
           $isActive={selectedValue === option.value}
-          $activeState={option.activeState}
+          $itemType={option.itemType || 'gray'}
         >
           {option.value}
         </S.Item>

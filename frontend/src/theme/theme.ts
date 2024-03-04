@@ -309,23 +309,6 @@ const baseTheme = {
       color: Colors.neutral[85],
     },
   },
-  radio: {
-    allow: {
-      backgroundColor: Colors.green[50],
-      color: Colors.neutral[0],
-    },
-    deny: {
-      backgroundColor: Colors.red[50],
-      color: Colors.neutral[0],
-    },
-    default: {
-      backgroundColor: Colors.neutral[0],
-      color: Colors.neutral[50],
-      borderColor: Colors.neutral[10],
-      activeColor: Colors.neutral[100],
-      activeBackgroundColor: Colors.neutral[10],
-    },
-  },
 };
 
 export const theme = {
@@ -742,31 +725,53 @@ export const theme = {
           normal: {
             background: Colors.neutral[0],
             text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
           active: {
             background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
           hover: {
-            background: Colors.green[10],
-            text: Colors.neutral[90],
+            background: Colors.green[50],
+            text: Colors.neutral[0],
+            border: Colors.green[50],
           },
         },
         gray: {
           normal: {
             background: Colors.neutral[0],
             text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
           active: {
             background: Colors.neutral[10],
             text: Colors.neutral[90],
+            border: Colors.neutral[10],
           },
           hover: {
-            background: Colors.neutral[5],
-            text: Colors.neutral[90],
+            background: Colors.neutral[10],
+            text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
         },
-        red: {},
+        red: {
+          normal: {
+            background: Colors.neutral[0],
+            text: Colors.neutral[50],
+            border: Colors.neutral[10],
+          },
+          active: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+          hover: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+        },
       },
     },
   },
@@ -1255,33 +1260,55 @@ export const darkTheme: ThemeType = {
       radioButtons: {
         green: {
           normal: {
-            background: Colors.neutral[0],
+            background: Colors.neutral[90],
             text: Colors.neutral[50],
+            border: Colors.neutral[50],
           },
           active: {
             background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
           hover: {
-            background: Colors.green[10],
+            background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
         },
         gray: {
           normal: {
-            background: Colors.neutral[0],
+            background: Colors.neutral[90],
             text: Colors.neutral[50],
+            border: Colors.neutral[80],
           },
           active: {
-            background: Colors.neutral[10],
-            text: Colors.neutral[90],
+            background: Colors.neutral[80],
+            text: Colors.neutral[0],
+            border: Colors.neutral[80],
           },
           hover: {
-            background: Colors.neutral[5],
-            text: Colors.neutral[90],
+            background: Colors.neutral[85],
+            text: Colors.neutral[0],
+            border: Colors.neutral[85],
           },
         },
-        red: {},
+        red: {
+          normal: {
+            background: Colors.neutral[90],
+            text: Colors.neutral[50],
+            border: Colors.neutral[50],
+          },
+          active: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+          hover: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+        },
       },
     },
   },

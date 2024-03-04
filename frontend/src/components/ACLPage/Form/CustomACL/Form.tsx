@@ -10,7 +10,6 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterName } from 'redux/interfaces';
 import * as S from 'components/ACLPage/Form/Form.styled';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
-import { useTheme } from 'styled-components';
 import { AclDetailedFormProps } from 'components/ACLPage/Form/types';
 
 import formSchema from './schema';
@@ -19,14 +18,12 @@ import { toRequest } from './lib';
 import {
   defaultValues,
   operations,
-  getPermissions,
+  permissions,
   resourceTypes,
 } from './constants';
 
 const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
   const context = useContext(ACLFormContext);
-
-  const theme = useTheme();
 
   const methods = useForm<FormValues>({
     mode: 'all',
@@ -53,12 +50,17 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <hr />
         <S.Field>
           <S.Label htmlFor="principal">Principal</S.Label>
-          <Input name="principal" id="principal" withError />
+          <Input
+            name="principal"
+            id="principal"
+            placeholder="Principal"
+            withError
+          />
         </S.Field>
 
         <S.Field>
           <S.Label htmlFor="host">Host restriction</S.Label>
-          <Input name="host" id="host" withError />
+          <Input name="host" id="host" placeholder="Host" withError />
         </S.Field>
         <hr />
 
@@ -70,10 +72,7 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <S.Field>
           <S.Label>Operations</S.Label>
           <S.ControlList>
-            <ControlledRadio
-              name="permission"
-              options={getPermissions(theme)}
-            />
+            <ControlledRadio name="permission" options={permissions} />
             <ControlledSelect options={operations} name="operation" />
           </S.ControlList>
         </S.Field>
@@ -85,7 +84,12 @@ const CustomACLForm: FC<AclDetailedFormProps> = ({ formRef }) => {
               name="namePatternType"
               options={matchTypeOptions}
             />
-            <Input name="resourceName" id="resourceName" withError />
+            <Input
+              name="resourceName"
+              id="resourceName"
+              placeholder="Matching pattern"
+              withError
+            />
           </S.ControlList>
         </S.Field>
       </S.Form>

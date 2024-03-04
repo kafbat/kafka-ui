@@ -60,12 +60,17 @@ const ForProducersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
         <hr />
         <S.Field>
           <S.Label htmlFor="principal">Principal</S.Label>
-          <Input name="principal" id="principal" withError />
+          <Input
+            name="principal"
+            id="principal"
+            placeholder="Principal"
+            withError
+          />
         </S.Field>
 
         <S.Field>
           <S.Label htmlFor="host">Host restriction</S.Label>
-          <Input name="host" id="host" withError />
+          <Input name="host" id="host" placeholder="Host" withError />
         </S.Field>
         <hr />
         <S.Field>
@@ -83,8 +88,12 @@ const ForProducersForm: FC<AclDetailedFormProps> = ({ formRef }) => {
           <S.Field>Transaction ID</S.Field>
           <S.ControlList>
             <MatchTypeSelector
-              exact={<Input name="transactionalId" />}
-              prefixed={<Input name="transactionsIdPrefix" />}
+              exact={
+                <Input name="transactionalId" placeholder="Transactional ID" />
+              }
+              prefixed={
+                <Input name="transactionsIdPrefix" placeholder="Prefix..." />
+              }
               onChange={onTransactionIdTypeChange}
             />
           </S.ControlList>
