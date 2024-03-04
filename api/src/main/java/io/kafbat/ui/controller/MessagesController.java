@@ -187,8 +187,7 @@ public class MessagesController extends AbstractController implements MessagesAp
 
     final Mono<Void> validateAccess = accessControlService.validateAccess(AccessContext.builder()
         .cluster(clusterName)
-        .topic(topicName)
-        .topicActions(MESSAGES_READ)
+        .topicActions(topicName, MESSAGES_READ)
         .build());
     return validateAccess.then(registration)
         .map(reg -> messagesService.registerMessageFilter(reg.getFilterCode()))
