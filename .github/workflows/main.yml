@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write

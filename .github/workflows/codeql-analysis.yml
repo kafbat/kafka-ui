@@ -23,7 +23,7 @@ permissions:
 jobs:
   analyze:
     name: Analyze
-    runs-on: gha-private-runner
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:

@@ -1,20 +1,20 @@
 import React from 'react';
+import type {
+  ColumnDef,
+  OnChangeFn,
+  PaginationState,
+  Row,
+  SortingState,
+} from '@tanstack/react-table';
 import {
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getPaginationRowModel,
 } from '@tanstack/react-table';
-import type {
-  Row,
-  SortingState,
-  OnChangeFn,
-  PaginationState,
-  ColumnDef,
-} from '@tanstack/react-table';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { Button } from 'components/common/Button/Button';
 import Input from 'components/common/Input/Input';
@@ -26,10 +26,13 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 
-export interface TableProps<TData, TValue> {
+export interface TableProps<TData> {
   data: TData[];
   pageCount?: number;
-  columns: ColumnDef<TData, TValue>[];
+
+  // https://github.com/TanStack/table/issues/4382
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: ColumnDef<TData, any>[];
 
   // Server-side processing: sorting, pagination
   serverSideProcessing?: boolean;
@@ -118,7 +121,7 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
  */
 
-function Table<TData, TValue = unknown>({
+function Table<TData>({
   data,
   pageCount,
   columns,
@@ -134,7 +137,7 @@ function Table<TData, TValue = unknown>({
   onRowHover,
   onMouseLeave,
   setRowId,
-}: TableProps<TData, TValue>) {
+}: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [rowSelection, setRowSelection] = React.useState({});

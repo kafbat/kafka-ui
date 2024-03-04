@@ -10,7 +10,3 @@ export const RowCell = styled.div`
     padding-left: 6px;
   }
 `;
-
-export const DangerText = styled.span`
-  color: ${({ theme }) => theme.circularAlert.color.error};
-`;
