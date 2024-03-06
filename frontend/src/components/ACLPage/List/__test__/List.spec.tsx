@@ -57,7 +57,7 @@ describe('ACLList Component', () => {
 
       it('header has button for create ACL', () => {
         renderComponent();
-        const button = screen.getByText('+ Create ACL');
+        const button = screen.getByText('Create ACL');
         expect(button).toBeInTheDocument();
       });
 
@@ -70,7 +70,7 @@ describe('ACLList Component', () => {
       describe('after acl button click', () => {
         it('form is in the document', async () => {
           renderComponent();
-          const button = screen.getByText('+ Create ACL');
+          const button = screen.getByText('Create ACL');
           await userEvent.click(button);
           const form = screen.queryByTestId('aclForm');
           expect(form).toBeInTheDocument();

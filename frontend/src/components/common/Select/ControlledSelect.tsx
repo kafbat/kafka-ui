@@ -5,7 +5,6 @@ import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { ErrorMessage } from '@hookform/error-message';
 
 import Select, { SelectOption } from './Select';
-import { StyledControlledSelect } from './ControlledSelect.styled';
 
 interface ControlledSelectProps {
   name: string;
@@ -28,7 +27,7 @@ const ControlledSelect: React.FC<ControlledSelectProps> = ({
   const id = React.useId();
 
   return (
-    <StyledControlledSelect>
+    <div>
       {label && <InputLabel htmlFor={id}>{label}</InputLabel>}
       <Controller
         name={name}
@@ -54,7 +53,7 @@ const ControlledSelect: React.FC<ControlledSelectProps> = ({
       <FormError>
         <ErrorMessage name={name} />
       </FormError>
-    </StyledControlledSelect>
+    </div>
   );
 };
 
