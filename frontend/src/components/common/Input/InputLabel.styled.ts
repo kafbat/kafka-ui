@@ -4,7 +4,7 @@ export const InputLabel = styled.label`
   font-weight: 500;
   font-size: 12px;
   line-height: 20px;
-  color: ${({ theme }) => theme.input.label};
+  color: ${({ theme }) => theme.input.label.color};
   input[type='checkbox'] {
     accent-color: ${({ theme }) => theme.input.icon.color};
     display: inline-block;

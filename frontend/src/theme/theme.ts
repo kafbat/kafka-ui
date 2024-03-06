@@ -120,6 +120,10 @@ const baseTheme = {
     backgroundColor: Colors.neutral[5],
     color: Colors.red[55],
   },
+  checkbox: {
+    label: Colors.neutral[50],
+    hint: Colors.neutral[50],
+  },
   layout: {
     minWidth: '1200px',
     navBarWidth: '201px',
@@ -1262,7 +1266,7 @@ export const darkTheme: ThemeType = {
           normal: {
             background: Colors.neutral[90],
             text: Colors.neutral[50],
-            border: Colors.neutral[50],
+            border: Colors.neutral[80],
           },
           active: {
             background: Colors.green[50],
@@ -1296,7 +1300,7 @@ export const darkTheme: ThemeType = {
           normal: {
             background: Colors.neutral[90],
             text: Colors.neutral[50],
-            border: Colors.neutral[50],
+            border: Colors.neutral[80],
           },
           active: {
             background: Colors.red[50],
