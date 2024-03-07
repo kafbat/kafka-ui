@@ -7,19 +7,34 @@ import {
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { ViteEjsPlugin } from 'vite-plugin-ejs';
+import checker from 'vite-plugin-checker';
 
 export default defineConfig(({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
+  const isDevMode = mode === 'development';
+  const isProxy = process.env.VITE_DEV_PROXY;
+
+  const defaultPlugins = [
+    react(),
+    tsconfigPaths(),
+    ViteEjsPlugin({
+      PUBLIC_PATH: !isDevMode ? 'PUBLIC-PATH-VARIABLE' : '',
+    }),
+  ];
+
+  const prodPlugins = [...defaultPlugins, splitVendorChunkPlugin()];
+
+  const devPlugins = [
+    ...defaultPlugins,
+    checker({
+      overlay: { initialIsOpen: false },
+      typescript: true,
+      eslint: { lintCommand: 'eslint --ext .tsx,.ts src/' },
+    }),
+  ];
 
   const defaultConfig: UserConfigExport = {
-    plugins: [
-      react(),
-      tsconfigPaths(),
-      splitVendorChunkPlugin(),
-      ViteEjsPlugin({
-        PUBLIC_PATH: mode !== 'development' ? 'PUBLIC-PATH-VARIABLE' : '',
-      }),
-    ],
+    plugins: isDevMode ? devPlugins : prodPlugins,
     server: {
       port: 3000,
     },
@@ -59,25 +74,29 @@ export default defineConfig(({ mode }) => {
       'process.env.VITE_COMMIT': `"${process.env.VITE_COMMIT}"`,
     },
   };
-  const proxy = process.env.VITE_DEV_PROXY;
-  if (mode === 'development' && proxy) {
+
+  const proxyDevServerConfig = {
+    ...defaultConfig.server,
+    open: true,
+    proxy: {
+      '/api': {
+        target: isProxy,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/actuator/info': {
+        target: isProxy,
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  };
+
+  if (isDevMode && isProxy) {
     return {
       ...defaultConfig,
       server: {
-        ...defaultConfig.server,
-        open: true,
-        proxy: {
-          '/api': {
-            target: proxy,
-            changeOrigin: true,
-            secure: false,
-          },
-          '/actuator/info': {
-            target: proxy,
-            changeOrigin: true,
-            secure: false,
-          },
-        },
+        ...proxyDevServerConfig,
       },
     };
   }
