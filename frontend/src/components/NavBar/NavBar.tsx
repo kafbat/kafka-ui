@@ -69,7 +69,7 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
 
           <S.Hyperlink to="/">
             <Logo />
-            Kafbat UI
+            kafbat UI
           </S.Hyperlink>
 
           <S.NavbarItem>
