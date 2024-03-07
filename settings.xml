@@ -1,7 +1,7 @@
 <settings>
   <servers>
     <server>
-     <id>ossrh</id>
+     <id>central</id>
      <username>${server.username}</username>
      <password>${server.password}</password>
     </server>
