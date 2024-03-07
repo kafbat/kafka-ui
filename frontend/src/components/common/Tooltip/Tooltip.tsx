@@ -12,9 +12,15 @@ interface TooltipProps {
   value: React.ReactNode;
   content: string;
   placement?: Placement;
+  showTooltip?: boolean;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ value, content, placement }) => {
+const Tooltip: React.FC<TooltipProps> = ({
+  value,
+  content,
+  placement,
+  showTooltip = true,
+}) => {
   const [open, setOpen] = useState(false);
   const { x, y, refs, strategy, context } = useFloating({
     open,
@@ -28,7 +34,7 @@ const Tooltip: React.FC<TooltipProps> = ({ value, content, placement }) => {
       <div ref={refs.setReference} {...getReferenceProps()}>
         <S.Wrapper>{value}</S.Wrapper>
       </div>
-      {open && (
+      {showTooltip && open && (
         <S.MessageTooltip
           ref={refs.setFloating}
           style={{
