@@ -253,26 +253,29 @@
             <groupId>dev.cel</groupId>
             <artifactId>cel</artifactId>
         </dependency>
-<!--        CVE fixes -->
+        <!--        CVE fixes -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
+            <version>1.4.12</version>
         </dependency>
+        <!--        CVE fixes -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.version}</version>
+            <version>1.4.12</version>
         </dependency>
+        <!--        CVE fixes -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>logging-interceptor</artifactId>
-            <version>${squareup.okhttp3.version}</version>
+            <version>4.12.0</version>
         </dependency>
+        <!--        CVE fixes -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>${commons.compress.version}</version>
+            <version>1.26.0</version>
         </dependency>
 
     </dependencies>
