@@ -80,7 +80,7 @@ export const getConfigUnit = (configName: string): ConfigUnit | undefined => {
 export const getConfigDisplayValue = (
   isSensitive: boolean,
   value: string,
-  unit: string | undefined
+  unit: ConfigUnit | undefined
 ) => {
   if (isSensitive) {
     return { displayValue: '**********', title: 'Sensitive Value' };
