@@ -1,8 +1,9 @@
-import React, { type FC } from 'react';
+import React, { type FC, ReactNode } from 'react';
 import { Button } from 'components/common/Button/Button';
 import EditIcon from 'components/common/Icons/EditIcon';
 import type { ConfigUnit } from 'components/Brokers/Broker/Configs/lib/types';
 import Tooltip from 'components/common/Tooltip/Tooltip';
+import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 
 import * as S from './styled';
 
@@ -23,15 +24,18 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   isSensitive,
   isReadOnly,
 }) => {
-  let displayValue: string;
+  let displayValue: ReactNode | string;
   let title: string;
 
   if (isSensitive) {
     displayValue = '**********';
     title = 'Sensitive Value';
+  } else if (unit === 'bytes' && parseInt(value, 10) > 0) {
+    displayValue = <BytesFormatted value={parseInt(value, 10)} />;
+    title = `Bytes: ${value}`;
   } else {
     displayValue = unit ? `${value} ${unit}` : value;
-    title = displayValue;
+    title = displayValue.toString();
   }
 
   return (
