@@ -335,6 +335,10 @@ export const theme = {
     color: Colors.brand[50],
     hoverColor: Colors.brand[60],
   },
+  user: {
+    color: Colors.neutral[70],
+    hoverColor: Colors.neutral[50],
+  },
   hr: {
     backgroundColor: Colors.neutral[5],
   },
@@ -391,19 +395,14 @@ export const theme = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[70],
-        active: Colors.brand[60],
-        disabled: Colors.neutral[5],
+        normal: Colors.neutral[80],
+        hover: Colors.neutral[90],
+        active: Colors.neutral[70],
+        disabled: Colors.neutral[50],
       },
       color: {
         normal: Colors.neutral[0],
         disabled: Colors.neutral[30],
-      },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
       },
     },
     secondary: {
@@ -417,13 +416,6 @@ export const theme = {
         normal: Colors.neutral[90],
         disabled: Colors.neutral[30],
       },
-      isActiveColor: Colors.neutral[0],
-      invertedColors: {
-        normal: Colors.neutral[50],
-        hover: Colors.neutral[70],
-        active: Colors.neutral[90],
-        disabled: Colors.neutral[75],
-      },
     },
     danger: {
       backgroundColor: {
@@ -436,11 +428,6 @@ export const theme = {
         normal: Colors.neutral[0],
         disabled: Colors.neutral[0],
       },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
-      },
     },
     height: {
       S: '24px',
@@ -451,11 +438,6 @@ export const theme = {
       S: '14px',
       M: '14px',
       L: '16px',
-    },
-    border: {
-      normal: Colors.neutral[50],
-      hover: Colors.neutral[70],
-      active: Colors.neutral[90],
     },
   },
   chips: {
@@ -781,6 +763,10 @@ export const darkTheme: ThemeType = {
     color: Colors.brand[50],
     hoverColor: Colors.brand[30],
   },
+  user: {
+    color: Colors.neutral[20],
+    hoverColor: Colors.neutral[50],
+  },
   hr: {
     backgroundColor: Colors.neutral[80],
   },
@@ -837,19 +823,14 @@ export const darkTheme: ThemeType = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[10],
-        hover: Colors.brand[5],
-        active: Colors.brand[20],
-        disabled: Colors.brand[60],
+        normal: Colors.neutral[10],
+        hover: Colors.neutral[0],
+        active: Colors.neutral[20],
+        disabled: Colors.neutral[50],
       },
       color: {
-        normal: Colors.neutral[70],
-        disabled: Colors.neutral[60],
-      },
-      invertedColors: {
-        normal: Colors.brand[30],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
+        normal: Colors.neutral[90],
+        disabled: Colors.neutral[70],
       },
     },
     secondary: {
@@ -863,13 +844,6 @@ export const darkTheme: ThemeType = {
         normal: Colors.neutral[0],
         disabled: Colors.neutral[60],
       },
-      isActiveColor: Colors.neutral[90],
-      invertedColors: {
-        normal: Colors.neutral[50],
-        hover: Colors.neutral[70],
-        active: Colors.neutral[90],
-        disabled: Colors.neutral[75],
-      },
     },
     danger: {
       backgroundColor: {
@@ -882,11 +856,6 @@ export const darkTheme: ThemeType = {
         normal: Colors.neutral[0],
         disabled: Colors.neutral[0],
       },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
-      },
     },
     height: {
       S: '24px',
@@ -897,11 +866,6 @@ export const darkTheme: ThemeType = {
       S: '14px',
       M: '14px',
       L: '16px',
-    },
-    border: {
-      normal: Colors.neutral[50],
-      hover: Colors.neutral[70],
-      active: Colors.neutral[90],
     },
   },
   chips: {
