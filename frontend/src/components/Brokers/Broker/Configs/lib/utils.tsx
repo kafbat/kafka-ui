@@ -96,6 +96,6 @@ export const getConfigDisplayValue = (
 
   return {
     displayValue: unit ? `${value} ${unit}` : value,
-    title: value.toString(),
+    title: unit ? `${value} ${unit}` : value,
   };
 };
