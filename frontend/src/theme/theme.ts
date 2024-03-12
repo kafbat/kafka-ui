@@ -35,15 +35,21 @@ const Colors = {
     '60': '#29A352',
   },
   brand: {
+    '0': '#FFFFFF',
+    '3': '#F9FAFA',
     '5': '#F1F2F3',
     '10': '#E3E6E8',
     '15': '#D5DADD',
     '20': '#C7CED1',
     '30': '#ABB5BA',
     '40': '#8F9CA3',
-    '50': '#2F3639',
-    '60': '#22282A',
-    '70': '#171A1C',
+    '50': '#73848C',
+    '60': '#5C6970',
+    '70': '#454F54',
+    '80': '#2F3639',
+    '85': '#22282A',
+    '90': '#171A1C',
+    '95': '#0B0D0E',
   },
   red: {
     '10': '#FAD1D1',
@@ -395,26 +401,26 @@ export const theme = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.neutral[80],
-        hover: Colors.neutral[90],
-        active: Colors.neutral[70],
-        disabled: Colors.neutral[50],
+        normal: Colors.brand[80],
+        hover: Colors.brand[90],
+        active: Colors.brand[70],
+        disabled: Colors.brand[50],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[30],
+        normal: Colors.brand[0],
+        disabled: Colors.brand[30],
       },
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.neutral[5],
-        hover: Colors.neutral[10],
-        active: Colors.neutral[15],
-        disabled: Colors.neutral[5],
+        normal: Colors.brand[5],
+        hover: Colors.brand[10],
+        active: Colors.brand[15],
+        disabled: Colors.brand[5],
       },
       color: {
-        normal: Colors.neutral[90],
-        disabled: Colors.neutral[30],
+        normal: Colors.brand[90],
+        disabled: Colors.brand[30],
       },
     },
     danger: {
@@ -425,7 +431,7 @@ export const theme = {
         disabled: Colors.red[20],
       },
       color: {
-        normal: Colors.neutral[0],
+        normal: Colors.brand[0],
         disabled: Colors.red[10],
       },
     },
@@ -823,26 +829,26 @@ export const darkTheme: ThemeType = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.neutral[10],
-        hover: Colors.neutral[0],
-        active: Colors.neutral[20],
-        disabled: Colors.neutral[50],
+        normal: Colors.brand[10],
+        hover: Colors.brand[0],
+        active: Colors.brand[20],
+        disabled: Colors.brand[50],
       },
       color: {
-        normal: Colors.neutral[90],
-        disabled: Colors.neutral[70],
+        normal: Colors.brand[90],
+        disabled: Colors.brand[70],
       },
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.neutral[80],
-        hover: Colors.neutral[70],
-        active: Colors.neutral[60],
-        disabled: Colors.neutral[80],
+        normal: Colors.brand[80],
+        hover: Colors.brand[70],
+        active: Colors.brand[60],
+        disabled: Colors.brand[80],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[70],
+        normal: Colors.brand[0],
+        disabled: Colors.brand[70],
       },
     },
     danger: {
@@ -853,7 +859,7 @@ export const darkTheme: ThemeType = {
         disabled: Colors.red[20],
       },
       color: {
-        normal: Colors.neutral[0],
+        normal: Colors.brand[0],
         disabled: Colors.red[10],
       },
     },
