@@ -1,5 +1,5 @@
 import React from 'react';
-import { connectors } from 'lib/fixtures/kafkaConnect';
+import { connectors, connects } from 'lib/fixtures/kafkaConnect';
 import ClusterContext, {
   ContextProps,
   initialValue,
@@ -8,7 +8,7 @@ import ListPage from 'components/Connect/List/ListPage';
 import { screen, within } from '@testing-library/react';
 import { render, WithRoute } from 'lib/testHelpers';
 import { clusterConnectorsPath } from 'lib/paths';
-import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
 
 jest.mock('components/Connect/List/List', () => () => (
   <div>Connectors List</div>
@@ -16,6 +16,7 @@ jest.mock('components/Connect/List/List', () => () => (
 
 jest.mock('lib/hooks/api/kafkaConnect', () => ({
   useConnectors: jest.fn(),
+  useConnects: jest.fn(),
 }));
 
 jest.mock('components/common/Icons/SpinnerIcon', () => () => 'progressbar');
@@ -27,6 +28,10 @@ describe('Connectors List Page', () => {
     (useConnectors as jest.Mock).mockImplementation(() => ({
       isLoading: false,
       data: [],
+    }));
+
+    (useConnects as jest.Mock).mockImplementation(() => ({
+      data: connects,
     }));
   });
 
@@ -176,6 +181,24 @@ describe('Connectors List Page', () => {
       );
       expect(failedTasksIndicator).toBeInTheDocument();
       expect(failedTasksIndicator).toHaveTextContent('Failed Tasks 1');
+    });
+  });
+
+  describe('Create new connector', () => {
+    it('Create new connector button is enabled when connects list is not empty', async () => {
+      await renderComponent();
+
+      expect(screen.getByText('Create Connector')).toBeEnabled();
+    });
+
+    it('Create new connector button is disabled when connects list is empty', async () => {
+      (useConnects as jest.Mock).mockImplementation(() => ({
+        data: [],
+      }));
+
+      await renderComponent();
+
+      expect(screen.getByText('Create Connector')).toBeDisabled();
     });
   });
 });

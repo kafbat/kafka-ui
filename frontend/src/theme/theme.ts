@@ -35,15 +35,15 @@ const Colors = {
     '60': '#29A352',
   },
   brand: {
-    '5': '#E8E8FC',
-    '10': '#D1D1FA',
-    '15': '#B8BEF9',
-    '20': '#A3A3F5',
-    '30': '#7E7EF1',
-    '40': '#6666FF',
-    '50': '#4C4CFF',
-    '60': '#1717CF',
-    '70': '#1414B8',
+    '5': '#F1F2F3',
+    '10': '#E3E6E8',
+    '15': '#D5DADD',
+    '20': '#C7CED1',
+    '30': '#ABB5BA',
+    '40': '#8F9CA3',
+    '50': '#2F3639',
+    '60': '#22282A',
+    '70': '#171A1C',
   },
   red: {
     '10': '#FAD1D1',
@@ -313,6 +313,9 @@ const baseTheme = {
 
 export const theme = {
   ...baseTheme,
+  logo: {
+    color: Colors.brand[70],
+  },
   version: {
     currentVersion: {
       color: Colors.neutral[30],
@@ -389,8 +392,8 @@ export const theme = {
     primary: {
       backgroundColor: {
         normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[70],
+        hover: Colors.brand[70],
+        active: Colors.brand[60],
         disabled: Colors.neutral[5],
       },
       color: {
@@ -756,6 +759,9 @@ export type ThemeType = typeof theme;
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  logo: {
+    color: '#FDFDFD',
+  },
   version: {
     currentVersion: {
       color: Colors.neutral[50],
@@ -831,13 +837,13 @@ export const darkTheme: ThemeType = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[30],
-        hover: Colors.brand[20],
-        active: Colors.brand[10],
-        disabled: Colors.neutral[75],
+        normal: Colors.brand[10],
+        hover: Colors.brand[5],
+        active: Colors.brand[20],
+        disabled: Colors.brand[60],
       },
       color: {
-        normal: Colors.neutral[0],
+        normal: Colors.neutral[70],
         disabled: Colors.neutral[60],
       },
       invertedColors: {
@@ -848,9 +854,9 @@ export const darkTheme: ThemeType = {
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.blue[80],
-        hover: Colors.blue[70],
-        active: Colors.blue[60],
+        normal: Colors.brand[50],
+        hover: Colors.brand[70],
+        active: Colors.brand[60],
         disabled: Colors.neutral[75],
       },
       color: {
