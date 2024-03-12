@@ -30,6 +30,7 @@ const ConfirmationModal: React.FC = () => {
             buttonSize="M"
             onClick={context.confirm}
             type="button"
+            inProgress={context?.isConfirming}
           >
             Confirm
           </Button>
