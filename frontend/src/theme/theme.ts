@@ -407,9 +407,9 @@ export const theme = {
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.brand[5],
-        hover: Colors.brand[10],
-        active: Colors.brand[30],
+        normal: Colors.neutral[5],
+        hover: Colors.neutral[10],
+        active: Colors.neutral[15],
         disabled: Colors.neutral[5],
       },
       color: {
@@ -835,14 +835,14 @@ export const darkTheme: ThemeType = {
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[70],
-        active: Colors.brand[60],
-        disabled: Colors.neutral[75],
+        normal: Colors.neutral[80],
+        hover: Colors.neutral[70],
+        active: Colors.neutral[60],
+        disabled: Colors.neutral[80],
       },
       color: {
         normal: Colors.neutral[0],
-        disabled: Colors.neutral[60],
+        disabled: Colors.neutral[70],
       },
     },
     danger: {
