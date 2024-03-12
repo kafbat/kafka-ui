@@ -342,8 +342,8 @@ export const theme = {
     hoverColor: Colors.brand[60],
   },
   user: {
-    color: Colors.neutral[70],
-    hoverColor: Colors.neutral[50],
+    color: Colors.brand[70],
+    hoverColor: Colors.brand[50],
   },
   hr: {
     backgroundColor: Colors.neutral[5],
@@ -770,8 +770,8 @@ export const darkTheme: ThemeType = {
     hoverColor: Colors.brand[30],
   },
   user: {
-    color: Colors.neutral[20],
-    hoverColor: Colors.neutral[50],
+    color: Colors.brand[20],
+    hoverColor: Colors.brand[50],
   },
   hr: {
     backgroundColor: Colors.neutral[80],
