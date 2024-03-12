@@ -3,7 +3,6 @@ import styled from 'styled-components';
 export interface ButtonProps {
   buttonType: 'primary' | 'secondary' | 'danger';
   buttonSize: 'S' | 'M' | 'L';
-  isInverted?: boolean;
 }
 
 const StyledButton = styled.button<ButtonProps>`
@@ -11,44 +10,32 @@ const StyledButton = styled.button<ButtonProps>`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
+  padding: ${({ buttonSize }) => (buttonSize === 'S' ? '0 8px' : '0 12px')};
   border: none;
   border-radius: 4px;
   white-space: nowrap;
 
-  background: ${({ isInverted, buttonType, theme }) =>
-    isInverted
-      ? 'transparent'
-      : theme.button[buttonType].backgroundColor.normal};
-  color: ${({ isInverted, buttonType, theme }) =>
-    isInverted
-      ? theme.button[buttonType].invertedColors.normal
-      : theme.button[buttonType].color.normal};
+  background: ${({ buttonType, theme }) =>
+    theme.button[buttonType].backgroundColor.normal};
+
+  color: ${({ buttonType, theme }) => theme.button[buttonType].color.normal};
+  height: ${({ theme, buttonSize }) => theme.button.height[buttonSize]};
   font-size: ${({ theme, buttonSize }) => theme.button.fontSize[buttonSize]};
   font-weight: 500;
-  height: ${({ theme, buttonSize }) => theme.button.height[buttonSize]};
 
   &:hover:enabled {
-    background: ${({ isInverted, buttonType, theme }) =>
-      isInverted
-        ? 'transparent'
-        : theme.button[buttonType].backgroundColor.hover};
-    color: ${({ isInverted, buttonType, theme }) =>
-      isInverted
-        ? theme.button[buttonType].invertedColors.hover
-        : theme.button[buttonType].color};
+    background: ${({ buttonType, theme }) =>
+      theme.button[buttonType].backgroundColor.hover};
+    color: ${({ buttonType, theme }) => theme.button[buttonType].color.normal};
     cursor: pointer;
   }
+
   &:active:enabled {
-    background: ${({ isInverted, buttonType, theme }) =>
-      isInverted
-        ? 'transparent'
-        : theme.button[buttonType].backgroundColor.active};
-    color: ${({ isInverted, buttonType, theme }) =>
-      isInverted
-        ? theme.button[buttonType].invertedColors.active
-        : theme.button[buttonType].color};
+    background: ${({ buttonType, theme }) =>
+      theme.button[buttonType].backgroundColor.active};
+    color: ${({ buttonType, theme }) => theme.button[buttonType].color.normal};
   }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -59,11 +46,11 @@ const StyledButton = styled.button<ButtonProps>`
   }
 
   & a {
-    color: ${({ theme }) => theme.button.primary.color};
+    color: ${({ theme }) => theme.button.primary.color.normal};
   }
 
   & svg {
-    margin-right: 7px;
+    margin-right: 4px;
     fill: ${({ theme, disabled, buttonType }) =>
       disabled
         ? theme.button[buttonType].color.disabled
