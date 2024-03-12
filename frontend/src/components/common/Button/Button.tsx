@@ -21,7 +21,7 @@ export const Button: React.FC<Props> = ({
   if (to) {
     return (
       <Link to={to}>
-        <StyledButton type="button" {...props}>
+        <StyledButton disabled={disabled} type="button" {...props}>
           {children}
         </StyledButton>
       </Link>
