@@ -426,7 +426,7 @@ export const theme = {
       },
       color: {
         normal: Colors.neutral[0],
-        disabled: Colors.neutral[0],
+        disabled: Colors.red[10],
       },
     },
     height: {
@@ -854,7 +854,7 @@ export const darkTheme: ThemeType = {
       },
       color: {
         normal: Colors.neutral[0],
-        disabled: Colors.neutral[0],
+        disabled: Colors.red[10],
       },
     },
     height: {
