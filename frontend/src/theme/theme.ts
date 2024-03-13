@@ -209,14 +209,19 @@ const baseTheme = {
     closeModalIcon: Colors.neutral[25],
     savedIcon: Colors.brand[50],
     dropdownArrowIcon: Colors.neutral[50],
-    git: {
+    github: {
       hover: Colors.neutral[90],
       active: Colors.neutral[70],
     },
     discord: {
       normal: Colors.neutral[20],
       hover: Colors.blue[45],
-      active: Colors.brand[15],
+      active: '#B8BEF9',
+    },
+    producthunt: {
+      normal: Colors.neutral[20],
+      hover: '#FF6154',
+      active: '#FFBDB8',
     },
   },
   textArea: {
@@ -1172,14 +1177,18 @@ export const darkTheme: ThemeType = {
     sunIcon: Colors.neutral[0],
     infoIcon: Colors.neutral[70],
     savedIcon: Colors.brand[30],
-    git: {
-      ...baseTheme.icons.git,
+    github: {
+      ...baseTheme.icons.github,
       hover: Colors.neutral[70],
-      active: Colors.neutral[90],
+      active: Colors.neutral[85],
     },
     discord: {
       ...baseTheme.icons.discord,
       normal: Colors.neutral[30],
+    },
+    producthunt: {
+      ...baseTheme.icons.producthunt,
+      normal: Colors.neutral[5],
     },
   },
   textArea: {
