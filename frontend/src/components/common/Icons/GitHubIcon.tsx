@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const GitIcon: React.FC<{ className?: string }> = ({ className }) => (
+const GitHubIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     width="20"
     height="20"
@@ -18,4 +18,4 @@ const GitIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export default styled(GitIcon)``;
+export default styled(GitHubIcon)``;
