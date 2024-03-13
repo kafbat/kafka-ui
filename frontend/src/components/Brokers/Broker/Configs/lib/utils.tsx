@@ -2,6 +2,7 @@ import React from 'react';
 import { type BrokerConfig, ConfigSource } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import * as BrokerConfigTableComponents from 'components/Brokers/Broker/Configs/TableComponents/index';
+import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 
 import type {
   BrokerConfigsTableRow,
@@ -74,4 +75,27 @@ export const getConfigUnit = (configName: string): ConfigUnit | undefined => {
   );
 
   return found ? (found[0] as ConfigUnit) : undefined;
+};
+
+export const getConfigDisplayValue = (
+  isSensitive: boolean,
+  value: string,
+  unit: ConfigUnit | undefined
+) => {
+  if (isSensitive) {
+    return { displayValue: '**********', title: 'Sensitive Value' };
+  }
+
+  if (unit === 'bytes') {
+    const intValue = parseInt(value, 10);
+    return {
+      displayValue: intValue > 0 ? <BytesFormatted value={intValue} /> : value,
+      title: intValue > 0 ? `Bytes: ${value}` : value.toString(),
+    };
+  }
+
+  return {
+    displayValue: unit ? `${value} ${unit}` : value,
+    title: unit ? `${value} ${unit}` : value,
+  };
 };
