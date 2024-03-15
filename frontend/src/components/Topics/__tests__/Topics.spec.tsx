@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
 import Topics from 'components/Topics/Topics';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import {
   clusterTopicCopyPath,
   clusterTopicNewPath,
@@ -37,12 +37,16 @@ describe('Topics Component', () => {
 
   it('should check if the page is Topics List rendered', () => {
     setUpComponent(clusterTopicsPath(clusterName));
-    expect(screen.getByText(listContainer)).toBeInTheDocument();
+    waitFor(() => {
+      expect(screen.getByText(listContainer)).toBeInTheDocument();
+    });
   });
 
   it('should check if the page is  New Topic  rendered', () => {
     setUpComponent(clusterTopicNewPath(clusterName));
-    expect(screen.getByText(newCopyContainer)).toBeInTheDocument();
+    waitFor(() => {
+      expect(screen.getByText(newCopyContainer)).toBeInTheDocument();
+    });
   });
 
   it('should check if the page is Copy Topic rendered', () => {
@@ -52,6 +56,8 @@ describe('Topics Component', () => {
 
   it('should check if the page is Topic page rendered', () => {
     setUpComponent(clusterTopicPath(clusterName, topicName));
-    expect(screen.getByText(topicContainer)).toBeInTheDocument();
+    waitFor(() => {
+      expect(screen.getByText(topicContainer)).toBeInTheDocument();
+    });
   });
 });

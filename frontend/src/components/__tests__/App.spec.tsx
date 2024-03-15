@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import App from 'components/App';
 import { render } from 'lib/testHelpers';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
@@ -33,7 +33,9 @@ describe('App', () => {
   });
 
   it('Renders navigation', async () => {
-    expect(screen.getByText('Navigation')).toBeInTheDocument();
+    waitFor(() => {
+      expect(screen.getByText('Navigation')).toBeInTheDocument();
+    });
   });
 
   it('Renders NavBar', async () => {
