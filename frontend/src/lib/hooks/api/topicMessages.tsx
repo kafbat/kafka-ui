@@ -1,103 +1,118 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { BASE_PARAMS, MESSAGES_PER_PAGE } from 'lib/constants';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName, TopicName } from 'redux/interfaces';
 import {
   GetSerdesRequest,
-  SeekDirection,
-  SeekType,
+  PollingMode,
   TopicMessage,
   TopicMessageConsuming,
   TopicMessageEvent,
   TopicMessageEventTypeEnum,
 } from 'generated-sources';
 import { showServerError } from 'lib/errorHandling';
-import toast from 'react-hot-toast';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
-import { StopLoading } from 'components/Topics/Topic/Messages/Messages.styled';
+import { useSearchParams } from 'react-router-dom';
+import { MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
+import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
+import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 interface UseTopicMessagesProps {
   clusterName: ClusterName;
-  topicName: string;
-  searchParams: URLSearchParams;
+  topicName: TopicName;
 }
-
-type ConsumingMode =
-  | 'live'
-  | 'oldest'
-  | 'newest'
-  | 'fromOffset' // from 900 -> 1000
-  | 'toOffset' // from 900 -> 800
-  | 'sinceTime' // from 10:15 -> 11:15
-  | 'untilTime'; // from 10:15 -> 9:15
 
 export const useTopicMessages = ({
   clusterName,
   topicName,
-  searchParams,
 }: UseTopicMessagesProps) => {
+  const [searchParams] = useSearchParams();
   const [messages, setMessages] = React.useState<TopicMessage[]>([]);
   const [phase, setPhase] = React.useState<string>();
-  const [meta, setMeta] = React.useState<TopicMessageConsuming>();
-  const [isFetching, setIsFetching] = React.useState<boolean>(false);
-  const abortController = new AbortController();
+  const [consumptionStats, setConsumptionStats] =
+    React.useState<TopicMessageConsuming>();
+  const [isFetching, setIsFetching] = React.useState(false);
+  const abortController = useRef(new AbortController());
+  const prevReqUrl = useRef<string>('');
 
   // get initial properties
-  const mode = searchParams.get('m') as ConsumingMode;
-  const limit = searchParams.get('perPage') || MESSAGES_PER_PAGE;
-  const seekTo = searchParams.get('seekTo') || '0-0';
+
+  const abortFetchData = useCallback(() => {
+    if (abortController.current.signal.aborted) return;
+
+    setIsFetching(false);
+    abortController.current.abort();
+    abortController.current = new AbortController();
+  }, []);
 
   React.useEffect(() => {
+    const mode = convertStrToPollingMode(
+      searchParams.get(MessagesFilterKeys.mode) || ''
+    );
+
     const fetchData = async () => {
       setIsFetching(true);
+
       const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
         clusterName
-      )}/topics/${topicName}/messages`;
+      )}/topics/${topicName}/messages/v2`;
+
       const requestParams = new URLSearchParams({
-        limit,
-        seekTo: seekTo.replaceAll('-', '::').replaceAll('.', ','),
-        q: searchParams.get('q') || '',
-        keySerde: searchParams.get('keySerde') || '',
-        valueSerde: searchParams.get('valueSerde') || '',
+        limit: searchParams.get(MessagesFilterKeys.limit) || MESSAGES_PER_PAGE,
+        mode: searchParams.get(MessagesFilterKeys.mode) || '',
+      });
+
+      [
+        MessagesFilterKeys.stringFilter,
+        MessagesFilterKeys.keySerde,
+        MessagesFilterKeys.smartFilterId,
+        MessagesFilterKeys.valueSerde,
+      ].forEach((item) => {
+        const value = searchParams.get(item);
+        if (value) {
+          requestParams.set(item, value);
+        }
       });
 
       switch (mode) {
-        case 'live':
-          requestParams.set('seekDirection', SeekDirection.TAILING);
-          requestParams.set('seekType', SeekType.LATEST);
+        case PollingMode.TO_TIMESTAMP:
+        case PollingMode.FROM_TIMESTAMP:
+          requestParams.set(
+            MessagesFilterKeys.timestamp,
+            searchParams.get(MessagesFilterKeys.timestamp) || '0'
+          );
           break;
-        case 'oldest':
-          requestParams.set('seekType', SeekType.BEGINNING);
-          requestParams.set('seekDirection', SeekDirection.FORWARD);
-          break;
-        case 'newest':
-          requestParams.set('seekType', SeekType.LATEST);
-          requestParams.set('seekDirection', SeekDirection.BACKWARD);
-          break;
-        case 'fromOffset':
-          requestParams.set('seekType', SeekType.OFFSET);
-          requestParams.set('seekDirection', SeekDirection.FORWARD);
-          break;
-        case 'toOffset':
-          requestParams.set('seekType', SeekType.OFFSET);
-          requestParams.set('seekDirection', SeekDirection.BACKWARD);
-          break;
-        case 'sinceTime':
-          requestParams.set('seekType', SeekType.TIMESTAMP);
-          requestParams.set('seekDirection', SeekDirection.FORWARD);
-          break;
-        case 'untilTime':
-          requestParams.set('seekType', SeekType.TIMESTAMP);
-          requestParams.set('seekDirection', SeekDirection.BACKWARD);
+        case PollingMode.TO_OFFSET:
+        case PollingMode.FROM_OFFSET:
+          requestParams.set(
+            MessagesFilterKeys.offset,
+            searchParams.get(MessagesFilterKeys.offset) || '0'
+          );
           break;
         default:
-          break;
       }
 
+      searchParams.getAll(MessagesFilterKeys.partitions).forEach((value) => {
+        requestParams.append(MessagesFilterKeys.partitions, value);
+      });
+
+      const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
+
+      const tempCompareUrl = new URLSearchParams(requestParams);
+      tempCompareUrl.delete(MessagesFilterKeys.cursor);
+
+      const tempToString = tempCompareUrl.toString();
+
+      // filters stay the say and we have cursor set cursor
+      if (nextCursor && tempToString === prevReqUrl.current) {
+        requestParams.set(MessagesFilterKeys.cursor, nextCursor);
+      }
+
+      prevReqUrl.current = tempToString;
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
-        signal: abortController.signal,
+        signal: abortController.current.signal,
         openWhenHidden: true,
         async onopen(response) {
           const { ok, status } = response;
@@ -110,13 +125,17 @@ export const useTopicMessages = ({
         },
         onmessage(event) {
           const parsedData: TopicMessageEvent = JSON.parse(event.data);
-          const { message, consuming } = parsedData;
+          const { message, consuming, cursor } = parsedData;
+
+          if (useMessageFiltersStore.getState().nextCursor !== cursor?.id) {
+            setNextCursor(cursor?.id || undefined);
+          }
 
           switch (parsedData.type) {
             case TopicMessageEventTypeEnum.MESSAGE:
               if (message) {
                 setMessages((prevMessages) => {
-                  if (mode === 'live') {
+                  if (mode === PollingMode.TAILING) {
                     return [message, ...prevMessages];
                   }
                   return [...prevMessages, message];
@@ -127,59 +146,36 @@ export const useTopicMessages = ({
               if (parsedData.phase?.name) setPhase(parsedData.phase.name);
               break;
             case TopicMessageEventTypeEnum.CONSUMING:
-              if (consuming) setMeta(consuming);
+              if (consuming) setConsumptionStats(consuming);
               break;
             default:
           }
         },
         onclose() {
           setIsFetching(false);
+          abortController.current = new AbortController();
         },
         onerror(err) {
+          setNextCursor(undefined);
           setIsFetching(false);
+          abortController.current = new AbortController();
           showServerError(err);
         },
       });
     };
-    const abortFetchData = () => {
-      setIsFetching(false);
-      abortController.abort();
-    };
 
-    if (mode === 'live') {
-      toast.promise(
-        fetchData(),
-        {
-          loading: (
-            <>
-              <div>Consuming messages...</div>
-              &nbsp;
-              <StopLoading onClick={abortFetchData}>Abort</StopLoading>
-            </>
-          ),
-          success: 'Cancelled',
-          error: 'Something went wrong. Please try again.',
-        },
-        {
-          id: 'messages',
-          position: 'top-center',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore - missing type for icon
-          success: { duration: 10, icon: false },
-        }
-      );
-    } else {
-      fetchData();
-    }
+    abortFetchData();
+    fetchData();
 
     return abortFetchData;
-  }, [searchParams]);
+  }, [searchParams, abortFetchData]);
 
   return {
     phase,
     messages,
-    meta,
+    consumptionStats,
     isFetching,
+    abortFetchData,
   };
 };
 
@@ -195,4 +191,20 @@ export function useSerdes(props: GetSerdesRequest) {
       refetchInterval: false,
     }
   );
+}
+
+export function useRegisterSmartFilter({
+  clusterName,
+  topicName,
+}: {
+  clusterName: ClusterName;
+  topicName: TopicName;
+}) {
+  return useMutation((payload: { filterCode: string }) => {
+    return messagesApiClient.registerFilter({
+      clusterName,
+      topicName,
+      messageFilterRegistration: { filterCode: payload.filterCode },
+    });
+  });
 }
