@@ -1,0 +1,28 @@
+name: 'Discord hook'
+
+on:
+  workflow_call:
+    inputs:
+      message:
+        description: 'Message text'
+        required: true
+        type: string
+      webhook_url:
+        description: 'Webhook url'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+
+  hook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord on Failure
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: ${{ inputs.message }}
+        env:
+          DISCORD_WEBHOOK: ${{ inputs.webhook_url }}
