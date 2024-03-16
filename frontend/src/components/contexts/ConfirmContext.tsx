@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
+import React, {
+  createContext,
+  type Dispatch,
+  type FC,
+  type PropsWithChildren,
+  type ReactNode,
+  type SetStateAction,
+  useState,
+} from 'react';
 
 interface ConfirmContextType {
-  content: React.ReactNode;
+  content: ReactNode;
   confirm?: () => void;
-  setContent: React.Dispatch<React.SetStateAction<React.ReactNode>>;
-  setConfirm: React.Dispatch<React.SetStateAction<(() => void) | undefined>>;
+  setContent: Dispatch<SetStateAction<ReactNode>>;
+  setConfirm: Dispatch<SetStateAction<(() => void) | undefined>>;
   cancel: () => void;
   dangerButton: boolean;
-  setDangerButton: React.Dispatch<React.SetStateAction<boolean>>;
+  setDangerButton: Dispatch<SetStateAction<boolean>>;
+  isConfirming: boolean;
+  setIsConfirming: Dispatch<SetStateAction<boolean>>;
 }
 
-export const ConfirmContext = React.createContext<ConfirmContextType | null>(
-  null
-);
+export const ConfirmContext = createContext<ConfirmContextType | null>(null);
 
-export const ConfirmContextProvider: React.FC<
-  React.PropsWithChildren<unknown>
-> = ({ children }) => {
-  const [content, setContent] = useState<React.ReactNode>(null);
+export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [content, setContent] = useState<ReactNode>(null);
   const [confirm, setConfirm] = useState<(() => void) | undefined>(undefined);
   const [dangerButton, setDangerButton] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const cancel = () => {
     setContent(null);
@@ -36,6 +43,8 @@ export const ConfirmContextProvider: React.FC<
         cancel,
         dangerButton,
         setDangerButton,
+        isConfirming,
+        setIsConfirming,
       }}
     >
       {children}

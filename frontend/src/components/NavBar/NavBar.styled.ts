@@ -1,7 +1,8 @@
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import DiscordIcon from 'components/common/Icons/DiscordIcon';
-import GitIcon from 'components/common/Icons/GitIcon';
+import GitHubIcon from 'components/common/Icons/GitHubIcon';
+import ProductHuntIcon from 'components/common/Icons/ProductHuntIcon';
 
 export const Navbar = styled.nav(
   ({ theme }) => css`
@@ -39,8 +40,12 @@ export const SocialLink = styled.a(
         fill: ${icons.discord.hover};
       }
 
-      ${GitIcon} {
-        fill: ${icons.git.hover};
+      ${GitHubIcon} {
+        fill: ${icons.github.hover};
+      }
+
+      ${ProductHuntIcon} {
+        fill: ${icons.producthunt.hover};
       }
     }
 
@@ -49,8 +54,12 @@ export const SocialLink = styled.a(
         fill: ${icons.discord.active};
       }
 
-      ${GitIcon} {
-        fill: ${icons.git.active};
+      ${GitHubIcon} {
+        fill: ${icons.github.active};
+      }
+
+      ${ProductHuntIcon} {
+        fill: ${icons.producthunt.active};
       }
     }
   `

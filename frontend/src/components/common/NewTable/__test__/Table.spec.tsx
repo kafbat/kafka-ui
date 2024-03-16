@@ -94,7 +94,7 @@ const columns: ColumnDef<Datum>[] = [
 
 const ExpandedRow: React.FC = () => <div>I am expanded row</div>;
 
-interface Props extends TableProps<Datum, Datum> {
+interface Props extends TableProps<Datum> {
   path?: string;
 }
 
