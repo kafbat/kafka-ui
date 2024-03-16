@@ -1,32 +1,46 @@
-![logo](documentation/images/logo.png) Kafbat UI&nbsp;
-------------------
-#### Versatile, fast and lightweight web UI for managing Apache Kafka® clusters. Built by developers, for developers.
-<br/>
+<div align="center">
+<img src="documentation/images/logo_new.png" alt="logo"/>
+<h3>Kafbat UI</h3>
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/kafbat/kafka-ui/blob/main/LICENSE)
-![Price free](documentation/images/free-open-source.svg)
-[![Release version](https://img.shields.io/github/v/release/kafbat/kafka-ui)](https://github.com/kafbat/kafka-ui/releases)
-[![Chat with us](https://img.shields.io/discord/897805035122077716)](https://discord.gg/4DWzD7pGE5)
-[![Docker pulls](https://img.shields.io/docker/pulls/kafbat/kafka-ui)](https://hub.docker.com/r/kafbat/kafka-ui)
+Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
+</div>
+
+<div align="center">
+<a href="https://github.com/kafbat/kafka-ui/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"/></a>
+<img src="documentation/images/free-open-source.svg" alt="price free"/>
+<a href="https://github.com/kafbat/kafka-ui/releases"><img src="https://img.shields.io/github/v/release/kafbat/kafka-ui" alt="latest release version"/></a>
+<a href="https://discord.gg/4DWzD7pGE5"><img src="https://img.shields.io/discord/897805035122077716" alt="discord online number count"/></a>
+<a href="https://github.com/sponsors/kafbat"><img src="https://img.shields.io/github/sponsors/kafbat?style=flat&logo=githubsponsors&logoColor=%23EA4AAA&label=Support%20us" alt="" /></a>
+</div>
 
 <p align="center">
-    <a href="https://ui.docs.kafbat.io/">DOCS</a> • 
-    <a href="https://ui.docs.kafbat.io/configuration/quick-start">QUICK START</a> • 
-    <a href="https://discord.gg/4DWzD7pGE5">COMMUNITY DISCORD</a>
+    <a href="https://ui.docs.kafbat.io/">Documentation</a> • 
+    <a href="https://ui.docs.kafbat.io/configuration/quick-start">Quick Start</a> • 
+    <a href="https://discord.gg/4DWzD7pGE5">Community</a>
     <br/>
     <a href="https://aws.amazon.com/marketplace/pp/{replaceMe}">AWS Marketplace</a>  •
     <a href="https://www.producthunt.com/products/ui-for-apache-kafka/reviews/new">ProductHunt</a>
 </p>
 
 <p align="center">
-  <img src="https://repobeats.axiom.co/api/embed/2e8a7c2d711af9daddd34f9791143e7554c35d0f.svg" />
+  <img src="https://repobeats.axiom.co/api/embed/88d2bd9887380c7d86e2f986725d9af52ebad7f4.svg" alt="stats"/>
 </p>
 
 #### Kafbat UI is a free, open-source web UI to monitor and manage Apache Kafka clusters.
 
 Kafbat UI is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
 
-![Interface](documentation/images/Interface.gif)
+<i>
+Kafbat UI, developed by <b>Kafbat</b>*, proudly carries forward the legacy of the UI Apache Kafka project.
+Our dedication is reflected in the continuous evolution of the project, ensuring adherence to its foundational vision while adapting to meet modern demands.
+We extend our gratitude to Provectus for their past support in groundbreaking work, which serves as a cornerstone for our ongoing innovation and dedication.
+
+<b>*</b> - The <b>Kafbat</b> team comprises key contributors from the project's inception, bringing a wealth of experience and insight to this renewed endeavor.
+</i>
+
+# Interface
+
+![Interface](https://raw.githubusercontent.com/kafbat/kafka-ui/images/overview.gif)
 
 # Features
 * **Multi-Cluster Management** — monitor and manage all your clusters in one place
@@ -108,7 +122,7 @@ services:
       - ~/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
 ```
 
-Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/quick-start) page to proceed with further app configuration.
+Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/configuration-file) page to proceed with further app configuration.
 
 ## Some useful configuration related links
 
@@ -134,8 +148,13 @@ Info endpoint (build info) is located at `/actuator/info`.
 
 # Configuration options
 
-All of the environment variables/config properties could be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
+All the environment variables/config properties could be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
 # Contributing
 
 Please refer to [contributing guide](https://ui.docs.kafbat.io/development/contributing), we'll guide you from there.
+
+# Support
+
+As we're fully independent, team members contribute in their free time.
+Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat) 

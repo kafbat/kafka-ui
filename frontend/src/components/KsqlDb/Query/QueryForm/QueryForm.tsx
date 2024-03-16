@@ -2,10 +2,10 @@ import React from 'react';
 import { FormError } from 'components/common/Input/Input.styled';
 import { ErrorMessage } from '@hookform/error-message';
 import {
-  useForm,
   Controller,
-  useFieldArray,
   FormProvider,
+  useFieldArray,
+  useForm,
 } from 'react-hook-form';
 import { Button } from 'components/common/Button/Button';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
@@ -24,6 +24,7 @@ interface QueryFormProps {
   resetResults: () => void;
   submitHandler: (values: FormValues) => void;
 }
+
 type StreamsPropertiesType = {
   key: string;
   value: string;
@@ -118,7 +119,6 @@ const QueryForm: React.FC<QueryFormProps> = ({
                   onClick={() => setValue('ksql', '')}
                   buttonType="primary"
                   buttonSize="S"
-                  isInverted
                 >
                   Clear
                 </Button>

@@ -1,6 +1,7 @@
 import React from 'react';
 import * as S from 'components/Topics/Topic/Messages/Filters/Filters.styled';
 import { Button } from 'components/common/Button/Button';
+import Flexbox from 'components/common/FlexBox/FlexBox';
 
 interface InfoModalProps {
   toggleIsOpen(): void;
@@ -54,7 +55,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
           </code>
         </S.ListItem>
       </ol>
-      <S.ButtonContainer>
+      <Flexbox justifyContent="center" margin="20px 0 0 0">
         <Button
           buttonSize="M"
           buttonType="secondary"
@@ -63,7 +64,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
         >
           Ok
         </Button>
-      </S.ButtonContainer>
+      </Flexbox>
     </S.InfoModal>
   );
 };

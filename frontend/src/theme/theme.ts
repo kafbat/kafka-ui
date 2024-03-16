@@ -35,15 +35,21 @@ const Colors = {
     '60': '#29A352',
   },
   brand: {
+    '0': '#FFFFFF',
+    '3': '#F9FAFA',
     '5': '#F1F2F3',
     '10': '#E3E6E8',
     '15': '#D5DADD',
     '20': '#C7CED1',
     '30': '#ABB5BA',
     '40': '#8F9CA3',
-    '50': '#2F3639',
-    '60': '#22282A',
-    '70': '#171A1C',
+    '50': '#73848C',
+    '60': '#5C6970',
+    '70': '#454F54',
+    '80': '#2F3639',
+    '85': '#22282A',
+    '90': '#171A1C',
+    '95': '#0B0D0E',
   },
   red: {
     '10': '#FAD1D1',
@@ -203,14 +209,19 @@ const baseTheme = {
     closeModalIcon: Colors.neutral[25],
     savedIcon: Colors.brand[50],
     dropdownArrowIcon: Colors.neutral[50],
-    git: {
+    github: {
       hover: Colors.neutral[90],
       active: Colors.neutral[70],
     },
     discord: {
       normal: Colors.neutral[20],
       hover: Colors.blue[45],
-      active: Colors.brand[15],
+      active: '#B8BEF9',
+    },
+    producthunt: {
+      normal: Colors.neutral[20],
+      hover: '#FF6154',
+      active: '#FFBDB8',
     },
   },
   textArea: {
@@ -335,6 +346,10 @@ export const theme = {
     color: Colors.brand[50],
     hoverColor: Colors.brand[60],
   },
+  user: {
+    color: Colors.brand[70],
+    hoverColor: Colors.brand[50],
+  },
   hr: {
     backgroundColor: Colors.neutral[5],
   },
@@ -391,38 +406,26 @@ export const theme = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[70],
-        active: Colors.brand[60],
-        disabled: Colors.neutral[5],
+        normal: Colors.brand[80],
+        hover: Colors.brand[90],
+        active: Colors.brand[70],
+        disabled: Colors.brand[50],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[30],
-      },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
+        normal: Colors.brand[0],
+        disabled: Colors.brand[30],
       },
     },
     secondary: {
       backgroundColor: {
         normal: Colors.brand[5],
         hover: Colors.brand[10],
-        active: Colors.brand[30],
-        disabled: Colors.neutral[5],
+        active: Colors.brand[15],
+        disabled: Colors.brand[5],
       },
       color: {
-        normal: Colors.neutral[90],
-        disabled: Colors.neutral[30],
-      },
-      isActiveColor: Colors.neutral[0],
-      invertedColors: {
-        normal: Colors.neutral[50],
-        hover: Colors.neutral[70],
-        active: Colors.neutral[90],
-        disabled: Colors.neutral[75],
+        normal: Colors.brand[90],
+        disabled: Colors.brand[30],
       },
     },
     danger: {
@@ -433,13 +436,8 @@ export const theme = {
         disabled: Colors.red[20],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[0],
-      },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
+        normal: Colors.brand[0],
+        disabled: Colors.red[10],
       },
     },
     height: {
@@ -451,11 +449,6 @@ export const theme = {
       S: '14px',
       M: '14px',
       L: '16px',
-    },
-    border: {
-      normal: Colors.neutral[50],
-      hover: Colors.neutral[70],
-      active: Colors.neutral[90],
     },
   },
   chips: {
@@ -781,6 +774,10 @@ export const darkTheme: ThemeType = {
     color: Colors.brand[50],
     hoverColor: Colors.brand[30],
   },
+  user: {
+    color: Colors.brand[20],
+    hoverColor: Colors.brand[50],
+  },
   hr: {
     backgroundColor: Colors.neutral[80],
   },
@@ -838,37 +835,25 @@ export const darkTheme: ThemeType = {
     primary: {
       backgroundColor: {
         normal: Colors.brand[10],
-        hover: Colors.brand[5],
+        hover: Colors.brand[0],
         active: Colors.brand[20],
-        disabled: Colors.brand[60],
+        disabled: Colors.brand[50],
       },
       color: {
-        normal: Colors.neutral[70],
-        disabled: Colors.neutral[60],
-      },
-      invertedColors: {
-        normal: Colors.brand[30],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
+        normal: Colors.brand[90],
+        disabled: Colors.brand[70],
       },
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.brand[50],
+        normal: Colors.brand[80],
         hover: Colors.brand[70],
         active: Colors.brand[60],
-        disabled: Colors.neutral[75],
+        disabled: Colors.brand[80],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[60],
-      },
-      isActiveColor: Colors.neutral[90],
-      invertedColors: {
-        normal: Colors.neutral[50],
-        hover: Colors.neutral[70],
-        active: Colors.neutral[90],
-        disabled: Colors.neutral[75],
+        normal: Colors.brand[0],
+        disabled: Colors.brand[70],
       },
     },
     danger: {
@@ -879,13 +864,8 @@ export const darkTheme: ThemeType = {
         disabled: Colors.red[20],
       },
       color: {
-        normal: Colors.neutral[0],
-        disabled: Colors.neutral[0],
-      },
-      invertedColors: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[60],
-        active: Colors.brand[60],
+        normal: Colors.brand[0],
+        disabled: Colors.red[10],
       },
     },
     height: {
@@ -897,11 +877,6 @@ export const darkTheme: ThemeType = {
       S: '14px',
       M: '14px',
       L: '16px',
-    },
-    border: {
-      normal: Colors.neutral[50],
-      hover: Colors.neutral[70],
-      active: Colors.neutral[90],
     },
   },
   chips: {
@@ -1202,14 +1177,18 @@ export const darkTheme: ThemeType = {
     sunIcon: Colors.neutral[0],
     infoIcon: Colors.neutral[70],
     savedIcon: Colors.brand[30],
-    git: {
-      ...baseTheme.icons.git,
+    github: {
+      ...baseTheme.icons.github,
       hover: Colors.neutral[70],
-      active: Colors.neutral[90],
+      active: Colors.neutral[85],
     },
     discord: {
       ...baseTheme.icons.discord,
       normal: Colors.neutral[30],
+    },
+    producthunt: {
+      ...baseTheme.icons.producthunt,
+      normal: Colors.neutral[5],
     },
   },
   textArea: {

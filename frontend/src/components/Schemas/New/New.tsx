@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import Input from 'components/common/Input/Input';
 import { FormError } from 'components/common/Input/Input.styled';
-import Select, { SelectOption } from 'components/common/Select/Select';
+import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
 import { Textarea } from 'components/common/Textbox/Textarea.styled';
 import PageHeading from 'components/common/PageHeading/PageHeading';
@@ -27,7 +27,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import * as S from './New.styled';
 
-const SchemaTypeOptions: Array<SelectOption> = [
+const SchemaTypeOptions = [
   { value: SchemaType.AVRO, label: 'AVRO' },
   { value: SchemaType.JSON, label: 'JSON' },
   { value: SchemaType.PROTOBUF, label: 'PROTOBUF' },
@@ -131,7 +131,7 @@ const New: React.FC = () => {
           <Controller
             control={control}
             name="schemaType"
-            defaultValue={SchemaTypeOptions[0].value as SchemaType}
+            defaultValue={SchemaTypeOptions[0].value}
             render={({ field: { name, onChange, value } }) => (
               <Select
                 selectSize="M"

@@ -1,6 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import Heading from 'components/common/heading/Heading.styled';
-import { Button } from 'components/common/Button/Button';
+import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
 
 import * as S from './SlidingSidebar.styled';
 
@@ -18,12 +17,12 @@ const SlidingSidebar: React.FC<SlidingSidebarProps> = ({
 }) => {
   return (
     <S.Wrapper $open={open}>
-      <Heading level={3}>
-        <span>{title}</span>
-        <Button buttonSize="M" buttonType="primary" onClick={onClose}>
-          Close
-        </Button>
-      </Heading>
+      <S.Header>
+        <S.HeaderText>{title}</S.HeaderText>
+        <S.CloseIconButtonWrapper onClick={onClose} aria-label="edit">
+          <CloseCircleIcon />
+        </S.CloseIconButtonWrapper>
+      </S.Header>
       <S.Content>{children}</S.Content>
     </S.Wrapper>
   );
