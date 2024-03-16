@@ -4,10 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.ConsumerPosition;
-import io.kafbat.ui.model.MessageFilterTypeDTO;
-import io.kafbat.ui.model.SeekDirectionDTO;
-import io.kafbat.ui.model.SeekTypeDTO;
+import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
+import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.MessagesService;
 import java.time.Duration;
@@ -111,13 +110,12 @@ class TailingEmitterTest extends AbstractIntegrationTest {
 
     return applicationContext.getBean(MessagesService.class)
         .loadMessages(cluster, topicName,
-            new ConsumerPosition(SeekTypeDTO.LATEST, topic, null),
+            new ConsumerPosition(PollingModeDTO.TAILING, topic, List.of(), null, null),
             query,
-            MessageFilterTypeDTO.STRING_CONTAINS,
+            null,
             0,
-            SeekDirectionDTO.TAILING,
-            "String",
-            "String");
+            StringSerde.name(),
+            StringSerde.name());
   }
 
   private List<TopicMessageEventDTO> startTailing(String filterQuery) {

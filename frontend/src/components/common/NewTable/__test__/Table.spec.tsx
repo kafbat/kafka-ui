@@ -7,7 +7,7 @@ import Table, {
   LinkCell,
   TagCell,
 } from 'components/common/NewTable';
-import { screen, waitFor } from '@testing-library/dom';
+import { screen } from '@testing-library/dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import userEvent from '@testing-library/user-event';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
@@ -94,7 +94,7 @@ const columns: ColumnDef<Datum>[] = [
 
 const ExpandedRow: React.FC = () => <div>I am expanded row</div>;
 
-interface Props extends TableProps<Datum, Datum> {
+interface Props extends TableProps<Datum> {
   path?: string;
 }
 
@@ -276,7 +276,7 @@ describe('Table', () => {
 
   describe('Sorting', () => {
     it('sort rows', async () => {
-      await renderComponent({
+      renderComponent({
         path: '/?sortBy=text&&sortDirection=desc',
         enableSorting: true,
       });
@@ -293,7 +293,7 @@ describe('Table', () => {
       expect(rows[1].textContent?.indexOf('sit')).toBeGreaterThan(-1);
 
       // Disable sorting by text column
-      await waitFor(() => userEvent.click(th));
+      await userEvent.click(th);
       rows = screen.getAllByRole('row');
       expect(rows[1].textContent?.indexOf('lorem')).toBeGreaterThan(-1);
       expect(rows[2].textContent?.indexOf('ipsum')).toBeGreaterThan(-1);
@@ -301,7 +301,7 @@ describe('Table', () => {
       expect(rows[4].textContent?.indexOf('sit')).toBeGreaterThan(-1);
 
       // Sort by text column ascending
-      await waitFor(() => userEvent.click(th));
+      await userEvent.click(th);
       rows = screen.getAllByRole('row');
       expect(rows[1].textContent?.indexOf('dolor')).toBeGreaterThan(-1);
       expect(rows[2].textContent?.indexOf('ipsum')).toBeGreaterThan(-1);

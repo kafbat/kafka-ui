@@ -11,8 +11,7 @@ import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
-import io.kafbat.ui.model.SeekDirectionDTO;
-import io.kafbat.ui.model.SeekTypeDTO;
+import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.serdes.builtin.Int32Serde;
@@ -20,6 +19,7 @@ import io.kafbat.ui.serdes.builtin.Int64Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -500,15 +500,10 @@ public class SendAndReadTests extends AbstractIntegrationTest {
         TopicMessageDTO polled = messagesService.loadMessages(
                 targetCluster,
                 topic,
-                new ConsumerPosition(
-                    SeekTypeDTO.BEGINNING,
-                    topic,
-                    Map.of(new TopicPartition(topic, 0), 0L)
-                ),
+                new ConsumerPosition(PollingModeDTO.EARLIEST, topic, List.of(), null, null),
                 null,
                 null,
                 1,
-                SeekDirectionDTO.FORWARD,
                 msgToSend.getKeySerde().get(),
                 msgToSend.getValueSerde().get()
             ).filter(e -> e.getType().equals(TopicMessageEventDTO.TypeEnum.MESSAGE))

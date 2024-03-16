@@ -1,645 +1,239 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
-import {
-  MessageFilterType,
-  Partition,
-  SeekDirection,
-  SeekType,
-  SerdeUsage,
-  TopicMessage,
-  TopicMessageConsuming,
-  TopicMessageEvent,
-  TopicMessageEventTypeEnum,
-} from 'generated-sources';
-import React, { useContext } from 'react';
-import omitBy from 'lodash/omitBy';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
+import React, { useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
-import { Option } from 'react-multi-select-component';
-import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
-import { BASE_PARAMS } from 'lib/constants';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
 import Search from 'components/common/Search/Search';
-import FilterModal, {
-  FilterEdit,
-} from 'components/Topics/Topic/Messages/Filters/FilterModal';
-import { SeekDirectionOptions } from 'components/Topics/Topic/Messages/Messages';
-import TopicMessagesContext from 'components/contexts/TopicMessagesContext';
-import useBoolean from 'lib/hooks/useBoolean';
-import { RouteParamsClusterTopic } from 'lib/paths';
-import useAppParams from 'lib/hooks/useAppParams';
 import PlusIcon from 'components/common/Icons/PlusIcon';
-import EditIcon from 'components/common/Icons/EditIcon';
-import CloseIcon from 'components/common/Icons/CloseIcon';
-import ClockIcon from 'components/common/Icons/ClockIcon';
-import ArrowDownIcon from 'components/common/Icons/ArrowDownIcon';
-import FileIcon from 'components/common/Icons/FileIcon';
-import { useTopicDetails } from 'lib/hooks/api/topics';
-import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { getSerdeOptions } from 'components/Topics/Topic/SendMessage/utils';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
+import useAppParams from 'lib/hooks/useAppParams';
+import { RouteParamsClusterTopic } from 'lib/paths';
+import { useMessagesFilters } from 'lib/hooks/useMessagesFilters';
+import { ModeOptions } from 'lib/hooks/filterUtils';
+import { useTopicDetails } from 'lib/hooks/api/topics';
+import EditIcon from 'components/common/Icons/EditIcon';
+import CloseIcon from 'components/common/Icons/CloseIcon';
+import FlexBox from 'components/common/FlexBox/FlexBox';
 
 import * as S from './Filters.styled';
 import {
+  ADD_FILTER_ID,
   filterOptions,
-  getOffsetFromSeekToParam,
-  getSelectedPartitionsFromSeekToParam,
-  getTimestampFromSeekToParam,
+  isLiveMode,
+  isModeOffsetSelector,
+  isModeOptionWithInput,
 } from './utils';
-
-type Query = Record<string, string | string[] | number>;
+import FiltersSideBar from './FiltersSideBar';
+import FiltersMetrics from './FiltersMetrics';
 
 export interface FiltersProps {
   phaseMessage?: string;
-  meta: TopicMessageConsuming;
+  consumptionStats?: TopicMessageConsuming;
   isFetching: boolean;
-  messageEventType?: string;
-
-  addMessage(content: { message: TopicMessage; prepend: boolean }): void;
-
-  resetMessages(): void;
-
-  updatePhase(phase: string): void;
-
-  updateMeta(meta: TopicMessageConsuming): void;
-
-  setIsFetching(status: boolean): void;
-
-  setMessageType(messageType: string): void;
+  abortFetchData: () => void;
 }
-
-export interface MessageFilters {
-  name: string;
-  code: string;
-}
-
-export interface ActiveMessageFilter {
-  index: number;
-  name: string;
-  code: string;
-}
-
-const PER_PAGE = 100;
-
-export const SeekTypeOptions = [
-  { value: SeekType.OFFSET, label: 'Offset' },
-  { value: SeekType.TIMESTAMP, label: 'Timestamp' },
-];
 
 const Filters: React.FC<FiltersProps> = ({
-  phaseMessage,
-  meta: { elapsedMs, bytesConsumed, messagesConsumed, filterApplyErrors },
+  consumptionStats,
   isFetching,
-  addMessage,
-  resetMessages,
-  updatePhase,
-  updateMeta,
-  setIsFetching,
-  setMessageType,
-  messageEventType,
+  abortFetchData,
+  phaseMessage,
 }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
-  const page = searchParams.get('page');
+  const {
+    mode,
+    setMode,
+    date,
+    setTimeStamp,
+    keySerde,
+    setKeySerde,
+    valueSerde,
+    setValueSerde,
+    offset,
+    setOffsetValue,
+    search,
+    setSearch,
+    partitions: p,
+    setPartition,
+    smartFilter,
+    setSmartFilter,
+    refreshData,
+  } = useMessagesFilters();
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
+  const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
 
-  const partitions = topic?.partitions || [];
-
-  const { seekDirection, isLive, changeSeekDirection } =
-    useContext(TopicMessagesContext);
-
-  const { value: isOpen, toggle } = useBoolean();
-
-  const { value: isQuickEditOpen, toggle: toggleQuickEdit } = useBoolean();
-
-  const source = React.useRef<EventSource | null>(null);
-
-  const [selectedPartitions, setSelectedPartitions] = React.useState<Option[]>(
-    getSelectedPartitionsFromSeekToParam(searchParams, partitions)
-  );
-
-  const [currentSeekType, setCurrentSeekType] = React.useState<SeekType>(
-    SeekTypeOptions.find(
-      (ele) => ele.value === (searchParams.get('seekType') as SeekType)
-    ) !== undefined
-      ? (searchParams.get('seekType') as SeekType)
-      : SeekType.OFFSET
-  );
-  const [offset, setOffset] = React.useState<string>(
-    getOffsetFromSeekToParam(searchParams)
-  );
-
-  const [timestamp, setTimestamp] = React.useState<Date | null>(
-    getTimestampFromSeekToParam(searchParams)
-  );
-  const [keySerde, setKeySerde] = React.useState<string>(
-    searchParams.get('keySerde') || ''
-  );
-  const [valueSerde, setValueSerde] = React.useState<string>(
-    searchParams.get('valueSerde') || ''
-  );
-
-  const [savedFilters, setSavedFilters] = React.useState<MessageFilters[]>(
-    JSON.parse(localStorage.getItem('savedFilters') ?? '[]')
-  );
-
-  let storageActiveFilter = localStorage.getItem('activeFilter');
-  storageActiveFilter =
-    storageActiveFilter ?? JSON.stringify({ name: '', code: '', index: -1 });
-
-  const [activeFilter, setActiveFilter] = React.useState<ActiveMessageFilter>(
-    JSON.parse(storageActiveFilter)
-  );
-
-  const [queryType, setQueryType] = React.useState<MessageFilterType>(
-    activeFilter.name
-      ? MessageFilterType.CEL_SCRIPT
-      : MessageFilterType.STRING_CONTAINS
-  );
-  const [query, setQuery] = React.useState<string>(searchParams.get('q') || '');
-  const [isTailing, setIsTailing] = React.useState<boolean>(isLive);
-
-  const isSeekTypeControlVisible = React.useMemo(
-    () => selectedPartitions.length > 0,
-    [selectedPartitions]
-  );
-
-  const isSubmitDisabled = React.useMemo(() => {
-    if (isSeekTypeControlVisible) {
-      return (
-        (currentSeekType === SeekType.TIMESTAMP && !timestamp) || isTailing
-      );
-    }
-
-    return false;
-  }, [isSeekTypeControlVisible, currentSeekType, timestamp, isTailing]);
-
-  const partitionMap = React.useMemo(
-    () =>
-      partitions.reduce<Record<string, Partition>>(
-        (acc, partition) => ({
-          ...acc,
-          [partition.partition]: partition,
-        }),
-        {}
-      ),
-    [partitions]
-  );
-
-  const handleClearAllFilters = () => {
-    setCurrentSeekType(SeekType.OFFSET);
-    setOffset('');
-    setTimestamp(null);
-    setQuery('');
-    changeSeekDirection(SeekDirection.FORWARD);
-    getSelectedPartitionsFromSeekToParam(searchParams, partitions);
-    setSelectedPartitions(
-      partitions.map((partition: Partition) => {
-        return {
-          value: partition.partition,
-          label: `Partition #${partition.partition.toString()}`,
+  const partitions = useMemo(() => {
+    return (topic?.partitions || []).reduce<{
+      dict: Record<string, { label: string; value: number }>;
+      list: { label: string; value: number }[];
+    }>(
+      (acc, currentValue) => {
+        const label = {
+          label: `Partition #${currentValue.partition.toString()}`,
+          value: currentValue.partition,
         };
-      })
+
+        // eslint-disable-next-line no-param-reassign
+        acc.dict[label.value] = label;
+        acc.list.push(label);
+        return acc;
+      },
+      { dict: {}, list: [] }
     );
-  };
+  }, [topic?.partitions]);
 
-  const handleFiltersSubmit = (currentOffset: string) => {
-    const nextAttempt = Number(searchParams.get('attempt') || 0) + 1;
-    const props: Query = {
-      q: queryType === MessageFilterType.CEL_SCRIPT ? activeFilter.code : query,
-      filterQueryType: queryType,
-      attempt: nextAttempt,
-      limit: PER_PAGE,
-      page: page || 0,
-      seekDirection,
-      keySerde: keySerde || searchParams.get('keySerde') || '',
-      valueSerde: valueSerde || searchParams.get('valueSerde') || '',
-    };
+  const partitionValue = useMemo(() => {
+    return p.map((value) => partitions.dict[value]);
+  }, [p, partitions]);
 
-    if (isSeekTypeControlVisible) {
-      switch (seekDirection) {
-        case SeekDirection.FORWARD:
-          props.seekType = SeekType.BEGINNING;
-          break;
-        case SeekDirection.BACKWARD:
-        case SeekDirection.TAILING:
-          props.seekType = SeekType.LATEST;
-          break;
-        default:
-          props.seekType = currentSeekType;
-      }
-
-      if (offset && currentSeekType === SeekType.OFFSET) {
-        props.seekType = SeekType.OFFSET;
-      }
-
-      if (timestamp && currentSeekType === SeekType.TIMESTAMP) {
-        props.seekType = SeekType.TIMESTAMP;
-      }
-
-      const isSeekTypeWithSeekTo =
-        props.seekType === SeekType.TIMESTAMP ||
-        props.seekType === SeekType.OFFSET;
-
-      if (
-        selectedPartitions.length !== partitions.length ||
-        isSeekTypeWithSeekTo
-      ) {
-        // not everything in the partition is selected
-        props.seekTo = selectedPartitions.map(({ value }) => {
-          const offsetProperty =
-            seekDirection === SeekDirection.FORWARD ? 'offsetMin' : 'offsetMax';
-          const offsetBasedSeekTo =
-            currentOffset || partitionMap[value][offsetProperty];
-          const seekToOffset =
-            currentSeekType === SeekType.OFFSET
-              ? offsetBasedSeekTo
-              : timestamp?.getTime();
-
-          return `${value}::${seekToOffset || '0'}`;
-        });
-      }
-    }
-
-    const newProps = omitBy(props, (v) => v === undefined || v === '');
-    const qs = Object.keys(newProps)
-      .map((key) => `${key}=${encodeURIComponent(newProps[key] as string)}`)
-      .join('&');
-    navigate({
-      search: `?${qs}`,
-    });
-  };
-
-  const handleSSECancel = () => {
-    if (!source.current) return;
-    setIsFetching(false);
-    source.current.close();
-  };
-
-  const addFilter = (newFilter: MessageFilters) => {
-    const filters = [...savedFilters];
-    filters.push(newFilter);
-    setSavedFilters(filters);
-    localStorage.setItem('savedFilters', JSON.stringify(filters));
-  };
-  const deleteFilter = (index: number) => {
-    const filters = [...savedFilters];
-    if (activeFilter.name && activeFilter.index === index) {
-      localStorage.removeItem('activeFilter');
-      setActiveFilter({ name: '', code: '', index: -1 });
-      setQueryType(MessageFilterType.STRING_CONTAINS);
-    }
-    filters.splice(index, 1);
-    localStorage.setItem('savedFilters', JSON.stringify(filters));
-    setSavedFilters(filters);
-  };
-  const deleteActiveFilter = () => {
-    setActiveFilter({ name: '', code: '', index: -1 });
-    localStorage.removeItem('activeFilter');
-    setQueryType(MessageFilterType.STRING_CONTAINS);
-  };
-  const activeFilterHandler = (
-    newActiveFilter: MessageFilters,
-    index: number
-  ) => {
-    localStorage.setItem(
-      'activeFilter',
-      JSON.stringify({ index, ...newActiveFilter })
-    );
-    setActiveFilter({ index, ...newActiveFilter });
-    setQueryType(MessageFilterType.CEL_SCRIPT);
-  };
-
-  const composeMessageFilter = (filter: FilterEdit): ActiveMessageFilter => ({
-    index: filter.index,
-    name: filter.filter.name,
-    code: filter.filter.code,
-  });
-
-  const storeAsActiveFilter = (filter: FilterEdit) => {
-    const messageFilter = JSON.stringify(composeMessageFilter(filter));
-    localStorage.setItem('activeFilter', messageFilter);
-  };
-
-  const editSavedFilter = (filter: FilterEdit) => {
-    const filters = [...savedFilters];
-    filters[filter.index] = filter.filter;
-    if (activeFilter.name && activeFilter.index === filter.index) {
-      setActiveFilter(composeMessageFilter(filter));
-      storeAsActiveFilter(filter);
-    }
-    localStorage.setItem('savedFilters', JSON.stringify(filters));
-    setSavedFilters(filters);
-  };
-
-  const editCurrentFilter = (filter: FilterEdit) => {
-    if (filter.index < 0) {
-      setActiveFilter(composeMessageFilter(filter));
-      storeAsActiveFilter(filter);
-    } else {
-      editSavedFilter(filter);
-    }
-  };
-  // eslint-disable-next-line consistent-return
-  React.useEffect(() => {
-    if (location.search?.length !== 0) {
-      const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
-        clusterName
-      )}/topics/${topicName}/messages${location.search}`;
-      const sse = new EventSource(url);
-
-      source.current = sse;
-      setIsFetching(true);
-
-      sse.onopen = () => {
-        resetMessages();
-        setIsFetching(true);
-      };
-      sse.onmessage = ({ data }) => {
-        const { type, message, phase, consuming }: TopicMessageEvent =
-          JSON.parse(data);
-        switch (type) {
-          case TopicMessageEventTypeEnum.MESSAGE:
-            if (message) {
-              addMessage({
-                message,
-                prepend: isLive,
-              });
-            }
-            break;
-          case TopicMessageEventTypeEnum.PHASE:
-            if (phase?.name) {
-              updatePhase(phase.name);
-            }
-            break;
-          case TopicMessageEventTypeEnum.CONSUMING:
-            if (consuming) updateMeta(consuming);
-            break;
-          case TopicMessageEventTypeEnum.DONE:
-            if (consuming && type) {
-              setMessageType(type);
-              updateMeta(consuming);
-            }
-            break;
-          default:
-        }
-      };
-
-      sse.onerror = () => {
-        setIsFetching(false);
-        sse.close();
-      };
-
-      return () => {
-        setIsFetching(false);
-        sse.close();
-      };
-    }
-  }, [
-    clusterName,
-    topicName,
-    seekDirection,
-    location,
-    addMessage,
-    resetMessages,
-    setIsFetching,
-    updateMeta,
-    updatePhase,
-  ]);
-  React.useEffect(() => {
-    if (location.search?.length === 0) {
-      handleFiltersSubmit(offset);
-    }
-  }, [
-    seekDirection,
-    queryType,
-    activeFilter,
-    currentSeekType,
-    timestamp,
-    query,
-    location,
-  ]);
-  React.useEffect(() => {
-    handleFiltersSubmit(offset);
-  }, [
-    seekDirection,
-    queryType,
-    activeFilter,
-    currentSeekType,
-    timestamp,
-    query,
-    seekDirection,
-    page,
-  ]);
-
-  React.useEffect(() => {
-    setIsTailing(isLive);
-  }, [isLive]);
-
-  const { data: serdes = {} } = useSerdes({
+  const { data: serdes = {}, isLoading } = useSerdes({
     clusterName,
     topicName,
     use: SerdeUsage.DESERIALIZE,
   });
 
-  return (
-    <S.FiltersWrapper>
-      <div>
-        <S.FilterInputs>
-          <div>
-            <InputLabel>Seek Type</InputLabel>
-            <S.SeekTypeSelectorWrapper>
-              <S.SeekTypeSelect
-                id="selectSeekType"
-                onChange={(option) => setCurrentSeekType(option as SeekType)}
-                value={currentSeekType}
-                selectSize="M"
-                minWidth="100px"
-                options={SeekTypeOptions}
-                disabled={isTailing}
-              />
+  const handleRefresh = () => {
+    if (isLiveMode(mode) && isFetching) {
+      abortFetchData();
+    }
+    refreshData();
+  };
 
-              {currentSeekType === SeekType.OFFSET ? (
+  return (
+    <FlexBox flexDirection="column" padding="0 16px">
+      <FlexBox width="100%" justifyContent="space-between" margin="10px 0 0 0">
+        <FlexBox gap="8px" alignItems="flex-end" flexWrap="wrap">
+          <S.FilterModeTypeSelectorWrapper>
+            <S.FilterModeTypeSelect
+              id="selectSeekType"
+              onChange={setMode}
+              value={mode}
+              selectSize="M"
+              minWidth="100px"
+              options={ModeOptions}
+            />
+
+            {isModeOptionWithInput(mode) &&
+              (isModeOffsetSelector(mode) ? (
                 <S.OffsetSelector
                   id="offset"
                   type="text"
                   inputSize="M"
                   value={offset}
                   placeholder="Offset"
-                  onChange={({ target: { value } }) => setOffset(value)}
-                  disabled={isTailing}
+                  onChange={({ target: { value } }) => {
+                    setOffsetValue(value);
+                  }}
                 />
               ) : (
                 <S.DatePickerInput
-                  selected={timestamp}
-                  onChange={(date: Date | null) => setTimestamp(date)}
+                  selected={date}
+                  onChange={setTimeStamp}
                   showTimeInput
                   timeInputLabel="Time:"
-                  dateFormat="MMM d, yyyy HH:mm"
+                  dateFormat="MMM d, yyyy"
                   placeholderText="Select timestamp"
-                  disabled={isTailing}
                 />
-              )}
-            </S.SeekTypeSelectorWrapper>
-          </div>
-          <div>
-            <InputLabel>Partitions</InputLabel>
-            <MultiSelect
-              options={partitions.map((p) => ({
-                label: `Partition #${p.partition.toString()}`,
-                value: p.partition,
-              }))}
-              filterOptions={filterOptions}
-              value={selectedPartitions}
-              onChange={setSelectedPartitions}
-              labelledBy="Select partitions"
-              disabled={isTailing}
-            />
-          </div>
-          <div>
-            <InputLabel>Key Serde</InputLabel>
-            <Select
-              id="selectKeySerdeOptions"
-              aria-labelledby="selectKeySerdeOptions"
-              onChange={(option) => setKeySerde(option as string)}
-              minWidth="170px"
-              options={getSerdeOptions(serdes.key || [])}
-              value={searchParams.get('keySerde') as string}
-              selectSize="M"
-              disabled={isTailing}
-            />
-          </div>
-          <div>
-            <InputLabel>Value Serde</InputLabel>
-            <Select
-              id="selectValueSerdeOptions"
-              aria-labelledby="selectValueSerdeOptions"
-              onChange={(option) => setValueSerde(option as string)}
-              options={getSerdeOptions(serdes.value || [])}
-              value={searchParams.get('valueSerde') as string}
-              minWidth="170px"
-              selectSize="M"
-              disabled={isTailing}
-            />
-          </div>
-          <S.ClearAll onClick={handleClearAllFilters}>Clear all</S.ClearAll>
+              ))}
+          </S.FilterModeTypeSelectorWrapper>
+          <MultiSelect
+            disabled={isLoading}
+            options={partitions.list}
+            filterOptions={filterOptions}
+            onChange={setPartition}
+            value={partitionValue}
+            labelledBy="partitionsOptions"
+            overrideStrings={{
+              selectSomeItems: 'Select partitions',
+            }}
+          />
+          <Select
+            id="selectKeySerdeOptions"
+            aria-labelledby="selectKeySerdeOptions"
+            onChange={setKeySerde}
+            minWidth="170px"
+            options={getSerdeOptions(serdes.key || [])}
+            value={keySerde}
+            selectSize="M"
+            placeholder="Key Serde"
+          />
+          <Select
+            id="selectValueSerdeOptions"
+            aria-labelledby="selectValueSerdeOptions"
+            onChange={setValueSerde}
+            options={getSerdeOptions(serdes.value || [])}
+            value={valueSerde}
+            minWidth="170px"
+            selectSize="M"
+            placeholder="Value Serde"
+          />
           <Button
             type="submit"
             buttonType="secondary"
             buttonSize="M"
-            disabled={isSubmitDisabled}
-            onClick={() =>
-              isFetching ? handleSSECancel() : handleFiltersSubmit(offset)
-            }
+            onClick={handleRefresh}
             style={{ fontWeight: 500 }}
           >
-            {isFetching ? 'Cancel' : 'Submit'}
+            Refresh
           </Button>
-        </S.FilterInputs>
-        <Select
-          selectSize="M"
-          onChange={(option) => changeSeekDirection(option as string)}
-          value={seekDirection}
-          minWidth="120px"
-          options={SeekDirectionOptions}
-          isLive={isLive}
-        />
-      </div>
-      <S.ActiveSmartFilterWrapper>
-        <Search placeholder="Search" disabled={isTailing} />
+        </FlexBox>
 
-        <Button buttonType="secondary" buttonSize="M" onClick={toggle}>
+        <Search placeholder="Search" value={search} onChange={setSearch} />
+      </FlexBox>
+      <FlexBox
+        gap="10px"
+        alignItems="center"
+        justifyContent="flex-start"
+        padding="8px 0 5px"
+      >
+        <Button
+          buttonType="secondary"
+          buttonSize="M"
+          onClick={() => setCreatedEditedSmartId(ADD_FILTER_ID)}
+        >
           <PlusIcon />
           Add Filters
         </Button>
-        {activeFilter.name && (
+        {smartFilter && (
           <S.ActiveSmartFilter data-testid="activeSmartFilter">
-            <S.SmartFilterName>{activeFilter.name}</S.SmartFilterName>
+            <S.SmartFilterName>{smartFilter.id}</S.SmartFilterName>
             <S.EditSmartFilterIcon
-              data-testid="editActiveSmartFilterBtn"
-              onClick={toggleQuickEdit}
+              onClick={() => setCreatedEditedSmartId(smartFilter.id)}
+              disabled={!!createdEditedSmartId}
             >
               <EditIcon />
             </S.EditSmartFilterIcon>
-            <S.DeleteSmartFilterIcon onClick={deleteActiveFilter}>
+            <S.DeleteSmartFilterIcon
+              onClick={() => setSmartFilter(null)}
+              disabled={!!createdEditedSmartId}
+            >
               <CloseIcon />
             </S.DeleteSmartFilterIcon>
           </S.ActiveSmartFilter>
         )}
-      </S.ActiveSmartFilterWrapper>
-      {isQuickEditOpen && (
-        <FilterModal
-          quickEditMode
-          activeFilter={activeFilter}
-          toggleIsOpen={toggleQuickEdit}
-          editSavedFilter={editCurrentFilter}
-          filters={[]}
-          addFilter={() => null}
-          deleteFilter={() => null}
-          activeFilterHandler={() => null}
+      </FlexBox>
+      <FiltersSideBar
+        setClose={() => setCreatedEditedSmartId('')}
+        smartFilter={smartFilter}
+        setSmartFilter={setSmartFilter}
+        setFilterName={setCreatedEditedSmartId}
+        filterName={createdEditedSmartId}
+      />
+      {consumptionStats && (
+        <FiltersMetrics
+          mode={mode}
+          isFetching={isFetching}
+          phaseMessage={phaseMessage}
+          abortFetchData={abortFetchData}
+          consumptionStats={consumptionStats}
         />
       )}
-
-      {isOpen && (
-        <FilterModal
-          toggleIsOpen={toggle}
-          filters={savedFilters}
-          addFilter={addFilter}
-          deleteFilter={deleteFilter}
-          activeFilterHandler={activeFilterHandler}
-          editSavedFilter={editSavedFilter}
-          activeFilter={activeFilter}
-        />
-      )}
-      <S.FiltersMetrics>
-        <S.Message>
-          {seekDirection !== SeekDirection.TAILING &&
-            isFetching &&
-            phaseMessage}
-          {!isFetching && messageEventType}
-        </S.Message>
-        <S.MessageLoading isLive={isTailing}>
-          <S.MessageLoadingSpinner isFetching={isFetching} />
-          Loading messages.
-          <S.StopLoading
-            onClick={() => {
-              handleSSECancel();
-              setIsTailing(false);
-            }}
-          >
-            Stop loading
-          </S.StopLoading>
-        </S.MessageLoading>
-        <S.Metric title="Elapsed Time">
-          <S.MetricsIcon>
-            <ClockIcon />
-          </S.MetricsIcon>
-          <span>{Math.max(elapsedMs || 0, 0)} ms</span>
-        </S.Metric>
-        <S.Metric title="Bytes Consumed">
-          <S.MetricsIcon>
-            <ArrowDownIcon />
-          </S.MetricsIcon>
-          <BytesFormatted value={bytesConsumed} />
-        </S.Metric>
-        <S.Metric title="Messages Consumed">
-          <S.MetricsIcon>
-            <FileIcon />
-          </S.MetricsIcon>
-          <span>{messagesConsumed} messages consumed</span>
-        </S.Metric>
-        {!!filterApplyErrors && (
-          <S.Metric title="Errors">
-            <span>{filterApplyErrors} errors</span>
-          </S.Metric>
-        )}
-      </S.FiltersMetrics>
-    </S.FiltersWrapper>
+    </FlexBox>
   );
 };
 
