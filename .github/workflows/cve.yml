@@ -1,4 +1,4 @@
-name: CVE checks docker main
+name: "Infra: CVE checks"
 on:
   workflow_dispatch:
   schedule:
