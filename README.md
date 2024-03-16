@@ -40,7 +40,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 
 # Interface
 
-![Interface](documentation/images/Interface.gif)
+![Interface](https://raw.githubusercontent.com/kafbat/kafka-ui/images/overview.gif)
 
 # Features
 * **Multi-Cluster Management** — monitor and manage all your clusters in one place
