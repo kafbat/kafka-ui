@@ -51,9 +51,6 @@
         <org.json.version>20231013</org.json.version>
         <dev.cel.version>0.3.0</dev.cel.version>
         <guava.version>33.0.0-jre</guava.version>
-        <commons.compress.version>1.26.0</commons.compress.version>
-        <logback.version>1.4.12</logback.version>
-        <squareup.okhttp3.version>4.12.0</squareup.okhttp3.version>
         <!-- Test dependency versions -->
         <junit.version>5.9.1</junit.version>
         <mockito.version>5.3.1</mockito.version>
