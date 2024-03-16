@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import TimeToRetainBtn, {
   Props,
 } from 'components/Topics/shared/Form/TimeToRetainBtn';
-import { useForm, FormProvider } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { theme } from 'theme/theme';
 import userEvent from '@testing-library/user-event';
 
@@ -61,7 +61,7 @@ describe('TimeToRetainBtn', () => {
       SetUpComponent({ value: 604800000 });
       const buttonElement = screen.getByRole('button');
       expect(buttonElement).toHaveStyle(
-        `background-color:${theme.button.secondary.invertedColors.normal}`
+        `background-color:${theme.chips.backgroundColor.active}`
       );
       expect(buttonElement).toHaveStyle(`border:none`);
     });

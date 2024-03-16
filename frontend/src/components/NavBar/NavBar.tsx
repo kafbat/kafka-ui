@@ -2,12 +2,13 @@ import React, { useContext } from 'react';
 import Select from 'components/common/Select/Select';
 import Logo from 'components/common/Logo/Logo';
 import Version from 'components/Version/Version';
-import GitIcon from 'components/common/Icons/GitIcon';
+import GitHubIcon from 'components/common/Icons/GitHubIcon';
 import DiscordIcon from 'components/common/Icons/DiscordIcon';
 import AutoIcon from 'components/common/Icons/AutoIcon';
 import SunIcon from 'components/common/Icons/SunIcon';
 import MoonIcon from 'components/common/Icons/MoonIcon';
 import { ThemeModeContext } from 'components/contexts/ThemeModeContext';
+import ProductHuntIcon from 'components/common/Icons/ProductHuntIcon';
 
 import UserInfo from './UserInfo/UserInfo';
 import * as S from './NavBar.styled';
@@ -85,13 +86,19 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
           isThemeMode
         />
         <S.SocialLink href="https://github.com/kafbat/kafka-ui" target="_blank">
-          <GitIcon />
+          <GitHubIcon />
         </S.SocialLink>
         <S.SocialLink
           href="https://discord.com/invite/4DWzD7pGE5"
           target="_blank"
         >
           <DiscordIcon />
+        </S.SocialLink>
+        <S.SocialLink
+          href="https://producthunt.com/products/ui-for-apache-kafka"
+          target="_blank"
+        >
+          <ProductHuntIcon />
         </S.SocialLink>
         <UserInfo />
       </S.NavbarSocial>

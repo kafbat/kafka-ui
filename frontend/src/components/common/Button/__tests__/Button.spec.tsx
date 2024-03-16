@@ -50,14 +50,6 @@ describe('Button', () => {
     );
   });
 
-  it('renders inverted color Button', () => {
-    render(<Button buttonType="primary" buttonSize="S" isInverted />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toHaveStyleRule(
-      'color',
-      theme.button.primary.invertedColors.normal
-    );
-  });
   it('renders disabled button and spinner when inProgress truthy', () => {
     render(<Button buttonType="primary" buttonSize="M" inProgress />);
     expect(screen.getByRole('button')).toBeInTheDocument();

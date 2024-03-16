@@ -8,15 +8,15 @@ import { useActionTooltip } from 'lib/hooks/useActionTooltip';
 import { usePermission } from 'lib/hooks/usePermission';
 import * as S from 'components/common/ActionComponent/ActionComponent.styled';
 
-interface Props extends SelectProps, ActionComponentProps {}
+interface Props<T> extends SelectProps<T>, ActionComponentProps {}
 
-const ActionSelect: React.FC<Props> = ({
+const ActionSelect = <T,>({
   message = getDefaultActionMessage(),
   permission,
   placement = 'bottom',
   disabled,
   ...props
-}) => {
+}: Props<T>) => {
   const canDoAction = usePermission(
     permission.resource,
     permission.action,
