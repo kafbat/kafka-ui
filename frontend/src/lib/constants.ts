@@ -1,4 +1,3 @@
-import { SelectOption } from 'components/common/Select/Select';
 import { ConfigurationParameters, ConsumerGroupState } from 'generated-sources';
 
 declare global {
@@ -75,7 +74,7 @@ export const QUERY_REFETCH_OFF_OPTIONS = {
 };
 
 // Cluster Form Constants
-export const AUTH_OPTIONS: SelectOption[] = [
+export const AUTH_OPTIONS = [
   { value: 'SASL/JAAS', label: 'SASL/JAAS' },
   { value: 'SASL/GSSAPI', label: 'SASL/GSSAPI' },
   { value: 'SASL/OAUTHBEARER', label: 'SASL/OAUTHBEARER' },
@@ -88,11 +87,11 @@ export const AUTH_OPTIONS: SelectOption[] = [
   { value: 'mTLS', label: 'mTLS' },
 ];
 
-export const SECURITY_PROTOCOL_OPTIONS: SelectOption[] = [
+export const SECURITY_PROTOCOL_OPTIONS = [
   { value: 'SASL_SSL', label: 'SASL_SSL' },
   { value: 'SASL_PLAINTEXT', label: 'SASL_PLAINTEXT' },
 ];
-export const METRICS_OPTIONS: SelectOption[] = [
+export const METRICS_OPTIONS = [
   { value: 'JMX', label: 'JMX' },
   { value: 'PROMETHEUS', label: 'PROMETHEUS' },
 ];

@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
-import Select, { SelectOption } from 'components/common/Select/Select';
+import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
@@ -43,7 +43,7 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
   const sendMessage = useSendMessage({ clusterName, topicName });
 
   const defaultValues = React.useMemo(() => getDefaultValues(serdes), [serdes]);
-  const partitionOptions: SelectOption[] = React.useMemo(
+  const partitionOptions = React.useMemo(
     () => getPartitionOptions(topic?.partitions || []),
     [topic]
   );
