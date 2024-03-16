@@ -23,7 +23,7 @@ Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
 </p>
 
 <p align="center">
-  <img src="https://repobeats.axiom.co/api/embed/2e8a7c2d711af9daddd34f9791143e7554c35d0f.svg" alt="stats"/>
+  <img src="https://repobeats.axiom.co/api/embed/88d2bd9887380c7d86e2f986725d9af52ebad7f4.svg" alt="stats"/>
 </p>
 
 #### Kafbat UI is a free, open-source web UI to monitor and manage Apache Kafka clusters.
