@@ -26,6 +26,6 @@
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged
 
-Check out [Contributing](https://github.com/kafbat/kafka-ui/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/kafbat/kafka-ui/blob/main/CODE-OF-CONDUCT.md)
+Check out [Contributing](https://github.com/kafbat/kafka-ui/blob/main/.github/CONTRIBUTING.md) and [Code of Conduct](https://github.com/kafbat/kafka-ui/blob/main/.github/CODE-OF-CONDUCT.md)
 
 **A picture of a cute animal (not mandatory but encouraged)**
