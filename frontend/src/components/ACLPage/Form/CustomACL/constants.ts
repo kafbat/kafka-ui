@@ -8,27 +8,26 @@ import { RadioOption } from 'components/common/Radio/types';
 
 import { FormValues } from './types';
 
-function toOptionsArray<T extends object, O extends keyof T>(
-  enumerable: T,
-  unknown: O
-): Array<SelectOption> {
-  return Object.values(enumerable).reduce<SelectOption[]>((acc, cur) => {
+function toOptionsArray<T extends string>(
+  list: T[],
+  unknown: T
+): SelectOption<T>[] {
+  return list.reduce<SelectOption<T>[]>((acc, cur) => {
     if (cur !== unknown) {
-      const option: SelectOption = { label: cur, value: cur };
-      acc.push(option);
+      acc.push({ label: cur, value: cur });
     }
 
     return acc;
   }, []);
 }
 
-export const resourceTypes: Array<SelectOption> = toOptionsArray(
-  KafkaAclResourceType,
+export const resourceTypes = toOptionsArray(
+  Object.values(KafkaAclResourceType),
   KafkaAclResourceType.UNKNOWN
 );
 
 export const operations = toOptionsArray(
-  KafkaAclOperationEnum,
+  Object.values(KafkaAclOperationEnum),
   KafkaAclOperationEnum.UNKNOWN
 );
 

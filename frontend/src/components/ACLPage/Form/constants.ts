@@ -10,7 +10,7 @@ export const matchTypeOptions: RadioOption[] = [
   { value: MatchType.PREFIXED },
 ];
 
-export const ACLTypeOptions: SelectOption[] = [
+export const ACLTypeOptions: SelectOption<ACLType>[] = [
   { label: 'Custom ACL', value: ACLType.CUSTOM_ACL },
   { label: 'For Consumers', value: ACLType.FOR_CONSUMERS },
   { label: 'For Producers', value: ACLType.FOR_PRODUCERS },
