@@ -109,7 +109,9 @@ prs:
   locking: *locking
 
   auto-rebase:
-    enabled: false
+    enabled: true
+    rebase-on-label: true
+    labels: [ "meta/auto-rebase" ]
 
 comments:
   feedback:
