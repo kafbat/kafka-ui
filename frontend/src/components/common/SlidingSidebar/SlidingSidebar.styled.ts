@@ -22,6 +22,26 @@ export const Wrapper = styled.div<{ $open?: boolean }>(
 `
 );
 
+export const HeaderText = styled.div`
+  ${({ theme }) => theme.heading?.base};
+  font-size: 24px;
+  line-height: 16px;
+`;
+
+export const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  padding: 20px;
+`;
+
+export const CloseIconButtonWrapper = styled.button`
+  background: transparent;
+  border: none;
+  cursor: pointer;
+`;
+
 export const Content = styled.div<{ $open?: boolean }>(
   ({ theme }) => `
   background-color: ${theme.default.backgroundColor};

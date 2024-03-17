@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { ComponentRef, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import Input from 'components/common/Input/Input';
 import { useSearchParams } from 'react-router-dom';
@@ -29,7 +29,8 @@ const Search: React.FC<SearchProps> = ({
   onChange,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<ComponentRef<'input'>>(null);
+
   const handleChange = useDebouncedCallback((e) => {
     if (ref.current != null) {
       ref.current.value = e.target.value;
@@ -44,8 +45,11 @@ const Search: React.FC<SearchProps> = ({
       setSearchParams(searchParams);
     }
   }, 500);
+
   const clearSearchValue = () => {
-    if (searchParams.get('q')) {
+    if (onChange) {
+      onChange('');
+    } else if (searchParams.get('q')) {
       searchParams.set('q', '');
       setSearchParams(searchParams);
     }

@@ -4,7 +4,6 @@ import {
   TopicSerdeSuggestion,
 } from 'generated-sources';
 import jsf from 'json-schema-faker';
-import { compact } from 'lodash';
 import Ajv, { DefinedError } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import upperFirst from 'lodash/upperFirst';
@@ -46,12 +45,12 @@ export const getPartitionOptions = (partitions: Partition[]) =>
   }));
 
 export const getSerdeOptions = (items: SerdeDescription[]) => {
-  const options = items.map(({ name }) => {
-    if (!name) return undefined;
-    return { label: name, value: name };
-  });
-
-  return compact(options);
+  return items.reduce<{ label: string; value: string }[]>((acc, { name }) => {
+    if (name) {
+      acc.push({ value: name, label: name });
+    }
+    return acc;
+  }, []);
 };
 
 export const validateBySchema = (

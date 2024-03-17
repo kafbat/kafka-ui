@@ -1,7 +1,4 @@
-import Select, {
-  SelectOption,
-  SelectProps,
-} from 'components/common/Select/Select';
+import Select, { SelectProps } from 'components/common/Select/Select';
 import React from 'react';
 import { render } from 'lib/testHelpers';
 import { screen } from '@testing-library/react';
@@ -13,12 +10,12 @@ jest.mock('react-hook-form', () => ({
   }),
 }));
 
-const options: Array<SelectOption> = [
+const options = [
   { label: 'test-label1', value: 'test-value1', disabled: false },
   { label: 'test-label2', value: 'test-value2', disabled: true },
 ];
 
-const renderComponent = (props?: Partial<SelectProps>) =>
+const renderComponent = (props?: Partial<SelectProps<string>>) =>
   render(<Select name="test" {...props} />);
 
 describe('Custom Select', () => {
@@ -61,20 +58,6 @@ describe('Custom Select', () => {
       await userEvent.selectOptions(getListbox(), [disabledOptionLabel]);
 
       expect(getOption()).toHaveTextContent(normalOptionLabel);
-    });
-  });
-
-  describe('when non-live', () => {
-    it('there is not live icon', () => {
-      renderComponent({ isLive: false });
-      expect(screen.queryByTestId('liveIcon')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('when live', () => {
-    it('there is live icon', () => {
-      render(<Select name="test" {...{ isLive: true }} />);
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
   });
 });

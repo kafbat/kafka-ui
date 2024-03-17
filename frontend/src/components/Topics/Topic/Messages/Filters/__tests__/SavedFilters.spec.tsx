@@ -2,143 +2,134 @@ import React from 'react';
 import SavedFilters, {
   Props,
 } from 'components/Topics/Topic/Messages/Filters/SavedFilters';
-import { MessageFilters } from 'components/Topics/Topic/Messages/Filters/Filters';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
+import { AdvancedFiltersType } from 'lib/hooks/useMessageFiltersStore';
 
-jest.mock('components/common/Icons/DeleteIcon', () => () => 'mock-DeleteIcon');
+const mockDeleteIcon = 'mock-DeleteIcon';
+const mockEditIcon = 'mock-EditIcon';
+
+jest.mock('components/common/Icons/EditIcon', () => () => (
+  <div>{mockEditIcon}</div>
+));
+
+jest.mock('components/common/Icons/DeleteIcon', () => () => (
+  <div>{mockDeleteIcon}</div>
+));
 
 describe('SavedFilter Component', () => {
-  const mockFilters: MessageFilters[] = [
-    { name: 'My Filter', code: 'code' },
-    { name: 'One More Filter', code: 'code1' },
-  ];
+  const id1 = 'id1';
+  const id2 = 'id2';
+
+  const mockData: AdvancedFiltersType = {
+    [id1]: {
+      id: id1,
+      value: 'record.partition == 1',
+      filterCode: 'code',
+    },
+    [id2]: {
+      id: id2,
+      value: 'record.partition == 1',
+      filterCode: 'code1',
+    },
+  };
 
   const setUpComponent = (props: Partial<Props> = {}) =>
     render(
       <SavedFilters
-        filters={props.filters || mockFilters}
-        onEdit={props.onEdit || jest.fn()}
-        closeModal={props.closeModal || jest.fn()}
-        onGoBack={props.onGoBack || jest.fn()}
-        activeFilterHandler={props.activeFilterHandler || jest.fn()}
-        deleteFilter={props.deleteFilter || jest.fn()}
+        filters={mockData}
+        onEdit={jest.fn()}
+        closeSideBar={jest.fn()}
+        setSmartFilter={jest.fn()}
+        {...props}
       />
     );
 
   const getSavedFilters = () => screen.getAllByRole('savedFilter');
 
-  it('should check the Cancel button click', async () => {
-    const cancelMock = jest.fn();
-    setUpComponent({ closeModal: cancelMock });
-    await userEvent.click(screen.getByText(/cancel/i));
-    expect(cancelMock).toHaveBeenCalled();
-  });
-
-  it('should check on go back button click', async () => {
-    const onGoBackMock = jest.fn();
-    setUpComponent({ onGoBack: onGoBackMock });
-    await userEvent.click(screen.getByText(/back to create filters/i));
-    expect(onGoBackMock).toHaveBeenCalled();
-  });
-
   describe('Empty Filters Rendering', () => {
     beforeEach(() => {
-      setUpComponent({ filters: [] });
+      setUpComponent({ filters: {} });
     });
-    it('should check the rendering of the empty filter', () => {
-      expect(screen.getByText(/no saved filter/i)).toBeInTheDocument();
-      expect(screen.queryByRole('savedFilter')).not.toBeInTheDocument();
 
-      const selectFilterButton = screen.getByText(/Select filter/i);
-      expect(selectFilterButton).toBeDisabled();
+    it('should check the rendering of the empty filter', () => {
+      expect(screen.getByText('No saved filter(s)')).toBeInTheDocument();
+
+      expect(screen.getByText(/clear all/i)).toBeDisabled();
     });
   });
 
   describe('Saved Filters Deleting Editing', () => {
     const onEditMock = jest.fn();
-    const activeFilterMock = jest.fn();
     const cancelMock = jest.fn();
+    const setSmartFilterMock = jest.fn();
 
     beforeEach(() => {
       setUpComponent({
         onEdit: onEditMock,
-        activeFilterHandler: activeFilterMock,
-        closeModal: cancelMock,
+        closeSideBar: cancelMock,
+        setSmartFilter: setSmartFilterMock,
       });
     });
 
     afterEach(() => {
       onEditMock.mockClear();
-      activeFilterMock.mockClear();
       cancelMock.mockClear();
+      setSmartFilterMock.mockClear();
     });
 
     it('should check the normal data rendering', () => {
-      expect(getSavedFilters()).toHaveLength(mockFilters.length);
-      expect(screen.getByText(mockFilters[0].name)).toBeInTheDocument();
-      expect(screen.getByText(mockFilters[1].name)).toBeInTheDocument();
+      const mockFilters = Object.values(mockData);
+      mockFilters.forEach(({ id }) => {
+        expect(screen.getByText(id)).toBeInTheDocument();
+      });
     });
 
     it('should check the Filter edit Button works', async () => {
-      const savedFilters = getSavedFilters();
-      await userEvent.hover(savedFilters[0]);
-      await userEvent.click(within(savedFilters[0]).getByText(/edit/i));
-      expect(onEditMock).toHaveBeenCalled();
+      const filters = getSavedFilters();
+      await userEvent.hover(filters[0]);
+      await userEvent.click(within(filters[0]).getByText(mockEditIcon));
 
-      await userEvent.hover(savedFilters[1]);
-      await userEvent.click(within(savedFilters[1]).getByText(/edit/i));
-      expect(onEditMock).toHaveBeenCalledTimes(2);
+      await userEvent.hover(filters[1]);
+      await userEvent.click(within(filters[1]).getByText(mockEditIcon));
+
+      expect(onEditMock).toBeCalledTimes(2);
     });
 
     it('should check the select filter', async () => {
-      const selectFilterButton = screen.getByText(/Select filter/i);
-
-      await userEvent.click(selectFilterButton);
-      expect(activeFilterMock).not.toHaveBeenCalled();
-
       const savedFilterElement = getSavedFilters();
       await userEvent.click(savedFilterElement[0]);
-      await userEvent.click(selectFilterButton);
 
-      expect(activeFilterMock).toHaveBeenCalled();
+      expect(setSmartFilterMock).toHaveBeenCalled();
       expect(cancelMock).toHaveBeenCalled();
     });
   });
 
   describe('Saved Filters Deletion', () => {
-    const deleteMock = jest.fn();
+    const setSmartFilterMock = jest.fn();
 
-    beforeEach(() => {
-      setUpComponent({ deleteFilter: deleteMock });
+    beforeEach(async () => {
+      setUpComponent({ setSmartFilter: setSmartFilterMock });
+      const filters = getSavedFilters();
+      await userEvent.hover(filters[0]);
+      await userEvent.click(within(filters[0]).getByText(mockDeleteIcon));
     });
 
     afterEach(() => {
-      deleteMock.mockClear();
+      setSmartFilterMock.mockClear();
     });
 
     it('Open Confirmation for the deletion modal', async () => {
-      const savedFilters = getSavedFilters();
-      const deleteIcons = screen.getAllByText('mock-DeleteIcon');
-      await userEvent.hover(savedFilters[0]);
-      await userEvent.click(deleteIcons[0]);
       const modelDialog = screen.getByRole('dialog');
       expect(modelDialog).toBeInTheDocument();
       expect(
-        within(modelDialog).getByText('Are you sure want to remove My Filter?')
+        within(modelDialog).getByText(`Are you sure want to remove ${id1}?`)
       ).toBeInTheDocument();
     });
 
     it('Close Confirmations deletion modal with button', async () => {
-      const savedFilters = getSavedFilters();
-      const deleteIcons = screen.getAllByText('mock-DeleteIcon');
-
-      await userEvent.hover(savedFilters[0]);
-      await userEvent.click(deleteIcons[0]);
-
       const modelDialog = screen.getByRole('dialog');
-      expect(modelDialog).toBeInTheDocument();
       const cancelButton = within(modelDialog).getByRole('button', {
         name: /Cancel/i,
       });
@@ -147,19 +138,9 @@ describe('SavedFilter Component', () => {
     });
 
     it('Delete the saved filter', async () => {
-      const savedFilters = getSavedFilters();
-      const deleteIcons = screen.getAllByText('mock-DeleteIcon');
-
-      await userEvent.hover(savedFilters[0]);
-      await userEvent.click(deleteIcons[0]);
-
-      expect(screen.queryByRole('dialog')).toBeInTheDocument();
       await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
-      expect(deleteMock).toHaveBeenCalledTimes(1);
+      expect(setSmartFilterMock).toHaveBeenCalledTimes(1);
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-
-      const selectFilterButton = screen.getByText(/Select filter/i);
-      expect(selectFilterButton).toBeDisabled();
     });
   });
 });

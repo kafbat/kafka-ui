@@ -3,7 +3,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { NOT_SET, BYTES_IN_GB } from 'lib/constants';
 import { ClusterName, TopicConfigParams, TopicName } from 'redux/interfaces';
 import { ErrorMessage } from '@hookform/error-message';
-import Select, { SelectOption } from 'components/common/Select/Select';
+import Select from 'components/common/Select/Select';
 import Input from 'components/common/Input/Input';
 import { Button } from 'components/common/Button/Button';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
@@ -30,7 +30,7 @@ export interface Props {
   onSubmit: (e: React.BaseSyntheticEvent) => Promise<void>;
 }
 
-const CleanupPolicyOptions: Array<SelectOption> = [
+const CleanupPolicyOptions = [
   { value: 'delete', label: 'Delete' },
   { value: 'compact', label: 'Compact' },
   { value: 'compact,delete', label: 'Compact,Delete' },
@@ -39,7 +39,7 @@ const CleanupPolicyOptions: Array<SelectOption> = [
 export const getCleanUpPolicyValue = (cleanUpPolicy?: string) => {
   if (!cleanUpPolicy) return undefined;
 
-  return CleanupPolicyOptions.find((option: SelectOption) => {
+  return CleanupPolicyOptions.find((option) => {
     return (
       option.value.toString().replace(/,/g, '_') ===
       cleanUpPolicy?.toLowerCase()
@@ -47,7 +47,7 @@ export const getCleanUpPolicyValue = (cleanUpPolicy?: string) => {
   })?.value.toString();
 };
 
-const RetentionBytesOptions: Array<SelectOption> = [
+const RetentionBytesOptions = [
   { value: NOT_SET, label: 'Not Set' },
   { value: BYTES_IN_GB, label: '1 GB' },
   { value: BYTES_IN_GB * 10, label: '10 GB' },
@@ -75,7 +75,7 @@ const TopicForm: React.FC<Props> = ({
     getCleanUpPolicyValue(cleanUpPolicy) || CleanupPolicyOptions[0].value;
 
   const getRetentionBytes =
-    RetentionBytesOptions.find((option: SelectOption) => {
+    RetentionBytesOptions.find((option) => {
       return option.value === retentionBytes;
     })?.value || RetentionBytesOptions[0].value;
 
