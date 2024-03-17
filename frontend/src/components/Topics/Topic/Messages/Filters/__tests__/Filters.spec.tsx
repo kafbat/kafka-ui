@@ -1,21 +1,25 @@
 import React from 'react';
-import { SeekDirectionOptions } from 'components/Topics/Topic/Messages/Messages';
 import Filters, {
   FiltersProps,
-  SeekTypeOptions,
 } from 'components/Topics/Topic/Messages/Filters/Filters';
-import { EventSourceMock, render, WithRoute } from 'lib/testHelpers';
-import { screen, within } from '@testing-library/react';
+import { render, WithRoute } from 'lib/testHelpers';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TopicMessagesContext, {
-  ContextProps,
-} from 'components/contexts/TopicMessagesContext';
-import { SeekDirection } from 'generated-sources';
 import { clusterTopicPath } from 'lib/paths';
 import { useTopicDetails } from 'lib/hooks/api/topics';
 import { externalTopicPayload } from 'lib/fixtures/topics';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
 import { serdesPayload } from 'lib/fixtures/topicMessages';
+import {
+  MessagesFilterKeys,
+  MessagesFilterKeysTypes,
+} from 'lib/hooks/useMessagesFilters';
+import { PollingMode } from 'generated-sources';
+import { ModeOptions } from 'lib/hooks/filterUtils';
+
+const closeIconMock = 'closeIconMock';
+const filtersSideBarMock = 'filtersSideBarMock';
+const filterMetricsMock = 'filterMetricsMock';
 
 jest.mock('lib/hooks/api/topics', () => ({
   useTopicDetails: jest.fn(),
@@ -25,42 +29,40 @@ jest.mock('lib/hooks/api/topicMessages', () => ({
   useSerdes: jest.fn(),
 }));
 
-const defaultContextValue: ContextProps = {
-  isLive: false,
-  seekDirection: SeekDirection.FORWARD,
-  changeSeekDirection: jest.fn(),
-};
+jest.mock('components/common/Icons/CloseIcon', () => () => (
+  <div>{closeIconMock}</div>
+));
 
-jest.mock('components/common/Icons/CloseIcon', () => () => 'mock-CloseIcon');
+jest.mock(
+  'components/Topics/Topic/Messages/Filters/FiltersSideBar',
+  () => () => <div>{filtersSideBarMock}</div>
+);
+
+jest.mock(
+  'components/Topics/Topic/Messages/Filters/FiltersMetrics',
+  () => () => <div>{filterMetricsMock}</div>
+);
 
 const clusterName = 'cluster-name';
 const topicName = 'topic-name';
 
 const renderComponent = (
-  props: Partial<FiltersProps> = {},
-  ctx: ContextProps = defaultContextValue
-) =>
-  render(
+  props?: Partial<FiltersProps>,
+  queryParams?: Partial<Record<MessagesFilterKeysTypes, string>>
+) => {
+  const urlParams = new URLSearchParams({ ...queryParams });
+
+  return render(
     <WithRoute path={clusterTopicPath()}>
-      <TopicMessagesContext.Provider value={ctx}>
-        <Filters
-          meta={{
-            filterApplyErrors: 10,
-          }}
-          isFetching={false}
-          addMessage={jest.fn()}
-          resetMessages={jest.fn()}
-          updatePhase={jest.fn()}
-          updateMeta={jest.fn()}
-          setIsFetching={jest.fn()}
-          setMessageType={jest.fn}
-          messageEventType="Done"
-          {...props}
-        />
-      </TopicMessagesContext.Provider>
+      <Filters isFetching={false} abortFetchData={jest.fn()} {...props} />
     </WithRoute>,
-    { initialEntries: [clusterTopicPath(clusterName, topicName)] }
+    {
+      initialEntries: [
+        `${clusterTopicPath(clusterName, topicName)}?${urlParams.toString()}`,
+      ],
+    }
   );
+};
 
 beforeEach(async () => {
   (useTopicDetails as jest.Mock).mockImplementation(() => ({
@@ -72,177 +74,178 @@ beforeEach(async () => {
 });
 
 describe('Filters component', () => {
-  Object.defineProperty(window, 'EventSource', {
-    value: EventSourceMock,
-  });
+  const getSeekTypeSelect = () => screen.getAllByRole('listbox')[0];
+  const getKeySerdeDropdown = () => screen.getAllByRole('listbox')[1];
+  const getValueSerdeDropdown = () => screen.getAllByRole('listbox')[2];
 
-  it('shows cancel button while fetching', () => {
-    renderComponent({ isFetching: true });
-    expect(screen.getByText('Cancel')).toBeInTheDocument();
-  });
-
-  it('shows submit button while fetching is over', () => {
+  it('shows refresh button', () => {
     renderComponent();
-    expect(screen.getByText('Submit')).toBeInTheDocument();
+    expect(screen.getByText('Refresh')).toBeInTheDocument();
   });
 
-  describe('Input elements', () => {
+  describe('Filter Input default elements', () => {
     const inputValue = 'Hello World!';
+
+    const selectDropdownAndCheckInput = async (
+      value: string,
+      placeholder: string
+    ) => {
+      const seekTypeSelect = getSeekTypeSelect();
+      const option = screen.getAllByRole('option');
+
+      await userEvent.click(seekTypeSelect);
+
+      await userEvent.selectOptions(seekTypeSelect, [value]);
+
+      expect(option[0]).toHaveTextContent(value);
+      const timestampInput = screen.getByPlaceholderText(placeholder);
+      expect(timestampInput).toHaveValue('');
+
+      await userEvent.type(timestampInput, inputValue);
+
+      expect(timestampInput).toHaveValue(inputValue);
+    };
 
     beforeEach(() => {
       renderComponent();
     });
 
-    it('search input', async () => {
+    it('search input and selectable mode', async () => {
       const searchInput = screen.getByPlaceholderText('Search');
       expect(searchInput).toHaveValue('');
       await userEvent.type(searchInput, inputValue);
       expect(searchInput).toHaveValue(inputValue);
     });
 
-    it('offset input', async () => {
-      const offsetInput = screen.getByPlaceholderText('Offset');
-      expect(offsetInput).toHaveValue('');
-      await userEvent.type(offsetInput, inputValue);
-      expect(offsetInput).toHaveValue(inputValue);
+    it('offset input from offset option', async () => {
+      await selectDropdownAndCheckInput('From offset', 'Offset');
     });
 
-    it('timestamp input', async () => {
-      const seekTypeSelect = screen.getAllByRole('listbox');
-      const option = screen.getAllByRole('option');
+    it('offset input To offset option', async () => {
+      await selectDropdownAndCheckInput('To offset', 'Offset');
+    });
 
-      await userEvent.click(seekTypeSelect[0]);
+    it('timestamp input since time', async () => {
+      await selectDropdownAndCheckInput('Since time', 'Select timestamp');
+    });
 
-      await userEvent.selectOptions(seekTypeSelect[0], ['Timestamp']);
-
-      expect(option[0]).toHaveTextContent('Timestamp');
-      const timestampInput = screen.getByPlaceholderText('Select timestamp');
-      expect(timestampInput).toHaveValue('');
-
-      await userEvent.type(timestampInput, inputValue);
-
-      expect(timestampInput).toHaveValue(inputValue);
-      expect(screen.getByText('Submit')).toBeInTheDocument();
+    it('timestamp input since time', async () => {
+      await selectDropdownAndCheckInput('To time', 'Select timestamp');
     });
   });
 
-  describe('Select elements', () => {
-    let seekTypeSelects: HTMLElement[];
-    let options: HTMLElement[];
-
-    const selectedDirectionOptionValue = SeekDirectionOptions[0];
-    const mockDirectionOptionSelectLabel = selectedDirectionOptionValue.label;
-    const selectTypeOptionValue = SeekTypeOptions[0];
-    const mockTypeOptionSelectLabel = selectTypeOptionValue.label;
-
-    beforeEach(() => {
-      renderComponent();
-      seekTypeSelects = screen.getAllByRole('listbox');
-      options = screen.getAllByRole('option');
-    });
-
-    it('seekType select', async () => {
-      expect(options[0]).toHaveTextContent('Offset');
-      await userEvent.click(seekTypeSelects[0]);
-      await userEvent.selectOptions(seekTypeSelects[0], [
-        mockTypeOptionSelectLabel,
-      ]);
-      expect(options[0]).toHaveTextContent(mockTypeOptionSelectLabel);
-      expect(screen.getByText('Submit')).toBeInTheDocument();
-    });
-
-    it('seekDirection select', async () => {
-      await userEvent.click(seekTypeSelects[3]);
-      await userEvent.selectOptions(seekTypeSelects[3], [
-        mockDirectionOptionSelectLabel,
-      ]);
-      expect(options[3]).toHaveTextContent(mockDirectionOptionSelectLabel);
-    });
-  });
-
-  it('stop loading when live mode is active', async () => {
-    renderComponent();
-    await userEvent.click(screen.getByText('Stop loading'));
-    const option = screen.getAllByRole('option');
-    expect(option[3]).toHaveTextContent('Oldest First');
-    expect(screen.getByText('Submit')).toBeInTheDocument();
-  });
-
-  it('renders addFilter modal', async () => {
-    renderComponent();
-    await userEvent.click(
-      screen.getByRole('button', {
-        name: /add filters/i,
-      })
-    );
-    expect(screen.getByTestId('messageFilterModal')).toBeInTheDocument();
-  });
-
-  describe('when there is active smart filter', () => {
-    beforeEach(async () => {
-      renderComponent();
-
-      await userEvent.click(
-        screen.getByRole('button', {
-          name: 'Add Filters',
-        })
+  describe('checks the input values when data comes from the url', () => {
+    const renderAndCheckSelectType = (
+      mode: PollingMode,
+      { timestamp, offset }: { timestamp?: string; offset?: string }
+    ) => {
+      renderComponent(
+        {},
+        {
+          [MessagesFilterKeys.mode]: mode.toString(),
+          [MessagesFilterKeys.timestamp]: timestamp,
+          [MessagesFilterKeys.offset]: offset,
+        }
       );
+      const item = ModeOptions.find((i) => i.value === mode);
+      expect(getSeekTypeSelect()).toHaveTextContent(item?.label || '');
+    };
 
-      const filterName = 'filter name';
-      const filterCode = 'filter code';
+    describe('modes and the related inputs', () => {
+      it('should check the mode input value latest', () => {
+        renderAndCheckSelectType(PollingMode.LATEST, {});
+      });
 
-      const messageFilterModal = screen.getByTestId('messageFilterModal');
+      it('should check the mode input value earliest', () => {
+        renderAndCheckSelectType(PollingMode.EARLIEST, {});
+      });
 
-      const textBoxElements =
-        within(messageFilterModal).getAllByRole('textbox');
+      it('should check the mode input value tailest', () => {
+        renderAndCheckSelectType(PollingMode.TAILING, {});
+      });
 
-      const textAreaElement = textBoxElements[0] as HTMLTextAreaElement;
-      const inputNameElement = textBoxElements[1];
+      it('should check the mode input value from offset', () => {
+        const offset = '2';
+        renderAndCheckSelectType(PollingMode.FROM_OFFSET, { offset });
+        expect(screen.getAllByRole('textbox')[0]).toHaveValue(offset);
+      });
 
-      textAreaElement.focus();
-      await userEvent.paste(filterCode);
-      await userEvent.type(inputNameElement, filterName);
+      it('should check the mode input value to offset', () => {
+        const offset = '2';
+        renderAndCheckSelectType(PollingMode.TO_OFFSET, { offset });
+        expect(screen.getAllByRole('textbox')[0]).toHaveValue(offset);
+      });
 
-      expect(textAreaElement).toHaveValue(`${filterCode}\n\n`);
-      expect(inputNameElement).toHaveValue('filter name');
-      expect(
-        screen.getByRole('button', {
-          name: 'Add filter',
-        })
-      ).toBeEnabled();
-      await userEvent.click(
-        screen.getByRole('button', {
-          name: 'Add filter',
-        })
-      );
-      await userEvent.tab();
+      it('should check the mode input value to timestamp', () => {
+        const currentDate = new Date(1707940800000);
+        renderAndCheckSelectType(PollingMode.TO_TIMESTAMP, {
+          timestamp: currentDate.getTime().toString(),
+        });
+        const formattedDate = currentDate.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+
+        expect(screen.getByPlaceholderText('Select timestamp')).toHaveValue(
+          formattedDate
+        );
+      });
+
+      it('should check the mode input value from timestamp', () => {
+        const currentDate = new Date(1707940800000);
+        renderAndCheckSelectType(PollingMode.FROM_TIMESTAMP, {
+          timestamp: currentDate.getTime().toString(),
+        });
+        const formattedDate = currentDate.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+
+        expect(screen.getByPlaceholderText('Select timestamp')).toHaveValue(
+          formattedDate
+        );
+      });
     });
 
-    it('shows saved smart filter', async () => {
-      expect(screen.getByTestId('activeSmartFilter')).toBeInTheDocument();
+    it('should check the search value', () => {
+      const searchFilter = 'searchFilter';
+      renderComponent({}, { [MessagesFilterKeys.stringFilter]: searchFilter });
+      expect(screen.getByPlaceholderText('Search')).toHaveValue(searchFilter);
     });
 
-    it('delete the active smart Filter', async () => {
-      const smartFilterElement = screen.getByTestId('activeSmartFilter');
-      const deleteIcon = within(smartFilterElement).getByText('mock-CloseIcon');
-      await userEvent.click(deleteIcon);
+    describe('Serde dropdown', () => {
+      beforeEach(async () => {
+        (useSerdes as jest.Mock).mockImplementation(() => ({
+          data: serdesPayload,
+        }));
+      });
 
-      const anotherSmartFilterElement =
-        screen.queryByTestId('activeSmartFilter');
-      expect(anotherSmartFilterElement).not.toBeInTheDocument();
-    });
-  });
+      it('should check the keySerde', () => {
+        if (!serdesPayload.key || !serdesPayload.key[0]) return;
 
-  describe('show errors when get an filterApplyErrors and message event type', () => {
-    it('show errors', () => {
-      renderComponent();
-      const errors = screen.getByText('10 errors');
-      expect(errors).toBeInTheDocument();
-    });
-    it('message event type when fetching is false ', () => {
-      renderComponent();
-      const messageType = screen.getByText('Done');
-      expect(messageType).toBeInTheDocument();
+        renderComponent(
+          {},
+          { [MessagesFilterKeys.keySerde]: serdesPayload.key[0].name }
+        );
+        expect(getKeySerdeDropdown()).toHaveTextContent(
+          serdesPayload.key[0].name || ''
+        );
+      });
+
+      it('should check the valueSerde', () => {
+        if (!serdesPayload.value || !serdesPayload.value[0]) return;
+
+        renderComponent(
+          {},
+          { [MessagesFilterKeys.valueSerde]: serdesPayload.value[0].name }
+        );
+
+        expect(getValueSerdeDropdown()).toHaveTextContent(
+          serdesPayload.value[0].name || ''
+        );
+      });
     });
   });
 });

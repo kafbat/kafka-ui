@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
+  Placement,
   useFloating,
   useHover,
   useInteractions,
-  Placement,
 } from '@floating-ui/react';
 
 import * as S from './Tooltip.styled';

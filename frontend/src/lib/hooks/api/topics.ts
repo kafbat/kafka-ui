@@ -318,6 +318,7 @@ export function useAnalyzeTopic(props: GetTopicDetailsRequest) {
     },
   });
 }
+
 export function useCancelTopicAnalysis(props: GetTopicDetailsRequest) {
   const client = useQueryClient();
   return useMutation(() => api.cancelTopicAnalysis(props), {
