@@ -22,6 +22,7 @@ import Metrics from 'widgets/ClusterConfigForm/Sections/Metrics';
 import CustomAuthentication from 'widgets/ClusterConfigForm/Sections/CustomAuthentication';
 import Authentication from 'widgets/ClusterConfigForm/Sections/Authentication/Authentication';
 import KSQL from 'widgets/ClusterConfigForm/Sections/KSQL';
+import { useConfirm } from 'lib/hooks/useConfirm';
 
 interface ClusterConfigFormProps {
   hasCustomConfig?: boolean;
@@ -52,11 +53,35 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
 
   const validate = useValidateAppConfig();
   const update = useUpdateAppConfig({ initialName: initialValues.name });
+  const deleteCluster = useUpdateAppConfig({
+    initialName: initialValues.name,
+    deleteCluster: true,
+  });
+  const confirm = useConfirm(true);
+
   const {
     value: isFormDisabled,
     setTrue: disableForm,
     setFalse: enableForm,
   } = useBoolean();
+
+  const confirmClusterDelete = () =>
+    confirm('Are you sure want to delete this cluster?', async () => {
+      if (initialValues.name) {
+        const data = methods.getValues();
+        const config = transformFormDataToPayload(data);
+        try {
+          await deleteCluster.mutateAsync(config);
+          navigate('/');
+        } catch (error) {
+          showAlert('error', {
+            id: 'app-config-update-error',
+            title: 'Error updating application config',
+            message: 'There was an error updating the application config',
+          });
+        }
+      }
+    });
 
   const onSubmit = async (data: ClusterConfigFormValues) => {
     const config = transformFormDataToPayload(data);
@@ -146,6 +171,16 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
             >
               Submit
             </Button>
+            {initialValues.name && (
+              <Button
+                buttonSize="L"
+                buttonType="danger"
+                inProgress={deleteCluster.isLoading}
+                onClick={confirmClusterDelete}
+              >
+                Delete
+              </Button>
+            )}
           </S.ButtonWrapper>
         </FlexFieldset>
       </StyledForm>
