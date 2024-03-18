@@ -1,0 +1,45 @@
+name: Build Application
+
+on:
+  workflow_call:
+    inputs:
+      head_sha:
+        required: true
+        type: string
+      pull_request_number:
+        required: true
+        type: number
+    outputs:
+      tag:
+        description: "The tag for the Docker image"
+        value: ${{ steps.extract_branch.outputs.tag }}
+      version:
+        description: "The application version"
+        value: ${{ steps.build.outputs.version }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: get branch name
+        id: extract_branch
+        run: |
+          tag="pr${{ inputs.pull_request_number }}"
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'maven'
+      - name: Build
+        id: build
+        run: |
+          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
+          ./mvnw -B -V -ntp clean package -Pprod -DskipTests
+          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT

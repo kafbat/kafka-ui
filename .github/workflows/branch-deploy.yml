@@ -10,69 +10,23 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  initiate_env:
     if: ${{ github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }}
-      - name: get branch name
-        id: extract_branch
-        run: |
-          tag='pr${{ github.event.pull_request.number }}'
-          echo "tag=${tag}" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-          cache: 'maven'
-      - name: Build
+      - name: Call Build Workflow
         id: build
-        run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -B -V -ntp clean package -Pprod -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: ./.github/workflows/build.yml
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Configure AWS credentials for Kafka-UI account
-        uses: aws-actions/configure-aws-credentials@v4
+          head_sha: ${{ github.event.pull_request.head.sha }}
+          pull_request_number: ${{ github.event.pull_request.number }}
+          
+      - name: Call Push Workflow
+        uses: ./.github/workflows/push.yml
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-      - name: Build and push
-        id: docker_build_and_push
-        uses: docker/build-push-action@v5
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          context: api
-          push: true
-          tags: 297478128798.dkr.ecr.eu-central-1.amazonaws.com/kafka-ui:${{ steps.extract_branch.outputs.tag }}
-          build-args: |
-            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-    outputs:
-      tag: ${{ steps.extract_branch.outputs.tag }}
+          version: ${{ steps.build.outputs.version }}
+          tag: ${{ steps.build.outputs.tag }}
+
   make-branch-env:
     needs: build
     runs-on: ubuntu-latest
