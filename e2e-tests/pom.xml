@@ -20,7 +20,6 @@
         <selenide.version>6.12.3</selenide.version>
         <testng.version>7.9.0</testng.version>
         <allure.version>2.25.0</allure.version>
-        <qase.io.version>3.0.5</qase.io.version>
         <aspectj.version>1.9.9.1</aspectj.version>
         <assertj.version>3.25.3</assertj.version>
         <hamcrest.version>2.2</hamcrest.version>
@@ -165,16 +164,6 @@
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-testng</artifactId>
             <version>${allure.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.qase</groupId>
-            <artifactId>qase-testng</artifactId>
-            <version>${qase.io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.qase</groupId>
-            <artifactId>qase-api</artifactId>
-            <version>${qase.io.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

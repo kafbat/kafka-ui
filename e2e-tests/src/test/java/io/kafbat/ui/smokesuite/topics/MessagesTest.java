@@ -9,7 +9,6 @@ import io.kafbat.ui.pages.topics.TopicDetails;
 import io.kafbat.ui.utilities.TimeUtils;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;
-import io.qase.api.annotation.QaseId;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,6 @@ public class MessagesTest extends BaseTest {
     IntStream.range(1, 110).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_MESSAGES_COUNT));
   }
 
-  @QaseId(222)
   @Test(priority = 1)
   public void produceMessageCheck() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_MESSAGES.getName());
@@ -67,7 +65,6 @@ public class MessagesTest extends BaseTest {
         TOPIC_FOR_MESSAGES.getMessageValue(), "message.getValue()");
   }
 
-  @QaseId(19)
   @Test(priority = 2)
   public void clearMessageCheck() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_MESSAGES.getName());
@@ -84,7 +81,6 @@ public class MessagesTest extends BaseTest {
     Assert.assertEquals(topicDetails.getMessageCountAmount(), 0, "getMessageCountAmount()");
   }
 
-  @QaseId(239)
   @Test(priority = 3)
   public void checkClearTopicMessage() {
     navigateToTopicsAndOpenDetails(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName());
@@ -107,7 +103,6 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(10)
   @Test(priority = 4)
   public void checkPurgeMessagePossibility() {
     navigateToTopics();
@@ -138,7 +133,6 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(15)
   @Test(priority = 6)
   public void checkMessageFilteringByOffset() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
@@ -160,7 +154,6 @@ public class MessagesTest extends BaseTest {
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3215")
   @Issue("https://github.com/kafbat/kafka-ui/issues/2345")
-  @QaseId(16)
   @Test(priority = 7)
   public void checkMessageFilteringByTimestamp() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
@@ -182,7 +175,6 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(246)
   @Test(priority = 8)
   public void checkClearTopicMessageFromOverviewTab() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
@@ -200,7 +192,6 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(240)
   @Test(priority = 9)
   public void checkRecreateTopic() {
     navigateToTopicsAndOpenDetails(TOPIC_TO_RECREATE.getName());
@@ -225,7 +216,6 @@ public class MessagesTest extends BaseTest {
 
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3129")
-  @QaseId(267)
   @Test(priority = 10)
   public void checkMessagesCountPerPageWithinTopic() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_MESSAGES_COUNT.getName());

@@ -7,9 +7,6 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Connector;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.FileUtils;
-import io.qase.api.annotation.QaseId;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -50,7 +47,6 @@ public class ConnectorsTest extends BaseTest {
     CONNECTOR_LIST.forEach(connector -> apiService.createConnector(connector));
   }
 
-  @QaseId(42)
   @Test
   public void createConnector() {
     Connector connectorForCreate = new Connector()
@@ -73,7 +69,6 @@ public class ConnectorsTest extends BaseTest {
     CONNECTOR_LIST.add(connectorForCreate);
   }
 
-  @QaseId(196)
   @Test
   public void updateConnector() {
     navigateToConnectorsAndOpenDetails(CONNECTOR_FOR_UPDATE.getName());
@@ -87,7 +82,6 @@ public class ConnectorsTest extends BaseTest {
     Assert.assertTrue(kafkaConnectList.isConnectorVisible(CONNECTOR_FOR_UPDATE.getName()), "isConnectorVisible()");
   }
 
-  @QaseId(195)
   @Test
   public void deleteConnector() {
     navigateToConnectorsAndOpenDetails(CONNECTOR_FOR_DELETE.getName());

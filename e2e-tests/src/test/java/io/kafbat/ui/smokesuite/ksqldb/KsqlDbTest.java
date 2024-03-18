@@ -8,7 +8,6 @@ import io.kafbat.ui.pages.ksqldb.enums.KsqlQueryConfig;
 import io.kafbat.ui.pages.ksqldb.models.Stream;
 import io.kafbat.ui.pages.ksqldb.models.Table;
 import io.qameta.allure.Step;
-import io.qase.api.annotation.QaseId;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -39,7 +38,6 @@ public class KsqlDbTest extends BaseTest {
         FIRST_TABLE.getName(), SECOND_TABLE.getName()));
   }
 
-  @QaseId(284)
   @Test(priority = 1)
   public void streamsAndTablesVisibilityCheck() {
     navigateToKsqlDb();
@@ -53,7 +51,6 @@ public class KsqlDbTest extends BaseTest {
     Assert.assertTrue(ksqlDbList.getStreamByName(DEFAULT_STREAM.getName()).isVisible(), "getStreamByName()");
   }
 
-  @QaseId(276)
   @Test(priority = 2)
   public void clearEnteredQueryCheck() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
@@ -63,7 +60,6 @@ public class KsqlDbTest extends BaseTest {
     Assert.assertTrue(ksqlQueryForm.getEnteredQuery().isEmpty(), "getEnteredQuery()");
   }
 
-  @QaseId(344)
   @Test(priority = 3)
   public void clearResultsButtonCheck() {
     String notValidQuery = "some not valid request";
@@ -79,7 +75,6 @@ public class KsqlDbTest extends BaseTest {
     Assert.assertFalse(ksqlQueryForm.isClearResultsBtnEnabled(), "isClearResultsBtnEnabled()");
   }
 
-  @QaseId(41)
   @Test(priority = 4)
   public void checkShowTablesRequestExecution() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
@@ -92,7 +87,6 @@ public class KsqlDbTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(278)
   @Test(priority = 5)
   public void checkShowStreamsRequestExecution() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_STREAMS.getQuery());
@@ -103,7 +97,6 @@ public class KsqlDbTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(86)
   @Test(priority = 6)
   public void clearResultsForExecutedRequest() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
@@ -116,7 +109,6 @@ public class KsqlDbTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(277)
   @Test(priority = 7)
   public void stopQueryFunctionalCheck() {
     navigateToKsqlDbAndExecuteRequest(String.format(KsqlQueryConfig.SELECT_ALL_FROM.getQuery(), FIRST_TABLE.getName()));

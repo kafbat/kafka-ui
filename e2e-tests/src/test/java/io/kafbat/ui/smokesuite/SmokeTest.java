@@ -13,7 +13,6 @@ import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.utilities.FileUtils;
 import io.kafbat.ui.variables.Url;
 import io.qameta.allure.Step;
-import io.qase.api.annotation.QaseId;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.testng.Assert;
@@ -40,7 +39,6 @@ public class SmokeTest extends BaseTest {
         .createConnector(TEST_CONNECTOR);
   }
 
-  @QaseId(198)
   @Test
   public void checkBasePageElements() {
     verifyElementsCondition(
@@ -51,7 +49,6 @@ public class SmokeTest extends BaseTest {
             .collect(Collectors.toList()), Condition.enabled);
   }
 
-  @QaseId(45)
   @Test
   public void checkUrlWhileNavigating() {
     navigateToBrokers();
@@ -68,7 +65,6 @@ public class SmokeTest extends BaseTest {
     verifyCurrentUrl(Url.KSQL_DB_LIST_URL);
   }
 
-  @QaseId(46)
   @Test
   public void checkPathWhileNavigating() {
     navigateToBrokersAndOpenDetails(BROKER_ID);

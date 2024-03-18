@@ -8,8 +8,6 @@ import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
 import io.kafbat.ui.settings.listeners.AllureListener;
 import io.kafbat.ui.settings.listeners.LoggerListener;
-import io.kafbat.ui.settings.listeners.QaseResultListener;
-import io.kafbat.ui.utilities.qase.QaseSetup;
 import io.qameta.allure.Step;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +19,11 @@ import org.testng.annotations.Listeners;
 import org.testng.asserts.SoftAssert;
 
 @Slf4j
-@Listeners({AllureListener.class, LoggerListener.class, QaseResultListener.class})
+@Listeners({AllureListener.class, LoggerListener.class})
 public abstract class BaseTest extends Facade {
 
   @BeforeSuite(alwaysRun = true)
   public void beforeSuite() {
-    QaseSetup.qaseIntegrationSetup();
     WebDriver.loggerSetup();
     WebDriver.browserSetup();
   }

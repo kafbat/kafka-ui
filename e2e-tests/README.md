@@ -7,7 +7,6 @@ This repository is for E2E UI automation.
 - [Prerequisites](#prerequisites)
 - [How to install](#how-to-install)
 - [How to run checks](#how-to-run-checks)
-- [Qase.io integration (for internal users)](#qase-integration)
 - [Reporting](#reporting)
 - [Environments setup](#environments-setup)
 - [Test Data](#test-data)
@@ -59,10 +58,6 @@ Mac:	                    /Applications/Google\ Chrome.app/Contents/MacOS/Google\
 Windows XP:                 %HOMEPATH%\Local Settings\Application Data\Google\Chrome\Application\chrome.exe
 Windows Vista and newer:    C:\Users%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe
 ```
-
-### Qase integration
-
-Found instruction for Qase.io integration (for internal use only) at `e2e-tests/QASE.md`
 
 ### Reporting
 

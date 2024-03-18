@@ -1,8 +1,0 @@
-<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="QaseSuite">
-    <test name="QaseTest" enabled="true" parallel="classes" thread-count="1">
-        <packages>
-            <package name="io.kafbat.ui.qasesuite.*"/>
-        </packages>
-    </test>
-</suite>

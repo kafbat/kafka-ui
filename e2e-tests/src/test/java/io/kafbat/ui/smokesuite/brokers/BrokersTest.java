@@ -7,7 +7,6 @@ import io.kafbat.ui.pages.brokers.BrokersDetails;
 import io.kafbat.ui.utilities.StringUtils;
 import io.kafbat.ui.variables.Expected;
 import io.qameta.allure.Issue;
-import io.qase.api.annotation.QaseId;
 import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.Ignore;
@@ -18,20 +17,18 @@ public class BrokersTest extends BaseTest {
 
   public static final int DEFAULT_BROKER_ID = 1;
 
-  @QaseId(1)
   @Test
   public void checkBrokersOverview() {
     navigateToBrokers();
-    Assert.assertTrue(brokersList.getAllBrokers().size() > 0, "getAllBrokers()");
+      Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
     verifyElementsCondition(brokersList.getAllVisibleElements(), Condition.visible);
     verifyElementsCondition(brokersList.getAllEnabledElements(), Condition.enabled);
   }
 
-  @QaseId(85)
   @Test
   public void checkExistingBrokersInCluster() {
     navigateToBrokers();
-    Assert.assertTrue(brokersList.getAllBrokers().size() > 0, "getAllBrokers()");
+      Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
     brokersList
         .openBroker(DEFAULT_BROKER_ID);
     brokersDetails
@@ -49,7 +46,6 @@ public class BrokersTest extends BaseTest {
 
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3347")
-  @QaseId(330)
   @Test
   public void brokersConfigFirstPageSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -75,7 +71,6 @@ public class BrokersTest extends BaseTest {
 
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3347")
-  @QaseId(350)
   @Test
   public void brokersConfigSecondPageSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -103,7 +98,6 @@ public class BrokersTest extends BaseTest {
 
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3347")
-  @QaseId(348)
   @Test
   public void brokersConfigCaseInsensitiveSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -133,7 +127,6 @@ public class BrokersTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(331)
   @Test
   public void brokersSourceInfoCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -145,7 +138,6 @@ public class BrokersTest extends BaseTest {
     Assert.assertEquals(sourceInfoTooltip, Expected.BROKER_SOURCE_INFO_TOOLTIP, "brokerSourceInfoTooltip");
   }
 
-  @QaseId(332)
   @Test
   public void brokersConfigEditCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);

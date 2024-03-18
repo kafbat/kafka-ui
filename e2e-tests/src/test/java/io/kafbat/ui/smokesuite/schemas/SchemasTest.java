@@ -5,7 +5,6 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.api.model.CompatibilityLevel;
 import io.kafbat.ui.models.Schema;
 import io.kafbat.ui.utilities.FileUtils;
-import io.qase.api.annotation.QaseId;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -27,7 +26,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.forEach(schema -> apiService.createSchema(schema));
   }
 
-  @QaseId(43)
   @Test(priority = 1)
   public void createSchemaAvro() {
     Schema schemaAvro = Schema.createSchemaAvro();
@@ -52,7 +50,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.add(schemaAvro);
   }
 
-  @QaseId(186)
   @Test(priority = 2)
   public void updateSchemaAvro() {
     AVRO_API.setValuePath(
@@ -77,7 +74,6 @@ public class SchemasTest extends BaseTest {
         "getCompatibility()");
   }
 
-  @QaseId(44)
   @Test(priority = 3)
   public void compareVersionsOperation() {
     navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
@@ -96,7 +92,6 @@ public class SchemasTest extends BaseTest {
     Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getAllMarkedLines()");
   }
 
-  @QaseId(187)
   @Test(priority = 4)
   public void deleteSchemaAvro() {
     navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
@@ -108,7 +103,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.remove(AVRO_API);
   }
 
-  @QaseId(89)
   @Test(priority = 5)
   public void createSchemaJson() {
     Schema schemaJson = Schema.createSchemaJson();
@@ -133,7 +127,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.add(schemaJson);
   }
 
-  @QaseId(189)
   @Test(priority = 6)
   public void deleteSchemaJson() {
     navigateToSchemaRegistryAndOpenDetails(JSON_API.getName());
@@ -145,7 +138,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.remove(JSON_API);
   }
 
-  @QaseId(91)
   @Test(priority = 7)
   public void createSchemaProtobuf() {
     Schema schemaProtobuf = Schema.createSchemaProtobuf();
@@ -170,7 +162,6 @@ public class SchemasTest extends BaseTest {
     SCHEMA_LIST.add(schemaProtobuf);
   }
 
-  @QaseId(223)
   @Test(priority = 8)
   public void deleteSchemaProtobuf() {
     navigateToSchemaRegistryAndOpenDetails(PROTOBUF_API.getName());

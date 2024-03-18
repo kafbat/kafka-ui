@@ -7,14 +7,12 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 import com.codeborne.selenide.Condition;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.BasePage;
 import io.kafbat.ui.pages.topics.TopicDetails;
 import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
 import io.kafbat.ui.pages.topics.enums.CustomParameterType;
 import io.kafbat.ui.pages.topics.enums.MaxSizeOnDisk;
 import io.kafbat.ui.pages.topics.enums.TimeToRetain;
 import io.qameta.allure.Issue;
-import io.qase.api.annotation.QaseId;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -58,7 +56,6 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.forEach(topic -> apiService.createTopic(topic));
   }
 
-  @QaseId(199)
   @Test(priority = 1)
   public void createTopic() {
     navigateToTopics();
@@ -82,7 +79,6 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.add(TOPIC_TO_CREATE);
   }
 
-  @QaseId(7)
   @Test(priority = 2)
   void checkAvailableOperations() {
     navigateToTopics();
@@ -98,7 +94,6 @@ public class TopicsTest extends BaseTest {
 
   @Ignore
   @Issue("https://github.com/kafbat/kafka-ui/issues/3071")
-  @QaseId(268)
   @Test(priority = 3)
   public void checkCustomParametersWithinEditExistingTopic() {
     navigateToTopicsAndOpenDetails(TOPIC_TO_UPDATE_AND_DELETE.getName());
@@ -111,13 +106,13 @@ public class TopicsTest extends BaseTest {
         .clickAddCustomParameterTypeButton()
         .openCustomParameterTypeDdl()
         .getAllDdlOptions()
+        .asFixedIterable()
         .forEach(option ->
             softly.assertTrue(!option.is(Condition.attribute("disabled")),
                 option.getText() + " is enabled:"));
     softly.assertAll();
   }
 
-  @QaseId(197)
   @Test(priority = 4)
   public void updateTopic() {
     navigateToTopicsAndOpenDetails(TOPIC_TO_UPDATE_AND_DELETE.getName());
@@ -169,7 +164,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(242)
   @Test(priority = 5)
   public void removeTopicFromTopicList() {
     navigateToTopics();
@@ -183,7 +177,6 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.remove(TOPIC_TO_UPDATE_AND_DELETE);
   }
 
-  @QaseId(207)
   @Test(priority = 6)
   public void deleteTopic() {
     navigateToTopicsAndOpenDetails(TOPIC_FOR_DELETE.getName());
@@ -196,7 +189,6 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.remove(TOPIC_FOR_DELETE);
   }
 
-  @QaseId(20)
   @Test(priority = 7)
   public void redirectToConsumerFromTopic() {
     String topicName = "source-activities";
@@ -215,7 +207,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(4)
   @Test(priority = 8)
   public void checkTopicCreatePossibility() {
     navigateToTopics();
@@ -236,7 +227,6 @@ public class TopicsTest extends BaseTest {
     Assert.assertTrue(topicCreateEditForm.isCreateTopicButtonEnabled(), "isCreateTopicButtonEnabled()");
   }
 
-  @QaseId(266)
   @Test(priority = 9)
   public void checkTimeToRetainDataCustomValueWithEditingTopic() {
     Topic topicToRetainData = new Topic()
@@ -267,7 +257,6 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.add(topicToRetainData);
   }
 
-  @QaseId(6)
   @Test(priority = 10)
   public void checkCustomParametersWithinCreateNewTopic() {
     navigateToTopics();
@@ -286,7 +275,6 @@ public class TopicsTest extends BaseTest {
         "isValidationMessageCustomParameterValueVisible()");
   }
 
-  @QaseId(2)
   @Test(priority = 11)
   public void checkTopicListElements() {
     navigateToTopics();
@@ -294,7 +282,6 @@ public class TopicsTest extends BaseTest {
     verifyElementsCondition(topicsList.getAllEnabledElements(), Condition.enabled);
   }
 
-  @QaseId(12)
   @Test(priority = 12)
   public void addNewFilterWithinTopic() {
     String filterName = randomAlphabetic(5);
@@ -314,7 +301,6 @@ public class TopicsTest extends BaseTest {
     Assert.assertTrue(topicDetails.isActiveFilterVisible(filterName), "isActiveFilterVisible()");
   }
 
-  @QaseId(352)
   @Test(priority = 13)
   public void editActiveSmartFilterCheck() {
     String filterName = randomAlphabetic(5);
@@ -344,7 +330,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(13)
   @Test(priority = 14)
   public void checkFilterSavingWithinSavedFilters() {
     String displayName = randomAlphabetic(5);
@@ -365,7 +350,6 @@ public class TopicsTest extends BaseTest {
         "isFilterVisibleAtSavedFiltersMdl()");
   }
 
-  @QaseId(14)
   @Test(priority = 15)
   public void checkApplyingSavedFilterWithinTopicMessages() {
     String displayName = randomAlphabetic(5);
@@ -384,25 +368,23 @@ public class TopicsTest extends BaseTest {
     Assert.assertTrue(topicDetails.isActiveFilterVisible(displayName), "isActiveFilterVisible()");
   }
 
-  @QaseId(11)
   @Test(priority = 16)
   public void checkShowInternalTopicsButton() {
     navigateToTopics();
     topicsList
         .setShowInternalRadioButton(true);
-    Assert.assertTrue(topicsList.getInternalTopics().size() > 0, "getInternalTopics()");
+    Assert.assertFalse(topicsList.getInternalTopics().isEmpty(), "getInternalTopics()");
     topicsList
         .goToLastPage();
-    Assert.assertTrue(topicsList.getNonInternalTopics().size() > 0, "getNonInternalTopics()");
+    Assert.assertFalse(topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics()");
     topicsList
         .setShowInternalRadioButton(false);
     SoftAssert softly = new SoftAssert();
     softly.assertEquals(topicsList.getInternalTopics().size(), 0, "getInternalTopics()");
-    softly.assertTrue(topicsList.getNonInternalTopics().size() > 0, "getNonInternalTopics()");
+    softly.assertTrue(!topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics()");
     softly.assertAll();
   }
 
-  @QaseId(334)
   @Test(priority = 17)
   public void checkInternalTopicsNaming() {
     navigateToTopics();
@@ -415,7 +397,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(56)
   @Test(priority = 18)
   public void checkRetentionBytesAccordingToMaxSizeOnDisk() {
     navigateToTopics();
@@ -463,7 +444,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(247)
   @Test(priority = 19)
   public void recreateTopicFromTopicProfile() {
     Topic topicToRecreate = new Topic()
@@ -491,7 +471,6 @@ public class TopicsTest extends BaseTest {
         "isAlertWithMessageVisible()");
   }
 
-  @QaseId(8)
   @Test(priority = 20)
   public void checkCopyTopicPossibility() {
     Topic topicToCopy = new Topic()
