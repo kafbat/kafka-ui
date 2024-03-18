@@ -18,6 +18,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
+
       - name: get branch name
         id: extract_branch
         run: |
@@ -25,19 +26,22 @@ jobs:
           echo "tag=${tag}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'zulu'
           cache: 'maven'
-      - name: Build
+
+      - name: Build a jar
         id: build
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
           ./mvnw -B -V -ntp clean package -Pprod -DskipTests
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -50,23 +54,24 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Configure AWS credentials for Kafka-UI account
-        uses: aws-actions/configure-aws-credentials@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-      - name: Build and push
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push docker image
         id: docker_build_and_push
         uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
+          platforms: linux/amd64,linux/arm64
+          provenance: false
           push: true
-          tags: 297478128798.dkr.ecr.eu-central-1.amazonaws.com/kafka-ui:${{ steps.extract_branch.outputs.tag }}
+          tags: ghcr.io/kafbat/kafka-ui:${{ steps.extract_branch.outputs.tag }}
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
