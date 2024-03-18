@@ -1,7 +1,7 @@
 # Descriptions of docker-compose configurations (*.yaml)
 
 1. [kafka-ui.yaml](./kafbat-ui.yaml) - Default configuration with 2 kafka clusters with two nodes of Schema Registry, one kafka-connect and a few dummy topics.
-2. [kafka-ui-arm64.yaml](./ui-arm64.yaml) - Default configuration for ARM64(Mac M1) architecture with 1 kafka cluster without zookeeper with one node of Schema Registry, one kafka-connect and a few dummy topics.
+2. [kafka-ui-arm64.yaml](../../.dev/dev_arm64.yaml) - Default configuration for ARM64(Mac M1) architecture with 1 kafka cluster without zookeeper with one node of Schema Registry, one kafka-connect and a few dummy topics.
 3. [kafka-clusters-only.yaml](./kafka-clusters-only.yaml) - A configuration for development purposes, everything besides `kafka-ui` itself (to be run locally).
 4. [kafka-ui-ssl.yml](./kafka-ssl.yml) - Connect to Kafka via TLS/SSL
 5. [kafka-cluster-sr-auth.yaml](./cluster-sr-auth.yaml) - Schema registry with authentication.
