@@ -329,14 +329,14 @@ const baseTheme = {
 export const theme = {
   ...baseTheme,
   logo: {
-    color: Colors.brand[70],
+    color: Colors.brand[90],
   },
   version: {
     currentVersion: {
       color: Colors.neutral[30],
     },
     commitLink: {
-      color: Colors.brand[50],
+      color: Colors.neutral[80],
     },
   },
   default: {
@@ -786,7 +786,7 @@ export const darkTheme: ThemeType = {
       color: Colors.neutral[50],
     },
     commitLink: {
-      color: Colors.brand[30],
+      color: Colors.neutral[10],
     },
   },
   default: {
