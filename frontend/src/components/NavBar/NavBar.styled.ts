@@ -15,7 +15,7 @@ export const Navbar = styled.nav(
     left: 0;
     right: 0;
     z-index: 30;
-    background-color: ${theme.menu.backgroundColor.normal};
+    background-color: ${theme.menu.primary.backgroundColor.normal};
     min-height: 3.25rem;
   `
 );
@@ -93,7 +93,7 @@ export const NavbarBurger = styled.div(
     padding: 0;
 
     &:hover {
-      background-color: ${theme.menu.backgroundColor.hover};
+      background-color: ${theme.menu.primary.backgroundColor.hover};
     }
 
     @media screen and (min-width: 1024px) {
@@ -106,7 +106,7 @@ export const Span = styled.span(
   ({ theme }) => css`
     display: block;
     position: absolute;
-    background: ${theme.menu.color.active};
+    background: ${theme.menu.primary.color.active};
     height: 1px;
     left: calc(50% - 8px);
     transform-origin: center;

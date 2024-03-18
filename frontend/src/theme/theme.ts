@@ -1,3 +1,5 @@
+import { hexToRgba } from 'theme/hexToRgba';
+
 const Colors = {
   neutral: {
     '0': '#FFFFFF',
@@ -128,7 +130,7 @@ const baseTheme = {
   },
   layout: {
     minWidth: '1200px',
-    navBarWidth: '201px',
+    navBarWidth: '240px',
     navBarHeight: '51px',
     rightSidebarWidth: '70vw',
     filtersSidebarWidth: '300px',
@@ -466,24 +468,38 @@ export const theme = {
     },
   },
   menu: {
-    backgroundColor: {
-      normal: Colors.neutral[0],
-      hover: Colors.neutral[3],
-      active: Colors.neutral[5],
+    primary: {
+      backgroundColor: {
+        normal: hexToRgba(Colors.brand[95], 0),
+        hover: hexToRgba(Colors.brand[95], 0.03),
+        active: hexToRgba(Colors.brand[95], 0.05),
+      },
+      color: {
+        normal: Colors.brand[80],
+        hover: Colors.brand[90],
+        active: Colors.brand[70],
+      },
+      statusIconColor: {
+        online: Colors.green[40],
+        offline: Colors.red[50],
+        initializing: Colors.yellow[20],
+      },
+      chevronIconColor: hexToRgba(Colors.brand[95], 0.5),
+      fontWeight: 500,
     },
-    color: {
-      normal: Colors.neutral[50],
-      hover: Colors.neutral[70],
-      active: Colors.brand[70],
-      isOpen: Colors.neutral[90],
+    secondary: {
+      backgroundColor: {
+        normal: hexToRgba(Colors.brand[95], 0),
+        hover: hexToRgba(Colors.brand[95], 0.03),
+        active: hexToRgba(Colors.brand[95], 0.05),
+      },
+      color: {
+        normal: Colors.brand[50],
+        hover: Colors.brand[90],
+        active: Colors.brand[90],
+      },
+      fontWeight: 400,
     },
-    statusIconColor: {
-      online: Colors.green[40],
-      offline: Colors.red[50],
-      initializing: Colors.yellow[20],
-    },
-    chevronIconColor: Colors.neutral[50],
-    titleColor: Colors.neutral[90],
   },
   schema: {
     backgroundColor: {
@@ -894,24 +910,38 @@ export const darkTheme: ThemeType = {
     },
   },
   menu: {
-    backgroundColor: {
-      normal: Colors.neutral[90],
-      hover: Colors.neutral[87],
-      active: Colors.neutral[85],
+    primary: {
+      backgroundColor: {
+        normal: hexToRgba(Colors.brand[0], 0),
+        hover: hexToRgba(Colors.brand[0], 0.05),
+        active: hexToRgba(Colors.brand[0], 0.1),
+      },
+      color: {
+        normal: Colors.brand[20],
+        hover: Colors.brand[0],
+        active: Colors.brand[10],
+      },
+      statusIconColor: {
+        online: Colors.green[40],
+        offline: Colors.red[50],
+        initializing: Colors.yellow[20],
+      },
+      chevronIconColor: hexToRgba(Colors.brand[0], 0.5),
+      fontWeight: 500,
     },
-    color: {
-      normal: Colors.neutral[40],
-      hover: Colors.neutral[20],
-      active: Colors.brand[20],
-      isOpen: Colors.neutral[90],
+    secondary: {
+      backgroundColor: {
+        normal: hexToRgba(Colors.brand[0], 0),
+        hover: hexToRgba(Colors.brand[0], 0.05),
+        active: hexToRgba(Colors.brand[0], 0.1),
+      },
+      color: {
+        normal: Colors.brand[40],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
+      },
+      fontWeight: 400,
     },
-    statusIconColor: {
-      online: Colors.green[40],
-      offline: Colors.red[50],
-      initializing: Colors.yellow[20],
-    },
-    chevronIconColor: Colors.neutral[50],
-    titleColor: Colors.neutral[0],
   },
   schema: {
     backgroundColor: {

@@ -25,11 +25,11 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
     top: ${theme.layout.navBarHeight};
     left: 0;
     bottom: 0;
-    padding: 8px 16px;
-    overflow-y: scroll;
+    padding: 16px;
+    overflow-y: auto;
     transition: width 0.25s, opacity 0.25s, transform 0.25s,
       -webkit-transform 0.25s;
-    background: ${theme.menu.backgroundColor.normal};
+    background: ${theme.menu.primary.backgroundColor.normal};
     @media screen and (max-width: 1023px) {
       ${$visible &&
       css`

@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useEffect, useMemo } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useEffect,
+  useMemo,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar from 'components/NavBar/NavBar';
 import * as S from 'components/PageContainer/PageContainer.styled';
@@ -10,7 +15,7 @@ import { useClusters } from 'lib/hooks/api/clusters';
 import { ResourceType } from 'generated-sources';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
 
-const PageContainer: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
+const PageContainer: FC<PropsWithChildren> = ({ children }) => {
   const {
     value: isSidebarVisible,
     toggle,
