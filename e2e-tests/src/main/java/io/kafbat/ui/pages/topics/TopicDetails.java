@@ -359,7 +359,7 @@ public class TopicDetails extends BasePage {
   }
 
   private void selectDay(int expectedDay) {
-    Objects.requireNonNull($$x(String.format(dayCellLtr, expectedDay)).stream()
+    Objects.requireNonNull($$x(String.format(dayCellLtr, expectedDay)).asFixedIterable().stream()
         .filter(day -> !Objects.requireNonNull(day.getAttribute("class")).contains("outside-month"))
         .findFirst().orElseThrow()).shouldBe(Condition.enabled).click();
   }

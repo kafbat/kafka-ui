@@ -12,19 +12,16 @@
     <artifactId>e2e-tests</artifactId>
 
     <properties>
-        <maven.surefire-plugin.version>3.2.5</maven.surefire-plugin.version>
-        <contract>${project.version}</contract>
-        <testcontainers.version>1.19.5</testcontainers.version>
-        <httpcomponents.version>5.2.1</httpcomponents.version>
-        <selenium.version>4.8.1</selenium.version>
-        <selenide.version>6.12.3</selenide.version>
-        <testng.version>7.9.0</testng.version>
-        <allure.version>2.25.0</allure.version>
-        <aspectj.version>1.9.9.1</aspectj.version>
-        <assertj.version>3.25.3</assertj.version>
-        <hamcrest.version>2.2</hamcrest.version>
-        <slf4j.version>2.0.7</slf4j.version>
         <kafka.version>3.3.1</kafka.version>
+        <contract>${project.version}</contract>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.surefire.release>3.2.3</maven.surefire.release>
+        <maven.surefire-testng>3.2.5</maven.surefire-testng>
+        <aspectj.version>1.9.9.1</aspectj.version>
+        <selenium.version>4.8.1</selenium.version>
+        <allure.version>2.25.0</allure.version>
+        <log4j.version>2.22.1</log4j.version>
+        <slf4j.version>2.0.10</slf4j.version>
     </properties>
 
     <dependencies>
@@ -67,7 +64,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>io.kafbat.ui</groupId>
+            <artifactId>contract</artifactId>
+            <version>${contract}</version>
+        </dependency>
         <!--
         whole netty dependency block could be removed
         when kafka version will contain zookeeper with netty 4.1.69
@@ -110,85 +111,107 @@
             <classifier>osx-aarch_64</classifier>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.core5/httpcore5 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>5.2.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>${testcontainers.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.testcontainers/selenium -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>selenium</artifactId>
             <version>${testcontainers.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.aspectj/aspectjweaver -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.aeonbits.owner/owner -->
+        <dependency>
+            <groupId>org.aeonbits.owner</groupId>
+            <artifactId>owner</artifactId>
+            <version>1.0.12</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${org.projectlombok.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5</artifactId>
-            <version>${httpcomponents.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>${httpcomponents.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-http-jdk-client</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-http -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-http</artifactId>
             <version>${selenium.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-http-jdk-client -->
         <dependency>
-            <groupId>com.codeborne</groupId>
-            <artifactId>selenide</artifactId>
-            <version>${selenide.version}</version>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-http-jdk-client</artifactId>
+            <version>${selenium.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <version>7.9.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.codeborne/selenide -->
         <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-selenide</artifactId>
-            <version>${allure.version}</version>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>7.2.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-testng</artifactId>
             <version>${allure.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-selenide -->
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>${hamcrest.version}</version>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-selenide</artifactId>
+            <version>${allure.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
         <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${aspectj.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
-            <groupId>io.kafbat.ui</groupId>
-            <artifactId>contract</artifactId>
-            <version>${contract}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
 
@@ -211,7 +234,7 @@
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
                                 <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire-plugin.version}</version>
+                                <version>${maven.surefire-testng}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -226,10 +249,11 @@
             <id>prod</id>
             <build>
                 <plugins>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven.surefire-plugin.version}</version>
+                        <version>${maven.surefire.release}</version>
                         <configuration>
                             <argLine>
                                 -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
@@ -239,7 +263,7 @@
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
                                 <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire-plugin.version}</version>
+                                <version>${maven.surefire-testng}</version>
                             </dependency>
                             <dependency>
                                 <groupId>org.aspectj</groupId>
@@ -276,7 +300,8 @@
                                     <failOnViolation>true</failOnViolation>
                                     <failsOnError>true</failsOnError>
                                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                                    <configLocation>file:${basedir}/../etc/checkstyle/checkstyle-e2e.xml</configLocation>
+                                    <configLocation>file:${basedir}/../etc/checkstyle/checkstyle-e2e.xml
+                                    </configLocation>
                                     <headerLocation>file:${basedir}/../etc/checkstyle/apache-header.txt</headerLocation>
                                 </configuration>
                             </execution>

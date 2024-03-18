@@ -1,8 +1,8 @@
 package io.kafbat.ui;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import io.kafbat.ui.pages.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
@@ -132,7 +132,7 @@ public abstract class BaseTest extends Facade {
   }
 
   @Step
-  protected void verifyElementsCondition(List<SelenideElement> elementList, Condition expectedCondition) {
+  protected void verifyElementsCondition(List<SelenideElement> elementList, WebElementCondition expectedCondition) {
     SoftAssert softly = new SoftAssert();
     elementList.forEach(element -> softly.assertTrue(element.is(expectedCondition),
         element.getSearchCriteria() + " is " + expectedCondition));

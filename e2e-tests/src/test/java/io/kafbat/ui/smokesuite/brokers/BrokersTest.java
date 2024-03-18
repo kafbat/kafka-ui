@@ -20,7 +20,7 @@ public class BrokersTest extends BaseTest {
   @Test
   public void checkBrokersOverview() {
     navigateToBrokers();
-      Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
+    Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
     verifyElementsCondition(brokersList.getAllVisibleElements(), Condition.visible);
     verifyElementsCondition(brokersList.getAllEnabledElements(), Condition.enabled);
   }
@@ -28,7 +28,7 @@ public class BrokersTest extends BaseTest {
   @Test
   public void checkExistingBrokersInCluster() {
     navigateToBrokers();
-      Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
+    Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
     brokersList
         .openBroker(DEFAULT_BROKER_ID);
     brokersDetails

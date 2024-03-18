@@ -6,6 +6,7 @@ import static com.codeborne.selenide.Selenide.$x;
 import static org.openqa.selenium.By.id;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import io.kafbat.ui.api.model.CompatibilityLevel;
@@ -31,9 +32,9 @@ public class SchemaCreateForm extends BasePage {
   protected SelenideElement latestSchemaTextArea = $x("//div[@id='latestSchema']");
   protected SelenideElement leftVersionDdl = $(id("left-select"));
   protected SelenideElement rightVersionDdl = $(id("right-select"));
-  protected List<SelenideElement> visibleMarkers =
+  protected ElementsCollection visibleMarkers =
       $$x("//div[@class='ace_scroller']//div[contains(@class,'codeMarker')]");
-  protected List<SelenideElement> elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
+  protected ElementsCollection elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
   protected String ddlElementLocator = "//li[@value='%s']";
 
   @Step
