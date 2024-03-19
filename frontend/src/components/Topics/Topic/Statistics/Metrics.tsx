@@ -21,6 +21,7 @@ import * as S from './Statistics.styles';
 import Total from './Indicators/Total';
 import SizeStats from './Indicators/SizeStats';
 import PartitionTable from './PartitionTable';
+import {LabelValue} from "./Statistics.styles";
 
 const Metrics: React.FC = () => {
   const params = useAppParams<RouteParamsClusterTopic>();
@@ -67,21 +68,21 @@ const Metrics: React.FC = () => {
         </ActionButton>
         <List>
           <Label>Started at</Label>
-          <span>
+          <LabelValue>
             {formatTimestamp(data.progress.startedAt, {
               hour: 'numeric',
               minute: 'numeric',
               second: 'numeric',
             })}
-          </span>
+          </LabelValue>
           <Label>Passed since start</Label>
-          <span>{calculateTimer(data.progress.startedAt as number)}</span>
+          <LabelValue>{calculateTimer(data.progress.startedAt as number)}</LabelValue>
           <Label>Scanned messages</Label>
-          <span>{data.progress.msgsScanned}</span>
+          <LabelValue>{data.progress.msgsScanned}</LabelValue>
           <Label>Scanned size</Label>
-          <span>
+          <LabelValue>
             <BytesFormatted value={data.progress.bytesScanned} />
-          </span>
+          </LabelValue>
         </List>
       </S.ProgressContainer>
     );

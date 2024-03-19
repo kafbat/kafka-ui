@@ -304,7 +304,7 @@ const baseTheme = {
       active: Colors.neutral[10],
     },
   },
-  statictics: {
+  statistics: {
     createdAtColor: Colors.neutral[50],
     progressPctColor: Colors.neutral[100],
   },
