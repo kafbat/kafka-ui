@@ -273,7 +273,7 @@ const baseTheme = {
     },
   },
   pageLoader: {
-    borderColor: Colors.brand[50],
+    borderColor: Colors.brand[90],
     borderBottomColor: Colors.neutral[0],
   },
   topicFormLabel: {

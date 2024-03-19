@@ -53,6 +53,5 @@ export const calculateTimer = (startedAt: number) => {
   const seconds = Math.floor(elapsedMillis / 1000) % 60;
   const minutes = Math.floor(elapsedMillis / 60000);
 
-  debugger;
   return `${passedTime(minutes)}:${passedTime(seconds)}`;
 };
