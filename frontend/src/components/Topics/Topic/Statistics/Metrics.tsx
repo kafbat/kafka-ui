@@ -21,7 +21,7 @@ import * as S from './Statistics.styles';
 import Total from './Indicators/Total';
 import SizeStats from './Indicators/SizeStats';
 import PartitionTable from './PartitionTable';
-import {LabelValue} from "./Statistics.styles";
+import { LabelValue } from './Statistics.styles';
 
 const Metrics: React.FC = () => {
   const params = useAppParams<RouteParamsClusterTopic>();
@@ -76,7 +76,9 @@ const Metrics: React.FC = () => {
             })}
           </LabelValue>
           <Label>Passed since start</Label>
-          <LabelValue>{calculateTimer(data.progress.startedAt as number)}</LabelValue>
+          <LabelValue>
+            {calculateTimer(data.progress.startedAt as number)}
+          </LabelValue>
           <Label>Scanned messages</Label>
           <LabelValue>{data.progress.msgsScanned}</LabelValue>
           <Label>Scanned size</Label>
