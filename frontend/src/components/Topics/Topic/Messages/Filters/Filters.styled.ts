@@ -4,6 +4,9 @@ import styled, { css } from 'styled-components';
 import DatePicker from 'react-datepicker';
 import EditIcon from 'components/common/Icons/EditIcon';
 import closeIcon from 'components/common/Icons/CloseIcon';
+import { PollingMode } from 'generated-sources';
+
+import { isModeOptionWithInput } from './utils';
 
 interface SavedFilterProps {
   selected: boolean;
@@ -16,32 +19,9 @@ interface MessageLoadingSpinnerProps {
   isFetching: boolean;
 }
 
-export const FiltersWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding-left: 16px;
-  padding-right: 16px;
-
-  & > div:first-child {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 2px;
-    align-items: flex-end;
-  }
-`;
-
-export const FilterInputs = styled.div`
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  width: 90%;
-  flex-wrap: wrap;
-`;
-
-export const SeekTypeSelectorWrapper = styled.div`
+export const FilterModeTypeSelectorWrapper = styled.div`
   display: flex;
   & .select-wrapper {
-    width: 40% !important;
     & > select {
       border-radius: 4px 0 0 4px !important;
     }
@@ -83,14 +63,6 @@ export const DatePickerInput = styled(DatePicker)`
   }
 `;
 
-export const FiltersMetrics = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 22px;
-  padding-top: 16px;
-  padding-bottom: 16px;
-`;
 export const Message = styled.div`
   font-size: 14px;
   color: ${({ theme }) => theme.metrics.filters.color.normal};
@@ -106,22 +78,6 @@ export const MetricsIcon = styled.div`
   padding-right: 6px;
   height: 12px;
 `;
-
-export const ClearAll = styled.div`
-  color: ${({ theme }) => theme.metrics.filters.color.normal};
-  font-size: 12px;
-  cursor: pointer;
-  line-height: 32px;
-  margin-left: 8px;
-`;
-
-export const ButtonContainer = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
 export const ListItem = styled.li`
   font-size: 12px;
   font-weight: 400;
@@ -130,25 +86,20 @@ export const ListItem = styled.li`
   color: ${({ theme }) => theme.table.td.color.normal};
 `;
 
-export const InfoParagraph = styled.div`
-  font-size: 12px;
-  font-weight: 400;
+export const InfoHeading = styled.div`
+  font-size: 16px;
+  font-weight: 500;
   line-height: 1.5;
   margin-bottom: 10px;
   color: ${({ theme }) => theme.table.td.color.normal};
 `;
 
-export const MessageFilterModal = styled.div`
-  height: auto;
-  width: 560px;
-  border-radius: 8px;
-  background: ${({ theme }) => theme.modal.backgroundColor};
-  position: absolute;
-  left: 25%;
-  border: 1px solid ${({ theme }) => theme.modal.border.contrast};
-  box-shadow: ${({ theme }) => theme.modal.shadow};
-  padding: 16px;
-  z-index: 1;
+export const InfoParagraph = styled.div`
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  color: ${({ theme }) => theme.table.td.color.normal};
 `;
 
 export const InfoModal = styled.div`
@@ -171,42 +122,16 @@ export const QuestionIconContainer = styled.button`
   border: none;
 `;
 
-export const FilterTitle = styled.h3`
-  line-height: 32px;
-  font-size: 20px;
-  margin-bottom: 40px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: ${({ theme }) => theme.modal.color};
-  &:after {
-    content: '';
-    width: calc(100% + 32px);
-    height: 1px;
-    position: absolute;
-    top: 40px;
-    left: -16px;
-    display: inline-block;
-    background-color: ${({ theme }) => theme.modal.border.top};
-  }
-`;
-
-export const CreatedFilter = styled.p`
-  margin: 25px 0 10px;
-  font-size: 14px;
-  line-height: 20px;
-  color: ${({ theme }) => theme.savedFilter.color};
-`;
-
 export const NoSavedFilter = styled.p`
-  color: ${({ theme }) => theme.savedFilter.color};
+  color: ${({ theme }) => theme.default.color.normal};
+  font-size: 16px;
+  margin-top: 10px;
 `;
 export const SavedFiltersContainer = styled.div`
   overflow-y: auto;
   height: 195px;
-  justify-content: space-around;
-  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const SavedFilterName = styled.div`
@@ -215,9 +140,9 @@ export const SavedFilterName = styled.div`
   color: ${({ theme }) => theme.savedFilter.filterName};
 `;
 
-export const FilterButtonWrapper = styled.div`
+export const FilterButtonWrapper = styled.div<{ isEdit: boolean }>`
   display: flex;
-  justify-content: flex-end;
+  justify-content: ${(props) => (props.isEdit ? 'flex-end' : 'space-between')};
   margin-top: 10px;
   gap: 10px;
   padding-top: 16px;
@@ -234,24 +159,20 @@ export const FilterButtonWrapper = styled.div`
   }
 `;
 
-export const ActiveSmartFilterWrapper = styled.div`
-  padding: 8px 0 5px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: flex-start;
-`;
-
-export const DeleteSavedFilter = styled.div.attrs({ role: 'deleteIcon' })`
-  margin-top: 2px;
+export const DeleteSavedFilter = styled.button`
   cursor: pointer;
   color: ${({ theme }) => theme.icons.deleteIcon};
+  background-color: transparent;
+  border: none;
 `;
 
-export const FilterEdit = styled.div`
+export const FilterEdit = styled.button`
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
 `;
 
 export const FilterOptions = styled.div`
@@ -266,19 +187,20 @@ export const SavedFilter = styled.div.attrs({
 })<SavedFilterProps>`
   display: flex;
   justify-content: space-between;
-  padding-right: 5px;
+  padding: 5px;
   height: 32px;
+  border-radius: 4px;
   align-items: center;
   cursor: pointer;
-  border-top: 1px solid ${({ theme }) => theme.panelColor.borderTop};
   &:hover ${FilterOptions} {
     display: flex;
   }
   &:hover {
-    background: ${({ theme }) => theme.layout.stuffColor};
+    background-color: ${({ theme }) => theme.layout.stuffColor};
   }
-  background: ${({ selected, theme }) =>
-    selected ? theme.layout.stuffColor : theme.modal.backgroundColor};
+
+  background-color: ${({ selected, theme }) =>
+    selected ? theme.layout.stuffColor : 'transparent'};
 `;
 
 export const ActiveSmartFilter = styled.div`
@@ -293,7 +215,7 @@ export const ActiveSmartFilter = styled.div`
   line-height: 20px;
 `;
 
-export const EditSmartFilterIcon = styled.div(
+export const EditSmartFilterIcon = styled.button(
   ({ theme: { icons } }) => css`
     color: ${icons.editIcon.normal};
     display: flex;
@@ -302,18 +224,25 @@ export const EditSmartFilterIcon = styled.div(
     height: 32px;
     width: 32px;
     cursor: pointer;
+    background-color: transparent;
+    border: none;
     border-left: 1px solid ${icons.editIcon.border};
 
-    &:hover {
+    &:hover:not(:disabled) {
       ${EditIcon} {
         fill: ${icons.editIcon.hover};
       }
     }
 
-    &:active {
+    &:active:not(:disabled) {
       ${EditIcon} {
         fill: ${icons.editIcon.active};
       }
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
   `
 );
@@ -323,7 +252,7 @@ export const SmartFilterName = styled.div`
   min-width: 32px;
 `;
 
-export const DeleteSmartFilterIcon = styled.div(
+export const DeleteSmartFilterIcon = styled.button(
   ({ theme: { icons } }) => css`
     color: ${icons.closeIcon.normal};
     display: flex;
@@ -332,6 +261,8 @@ export const DeleteSmartFilterIcon = styled.div(
     height: 32px;
     width: 32px;
     cursor: pointer;
+    background-color: transparent;
+    border: none;
     border-left: 1px solid ${icons.closeIcon.border};
 
     svg {
@@ -339,16 +270,21 @@ export const DeleteSmartFilterIcon = styled.div(
       width: 14px;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
       ${closeIcon} {
         fill: ${icons.closeIcon.hover};
       }
     }
 
-    &:active {
+    &:active:not(:disabled) {
       ${closeIcon} {
         fill: ${icons.closeIcon.active};
       }
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
   `
 );
@@ -360,13 +296,15 @@ export const MessageLoading = styled.div.attrs({
   font-size: ${({ theme }) => theme.heading.h3.fontSize};
   display: ${({ isLive }) => (isLive ? 'flex' : 'none')};
   justify-content: space-around;
-  width: 250px;
+  width: 260px;
 `;
 
-export const StopLoading = styled.div`
-  color: ${({ theme }) => theme.pageLoader.borderColor};
+export const StopLoading = styled.button`
+  color: ${({ theme }) => theme.heading.base.color};
   font-size: ${({ theme }) => theme.heading.h3.fontSize};
   cursor: pointer;
+  background-color: transparent;
+  border: none;
 `;
 
 export const MessageLoadingSpinner = styled.div<MessageLoadingSpinnerProps>`
@@ -388,39 +326,30 @@ export const MessageLoadingSpinner = styled.div<MessageLoadingSpinnerProps>`
   }
 `;
 
-export const SavedFiltersTextContainer = styled.div.attrs({
-  role: 'savedFilterText',
-})`
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  margin-bottom: 15px;
-`;
-
-const textStyle = css`
-  font-size: 14px;
-  color: ${({ theme }) => theme.editFilter.textColor};
-  font-weight: 500;
-`;
-
-export const SavedFiltersText = styled.div`
-  ${textStyle};
-  margin-left: 7px;
-`;
-
-export const BackToCustomText = styled.div`
-  ${textStyle};
-  cursor: pointer;
-`;
-
-export const SeekTypeSelect = styled(Select)`
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+// styled component lib bug it does not pick up the generic
+export const FilterModeTypeSelect = styled(Select<PollingMode>)`
+  border-top-right-radius: ${(props) =>
+    !props.value || !isModeOptionWithInput(props.value) ? '4px' : '0'};
+  border-bottom-right-radius: ${(props) =>
+    !props.value || !isModeOptionWithInput(props.value) ? '4px' : '0'};
   user-select: none;
 `;
 
-export const Serdes = styled.div`
-  display: flex;
-  gap: 24px;
-  padding: 8px 0;
+export const SavedFilterText = styled.div`
+  font-weight: 600;
+  color: ${({ theme }) => theme.default.color.normal};
+`;
+
+export const SavedFilterClearAll = styled.button`
+  font-weight: 500;
+  color: ${({ theme }) => theme.link.color};
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;

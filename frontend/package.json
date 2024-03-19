@@ -50,10 +50,9 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "clean": "rimraf ./src/generated-sources",
     "compile": "pnpm gen:sources && tsc --noEmit",
-    "gen:sources": "pnpm clean && openapi-generator-cli generate",
-    "build": "pnpm compile && vite build",
+    "gen:sources": "rimraf ./src/generated-sources && openapi-generator-cli generate",
+    "build": "rimraf ./src/generated-sources && openapi-generator-cli generate && tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .tsx,.ts src/",
     "lint:fix": "eslint --ext .tsx,.ts src/ --fix",

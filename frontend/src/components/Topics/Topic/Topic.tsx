@@ -17,7 +17,6 @@ import {
   ActionDropdownItem,
 } from 'components/common/ActionComponent';
 import Navbar from 'components/common/Navigation/Navbar.styled';
-import { useAppDispatch } from 'lib/hooks/redux';
 import useAppParams from 'lib/hooks/useAppParams';
 import { Dropdown, DropdownItemHint } from 'components/common/Dropdown';
 import {
@@ -26,7 +25,6 @@ import {
   useRecreateTopic,
   useTopicDetails,
 } from 'lib/hooks/api/topics';
-import { resetTopicMessages } from 'redux/reducers/topicMessages/topicMessagesSlice';
 import { Action, CleanUpPolicy, ResourceType } from 'generated-sources';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import SlidingSidebar from 'components/common/SlidingSidebar';
@@ -41,7 +39,6 @@ import Edit from './Edit/Edit';
 import SendMessage from './SendMessage/SendMessage';
 
 const Topic: React.FC = () => {
-  const dispatch = useAppDispatch();
   const {
     value: isSidebarOpen,
     setFalse: closeSidebar,
@@ -62,16 +59,12 @@ const Topic: React.FC = () => {
     navigate(clusterTopicsPath(clusterName));
   };
 
-  React.useEffect(() => {
-    return () => {
-      dispatch(resetTopicMessages());
-    };
-  }, []);
   const clearMessages = useClearTopicMessages(clusterName);
   const clearTopicMessagesHandler = async () => {
     await clearMessages.mutateAsync(topicName);
   };
   const canCleanup = data?.cleanUpPolicy === CleanUpPolicy.DELETE;
+
   return (
     <>
       <PageHeading
