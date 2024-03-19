@@ -43,11 +43,16 @@ export const formatMilliseconds = (input = 0) => {
 export const passedTime = (value: number) => (value < 10 ? `0${value}` : value);
 
 export const calculateTimer = (startedAt: number) => {
-  const nowDate = new Date();
-  const now = nowDate.getTime();
-  const newDate = now - startedAt;
-  const minutes = nowDate.getMinutes();
-  const second = nowDate.getSeconds();
+  const now = new Date().getTime();
+  const elapsedMillis = now - startedAt;
 
-  return newDate > 0 ? `${passedTime(minutes)}:${passedTime(second)}` : '00:00';
+  if (elapsedMillis < 0) {
+    return '00:00';
+  }
+
+  const seconds = Math.floor(elapsedMillis / 1000) % 60;
+  const minutes = Math.floor(elapsedMillis / 60000);
+
+  debugger;
+  return `${passedTime(minutes)}:${passedTime(seconds)}`;
 };
