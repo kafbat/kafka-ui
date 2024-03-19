@@ -263,11 +263,11 @@ const baseTheme = {
     color: Colors.neutral[90],
   },
   switch: {
-    unchecked: Colors.neutral[20],
+    unchecked: Colors.brand[30],
     hover: Colors.neutral[40],
-    checked: Colors.brand[50],
+    checked: Colors.brand[90],
     circle: Colors.neutral[0],
-    disabled: Colors.neutral[10],
+    disabled: Colors.brand[10],
     checkedIcon: {
       backgroundColor: Colors.neutral[10],
     },
@@ -1042,6 +1042,16 @@ export const darkTheme: ThemeType = {
       normal: Colors.neutral[50],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
+    },
+  },
+  switch: {
+    unchecked: Colors.brand[30],
+    hover: Colors.neutral[40],
+    checked: Colors.brand[70],
+    circle: Colors.neutral[0],
+    disabled: Colors.brand[10],
+    checkedIcon: {
+      backgroundColor: Colors.neutral[10],
     },
   },
   select: {
