@@ -96,5 +96,5 @@ export const FormError = styled.p`
 export const InputHint = styled.p`
   font-size: 0.85rem;
   margin-top: 0.25rem;
-  color: ${({ theme }) => theme.clusterConfigForm.inputHintText.secondary};
+  color: ${({ theme }) => theme.checkbox.hint};
 `;
