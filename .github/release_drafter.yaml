@@ -7,13 +7,13 @@ template: |
   $CONTRIBUTORS
 
 exclude-labels:
-  - 'scope/infrastructure'
+  - 'scope/infra'
   - 'scope/QA'
   - 'scope/AQA'
   - 'type/dependencies'
   - 'type/chore'
   - 'type/documentation'
-  - 'type/refactoring'
+  - 'type/refactor'
 
 categories:
   - title: '🚩 Breaking Changes'
@@ -36,9 +36,9 @@ categories:
     labels:
       - 'type/security'
 
-  - title: '⎈ Helm/K8S Changes'
+  - title: '⚠️Noteworthy changes'
     labels:
-      - 'scope/k8s'
+      - 'impact/changelog'
 
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 
