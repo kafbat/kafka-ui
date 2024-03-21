@@ -1,6 +1,7 @@
 import React from 'react';
 import * as S from 'components/Topics/Topic/Messages/Filters/Filters.styled';
 import { Button } from 'components/common/Button/Button';
+import Flexbox from 'components/common/FlexBox/FlexBox';
 
 interface InfoModalProps {
   toggleIsOpen(): void;
@@ -9,57 +10,52 @@ interface InfoModalProps {
 const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
   return (
     <S.InfoModal>
+      <S.InfoHeading>We use CEL syntax for smart message filters</S.InfoHeading>
       <S.InfoParagraph>
-        <b>Variables bound to groovy context:</b> partition, timestampMs,
-        keyAsText, valueAsText, header, key (json if possible), value (json if
-        possible).
+        <b>Variables bound to the context:</b>
       </S.InfoParagraph>
+      <ol aria-label="info-list">
+        <S.ListItem>key (json if possible)</S.ListItem>
+        <S.ListItem>value (json if possible)</S.ListItem>
+        <S.ListItem>keyAsText</S.ListItem>
+        <S.ListItem>valueAsText</S.ListItem>
+        <S.ListItem>header</S.ListItem>
+        <S.ListItem>partition</S.ListItem>
+        <S.ListItem>timestampMs</S.ListItem>
+      </ol>
       <S.InfoParagraph>
         <b>JSON parsing logic:</b>
       </S.InfoParagraph>
       <S.InfoParagraph>
-        Key and Value (if they can be parsed to JSON) they are bound as JSON
-        objects, otherwise bound as nulls.
+        Key and Value (if parsing to JSON is available) are bound as JSON
+        objects, otherwise as nulls.
       </S.InfoParagraph>
       <S.InfoParagraph>
-        <b>Sample filters:</b>
+        <b>Filter examples:</b>
       </S.InfoParagraph>
       <ol aria-label="info-list">
         <S.ListItem>
-          <code>keyAsText != null && keyAsText ~&quot;([Gg])roovy&quot;</code> -
-          regex for key as a string
-        </S.ListItem>
-        <S.ListItem>
           <code>
-            value.name == &quot;iS.ListItemax&quot; && value.age &gt; 30
+            has(record.keyAsText) &&
+            record.keyAsText.matches(&quot;.*[Gg]roovy.*&quot;)
           </code>{' '}
-          - in case value is json
-        </S.ListItem>
-        <S.ListItem>
-          <code>value == null && valueAsText != null</code> - search for values
-          that are not nulls and are not json
+          - regex for key as a string
         </S.ListItem>
         <S.ListItem>
           <code>
-            headers.sentBy == &quot;some system&quot; &&
-            headers[&quot;sentAt&quot;] == &quot;2020-01-01&quot;
+            has(record.key.name.first) && record.key.name.first ==
+            &apos;user1&apos;
+          </code>{' '}
+          - in case if the value is json
+        </S.ListItem>
+        <S.ListItem>
+          <code>
+            record.headers.size() == 1 && !has(record.headers.k1) &&
+            record.headers[&apos;k2&apos;] == &apos;v2&apos;
           </code>
         </S.ListItem>
-        <S.ListItem>
-          multiline filters are also allowed:
-          <S.InfoParagraph>
-            <pre>
-              def name = value.name
-              <br />
-              def age = value.age
-              <br />
-              name == &quot;iliax&quot; && age == 30
-              <br />
-            </pre>
-          </S.InfoParagraph>
-        </S.ListItem>
       </ol>
-      <S.ButtonContainer>
+      <Flexbox justifyContent="center" margin="20px 0 0 0">
         <Button
           buttonSize="M"
           buttonType="secondary"
@@ -68,7 +64,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
         >
           Ok
         </Button>
-      </S.ButtonContainer>
+      </Flexbox>
     </S.InfoModal>
   );
 };

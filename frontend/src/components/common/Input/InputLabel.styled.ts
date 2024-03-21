@@ -6,6 +6,7 @@ export const InputLabel = styled.label`
   line-height: 20px;
   color: ${({ theme }) => theme.input.label.color};
   input[type='checkbox'] {
+    accent-color: ${({ theme }) => theme.input.icon.color};
     display: inline-block;
     margin-right: 8px;
     vertical-align: text-top;
