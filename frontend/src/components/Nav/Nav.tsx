@@ -1,11 +1,11 @@
 import { useClusters } from 'lib/hooks/api/clusters';
-import React from 'react';
+import React, { type FC } from 'react';
 
 import * as S from './Nav.styled';
 import MenuItem from './Menu/MenuItem';
 import ClusterMenu from './ClusterMenu/ClusterMenu';
 
-const Nav: React.FC = () => {
+const Nav: FC = () => {
   const clusters = useClusters();
 
   return (

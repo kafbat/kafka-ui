@@ -132,6 +132,11 @@ const baseTheme = {
     label: Colors.neutral[50],
     hint: Colors.neutral[50],
   },
+  breakpoints: {
+    S: 768,
+    M: 1024,
+    L: 1440,
+  },
   layout: {
     minWidth: '1200px',
     navBarWidth: '240px',
@@ -139,6 +144,7 @@ const baseTheme = {
     rightSidebarWidth: '70vw',
     filtersSidebarWidth: '300px',
 
+    mainBackgroundColor: Colors.brand[0],
     stuffColor: Colors.neutral[5],
     stuffBorderColor: Colors.neutral[10],
     overlay: {
@@ -229,6 +235,7 @@ const baseTheme = {
       hover: '#FF6154',
       active: '#FFBDB8',
     },
+    menuIcon: Colors.brand[70],
   },
   textArea: {
     borderColor: {
@@ -419,6 +426,8 @@ export const theme = {
       },
       color: {
         normal: Colors.brand[0],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
         disabled: Colors.brand[30],
       },
     },
@@ -431,6 +440,8 @@ export const theme = {
       },
       color: {
         normal: Colors.brand[90],
+        hover: Colors.brand[90],
+        active: Colors.brand[90],
         disabled: Colors.brand[30],
       },
     },
@@ -443,7 +454,23 @@ export const theme = {
       },
       color: {
         normal: Colors.brand[0],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
         disabled: Colors.red[10],
+      },
+    },
+    text: {
+      backgroundColor: {
+        normal: Colors.brand[0],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
+        disabled: Colors.brand[0],
+      },
+      color: {
+        normal: Colors.brand[70],
+        hover: Colors.brand[90],
+        active: Colors.brand[50],
+        disabled: Colors.brand[40],
       },
     },
     height: {
@@ -883,6 +910,8 @@ export const darkTheme: ThemeType = {
       },
       color: {
         normal: Colors.brand[90],
+        hover: Colors.brand[90],
+        active: Colors.brand[90],
         disabled: Colors.brand[70],
       },
     },
@@ -895,6 +924,8 @@ export const darkTheme: ThemeType = {
       },
       color: {
         normal: Colors.brand[0],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
         disabled: Colors.brand[70],
       },
     },
@@ -907,7 +938,23 @@ export const darkTheme: ThemeType = {
       },
       color: {
         normal: Colors.brand[0],
+        hover: Colors.brand[0],
+        active: Colors.brand[0],
         disabled: Colors.red[10],
+      },
+    },
+    text: {
+      backgroundColor: {
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
+        disabled: 'transparent',
+      },
+      color: {
+        normal: Colors.brand[10],
+        hover: Colors.brand[0],
+        active: Colors.brand[20],
+        disabled: Colors.brand[30],
       },
     },
     height: {
@@ -1246,6 +1293,7 @@ export const darkTheme: ThemeType = {
       ...baseTheme.icons.producthunt,
       normal: Colors.neutral[5],
     },
+    menuIcon: Colors.brand[0],
   },
   textArea: {
     ...baseTheme.textArea,
