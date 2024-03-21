@@ -19,9 +19,11 @@ import { useKsqlkDb } from 'lib/hooks/api/ksqlDb';
 import 'ace-builds/src-noconflict/ace';
 
 import TableView from './TableView';
+import ClusterContext from "../contexts/ClusterContext";
 
 const KsqlDb: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { isReadOnly: isClusterReadOnly } = React.useContext(ClusterContext);
 
   const [tables, streams] = useKsqlkDb(clusterName);
 
@@ -38,6 +40,8 @@ const KsqlDb: React.FC = () => {
             resource: ResourceType.KSQL,
             action: Action.EXECUTE,
           }}
+          disabled={isClusterReadOnly}
+          tooltip
         >
           Execute KSQL Request
         </ActionButton>
