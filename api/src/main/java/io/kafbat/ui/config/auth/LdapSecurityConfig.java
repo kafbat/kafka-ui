@@ -10,13 +10,10 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -43,7 +40,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 @EnableWebFluxSecurity
 @ConditionalOnProperty(value = "auth.type", havingValue = "LDAP")
-@Import(LdapAutoConfiguration.class)
 @EnableConfigurationProperties(LdapProperties.class)
 @RequiredArgsConstructor
 @Slf4j
@@ -52,18 +48,18 @@ public class LdapSecurityConfig {
   private final LdapProperties props;
 
   @Bean
-  public ReactiveAuthenticationManager authenticationManager(BaseLdapPathContextSource contextSource,
+  public ReactiveAuthenticationManager authenticationManager(LdapContextSource ldapContextSource,
                                                              LdapAuthoritiesPopulator authoritiesExtractor,
                                                              AccessControlService acs) {
     var rbacEnabled = acs.isRbacEnabled();
-    BindAuthenticator ba = new BindAuthenticator(contextSource);
+    BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
     if (props.getBase() != null) {
       ba.setUserDnPatterns(new String[] {props.getBase()});
     }
     if (props.getUserFilterSearchFilter() != null) {
       LdapUserSearch userSearch =
           new FilterBasedLdapUserSearch(props.getUserFilterSearchBase(), props.getUserFilterSearchFilter(),
-              contextSource);
+              ldapContextSource);
       ba.setUserSearch(userSearch);
     }
 
@@ -88,8 +84,7 @@ public class LdapSecurityConfig {
   }
 
   @Bean
-  @Primary
-  public BaseLdapPathContextSource contextSource() {
+  public LdapContextSource ldapContextSource() {
     LdapContextSource ctx = new LdapContextSource();
     ctx.setUrl(props.getUrls());
     ctx.setUserDn(props.getAdminUser());
@@ -99,7 +94,6 @@ public class LdapSecurityConfig {
   }
 
   @Bean
-  @Primary
   public DefaultLdapAuthoritiesPopulator ldapAuthoritiesExtractor(ApplicationContext context,
                                                                   BaseLdapPathContextSource contextSource,
                                                                   AccessControlService acs) {
