@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 interface ReturnType {
   value: boolean;
@@ -10,6 +10,10 @@ interface ReturnType {
 
 function useBoolean(defaultValue?: boolean): ReturnType {
   const [value, setValue] = useState(!!defaultValue);
+
+  useEffect(() => {
+    setValue(!!defaultValue);
+  }, [defaultValue]);
 
   const setTrue = useCallback(() => setValue(true), []);
   const setFalse = useCallback(() => setValue(false), []);

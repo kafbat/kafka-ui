@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export interface ButtonProps {
-  buttonType: 'primary' | 'secondary' | 'danger';
+  buttonType: 'primary' | 'secondary' | 'danger' | 'text';
   buttonSize: 'S' | 'M' | 'L';
 }
 
@@ -23,17 +23,17 @@ const StyledButton = styled.button<ButtonProps>`
   font-size: ${({ theme, buttonSize }) => theme.button.fontSize[buttonSize]};
   font-weight: 500;
 
-  &:hover:enabled {
+  &:hover {
     background: ${({ buttonType, theme }) =>
       theme.button[buttonType].backgroundColor.hover};
-    color: ${({ buttonType, theme }) => theme.button[buttonType].color.normal};
+    color: ${({ buttonType, theme }) => theme.button[buttonType].color.hover};
     cursor: pointer;
   }
 
-  &:active:enabled {
+  &:active {
     background: ${({ buttonType, theme }) =>
       theme.button[buttonType].backgroundColor.active};
-    color: ${({ buttonType, theme }) => theme.button[buttonType].color.normal};
+    color: ${({ buttonType, theme }) => theme.button[buttonType].color.active};
   }
 
   &:disabled {
