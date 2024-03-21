@@ -38,6 +38,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -125,26 +126,30 @@ public class DynamicConfigOperations {
     String targetDirStr = ctx.getEnvironment()
         .getProperty(CONFIG_RELATED_UPLOADS_DIR_PROPERTY, CONFIG_RELATED_UPLOADS_DIR_DEFAULT);
 
-    Path targetDir = Path.of(targetDirStr);
-    if (!Files.exists(targetDir)) {
-      try {
-        Files.createDirectories(targetDir);
-      } catch (IOException e) {
-        return Mono.error(
-            new FileUploadException("Error creating directory for uploads %s".formatted(targetDir), e));
+    Mono<Path> directoryCreationMono = Mono.fromCallable(() -> {
+      Path targetDir = Path.of(targetDirStr);
+      if (!Files.exists(targetDir)) {
+        try {
+          Files.createDirectories(targetDir);
+        } catch (IOException e) {
+          throw new FileUploadException("Error creating directory for uploads %s".formatted(targetDir), e);
+        }
       }
-    }
+      return targetDir;
+    }).subscribeOn(Schedulers.boundedElastic());
 
-    Path targetFilePath = targetDir.resolve(file.filename() + "-" + Instant.now().getEpochSecond());
-    log.info("Uploading config-related file {}", targetFilePath);
-    if (Files.exists(targetFilePath)) {
-      log.info("File {} already exists, it will be overwritten", targetFilePath);
-    }
+    return directoryCreationMono.flatMap(dir -> {
+      Path targetFilePath = dir.resolve(file.filename() + "-" + Instant.now().getEpochSecond());
+      log.info("Uploading config-related file {}", targetFilePath);
+      if (Files.exists(targetFilePath)) {
+        log.info("File {} already exists, it will be overwritten", targetFilePath);
+      }
 
-    return file.transferTo(targetFilePath)
-        .thenReturn(targetFilePath)
-        .doOnError(th -> log.error("Error uploading file {}", targetFilePath, th))
-        .onErrorMap(th -> new FileUploadException(targetFilePath, th));
+      return file.transferTo(targetFilePath)
+          .thenReturn(targetFilePath)
+          .doOnError(th -> log.error("Error uploading file {}", targetFilePath, th))
+          .onErrorMap(th -> new FileUploadException(targetFilePath, th));
+    });
   }
 
   private void checkIfDynamicConfigEnabled() {
@@ -163,8 +168,8 @@ public class DynamicConfigOperations {
     if (!Files.exists(path.getParent())) {
       Files.createDirectories(path.getParent());
     }
-    if (Files.exists(path) && !Files.isWritable(path)) {
-      throw new ValidationException("File already exists and is not writable");
+    if (Files.exists(path) && (!Files.isReadable(path) || !Files.isWritable(path))) {
+      throw new ValidationException("File already exists and is not readable or writable");
     }
     try {
       Files.writeString(
