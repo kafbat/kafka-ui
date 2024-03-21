@@ -126,6 +126,10 @@ const baseTheme = {
     backgroundColor: Colors.neutral[5],
     color: Colors.red[55],
   },
+  checkbox: {
+    label: Colors.neutral[50],
+    hint: Colors.neutral[50],
+  },
   layout: {
     minWidth: '1200px',
     navBarWidth: '201px',
@@ -259,17 +263,17 @@ const baseTheme = {
     color: Colors.neutral[90],
   },
   switch: {
-    unchecked: Colors.neutral[20],
+    unchecked: Colors.brand[30],
     hover: Colors.neutral[40],
-    checked: Colors.brand[50],
+    checked: Colors.brand[90],
     circle: Colors.neutral[0],
-    disabled: Colors.neutral[10],
+    disabled: Colors.brand[10],
     checkedIcon: {
       backgroundColor: Colors.neutral[10],
     },
   },
   pageLoader: {
-    borderColor: Colors.brand[50],
+    borderColor: Colors.brand[90],
     borderBottomColor: Colors.neutral[0],
   },
   topicFormLabel: {
@@ -300,7 +304,7 @@ const baseTheme = {
       active: Colors.neutral[10],
     },
   },
-  statictics: {
+  statistics: {
     createdAtColor: Colors.neutral[50],
     progressPctColor: Colors.neutral[100],
   },
@@ -325,14 +329,14 @@ const baseTheme = {
 export const theme = {
   ...baseTheme,
   logo: {
-    color: Colors.brand[70],
+    color: Colors.brand[90],
   },
   version: {
     currentVersion: {
       color: Colors.neutral[30],
     },
     commitLink: {
-      color: Colors.brand[50],
+      color: Colors.neutral[80],
     },
   },
   default: {
@@ -718,31 +722,53 @@ export const theme = {
           normal: {
             background: Colors.neutral[0],
             text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
           active: {
             background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
           hover: {
-            background: Colors.green[10],
-            text: Colors.neutral[90],
+            background: Colors.green[50],
+            text: Colors.neutral[0],
+            border: Colors.green[50],
           },
         },
         gray: {
           normal: {
             background: Colors.neutral[0],
             text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
           active: {
             background: Colors.neutral[10],
             text: Colors.neutral[90],
+            border: Colors.neutral[10],
           },
           hover: {
-            background: Colors.neutral[5],
-            text: Colors.neutral[90],
+            background: Colors.neutral[10],
+            text: Colors.neutral[50],
+            border: Colors.neutral[10],
           },
         },
-        red: {},
+        red: {
+          normal: {
+            background: Colors.neutral[0],
+            text: Colors.neutral[50],
+            border: Colors.neutral[10],
+          },
+          active: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+          hover: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+        },
       },
     },
   },
@@ -760,7 +786,7 @@ export const darkTheme: ThemeType = {
       color: Colors.neutral[50],
     },
     commitLink: {
-      color: Colors.brand[30],
+      color: Colors.neutral[10],
     },
   },
   default: {
@@ -1018,6 +1044,16 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[0],
     },
   },
+  switch: {
+    unchecked: Colors.brand[30],
+    hover: Colors.neutral[40],
+    checked: Colors.brand[70],
+    circle: Colors.neutral[0],
+    disabled: Colors.brand[10],
+    checkedIcon: {
+      backgroundColor: Colors.neutral[10],
+    },
+  },
   select: {
     backgroundColor: {
       normal: Colors.neutral[85],
@@ -1217,33 +1253,55 @@ export const darkTheme: ThemeType = {
       radioButtons: {
         green: {
           normal: {
-            background: Colors.neutral[0],
+            background: Colors.neutral[90],
             text: Colors.neutral[50],
+            border: Colors.neutral[80],
           },
           active: {
             background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
           hover: {
-            background: Colors.green[10],
+            background: Colors.green[50],
             text: Colors.neutral[0],
+            border: Colors.green[50],
           },
         },
         gray: {
           normal: {
-            background: Colors.neutral[0],
+            background: Colors.neutral[90],
             text: Colors.neutral[50],
+            border: Colors.neutral[80],
           },
           active: {
-            background: Colors.neutral[10],
-            text: Colors.neutral[90],
+            background: Colors.neutral[80],
+            text: Colors.neutral[0],
+            border: Colors.neutral[80],
           },
           hover: {
-            background: Colors.neutral[5],
-            text: Colors.neutral[90],
+            background: Colors.neutral[85],
+            text: Colors.neutral[0],
+            border: Colors.neutral[85],
           },
         },
-        red: {},
+        red: {
+          normal: {
+            background: Colors.neutral[90],
+            text: Colors.neutral[50],
+            border: Colors.neutral[80],
+          },
+          active: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+          hover: {
+            background: Colors.red[50],
+            text: Colors.neutral[0],
+            border: Colors.red[50],
+          },
+        },
       },
     },
   },

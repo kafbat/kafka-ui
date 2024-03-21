@@ -27,7 +27,7 @@ export const ActionsBar = styled.div`
 export const CreatedAt = styled.div`
   font-size: 12px;
   line-height: 1.5;
-  color: ${({ theme }) => theme.statictics.createdAtColor};
+  color: ${({ theme }) => theme.statistics.createdAtColor};
 `;
 
 export const PartitionInfo = styled.div`
@@ -47,5 +47,9 @@ export const ProgressPct = styled.span`
   font-size: 15px;
   font-weight: bold;
   line-height: 1.5;
-  color: ${({ theme }) => theme.statictics.progressPctColor};
+  color: ${({ theme }) => theme.statistics.progressPctColor};
+`;
+
+export const LabelValue = styled.span`
+  color: ${({ theme }) => theme.statistics.createdAtColor};
 `;

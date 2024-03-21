@@ -8,7 +8,7 @@ import Select, { SelectOption } from './Select';
 
 interface ControlledSelectProps<T> {
   name: string;
-  label: React.ReactNode;
+  label?: React.ReactNode;
   hint?: string;
   options: SelectOption<T>[];
   onChange?: (val: T) => void;
@@ -28,7 +28,7 @@ const ControlledSelect = <T,>({
 
   return (
     <div>
-      <InputLabel htmlFor={id}>{label}</InputLabel>
+      {label && <InputLabel htmlFor={id}>{label}</InputLabel>}
       <Controller
         name={name}
         render={({ field }) => {
