@@ -26,7 +26,7 @@ This repository is for E2E UI automation.
 ```
 git clone https://github.com/kafbat/kafka-ui.git
 cd  e2e-tests
-docker pull selenoid/vnc_chrome:103.0 
+docker pull selenoid/vnc_chrome:117.0 
 ```
 
 ### How to run checks
@@ -35,7 +35,7 @@ docker pull selenoid/vnc_chrome:103.0
 
 ```
 cd kafbat-ui
-docker-compose -f e2e-tests/docker/selenoid-local.yaml up -d
+docker-compose -f e2e-tests/selenoid/selenoid-local.yaml up -d
 docker-compose -f documentation/compose/e2e-tests.yaml up -d
 ```
 
@@ -61,7 +61,7 @@ Windows Vista and newer:    C:\Users%USERNAME%\AppData\Local\Google\Chrome\Appli
 
 ### Reporting
 
-Reports are in `allure-results` folder.
+Reports are in `target/allure-results` folder.
 If you have installed allure commandline [here](https://www.npmjs.com/package/allure-commandline))
 You can see allure report with command:
 

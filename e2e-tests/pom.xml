@@ -227,8 +227,14 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.release}</version>
                         <configuration>
                             <skipTests>true</skipTests>
+                            <systemPropertyVariables>
+                                <allure.results.directory>
+                                    ${project.basedir}/target/allure-results
+                                </allure.results.directory>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -258,6 +264,11 @@
                             <argLine>
                                 -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                             </argLine>
+                            <systemPropertyVariables>
+                                <allure.results.directory>
+                                    ${project.basedir}/target/allure-results
+                                </allure.results.directory>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>
