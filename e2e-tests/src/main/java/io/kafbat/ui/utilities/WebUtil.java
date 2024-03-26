@@ -11,7 +11,7 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.interactions.Actions;
 
 @Slf4j
-public class WebUtils {
+public class WebUtil {
 
   public static int getTimeout(int... timeoutInSeconds) {
     return (timeoutInSeconds != null && timeoutInSeconds.length > 0) ? timeoutInSeconds[0] : 4;

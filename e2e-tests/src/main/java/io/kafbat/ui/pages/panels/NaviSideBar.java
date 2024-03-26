@@ -7,7 +7,7 @@ import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
 import io.kafbat.ui.pages.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.time.Duration;
 import java.util.List;
@@ -23,7 +23,7 @@ public class NaviSideBar extends BasePage {
   private SelenideElement expandCluster(String clusterName) {
     SelenideElement clusterElement = $x(String.format(clusterElementLocator, clusterName)).shouldBe(Condition.visible);
     if (clusterElement.parent().$$x(".//ul").size() == 0) {
-      WebUtils.clickByActions(clusterElement);
+      WebUtil.clickByActions(clusterElement);
     }
     return clusterElement;
   }
@@ -44,7 +44,7 @@ public class NaviSideBar extends BasePage {
 
   @Step
   public NaviSideBar openSideMenu(String clusterName, MenuItem menuItem) {
-    WebUtils.clickByActions(expandCluster(clusterName).parent()
+    WebUtil.clickByActions(expandCluster(clusterName).parent()
         .$x(String.format(sideMenuOptionElementLocator, menuItem.getNaviTitle())));
     return this;
   }

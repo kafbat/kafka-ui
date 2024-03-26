@@ -6,7 +6,7 @@ import static io.kafbat.ui.pages.panels.enums.MenuItem.SCHEMA_REGISTRY;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 public class SchemaRegistryList extends BasePage {
@@ -22,7 +22,7 @@ public class SchemaRegistryList extends BasePage {
 
   @Step
   public SchemaRegistryList clickCreateSchema() {
-    WebUtils.clickByJavaScript(createSchemaBtn);
+    WebUtil.clickByJavaScript(createSchemaBtn);
     return this;
   }
 
@@ -36,7 +36,7 @@ public class SchemaRegistryList extends BasePage {
   @Step
   public boolean isSchemaVisible(String schemaName) {
     tableGrid.shouldBe(Condition.visible);
-    return WebUtils.isVisible(getTableElement(schemaName));
+    return WebUtil.isVisible(getTableElement(schemaName));
   }
 }
 

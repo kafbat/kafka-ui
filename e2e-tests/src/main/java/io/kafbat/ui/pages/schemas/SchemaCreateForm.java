@@ -12,7 +12,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import io.kafbat.ui.api.model.CompatibilityLevel;
 import io.kafbat.ui.api.model.SchemaType;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -127,7 +127,7 @@ public class SchemaCreateForm extends BasePage {
 
   @Step
   public boolean isSubmitBtnEnabled() {
-    return WebUtils.isEnabled(submitBtn);
+    return WebUtil.isEnabled(submitBtn);
   }
 
   @Step

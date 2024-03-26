@@ -6,7 +6,7 @@ import java.time.LocalTime;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TimeUtils {
+public class TimeUtil {
 
   public static void waitUntilNewMinuteStarted() {
     int secondsLeft = 60 - LocalTime.now().getSecond();

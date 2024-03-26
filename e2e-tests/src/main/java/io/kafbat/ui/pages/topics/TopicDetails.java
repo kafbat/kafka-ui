@@ -11,7 +11,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,7 +43,7 @@ public class TopicDetails extends BasePage {
   protected SelenideElement saveThisFilterCheckBoxAddFilterMdl = $x("//input[@name='saveFilter']");
   protected SelenideElement displayNameInputAddFilterMdl = $x("//input[@placeholder='Enter Name']");
   protected SelenideElement cancelBtnAddFilterMdl = $x("//button[text()='Cancel']");
-  protected SelenideElement addFilterBtnAddFilterMdl = $x("//button[text()='Add filter']");
+  protected SelenideElement addFilterBtnAddFilterMdl = $x("//button[text()='Add Filter']");
   protected SelenideElement saveFilterBtnEditFilterMdl = $x("//button[text()='Save']");
   protected SelenideElement addFiltersBtnMessages = $x("//button[text()='Add Filters']");
   protected SelenideElement selectFilterBtnAddFilterMdl = $x("//button[text()='Select filter']");
@@ -90,7 +90,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openDotMenu() {
-    WebUtils.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByJavaScript(dotMenuBtn);
     return this;
   }
 
@@ -141,7 +141,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public boolean isTopicHeaderVisible(String topicName) {
-    return WebUtils.isVisible($x(String.format(topicHeaderLocator, topicName)));
+    return WebUtil.isVisible($x(String.format(topicHeaderLocator, topicName)));
   }
 
   @Step
@@ -158,7 +158,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails clickProduceMessageBtn() {
-    WebUtils.clickByJavaScript(produceMessageBtn);
+    WebUtil.clickByJavaScript(produceMessageBtn);
     return this;
   }
 
@@ -177,7 +177,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails clickSubmitFiltersBtnMessagesTab() {
-    WebUtils.clickByJavaScript(submitBtn);
+    WebUtil.clickByJavaScript(submitBtn);
     waitUntilSpinnerDisappear();
     return this;
   }
@@ -211,7 +211,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public boolean isFilterVisibleAtSavedFiltersMdl(String filterName) {
-    return WebUtils.isVisible($x(String.format(savedFilterNameLocator, filterName)));
+    return WebUtil.isVisible($x(String.format(savedFilterNameLocator, filterName)));
   }
 
   @Step
@@ -257,13 +257,13 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails selectSaveThisFilterCheckboxMdl(boolean select) {
-    WebUtils.selectElement(saveThisFilterCheckBoxAddFilterMdl, select);
+    WebUtil.selectElement(saveThisFilterCheckBoxAddFilterMdl, select);
     return this;
   }
 
   @Step
   public boolean isSaveThisFilterCheckBoxSelected() {
-    return WebUtils.isSelected(saveThisFilterCheckBoxAddFilterMdl);
+    return WebUtil.isSelected(saveThisFilterCheckBoxAddFilterMdl);
   }
 
   @Step
@@ -296,22 +296,22 @@ public class TopicDetails extends BasePage {
 
   @Step
   public boolean isAddFilterBtnAddFilterMdlEnabled() {
-    return WebUtils.isEnabled(addFilterBtnAddFilterMdl);
+    return WebUtil.isEnabled(addFilterBtnAddFilterMdl);
   }
 
   @Step
   public boolean isBackButtonEnabled() {
-    return WebUtils.isEnabled(backBtn);
+    return WebUtil.isEnabled(backBtn);
   }
 
   @Step
   public boolean isNextButtonEnabled() {
-    return WebUtils.isEnabled(nextBtn);
+    return WebUtil.isEnabled(nextBtn);
   }
 
   @Step
   public boolean isActiveFilterVisible(String filterName) {
-    return WebUtils.isVisible($x(String.format(activeFilterNameLocator, filterName)));
+    return WebUtil.isVisible($x(String.format(activeFilterNameLocator, filterName)));
   }
 
   @Step
@@ -340,7 +340,7 @@ public class TopicDetails extends BasePage {
 
   private void selectYear(int expectedYear) {
     while (getActualCalendarDate().getYear() > expectedYear) {
-      WebUtils.clickByJavaScript(previousMonthButton);
+      WebUtil.clickByJavaScript(previousMonthButton);
       sleep(1000);
       if (LocalTime.now().plusMinutes(3).isBefore(LocalTime.now())) {
         throw new IllegalArgumentException("Unable to select year");
@@ -350,7 +350,7 @@ public class TopicDetails extends BasePage {
 
   private void selectMonth(int expectedMonth) {
     while (getActualCalendarDate().getMonthValue() > expectedMonth) {
-      WebUtils.clickByJavaScript(previousMonthButton);
+      WebUtil.clickByJavaScript(previousMonthButton);
       sleep(1000);
       if (LocalTime.now().plusMinutes(3).isBefore(LocalTime.now())) {
         throw new IllegalArgumentException("Unable to select month");
@@ -458,7 +458,7 @@ public class TopicDetails extends BasePage {
 
     @Step
     public MessageGridItem clickExpand() {
-      WebUtils.clickByJavaScript(element.$x("./td[1]/span"));
+      WebUtil.clickByJavaScript(element.$x("./td[1]/span"));
       return this;
     }
 
@@ -503,14 +503,14 @@ public class TopicDetails extends BasePage {
 
     @Step
     public MessageGridItem clickCopyToClipBoard() {
-      WebUtils.clickByJavaScript(element.$x("./td[7]//li[text() = 'Copy to clipboard']")
+      WebUtil.clickByJavaScript(element.$x("./td[7]//li[text() = 'Copy to clipboard']")
           .shouldBe(Condition.visible));
       return this;
     }
 
     @Step
     public MessageGridItem clickSaveAsFile() {
-      WebUtils.clickByJavaScript(element.$x("./td[7]//li[text() = 'Save as a file']")
+      WebUtil.clickByJavaScript(element.$x("./td[7]//li[text() = 'Save as a file']")
           .shouldBe(Condition.visible));
       return this;
     }

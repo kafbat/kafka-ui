@@ -5,7 +5,7 @@ import static com.codeborne.selenide.Selenide.$x;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 public class SchemaDetails extends BasePage {
@@ -34,7 +34,7 @@ public class SchemaDetails extends BasePage {
 
   @Step
   public boolean isSchemaHeaderVisible(String schemaName) {
-    return WebUtils.isVisible($x(String.format(schemaHeaderLocator, schemaName)));
+    return WebUtil.isVisible($x(String.format(schemaHeaderLocator, schemaName)));
   }
 
   @Step
@@ -61,7 +61,7 @@ public class SchemaDetails extends BasePage {
 
   @Step
   public SchemaDetails removeSchema() {
-    WebUtils.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByJavaScript(dotMenuBtn);
     removeBtn.shouldBe(Condition.enabled).click();
     schemaConfirmBtn.shouldBe(Condition.visible).click();
     schemaConfirmBtn.shouldBe(Condition.disappear);

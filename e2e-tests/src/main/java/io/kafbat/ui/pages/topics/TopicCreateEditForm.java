@@ -15,7 +15,7 @@ import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
 import io.kafbat.ui.pages.topics.enums.CustomParameterType;
 import io.kafbat.ui.pages.topics.enums.MaxSizeOnDisk;
 import io.kafbat.ui.pages.topics.enums.TimeToRetain;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 public class TopicCreateEditForm extends BasePage {
@@ -46,20 +46,20 @@ public class TopicCreateEditForm extends BasePage {
   }
 
   public boolean isCreateTopicButtonEnabled() {
-    return WebUtils.isEnabled(submitBtn);
+    return WebUtil.isEnabled(submitBtn);
   }
 
   public boolean isDeleteCustomParameterButtonEnabled() {
-    return WebUtils.isEnabled(deleteCustomParameterBtn);
+    return WebUtil.isEnabled(deleteCustomParameterBtn);
   }
 
   public boolean isNameFieldEnabled() {
-    return WebUtils.isEnabled(nameField);
+    return WebUtil.isEnabled(nameField);
   }
 
   @Step
   public TopicCreateEditForm setTopicName(String topicName) {
-    WebUtils.sendKeysAfterClear(nameField, topicName);
+    WebUtil.sendKeysAfterClear(nameField, topicName);
     return this;
   }
 
@@ -115,7 +115,7 @@ public class TopicCreateEditForm extends BasePage {
 
   @Step
   public TopicCreateEditForm clearCustomParameterValue() {
-    WebUtils.clearByKeyboard(customParameterValueField);
+    WebUtil.clearByKeyboard(customParameterValueField);
     return this;
   }
 
@@ -226,7 +226,7 @@ public class TopicCreateEditForm extends BasePage {
 
   @Step
   public boolean isValidationMessageCustomParameterValueVisible() {
-    return WebUtils.isVisible(validationCustomParameterValueMsg);
+    return WebUtil.isVisible(validationCustomParameterValueMsg);
   }
 
   @Step

@@ -1,7 +1,7 @@
 package io.kafbat.ui.services;
 
 import static com.codeborne.selenide.Selenide.sleep;
-import static io.kafbat.ui.utilities.FileUtils.fileToString;
+import static io.kafbat.ui.utilities.FileUtil.fileToString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.api.ApiClient;

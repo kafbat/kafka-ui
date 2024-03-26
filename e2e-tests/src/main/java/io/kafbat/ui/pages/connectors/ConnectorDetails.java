@@ -5,7 +5,7 @@ import static com.codeborne.selenide.Selenide.$x;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 public class ConnectorDetails extends BasePage {
@@ -27,14 +27,14 @@ public class ConnectorDetails extends BasePage {
 
   @Step
   public ConnectorDetails openConfigTab() {
-    WebUtils.clickByJavaScript(configTab);
+    WebUtil.clickByJavaScript(configTab);
     return this;
   }
 
   @Step
   public ConnectorDetails setConfig(String configJson) {
     configField.shouldBe(Condition.enabled).click();
-    WebUtils.clearByKeyboard(contentTextArea);
+    WebUtil.clearByKeyboard(contentTextArea);
     contentTextArea.setValue(configJson);
     configField.shouldBe(Condition.enabled).click();
     return this;
@@ -48,13 +48,13 @@ public class ConnectorDetails extends BasePage {
 
   @Step
   public ConnectorDetails openDotMenu() {
-    WebUtils.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByJavaScript(dotMenuBtn);
     return this;
   }
 
   @Step
   public ConnectorDetails clickDeleteBtn() {
-    WebUtils.clickByJavaScript(deleteBtn);
+    WebUtil.clickByJavaScript(deleteBtn);
     return this;
   }
 
@@ -75,7 +75,7 @@ public class ConnectorDetails extends BasePage {
 
   @Step
   public boolean isConnectorHeaderVisible(String connectorName) {
-    return WebUtils.isVisible($x(String.format(connectorHeaderLocator, connectorName)));
+    return WebUtil.isVisible($x(String.format(connectorHeaderLocator, connectorName)));
   }
 
   @Step

@@ -8,7 +8,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class BrokersConfigTab extends BasePage {
 
   @Step
   public boolean isSearchByKeyVisible() {
-    return WebUtils.isVisible(searchFld);
+    return WebUtil.isVisible(searchFld);
   }
 
   @Step
@@ -115,7 +115,7 @@ public class BrokersConfigTab extends BasePage {
 
     @Step
     public BrokersConfigItem setValue(String value) {
-      WebUtils.sendKeysAfterClear(getValueFld(), value);
+      WebUtil.sendKeysAfterClear(getValueFld(), value);
       return this;
     }
 

@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 
-public class FileUtils {
+public class FileUtil {
 
   public static String getResourceAsString(String resourceFileName) {
     try {

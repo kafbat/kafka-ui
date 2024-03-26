@@ -6,7 +6,7 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
 import io.kafbat.ui.pages.BasePage;
 import io.kafbat.ui.pages.topics.TopicDetails;
-import io.kafbat.ui.utilities.TimeUtils;
+import io.kafbat.ui.utilities.TimeUtil;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;
 import java.time.LocalDateTime;
@@ -50,7 +50,7 @@ public class MessagesTest extends BaseTest {
         TOPIC_TO_RECREATE, TOPIC_FOR_CHECK_MESSAGES_COUNT));
     TOPIC_LIST.forEach(topic -> apiService.createTopic(topic));
     IntStream.range(1, 3).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_FILTERS));
-    TimeUtils.waitUntilNewMinuteStarted();
+    TimeUtil.waitUntilNewMinuteStarted();
     IntStream.range(1, 3).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_FILTERS));
     IntStream.range(1, 110).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_MESSAGES_COUNT));
   }

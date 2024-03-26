@@ -6,7 +6,7 @@ import static com.codeborne.selenide.Selenide.refresh;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.util.Arrays;
 
@@ -29,14 +29,14 @@ public class ProduceMessagePanel extends BasePage {
 
   @Step
   public ProduceMessagePanel setKeyField(String value) {
-    WebUtils.clearByKeyboard(keyTextArea);
+    WebUtil.clearByKeyboard(keyTextArea);
     keyTextArea.setValue(value);
     return this;
   }
 
   @Step
   public ProduceMessagePanel setValueFiled(String value) {
-    WebUtils.clearByKeyboard(valueTextArea);
+    WebUtil.clearByKeyboard(valueTextArea);
     valueTextArea.setValue(value);
     return this;
   }
@@ -49,7 +49,7 @@ public class ProduceMessagePanel extends BasePage {
 
   @Step
   public ProduceMessagePanel submitProduceMessage() {
-    WebUtils.clickByActions(submitProduceMessageBtn);
+    WebUtil.clickByActions(submitProduceMessageBtn);
     submitProduceMessageBtn.shouldBe(Condition.disappear);
     refresh();
     return this;

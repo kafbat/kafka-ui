@@ -8,14 +8,14 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import io.kafbat.ui.pages.panels.enums.MenuItem;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.interactions.Actions;
 
 @Slf4j
-public abstract class BasePage extends WebUtils {
+public abstract class BasePage extends WebUtil {
 
   protected SelenideElement loadingSpinner = $x("//div[@role='progressbar']");
   protected SelenideElement submitBtn = $x("//button[@type='submit']");

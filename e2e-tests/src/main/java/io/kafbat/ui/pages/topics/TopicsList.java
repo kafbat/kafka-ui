@@ -8,7 +8,7 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,31 +38,31 @@ public class TopicsList extends BasePage {
 
   @Step
   public TopicsList clickAddTopicBtn() {
-    WebUtils.clickByJavaScript(addTopicBtn);
+    WebUtil.clickByJavaScript(addTopicBtn);
     return this;
   }
 
   @Step
   public boolean isTopicVisible(String topicName) {
     tableGrid.shouldBe(visible);
-    return WebUtils.isVisible(getTableElement(topicName));
+    return WebUtil.isVisible(getTableElement(topicName));
   }
 
   @Step
   public boolean isShowInternalRadioBtnSelected() {
-    return WebUtils.isSelected(showInternalRadioBtn);
+    return WebUtil.isSelected(showInternalRadioBtn);
   }
 
   @Step
   public TopicsList setShowInternalRadioButton(boolean select) {
     if (select) {
       if (!showInternalRadioBtn.isSelected()) {
-        WebUtils.clickByJavaScript(showInternalRadioBtn);
+        WebUtil.clickByJavaScript(showInternalRadioBtn);
         waitUntilSpinnerDisappear(1);
       }
     } else {
       if (showInternalRadioBtn.isSelected()) {
-        WebUtils.clickByJavaScript(showInternalRadioBtn);
+        WebUtil.clickByJavaScript(showInternalRadioBtn);
         waitUntilSpinnerDisappear(1);
       }
     }
@@ -94,7 +94,7 @@ public class TopicsList extends BasePage {
 
   @Step
   public boolean isCopySelectedTopicBtnEnabled() {
-    return WebUtils.isEnabled(copySelectedTopicBtn);
+    return WebUtil.isEnabled(copySelectedTopicBtn);
   }
 
   @Step
@@ -117,19 +117,19 @@ public class TopicsList extends BasePage {
 
   @Step
   public TopicsList clickClearMessagesBtn() {
-    WebUtils.clickByJavaScript(clearMessagesBtn.shouldBe(visible));
+    WebUtil.clickByJavaScript(clearMessagesBtn.shouldBe(visible));
     return this;
   }
 
   @Step
   public TopicsList clickRecreateTopicBtn() {
-    WebUtils.clickByJavaScript(recreateTopicBtn.shouldBe(visible));
+    WebUtil.clickByJavaScript(recreateTopicBtn.shouldBe(visible));
     return this;
   }
 
   @Step
   public TopicsList clickRemoveTopicBtn() {
-    WebUtils.clickByJavaScript(removeTopicBtn.shouldBe(visible));
+    WebUtil.clickByJavaScript(removeTopicBtn.shouldBe(visible));
     return this;
   }
 
@@ -234,7 +234,7 @@ public class TopicsList extends BasePage {
 
     @Step
     public TopicsList selectItem(boolean select) {
-      WebUtils.selectElement(element.$x("./td[1]/input"), select);
+      WebUtil.selectElement(element.$x("./td[1]/input"), select);
       return new TopicsList();
     }
 

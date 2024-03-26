@@ -24,7 +24,7 @@ public abstract class BaseTest extends Facade {
 
   @BeforeSuite(alwaysRun = true)
   public void beforeSuite() {
-    WebDriver.loggerSetup();
+    WebDriver.selenideLoggerSetup();
     WebDriver.browserSetup();
   }
 

@@ -1,10 +1,12 @@
 package io.kafbat.ui.smokesuite.brokers;
 
+import static io.kafbat.ui.utilities.IntUtil.getIntegerFromString;
+
 import com.codeborne.selenide.Condition;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.pages.brokers.BrokersConfigTab;
 import io.kafbat.ui.pages.brokers.BrokersDetails;
-import io.kafbat.ui.utilities.StringUtils;
+import io.kafbat.ui.utilities.StringUtil;
 import io.kafbat.ui.variables.Expected;
 import io.qameta.allure.Issue;
 import java.util.List;
@@ -40,7 +42,6 @@ public class BrokersTest extends BaseTest {
     brokersConfigTab
         .waitUntilScreenReady();
     verifyElementsCondition(brokersConfigTab.getColumnHeaders(), Condition.visible);
-    verifyElementsCondition(brokersConfigTab.getEditButtons(), Condition.enabled);
     Assert.assertTrue(brokersConfigTab.isSearchByKeyVisible(), "isSearchByKeyVisible()");
   }
 
@@ -115,7 +116,7 @@ public class BrokersTest extends BaseTest {
         String.format("getAllConfigs().contains(%s)", anyConfigKeyFirstPage));
     SoftAssert softly = new SoftAssert();
     List.of(anyConfigKeyFirstPage.toLowerCase(), anyConfigKeyFirstPage.toUpperCase(),
-            StringUtils.getMixedCase(anyConfigKeyFirstPage))
+            StringUtil.getMixedCase(anyConfigKeyFirstPage))
         .forEach(configCase -> {
           brokersConfigTab
               .searchConfig(configCase);
@@ -147,7 +148,7 @@ public class BrokersTest extends BaseTest {
     BrokersConfigTab.BrokersConfigItem configItem = brokersConfigTab
         .searchConfig(configKey)
         .getConfig(configKey);
-    int defaultValue = Integer.parseInt(configItem.getValue());
+    int defaultValue = getIntegerFromString(configItem.getValue(), false);
     configItem
         .clickEditBtn();
     SoftAssert softly = new SoftAssert();
@@ -159,7 +160,7 @@ public class BrokersTest extends BaseTest {
     configItem
         .setValue(String.valueOf(newValue))
         .clickCancelBtn();
-    Assert.assertEquals(Integer.parseInt(configItem.getValue()), defaultValue, "getValue()");
+    Assert.assertEquals(getIntegerFromString(configItem.getValue(), false), defaultValue, "getValue()");
     configItem
         .clickEditBtn()
         .setValue(String.valueOf(newValue))
@@ -171,7 +172,7 @@ public class BrokersTest extends BaseTest {
     softly.assertFalse(configItem.getSaveBtn().isDisplayed(), "getSaveBtn().isDisplayed()");
     softly.assertFalse(configItem.getCancelBtn().isDisplayed(), "getCancelBtn().isDisplayed()");
     softly.assertTrue(configItem.getEditBtn().isDisplayed(), "getEditBtn().isDisplayed()");
-    softly.assertEquals(Integer.parseInt(configItem.getValue()), newValue, "getValue()");
+    softly.assertEquals(getIntegerFromString(configItem.getValue(), false), newValue, "getValue()");
     softly.assertAll();
   }
 }

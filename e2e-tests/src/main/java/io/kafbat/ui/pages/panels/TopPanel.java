@@ -9,7 +9,7 @@ import java.util.List;
 
 public class TopPanel extends BasePage {
 
-  protected SelenideElement kafkaLogo = $x("//a[contains(text(),'Kafbat UI')]");
+  protected SelenideElement kafkaLogo = $x("//a[contains(text(), 'kafbat UI')]");
   protected SelenideElement kafkaVersion = $x("//a[@title='Current commit']");
   protected SelenideElement logOutBtn = $x("//button[contains(text(),'Log out')]");
   protected SelenideElement gitBtn = $x("//a[@href='https://github.com/kafbat/kafka-ui']");

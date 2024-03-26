@@ -1,7 +1,7 @@
 package io.kafbat.ui.smokesuite.connectors;
 
 import static io.kafbat.ui.pages.BasePage.AlertHeader.SUCCESS;
-import static io.kafbat.ui.utilities.FileUtils.getResourceAsString;
+import static io.kafbat.ui.utilities.FileUtil.getResourceAsString;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.kafbat.ui.BaseTest;

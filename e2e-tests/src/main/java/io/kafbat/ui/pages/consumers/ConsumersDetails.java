@@ -4,7 +4,7 @@ import static com.codeborne.selenide.Selenide.$x;
 
 import com.codeborne.selenide.Condition;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 public class ConsumersDetails extends BasePage {
@@ -21,12 +21,12 @@ public class ConsumersDetails extends BasePage {
 
   @Step
   public boolean isRedirectedConsumerTitleVisible(String consumerGroupId) {
-    return WebUtils.isVisible($x(String.format(consumerIdHeaderLocator, consumerGroupId)));
+    return WebUtil.isVisible($x(String.format(consumerIdHeaderLocator, consumerGroupId)));
   }
 
   @Step
   public boolean isTopicInConsumersDetailsVisible(String topicName) {
     tableGrid.shouldBe(Condition.visible);
-    return WebUtils.isVisible($x(String.format(topicElementLocator, topicName)));
+    return WebUtil.isVisible($x(String.format(topicElementLocator, topicName)));
   }
 }

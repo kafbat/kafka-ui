@@ -6,7 +6,7 @@ import static io.kafbat.ui.pages.panels.enums.MenuItem.KAFKA_CONNECT;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 
 
@@ -27,7 +27,7 @@ public class KafkaConnectList extends BasePage {
 
   @Step
   public KafkaConnectList clickCreateConnectorBtn() {
-    WebUtils.clickByJavaScript(createConnectorBtn);
+    WebUtil.clickByJavaScript(createConnectorBtn);
     return this;
   }
 
@@ -40,6 +40,6 @@ public class KafkaConnectList extends BasePage {
   @Step
   public boolean isConnectorVisible(String connectorName) {
     tableGrid.shouldBe(Condition.visible);
-    return WebUtils.isVisible(getTableElement(connectorName));
+    return WebUtil.isVisible(getTableElement(connectorName));
   }
 }

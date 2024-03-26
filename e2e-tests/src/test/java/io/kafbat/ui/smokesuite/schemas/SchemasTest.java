@@ -4,7 +4,7 @@ import com.codeborne.selenide.Condition;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.api.model.CompatibilityLevel;
 import io.kafbat.ui.models.Schema;
-import io.kafbat.ui.utilities.FileUtils;
+import io.kafbat.ui.utilities.FileUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -34,7 +34,7 @@ public class SchemasTest extends BaseTest {
         .clickCreateSchema();
     schemaCreateForm
         .setSubjectName(schemaAvro.getName())
-        .setSchemaField(FileUtils.fileToString(schemaAvro.getValuePath()))
+        .setSchemaField(FileUtil.fileToString(schemaAvro.getValuePath()))
         .selectSchemaTypeFromDropdown(schemaAvro.getType())
         .clickSubmitButton();
     schemaDetails
@@ -66,7 +66,7 @@ public class SchemasTest extends BaseTest {
     softly.assertAll();
     schemaCreateForm
         .selectCompatibilityLevelFromDropdown(CompatibilityLevel.CompatibilityEnum.NONE)
-        .setNewSchemaValue(FileUtils.fileToString(AVRO_API.getValuePath()))
+        .setNewSchemaValue(FileUtil.fileToString(AVRO_API.getValuePath()))
         .clickSubmitButton();
     schemaDetails
         .waitUntilScreenReady();
@@ -111,7 +111,7 @@ public class SchemasTest extends BaseTest {
         .clickCreateSchema();
     schemaCreateForm
         .setSubjectName(schemaJson.getName())
-        .setSchemaField(FileUtils.fileToString(schemaJson.getValuePath()))
+        .setSchemaField(FileUtil.fileToString(schemaJson.getValuePath()))
         .selectSchemaTypeFromDropdown(schemaJson.getType())
         .clickSubmitButton();
     schemaDetails
@@ -146,7 +146,7 @@ public class SchemasTest extends BaseTest {
         .clickCreateSchema();
     schemaCreateForm
         .setSubjectName(schemaProtobuf.getName())
-        .setSchemaField(FileUtils.fileToString(schemaProtobuf.getValuePath()))
+        .setSchemaField(FileUtil.fileToString(schemaProtobuf.getValuePath()))
         .selectSchemaTypeFromDropdown(schemaProtobuf.getType())
         .clickSubmitButton();
     schemaDetails

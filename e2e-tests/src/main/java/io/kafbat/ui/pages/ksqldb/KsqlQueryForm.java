@@ -10,7 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.utilities.WebUtils;
+import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class KsqlQueryForm extends BasePage {
 
   @Step
   public KsqlQueryForm clickClearBtn() {
-    WebUtils.clickByJavaScript(clearBtn);
+    WebUtil.clickByJavaScript(clearBtn);
     sleep(500);
     return this;
   }
@@ -50,7 +50,7 @@ public class KsqlQueryForm extends BasePage {
 
   @Step
   public KsqlQueryForm clickExecuteBtn(String query) {
-    WebUtils.clickByActions(executeBtn);
+    WebUtil.clickByActions(executeBtn);
     if (query.contains("EMIT CHANGES")) {
       abortButton.shouldBe(Condition.visible);
     } else {
@@ -61,42 +61,42 @@ public class KsqlQueryForm extends BasePage {
 
   @Step
   public boolean isAbortBtnVisible() {
-    return WebUtils.isVisible(abortButton);
+    return WebUtil.isVisible(abortButton);
   }
 
   @Step
   public KsqlQueryForm clickAbortBtn() {
-    WebUtils.clickByActions(abortButton);
+    WebUtil.clickByActions(abortButton);
     return this;
   }
 
   @Step
   public boolean isCancelledAlertVisible() {
-    return WebUtils.isVisible(cancelledAlert);
+    return WebUtil.isVisible(cancelledAlert);
   }
 
   @Step
   public boolean isClearResultsBtnEnabled() {
-    return WebUtils.isEnabled(clearResultsBtn);
+    return WebUtil.isEnabled(clearResultsBtn);
   }
 
   @Step
   public KsqlQueryForm clickClearResultsBtn() {
-    WebUtils.clickByActions(clearResultsBtn);
+    WebUtil.clickByActions(clearResultsBtn);
     waitUntilSpinnerDisappear();
     return this;
   }
 
   @Step
   public KsqlQueryForm clickAddStreamProperty() {
-    WebUtils.clickByActions(addStreamPropertyBtn);
+    WebUtil.clickByActions(addStreamPropertyBtn);
     return this;
   }
 
   @Step
   public KsqlQueryForm setQuery(String query) {
     queryAreaValue.shouldBe(Condition.visible).click();
-    WebUtils.sendKeysByActions(queryArea, query);
+    WebUtil.sendKeysByActions(queryArea, query);
     return this;
   }
 

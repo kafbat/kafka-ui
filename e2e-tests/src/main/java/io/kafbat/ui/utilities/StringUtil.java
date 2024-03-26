@@ -4,7 +4,7 @@ import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class StringUtils {
+public class StringUtil {
 
   public static String getMixedCase(String original) {
     return IntStream.range(0, original.length())
