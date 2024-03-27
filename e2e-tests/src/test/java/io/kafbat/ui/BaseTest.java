@@ -7,7 +7,7 @@ import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
 import io.kafbat.ui.settings.listeners.AllureListener;
-import io.kafbat.ui.settings.listeners.LoggerListener;
+import io.kafbat.ui.settings.listeners.ResultsLogger;
 import io.qameta.allure.Step;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.testng.annotations.Listeners;
 import org.testng.asserts.SoftAssert;
 
 @Slf4j
-@Listeners({AllureListener.class, LoggerListener.class})
+@Listeners({AllureListener.class, ResultsLogger.class})
 public abstract class BaseTest extends Facade {
 
   @BeforeSuite(alwaysRun = true)

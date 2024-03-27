@@ -12,4 +12,13 @@ public class StringUtil {
         .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
         .toString();
   }
+
+  public static String getDuplicates(String toDuplicate, int count) {
+    StringBuilder result = new StringBuilder();
+    while (count > 0) {
+      result.append(toDuplicate);
+      count--;
+    }
+    return result.toString();
+  }
 }
