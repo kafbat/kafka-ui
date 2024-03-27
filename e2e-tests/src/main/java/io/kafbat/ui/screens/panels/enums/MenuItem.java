@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.panels.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum MenuItem {
 
   DASHBOARD("Dashboard", "Dashboard"),
@@ -16,13 +19,5 @@ public enum MenuItem {
   MenuItem(String naviTitle, String pageTitle) {
     this.naviTitle = naviTitle;
     this.pageTitle = pageTitle;
-  }
-
-  public String getNaviTitle() {
-    return naviTitle;
-  }
-
-  public String getPageTitle() {
-    return pageTitle;
   }
 }

@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.topics.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum CustomParameterType {
 
   COMPRESSION_TYPE("compression.type"),
@@ -29,9 +32,5 @@ public enum CustomParameterType {
 
   CustomParameterType(String optionValue) {
     this.optionValue = optionValue;
-  }
-
-  public String getOptionValue() {
-    return optionValue;
   }
 }

@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.topics.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum MaxSizeOnDisk {
 
   NOT_SET("-1", "Not Set"),
@@ -15,13 +18,4 @@ public enum MaxSizeOnDisk {
     this.optionValue = optionValue;
     this.visibleText = visibleText;
   }
-
-  public String getOptionValue() {
-    return optionValue;
-  }
-
-  public String getVisibleText() {
-    return visibleText;
-  }
 }
-

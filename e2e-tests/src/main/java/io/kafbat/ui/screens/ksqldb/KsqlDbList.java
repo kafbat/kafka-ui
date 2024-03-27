@@ -37,7 +37,7 @@ public class KsqlDbList extends BasePage {
 
   @Step
   public KsqlDbList openDetailsTab(KsqlMenuTabs menu) {
-    $(By.linkText(menu.toString())).shouldBe(Condition.visible).click();
+    $(By.linkText(menu.getValue())).shouldBe(Condition.visible).click();
     waitUntilSpinnerDisappear();
     return this;
   }

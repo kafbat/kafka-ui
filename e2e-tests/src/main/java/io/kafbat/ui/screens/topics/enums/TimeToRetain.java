@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.topics.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum TimeToRetain {
 
   BTN_12_HOURS("12 hours", "43200000"),
@@ -14,13 +17,5 @@ public enum TimeToRetain {
   TimeToRetain(String button, String value) {
     this.button = button;
     this.value = value;
-  }
-
-  public String getButton() {
-    return button;
-  }
-
-  public String getValue() {
-    return value;
   }
 }

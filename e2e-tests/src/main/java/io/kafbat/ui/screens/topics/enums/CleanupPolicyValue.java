@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.topics.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum CleanupPolicyValue {
 
   DELETE("delete", "Delete"),
@@ -13,13 +16,4 @@ public enum CleanupPolicyValue {
     this.optionValue = optionValue;
     this.visibleText = visibleText;
   }
-
-  public String getOptionValue() {
-    return optionValue;
-  }
-
-  public String getVisibleText() {
-    return visibleText;
-  }
 }
-

@@ -1,5 +1,8 @@
 package io.kafbat.ui.screens.ksqldb.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum KsqlQueryConfig {
 
   SHOW_TABLES("show tables;"),
@@ -10,9 +13,5 @@ public enum KsqlQueryConfig {
 
   KsqlQueryConfig(String query) {
     this.query = query;
-  }
-
-  public String getQuery() {
-    return query;
   }
 }
