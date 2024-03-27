@@ -8,7 +8,7 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Connector;
 import io.kafbat.ui.models.Schema;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.panels.enums.MenuItem;
+import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.utilities.FileUtil;
 import io.kafbat.ui.variables.Url;
@@ -29,7 +29,7 @@ public class SmokeTest extends BaseTest {
       .setNumberOfPartitions(1);
   private static final Connector TEST_CONNECTOR = new Connector()
       .setName("new-connector-" + randomAlphabetic(5))
-      .setConfig(FileUtil.getResourceAsString("testData/connectors/config_for_create_connector_via_api.json"));
+      .setConfig(FileUtil.getResourceAsString("testdata/connectors/config_for_create_connector_via_api.json"));
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {

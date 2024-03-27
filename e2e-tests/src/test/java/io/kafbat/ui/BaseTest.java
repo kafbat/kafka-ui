@@ -3,7 +3,7 @@ package io.kafbat.ui;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
-import io.kafbat.ui.pages.panels.enums.MenuItem;
+import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
 import io.kafbat.ui.settings.listeners.AllureListener;

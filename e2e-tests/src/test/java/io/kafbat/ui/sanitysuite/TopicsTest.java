@@ -4,7 +4,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
+import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;

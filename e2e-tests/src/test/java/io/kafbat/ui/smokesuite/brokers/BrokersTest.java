@@ -4,8 +4,8 @@ import static io.kafbat.ui.utilities.IntUtil.getIntegerFromString;
 
 import com.codeborne.selenide.Condition;
 import io.kafbat.ui.BaseTest;
-import io.kafbat.ui.pages.brokers.BrokersConfigTab;
-import io.kafbat.ui.pages.brokers.BrokersDetails;
+import io.kafbat.ui.screens.brokers.BrokersConfigTab;
+import io.kafbat.ui.screens.brokers.BrokersDetails;
 import io.kafbat.ui.utilities.StringUtil;
 import io.kafbat.ui.variables.Expected;
 import io.qameta.allure.Issue;

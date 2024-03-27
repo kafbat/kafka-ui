@@ -1,9 +1,9 @@
 package io.kafbat.ui.models;
 
-import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
-import io.kafbat.ui.pages.topics.enums.CustomParameterType;
-import io.kafbat.ui.pages.topics.enums.MaxSizeOnDisk;
-import io.kafbat.ui.pages.topics.enums.TimeToRetain;
+import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
+import io.kafbat.ui.screens.topics.enums.CustomParameterType;
+import io.kafbat.ui.screens.topics.enums.MaxSizeOnDisk;
+import io.kafbat.ui.screens.topics.enums.TimeToRetain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

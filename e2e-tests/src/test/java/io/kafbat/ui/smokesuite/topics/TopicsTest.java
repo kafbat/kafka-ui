@@ -1,17 +1,17 @@
 package io.kafbat.ui.smokesuite.topics;
 
-import static io.kafbat.ui.pages.BasePage.AlertHeader.SUCCESS;
+import static io.kafbat.ui.screens.BasePage.AlertHeader.SUCCESS;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 import com.codeborne.selenide.Condition;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.topics.TopicDetails;
-import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
-import io.kafbat.ui.pages.topics.enums.CustomParameterType;
-import io.kafbat.ui.pages.topics.enums.MaxSizeOnDisk;
-import io.kafbat.ui.pages.topics.enums.TimeToRetain;
+import io.kafbat.ui.screens.topics.TopicDetails;
+import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
+import io.kafbat.ui.screens.topics.enums.CustomParameterType;
+import io.kafbat.ui.screens.topics.enums.MaxSizeOnDisk;
+import io.kafbat.ui.screens.topics.enums.TimeToRetain;
 import io.qameta.allure.Issue;
 import java.util.ArrayList;
 import java.util.List;

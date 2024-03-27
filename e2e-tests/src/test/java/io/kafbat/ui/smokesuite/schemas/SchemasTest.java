@@ -53,7 +53,7 @@ public class SchemasTest extends BaseTest {
   @Test(priority = 2)
   public void updateSchemaAvro() {
     AVRO_API.setValuePath(
-        System.getProperty("user.dir") + "/src/main/resources/testData/schemas/schema_avro_for_update.json");
+        System.getProperty("user.dir") + "/src/main/resources/testdata/schemas/schema_avro_for_update.json");
     navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
     schemaDetails
         .openEditSchema();
