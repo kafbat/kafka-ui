@@ -35,18 +35,14 @@ describe('Topics Component', () => {
       { initialEntries: [path] }
     );
 
-  it('should check if the page is Topics List rendered', () => {
+  it('should check if the page is Topics List rendered', async () => {
     setUpComponent(clusterTopicsPath(clusterName));
-    waitFor(() => {
-      expect(screen.getByText(listContainer)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(listContainer)).toBeInTheDocument();
   });
 
-  it('should check if the page is  New Topic  rendered', () => {
+  it('should check if the page is  New Topic  rendered', async () => {
     setUpComponent(clusterTopicNewPath(clusterName));
-    waitFor(() => {
-      expect(screen.getByText(newCopyContainer)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(newCopyContainer)).toBeInTheDocument();
   });
 
   it('should check if the page is Copy Topic rendered', () => {
@@ -54,10 +50,8 @@ describe('Topics Component', () => {
     expect(screen.getByText(newCopyContainer)).toBeInTheDocument();
   });
 
-  it('should check if the page is Topic page rendered', () => {
+  it('should check if the page is Topic page rendered', async () => {
     setUpComponent(clusterTopicPath(clusterName, topicName));
-    waitFor(() => {
-      expect(screen.getByText(topicContainer)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(topicContainer)).toBeInTheDocument();
   });
 });
