@@ -1,0 +1,15 @@
+ARG BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:main
+FROM $BASE_UI_IMAGE
+
+ARG SERDE_SMILE_JAR=https://github.com/kafbat/ui-serde-smile/releases/download/v1.0.1/serde-smile-v1.0.1-jar-with-dependencies.jar
+ARG SERDE_SMILE_VERSION=1.0.1
+USER root
+RUN mkdir /usr/lib/serdes; \
+    chown -R kafkaui:kafkaui /usr/lib/serdes
+USER kafkaui
+
+RUN cd /usr/lib/serdes; \
+    wget -O "kafka-ui-smile-serde-${SERDE_SMILE_VERSION}.jar" $SERDE_SMILE_JAR
+ENV kafka.clusters.0.serde.0.name="Smile"
+ENV kafka.clusters.0.serde.0.filePath="/usr/lib/serdes/kafka-ui-smile-serde-${SERDE_SMILE_VERSION}.jar"
+ENV kafka.clusters.0.serde.0.className="io.kafbat.serde.smile.SmileSerde"
