@@ -11,7 +11,7 @@ public class GithubReleaseInfo {
   private static final String GITHUB_LATEST_RELEASE_RETRIEVAL_URL =
       "https://api.github.com/repos/kafbat/kafka-ui/releases/latest";
 
-  private static final Duration GITHUB_API_MAX_WAIT_TIME = Duration.ofSeconds(2);
+  private static final Duration GITHUB_API_MAX_WAIT_TIME = Duration.ofSeconds(10);
 
   public record GithubReleaseDto(String html_url, String tag_name, String published_at) {
 
