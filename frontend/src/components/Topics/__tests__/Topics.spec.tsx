@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
 import Topics from 'components/Topics/Topics';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import {
   clusterTopicCopyPath,
   clusterTopicNewPath,

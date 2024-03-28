@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import App from 'components/App';
 import { render } from 'lib/testHelpers';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
