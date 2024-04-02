@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -32,7 +31,6 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
   @Test
   void shouldNotFoundWhenNoSuchConsumerGroupId() {
     String groupId = "groupA";
-    String expError = "The group id does not exist";
     webTestClient
         .delete()
         .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
@@ -47,12 +45,13 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
 
     //Create a consumer and subscribe to the topic
     String groupId = UUID.randomUUID().toString();
-    val consumer = createTestConsumerWithGroupId(groupId);
-    consumer.subscribe(List.of(topicName));
-    consumer.poll(Duration.ofMillis(100));
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
 
-    //Unsubscribe from all topics to be able to delete this consumer
-    consumer.unsubscribe();
+      //Unsubscribe from all topics to be able to delete this consumer
+      consumer.unsubscribe();
+    }
 
     //Delete the consumer when it's INACTIVE and check
     webTestClient
@@ -69,24 +68,24 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
 
     //Create a consumer and subscribe to the topic
     String groupId = UUID.randomUUID().toString();
-    val consumer = createTestConsumerWithGroupId(groupId);
-    consumer.subscribe(List.of(topicName));
-    consumer.poll(Duration.ofMillis(100));
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
 
-    //Try to delete the consumer when it's ACTIVE
-    String expError = "The group is not empty";
-    webTestClient
-        .delete()
-        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
-        .exchange()
-        .expectStatus()
-        .isBadRequest();
+      //Try to delete the consumer when it's ACTIVE
+      webTestClient
+          .delete()
+          .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
+          .exchange()
+          .expectStatus()
+          .isBadRequest();
+    }
   }
 
   @Test
   void shouldReturnConsumerGroupsWithPagination() throws Exception {
-    try (var groups1 = startConsumerGroups(3, "cgPageTest1");
-        var groups2 = startConsumerGroups(2, "cgPageTest2")) {
+    try (var ignored = startConsumerGroups(3, "cgPageTest1");
+         var ignored1 = startConsumerGroups(2, "cgPageTest2")) {
       webTestClient
           .get()
           .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=3&search=cgPageTest", LOCAL)
@@ -114,19 +113,19 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
           });
 
       webTestClient
-            .get()
-            .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=10&&search"
-                + "=cgPageTest&orderBy=NAME&sortOrder=DESC", LOCAL)
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody(ConsumerGroupsPageResponseDTO.class)
-            .value(page -> {
-              assertThat(page.getPageCount()).isEqualTo(1);
-              assertThat(page.getConsumerGroups().size()).isEqualTo(5);
-              assertThat(page.getConsumerGroups())
-                  .isSortedAccordingTo(Comparator.comparing(ConsumerGroupDTO::getGroupId).reversed());
-            });
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=10&&search"
+              + "=cgPageTest&orderBy=NAME&sortOrder=DESC", LOCAL)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> {
+            assertThat(page.getPageCount()).isEqualTo(1);
+            assertThat(page.getConsumerGroups().size()).isEqualTo(5);
+            assertThat(page.getConsumerGroups())
+                .isSortedAccordingTo(Comparator.comparing(ConsumerGroupDTO::getGroupId).reversed());
+          });
 
       webTestClient
           .get()
@@ -149,14 +148,14 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
     String topicName = createTopicWithRandomName();
     var consumers =
         Stream.generate(() -> {
-          String groupId = consumerGroupPrefix + RandomStringUtils.randomAlphabetic(5);
-          val consumer = createTestConsumerWithGroupId(groupId);
-          consumer.subscribe(List.of(topicName));
-          consumer.poll(Duration.ofMillis(100));
-          return consumer;
-        })
-        .limit(count)
-        .collect(Collectors.toList());
+              String groupId = consumerGroupPrefix + RandomStringUtils.randomAlphabetic(5);
+              val consumer = createTestConsumerWithGroupId(groupId);
+              consumer.subscribe(List.of(topicName));
+              consumer.poll(Duration.ofMillis(100));
+              return consumer;
+            })
+            .limit(count)
+            .toList();
     return () -> {
       consumers.forEach(KafkaConsumer::close);
       deleteTopic(topicName);
