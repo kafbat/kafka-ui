@@ -83,12 +83,23 @@ export const topicFormValidationSchema = yup.object().shape({
   retentionMs: yup.string(),
   retentionBytes: yup.number(),
   maxMessageBytes: yup.string(),
-  customParams: yup.array().of(
-    yup.object().shape({
-      name: yup.string().required('Custom parameter is required'),
-      value: yup.string().required('Value is required'),
-    })
-  ),
+  customParams: yup
+    .array()
+    .of(
+      yup.object().shape({
+        name: yup.string().required('Custom parameter is required'),
+        value: yup.string().required('Value is required'),
+      })
+    )
+    .test('is_unique', 'Custom parameters must be unique', (value) => {
+      console.log(value);
+      console.log(
+        value?.length === new Set(value?.map((option) => option.value)).size
+      );
+      return (
+        value?.length === new Set(value?.map((option) => option.value)).size
+      );
+    }),
 });
 
 export default yup;
