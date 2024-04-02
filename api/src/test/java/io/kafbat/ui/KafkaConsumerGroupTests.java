@@ -148,14 +148,14 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
     String topicName = createTopicWithRandomName();
     var consumers =
         Stream.generate(() -> {
-              String groupId = consumerGroupPrefix + RandomStringUtils.randomAlphabetic(5);
-              val consumer = createTestConsumerWithGroupId(groupId);
-              consumer.subscribe(List.of(topicName));
-              consumer.poll(Duration.ofMillis(100));
-              return consumer;
-            })
-            .limit(count)
-            .toList();
+          String groupId = consumerGroupPrefix + RandomStringUtils.randomAlphabetic(5);
+          val consumer = createTestConsumerWithGroupId(groupId);
+          consumer.subscribe(List.of(topicName));
+          consumer.poll(Duration.ofMillis(100));
+          return consumer;
+        })
+        .limit(count)
+        .toList();
     return () -> {
       consumers.forEach(KafkaConsumer::close);
       deleteTopic(topicName);
