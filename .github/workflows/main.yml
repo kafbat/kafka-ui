@@ -82,23 +82,23 @@ jobs:
         run: |
           ./api/build-with-serders.sh
 
-      - name: Build & push docker image with serder
-        id: docker_build_and_push_with_serdes
-        uses: docker/build-push-action@v5
-        with:
-          file: Dockerfile-Serdes
-          builder: ${{ steps.buildx.outputs.name }}
-          context: api
-          platforms: linux/amd64,linux/arm64
-          provenance: false
-          push: true
-          tags: |
-            ghcr.io/kafbat/kafka-ui-serders:${{ steps.build.outputs.version }}
-          build-args: |
-            BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
-            SERDE_SMILE_JAR=${{ steps.get_serders.outputs.smile_package_url }}
-            SERDE_SMILE_VERSION=${{ steps.get_serders.outputs.smile_serde_version }}
-            SERDE_GLUE_JAR=${{ steps.get_serders.outputs.glue_package_url }}
-            SERDE_GLUE_VERSION=${{ steps.get_serders.outputs.glue_serde_version }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+      # - name: Build & push docker image with serder
+      #   id: docker_build_and_push_with_serdes
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     file: Dockerfile-Serdes
+      #     builder: ${{ steps.buildx.outputs.name }}
+      #     context: api
+      #     platforms: linux/amd64,linux/arm64
+      #     provenance: false
+      #     push: true
+      #     tags: |
+      #       ghcr.io/kafbat/kafka-ui-serders:${{ steps.build.outputs.version }}
+      #     build-args: |
+      #       BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
+      #       SERDE_SMILE_JAR=${{ steps.get_serders.outputs.smile_package_url }}
+      #       SERDE_SMILE_VERSION=${{ steps.get_serders.outputs.smile_serde_version }}
+      #       SERDE_GLUE_JAR=${{ steps.get_serders.outputs.glue_package_url }}
+      #       SERDE_GLUE_VERSION=${{ steps.get_serders.outputs.glue_serde_version }}
+      #     cache-from: type=local,src=/tmp/.buildx-cache
+      #     cache-to: type=local,dest=/tmp/.buildx-cache

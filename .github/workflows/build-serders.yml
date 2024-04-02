@@ -1,0 +1,71 @@
+name: "Build Serdes Docker image"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }}
+
+      # docker images
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest Serders
+        id: get_serders
+        run: |
+          ./api/build-with-serders.sh
+
+      - name: Build & push docker image with serder
+        id: docker_build_and_push_with_serdes
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile-Serdes
+          builder: ${{ steps.buildx.outputs.name }}
+          context: api
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+          push: true
+          tags: |
+            ghcr.io/kafbat/kafka-ui-serders:${{ steps.build.outputs.version }}
+          build-args: |
+            BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:mains
+            SERDE_SMILE_JAR=${{ steps.get_serders.outputs.smile_package_url }}
+            SERDE_SMILE_VERSION=${{ steps.get_serders.outputs.smile_serde_version }}
+            SERDE_GLUE_JAR=${{ steps.get_serders.outputs.glue_package_url }}
+            SERDE_GLUE_VERSION=${{ steps.get_serders.outputs.glue_serde_version }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
