@@ -33,7 +33,7 @@ describe('App', () => {
   });
 
   it('Renders navigation', async () => {
-    expect(screen.getByText('Navigation')).toBeInTheDocument();
+    expect(await screen.findByText('Navigation')).toBeInTheDocument();
   });
 
   it('Renders NavBar', async () => {
