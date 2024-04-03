@@ -1,5 +1,4 @@
-import React, { ChangeEvent, useRef } from 'react';
-import { RegisterOptions, useFormContext } from 'react-hook-form';
+import React, { useRef } from 'react';
 import useClickOutside from 'lib/hooks/useClickOutside';
 import LiveIcon from 'components/common/Select/LiveIcon.styled';
 import DropdownArrowIcon from 'components/common/Icons/DropdownArrowIcon';
@@ -13,45 +12,38 @@ export interface SelectOption {
   isLive?: boolean;
 }
 
-export interface InputWithOptionsProps {
+export interface InputWithOptionsProps
+  extends Omit<S.StyledInputProps, 'onChange'> {
   options: SelectOption[];
   onChange?: (option: string) => void;
-  onValidChange?: (isValid: boolean) => void;
-  name?: string;
-  hookFormOptions?: RegisterOptions;
   inputSize?: 'S' | 'M' | 'L';
-  placeholder?: string;
   minWidth?: string;
+  value: string;
 }
 
 const InputWithOptions = ({
   options = [],
   onChange,
-  onValidChange,
-  name,
-  hookFormOptions,
   inputSize = 'L',
   placeholder = '',
+  minWidth,
+  value = '',
   ...rest
 }: InputWithOptionsProps) => {
-  const [query, setQuery] = React.useState('');
+  // TODO maybe value should be debounced
   const [showOptions, setShowOptions] = React.useState(false);
 
-  const methods = useFormContext();
-  const isHookFormField = !!name && !!methods.register;
-
   let filteredOptions = options.filter((option) =>
-    option.value.includes(query.toLowerCase())
+    option.value.includes(value.toLowerCase())
   );
 
-  if (!filteredOptions.length && query) {
-    filteredOptions = [{ value: query, label: query }];
+  if (!filteredOptions.length && value) {
+    filteredOptions = [{ value, label: value }];
   }
 
   const updateSelectedOption = (option: SelectOption) => {
     if (!option.disabled) {
       onChange?.(option.value);
-      setQuery(option.value);
       setShowOptions(false);
     }
   };
@@ -61,36 +53,24 @@ const InputWithOptions = ({
     const isDisabledOption = (optionText: string) =>
       options.some((option) => option.value === optionText && option.disabled);
 
-    if (!isDisabledOption(query) && showOptions) {
-      onChange?.(query);
+    if (!isDisabledOption(value) && showOptions) {
+      onChange?.(value);
     }
 
     setShowOptions(false);
   };
   useClickOutside(selectContainerRef, clickOutsideHandler);
 
-  let inputOptions = { ...rest };
-  if (isHookFormField) {
-    // extend input options with react-hook-form options
-    // if the field is a part of react-hook-form form
-    inputOptions = {
-      ...rest,
-      ...methods.register(name, {
-        ...hookFormOptions,
-      }),
-    };
-  }
-
   return (
     <S.Wrapper inputSize={inputSize} ref={selectContainerRef}>
       <S.Input
-        value={query}
+        {...rest}
+        value={value}
         onFocus={() => setShowOptions(true)}
-        onInput={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
         autoComplete="off"
         placeholder={placeholder}
         inputSize={inputSize}
-        {...inputOptions}
+        onChange={(e) => onChange?.(e.target.value)}
       />
       <DropdownArrowIcon isOpen={showOptions} />
       {showOptions && (
@@ -113,7 +93,5 @@ const InputWithOptions = ({
     </S.Wrapper>
   );
 };
-
-InputWithOptions.displayName = 'InputWithOptions';
 
 export default InputWithOptions;

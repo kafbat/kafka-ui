@@ -83,23 +83,33 @@ export const topicFormValidationSchema = yup.object().shape({
   retentionMs: yup.string(),
   retentionBytes: yup.number(),
   maxMessageBytes: yup.string(),
-  customParams: yup
-    .array()
-    .of(
-      yup.object().shape({
+  customParams: yup.array().of(
+    yup
+      .object()
+      .shape({
         name: yup.string().required('Custom parameter is required'),
         value: yup.string().required('Value is required'),
       })
-    )
-    .test('is_unique', 'Custom parameters must be unique', (value) => {
-      console.log(value);
-      console.log(
-        value?.length === new Set(value?.map((option) => option.value)).size
-      );
-      return (
-        value?.length === new Set(value?.map((option) => option.value)).size
-      );
-    }),
+      .test(
+        'is_unique',
+        'Custom parameters must be unique',
+        (value, context) => {
+          const result =
+            context?.parent.filter(
+              (option: { name: string }) => option.name === value.name
+            ).length === 1;
+
+          if (!result && 'path' in context.options) {
+            return context.createError({
+              message: 'Duplicate field name',
+              path: `${context.options.path}.name`,
+            });
+          }
+
+          return true;
+        }
+      )
+  ),
 });
 
 export default yup;

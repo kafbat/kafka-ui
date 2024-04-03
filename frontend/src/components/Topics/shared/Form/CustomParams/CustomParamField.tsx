@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ErrorMessage } from '@hookform/error-message';
 import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
 import { FieldArrayWithId, useFormContext, Controller } from 'react-hook-form';
@@ -38,6 +38,7 @@ const CustomParamField: React.FC<Props> = ({
     formState: { errors },
     setValue,
     watch,
+    trigger,
     control,
   } = useFormContext<TopicFormData>();
   const nameValue = watch(`customParams.${index}.name`);
@@ -79,25 +80,18 @@ const CustomParamField: React.FC<Props> = ({
           control={control}
           // rules={{ required: 'Custom Parameter is required.' }}
           name={`customParams.${index}.name`}
-          render={({ field: { name, onChange } }) => (
-            <>
-              {/* <Select
-                name={name}
-                placeholder="Select"
-                disabled={isDisabled}
-                minWidth="270px"
-                onChange={onChange}
-                value={value}
-                options={options}
-              /> */}
-              <InputWithOptions
-                options={options}
-                name={name}
-                onChange={onChange}
-                minWidth="270px"
-                placeholder="Select"
-              />
-            </>
+          render={({ field: { name, onChange, value } }) => (
+            <InputWithOptions
+              value={value}
+              options={options}
+              name={name}
+              onChange={(s) => {
+                onChange(s);
+                trigger('customParams');
+              }}
+              minWidth="270px"
+              placeholder="Select"
+            />
           )}
         />
         <FormError>

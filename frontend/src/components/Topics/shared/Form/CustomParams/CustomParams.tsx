@@ -24,7 +24,7 @@ const CustomParams: React.FC<CustomParamsProps> = ({
     control,
     formState: { errors },
   } = useFormContext<TopicFormData>();
-  console.log(errors)
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: TOPIC_CUSTOM_PARAMS_PREFIX,

@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
+import { ComponentProps } from 'react';
 
-export interface InputProps {
+export interface InputProps extends ComponentProps<'input'> {
   inputSize?: 'S' | 'M' | 'L';
 }
 
@@ -74,6 +75,8 @@ export const Input = styled.input<InputProps>(
     }
   `
 );
+
+export type StyledInputProps = ComponentProps<typeof Input>;
 
 export const OptionList = styled.ul`
   position: absolute;
