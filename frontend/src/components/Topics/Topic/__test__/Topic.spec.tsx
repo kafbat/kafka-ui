@@ -22,7 +22,6 @@ import {
   useRecreateTopic,
   useTopicDetails,
 } from 'lib/hooks/api/topics';
-import { useAppDispatch } from 'lib/hooks/redux';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -36,13 +35,7 @@ jest.mock('lib/hooks/api/topics', () => ({
   useClearTopicMessages: jest.fn(),
 }));
 
-const unwrapMock = jest.fn();
 const clearTopicMessages = jest.fn();
-
-jest.mock('lib/hooks/redux', () => ({
-  ...jest.requireActual('lib/hooks/redux'),
-  useAppDispatch: jest.fn(),
-}));
 
 jest.mock('components/Topics/Topic/Overview/Overview', () => () => (
   <>OverviewMock</>
@@ -104,9 +97,6 @@ describe('Details', () => {
     }));
     (useClearTopicMessages as jest.Mock).mockImplementation(() => ({
       mutateAsync: clearTopicMessages,
-    }));
-    (useAppDispatch as jest.Mock).mockImplementation(() => () => ({
-      unwrap: unwrapMock,
     }));
   });
   describe('Action Bar', () => {

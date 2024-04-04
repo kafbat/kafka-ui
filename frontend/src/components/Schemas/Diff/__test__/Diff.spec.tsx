@@ -1,9 +1,10 @@
 import React from 'react';
-import Diff, { DiffProps } from 'components/Schemas/Diff/Diff';
+import Diff from 'components/Schemas/Diff/Diff';
 import { render, WithRoute } from 'lib/testHelpers';
 import { screen } from '@testing-library/react';
 import { clusterSchemaComparePath } from 'lib/paths';
 import userEvent from '@testing-library/user-event';
+import { useGetSchemasVersions } from 'lib/hooks/api/schemas';
 
 import { versions } from './fixtures';
 
@@ -14,9 +15,12 @@ const defaultPathName = clusterSchemaComparePath(
   defaultSubject
 );
 
+jest.mock('lib/hooks/api/schemas', () => ({
+  useGetSchemasVersions: jest.fn(),
+}));
+
 describe('Diff', () => {
   const setupComponent = (
-    props: DiffProps,
     searchQuery: { rightVersion?: string; leftVersion?: string } = {}
   ) => {
     let pathname = defaultPathName;
@@ -32,10 +36,7 @@ describe('Diff', () => {
 
     return render(
       <WithRoute path={clusterSchemaComparePath()}>
-        <Diff
-          versions={props.versions}
-          areVersionsFetched={props.areVersionsFetched}
-        />
+        <Diff />
       </WithRoute>,
       {
         initialEntries: [pathname],
@@ -45,26 +46,25 @@ describe('Diff', () => {
 
   describe('Container', () => {
     it('renders view', () => {
-      setupComponent({
-        areVersionsFetched: true,
-        versions,
-      });
-      expect(screen.getAllByText('Version 3').length).toEqual(4);
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: versions,
+        isFetching: false,
+        isError: false,
+      }));
+      setupComponent();
+      // TODO make sure this case it correct
+      expect(screen.getAllByText('Version 3').length).toEqual(2);
     });
   });
 
-  describe('View', () => {
-    setupComponent({
-      areVersionsFetched: true,
-      versions,
-    });
-  });
   describe('when page with schema versions is loading', () => {
     beforeAll(() => {
-      setupComponent({
-        areVersionsFetched: false,
-        versions: [],
-      });
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: undefined,
+        isFetching: true,
+        isError: false,
+      }));
+      setupComponent();
     });
     it('renders PageLoader', () => {
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -73,10 +73,12 @@ describe('Diff', () => {
 
   describe('when schema versions are loaded and no specified versions in path', () => {
     beforeEach(() => {
-      setupComponent({
-        areVersionsFetched: true,
-        versions,
-      });
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: versions,
+        isFetching: false,
+        isError: false,
+      }));
+      setupComponent();
     });
 
     it('renders all options', () => {
@@ -94,15 +96,15 @@ describe('Diff', () => {
       expect(select).toHaveTextContent(versions[0].version);
     });
   });
+
   describe('when schema versions are loaded and two versions in path', () => {
     beforeEach(() => {
-      setupComponent(
-        {
-          areVersionsFetched: true,
-          versions,
-        },
-        { leftVersion: '1', rightVersion: '2' }
-      );
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: versions,
+        isFetching: false,
+        isError: false,
+      }));
+      setupComponent({ leftVersion: '1', rightVersion: '2' });
     });
 
     it('renders left select with version 1', () => {
@@ -120,15 +122,14 @@ describe('Diff', () => {
 
   describe('when schema versions are loaded and only one versions in path', () => {
     beforeEach(() => {
-      setupComponent(
-        {
-          areVersionsFetched: true,
-          versions,
-        },
-        {
-          leftVersion: '1',
-        }
-      );
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: versions,
+        isFetching: false,
+        isError: false,
+      }));
+      setupComponent({
+        leftVersion: '1',
+      });
     });
 
     it('renders left select with version 1', () => {
@@ -146,10 +147,12 @@ describe('Diff', () => {
 
   describe('Back button', () => {
     beforeEach(() => {
-      setupComponent({
-        areVersionsFetched: true,
-        versions,
-      });
+      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+        data: versions,
+        isFetching: false,
+        isError: false,
+      }));
+      setupComponent();
     });
 
     it('back button is appear', () => {

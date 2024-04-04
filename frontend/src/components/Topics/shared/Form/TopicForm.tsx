@@ -1,7 +1,6 @@
 import React from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { NOT_SET, BYTES_IN_GB } from 'lib/constants';
-import { ClusterName, TopicConfigParams, TopicName } from 'redux/interfaces';
 import { ErrorMessage } from '@hookform/error-message';
 import Select from 'components/common/Select/Select';
 import Input from 'components/common/Input/Input';
@@ -12,6 +11,8 @@ import { StyledForm } from 'components/common/Form/Form.styled';
 import { clusterTopicPath } from 'lib/paths';
 import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
+import { TopicConfigParams, TopicName } from 'lib/interfaces/topic';
+import { ClusterName } from 'lib/interfaces/cluster';
 
 import CustomParams from './CustomParams/CustomParams';
 import TimeToRetain from './TimeToRetain';

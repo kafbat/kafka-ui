@@ -5,7 +5,7 @@ import Table from 'components/common/NewTable';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useAcls, useDeleteAcl } from 'lib/hooks/api/acl';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import {
   KafkaAcl,
   KafkaAclNamePatternType,

@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { useCreateStreamAppAcl } from 'lib/hooks/api/acl';
 import useAppParams from 'lib/hooks/useAppParams';
 import Input from 'components/common/Input/Input';
