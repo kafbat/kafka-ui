@@ -22,7 +22,7 @@ const options: Array<SelectOption> = [
 
 const renderComponent = (props?: Partial<InputWithOptionsProps>) => {
   render(
-    <InputWithOptions value="test" name="test" options={options} {...props} />
+    <InputWithOptions name="test" options={options} {...props} />
   );
 };
 

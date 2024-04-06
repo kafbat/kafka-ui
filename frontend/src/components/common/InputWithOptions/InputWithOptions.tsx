@@ -29,18 +29,20 @@ const InputWithOptions = ({
   minWidth,
   ...rest
 }: InputWithOptionsProps) => {
+  const [selectedOption, setSelectedOption] = React.useState("");
   const [showOptions, setShowOptions] = React.useState(false);
 
   let filteredOptions = options.filter((option) =>
-    option.value.includes(value.toLowerCase())
+    option.value.includes(selectedOption.toLowerCase())
   );
 
-  if (!filteredOptions.length && value) {
-    filteredOptions = [{ value, label: value }];
+  if (!filteredOptions.length && selectedOption) {
+    filteredOptions = [{ value: selectedOption, label: selectedOption }];
   }
 
   const updateSelectedOption = (option: SelectOption) => {
     if (!option.disabled) {
+      setSelectedOption(option.value);
       onChange?.(option.value);
       setShowOptions(false);
     }
@@ -52,7 +54,7 @@ const InputWithOptions = ({
       options.some((option) => option.value === optionText && option.disabled);
 
     if (!isDisabledOption(value) && showOptions) {
-      onChange?.(value);
+      onChange?.(selectedOption);
     }
 
     setShowOptions(false);
@@ -63,12 +65,15 @@ const InputWithOptions = ({
     <S.Wrapper inputSize={inputSize} ref={selectContainerRef}>
       <S.Input
         {...rest}
-        value={value}
+        value={selectedOption}
         onFocus={() => setShowOptions(true)}
         autoComplete="off"
         placeholder={placeholder}
         inputSize={inputSize}
-        onChange={(e) => onChange?.(e.target.value)}
+        onChange={(e) => {
+          onChange?.(e.target.value)
+          setSelectedOption(e.target.value);
+        }}
       />
       <DropdownArrowIcon isOpen={showOptions} />
       {showOptions && (
