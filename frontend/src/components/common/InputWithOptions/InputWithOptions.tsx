@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import useClickOutside from 'lib/hooks/useClickOutside';
-import LiveIcon from 'components/common/Select/LiveIcon.styled';
 import DropdownArrowIcon from 'components/common/Icons/DropdownArrowIcon';
 
 import * as S from './InputWithOptions.styled';
@@ -15,22 +14,21 @@ export interface SelectOption {
 export interface InputWithOptionsProps
   extends Omit<S.StyledInputProps, 'onChange'> {
   options: SelectOption[];
+  value?: string;
   onChange?: (option: string) => void;
   inputSize?: 'S' | 'M' | 'L';
   minWidth?: string;
-  value: string;
 }
 
 const InputWithOptions = ({
   options = [],
+  value = '',
   onChange,
   inputSize = 'L',
   placeholder = '',
   minWidth,
-  value = '',
   ...rest
 }: InputWithOptionsProps) => {
-  // TODO maybe value should be debounced
   const [showOptions, setShowOptions] = React.useState(false);
 
   let filteredOptions = options.filter((option) =>
@@ -84,7 +82,6 @@ const InputWithOptions = ({
               onClick={() => updateSelectedOption(option)}
               tabIndex={0}
             >
-              {option.isLive && <LiveIcon />}
               {option.label}
             </S.Option>
           ))}

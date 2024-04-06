@@ -21,7 +21,9 @@ const options: Array<SelectOption> = [
 ];
 
 const renderComponent = (props?: Partial<InputWithOptionsProps>) => {
-  render(<InputWithOptions name="test" options={options} {...props} />);
+  render(
+    <InputWithOptions value="test" name="test" options={options} {...props} />
+  );
 };
 
 describe('InputWithOptions component', () => {

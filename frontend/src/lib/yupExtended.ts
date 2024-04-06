@@ -94,14 +94,14 @@ export const topicFormValidationSchema = yup.object().shape({
         'is_unique',
         'Custom parameters must be unique',
         (value, context) => {
-          const result =
+          const hasDuplicate =
             context?.parent.filter(
               (option: { name: string }) => option.name === value.name
-            ).length === 1;
+            ).length > 1;
 
-          if (!result && 'path' in context.options) {
+          if (hasDuplicate && 'path' in context.options) {
             return context.createError({
-              message: 'Duplicate field name',
+              message: 'Custom parameters must be unique',
               path: `${context.options.path}.name`,
             });
           }

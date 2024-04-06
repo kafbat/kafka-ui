@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { ErrorMessage } from '@hookform/error-message';
 import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
 import { FieldArrayWithId, useFormContext, Controller } from 'react-hook-form';
 import { TopicConfigParams, TopicFormData } from 'redux/interfaces';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { FormError } from 'components/common/Input/Input.styled';
-// import Select from 'components/common/Select/Select';
 import Input from 'components/common/Input/Input';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
@@ -78,7 +77,6 @@ const CustomParamField: React.FC<Props> = ({
         <InputLabel>Custom Parameter *</InputLabel>
         <Controller
           control={control}
-          // rules={{ required: 'Custom Parameter is required.' }}
           name={`customParams.${index}.name`}
           render={({ field: { name, onChange, value } }) => (
             <InputWithOptions
@@ -105,9 +103,6 @@ const CustomParamField: React.FC<Props> = ({
         <InputLabel>Value *</InputLabel>
         <Input
           name={`customParams.${index}.value` as const}
-          // hookFormOptions={{
-          //   required: 'Value is required.',
-          // }}
           placeholder="Value"
           defaultValue={field.value}
           autoComplete="off"

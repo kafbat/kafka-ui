@@ -21,6 +21,7 @@ const CustomParams: React.FC<CustomParamsProps> = ({
   config,
 }) => {
   const {
+    trigger,
     control,
     formState: { errors },
   } = useFormContext<TopicFormData>();
@@ -42,12 +43,14 @@ const CustomParams: React.FC<CustomParamsProps> = ({
   });
 
   const [existingFields, setExistingFields] = React.useState<string[]>([]);
-
   const removeField = (index: number): void => {
-    setExistingFields(
-      existingFields.filter((field) => field !== controlledFields[index].name)
-    );
-    remove(index);
+    const itemIndex = existingFields.indexOf(controlledFields[index].name);
+    if (itemIndex !== -1) {
+      existingFields.splice(itemIndex, 1);
+      setExistingFields(existingFields);
+      remove(index);
+      trigger('customParams');
+    }
   };
 
   return (
