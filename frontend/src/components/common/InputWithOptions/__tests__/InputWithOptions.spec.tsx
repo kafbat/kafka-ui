@@ -21,9 +21,7 @@ const options: Array<SelectOption> = [
 ];
 
 const renderComponent = (props?: Partial<InputWithOptionsProps>) => {
-  render(
-    <InputWithOptions name="test" options={options} {...props} />
-  );
+  render(<InputWithOptions name="test" options={options} {...props} />);
 };
 
 describe('InputWithOptions component', () => {
@@ -31,7 +29,7 @@ describe('InputWithOptions component', () => {
     renderComponent({ onChange: () => {} });
   });
 
-  const getInputBox = () => screen.getByRole('textbox');
+  const getInputBox = () => screen.getByRole('listitem');
   const getListbox = () => screen.getByRole('listbox');
 
   it('renders component', () => {

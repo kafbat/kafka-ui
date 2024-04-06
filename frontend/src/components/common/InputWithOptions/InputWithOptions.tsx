@@ -29,7 +29,7 @@ const InputWithOptions = ({
   minWidth,
   ...rest
 }: InputWithOptionsProps) => {
-  const [selectedOption, setSelectedOption] = React.useState("");
+  const [selectedOption, setSelectedOption] = React.useState(value);
   const [showOptions, setShowOptions] = React.useState(false);
 
   let filteredOptions = options.filter((option) =>
@@ -65,13 +65,14 @@ const InputWithOptions = ({
     <S.Wrapper inputSize={inputSize} ref={selectContainerRef}>
       <S.Input
         {...rest}
+        role="listitem"
         value={selectedOption}
         onFocus={() => setShowOptions(true)}
         autoComplete="off"
         placeholder={placeholder}
         inputSize={inputSize}
         onChange={(e) => {
-          onChange?.(e.target.value)
+          onChange?.(e.target.value);
           setSelectedOption(e.target.value);
         }}
       />

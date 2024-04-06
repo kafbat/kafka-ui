@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import CustomParamsField, {
   Props,
@@ -42,7 +42,12 @@ describe('CustomParamsField', () => {
     setExistingFields.mockClear();
   });
 
-  it('renders the component with its view correctly', () => {
+  const getInputBox = () => screen.getByRole('listitem');
+  const getListbox = () => screen.getByRole('listbox');
+  const getTextBox = () => screen.getByRole('textbox');
+  const getButton = () => screen.getByRole('button');
+
+  it('renders the component with its view correctly', async () => {
     setupComponent({
       field,
       isDisabled,
@@ -51,9 +56,11 @@ describe('CustomParamsField', () => {
       existingFields,
       setExistingFields,
     });
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(getInputBox()).toBeInTheDocument();
+    expect(getTextBox()).toBeInTheDocument();
+    expect(getButton()).toBeInTheDocument();
+    await userEvent.click(getInputBox());
+    expect(getListbox()).toBeInTheDocument();
   });
 
   describe('core functionality works', () => {
@@ -66,7 +73,7 @@ describe('CustomParamsField', () => {
         existingFields,
         setExistingFields,
       });
-      await userEvent.click(screen.getByRole('button'));
+      await userEvent.click(getButton());
       expect(remove).toHaveBeenCalledTimes(1);
     });
 
@@ -79,7 +86,7 @@ describe('CustomParamsField', () => {
         existingFields,
         setExistingFields,
       });
-      await userEvent.type(screen.getByRole('button'), SPACE_KEY);
+      await userEvent.type(getButton(), SPACE_KEY);
       // userEvent.type triggers remove two times as at first it clicks on element and then presses space
       expect(remove).toHaveBeenCalledTimes(2);
     });
@@ -93,12 +100,10 @@ describe('CustomParamsField', () => {
         existingFields,
         setExistingFields,
       });
-      const listbox = screen.getByRole('listbox');
-      await selectOption(listbox, 'compression.type');
-
-      const selectedOption = within(listbox).getAllByRole('option');
-      expect(selectedOption.length).toEqual(1);
-      expect(selectedOption[0]).toHaveTextContent('compression.type');
+      await userEvent.click(getInputBox());
+      await selectOption(getListbox(), 'compression.type');
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(getInputBox()).toHaveValue('compression.type');
     });
 
     it('selecting option updates textbox value', async () => {
@@ -110,11 +115,10 @@ describe('CustomParamsField', () => {
         existingFields,
         setExistingFields,
       });
-      const listbox = screen.getByRole('listbox');
-      await selectOption(listbox, 'compression.type');
+      await userEvent.click(getInputBox());
+      await selectOption(getListbox(), 'compression.type');
 
-      const textbox = screen.getByRole('textbox');
-      expect(textbox).toHaveValue(TOPIC_CUSTOM_PARAMS['compression.type']);
+      expect(getTextBox()).toHaveValue(TOPIC_CUSTOM_PARAMS['compression.type']);
     });
 
     it('selecting option updates triggers setExistingFields', async () => {
@@ -126,8 +130,8 @@ describe('CustomParamsField', () => {
         existingFields,
         setExistingFields,
       });
-      const listbox = screen.getByRole('listbox');
-      await selectOption(listbox, 'compression.type');
+      await userEvent.click(getInputBox());
+      await selectOption(getListbox(), 'compression.type');
 
       expect(setExistingFields).toHaveBeenCalledTimes(1);
     });
