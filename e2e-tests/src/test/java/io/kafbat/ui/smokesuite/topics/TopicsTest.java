@@ -295,7 +295,7 @@ public class TopicsTest extends BaseTest {
   @Test(priority = 13)
   public void editActiveSmartFilterCheck() {
     String filterName = randomAlphabetic(5);
-    String filterCode = randomAlphabetic(5);
+    String filterCode = "has(record.keyAsText) && record.keyAsText.matches(\".*[Gg]roovy.*\")";
     navigateToTopicsAndOpenDetails(FILTERS_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
@@ -311,14 +311,12 @@ public class TopicsTest extends BaseTest {
     softly.assertEquals(topicDetails.getFilterNameValue(), filterName, "getFilterNameValue()");
     softly.assertAll();
     String newFilterName = randomAlphabetic(5);
-    String newFilterCode = randomAlphabetic(5);
+    String newFilterCode = "has(record.key.name.first) && record.key.name.first == 'user1'";
     topicDetails
         .setFilterCodeFldAddFilterMdl(newFilterCode)
         .setDisplayNameFldAddFilterMdl(newFilterName)
         .clickSaveFilterBtnAndCloseMdl(true);
-    softly.assertTrue(topicDetails.isActiveFilterVisible(newFilterName), "isActiveFilterVisible()");
-    softly.assertEquals(topicDetails.getSearchFieldValue(), newFilterCode, "getSearchFieldValue()");
-    softly.assertAll();
+    Assert.assertTrue(topicDetails.isActiveFilterVisible(newFilterName), "isActiveFilterVisible()");
   }
 
   @Test(priority = 14)

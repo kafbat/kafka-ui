@@ -1,5 +1,6 @@
 package io.kafbat.ui.screens.topics;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.Selenide.sleep;
@@ -44,7 +45,7 @@ public class TopicDetails extends BasePage {
   protected SelenideElement displayNameInputAddFilterMdl = $x("//input[@placeholder='Enter Name']");
   protected SelenideElement cancelBtnAddFilterMdl = $x("//button[text()='Cancel']");
   protected SelenideElement addFilterBtnAddFilterMdl = $x("//button[text()='Add Filter']");
-  protected SelenideElement saveFilterBtnEditFilterMdl = $x("//button[text()='Save']");
+  protected SelenideElement saveFilterBtnEditFilterMdl = $x("//button[text()='Edit Filter']");
   protected SelenideElement addFiltersBtnMessages = $x("//button[text()='Add Filters']");
   protected SelenideElement selectFilterBtnAddFilterMdl = $x("//button[text()='Select filter']");
   protected SelenideElement editSettingsMenu = $x("//li[@role][contains(text(),'Edit settings')]");
@@ -66,7 +67,7 @@ public class TopicDetails extends BasePage {
   protected String consumerIdLocator = "//a[@title='%s']";
   protected String topicHeaderLocator = "//h1[contains(text(),'%s')]";
   protected String activeFilterNameLocator = "//div[@data-testid='activeSmartFilter']/div[1][contains(text(),'%s')]";
-  protected String editActiveFilterBtnLocator = "//div[text()='%s']/../div[@data-testid='editActiveSmartFilterBtn']";
+  protected String editActiveFilterBtnLocator = "//div[text()='%s']/../button[1]";
   protected String settingsGridValueLocator = "//tbody/tr/td/span[text()='%s']//ancestor::tr/td[2]/span";
 
   @Step
@@ -78,7 +79,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openDetailsTab(TopicMenu menu) {
-    $x(String.format(detailsTabLtr, menu.toString())).shouldBe(Condition.enabled).click();
+    $x(String.format(detailsTabLtr, menu.toString())).shouldBe(enabled).click();
     waitUntilSpinnerDisappear();
     return this;
   }
@@ -164,14 +165,14 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails selectSeekTypeDdlMessagesTab(String seekTypeName) {
-    seekTypeDdl.shouldBe(Condition.enabled).click();
+    seekTypeDdl.shouldBe(enabled).click();
     $x(String.format(seekFilterDdlLocator, seekTypeName)).shouldBe(Condition.visible).click();
     return this;
   }
 
   @Step
   public TopicDetails setSeekTypeValueFldMessagesTab(String seekTypeValue) {
-    seekTypeField.shouldBe(Condition.enabled).sendKeys(seekTypeValue);
+    seekTypeField.shouldBe(enabled).sendKeys(seekTypeValue);
     return this;
   }
 
@@ -184,14 +185,14 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails clickMessagesAddFiltersBtn() {
-    addFiltersBtn.shouldBe(Condition.enabled).click();
+    addFiltersBtn.shouldBe(enabled).click();
     return this;
   }
 
   @Step
   public TopicDetails clickEditActiveFilterBtn(String filterName) {
     $x(String.format(editActiveFilterBtnLocator, filterName))
-        .shouldBe(Condition.enabled).click();
+        .shouldBe(enabled).click();
     return this;
   }
 
@@ -204,7 +205,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openSavedFiltersListMdl() {
-    savedFiltersLink.shouldBe(Condition.enabled).click();
+    savedFiltersLink.shouldBe(enabled).click();
     backToCreateFiltersLink.shouldBe(Condition.visible);
     return this;
   }
@@ -216,13 +217,13 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails selectFilterAtSavedFiltersMdl(String filterName) {
-    $x(String.format(savedFilterNameLocator, filterName)).shouldBe(Condition.enabled).click();
+    $x(String.format(savedFilterNameLocator, filterName)).shouldBe(enabled).click();
     return this;
   }
 
   @Step
   public TopicDetails clickSelectFilterBtnAtSavedFiltersMdl() {
-    selectFilterBtnAddFilterMdl.shouldBe(Condition.enabled).click();
+    selectFilterBtnAddFilterMdl.shouldBe(enabled).click();
     addFilterCodeModalTitle.shouldBe(Condition.disappear);
     return this;
   }
@@ -235,13 +236,14 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails setFilterCodeFldAddFilterMdl(String filterCode) {
-    addFilterCodeTextarea.shouldBe(Condition.enabled).setValue(filterCode);
+    addFilterCodeTextarea.shouldBe(enabled).clear();
+    addFilterCodeTextarea.sendKeys(filterCode);
     return this;
   }
 
   @Step
   public String getFilterCodeValue() {
-    addFilterCodeEditor.shouldBe(Condition.enabled).click();
+    addFilterCodeEditor.shouldBe(enabled).click();
     String value = addFilterCodeTextarea.getValue();
     if (value == null) {
       return null;
@@ -252,7 +254,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public String getFilterNameValue() {
-    return displayNameInputAddFilterMdl.shouldBe(Condition.enabled).getValue();
+    return displayNameInputAddFilterMdl.shouldBe(enabled).getValue();
   }
 
   @Step
@@ -268,13 +270,13 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails setDisplayNameFldAddFilterMdl(String displayName) {
-    displayNameInputAddFilterMdl.shouldBe(Condition.enabled).setValue(displayName);
+    displayNameInputAddFilterMdl.shouldBe(enabled).setValue(displayName);
     return this;
   }
 
   @Step
   public TopicDetails clickAddFilterBtnAndCloseMdl(boolean closeModal) {
-    addFilterBtnAddFilterMdl.shouldBe(Condition.enabled).click();
+    addFilterBtnAddFilterMdl.shouldBe(enabled).click();
     if (closeModal) {
       addFilterCodeModalTitle.shouldBe(Condition.hidden);
     } else {
@@ -285,7 +287,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails clickSaveFilterBtnAndCloseMdl(boolean closeModal) {
-    saveFilterBtnEditFilterMdl.shouldBe(Condition.enabled).click();
+    saveFilterBtnEditFilterMdl.shouldBe(enabled).click();
     if (closeModal) {
       addFilterCodeModalTitle.shouldBe(Condition.hidden);
     } else {
@@ -361,11 +363,11 @@ public class TopicDetails extends BasePage {
   private void selectDay(int expectedDay) {
     Objects.requireNonNull($$x(String.format(dayCellLtr, expectedDay)).asFixedIterable().stream()
         .filter(day -> !Objects.requireNonNull(day.getAttribute("class")).contains("outside-month"))
-        .findFirst().orElseThrow()).shouldBe(Condition.enabled).click();
+        .findFirst().orElseThrow()).shouldBe(enabled).click();
   }
 
   private void setTime(LocalDateTime dateTime) {
-    calendarTimeFld.shouldBe(Condition.enabled)
+    calendarTimeFld.shouldBe(enabled)
         .sendKeys(String.valueOf(dateTime.getHour()), String.valueOf(dateTime.getMinute()));
   }
 
@@ -390,7 +392,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openCalendarSeekType() {
-    seekTypeField.shouldBe(Condition.enabled).click();
+    seekTypeField.shouldBe(enabled).click();
     actualCalendarDate.shouldBe(Condition.visible);
     return this;
   }
