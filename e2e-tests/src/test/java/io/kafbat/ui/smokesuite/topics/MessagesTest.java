@@ -4,8 +4,8 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.pages.topics.TopicDetails;
+import io.kafbat.ui.screens.BasePage;
+import io.kafbat.ui.screens.topics.TopicDetails;
 import io.kafbat.ui.utilities.TimeUtil;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;

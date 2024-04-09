@@ -18,10 +18,7 @@
         <maven.surefire.release>3.2.3</maven.surefire.release>
         <maven.surefire-testng>3.2.5</maven.surefire-testng>
         <aspectj.version>1.9.9.1</aspectj.version>
-        <selenium.version>4.8.1</selenium.version>
-        <allure.version>2.25.0</allure.version>
-        <log4j.version>2.22.1</log4j.version>
-        <slf4j.version>2.0.10</slf4j.version>
+        <allure.version>2.27.0</allure.version>
     </properties>
 
     <dependencies>
@@ -123,6 +120,12 @@
             <artifactId>httpcore5</artifactId>
             <version>5.2.4</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.19.1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
         <dependency>
             <groupId>org.testcontainers</groupId>
@@ -141,41 +144,23 @@
             <artifactId>aspectjweaver</artifactId>
             <version>${aspectj.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.aeonbits.owner/owner -->
-        <dependency>
-            <groupId>org.aeonbits.owner</groupId>
-            <artifactId>owner</artifactId>
-            <version>1.0.12</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${org.projectlombok.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-http -->
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-http</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-http-jdk-client -->
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-http-jdk-client</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.9.0</version>
+            <version>7.10.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.codeborne/selenide -->
         <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
-            <version>7.2.1</version>
+            <version>7.2.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
         <dependency>
@@ -188,30 +173,6 @@
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-selenide</artifactId>
             <version>${allure.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
 
@@ -227,8 +188,18 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.release}</version>
                         <configuration>
                             <skipTests>true</skipTests>
+                            <systemPropertyVariables>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <headless>${headless.state}</headless>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <selenoid>${selenoid.state}</selenoid>
+                                <allure.results.directory>
+                                    ${project.basedir}/target/allure-results
+                                </allure.results.directory>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -258,6 +229,15 @@
                             <argLine>
                                 -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                             </argLine>
+                            <systemPropertyVariables>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <headless>${headless.state}</headless>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <selenoid>${selenoid.state}</selenoid>
+                                <allure.results.directory>
+                                    ${project.basedir}/target/allure-results
+                                </allure.results.directory>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -306,11 +286,21 @@
                                 </configuration>
                             </execution>
                         </executions>
-
                     </plugin>
-
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>headless-off</id>
+            <properties>
+                <headless.state>false</headless.state>
+            </properties>
+        </profile>
+        <profile>
+            <id>selenoid-off</id>
+            <properties>
+                <selenoid.state>false</selenoid.state>
+            </properties>
         </profile>
     </profiles>
 </project>

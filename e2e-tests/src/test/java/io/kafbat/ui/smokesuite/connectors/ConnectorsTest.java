@@ -1,6 +1,6 @@
 package io.kafbat.ui.smokesuite.connectors;
 
-import static io.kafbat.ui.pages.BasePage.AlertHeader.SUCCESS;
+import static io.kafbat.ui.screens.BasePage.AlertHeader.SUCCESS;
 import static io.kafbat.ui.utilities.FileUtil.getResourceAsString;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
@@ -18,7 +18,7 @@ public class ConnectorsTest extends BaseTest {
 
   private static final List<Topic> TOPIC_LIST = new ArrayList<>();
   private static final List<Connector> CONNECTOR_LIST = new ArrayList<>();
-  private static final String MESSAGE_CONTENT = "testData/topics/message_content_create_topic.json";
+  private static final String MESSAGE_CONTENT = "testdata/topics/message_content_create_topic.json";
   private static final String MESSAGE_KEY = " ";
   private static final Topic TOPIC_FOR_CREATE = new Topic()
       .setName("topic-for-create-connector-" + randomAlphabetic(5))
@@ -31,10 +31,10 @@ public class ConnectorsTest extends BaseTest {
       .setMessageValue(MESSAGE_CONTENT).setMessageKey(MESSAGE_KEY);
   private static final Connector CONNECTOR_FOR_DELETE = new Connector()
       .setName("connector-for-delete-" + randomAlphabetic(5))
-      .setConfig(getResourceAsString("testData/connectors/delete_connector_config.json"));
+      .setConfig(getResourceAsString("testdata/connectors/delete_connector_config.json"));
   private static final Connector CONNECTOR_FOR_UPDATE = new Connector()
       .setName("connector-for-update-and-delete-" + randomAlphabetic(5))
-      .setConfig(getResourceAsString("testData/connectors/config_for_create_connector_via_api.json"));
+      .setConfig(getResourceAsString("testdata/connectors/config_for_create_connector_via_api.json"));
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
@@ -51,7 +51,7 @@ public class ConnectorsTest extends BaseTest {
   public void createConnector() {
     Connector connectorForCreate = new Connector()
         .setName("connector-for-create-" + randomAlphabetic(5))
-        .setConfig(getResourceAsString("testData/connectors/config_for_create_connector.json"));
+        .setConfig(getResourceAsString("testdata/connectors/config_for_create_connector.json"));
     navigateToConnectors();
     kafkaConnectList
         .clickCreateConnectorBtn();

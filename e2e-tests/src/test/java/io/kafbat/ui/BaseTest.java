@@ -1,13 +1,12 @@
 package io.kafbat.ui;
 
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
-import io.kafbat.ui.pages.panels.enums.MenuItem;
+import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
 import io.kafbat.ui.settings.listeners.AllureListener;
-import io.kafbat.ui.settings.listeners.LoggerListener;
+import io.kafbat.ui.settings.listeners.ResultsLogger;
 import io.qameta.allure.Step;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import org.testng.annotations.Listeners;
 import org.testng.asserts.SoftAssert;
 
 @Slf4j
-@Listeners({AllureListener.class, LoggerListener.class})
+@Listeners({AllureListener.class, ResultsLogger.class})
 public abstract class BaseTest extends Facade {
 
   @BeforeSuite(alwaysRun = true)
@@ -35,7 +34,7 @@ public abstract class BaseTest extends Facade {
 
   @BeforeMethod(alwaysRun = true)
   public void beforeMethod() {
-    Selenide.open(BaseSource.BASE_UI_URL);
+    WebDriver.openUrl(BaseSource.BASE_UI_URL);
     naviSideBar.waitUntilScreenReady();
   }
 
@@ -54,10 +53,8 @@ public abstract class BaseTest extends Facade {
 
   @Step
   protected void navigateToBrokersAndOpenDetails(int brokerId) {
-    naviSideBar
-        .openSideMenu(MenuItem.BROKERS);
+    navigateToBrokers();
     brokersList
-        .waitUntilScreenReady()
         .openBroker(brokerId);
     brokersDetails
         .waitUntilScreenReady();
