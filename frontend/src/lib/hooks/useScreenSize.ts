@@ -11,14 +11,14 @@ export const useScreenSize = () => {
     isMedium: window.innerWidth >= S && window.innerWidth <= M,
   });
 
-  const checkScreenSize = () => {
-    setScreenSize({
-      isLarge: window.innerWidth > M,
-      isMedium: window.innerWidth >= S && window.innerWidth <= M,
-    });
-  };
-
   useEffect(() => {
+    const checkScreenSize = () => {
+      setScreenSize({
+        isLarge: window.innerWidth > M,
+        isMedium: window.innerWidth >= S && window.innerWidth <= M,
+      });
+    };
+
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
