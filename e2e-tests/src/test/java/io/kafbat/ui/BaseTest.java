@@ -2,6 +2,7 @@ package io.kafbat.ui;
 
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
 import io.kafbat.ui.settings.drivers.WebDriver;
@@ -23,6 +24,7 @@ public abstract class BaseTest extends Facade {
 
   @BeforeSuite(alwaysRun = true)
   public void beforeSuite() {
+    WebDriverManager.chromedriver().setup();
     WebDriver.selenideLoggerSetup();
     WebDriver.browserSetup();
   }

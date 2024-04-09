@@ -33,7 +33,7 @@ public abstract class WebDriver {
     Configuration.downloadsFolder = String.format("%s/downloads", SELENIDE_RESULTS_PATH);
     Configuration.reportsFolder = String.format("%s/reports", SELENIDE_RESULTS_PATH);
     ChromeOptions chromeOptions = new ChromeOptions()
-//                .addArguments("--remote-allow-origins=*")
+//        .addArguments("--remote-allow-origins=*")
         .addArguments("--disable-dev-shm-usage")
         .addArguments("--disable-extensions")
         .addArguments("--disable-gpu")

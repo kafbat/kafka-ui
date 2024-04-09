@@ -4,7 +4,7 @@ import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static com.codeborne.selenide.Selenide.sleep;
 import static io.kafbat.ui.screens.topics.TopicDetails.TopicMenu.OVERVIEW;
-import static org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils.nextInt;
+import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
