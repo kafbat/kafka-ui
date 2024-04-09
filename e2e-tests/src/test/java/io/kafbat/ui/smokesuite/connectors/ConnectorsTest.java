@@ -1,8 +1,8 @@
 package io.kafbat.ui.smokesuite.connectors;
 
+import static io.kafbat.ui.models.Topic.createTopic;
 import static io.kafbat.ui.screens.BasePage.AlertHeader.SUCCESS;
-import static io.kafbat.ui.utilities.FileUtil.getResourceAsString;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static io.kafbat.ui.utilities.FileUtil.resourceToString;
 
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Connector;
@@ -16,82 +16,71 @@ import org.testng.annotations.Test;
 
 public class ConnectorsTest extends BaseTest {
 
+  private static final String MESSAGE_CONTENT = resourceToString("testdata/topics/create_topic_content.json");
+  private static final Topic CREATE_TOPIC = createTopic().setMessageValue(MESSAGE_CONTENT);
+  private static final Topic DELETE_TOPIC = createTopic().setMessageValue(MESSAGE_CONTENT);
+  private static final Topic UPDATE_TOPIC = createTopic().setMessageValue(MESSAGE_CONTENT);
+  private static final Connector DELETE_CONNECTOR =
+      Connector.createConnector(resourceToString("testdata/connectors/delete_config.json"));
+  private static final Connector UPDATE_CONNECTOR =
+      Connector.createConnector(resourceToString("testdata/connectors/create_config_api.json"));
   private static final List<Topic> TOPIC_LIST = new ArrayList<>();
   private static final List<Connector> CONNECTOR_LIST = new ArrayList<>();
-  private static final String MESSAGE_CONTENT = "testdata/topics/message_content_create_topic.json";
-  private static final String MESSAGE_KEY = " ";
-  private static final Topic TOPIC_FOR_CREATE = new Topic()
-      .setName("topic-for-create-connector-" + randomAlphabetic(5))
-      .setMessageValue(MESSAGE_CONTENT).setMessageKey(MESSAGE_KEY);
-  private static final Topic TOPIC_FOR_DELETE = new Topic()
-      .setName("topic-for-delete-connector-" + randomAlphabetic(5))
-      .setMessageValue(MESSAGE_CONTENT).setMessageKey(MESSAGE_KEY);
-  private static final Topic TOPIC_FOR_UPDATE = new Topic()
-      .setName("topic-for-update-connector-" + randomAlphabetic(5))
-      .setMessageValue(MESSAGE_CONTENT).setMessageKey(MESSAGE_KEY);
-  private static final Connector CONNECTOR_FOR_DELETE = new Connector()
-      .setName("connector-for-delete-" + randomAlphabetic(5))
-      .setConfig(getResourceAsString("testdata/connectors/delete_connector_config.json"));
-  private static final Connector CONNECTOR_FOR_UPDATE = new Connector()
-      .setName("connector-for-update-and-delete-" + randomAlphabetic(5))
-      .setConfig(getResourceAsString("testdata/connectors/config_for_create_connector_via_api.json"));
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
-    TOPIC_LIST.addAll(List.of(TOPIC_FOR_CREATE, TOPIC_FOR_DELETE, TOPIC_FOR_UPDATE));
+    TOPIC_LIST.addAll(List.of(CREATE_TOPIC, DELETE_TOPIC, UPDATE_TOPIC));
     TOPIC_LIST.forEach(topic -> apiService
         .createTopic(topic)
-        .sendMessage(topic)
-    );
-    CONNECTOR_LIST.addAll(List.of(CONNECTOR_FOR_DELETE, CONNECTOR_FOR_UPDATE));
+        .sendMessage(topic));
+    CONNECTOR_LIST.addAll(List.of(DELETE_CONNECTOR, UPDATE_CONNECTOR));
     CONNECTOR_LIST.forEach(connector -> apiService.createConnector(connector));
   }
 
   @Test
-  public void createConnector() {
-    Connector connectorForCreate = new Connector()
-        .setName("connector-for-create-" + randomAlphabetic(5))
-        .setConfig(getResourceAsString("testdata/connectors/config_for_create_connector.json"));
+  public void createConnectorCheck() {
+    Connector createConnector =
+        Connector.createConnector(resourceToString("testdata/connectors/create_config.json"));
     navigateToConnectors();
     kafkaConnectList
         .clickCreateConnectorBtn();
     connectorCreateForm
         .waitUntilScreenReady()
-        .setConnectorDetails(connectorForCreate.getName(), connectorForCreate.getConfig())
+        .setConnectorDetails(createConnector.getName(), createConnector.getConfig())
         .clickSubmitButton();
     connectorDetails
         .waitUntilScreenReady();
-    navigateToConnectorsAndOpenDetails(connectorForCreate.getName());
-    Assert.assertTrue(connectorDetails.isConnectorHeaderVisible(connectorForCreate.getName()),
+    navigateToConnectorsAndOpenDetails(createConnector.getName());
+    Assert.assertTrue(connectorDetails.isConnectorHeaderVisible(createConnector.getName()),
         "isConnectorTitleVisible()");
     navigateToConnectors();
-    Assert.assertTrue(kafkaConnectList.isConnectorVisible(CONNECTOR_FOR_DELETE.getName()), "isConnectorVisible()");
-    CONNECTOR_LIST.add(connectorForCreate);
+    Assert.assertTrue(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()), "isConnectorVisible()");
+    CONNECTOR_LIST.add(createConnector);
   }
 
   @Test
-  public void updateConnector() {
-    navigateToConnectorsAndOpenDetails(CONNECTOR_FOR_UPDATE.getName());
+  public void updateConnectorCheck() {
+    navigateToConnectorsAndOpenDetails(UPDATE_CONNECTOR.getName());
     connectorDetails
         .openConfigTab()
-        .setConfig(CONNECTOR_FOR_UPDATE.getConfig())
+        .setConfig(UPDATE_CONNECTOR.getConfig())
         .clickSubmitButton();
     Assert.assertTrue(connectorDetails.isAlertWithMessageVisible(SUCCESS, "Config successfully updated."),
         "isAlertWithMessageVisible()");
     navigateToConnectors();
-    Assert.assertTrue(kafkaConnectList.isConnectorVisible(CONNECTOR_FOR_UPDATE.getName()), "isConnectorVisible()");
+    Assert.assertTrue(kafkaConnectList.isConnectorVisible(UPDATE_CONNECTOR.getName()), "isConnectorVisible()");
   }
 
   @Test
-  public void deleteConnector() {
-    navigateToConnectorsAndOpenDetails(CONNECTOR_FOR_DELETE.getName());
+  public void deleteConnectorCheck() {
+    navigateToConnectorsAndOpenDetails(DELETE_CONNECTOR.getName());
     connectorDetails
         .openDotMenu()
         .clickDeleteBtn()
         .clickConfirmBtn();
     navigateToConnectors();
-    Assert.assertFalse(kafkaConnectList.isConnectorVisible(CONNECTOR_FOR_DELETE.getName()), "isConnectorVisible()");
-    CONNECTOR_LIST.remove(CONNECTOR_FOR_DELETE);
+    Assert.assertFalse(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()), "isConnectorVisible()");
+    CONNECTOR_LIST.remove(DELETE_CONNECTOR);
   }
 
   @AfterClass(alwaysRun = true)

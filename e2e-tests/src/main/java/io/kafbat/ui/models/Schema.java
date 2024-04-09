@@ -24,7 +24,7 @@ public class Schema {
   public static Schema createSchemaJson() {
     return new Schema().setName("schema_json-" + randomAlphabetic(5))
         .setType(SchemaType.JSON)
-        .setValuePath(System.getProperty(USER_DIR) + "/src/main/resources/testdata/schemas/schema_json_Value.json");
+        .setValuePath(System.getProperty(USER_DIR) + "/src/main/resources/testdata/schemas/schema_json_value.json");
   }
 
   public static Schema createSchemaProtobuf() {

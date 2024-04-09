@@ -1,10 +1,9 @@
 package io.kafbat.ui.sanitysuite;
 
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
 import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
+import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -17,9 +16,7 @@ public class TopicsTest extends BaseTest {
 
   @Test()
   public void verifyClearMessagesMenuStateAfterTopicUpdate() {
-    Topic topic = new Topic()
-        .setName("topic-" + randomAlphabetic(5))
-        .setNumberOfPartitions(1)
+    Topic topic = Topic.createTopic()
         .setCleanupPolicyValue(CleanupPolicyValue.DELETE);
     navigateToTopics();
     topicsList
@@ -44,6 +41,7 @@ public class TopicsTest extends BaseTest {
     Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
   }
 
+  @Step
   private void editCleanUpPolicyAndOpenDotMenu(Topic topic) {
     topicDetails
         .clickEditSettingsMenu();

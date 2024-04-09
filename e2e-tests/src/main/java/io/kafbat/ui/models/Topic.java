@@ -1,5 +1,7 @@
 package io.kafbat.ui.models;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+
 import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
 import io.kafbat.ui.screens.topics.enums.CustomParameterType;
 import io.kafbat.ui.screens.topics.enums.MaxSizeOnDisk;
@@ -17,4 +19,12 @@ public class Topic {
   private CleanupPolicyValue cleanupPolicyValue;
   private MaxSizeOnDisk maxSizeOnDisk;
   private TimeToRetain timeToRetain;
+
+  public static Topic createTopic() {
+    return new Topic()
+        .setName("aqa_topic_" + randomAlphabetic(5))
+        .setNumberOfPartitions(1)
+        .setMessageKey(randomAlphabetic(5))
+        .setMessageValue(randomAlphabetic(10));
+  }
 }

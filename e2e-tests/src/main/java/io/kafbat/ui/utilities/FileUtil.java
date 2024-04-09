@@ -8,19 +8,19 @@ import org.apache.commons.io.IOUtils;
 
 public class FileUtil {
 
-  public static String getResourceAsString(String resourceFileName) {
+  public static String resourceToString(String resourcePath) {
     try {
-      return IOUtils.resourceToString("/" + resourceFileName, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      return IOUtils.resourceToString("/" + resourcePath, StandardCharsets.UTF_8);
+    } catch (IOException exception) {
+      throw new RuntimeException(exception);
     }
   }
 
-  public static String fileToString(String path) {
+  public static String fileToString(String filePath) {
     try {
-      return readFileAsString(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      return readFileAsString(filePath);
+    } catch (IOException exception) {
+      throw new RuntimeException(exception);
     }
   }
 }

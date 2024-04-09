@@ -1,6 +1,6 @@
 package io.kafbat.ui.smokesuite;
 
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static io.kafbat.ui.utilities.FileUtil.resourceToString;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebDriverRunner;
@@ -10,7 +10,6 @@ import io.kafbat.ui.models.Schema;
 import io.kafbat.ui.models.Topic;
 import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.settings.BaseSource;
-import io.kafbat.ui.utilities.FileUtil;
 import io.kafbat.ui.variables.Url;
 import io.qameta.allure.Step;
 import java.util.stream.Collectors;
@@ -24,12 +23,9 @@ public class SmokeTest extends BaseTest {
 
   private static final int BROKER_ID = 1;
   private static final Schema TEST_SCHEMA = Schema.createSchemaAvro();
-  private static final Topic TEST_TOPIC = new Topic()
-      .setName("new-topic-" + randomAlphabetic(5))
-      .setNumberOfPartitions(1);
-  private static final Connector TEST_CONNECTOR = new Connector()
-      .setName("new-connector-" + randomAlphabetic(5))
-      .setConfig(FileUtil.getResourceAsString("testdata/connectors/config_for_create_connector_via_api.json"));
+  private static final Topic TEST_TOPIC = Topic.createTopic();
+  private static final Connector TEST_CONNECTOR =
+      Connector.createConnector(resourceToString("testdata/connectors/create_config_api.json"));
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
@@ -40,7 +36,7 @@ public class SmokeTest extends BaseTest {
   }
 
   @Test
-  public void checkBasePageElements() {
+  public void basePageElementsCheck() {
     verifyElementsCondition(
         Stream.concat(topPanel.getAllVisibleElements().stream(), naviSideBar.getAllMenuButtons().stream())
             .collect(Collectors.toList()), Condition.visible);
@@ -50,7 +46,7 @@ public class SmokeTest extends BaseTest {
   }
 
   @Test
-  public void checkUrlWhileNavigating() {
+  public void urlWhileNavigationCheck() {
     navigateToBrokers();
     verifyCurrentUrl(Url.BROKERS_LIST_URL);
     navigateToTopics();
@@ -66,7 +62,7 @@ public class SmokeTest extends BaseTest {
   }
 
   @Test
-  public void checkPathWhileNavigating() {
+  public void pathWhileNavigationCheck() {
     navigateToBrokersAndOpenDetails(BROKER_ID);
     verifyComponentsPath(MenuItem.BROKERS, String.format("Broker %d", BROKER_ID));
     navigateToTopicsAndOpenDetails(TEST_TOPIC.getName());

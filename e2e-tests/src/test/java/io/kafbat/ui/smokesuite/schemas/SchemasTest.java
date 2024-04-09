@@ -15,19 +15,19 @@ import org.testng.asserts.SoftAssert;
 
 public class SchemasTest extends BaseTest {
 
+  private static final Schema AVRO_SCHEMA = Schema.createSchemaAvro();
+  private static final Schema JSON_SCHEMA = Schema.createSchemaJson();
+  private static final Schema PROTOBUF_SCHEMA = Schema.createSchemaProtobuf();
   private static final List<Schema> SCHEMA_LIST = new ArrayList<>();
-  private static final Schema AVRO_API = Schema.createSchemaAvro();
-  private static final Schema JSON_API = Schema.createSchemaJson();
-  private static final Schema PROTOBUF_API = Schema.createSchemaProtobuf();
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
-    SCHEMA_LIST.addAll(List.of(AVRO_API, JSON_API, PROTOBUF_API));
+    SCHEMA_LIST.addAll(List.of(AVRO_SCHEMA, JSON_SCHEMA, PROTOBUF_SCHEMA));
     SCHEMA_LIST.forEach(schema -> apiService.createSchema(schema));
   }
 
   @Test(priority = 1)
-  public void createSchemaAvro() {
+  public void createSchemaAvroCheck() {
     Schema schemaAvro = Schema.createSchemaAvro();
     navigateToSchemaRegistry();
     schemaRegistryList
@@ -46,15 +46,15 @@ public class SchemasTest extends BaseTest {
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(AVRO_API.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()), "isSchemaVisible()");
     SCHEMA_LIST.add(schemaAvro);
   }
 
   @Test(priority = 2)
-  public void updateSchemaAvro() {
-    AVRO_API.setValuePath(
-        System.getProperty("user.dir") + "/src/main/resources/testdata/schemas/schema_avro_for_update.json");
-    navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
+  public void updateSchemaAvroCheck() {
+    AVRO_SCHEMA.setValuePath(
+        System.getProperty("user.dir") + "/src/main/resources/testdata/schemas/schema_avro_update.json");
+    navigateToSchemaRegistryAndOpenDetails(AVRO_SCHEMA.getName());
     schemaDetails
         .openEditSchema();
     schemaCreateForm
@@ -66,7 +66,7 @@ public class SchemasTest extends BaseTest {
     softly.assertAll();
     schemaCreateForm
         .selectCompatibilityLevelFromDropdown(CompatibilityLevel.CompatibilityEnum.NONE)
-        .setNewSchemaValue(FileUtil.fileToString(AVRO_API.getValuePath()))
+        .setNewSchemaValue(FileUtil.fileToString(AVRO_SCHEMA.getValuePath()))
         .clickSubmitButton();
     schemaDetails
         .waitUntilScreenReady();
@@ -75,8 +75,8 @@ public class SchemasTest extends BaseTest {
   }
 
   @Test(priority = 3)
-  public void compareVersionsOperation() {
-    navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
+  public void compareVersionsCheck() {
+    navigateToSchemaRegistryAndOpenDetails(AVRO_SCHEMA.getName());
     int latestVersion = schemaDetails
         .waitUntilScreenReady()
         .getLatestVersion();
@@ -93,18 +93,18 @@ public class SchemasTest extends BaseTest {
   }
 
   @Test(priority = 4)
-  public void deleteSchemaAvro() {
-    navigateToSchemaRegistryAndOpenDetails(AVRO_API.getName());
+  public void deleteSchemaAvroCheck() {
+    navigateToSchemaRegistryAndOpenDetails(AVRO_SCHEMA.getName());
     schemaDetails
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(AVRO_API.getName()), "isSchemaVisible()");
-    SCHEMA_LIST.remove(AVRO_API);
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()), "isSchemaVisible()");
+    SCHEMA_LIST.remove(AVRO_SCHEMA);
   }
 
   @Test(priority = 5)
-  public void createSchemaJson() {
+  public void createSchemaJsonCheck() {
     Schema schemaJson = Schema.createSchemaJson();
     navigateToSchemaRegistry();
     schemaRegistryList
@@ -123,23 +123,23 @@ public class SchemasTest extends BaseTest {
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(JSON_API.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()), "isSchemaVisible()");
     SCHEMA_LIST.add(schemaJson);
   }
 
   @Test(priority = 6)
-  public void deleteSchemaJson() {
-    navigateToSchemaRegistryAndOpenDetails(JSON_API.getName());
+  public void deleteSchemaJsonCheck() {
+    navigateToSchemaRegistryAndOpenDetails(JSON_SCHEMA.getName());
     schemaDetails
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(JSON_API.getName()), "isSchemaVisible()");
-    SCHEMA_LIST.remove(JSON_API);
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()), "isSchemaVisible()");
+    SCHEMA_LIST.remove(JSON_SCHEMA);
   }
 
   @Test(priority = 7)
-  public void createSchemaProtobuf() {
+  public void createSchemaProtobufCheck() {
     Schema schemaProtobuf = Schema.createSchemaProtobuf();
     navigateToSchemaRegistry();
     schemaRegistryList
@@ -158,19 +158,19 @@ public class SchemasTest extends BaseTest {
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(PROTOBUF_API.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()), "isSchemaVisible()");
     SCHEMA_LIST.add(schemaProtobuf);
   }
 
   @Test(priority = 8)
-  public void deleteSchemaProtobuf() {
-    navigateToSchemaRegistryAndOpenDetails(PROTOBUF_API.getName());
+  public void deleteSchemaProtobufCheck() {
+    navigateToSchemaRegistryAndOpenDetails(PROTOBUF_SCHEMA.getName());
     schemaDetails
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(PROTOBUF_API.getName()), "isSchemaVisible()");
-    SCHEMA_LIST.remove(PROTOBUF_API);
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()), "isSchemaVisible()");
+    SCHEMA_LIST.remove(PROTOBUF_SCHEMA);
   }
 
   @AfterClass(alwaysRun = true)

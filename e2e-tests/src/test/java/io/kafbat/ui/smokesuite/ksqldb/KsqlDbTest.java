@@ -27,14 +27,14 @@ public class KsqlDbTest extends BaseTest {
   private static final Table SECOND_TABLE = new Table()
       .setName("SECOND_TABLE_" + randomAlphabetic(4).toUpperCase())
       .setStreamName(DEFAULT_STREAM.getName());
-  private static final List<String> TOPIC_NAMES_LIST = new ArrayList<>();
+  private static final List<String> TOPIC_NAME_LIST = new ArrayList<>();
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
     apiService
         .createStream(DEFAULT_STREAM)
         .createTables(FIRST_TABLE, SECOND_TABLE);
-    TOPIC_NAMES_LIST.addAll(List.of(DEFAULT_STREAM.getTopicName(),
+    TOPIC_NAME_LIST.addAll(List.of(DEFAULT_STREAM.getTopicName(),
         FIRST_TABLE.getName(), SECOND_TABLE.getName()));
   }
 
@@ -98,7 +98,7 @@ public class KsqlDbTest extends BaseTest {
   }
 
   @Test(priority = 6)
-  public void clearResultsForExecutedRequest() {
+  public void clearResultsOfExecutedRequestCheck() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(ksqlQueryForm.areResultsVisible(), "areResultsVisible()");
@@ -120,7 +120,7 @@ public class KsqlDbTest extends BaseTest {
 
   @AfterClass(alwaysRun = true)
   public void afterClass() {
-    TOPIC_NAMES_LIST.forEach(topicName -> apiService.deleteTopic(topicName));
+    TOPIC_NAME_LIST.forEach(topicName -> apiService.deleteTopic(topicName));
   }
 
   @Step
