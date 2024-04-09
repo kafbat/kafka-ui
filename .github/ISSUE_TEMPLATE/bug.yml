@@ -23,7 +23,7 @@ body:
           required: true
         - label: I've tried running `main`-labeled docker image and the issue still persists there
           required: true
-        - label: I'm running a supported version of the application which is listed [here](https://github.com/kafbat/kafka-ui/blob/main/SECURITY.md)
+        - label: I'm running a supported version of the application which is listed [here](https://github.com/kafbat/kafka-ui/blob/main/.github/SECURITY.md)
           required: true
 
   - type: textarea
