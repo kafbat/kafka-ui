@@ -4,7 +4,6 @@
         <packages>
             <package name="io.kafbat.ui.smokesuite.*"/>
             <package name="io.kafbat.ui.sanitysuite.*"/>
-            <package name="io.kafbat.ui.manualsuite.*"/>
         </packages>
     </test>
 </suite>
