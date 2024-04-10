@@ -12,6 +12,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.screens.BasePage;
+import io.kafbat.ui.screens.topics.enums.SeekType;
 import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.time.LocalDate;
@@ -162,9 +163,9 @@ public class TopicDetails extends BasePage {
   }
 
   @Step
-  public TopicDetails selectSeekTypeDdlMessagesTab(String seekTypeName) {
+  public TopicDetails selectSeekTypeDdlMessagesTab(SeekType seekType) {
     seekTypeDdl.shouldBe(enabled).click();
-    $x(String.format(seekFilterDdlLocator, seekTypeName)).shouldBe(Condition.visible).click();
+    $x(String.format(seekFilterDdlLocator, seekType.getValue())).shouldBe(Condition.visible).click();
     return this;
   }
 

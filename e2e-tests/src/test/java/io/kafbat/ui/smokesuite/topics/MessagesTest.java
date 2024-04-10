@@ -6,6 +6,7 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
 import io.kafbat.ui.screens.BasePage;
 import io.kafbat.ui.screens.topics.TopicDetails;
+import io.kafbat.ui.screens.topics.enums.SeekType;
 import io.kafbat.ui.utilities.TimeUtil;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;
@@ -123,7 +124,7 @@ public class MessagesTest extends BaseTest {
     navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     int nextOffset = topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
-        .selectSeekTypeDdlMessagesTab("From offset")
+        .selectSeekTypeDdlMessagesTab(SeekType.FROM_OFFSET)
         .getAllMessages().stream()
         .findFirst().orElseThrow().getOffset() + 1;
     topicDetails
@@ -149,7 +150,7 @@ public class MessagesTest extends BaseTest {
         .filter(message -> message.getTimestamp().getMinute() != firstTimestamp.getMinute())
         .findFirst().orElseThrow().getTimestamp();
     topicDetails
-        .selectSeekTypeDdlMessagesTab("Timestamp")
+        .selectSeekTypeDdlMessagesTab(SeekType.SINCE_TIME)
         .openCalendarSeekType()
         .selectDateAndTimeByCalendar(nextTimestamp)
         .clickSubmitFiltersBtnMessagesTab();
