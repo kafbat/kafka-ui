@@ -138,8 +138,8 @@ public class MessagesTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/3215")
-  @Issue("https://github.com/kafbat/kafka-ui/issues/2345")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/281")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/282")
   @Test(priority = 7)
   public void messageFilteringByTimestampCheck() {
     navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
@@ -200,7 +200,7 @@ public class MessagesTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/3129")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/280")
   @Test(priority = 10)
   public void messagesCountPerPageCheck() {
     navigateToTopicsAndOpenDetails(MESSAGES_COUNT_TOPIC.getName());

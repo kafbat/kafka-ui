@@ -89,7 +89,7 @@ public class TopicsTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/3071")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/279")
   @Test(priority = 3)
   public void customParametersWithinEditExistingTopicCheck() {
     navigateToTopicsAndOpenDetails(UPDATE_TOPIC.getName());
