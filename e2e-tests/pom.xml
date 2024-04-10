@@ -273,13 +273,13 @@
             </build>
         </profile>
         <profile>
-            <id>headless-off</id>
+            <id>e2e-headless-off</id>
             <properties>
                 <headless.state>false</headless.state>
             </properties>
         </profile>
         <profile>
-            <id>selenoid-off</id>
+            <id>e2e-selenoid-off</id>
             <properties>
                 <selenoid.state>false</selenoid.state>
             </properties>
