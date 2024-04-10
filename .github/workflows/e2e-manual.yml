@@ -9,11 +9,6 @@ on:
         type: choice
         options:
           - manual
-          - qase
-      qase_token:
-        description: 'Set Qase token to enable integration'
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -44,4 +39,4 @@ jobs:
       - name: Run test suite
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.sha }}
-          ./mvnw -B -V -ntp -DQASEIO_API_TOKEN=${{ github.event.inputs.qase_token }} -Dsurefire.suiteXmlFiles='src/test/resources/${{ github.event.inputs.test_suite }}.xml' -Dsuite=${{ github.event.inputs.test_suite }} -f 'e2e-tests' test -Pprod
+          ./mvnw -B -V -ntp -Dsurefire.suiteXmlFiles='src/test/resources/${{ github.event.inputs.test_suite }}.xml' -Dsuite=${{ github.event.inputs.test_suite }} -f 'e2e-tests' test -Pprod
