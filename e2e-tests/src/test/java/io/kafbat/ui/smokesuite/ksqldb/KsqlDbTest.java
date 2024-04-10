@@ -44,9 +44,8 @@ public class KsqlDbTest extends BaseTest {
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(ksqlDbList.getTableByName(FIRST_TABLE.getName()).isVisible(),
         String.format("getTableByName().isVisible()[%s]", FIRST_TABLE.getName()));
-    softly.assertTrue(ksqlDbList.getTableByName(SECOND_TABLE.getName()).isVisible(), "getTableByName()");
-    String.format("getTableByName().isVisible()[%s]", SECOND_TABLE.getName()))
-
+    softly.assertTrue(ksqlDbList.getTableByName(SECOND_TABLE.getName()).isVisible(),
+        String.format("getTableByName().isVisible()[%s]", SECOND_TABLE.getName()));
     softly.assertAll();
     ksqlDbList
         .openDetailsTab(KsqlMenuTabs.STREAMS)
