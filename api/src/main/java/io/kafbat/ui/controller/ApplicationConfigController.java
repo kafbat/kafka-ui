@@ -49,7 +49,7 @@ public class ApplicationConfigController extends AbstractController implements A
 
     ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
-    default ActionDTO stringToActionDTO(String str) {
+    default ActionDTO stringToActionDto(String str) {
       return Optional.ofNullable(str)
           .map(s -> Enum.valueOf(ActionDTO.class, s.toUpperCase()))
           .orElseThrow();
