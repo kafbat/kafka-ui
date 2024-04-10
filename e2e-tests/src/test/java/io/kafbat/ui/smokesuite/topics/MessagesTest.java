@@ -200,7 +200,7 @@ public class MessagesTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/280")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/270")
   @Test(priority = 10)
   public void messagesCountPerPageCheck() {
     navigateToTopicsAndOpenDetails(MESSAGES_COUNT_TOPIC.getName());
