@@ -46,7 +46,7 @@ public class BrokersTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/283")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/209")
   @Test
   public void brokersConfigFirstPageSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -71,7 +71,7 @@ public class BrokersTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/283")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/209")
   @Test
   public void brokersConfigSecondPageSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
@@ -98,7 +98,7 @@ public class BrokersTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/283")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/209")
   @Test
   public void brokersConfigCaseInsensitiveSearchCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
