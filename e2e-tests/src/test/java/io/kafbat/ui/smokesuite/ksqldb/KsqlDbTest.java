@@ -42,22 +42,26 @@ public class KsqlDbTest extends BaseTest {
   public void streamsAndTablesVisibilityCheck() {
     navigateToKsqlDb();
     SoftAssert softly = new SoftAssert();
-    softly.assertTrue(ksqlDbList.getTableByName(FIRST_TABLE.getName()).isVisible(), "getTableByName()");
+    softly.assertTrue(ksqlDbList.getTableByName(FIRST_TABLE.getName()).isVisible(),
+        String.format("getTableByName().isVisible()[%s]", FIRST_TABLE.getName()));
     softly.assertTrue(ksqlDbList.getTableByName(SECOND_TABLE.getName()).isVisible(), "getTableByName()");
+    String.format("getTableByName().isVisible()[%s]", SECOND_TABLE.getName()))
+
     softly.assertAll();
     ksqlDbList
         .openDetailsTab(KsqlMenuTabs.STREAMS)
         .waitUntilScreenReady();
-    Assert.assertTrue(ksqlDbList.getStreamByName(DEFAULT_STREAM.getName()).isVisible(), "getStreamByName()");
+    Assert.assertTrue(ksqlDbList.getStreamByName(DEFAULT_STREAM.getName()).isVisible(),
+        String.format("getStreamByName().isVisible()[%s]", DEFAULT_STREAM.getName()));
   }
 
   @Test(priority = 2)
   public void clearEnteredQueryCheck() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
-    Assert.assertFalse(ksqlQueryForm.getEnteredQuery().isEmpty(), "getEnteredQuery()");
+    Assert.assertFalse(ksqlQueryForm.getEnteredQuery().isEmpty(), "getEnteredQuery().isEmpty()");
     ksqlQueryForm
         .clickClearBtn();
-    Assert.assertTrue(ksqlQueryForm.getEnteredQuery().isEmpty(), "getEnteredQuery()");
+    Assert.assertTrue(ksqlQueryForm.getEnteredQuery().isEmpty(), "getEnteredQuery().isEmpty()");
   }
 
   @Test(priority = 3)
@@ -76,24 +80,24 @@ public class KsqlDbTest extends BaseTest {
   }
 
   @Test(priority = 4)
-  public void checkShowTablesRequestExecution() {
+  public void showTablesRequestExecutionCheck() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_TABLES.getQuery());
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(ksqlQueryForm.areResultsVisible(), "areResultsVisible()");
     softly.assertTrue(ksqlQueryForm.getItemByName(FIRST_TABLE.getName()).isVisible(),
-        String.format("getItemByName(%s)", FIRST_TABLE.getName()));
+        String.format("getItemByName().isVisible()[%s]", FIRST_TABLE.getName()));
     softly.assertTrue(ksqlQueryForm.getItemByName(SECOND_TABLE.getName()).isVisible(),
-        String.format("getItemByName(%s)", SECOND_TABLE.getName()));
+        String.format("getItemByName().isVisible()[%s]", SECOND_TABLE.getName()));
     softly.assertAll();
   }
 
   @Test(priority = 5)
-  public void checkShowStreamsRequestExecution() {
+  public void showStreamsRequestExecutionCheck() {
     navigateToKsqlDbAndExecuteRequest(KsqlQueryConfig.SHOW_STREAMS.getQuery());
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(ksqlQueryForm.areResultsVisible(), "areResultsVisible()");
     softly.assertTrue(ksqlQueryForm.getItemByName(DEFAULT_STREAM.getName()).isVisible(),
-        String.format("getItemByName(%s)", FIRST_TABLE.getName()));
+        String.format("getItemByName().isVisible()[%s]", FIRST_TABLE.getName()));
     softly.assertAll();
   }
 

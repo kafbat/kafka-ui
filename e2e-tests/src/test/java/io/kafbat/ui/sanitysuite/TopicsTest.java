@@ -32,13 +32,13 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.add(topic);
     topicDetails
         .openDotMenu();
-    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
     topic.setCleanupPolicyValue(CleanupPolicyValue.COMPACT);
     editCleanUpPolicyAndOpenDotMenu(topic);
-    Assert.assertFalse(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertFalse(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
     topic.setCleanupPolicyValue(CleanupPolicyValue.DELETE);
     editCleanUpPolicyAndOpenDotMenu(topic);
-    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
   }
 
   @Step

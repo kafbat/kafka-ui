@@ -52,9 +52,10 @@ public class ConnectorsTest extends BaseTest {
         .waitUntilScreenReady();
     navigateToConnectorsAndOpenDetails(createConnector.getName());
     Assert.assertTrue(connectorDetails.isConnectorHeaderVisible(createConnector.getName()),
-        "isConnectorTitleVisible()");
+        String.format("isConnectorHeaderVisible()[%s]", createConnector.getName()));
     navigateToConnectors();
-    Assert.assertTrue(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()), "isConnectorVisible()");
+    Assert.assertTrue(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()),
+        String.format("isConnectorVisible()[%s]", DELETE_CONNECTOR.getName()));
     CONNECTOR_LIST.add(createConnector);
   }
 
@@ -68,7 +69,8 @@ public class ConnectorsTest extends BaseTest {
     Assert.assertTrue(connectorDetails.isAlertWithMessageVisible(SUCCESS, "Config successfully updated."),
         "isAlertWithMessageVisible()");
     navigateToConnectors();
-    Assert.assertTrue(kafkaConnectList.isConnectorVisible(UPDATE_CONNECTOR.getName()), "isConnectorVisible()");
+    Assert.assertTrue(kafkaConnectList.isConnectorVisible(UPDATE_CONNECTOR.getName()),
+        String.format("isConnectorVisible()[%s]", UPDATE_CONNECTOR.getName()));
   }
 
   @Test
@@ -79,8 +81,8 @@ public class ConnectorsTest extends BaseTest {
         .clickDeleteBtn()
         .clickConfirmBtn();
     navigateToConnectors();
-    Assert.assertFalse(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()), "isConnectorVisible()");
-    CONNECTOR_LIST.remove(DELETE_CONNECTOR);
+    Assert.assertFalse(kafkaConnectList.isConnectorVisible(DELETE_CONNECTOR.getName()),
+        String.format("isConnectorVisible()[%s]", DELETE_CONNECTOR.getName()));
   }
 
   @AfterClass(alwaysRun = true)

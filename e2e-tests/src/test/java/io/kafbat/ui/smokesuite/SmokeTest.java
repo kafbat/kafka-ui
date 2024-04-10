@@ -85,7 +85,7 @@ public class SmokeTest extends BaseTest {
   @Step
   private void verifyComponentsPath(MenuItem menuItem, String expectedPath) {
     Assert.assertEquals(naviSideBar.getPagePath(menuItem), expectedPath,
-        String.format("getPagePath() for %s", menuItem.getPageTitle().toUpperCase()));
+        String.format("getPagePath()[%s]", menuItem.getPageTitle().toUpperCase()));
   }
 
   @AfterClass(alwaysRun = true)

@@ -1,6 +1,6 @@
 package io.kafbat.ui.variables;
 
-public interface Expected {
+public interface Common {
 
   String BROKER_SOURCE_INFO_TOOLTIP =
       "Dynamic topic config = dynamic topic config that is configured for a specific topic\n"
@@ -12,4 +12,6 @@ public interface Expected {
           + "(e.g. server.properties file)\n"
           + "Default config = built-in default configuration for configs that have a default value\n"
           + "Unknown = source unknown e.g. in the ConfigEntry used for alter requests where source is not set";
+  String FILTER_CODE_STRING = "has(record.keyAsText) && record.keyAsText.matches(\".*[Gg]roovy.*\")";
+  String FILTER_CODE_JSON = "has(record.key.name.first) && record.key.name.first == 'user1'";
 }

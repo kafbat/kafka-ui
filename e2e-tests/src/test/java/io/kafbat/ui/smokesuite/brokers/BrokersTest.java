@@ -7,7 +7,7 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.screens.brokers.BrokersConfigTab;
 import io.kafbat.ui.screens.brokers.BrokersDetails;
 import io.kafbat.ui.utilities.StringUtil;
-import io.kafbat.ui.variables.Expected;
+import io.kafbat.ui.variables.Common;
 import io.qameta.allure.Issue;
 import java.util.List;
 import org.testng.Assert;
@@ -20,7 +20,7 @@ public class BrokersTest extends BaseTest {
   public static final int DEFAULT_BROKER_ID = 1;
 
   @Test
-  public void checkBrokersOverview() {
+  public void brokersOverviewCheck() {
     navigateToBrokers();
     Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
     verifyElementsCondition(brokersList.getAllVisibleElements(), Condition.visible);
@@ -28,9 +28,9 @@ public class BrokersTest extends BaseTest {
   }
 
   @Test
-  public void checkExistingBrokersInCluster() {
+  public void existingBrokersInClusterCheck() {
     navigateToBrokers();
-    Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers()");
+    Assert.assertFalse(brokersList.getAllBrokers().isEmpty(), "getAllBrokers().isEmpty()");
     brokersList
         .openBroker(DEFAULT_BROKER_ID);
     brokersDetails
@@ -61,13 +61,13 @@ public class BrokersTest extends BaseTest {
     Assert.assertFalse(brokersConfigTab.getAllConfigs().stream()
             .map(BrokersConfigTab.BrokersConfigItem::getKey)
             .toList().contains(anyConfigKeyFirstPage),
-        String.format("getAllConfigs().contains(%s)", anyConfigKeyFirstPage));
+        String.format("getAllConfigs().contains()[%s]", anyConfigKeyFirstPage));
     brokersConfigTab
         .searchConfig(anyConfigKeyFirstPage);
     Assert.assertTrue(brokersConfigTab.getAllConfigs().stream()
             .map(BrokersConfigTab.BrokersConfigItem::getKey)
             .toList().contains(anyConfigKeyFirstPage),
-        String.format("getAllConfigs().contains(%s)", anyConfigKeyFirstPage));
+        String.format("getAllConfigs().contains()[%s]", anyConfigKeyFirstPage));
   }
 
   @Ignore
@@ -88,13 +88,13 @@ public class BrokersTest extends BaseTest {
     Assert.assertFalse(brokersConfigTab.getAllConfigs().stream()
             .map(BrokersConfigTab.BrokersConfigItem::getKey)
             .toList().contains(anyConfigKeySecondPage),
-        String.format("getAllConfigs().contains(%s)", anyConfigKeySecondPage));
+        String.format("getAllConfigs().contains()[%s]", anyConfigKeySecondPage));
     brokersConfigTab
         .searchConfig(anyConfigKeySecondPage);
     Assert.assertTrue(brokersConfigTab.getAllConfigs().stream()
             .map(BrokersConfigTab.BrokersConfigItem::getKey)
             .toList().contains(anyConfigKeySecondPage),
-        String.format("getAllConfigs().contains(%s)", anyConfigKeySecondPage));
+        String.format("getAllConfigs().contains()[%s]", anyConfigKeySecondPage));
   }
 
   @Ignore
@@ -113,7 +113,7 @@ public class BrokersTest extends BaseTest {
     Assert.assertFalse(brokersConfigTab.getAllConfigs().stream()
             .map(BrokersConfigTab.BrokersConfigItem::getKey)
             .toList().contains(anyConfigKeyFirstPage),
-        String.format("getAllConfigs().contains(%s)", anyConfigKeyFirstPage));
+        String.format("getAllConfigs().contains()[%s]", anyConfigKeyFirstPage));
     SoftAssert softly = new SoftAssert();
     List.of(anyConfigKeyFirstPage.toLowerCase(), anyConfigKeyFirstPage.toUpperCase(),
             StringUtil.getMixedCase(anyConfigKeyFirstPage))
@@ -123,7 +123,7 @@ public class BrokersTest extends BaseTest {
           softly.assertTrue(brokersConfigTab.getAllConfigs().stream()
                   .map(BrokersConfigTab.BrokersConfigItem::getKey)
                   .toList().contains(anyConfigKeyFirstPage),
-              String.format("getAllConfigs().contains(%s)", configCase));
+              String.format("getAllConfigs().contains()[%s]", configCase));
         });
     softly.assertAll();
   }
@@ -136,7 +136,7 @@ public class BrokersTest extends BaseTest {
     String sourceInfoTooltip = brokersConfigTab
         .hoverOnSourceInfoIcon()
         .getSourceInfoTooltipText();
-    Assert.assertEquals(sourceInfoTooltip, Expected.BROKER_SOURCE_INFO_TOOLTIP, "brokerSourceInfoTooltip");
+    Assert.assertEquals(sourceInfoTooltip, Common.BROKER_SOURCE_INFO_TOOLTIP, "getSourceInfoTooltipText()");
   }
 
   @Test
@@ -160,7 +160,8 @@ public class BrokersTest extends BaseTest {
     configItem
         .setValue(String.valueOf(newValue))
         .clickCancelBtn();
-    Assert.assertEquals(getIntegerFromString(configItem.getValue(), false), defaultValue, "getValue()");
+    Assert.assertEquals(getIntegerFromString(configItem.getValue(), false), defaultValue,
+        "configItem.getValue()");
     configItem
         .clickEditBtn()
         .setValue(String.valueOf(newValue))
@@ -172,7 +173,8 @@ public class BrokersTest extends BaseTest {
     softly.assertFalse(configItem.getSaveBtn().isDisplayed(), "getSaveBtn().isDisplayed()");
     softly.assertFalse(configItem.getCancelBtn().isDisplayed(), "getCancelBtn().isDisplayed()");
     softly.assertTrue(configItem.getEditBtn().isDisplayed(), "getEditBtn().isDisplayed()");
-    softly.assertEquals(getIntegerFromString(configItem.getValue(), false), newValue, "getValue()");
+    softly.assertEquals(getIntegerFromString(configItem.getValue(), false), newValue,
+        "configItem.getValue()");
     softly.assertAll();
   }
 }

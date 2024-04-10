@@ -172,8 +172,7 @@ public class MessagesTest extends BaseTest {
     softly.assertTrue(topicDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
             String.format("%s messages have been successfully cleared!", CHECK_FILTERS_TOPIC.getName())),
         "isAlertWithMessageVisible()");
-    softly.assertEquals(topicDetails.getMessageCountAmount(), 0,
-        "getMessageCountAmount()= " + topicDetails.getMessageCountAmount());
+    softly.assertEquals(topicDetails.getMessageCountAmount(), 0, "getMessageCountAmount()");
     softly.assertAll();
   }
 
@@ -217,7 +216,7 @@ public class MessagesTest extends BaseTest {
     topicDetails
         .clickNextButton();
     softly.assertEquals(topicDetails.getAllMessages().stream().findFirst().orElseThrow().getOffset(),
-        lastOffsetOnPage + 1, "findFirst().getOffset()");
+        lastOffsetOnPage + 1, "getAllMessages().findFirst().getOffset()");
     softly.assertTrue(topicDetails.isBackButtonEnabled(), "isBackButtonEnabled()");
     softly.assertFalse(topicDetails.isNextButtonEnabled(), "isNextButtonEnabled()");
     softly.assertAll();

@@ -40,13 +40,15 @@ public class SchemasTest extends BaseTest {
     schemaDetails
         .waitUntilScreenReady();
     SoftAssert softly = new SoftAssert();
-    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaAvro.getName()), "isSchemaHeaderVisible()");
+    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaAvro.getName()),
+        String.format("isSchemaHeaderVisible()[%s]", schemaAvro.getName()));
     softly.assertEquals(schemaDetails.getSchemaType(), schemaAvro.getType().getValue(), "getSchemaType()");
     softly.assertEquals(schemaDetails.getCompatibility(), CompatibilityLevel.CompatibilityEnum.BACKWARD.getValue(),
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", AVRO_SCHEMA.getName()));
     SCHEMA_LIST.add(schemaAvro);
   }
 
@@ -89,7 +91,7 @@ public class SchemasTest extends BaseTest {
     Assert.assertEquals(versionsNumberFromDdl, latestVersion, "Versions number is not matched");
     schemaCreateForm
         .selectVersionFromDropDown(1);
-    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getAllMarkedLines()");
+    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getMarkedLinesNumber()");
   }
 
   @Test(priority = 4)
@@ -99,7 +101,8 @@ public class SchemasTest extends BaseTest {
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(AVRO_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", AVRO_SCHEMA.getName()));
     SCHEMA_LIST.remove(AVRO_SCHEMA);
   }
 
@@ -117,13 +120,15 @@ public class SchemasTest extends BaseTest {
     schemaDetails
         .waitUntilScreenReady();
     SoftAssert softly = new SoftAssert();
-    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaJson.getName()), "isSchemaHeaderVisible()");
+    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaJson.getName()),
+        String.format("isSchemaHeaderVisible()[%s]", schemaJson.getName()));
     softly.assertEquals(schemaDetails.getSchemaType(), schemaJson.getType().getValue(), "getSchemaType()");
     softly.assertEquals(schemaDetails.getCompatibility(), CompatibilityLevel.CompatibilityEnum.BACKWARD.getValue(),
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", JSON_SCHEMA.getName()));
     SCHEMA_LIST.add(schemaJson);
   }
 
@@ -134,7 +139,8 @@ public class SchemasTest extends BaseTest {
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(JSON_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", JSON_SCHEMA.getName()));
     SCHEMA_LIST.remove(JSON_SCHEMA);
   }
 
@@ -152,13 +158,15 @@ public class SchemasTest extends BaseTest {
     schemaDetails
         .waitUntilScreenReady();
     SoftAssert softly = new SoftAssert();
-    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaProtobuf.getName()), "isSchemaHeaderVisible()");
+    softly.assertTrue(schemaDetails.isSchemaHeaderVisible(schemaProtobuf.getName()),
+        String.format("isSchemaHeaderVisible()[%s]", schemaProtobuf.getName()));
     softly.assertEquals(schemaDetails.getSchemaType(), schemaProtobuf.getType().getValue(), "getSchemaType()");
     softly.assertEquals(schemaDetails.getCompatibility(), CompatibilityLevel.CompatibilityEnum.BACKWARD.getValue(),
         "getCompatibility()");
     softly.assertAll();
     navigateToSchemaRegistry();
-    Assert.assertTrue(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertTrue(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", PROTOBUF_SCHEMA.getName()));
     SCHEMA_LIST.add(schemaProtobuf);
   }
 
@@ -169,7 +177,8 @@ public class SchemasTest extends BaseTest {
         .removeSchema();
     schemaRegistryList
         .waitUntilScreenReady();
-    Assert.assertFalse(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()), "isSchemaVisible()");
+    Assert.assertFalse(schemaRegistryList.isSchemaVisible(PROTOBUF_SCHEMA.getName()),
+        String.format("isSchemaVisible()[%s]", PROTOBUF_SCHEMA.getName()));
     SCHEMA_LIST.remove(PROTOBUF_SCHEMA);
   }
 

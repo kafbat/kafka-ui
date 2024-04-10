@@ -1,6 +1,8 @@
 package io.kafbat.ui.smokesuite.topics;
 
 import static io.kafbat.ui.screens.BasePage.AlertHeader.SUCCESS;
+import static io.kafbat.ui.variables.Common.FILTER_CODE_JSON;
+import static io.kafbat.ui.variables.Common.FILTER_CODE_STRING;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
@@ -61,13 +63,15 @@ public class TopicsTest extends BaseTest {
         .clickSaveTopicBtn();
     navigateToTopicsAndOpenDetails(CREATE_TOPIC.getName());
     SoftAssert softly = new SoftAssert();
-    softly.assertTrue(topicDetails.isTopicHeaderVisible(CREATE_TOPIC.getName()), "isTopicHeaderVisible()");
+    softly.assertTrue(topicDetails.isTopicHeaderVisible(CREATE_TOPIC.getName()),
+        String.format("isTopicHeaderVisible()[%s]", CREATE_TOPIC.getName()));
     softly.assertEquals(topicDetails.getCleanUpPolicy(), CREATE_TOPIC.getCleanupPolicyValue().toString(),
         "getCleanUpPolicy()");
     softly.assertEquals(topicDetails.getPartitions(), CREATE_TOPIC.getNumberOfPartitions(), "getPartitions()");
     softly.assertAll();
     navigateToTopics();
-    Assert.assertTrue(topicsList.isTopicVisible(CREATE_TOPIC.getName()), "isTopicVisible()");
+    Assert.assertTrue(topicsList.isTopicVisible(CREATE_TOPIC.getName()),
+        String.format("isTopicVisible()[%s]", CREATE_TOPIC.getName()));
     TOPIC_LIST.add(CREATE_TOPIC);
   }
 
@@ -136,7 +140,7 @@ public class TopicsTest extends BaseTest {
     softly.assertTrue(topicDetails.isAlertWithMessageVisible(SUCCESS, "Topic successfully updated."),
         "isAlertWithMessageVisible()");
     softly.assertTrue(topicDetails.isTopicHeaderVisible(UPDATE_TOPIC.getName()),
-        "isTopicHeaderVisible()");
+        String.format("isTopicHeaderVisible()[%s]", UPDATE_TOPIC.getName()));
     softly.assertAll();
     topicDetails
         .waitUntilScreenReady();
@@ -177,7 +181,8 @@ public class TopicsTest extends BaseTest {
         .clickDeleteTopicMenu()
         .clickConfirmBtnMdl();
     navigateToTopics();
-    Assert.assertFalse(topicsList.isTopicVisible(DELETE_TOPIC.getName()), "isTopicVisible");
+    Assert.assertFalse(topicsList.isTopicVisible(DELETE_TOPIC.getName()),
+        String.format("isTopicVisible()[%s]", DELETE_TOPIC.getName()));
     TOPIC_LIST.remove(DELETE_TOPIC);
   }
 
@@ -244,7 +249,7 @@ public class TopicsTest extends BaseTest {
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.SETTINGS);
     Assert.assertEquals(topicDetails.getSettingsGridValueByKey("retention.ms"), retainDataTopic.getTimeToRetainData(),
-        "getSettingsGridValueByKey()");
+        "getTimeToRetainData()");
     TOPIC_LIST.add(retainDataTopic);
   }
 
@@ -286,16 +291,18 @@ public class TopicsTest extends BaseTest {
     verifyElementsCondition(topicDetails.getAllAddFilterModalDisabledElements(), Condition.disabled);
     Assert.assertFalse(topicDetails.isSaveThisFilterCheckBoxSelected(), "isSaveThisFilterCheckBoxSelected()");
     topicDetails
-        .setFilterCodeFldAddFilterMdl(filterName);
+        .setFilterCodeFldAddFilterMdl(FILTER_CODE_STRING)
+        .setDisplayNameFldAddFilterMdl(filterName);
     Assert.assertTrue(topicDetails.isAddFilterBtnAddFilterMdlEnabled(), "isAddFilterBtnAddFilterMdlEnabled()");
     topicDetails.clickAddFilterBtnAndCloseMdl(true);
-    Assert.assertTrue(topicDetails.isActiveFilterVisible(filterName), "isActiveFilterVisible()");
+    Assert.assertTrue(topicDetails.isActiveFilterVisible(filterName),
+        String.format("isActiveFilterVisible()[%s]", filterName));
   }
 
   @Test(priority = 13)
   public void editActiveSmartFilterCheck() {
+    String filterCode = FILTER_CODE_STRING;
     String filterName = randomAlphabetic(5);
-    String filterCode = "has(record.keyAsText) && record.keyAsText.matches(\".*[Gg]roovy.*\")";
     navigateToTopicsAndOpenDetails(FILTERS_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
@@ -311,50 +318,48 @@ public class TopicsTest extends BaseTest {
     softly.assertEquals(topicDetails.getFilterNameValue(), filterName, "getFilterNameValue()");
     softly.assertAll();
     String newFilterName = randomAlphabetic(5);
-    String newFilterCode = "has(record.key.name.first) && record.key.name.first == 'user1'";
     topicDetails
-        .setFilterCodeFldAddFilterMdl(newFilterCode)
+        .setFilterCodeFldAddFilterMdl(FILTER_CODE_JSON)
         .setDisplayNameFldAddFilterMdl(newFilterName)
         .clickSaveFilterBtnAndCloseMdl(true);
-    Assert.assertTrue(topicDetails.isActiveFilterVisible(newFilterName), "isActiveFilterVisible()");
+    Assert.assertTrue(topicDetails.isActiveFilterVisible(newFilterName),
+        String.format("isActiveFilterVisible()[%s]", newFilterName));
   }
 
   @Test(priority = 14)
   public void saveSmartFilterCheck() {
-    String displayName = randomAlphabetic(5);
+    String filterName = randomAlphabetic(5);
     navigateToTopicsAndOpenDetails(FILTERS_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
         .clickMessagesAddFiltersBtn()
         .waitUntilAddFiltersMdlVisible()
-        .setFilterCodeFldAddFilterMdl(randomAlphabetic(4))
+        .setFilterCodeFldAddFilterMdl(FILTER_CODE_JSON)
         .selectSaveThisFilterCheckboxMdl(true)
-        .setDisplayNameFldAddFilterMdl(displayName);
+        .setDisplayNameFldAddFilterMdl(filterName);
     Assert.assertTrue(topicDetails.isAddFilterBtnAddFilterMdlEnabled(),
         "isAddFilterBtnAddFilterMdlEnabled()");
     topicDetails
-        .clickAddFilterBtnAndCloseMdl(false)
-        .openSavedFiltersListMdl();
-    Assert.assertTrue(topicDetails.isFilterVisibleAtSavedFiltersMdl(displayName),
-        "isFilterVisibleAtSavedFiltersMdl()");
+        .clickAddFilterBtnAndCloseMdl(false);
+    Assert.assertTrue(topicDetails.isFilterVisibleAtSavedFiltersMdl(filterName),
+        String.format("isFilterVisibleAtSavedFiltersMdl()[%s]", filterName));
   }
 
   @Test(priority = 15)
   public void applySavedFilterWithinTopicMessagesCheck() {
-    String displayName = randomAlphabetic(5);
+    String filterName = randomAlphabetic(5);
     navigateToTopicsAndOpenDetails(FILTERS_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
         .clickMessagesAddFiltersBtn()
         .waitUntilAddFiltersMdlVisible()
-        .setFilterCodeFldAddFilterMdl(randomAlphabetic(4))
+        .setFilterCodeFldAddFilterMdl(FILTER_CODE_JSON)
         .selectSaveThisFilterCheckboxMdl(true)
-        .setDisplayNameFldAddFilterMdl(displayName)
+        .setDisplayNameFldAddFilterMdl(filterName)
         .clickAddFilterBtnAndCloseMdl(false)
-        .openSavedFiltersListMdl()
-        .selectFilterAtSavedFiltersMdl(displayName)
-        .clickSelectFilterBtnAtSavedFiltersMdl();
-    Assert.assertTrue(topicDetails.isActiveFilterVisible(displayName), "isActiveFilterVisible()");
+        .selectFilterAtSavedFiltersMdl(filterName);
+    Assert.assertTrue(topicDetails.isActiveFilterVisible(filterName),
+        String.format("isActiveFilterVisible()[%s]", filterName));
   }
 
   @Test(priority = 16)
@@ -362,15 +367,15 @@ public class TopicsTest extends BaseTest {
     navigateToTopics();
     topicsList
         .setShowInternalRadioButton(true);
-    Assert.assertFalse(topicsList.getInternalTopics().isEmpty(), "getInternalTopics()");
+    Assert.assertFalse(topicsList.getInternalTopics().isEmpty(), "getInternalTopics().isEmpty()");
     topicsList
         .goToLastPage();
-    Assert.assertFalse(topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics()");
+    Assert.assertFalse(topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics().isEmpty()");
     topicsList
         .setShowInternalRadioButton(false);
     SoftAssert softly = new SoftAssert();
-    softly.assertEquals(topicsList.getInternalTopics().size(), 0, "getInternalTopics()");
-    softly.assertTrue(!topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics()");
+    softly.assertEquals(topicsList.getInternalTopics().size(), 0, "getInternalTopics().size()");
+    softly.assertTrue(!topicsList.getNonInternalTopics().isEmpty(), "getNonInternalTopics().isEmpty()");
     softly.assertAll();
   }
 
@@ -427,9 +432,9 @@ public class TopicsTest extends BaseTest {
     topicSettingsTab
         .waitUntilScreenReady();
     softly.assertEquals(topicSettingsTab.getValueByKey("retention.bytes"),
-        SETTINGS_TOPIC.getMaxSizeOnDisk().getOptionValue(), "getValueOfKey(retention.bytes)");
+        SETTINGS_TOPIC.getMaxSizeOnDisk().getOptionValue(), "getMaxSizeOnDisk()");
     softly.assertEquals(topicSettingsTab.getValueByKey("max.message.bytes"),
-        SETTINGS_TOPIC.getMaxMessageBytes(), "getValueOfKey(max.message.bytes)");
+        SETTINGS_TOPIC.getMaxMessageBytes(), "getMaxMessageBytes()");
     softly.assertAll();
   }
 
@@ -476,7 +481,8 @@ public class TopicsTest extends BaseTest {
     topicDetails
         .waitUntilScreenReady();
     TOPIC_LIST.add(copyTopic);
-    Assert.assertTrue(topicDetails.isTopicHeaderVisible(copyTopic.getName()), "isTopicHeaderVisible()");
+    Assert.assertTrue(topicDetails.isTopicHeaderVisible(copyTopic.getName()),
+        String.format("isTopicHeaderVisible()[%s]", copyTopic.getName()));
   }
 
   @AfterClass(alwaysRun = true)

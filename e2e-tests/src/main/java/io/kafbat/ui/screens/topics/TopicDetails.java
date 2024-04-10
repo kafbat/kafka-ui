@@ -47,14 +47,12 @@ public class TopicDetails extends BasePage {
   protected SelenideElement addFilterBtnAddFilterMdl = $x("//button[text()='Add Filter']");
   protected SelenideElement saveFilterBtnEditFilterMdl = $x("//button[text()='Edit Filter']");
   protected SelenideElement addFiltersBtnMessages = $x("//button[text()='Add Filters']");
-  protected SelenideElement selectFilterBtnAddFilterMdl = $x("//button[text()='Select filter']");
   protected SelenideElement editSettingsMenu = $x("//li[@role][contains(text(),'Edit settings')]");
   protected SelenideElement removeTopicBtn = $x("//ul[@role='menu']//div[contains(text(),'Remove Topic')]");
   protected SelenideElement produceMessageBtn = $x("//div//button[text()='Produce Message']");
   protected SelenideElement contentMessageTab = $x("//html//div[@id='root']/div/main//table//p");
   protected SelenideElement cleanUpPolicyField = $x("//div[contains(text(),'Clean Up Policy')]/../span/*");
   protected SelenideElement partitionsField = $x("//div[contains(text(),'Partitions')]/../span");
-  protected SelenideElement backToCreateFiltersLink = $x("//div[text()='Back To create filters']");
   protected ElementsCollection messageGridItems = $$x("//tbody//tr");
   protected SelenideElement actualCalendarDate = $x("//div[@class='react-datepicker__current-month']");
   protected SelenideElement previousMonthButton = $x("//button[@aria-label='Previous Month']");
@@ -204,13 +202,6 @@ public class TopicDetails extends BasePage {
   }
 
   @Step
-  public TopicDetails openSavedFiltersListMdl() {
-    savedFiltersLink.shouldBe(enabled).click();
-    backToCreateFiltersLink.shouldBe(Condition.visible);
-    return this;
-  }
-
-  @Step
   public boolean isFilterVisibleAtSavedFiltersMdl(String filterName) {
     return WebUtil.isVisible($x(String.format(savedFilterNameLocator, filterName)));
   }
@@ -218,13 +209,6 @@ public class TopicDetails extends BasePage {
   @Step
   public TopicDetails selectFilterAtSavedFiltersMdl(String filterName) {
     $x(String.format(savedFilterNameLocator, filterName)).shouldBe(enabled).click();
-    return this;
-  }
-
-  @Step
-  public TopicDetails clickSelectFilterBtnAtSavedFiltersMdl() {
-    selectFilterBtnAddFilterMdl.shouldBe(enabled).click();
-    addFilterCodeModalTitle.shouldBe(Condition.disappear);
     return this;
   }
 
