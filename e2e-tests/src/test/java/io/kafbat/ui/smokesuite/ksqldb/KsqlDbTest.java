@@ -19,13 +19,13 @@ import org.testng.asserts.SoftAssert;
 public class KsqlDbTest extends BaseTest {
 
   private static final Stream DEFAULT_STREAM = new Stream()
-      .setName("DEFAULT_STREAM_" + randomAlphabetic(4).toUpperCase())
-      .setTopicName("DEFAULT_TOPIC_" + randomAlphabetic(4).toUpperCase());
+      .setName("DEFAULT_STREAM_" + randomAlphabetic(5).toUpperCase())
+      .setTopicName("DEFAULT_TOPIC_" + randomAlphabetic(5).toUpperCase());
   private static final Table FIRST_TABLE = new Table()
-      .setName("FIRST_TABLE_" + randomAlphabetic(4).toUpperCase())
+      .setName("FIRST_TABLE_" + randomAlphabetic(5).toUpperCase())
       .setStreamName(DEFAULT_STREAM.getName());
   private static final Table SECOND_TABLE = new Table()
-      .setName("SECOND_TABLE_" + randomAlphabetic(4).toUpperCase())
+      .setName("SECOND_TABLE_" + randomAlphabetic(5).toUpperCase())
       .setStreamName(DEFAULT_STREAM.getName());
   private static final List<String> TOPIC_NAME_LIST = new ArrayList<>();
 
