@@ -44,10 +44,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get latest Serders
-        id: get_serders
+      - name: Get latest Serdes
+        id: get_serdes
         run: |
-          ./api/build-with-serders.sh
+          ./api/build-with-serdes.sh
 
       - name: Build & push docker image with serder
         id: docker_build_and_push_with_serdes
@@ -59,12 +59,12 @@ jobs:
           provenance: false
           push: true
           tags: |
-            ghcr.io/kafbat/kafka-ui-serders:main
+            ghcr.io/kafbat/kafka-ui-serdes:main
           build-args: |
             BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:main
-            SERDE_SMILE_JAR=${{ steps.get_serders.outputs.smile_package_url }}
-            SERDE_SMILE_VERSION=${{ steps.get_serders.outputs.smile_serde_version }}
-            SERDE_GLUE_JAR=${{ steps.get_serders.outputs.glue_package_url }}
-            SERDE_GLUE_VERSION=${{ steps.get_serders.outputs.glue_serde_version }}
+            SERDE_SMILE_JAR=${{ steps.get_serdes.outputs.smile_package_url }}
+            SERDE_SMILE_VERSION=${{ steps.get_serdes.outputs.smile_serde_version }}
+            SERDE_GLUE_JAR=${{ steps.get_serdes.outputs.glue_package_url }}
+            SERDE_GLUE_VERSION=${{ steps.get_serdes.outputs.glue_serde_version }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
