@@ -49,8 +49,14 @@ public abstract class BasePage extends WebUtil {
     }
   }
 
+  protected void clickClearSearchFieldButton() {
+    clickByActions(searchFld.$x("./../span[@role='button']"));
+    waitUntilSpinnerDisappear(1);
+  }
+
   protected void searchItem(String tag) {
     log.debug("\nsearchItem: {}", tag);
+    clickClearSearchFieldButton();
     sendKeysAfterClear(searchFld, tag);
     searchFld.pressEnter().shouldHave(Condition.value(tag));
     waitUntilSpinnerDisappear(1);
