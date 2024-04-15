@@ -7,9 +7,7 @@ This repository is for E2E UI automation.
 - [Prerequisites](#prerequisites)
 - [How to install](#how-to-install)
 - [How to run checks](#how-to-run-checks)
-- [Qase.io integration (for internal users)](#qase-integration)
 - [Reporting](#reporting)
-- [Environments setup](#environments-setup)
 - [Test Data](#test-data)
 - [Actions](#actions)
 - [Checks](#checks)
@@ -19,7 +17,7 @@ This repository is for E2E UI automation.
 ### Prerequisites
 
 - Docker & Docker-compose
-- Java (install aarch64 jdk if you have M1/arm chip)
+- Java (install arch64 jdk if you have M1/arm chip)
 - Maven
 
 ### How to install
@@ -27,7 +25,7 @@ This repository is for E2E UI automation.
 ```
 git clone https://github.com/kafbat/kafka-ui.git
 cd  e2e-tests
-docker pull selenoid/vnc_chrome:103.0 
+docker pull selenoid/vnc_chrome:117.0 
 ```
 
 ### How to run checks
@@ -36,21 +34,17 @@ docker pull selenoid/vnc_chrome:103.0
 
 ```
 cd kafbat-ui
-docker-compose -f e2e-tests/docker/selenoid-local.yaml up -d
+docker-compose -f e2e-tests/selenoid/selenoid-local.yaml up -d
 docker-compose -f documentation/compose/e2e-tests.yaml up -d
 ```
 
-2. To run test suite select its name (options: regression, sanity, smoke) and put it instead %s into command below
+2. To run test suite select its name (options: `regression`, `sanity`, `smoke`) and put it instead %s into command below
 
 ```
 ./mvnw -Dsurefire.suiteXmlFiles='src/test/resources/%s.xml' -f 'e2e-tests' test -Pprod
 ```
 
-3. To run tests on your local Chrome browser just add next VM option to the Run Configuration
-
-```
--Dbrowser=local
-```
+3. To run tests on your local Chrome browser check `selenoid-off` profile on Maven panel, also there you can check `headless-off`
 
 Expected Location of Chrome
 ```
@@ -60,31 +54,16 @@ Windows XP:                 %HOMEPATH%\Local Settings\Application Data\Google\Ch
 Windows Vista and newer:    C:\Users%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe
 ```
 
-### Qase integration
-
-Found instruction for Qase.io integration (for internal use only) at `e2e-tests/QASE.md`
-
 ### Reporting
 
-Reports are in `allure-results` folder.
-If you have installed allure commandline [here](https://www.npmjs.com/package/allure-commandline))
-You can see allure report with command:
+Screenshots are stored in `target/selenide-results/reports` folder.
+
+Reports are stored in `target/allure-results` folder.
+If you have installed allure commandline [here](https://www.npmjs.com/package/allure-commandline), you can see allure report with command:
 
 ```
 allure serve
 ```
-
-### Screenshots
-
-Reference screenshots are in `SCREENSHOTS_FOLDER`  (default,`e2e-tests/screenshots`)
-
-### How to develop
-
-> ⚠️ todo
-
-### Setting for different environments
-
-> ⚠️ todo
 
 ### Test Data
 
@@ -102,7 +81,6 @@ Reference screenshots are in `SCREENSHOTS_FOLDER`  (default,`e2e-tests/screensho
 
 > ⚠️ todo
 
-### Tips
+### How to develop
 
-- install `Selenium UI Testing plugin` in IDEA
-
+> ⚠️ todo
