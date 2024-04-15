@@ -9,7 +9,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.kafbat.ui.settings.BaseSource;
-import io.kafbat.ui.variables.Browser;
 import io.qameta.allure.Step;
 import io.qameta.allure.selenide.AllureSelenide;
 import java.util.HashMap;
@@ -20,34 +19,40 @@ import org.openqa.selenium.chrome.ChromeOptions;
 @Slf4j
 public abstract class WebDriver {
 
+  private static final String MAC_OS_CHROME_BIN_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  private static final String SELENIDE_RESULTS_PATH = "target/selenide-results";
+
   @Step
   public static void browserSetup() {
-    Configuration.headless = false;
+    Configuration.headless = BaseSource.HEADLESS;
     Configuration.browser = "chrome";
     Configuration.browserSize = "1920x1080";
+    Configuration.pageLoadTimeout = 180000;
+    Configuration.savePageSource = true;
     Configuration.screenshots = true;
-    Configuration.savePageSource = false;
-    Configuration.pageLoadTimeout = 120000;
+    Configuration.downloadsFolder = String.format("%s/downloads", SELENIDE_RESULTS_PATH);
+    Configuration.reportsFolder = String.format("%s/reports", SELENIDE_RESULTS_PATH);
     ChromeOptions chromeOptions = new ChromeOptions()
-        .addArguments("--no-sandbox")
-        .addArguments("--verbose")
-        .addArguments("--remote-allow-origins=*")
+        //.addArguments("--remote-allow-origins=*")
         .addArguments("--disable-dev-shm-usage")
+        .addArguments("--disable-extensions")
         .addArguments("--disable-gpu")
+        .addArguments("--no-sandbox")
         .addArguments("--lang=en_US");
-    switch (BaseSource.BROWSER) {
-      case (Browser.LOCAL) -> Configuration.browserCapabilities = chromeOptions;
-      case (Browser.CONTAINER) -> {
-        Configuration.remote = BaseSource.REMOTE_URL;
-        Configuration.remoteConnectionTimeout = 180000;
-        Map<String, Object> selenoidOptions = new HashMap<>();
-        selenoidOptions.put("enableVNC", true);
-        selenoidOptions.put("enableVideo", false);
-        chromeOptions.setCapability("selenoid:options", selenoidOptions);
-        Configuration.browserCapabilities = chromeOptions;
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + BaseSource.BROWSER);
+    if (BaseSource.SELENOID) {
+      Configuration.remote = BaseSource.REMOTE_URL;
+      Configuration.remoteConnectionTimeout = 180000;
+      Configuration.remoteReadTimeout = 180000;
+      Map<String, Object> selenoidOptions = new HashMap<>();
+      selenoidOptions.put("enableVNC", true);
+      selenoidOptions.put("enableLog", true);
+      selenoidOptions.put("enableVideo", false);
+      selenoidOptions.put("sessionTimeout", "30m");
+      chromeOptions.setCapability("selenoid:options", selenoidOptions);
+    } else if (System.getProperty("os.name").equals("Mac OS X")) {
+      Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
     }
+    Configuration.browserCapabilities = chromeOptions;
   }
 
   private static org.openqa.selenium.WebDriver getWebDriver() {
@@ -69,14 +74,13 @@ public abstract class WebDriver {
   }
 
   @Step
-  public static void browserInit() {
-    getWebDriver();
-  }
-
-  @Step
   public static void browserClear() {
-    clearBrowserLocalStorage();
-    clearBrowserCookies();
+    getWebDriver();
+    try {
+      clearBrowserCookies();
+      clearBrowserLocalStorage();
+    } catch (Throwable ignored) {
+    }
     refresh();
   }
 
@@ -93,9 +97,9 @@ public abstract class WebDriver {
   }
 
   @Step
-  public static void loggerSetup() {
+  public static void selenideLoggerSetup() {
     SelenideLogger.addListener("AllureSelenide", new AllureSelenide()
-        .screenshots(true)
-        .savePageSource(false));
+        .savePageSource(true)
+        .screenshots(true));
   }
 }

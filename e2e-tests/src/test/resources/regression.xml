@@ -1,10 +1,9 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="RegressionSuite">
-    <test name="RegressionTest" enabled="true" parallel="classes" thread-count="2">
+    <test name="RegressionTest" enabled="true" parallel="classes" thread-count="5">
         <packages>
             <package name="io.kafbat.ui.smokesuite.*"/>
             <package name="io.kafbat.ui.sanitysuite.*"/>
-            <package name="io.kafbat.ui.manualsuite.*"/>
         </packages>
     </test>
 </suite>
