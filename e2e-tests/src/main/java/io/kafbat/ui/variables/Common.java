@@ -2,6 +2,7 @@ package io.kafbat.ui.variables;
 
 public interface Common {
 
+  String LOG_RESULT = "-> {}";
   String BROKER_SOURCE_INFO_TOOLTIP =
       "Dynamic topic config = dynamic topic config that is configured for a specific topic\n"
           + "Dynamic broker logger config = dynamic broker logger config that is configured for a specific broker\n"

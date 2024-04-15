@@ -1,5 +1,7 @@
 package io.kafbat.ui.utilities;
 
+import static io.kafbat.ui.variables.Common.LOG_RESULT;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -62,7 +64,7 @@ public class WebUtil {
       isVisible = true;
     } catch (Throwable ignored) {
     }
-    log.debug("-> {}", isVisible);
+    log.debug(LOG_RESULT, isVisible);
     return isVisible;
   }
 
@@ -75,7 +77,7 @@ public class WebUtil {
       isEnabled = true;
     } catch (Throwable ignored) {
     }
-    log.debug("-> {}", isEnabled);
+    log.debug(LOG_RESULT, isEnabled);
     return isEnabled;
   }
 
@@ -88,7 +90,7 @@ public class WebUtil {
       isSelected = true;
     } catch (Throwable ignored) {
     }
-    log.debug("-> {}", isSelected);
+    log.debug(LOG_RESULT, isSelected);
     return isSelected;
   }
 

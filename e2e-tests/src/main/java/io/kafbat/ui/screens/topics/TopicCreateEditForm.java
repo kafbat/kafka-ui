@@ -36,6 +36,7 @@ public class TopicCreateEditForm extends BasePage {
   protected SelenideElement validationCustomParameterValueMsg = $x("//p[contains(text(),'Value is required')]");
   protected String ddlElementLocator = "//li[@value='%s']";
   protected String btnTimeToRetainLocator = "//button[@class][text()='%s']";
+  protected String customParamsElmCss = "ul[role=listbox][name^=customParams][name$=name]";
 
 
   @Step
@@ -158,8 +159,7 @@ public class TopicCreateEditForm extends BasePage {
   @Step
   public TopicCreateEditForm addCustomParameter(String customParameterName,
                                                 String customParameterValue) {
-    ElementsCollection customParametersElements =
-        $$("ul[role=listbox][name^=customParams][name$=name]");
+    ElementsCollection customParametersElements = $$(customParamsElmCss);
     KafkaUiSelectElement kafkaUiSelectElement = null;
     if (customParametersElements.size() == 1) {
       if ("Select".equals(customParametersElements.first().getText())) {
@@ -169,7 +169,7 @@ public class TopicCreateEditForm extends BasePage {
       $$("button")
           .find(Condition.exactText("Add Custom Parameter"))
           .click();
-      customParametersElements = $$("ul[role=listbox][name^=customParams][name$=name]");
+      customParametersElements = $$(customParamsElmCss);
       kafkaUiSelectElement = new KafkaUiSelectElement(customParametersElements.last());
     }
     if (kafkaUiSelectElement != null) {
@@ -183,7 +183,7 @@ public class TopicCreateEditForm extends BasePage {
   @Step
   public TopicCreateEditForm updateCustomParameter(String customParameterName,
                                                    String customParameterValue) {
-    SelenideElement selenideElement = $$("ul[role=listbox][name^=customParams][name$=name]")
+    SelenideElement selenideElement = $$(customParamsElmCss)
         .find(Condition.exactText(customParameterName));
     String name = selenideElement.getAttribute("name");
     if (name != null) {

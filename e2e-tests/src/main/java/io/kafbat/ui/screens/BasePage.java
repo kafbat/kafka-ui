@@ -2,6 +2,7 @@ package io.kafbat.ui.screens;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
+import static io.kafbat.ui.variables.Common.LOG_RESULT;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -109,28 +110,28 @@ public abstract class BasePage extends WebUtil {
   protected String getAlertHeader() {
     log.debug("\ngetAlertHeader");
     String result = alertHeader.shouldBe(Condition.visible).getText();
-    log.debug("-> {}", result);
+    log.debug(LOG_RESULT, result);
     return result;
   }
 
   protected String getAlertMessage() {
     log.debug("\ngetAlertMessage");
     String result = alertMessage.shouldBe(Condition.visible).getText();
-    log.debug("-> {}", result);
+    log.debug(LOG_RESULT, result);
     return result;
   }
 
   protected boolean isAlertVisible(AlertHeader header) {
     log.debug("\nisAlertVisible: {}", header.getValue());
     boolean result = getAlertHeader().equals(header.getValue());
-    log.debug("-> {}", result);
+    log.debug(LOG_RESULT, result);
     return result;
   }
 
   protected boolean isAlertVisible(AlertHeader header, String message) {
     log.debug("\nisAlertVisible: {} {}", header, message);
     boolean result = isAlertVisible(header) && getAlertMessage().equals(message);
-    log.debug("-> {}", result);
+    log.debug(LOG_RESULT, result);
     return result;
   }
 
