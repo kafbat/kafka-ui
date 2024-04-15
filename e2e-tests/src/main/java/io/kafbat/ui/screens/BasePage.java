@@ -52,7 +52,7 @@ public abstract class BasePage extends WebUtil {
   }
 
   protected void clickClearSearchFieldButton() {
-    clickByActions(searchFld.$x("./../span[@role='button']"));
+    clickByActions(searchFld.$x("./../span[@role='button']/*"));
     waitUntilSpinnerDisappear(1);
   }
 
