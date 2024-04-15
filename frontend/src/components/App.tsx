@@ -16,6 +16,7 @@ import { Toaster } from 'react-hot-toast';
 import GlobalCSS from 'components/globalCss';
 import * as S from 'components/App.styled';
 import { ThemeModeContext } from 'components/contexts/ThemeModeContext';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import ConfirmationModal from './common/ConfirmationModal/ConfirmationModal';
 import { ConfirmContextProvider } from './contexts/ConfirmContext';
@@ -96,6 +97,7 @@ const App: React.FC = () => {
           </Suspense>
         </ThemeProvider>
       </GlobalSettingsProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 };
