@@ -7,10 +7,10 @@ import Input from 'components/common/Input/Input';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
 import { matchTypeOptions } from 'components/ACLPage/Form/constants';
 import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterName } from 'redux/interfaces';
 import * as S from 'components/ACLPage/Form/Form.styled';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 import { AclDetailedFormProps } from 'components/ACLPage/Form/types';
+import { ClusterName } from 'lib/interfaces/cluster';
 
 import formSchema from './schema';
 import { FormValues } from './types';

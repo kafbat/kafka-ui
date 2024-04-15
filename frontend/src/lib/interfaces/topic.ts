@@ -1,10 +1,4 @@
-import {
-  Topic,
-  TopicConfig,
-  TopicCreation,
-  TopicMessage,
-  TopicMessageConsuming,
-} from 'generated-sources';
+import { Topic, TopicConfig, TopicCreation } from 'generated-sources';
 
 export type TopicName = Topic['name'];
 
@@ -49,12 +43,4 @@ export interface TopicFormData {
     name: string;
     value: string;
   }[];
-}
-
-export interface TopicMessagesState {
-  messages: TopicMessage[];
-  phase?: string;
-  meta: TopicMessageConsuming;
-  messageEventType?: string;
-  isFetching: boolean;
 }

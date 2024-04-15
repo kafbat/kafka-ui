@@ -10,23 +10,8 @@ import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import { Button } from 'components/common/Button/Button';
-import { useAppDispatch, useAppSelector } from 'lib/hooks/redux';
-import {
-  fetchLatestSchema,
-  fetchSchemaVersions,
-  getAreSchemaLatestFulfilled,
-  getAreSchemaVersionsFulfilled,
-  SCHEMAS_VERSIONS_FETCH_ACTION,
-  SCHEMA_LATEST_FETCH_ACTION,
-  selectAllSchemaVersions,
-  getSchemaLatest,
-  getAreSchemaLatestRejected,
-} from 'redux/reducers/schemas/schemasSlice';
-import { showServerError } from 'lib/errorHandling';
-import { resetLoaderById } from 'redux/reducers/loader/loaderSlice';
 import { TableTitle } from 'components/common/table/TableTitle/TableTitle.styled';
 import useAppParams from 'lib/hooks/useAppParams';
-import { schemasApiClient } from 'lib/api';
 import { Dropdown } from 'components/common/Dropdown';
 import Table from 'components/common/NewTable';
 import { Action, ResourceType } from 'generated-sources';
@@ -34,35 +19,37 @@ import {
   ActionButton,
   ActionDropdownItem,
 } from 'components/common/ActionComponent';
+import {
+  useDeleteSchema,
+  useGetLatestSchema,
+  useGetSchemasVersions,
+} from 'lib/hooks/api/schemas';
 
 import LatestVersionItem from './LatestVersion/LatestVersionItem';
 import SchemaVersion from './SchemaVersion/SchemaVersion';
 
 const Details: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName, subject } = useAppParams<ClusterSubjectParam>();
+  const { data: versions = [], isFetching: areVersionsFetching } =
+    useGetSchemasVersions({
+      clusterName,
+      subject,
+    });
+  const {
+    data: schema,
+    isFetching: isSchemaFetching,
+    isError: isErrorLatestSchema,
+  } = useGetLatestSchema({
+    clusterName,
+    subject,
+  });
 
-  React.useEffect(() => {
-    dispatch(fetchLatestSchema({ clusterName, subject }));
-    return () => {
-      dispatch(resetLoaderById(SCHEMA_LATEST_FETCH_ACTION));
-    };
-  }, [clusterName, dispatch, subject]);
-
-  React.useEffect(() => {
-    dispatch(fetchSchemaVersions({ clusterName, subject }));
-    return () => {
-      dispatch(resetLoaderById(SCHEMAS_VERSIONS_FETCH_ACTION));
-    };
-  }, [clusterName, dispatch, subject]);
-
-  const versions = useAppSelector((state) => selectAllSchemaVersions(state));
-  const schema = useAppSelector(getSchemaLatest);
-  const isFetched = useAppSelector(getAreSchemaLatestFulfilled);
-  const isRejected = useAppSelector(getAreSchemaLatestRejected);
-  const areVersionsFetched = useAppSelector(getAreSchemaVersionsFulfilled);
+  const { mutateAsync: deleteSchema } = useDeleteSchema({
+    clusterName,
+    subject,
+  });
 
   const columns = React.useMemo(
     () => [
@@ -74,28 +61,18 @@ const Details: React.FC = () => {
   );
 
   const deleteHandler = async () => {
-    try {
-      await schemasApiClient.deleteSchema({
-        clusterName,
-        subject,
-      });
-      navigate('../');
-    } catch (e) {
-      showServerError(e as Response);
-    }
+    await deleteSchema();
+    navigate('../');
   };
 
-  if (isRejected) {
-    navigate('/404');
-  }
-
-  if (!isFetched || !schema) {
+  if (isSchemaFetching || areVersionsFetching || isErrorLatestSchema) {
     return <PageLoader />;
   }
+
   return (
     <>
       <PageHeading
-        text={schema.subject}
+        text={schema?.subject || ''}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
       >
@@ -144,9 +121,11 @@ const Details: React.FC = () => {
           </>
         )}
       </PageHeading>
-      <LatestVersionItem schema={schema} />
+      {schema && <LatestVersionItem schema={schema} />}
       <TableTitle>Old versions</TableTitle>
-      {areVersionsFetched ? (
+      {areVersionsFetching ? (
+        <PageLoader />
+      ) : (
         <Table
           columns={columns}
           data={versions}
@@ -154,8 +133,6 @@ const Details: React.FC = () => {
           renderSubComponent={SchemaVersion}
           enableSorting
         />
-      ) : (
-        <PageLoader />
       )}
     </>
   );

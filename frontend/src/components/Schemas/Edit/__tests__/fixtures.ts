@@ -1,16 +1,4 @@
 import { SchemaType, SchemaSubject } from 'generated-sources';
-import { RootState } from 'redux/interfaces';
-
-export const schemasInitialState: RootState['schemas'] = {
-  totalPages: 0,
-  ids: [],
-  entities: {},
-  versions: {
-    latest: null,
-    ids: [],
-    entities: {},
-  },
-};
 
 export const schemaVersion1: SchemaSubject = {
   subject: 'schema7_1',
@@ -39,17 +27,3 @@ export const schemaVersionWithNonAsciiChars: SchemaSubject = {
 };
 
 export { schemaVersion1 as schemaVersion };
-
-export const schemasFulfilledState = {
-  totalPages: 1,
-  ids: [schemaVersion2.subject, schemaVersion1.subject],
-  entities: {
-    [schemaVersion2.subject]: schemaVersion2,
-    [schemaVersion1.subject]: schemaVersion1,
-  },
-  versions: {
-    latest: null,
-    ids: [],
-    entities: {},
-  },
-};

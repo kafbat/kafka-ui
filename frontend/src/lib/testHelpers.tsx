@@ -6,7 +6,6 @@ import {
   Routes,
 } from 'react-router-dom';
 import fetchMock from 'fetch-mock';
-import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'theme/theme';
 import {
@@ -15,10 +14,6 @@ import {
   RenderOptions,
   waitFor,
 } from '@testing-library/react';
-import { AnyAction, Store } from 'redux';
-import { RootState } from 'redux/interfaces';
-import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from 'redux/reducers';
 import {
   QueryClient,
   QueryClientProvider,
@@ -32,8 +27,6 @@ import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAcc
 import { RolesType, modifyRolesData } from './permissions';
 
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  preloadedState?: Partial<RootState>;
-  store?: Store<Partial<RootState>, AnyAction>;
   initialEntries?: MemoryRouterProps['initialEntries'];
   userInfo?: {
     roles?: RolesType;
@@ -107,11 +100,6 @@ const TestUserInfoProvider: React.FC<
 const customRender = (
   ui: ReactElement,
   {
-    preloadedState,
-    store = configureStore<RootState>({
-      reducer: rootReducer,
-      preloadedState,
-    }),
     initialEntries,
     userInfo,
     globalSettings,
@@ -129,14 +117,12 @@ const customRender = (
         <ThemeProvider theme={theme}>
           <TestUserInfoProvider data={userInfo}>
             <ConfirmContextProvider>
-              <Provider store={store}>
-                <MemoryRouter initialEntries={initialEntries}>
-                  <div>
-                    {children}
-                    <ConfirmationModal />
-                  </div>
-                </MemoryRouter>
-              </Provider>
+              <MemoryRouter initialEntries={initialEntries}>
+                <div>
+                  {children}
+                  <ConfirmationModal />
+                </div>
+              </MemoryRouter>
             </ConfirmContextProvider>
           </TestUserInfoProvider>
         </ThemeProvider>
