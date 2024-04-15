@@ -1,6 +1,6 @@
 import { consumerGroupsApiClient as api } from 'lib/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import {
   ConsumerGroup,
   ConsumerGroupOffsetsReset,

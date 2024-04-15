@@ -8,8 +8,6 @@ import {
   clusterNewConfigPath,
 } from 'lib/paths';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import Dashboard from 'components/Dashboard/Dashboard';
-import ClusterPage from 'components/ClusterPage/ClusterPage';
 import { ThemeProvider } from 'styled-components';
 import { theme, darkTheme } from 'theme/theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,15 +15,21 @@ import { showServerError } from 'lib/errorHandling';
 import { Toaster } from 'react-hot-toast';
 import GlobalCSS from 'components/globalCss';
 import * as S from 'components/App.styled';
-import ClusterConfigForm from 'widgets/ClusterConfigForm';
 import { ThemeModeContext } from 'components/contexts/ThemeModeContext';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import ConfirmationModal from './common/ConfirmationModal/ConfirmationModal';
 import { ConfirmContextProvider } from './contexts/ConfirmContext';
 import { GlobalSettingsProvider } from './contexts/GlobalSettingsContext';
-import ErrorPage from './ErrorPage/ErrorPage';
 import { UserInfoRolesAccessProvider } from './contexts/UserInfoRolesAccessContext';
 import PageContainer from './PageContainer/PageContainer';
+
+const Dashboard = React.lazy(() => import('components/Dashboard/Dashboard'));
+const ClusterPage = React.lazy(
+  () => import('components/ClusterPage/ClusterPage')
+);
+const ClusterConfigForm = React.lazy(() => import('widgets/ClusterConfigForm'));
+const ErrorPage = React.lazy(() => import('components/ErrorPage/ErrorPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +97,7 @@ const App: React.FC = () => {
           </Suspense>
         </ThemeProvider>
       </GlobalSettingsProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 };

@@ -2,6 +2,7 @@ package io.kafbat.ui.model.rbac;
 
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ApplicationConfigAction;
+import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
@@ -33,7 +34,7 @@ public enum Resource {
 
   ACL(AclAction.values()),
 
-  AUDIT(AclAction.values()),
+  AUDIT(AuditAction.values()),
 
   CLIENT_QUOTAS(ClientQuotaAction.values());
 

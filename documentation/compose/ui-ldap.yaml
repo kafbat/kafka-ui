@@ -25,7 +25,7 @@ services:
       SPRING_LDAP_USER_FILTER_SEARCH_FILTER: "(&(uid={0})(objectClass=inetOrgPerson))"
       SPRING_LDAP_GROUP_FILTER_SEARCH_BASE: "ou=people,dc=planetexpress,dc=com"
 #     OAUTH2.LDAP.ACTIVEDIRECTORY: true
-#     OAUTH2.LDAP.AСTIVEDIRECTORY.DOMAIN: "memelord.lol"
+#     OAUTH2.LDAP.ACTIVEDIRECTORY.DOMAIN: "memelord.lol"
 
   ldap:
     image: rroemhild/test-openldap:latest

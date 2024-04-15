@@ -16,11 +16,6 @@ import { clusterTopicsPath } from 'lib/paths';
 
 const clusterName = 'test-cluster';
 
-jest.mock('lib/hooks/redux', () => ({
-  ...jest.requireActual('lib/hooks/redux'),
-  useAppDispatch: jest.fn(),
-}));
-
 const getButtonByName = (name: string) => screen.getByRole('button', { name });
 
 jest.mock('lib/hooks/api/topics', () => ({

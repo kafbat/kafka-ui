@@ -1,6 +1,6 @@
 import { clustersApiClient as api } from 'lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 
 export function useClusters() {
   return useQuery(['clusters'], () => api.getClusters(), { suspense: false });

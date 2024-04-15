@@ -1,7 +1,7 @@
 package io.kafbat.ui.services;
 
 import static com.codeborne.selenide.Selenide.sleep;
-import static io.kafbat.ui.utilities.FileUtils.fileToString;
+import static io.kafbat.ui.utilities.FileUtil.fileToString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.api.ApiClient;
@@ -20,8 +20,8 @@ import io.kafbat.ui.api.model.TopicCreation;
 import io.kafbat.ui.models.Connector;
 import io.kafbat.ui.models.Schema;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.ksqldb.models.Stream;
-import io.kafbat.ui.pages.ksqldb.models.Table;
+import io.kafbat.ui.screens.ksqldb.models.Stream;
+import io.kafbat.ui.screens.ksqldb.models.Table;
 import io.kafbat.ui.settings.BaseSource;
 import io.qameta.allure.Step;
 import java.util.HashMap;

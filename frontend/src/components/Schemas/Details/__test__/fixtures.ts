@@ -3,7 +3,7 @@ import {
   schemaVersion1,
   schemaVersion2,
   schemaVersionWithNonAsciiChars,
-} from 'redux/reducers/schemas/__test__/fixtures';
+} from 'components/Schemas/Edit/__tests__/fixtures';
 
 export const versionPayload = [
   schemaVersion1,
