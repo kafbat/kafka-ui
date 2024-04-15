@@ -109,7 +109,7 @@ jobs:
       - name: Run test suite
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ inputs.sha }}
-          ./mvnw -B -V -ntp -Dsurefire.suiteXmlFiles='src/test/resources/${{ github.event.inputs.test_suite }}.xml' -f 'e2e-tests' test -Pprod
+          ./mvnw -B -V -ntp -Dsurefire.suiteXmlFiles='src/test/resources/${{ inputs.test_suite }}.xml' -f 'e2e-tests' test -Pprod
 
       - name: Dump Docker logs on failure
         if: failure()
