@@ -111,7 +111,7 @@ public class KsqlQueryForm extends BasePage {
   public boolean areResultsVisible() {
     boolean visible = false;
     try {
-      visible = initItems().size() > 0;
+      visible = !initItems().isEmpty();
     } catch (Throwable ignored) {
     }
     return visible;
