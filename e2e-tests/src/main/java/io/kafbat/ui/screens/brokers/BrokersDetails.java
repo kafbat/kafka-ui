@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Getter;
 
 public class BrokersDetails extends BasePage {
 
@@ -24,7 +25,7 @@ public class BrokersDetails extends BasePage {
 
   @Step
   public BrokersDetails openDetailsTab(DetailsTab menu) {
-    $x(String.format(brokersTabLocator, menu.toString())).shouldBe(Condition.enabled).click();
+    $x(String.format(brokersTabLocator, menu.getValue())).shouldBe(Condition.enabled).click();
     waitUntilSpinnerDisappear();
     return this;
   }
@@ -68,6 +69,7 @@ public class BrokersDetails extends BasePage {
     return visibleElements;
   }
 
+  @Getter
   public enum DetailsTab {
     LOG_DIRECTORIES("Log directories"),
     CONFIGS("Configs"),
@@ -77,10 +79,6 @@ public class BrokersDetails extends BasePage {
 
     DetailsTab(String value) {
       this.value = value;
-    }
-
-    public String toString() {
-      return value;
     }
   }
 }

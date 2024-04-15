@@ -10,6 +10,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import io.kafbat.ui.screens.panels.enums.MenuItem;
 import io.kafbat.ui.utilities.WebUtil;
 import java.time.Duration;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.interactions.Actions;
@@ -120,8 +121,8 @@ public abstract class BasePage extends WebUtil {
   }
 
   protected boolean isAlertVisible(AlertHeader header) {
-    log.debug("\nisAlertVisible: {}", header.toString());
-    boolean result = getAlertHeader().equals(header.toString());
+    log.debug("\nisAlertVisible: {}", header.getValue());
+    boolean result = getAlertHeader().equals(header.getValue());
     log.debug("-> {}", result);
     return result;
   }
@@ -147,6 +148,7 @@ public abstract class BasePage extends WebUtil {
     return isVisible(confirmationMdl);
   }
 
+  @Getter
   public enum AlertHeader {
     SUCCESS("Success"),
     VALIDATION_ERROR("Validation Error"),
@@ -156,10 +158,6 @@ public abstract class BasePage extends WebUtil {
 
     AlertHeader(String value) {
       this.value = value;
-    }
-
-    public String toString() {
-      return value;
     }
   }
 }

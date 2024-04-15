@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import lombok.Getter;
 
 public class TopicDetails extends BasePage {
 
@@ -78,7 +79,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openDetailsTab(TopicMenu menu) {
-    $x(String.format(detailsTabLtr, menu.toString())).shouldBe(enabled).click();
+    $x(String.format(detailsTabLtr, menu.getValue())).shouldBe(enabled).click();
     waitUntilSpinnerDisappear();
     return this;
   }
@@ -418,6 +419,7 @@ public class TopicDetails extends BasePage {
     return getMessageByOffset(nextInt(0, initItems().size() - 1));
   }
 
+  @Getter
   public enum TopicMenu {
     OVERVIEW("Overview"),
     MESSAGES("Messages"),
@@ -428,10 +430,6 @@ public class TopicDetails extends BasePage {
 
     TopicMenu(String value) {
       this.value = value;
-    }
-
-    public String toString() {
-      return value;
     }
   }
 
