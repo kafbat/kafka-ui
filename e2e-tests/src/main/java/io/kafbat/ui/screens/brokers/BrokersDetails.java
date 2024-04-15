@@ -50,7 +50,7 @@ public class BrokersDetails extends BasePage {
 
   private List<SelenideElement> getDetailsTabs() {
     return Stream.of(DetailsTab.values())
-        .map(name -> $x(String.format(brokersTabLocator, name)))
+        .map(tab -> $x(String.format(brokersTabLocator, tab.getValue())))
         .collect(Collectors.toList());
   }
 
