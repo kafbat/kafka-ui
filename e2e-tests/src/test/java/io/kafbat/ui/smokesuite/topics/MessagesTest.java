@@ -120,7 +120,7 @@ public class MessagesTest extends BaseTest {
   }
 
   @Test(priority = 6)
-  public void cessageFilteringByOffsetCheck() {
+  public void messageFilteringByOffsetCheck() {
     navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     int nextOffset = topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
