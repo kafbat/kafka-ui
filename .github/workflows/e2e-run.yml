@@ -106,16 +106,17 @@ jobs:
           docker-compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
           docker-compose -f ./documentation/compose/e2e-tests.yaml up -d
 
+      - name: Dump Docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2.2.2
+
       - name: Run test suite
         run: |
           ./mvnw -B -ntp versions:set -DnewVersion=${{ inputs.sha }}
           ./mvnw -B -V -ntp -Dsurefire.suiteXmlFiles='src/test/resources/${{ inputs.suite_name }}.xml' -f 'e2e-tests' test -Pprod
 
-      - name: Dump Docker logs on failure
-        if: failure()
-        uses: jwalton/gh-docker-logs@v2.2.2
-
       - name: Upload allure reports artifact
+        if: '!cancelled()'
         uses: actions/upload-artifact@v4
         with:
           name: reports
@@ -125,7 +126,7 @@ jobs:
   reports:
     runs-on: ubuntu-latest
     needs: tests
-    if: ${{ github.repository == 'kafbat/kafka-ui' }}
+    if: ${{ !cancelled() && github.repository == 'kafbat/kafka-ui' }}
     steps:
       - name: Download allure reports artifact
         uses: actions/download-artifact@v4
