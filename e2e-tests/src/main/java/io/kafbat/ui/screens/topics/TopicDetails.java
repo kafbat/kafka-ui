@@ -73,7 +73,7 @@ public class TopicDetails extends BasePage {
   @Step
   public TopicDetails waitUntilScreenReady() {
     waitUntilSpinnerDisappear();
-    $x(String.format(detailsTabLtr, OVERVIEW)).shouldBe(Condition.visible);
+    $x(String.format(detailsTabLtr, OVERVIEW.getValue())).shouldBe(Condition.visible);
     return this;
   }
 

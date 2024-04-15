@@ -19,7 +19,7 @@ public class BrokersDetails extends BasePage {
   @Step
   public BrokersDetails waitUntilScreenReady() {
     waitUntilSpinnerDisappear();
-    $x(String.format(brokersTabLocator, DetailsTab.LOG_DIRECTORIES)).shouldBe(Condition.visible);
+    $x(String.format(brokersTabLocator, DetailsTab.LOG_DIRECTORIES.getValue())).shouldBe(Condition.visible);
     return this;
   }
 
