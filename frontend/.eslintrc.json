@@ -75,7 +75,9 @@
       {
         "props": true,
         "ignorePropertyModificationsFor": [
-          "state"
+          "state",
+          "acc",
+          "accumulator"
         ]
       }
     ],

@@ -58,9 +58,6 @@ dependencies:
   jsonpath-plus:
     specifier: ^7.2.0
     version: 7.2.0
-  lodash:
-    specifier: ^4.17.21
-    version: 4.17.21
   lossless-json:
     specifier: ^2.0.8
     version: 2.0.11
@@ -141,9 +138,6 @@ devDependencies:
   '@types/eventsource':
     specifier: ^1.1.8
     version: 1.1.11
-  '@types/lodash':
-    specifier: ^4.14.172
-    version: 4.14.177
   '@types/lossless-json':
     specifier: ^1.0.1
     version: 1.0.2
@@ -1894,10 +1888,6 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
-    dev: true
-
-  /@types/lodash@4.14.177:
-    resolution: {integrity: sha512-0fDwydE2clKe9MNfvXHBHF9WEahRuj+msTuQqOmAApNORFvhMYZKNGGJdCzuhheVjMps/ti0Ak/iJPACMaevvw==}
     dev: true
 
   /@types/lossless-json@1.0.2:

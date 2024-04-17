@@ -1,6 +1,6 @@
 import updateSortingState from 'components/common/NewTable/utils/updateSortingState';
 import { SortingState } from '@tanstack/react-table';
-import compact from 'lodash/compact';
+import compact from 'lib/functions/compact';
 
 const updater = (previousState: SortingState): SortingState => {
   return compact(
