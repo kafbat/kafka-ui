@@ -86,13 +86,13 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0
   react-multi-select-component:
-    specifier: ^4.3.3
-    version: 4.3.3(react-dom@18.2.0)(react@18.2.0)
+    specifier: 4.3.4
+    version: 4.3.4(react-dom@18.2.0)(react@18.2.0)
   react-router-dom:
     specifier: 6.4.3
     version: 6.4.3(react-dom@18.2.0)(react@18.2.0)
   sass:
-    specifier: ^1.52.3
+    specifier: 1.66.1
     version: 1.66.1
   styled-components:
     specifier: 6.1.8
@@ -5961,8 +5961,8 @@ packages:
   /react-is@18.2.0:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
 
-  /react-multi-select-component@4.3.3(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-V8cDJC3M7F27PWv1baV8FpJReHa/SbpJGL80CmXwnlMkDK2KMlQSRDmDzBnmCjcbROIgoztdW+gYBpqo9BIF4g==}
+  /react-multi-select-component@4.3.4(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-Ui/bzCbROF4WfKq3OKWyQJHmy/bd1mW7CQM+L83TfiltuVvHElhKEyPM3JzO9urIcWplBUKv+kyxqmEnd9jPcA==}
     peerDependencies:
       react: ^16 || ^17 || ^18
       react-dom: ^16 || ^17 || ^18
