@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, MouseEvent } from 'react';
 import DeleteIcon from 'components/common/Icons/DeleteIcon';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import {
@@ -80,7 +80,7 @@ const SavedFilters: FC<Props> = ({
             <S.FilterOptions>
               <S.FilterEdit
                 aria-label="edit"
-                onClick={(event) => {
+                onClick={(event: MouseEvent) => {
                   event.stopPropagation();
                   onEdit(filter.id);
                 }}
@@ -89,7 +89,7 @@ const SavedFilters: FC<Props> = ({
               </S.FilterEdit>
               <S.DeleteSavedFilter
                 aria-label="delete"
-                onClick={(event) => {
+                onClick={(event: MouseEvent) => {
                   event.stopPropagation();
                   deleteFilterHandler(filter.id);
                 }}
