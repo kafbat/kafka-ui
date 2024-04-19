@@ -53,12 +53,16 @@ const renderComponent = (props: CustomParamsProps, defaults = {}) => {
   );
 };
 
-const getInputBox = () => screen.getByRole('listitem');
-const getAllInputBoxes = () => screen.getAllByRole('listitem');
-const getListbox = () => screen.getByRole('listbox');
-const getTextBox = () => screen.getByRole('textbox');
-const getAllTextBoxes = () => screen.getAllByRole('textbox');
+const getCustomParamInput = () => screen.getByRole('listitem');
+const getAllCustomParamInputs = () => screen.getAllByRole('listitem');
+const getCustomParamsList = () => screen.getByRole('listbox');
+const getValueInput = () => screen.getByRole('textbox');
+const getAllValueInputs = () => screen.getAllByRole('textbox');
 const getAddNewFieldButton = () => screen.getByText('Add Custom Parameter');
+
+const topicCustomParam1 = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
+const topicCustomParam2 = Object.keys(TOPIC_CUSTOM_PARAMS)[1];
+const topicCustomParam3 = Object.keys(TOPIC_CUSTOM_PARAMS)[2];
 
 describe('CustomParams', () => {
   it('renders with props', () => {
@@ -71,8 +75,10 @@ describe('CustomParams', () => {
   it('has defaultValues when they are set', () => {
     renderComponent({ isSubmitting: false }, defaultValues);
 
-    expect(getInputBox()).toHaveValue(defaultValues.customParams[0].name);
-    expect(getTextBox()).toHaveValue(defaultValues.customParams[0].value);
+    expect(getCustomParamInput()).toHaveValue(
+      defaultValues.customParams[0].name
+    );
+    expect(getValueInput()).toHaveValue(defaultValues.customParams[0].value);
   });
 
   describe('works with user inputs correctly', () => {
@@ -82,49 +88,51 @@ describe('CustomParams', () => {
     });
 
     it('button click creates custom param fieldset', async () => {
-      await userEvent.click(getInputBox());
-      expect(getListbox()).toBeInTheDocument();
-      expect(getTextBox()).toBeInTheDocument();
+      await userEvent.click(getCustomParamInput());
+      expect(getCustomParamsList()).toBeInTheDocument();
+      expect(getValueInput()).toBeInTheDocument();
     });
 
     it('can select option', async () => {
-      await selectOption(getInputBox(), 'compression.type');
-      expect(getInputBox()).toHaveValue('compression.type');
+      await selectOption(getCustomParamInput(), topicCustomParam1);
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
 
       await expectOptionAvailability(
-        getInputBox,
-        getListbox,
-        'compression.type',
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
 
-      expect(getTextBox()).toHaveValue(TOPIC_CUSTOM_PARAMS['compression.type']);
+      expect(getValueInput()).toHaveValue(
+        TOPIC_CUSTOM_PARAMS[topicCustomParam1]
+      );
     });
 
     it('when selected option changes disabled options update correctly', async () => {
-      await selectOption(getInputBox(), 'compression.type');
-      expect(getInputBox()).toHaveValue('compression.type');
+      await selectOption(getCustomParamInput(), topicCustomParam1);
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
 
       await expectOptionAvailability(
-        getInputBox,
-        getListbox,
-        'compression.type',
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
 
-      await selectOption(getInputBox(), 'delete.retention.ms');
+      await selectOption(getCustomParamInput(), topicCustomParam2);
       await expectOptionAvailability(
-        getInputBox,
-        getListbox,
-        'delete.retention.ms',
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam2,
         true
       );
 
       await userEvent.click(getAddNewFieldButton());
       await expectOptionAvailability(
-        () => getAllInputBoxes()[1],
-        getListbox,
-        'compression.type',
+        () => getAllCustomParamInputs()[1],
+        getCustomParamsList,
+        topicCustomParam1,
         false
       );
     });
@@ -133,26 +141,26 @@ describe('CustomParams', () => {
       await userEvent.click(getAddNewFieldButton());
       await userEvent.click(getAddNewFieldButton());
 
-      expect(getAllInputBoxes().length).toBe(3);
+      expect(getAllCustomParamInputs().length).toBe(3);
 
-      expect(getAllTextBoxes().length).toBe(3);
+      expect(getAllValueInputs().length).toBe(3);
     });
 
     it("can't select already selected option", async () => {
       await userEvent.click(getAddNewFieldButton());
 
-      await selectOption(getAllInputBoxes()[0], 'compression.type');
+      await selectOption(getAllCustomParamInputs()[0], topicCustomParam1);
       await expectOptionAvailability(
-        () => getAllInputBoxes()[0],
-        getListbox,
-        'compression.type',
+        () => getAllCustomParamInputs()[0],
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
 
       await expectOptionAvailability(
-        () => getAllInputBoxes()[1],
-        getListbox,
-        'compression.type',
+        () => getAllCustomParamInputs()[1],
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
     });
@@ -161,28 +169,29 @@ describe('CustomParams', () => {
       await userEvent.click(getAddNewFieldButton());
       await userEvent.click(getAddNewFieldButton());
 
-      const [firstListBox, secondListbox, thirdListbox] = getAllInputBoxes();
-      await selectOption(firstListBox, 'compression.type');
+      const [firstListBox, secondListbox, thirdListbox] =
+        getAllCustomParamInputs();
+      await selectOption(firstListBox, topicCustomParam1);
       await expectOptionAvailability(
         () => firstListBox,
-        getListbox,
-        'compression.type',
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
 
-      await selectOption(secondListbox, 'delete.retention.ms');
+      await selectOption(secondListbox, topicCustomParam2);
       await expectOptionAvailability(
         () => secondListbox,
-        getListbox,
-        'delete.retention.ms',
+        getCustomParamsList,
+        topicCustomParam2,
         true
       );
 
-      await selectOption(thirdListbox, 'file.delete.delay.ms');
+      await selectOption(thirdListbox, topicCustomParam3);
       await expectOptionAvailability(
         () => thirdListbox,
-        getListbox,
-        'file.delete.delay.ms',
+        getCustomParamsList,
+        topicCustomParam3,
         true
       );
 
@@ -195,16 +204,16 @@ describe('CustomParams', () => {
       await userEvent.clear(firstListBox);
       await expectOptionAvailability(
         () => firstListBox,
-        getListbox,
-        'delete.retention.ms',
+        getCustomParamsList,
+        topicCustomParam2,
         false
       );
 
       await userEvent.clear(thirdListbox);
       await expectOptionAvailability(
         () => thirdListbox,
-        getListbox,
-        'delete.retention.ms',
+        getCustomParamsList,
+        topicCustomParam2,
         false
       );
     });

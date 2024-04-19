@@ -4,8 +4,8 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InputWithOptions, {
   InputWithOptionsProps,
-  SelectOption,
 } from 'components/common/InputWithOptions/InputWithOptions';
+import { SelectOption } from 'components/common/Select/Select';
 
 jest.mock('react-hook-form', () => ({
   useFormContext: () => ({
@@ -13,7 +13,7 @@ jest.mock('react-hook-form', () => ({
   }),
 }));
 
-const options: Array<SelectOption> = [
+const options: Array<SelectOption<string>> = [
   { label: 'test-label1', value: 'test-value1', disabled: false },
   { label: 'test-label2', value: 'test-value2', disabled: false },
   { label: 'test-label3', value: 'test-value3', disabled: false },

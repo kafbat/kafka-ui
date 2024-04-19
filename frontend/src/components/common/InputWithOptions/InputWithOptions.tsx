@@ -1,19 +1,13 @@
 import React, { useRef } from 'react';
 import useClickOutside from 'lib/hooks/useClickOutside';
 import DropdownArrowIcon from 'components/common/Icons/DropdownArrowIcon';
+import { SelectOption } from 'components/common/Select/Select';
 
 import * as S from './InputWithOptions.styled';
 
-export interface SelectOption {
-  label: string | number | React.ReactElement;
-  value: string;
-  disabled?: boolean;
-  isLive?: boolean;
-}
-
 export interface InputWithOptionsProps
   extends Omit<S.StyledInputProps, 'onChange'> {
-  options: SelectOption[];
+  options: SelectOption<string>[];
   value?: string;
   onChange?: (option: string) => void;
   inputSize?: 'S' | 'M' | 'L';
