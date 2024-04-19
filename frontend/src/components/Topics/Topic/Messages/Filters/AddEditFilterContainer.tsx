@@ -6,15 +6,27 @@ import { FormProvider, Controller, useForm } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import { Button } from 'components/common/Button/Button';
 import { FormError } from 'components/common/Input/Input.styled';
-import { AddMessageFilters } from 'components/Topics/Topic/Messages/Filters/AddFilter';
 import Editor from 'components/common/Editor/Editor';
 import { yupResolver } from '@hookform/resolvers/yup';
 import yup from 'lib/yupExtended';
+import { useRegisterSmartFilter } from 'lib/hooks/api/topicMessages';
+import useAppParams from 'lib/hooks/useAppParams';
+import { RouteParamsClusterTopic } from 'lib/paths';
+import {
+  AdvancedFilter,
+  selectFilter,
+  useMessageFiltersStore,
+} from 'lib/hooks/useMessageFiltersStore';
+import { showAlert } from 'lib/errorHandling';
+import Flexbox from 'components/common/FlexBox/FlexBox';
+import { useIsMessagesSmartFilterPersisted } from 'lib/hooks/useMessagesFilters';
+
+import QuestionInfo from './QuestionInfo';
 
 const validationSchema = yup.object().shape({
   saveFilter: yup.boolean(),
-  code: yup.string().required(),
-  name: yup.string().when('saveFilter', {
+  value: yup.string().required(),
+  id: yup.string().when('saveFilter', {
     is: (value: boolean | undefined) => typeof value === 'undefined' || value,
     then: (schema) => schema.required(),
     otherwise: (schema) => schema.notRequired(),
@@ -22,25 +34,65 @@ const validationSchema = yup.object().shape({
 });
 
 export interface AddEditFilterContainerProps {
-  cancelBtnHandler: () => void;
-  submitBtnText: string;
-  inputDisplayNameDefaultValue?: string;
-  inputCodeDefaultValue?: string;
-  isAdd?: boolean;
-  submitCallback?: (values: AddMessageFilters) => void;
+  closeSideBar: () => void;
+  currentFilter?: AdvancedFilter;
+  smartFilter?: AdvancedFilter | undefined;
+  setSmartFilter: (filter: AdvancedFilter, persisted?: boolean) => void;
+}
+
+interface AddMessageFilters extends Omit<AdvancedFilter, 'filterCode'> {
+  saveFilter: boolean;
+}
+
+function submitValidation(id: string, currentFilterId: string): boolean {
+  const filter = selectFilter(id)(useMessageFiltersStore.getState());
+
+  if (filter && filter.id !== currentFilterId) {
+    showAlert('error', {
+      id: '',
+      title: 'Validation Error',
+      message: 'Filter with the same name already exists',
+    });
+    return true;
+  }
+
+  return false;
+}
+
+function getLabelName(values: AddMessageFilters) {
+  if (values.id) {
+    return values.id;
+  }
+
+  if (values.value.length > 24) {
+    return values.value.substring(0, 10);
+  }
+
+  return values.value;
 }
 
 const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
-  cancelBtnHandler,
-  submitBtnText,
-  inputDisplayNameDefaultValue = '',
-  inputCodeDefaultValue = '',
-  submitCallback,
-  isAdd,
+  closeSideBar,
+  smartFilter,
+  currentFilter,
+  setSmartFilter,
 }) => {
+  const filterId = currentFilter?.id || '';
+  const isEdit = !!currentFilter;
+  const isPersisted = useIsMessagesSmartFilterPersisted();
+
+  const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
+  const save = useMessageFiltersStore((state) => state.save);
+  const replace = useMessageFiltersStore((state) => state.replace);
+  const commit = useMessageFiltersStore((state) => state.commit);
+
   const methods = useForm<AddMessageFilters>({
     mode: 'onChange',
     resolver: yupResolver(validationSchema),
+    defaultValues: {
+      id: currentFilter?.id,
+      value: currentFilter?.value,
+    },
   });
   const {
     handleSubmit,
@@ -49,17 +101,53 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
     reset,
   } = methods;
 
-  const onSubmit = React.useCallback(
-    (values: AddMessageFilters) => {
-      try {
-        submitCallback?.(values);
-        reset({ name: '', code: '', saveFilter: false });
-      } catch (e) {
-        // do nothing
+  const { mutateAsync } = useRegisterSmartFilter({ clusterName, topicName });
+
+  const onSubmit = async (values: AddMessageFilters) => {
+    try {
+      if (submitValidation(values.id, filterId)) {
+        return;
       }
-    },
-    [isAdd, reset, submitCallback]
-  );
+
+      const messageFilter = await mutateAsync({ filterCode: values.value });
+      if (messageFilter.id) {
+        const filterValue = {
+          ...values,
+          id: getLabelName(values),
+          filterCode: messageFilter.id,
+        };
+
+        if (isEdit) {
+          if (isPersisted) {
+            replace(filterId, filterValue);
+          } else {
+            // update the non persisted storage to pick up names
+            commit(filterValue);
+          }
+
+          // when the active is the one that is getting edited
+          if (smartFilter?.id === filterId) {
+            setSmartFilter(filterValue, isPersisted);
+          }
+
+          closeSideBar();
+          return;
+        }
+
+        if (values.saveFilter) {
+          save(filterValue);
+          reset({ id: '', value: '', saveFilter: false });
+          return;
+        }
+
+        commit(filterValue);
+        setSmartFilter(filterValue, false);
+        closeSideBar();
+      }
+    } catch (e) {
+      // do nothing
+    }
+  };
 
   return (
     <FormProvider {...methods}>
@@ -68,8 +156,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
           <InputLabel>Filter code</InputLabel>
           <Controller
             control={control}
-            name="code"
-            defaultValue={inputCodeDefaultValue}
+            name="value"
             render={({ field: { onChange, value } }) => (
               <Editor
                 value={value}
@@ -85,10 +172,10 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
         </div>
         <div>
           <FormError>
-            <ErrorMessage errors={errors} name="code" />
+            <ErrorMessage errors={errors} name="value" />
           </FormError>
         </div>
-        {isAdd && (
+        {!isEdit && (
           <InputLabel>
             <input {...methods.register('saveFilter')} type="checkbox" />
             Save this filter
@@ -100,32 +187,34 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
             inputSize="M"
             placeholder="Enter Name"
             autoComplete="off"
-            name="name"
-            defaultValue={inputDisplayNameDefaultValue}
+            name="id"
           />
         </div>
         <div>
           <FormError>
-            <ErrorMessage errors={errors} name="name" />
+            <ErrorMessage errors={errors} name="id" />
           </FormError>
         </div>
-        <S.FilterButtonWrapper>
-          <Button
-            buttonSize="M"
-            buttonType="secondary"
-            type="button"
-            onClick={cancelBtnHandler}
-          >
-            Cancel
-          </Button>
-          <Button
-            buttonSize="M"
-            buttonType="primary"
-            type="submit"
-            disabled={!isValid || isSubmitting || !isDirty}
-          >
-            {submitBtnText}
-          </Button>
+        <S.FilterButtonWrapper isEdit={isEdit}>
+          {!isEdit && <QuestionInfo />}
+          <Flexbox gap="10px">
+            <Button
+              buttonSize="M"
+              buttonType="secondary"
+              type="button"
+              onClick={closeSideBar}
+            >
+              Cancel
+            </Button>
+            <Button
+              buttonSize="M"
+              buttonType="primary"
+              type="submit"
+              disabled={!isValid || isSubmitting || !isDirty}
+            >
+              {isEdit ? 'Edit Filter' : 'Add Filter'}
+            </Button>
+          </Flexbox>
         </S.FilterButtonWrapper>
       </form>
     </FormProvider>

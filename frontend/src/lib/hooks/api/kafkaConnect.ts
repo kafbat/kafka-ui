@@ -5,9 +5,8 @@ import {
   NewConnector,
 } from 'generated-sources';
 import { kafkaConnectApiClient as api } from 'lib/api';
-import sortBy from 'lodash/sortBy';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { showSuccessAlert } from 'lib/errorHandling';
 
 interface UseConnectorProps {
@@ -55,7 +54,16 @@ export function useConnectors(clusterName: ClusterName, search?: string) {
     connectorsKey(clusterName, search),
     () => api.getAllConnectors({ clusterName, search }),
     {
-      select: (data) => sortBy(data, 'name'),
+      select: (data) =>
+        [...data].sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+          if (a.name > b.name) {
+            return 1;
+          }
+          return 0;
+        }),
     }
   );
 }
@@ -67,7 +75,20 @@ export function useConnectorTasks(props: UseConnectorProps) {
     connectorTasksKey(props),
     () => api.getConnectorTasks(props),
     {
-      select: (data) => sortBy(data, 'status.id'),
+      select: (data) =>
+        [...data].sort((a, b) => {
+          const aid = a.status.id;
+          const bid = b.status.id;
+
+          if (aid < bid) {
+            return -1;
+          }
+
+          if (aid > bid) {
+            return 1;
+          }
+          return 0;
+        }),
     }
   );
 }

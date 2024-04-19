@@ -40,7 +40,7 @@ dynamic.config.enabled: true
 oauth2:
   ldap:
     activeDirectory: false
-    aсtiveDirectory.domain: domain.com
+    activeDirectory.domain: domain.com
 
 auth:
   type: DISABLED

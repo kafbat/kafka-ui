@@ -6,12 +6,6 @@ import {
 } from 'lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ClusterName,
-  TopicFormData,
-  TopicFormDataRaw,
-  TopicFormFormattedParams,
-} from 'redux/interfaces';
-import {
   CreateTopicMessage,
   GetTopicDetailsRequest,
   GetTopicsRequest,
@@ -21,6 +15,12 @@ import {
   TopicUpdate,
 } from 'generated-sources';
 import { showServerError, showSuccessAlert } from 'lib/errorHandling';
+import { ClusterName } from 'lib/interfaces/cluster';
+import {
+  TopicFormData,
+  TopicFormDataRaw,
+  TopicFormFormattedParams,
+} from 'lib/interfaces/topic';
 
 export const topicKeys = {
   all: (clusterName: ClusterName) =>
@@ -318,6 +318,7 @@ export function useAnalyzeTopic(props: GetTopicDetailsRequest) {
     },
   });
 }
+
 export function useCancelTopicAnalysis(props: GetTopicDetailsRequest) {
   const client = useQueryClient();
   return useMutation(() => api.cancelTopicAnalysis(props), {

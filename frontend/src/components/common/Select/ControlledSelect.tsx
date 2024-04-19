@@ -6,29 +6,29 @@ import { ErrorMessage } from '@hookform/error-message';
 
 import Select, { SelectOption } from './Select';
 
-interface ControlledSelectProps {
+interface ControlledSelectProps<T> {
   name: string;
-  label: React.ReactNode;
+  label?: React.ReactNode;
   hint?: string;
-  options: SelectOption[];
-  onChange?: (val: string | number) => void;
+  options: SelectOption<T>[];
+  onChange?: (val: T) => void;
   disabled?: boolean;
   placeholder?: string;
 }
 
-const ControlledSelect: React.FC<ControlledSelectProps> = ({
+const ControlledSelect = <T,>({
   name,
   label,
   onChange,
   options,
   disabled = false,
   placeholder,
-}) => {
+}: ControlledSelectProps<T>) => {
   const id = React.useId();
 
   return (
     <div>
-      <InputLabel htmlFor={id}>{label}</InputLabel>
+      {label && <InputLabel htmlFor={id}>{label}</InputLabel>}
       <Controller
         name={name}
         render={({ field }) => {

@@ -1,8 +1,18 @@
 import { aclApiClient as api } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClusterName } from 'redux/interfaces';
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { showSuccessAlert } from 'lib/errorHandling';
-import { KafkaAcl } from 'generated-sources';
+import {
+  CreateConsumerAcl,
+  CreateProducerAcl,
+  CreateStreamAppAcl,
+  KafkaAcl,
+} from 'generated-sources';
 
 export function useAcls(clusterName: ClusterName) {
   return useQuery(
@@ -14,29 +24,100 @@ export function useAcls(clusterName: ClusterName) {
   );
 }
 
-export function useCreateAclMutation(clusterName: ClusterName) {
-  return useMutation(
-    (data: KafkaAcl) =>
+const onCreateAclSuccess = (queryClient: QueryClient, clusterName: string) => {
+  showSuccessAlert({
+    message: 'Your ACL was created successfully',
+  });
+  queryClient.invalidateQueries(['clusters', clusterName, 'acls']);
+};
+
+export function useCreateCustomAcl(clusterName: ClusterName) {
+  const queryClient = useQueryClient();
+  const mutate = useMutation(
+    (kafkaAcl: KafkaAcl) =>
       api.createAcl({
         clusterName,
-        kafkaAcl: data,
+        kafkaAcl,
       }),
     {
       onSuccess() {
-        showSuccessAlert({
-          message: 'Your ACL was created successfully',
-        });
+        onCreateAclSuccess(queryClient, clusterName);
       },
     }
   );
-}
-
-export function useCreateAcl(clusterName: ClusterName) {
-  const mutate = useCreateAclMutation(clusterName);
 
   return {
-    createResource: async (param: KafkaAcl) => {
-      return mutate.mutateAsync(param);
+    createResource: async (acl: KafkaAcl) => {
+      return mutate.mutateAsync(acl);
+    },
+    ...mutate,
+  };
+}
+
+export function useCreateConsumersAcl(clusterName: ClusterName) {
+  const queryClient = useQueryClient();
+  const mutate = useMutation(
+    (createConsumerAcl: CreateConsumerAcl) =>
+      api.createConsumerAcl({
+        clusterName,
+        createConsumerAcl,
+      }),
+    {
+      onSuccess() {
+        onCreateAclSuccess(queryClient, clusterName);
+      },
+    }
+  );
+
+  return {
+    createResource: async (acl: CreateConsumerAcl) => {
+      return mutate.mutateAsync(acl);
+    },
+    ...mutate,
+  };
+}
+
+export function useCreateProducerAcl(clusterName: ClusterName) {
+  const queryClient = useQueryClient();
+  const mutate = useMutation(
+    (createProducerAcl: CreateProducerAcl) =>
+      api.createProducerAcl({
+        clusterName,
+        createProducerAcl,
+      }),
+    {
+      onSuccess() {
+        onCreateAclSuccess(queryClient, clusterName);
+      },
+    }
+  );
+
+  return {
+    createResource: async (acl: CreateProducerAcl) => {
+      return mutate.mutateAsync(acl);
+    },
+    ...mutate,
+  };
+}
+
+export function useCreateStreamAppAcl(clusterName: ClusterName) {
+  const queryClient = useQueryClient();
+  const mutate = useMutation(
+    (createStreamAppAcl: CreateStreamAppAcl) =>
+      api.createStreamAppAcl({
+        clusterName,
+        createStreamAppAcl,
+      }),
+    {
+      onSuccess() {
+        onCreateAclSuccess(queryClient, clusterName);
+      },
+    }
+  );
+
+  return {
+    createResource: async (acl: CreateStreamAppAcl) => {
+      return mutate.mutateAsync(acl);
     },
     ...mutate,
   };

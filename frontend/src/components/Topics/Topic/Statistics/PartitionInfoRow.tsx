@@ -51,7 +51,7 @@ const PartitionInfoRow: React.FC<{ row: Row<TopicAnalysisStats> }> = ({
       <div>
         <Heading level={4}>Keys sizes</Heading>
         <List>
-          <Label>Total keys size</Label>
+          <Label>Total key size</Label>
           <BytesFormatted value={keySize?.sum} />
           <Label>Min key size</Label>
           <BytesFormatted value={keySize?.min} />
@@ -74,7 +74,7 @@ const PartitionInfoRow: React.FC<{ row: Row<TopicAnalysisStats> }> = ({
       <div>
         <Heading level={4}>Values sizes</Heading>
         <List>
-          <Label>Total keys size</Label>
+          <Label>Total key size</Label>
           <BytesFormatted value={valueSize?.sum} />
           <Label>Min key size</Label>
           <BytesFormatted value={valueSize?.min} />

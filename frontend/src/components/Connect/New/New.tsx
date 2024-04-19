@@ -18,7 +18,6 @@ import { Button } from 'components/common/Button/Button';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import Heading from 'components/common/heading/Heading.styled';
 import { useConnects, useCreateConnector } from 'lib/hooks/api/kafkaConnect';
-import get from 'lodash/get';
 import { Connect } from 'generated-sources';
 
 import * as S from './New.styled';
@@ -45,7 +44,7 @@ const New: React.FC = () => {
     mode: 'all',
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      connectName: get(connects, '0.name', ''),
+      connectName: connects.length > 0 ? connects[0].name : '',
       name: '',
       config: '',
     },

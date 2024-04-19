@@ -1,29 +1,30 @@
 package io.kafbat.ui.settings.listeners;
 
 import static java.nio.file.Files.newInputStream;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 import com.codeborne.selenide.Screenshots;
 import io.qameta.allure.Allure;
+import io.qameta.allure.AllureLifecycle;
 import io.qameta.allure.testng.AllureTestNg;
 import java.io.File;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-@Slf4j
 public class AllureListener extends AllureTestNg implements ITestListener {
 
   private void takeScreenshot() {
     File screenshot = Screenshots.takeScreenShotAsFile();
     try {
-      if (screenshot != null) {
+      if (!isEmpty(screenshot)) {
         Allure.addAttachment(screenshot.getName(), newInputStream(screenshot.toPath()));
       } else {
-        log.warn("Unable to take screenshot");
+        LoggerFactory.getLogger(AllureLifecycle.class).error("Could not take screenshot");
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException exception) {
+      throw new RuntimeException(exception);
     }
   }
 

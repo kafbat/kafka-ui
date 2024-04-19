@@ -47,19 +47,16 @@ public class MessageFilters {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static Predicate<TopicMessageDTO> createMsgFilter(String query, MessageFilterTypeDTO type) {
-    return switch (type) {
-      case STRING_CONTAINS -> containsStringFilter(query);
-      case CEL_SCRIPT -> celScriptFilter(query);
-    };
+  public static Predicate<TopicMessageDTO> noop() {
+    return e -> true;
   }
 
-  static Predicate<TopicMessageDTO> containsStringFilter(String string) {
+  public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
     return msg -> StringUtils.contains(msg.getKey(), string)
         || StringUtils.contains(msg.getContent(), string);
   }
 
-  static Predicate<TopicMessageDTO> celScriptFilter(String script) {
+  public static Predicate<TopicMessageDTO> celScriptFilter(String script) {
     CelValidationResult celValidationResult = CEL_COMPILER.compile(script);
     if (celValidationResult.hasError()) {
       throw new CelException(script, celValidationResult.getErrorString());
