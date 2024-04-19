@@ -34,7 +34,7 @@ const InputWithOptions = ({
     filteredOptions = [{ value: selectedOption, label: selectedOption }];
   }
 
-  const updateSelectedOption = (option: SelectOption) => {
+  const updateSelectedOption = (option: SelectOption<string>) => {
     if (!option.disabled) {
       setSelectedOption(option.value);
       onChange?.(option.value);
