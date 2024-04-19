@@ -1,5 +1,4 @@
 import React from 'react';
-import { TopicFormData } from 'redux/interfaces';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ClusterNameRoute, clusterTopicsPath } from 'lib/paths';
 import TopicForm from 'components/Topics/shared/Form/TopicForm';
@@ -9,6 +8,7 @@ import { topicFormValidationSchema } from 'lib/yupExtended';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useCreateTopic } from 'lib/hooks/api/topics';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 enum Filters {
   NAME = 'name',

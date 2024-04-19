@@ -7,8 +7,8 @@ import {
 import * as hooks from 'lib/hooks/api/topics';
 import fetchMock from 'fetch-mock';
 import { externalTopicPayload, topicConfigPayload } from 'lib/fixtures/topics';
-import { TopicFormData, TopicFormDataRaw } from 'redux/interfaces';
 import { CreateTopicMessage } from 'generated-sources';
+import { TopicFormData, TopicFormDataRaw } from 'lib/interfaces/topic';
 
 const clusterName = 'test-cluster';
 const topicName = 'test-topic';

@@ -10,7 +10,7 @@ import {
 } from 'lib/paths';
 import { screen, waitFor } from '@testing-library/dom';
 import fetchMock from 'fetch-mock';
-import { schemaVersion } from 'redux/reducers/schemas/__test__/fixtures';
+import { schemaVersion } from 'components/Schemas/Edit/__tests__/fixtures';
 
 const renderComponent = (pathname: string) =>
   render(

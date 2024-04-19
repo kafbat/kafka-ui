@@ -18,15 +18,22 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           issue-message: |
-            Hello there ${{ github.actor }}! 👋
+            Hi ${{ github.actor }}! 👋
 
-            Thank you and congratulations 🎉 for opening your very first issue in this project! 💖
+            Welcome, and thank you for opening your first issue in the repo!
 
-            In case you want to claim this issue, please comment down below! We will try to get back to you as soon as we can. 👀
+            Please wait for triaging by our maintainers.
+
+            As development is carried out in our spare time, you can support us by sponsoring our activities or even funding the development of specific issues.
+            [Sponsorship link](https://github.com/kafbat)
+
+            If you plan to raise a PR for this issue, please take a look at our [contributing guide](https://ui.docs.kafbat.io/development/contributing).
 
           pr-message: |
-            Hello there ${{ github.actor }}! 👋
+            Hi ${{ github.actor }}! 👋
 
-            Thank you and congrats 🎉 for opening your first PR on this project! ✨ 💖
+            Welcome, and thank you for opening your first PR in the repo!
 
-            We will try to review it soon!
+            Please wait for triaging by our maintainers.
+
+            Please take a look at our [contributing guide](https://ui.docs.kafbat.io/development/contributing).

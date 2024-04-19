@@ -4,50 +4,34 @@ import {
   CompatibilityLevelCompatibilityEnum,
   ResourceType,
 } from 'generated-sources';
-import { useAppDispatch } from 'lib/hooks/redux';
 import useAppParams from 'lib/hooks/useAppParams';
-import { fetchSchemas } from 'redux/reducers/schemas/schemasSlice';
 import { ClusterNameRoute } from 'lib/paths';
-import { schemasApiClient } from 'lib/api';
-import { showServerError } from 'lib/errorHandling';
 import { useConfirm } from 'lib/hooks/useConfirm';
-import { useSearchParams } from 'react-router-dom';
-import { PER_PAGE } from 'lib/constants';
 import { ActionSelect } from 'components/common/ActionComponent';
+import {
+  useGetGlobalCompatibilityLayer,
+  useUpdateGlobalSchemaCompatibilityLevel,
+} from 'lib/hooks/api/schemas';
 
 import * as S from './GlobalSchemaSelector.styled';
 
+function isCompatibilityLevelCompatibilityEnum(
+  value: string | number
+): value is CompatibilityLevelCompatibilityEnum {
+  return value in CompatibilityLevelCompatibilityEnum;
+}
+
 const GlobalSchemaSelector: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const dispatch = useAppDispatch();
-  const [searchParams] = useSearchParams();
+  const { data: currentCompatibilityLevel, isFetching } =
+    useGetGlobalCompatibilityLayer(clusterName);
+  const { mutateAsync } = useUpdateGlobalSchemaCompatibilityLevel(clusterName);
   const confirm = useConfirm();
 
-  const [currentCompatibilityLevel, setCurrentCompatibilityLevel] =
-    React.useState<CompatibilityLevelCompatibilityEnum | undefined>();
-
-  const [isFetching, setIsFetching] = React.useState(false);
-
-  React.useEffect(() => {
-    const fetchData = async () => {
-      setIsFetching(true);
-      try {
-        const { compatibility } =
-          await schemasApiClient.getGlobalSchemaCompatibilityLevel({
-            clusterName,
-          });
-        setCurrentCompatibilityLevel(compatibility);
-      } catch (error) {
-        // do nothing
-      }
-      setIsFetching(false);
-    };
-
-    fetchData();
-  }, [clusterName]);
-
   const handleChangeCompatibilityLevel = (level: string | number) => {
-    const nextLevel = level as CompatibilityLevelCompatibilityEnum;
+    if (!isCompatibilityLevelCompatibilityEnum(level)) return;
+
+    const nextLevel = level;
     confirm(
       <>
         Are you sure you want to update the global compatibility level and set
@@ -55,25 +39,9 @@ const GlobalSchemaSelector: React.FC = () => {
         the schemas.
       </>,
       async () => {
-        try {
-          await schemasApiClient.updateGlobalSchemaCompatibilityLevel({
-            clusterName,
-            compatibilityLevel: {
-              compatibility: nextLevel,
-            },
-          });
-          setCurrentCompatibilityLevel(nextLevel);
-          dispatch(
-            fetchSchemas({
-              clusterName,
-              page: Number(searchParams.get('page') || 1),
-              perPage: Number(searchParams.get('perPage') || PER_PAGE),
-              search: searchParams.get('q') || '',
-            })
-          );
-        } catch (e) {
-          showServerError(e as Response);
-        }
+        await mutateAsync({
+          compatibilityLevel: { compatibility: nextLevel },
+        });
       }
     );
   };
@@ -85,7 +53,7 @@ const GlobalSchemaSelector: React.FC = () => {
       <div>Global Compatibility Level: </div>
       <ActionSelect
         selectSize="M"
-        defaultValue={currentCompatibilityLevel}
+        defaultValue={currentCompatibilityLevel.compatibility}
         minWidth="200px"
         onChange={handleChangeCompatibilityLevel}
         disabled={isFetching}

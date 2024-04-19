@@ -8,27 +8,20 @@ import {
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import DiffViewer from 'components/common/DiffViewer/DiffViewer';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  fetchSchemaVersions,
-  SCHEMAS_VERSIONS_FETCH_ACTION,
-} from 'redux/reducers/schemas/schemasSlice';
 import { useForm, Controller } from 'react-hook-form';
 import Select from 'components/common/Select/Select';
-import { useAppDispatch } from 'lib/hooks/redux';
-import { resetLoaderById } from 'redux/reducers/loader/loaderSlice';
 import useAppParams from 'lib/hooks/useAppParams';
 import PageHeading from 'components/common/PageHeading/PageHeading';
+import { useGetSchemasVersions } from 'lib/hooks/api/schemas';
 
 import * as S from './Diff.styled';
 import { BackButton } from './Diff.styled';
 
-export interface DiffProps {
-  versions: SchemaSubject[];
-  areVersionsFetched: boolean;
-}
-
-const Diff: React.FC<DiffProps> = ({ versions, areVersionsFetched }) => {
+const Diff: React.FC = () => {
   const { clusterName, subject } = useAppParams<ClusterSubjectParam>();
+  const { data: versions, isFetching: areVersionsFetching } =
+    useGetSchemasVersions({ clusterName, subject });
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,15 +36,6 @@ const Diff: React.FC<DiffProps> = ({ versions, areVersionsFetched }) => {
   const [rightVersion, setRightVersion] = React.useState(
     searchParams.get('rightVersion') || ''
   );
-
-  const dispatch = useAppDispatch();
-
-  React.useEffect(() => {
-    dispatch(fetchSchemaVersions({ clusterName, subject }));
-    return () => {
-      dispatch(resetLoaderById(SCHEMAS_VERSIONS_FETCH_ACTION));
-    };
-  }, [clusterName, subject, dispatch]);
 
   const getSchemaContent = (allVersions: SchemaSubject[], version: string) => {
     const selectedSchema =
@@ -86,7 +70,7 @@ const Diff: React.FC<DiffProps> = ({ versions, areVersionsFetched }) => {
         Back
       </BackButton>
       <S.Section>
-        {areVersionsFetched ? (
+        {!areVersionsFetching && versions ? (
           <S.DiffBox>
             <S.DiffTilesWrapper>
               <S.DiffTile>

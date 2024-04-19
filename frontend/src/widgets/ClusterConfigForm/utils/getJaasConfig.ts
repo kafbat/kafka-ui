@@ -1,5 +1,3 @@
-import { isUndefined } from 'lodash';
-
 const JAAS_CONFIGS = {
   'SASL/GSSAPI': 'com.sun.security.auth.module.Krb5LoginModule',
   'SASL/OAUTHBEARER':
@@ -21,7 +19,7 @@ export const getJaasConfig = (
 ) => {
   const optionsString = Object.entries(options)
     .map(([key, value]) => {
-      if (isUndefined(value)) return null;
+      if (value === undefined) return null;
       if (value === 'true' || value === 'false') {
         return ` ${key}=${value}`;
       }

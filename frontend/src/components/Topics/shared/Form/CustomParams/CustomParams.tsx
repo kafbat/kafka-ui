@@ -1,11 +1,11 @@
 import React from 'react';
-import { TopicConfigParams, TopicFormData } from 'redux/interfaces';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Button } from 'components/common/Button/Button';
 import { TOPIC_CUSTOM_PARAMS_PREFIX } from 'lib/constants';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import { ErrorMessage } from '@hookform/error-message';
 import { FormError } from 'components/common/Input/Input.styled';
+import { TopicConfigParams, TopicFormData } from 'lib/interfaces/topic';
 
 import CustomParamField from './CustomParamField';
 import * as S from './CustomParams.styled';

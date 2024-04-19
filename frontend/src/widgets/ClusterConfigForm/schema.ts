@@ -1,4 +1,3 @@
-import { isArray } from 'lodash';
 import { object, string, number, array, boolean, mixed, lazy } from 'yup';
 
 const requiredString = string().required('required field');
@@ -61,7 +60,7 @@ const kafkaConnectSchema = object({
 });
 
 const kafkaConnectsSchema = lazy((value) => {
-  if (isArray(value)) {
+  if (Array.isArray(value)) {
     return array().of(kafkaConnectSchema);
   }
   return mixed().optional();

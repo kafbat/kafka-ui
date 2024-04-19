@@ -1,8 +1,8 @@
 import React from 'react';
 import { KsqlTableResponse } from 'generated-sources';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { nanoid } from '@reduxjs/toolkit';
 import { TableTitle } from 'components/common/table/TableTitle/TableTitle.styled';
+import { nanoid } from 'lib/functions/nanoid';
 
 import * as S from './TableRenderer.styled';
 
@@ -15,17 +15,13 @@ function hasJsonStructure(str: string | Record<string, unknown>): boolean {
     return true;
   }
 
-  if (typeof str === 'string') {
-    try {
-      const result = JSON.parse(str);
-      const type = Object.prototype.toString.call(result);
-      return type === '[object Object]' || type === '[object Array]';
-    } catch (err) {
-      return false;
-    }
+  try {
+    const result = JSON.parse(str);
+    const type = Object.prototype.toString.call(result);
+    return type === '[object Object]' || type === '[object Array]';
+  } catch (err) {
+    return false;
   }
-
-  return false;
 }
 
 const TableRenderer: React.FC<TableRendererProps> = ({ table }) => {

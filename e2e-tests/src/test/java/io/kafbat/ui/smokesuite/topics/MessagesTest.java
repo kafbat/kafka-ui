@@ -1,15 +1,15 @@
 package io.kafbat.ui.smokesuite.topics;
 
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static io.kafbat.ui.models.Topic.createTopic;
 
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.BasePage;
-import io.kafbat.ui.pages.topics.TopicDetails;
-import io.kafbat.ui.utilities.TimeUtils;
+import io.kafbat.ui.screens.BasePage;
+import io.kafbat.ui.screens.topics.TopicDetails;
+import io.kafbat.ui.screens.topics.enums.SeekType;
+import io.kafbat.ui.utilities.TimeUtil;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;
-import io.qase.api.annotation.QaseId;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,58 +23,41 @@ import org.testng.asserts.SoftAssert;
 
 public class MessagesTest extends BaseTest {
 
-  private static final Topic TOPIC_FOR_MESSAGES = new Topic()
-      .setName("topic-with-clean-message-attribute-" + randomAlphabetic(5))
-      .setMessageKey(randomAlphabetic(5))
-      .setMessageValue(randomAlphabetic(10));
-  private static final Topic TOPIC_TO_CLEAR_AND_PURGE_MESSAGES = new Topic()
-      .setName("topic-to-clear-and-purge-messages-" + randomAlphabetic(5))
-      .setMessageKey(randomAlphabetic(5))
-      .setMessageValue(randomAlphabetic(10));
-  private static final Topic TOPIC_FOR_CHECK_FILTERS = new Topic()
-      .setName("topic-for-check-filters-" + randomAlphabetic(5))
-      .setMessageKey(randomAlphabetic(5))
-      .setMessageValue(randomAlphabetic(10));
-  private static final Topic TOPIC_TO_RECREATE = new Topic()
-      .setName("topic-to-recreate-attribute-" + randomAlphabetic(5))
-      .setMessageKey(randomAlphabetic(5))
-      .setMessageValue(randomAlphabetic(10));
-  private static final Topic TOPIC_FOR_CHECK_MESSAGES_COUNT = new Topic()
-      .setName("topic-for-check-messages-count" + randomAlphabetic(5))
-      .setMessageKey(randomAlphabetic(5))
-      .setMessageValue(randomAlphabetic(10));
+  private static final Topic PRODUCE_MESSAGE_TOPIC = createTopic();
+  private static final Topic CLEAR_MESSAGE_TOPIC = createTopic();
+  private static final Topic CHECK_FILTERS_TOPIC = createTopic();
+  private static final Topic RECREATE_TOPIC = createTopic();
+  private static final Topic MESSAGES_COUNT_TOPIC = createTopic();
   private static final List<Topic> TOPIC_LIST = new ArrayList<>();
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
-    TOPIC_LIST.addAll(List.of(TOPIC_FOR_MESSAGES, TOPIC_FOR_CHECK_FILTERS, TOPIC_TO_CLEAR_AND_PURGE_MESSAGES,
-        TOPIC_TO_RECREATE, TOPIC_FOR_CHECK_MESSAGES_COUNT));
+    TOPIC_LIST.addAll(List.of(PRODUCE_MESSAGE_TOPIC, CHECK_FILTERS_TOPIC, CLEAR_MESSAGE_TOPIC,
+        RECREATE_TOPIC, MESSAGES_COUNT_TOPIC));
     TOPIC_LIST.forEach(topic -> apiService.createTopic(topic));
-    IntStream.range(1, 3).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_FILTERS));
-    TimeUtils.waitUntilNewMinuteStarted();
-    IntStream.range(1, 3).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_FILTERS));
-    IntStream.range(1, 110).forEach(i -> apiService.sendMessage(TOPIC_FOR_CHECK_MESSAGES_COUNT));
+    IntStream.range(1, 3).forEach(i -> apiService.sendMessage(CHECK_FILTERS_TOPIC));
+    TimeUtil.waitUntilNewMinuteStarted();
+    IntStream.range(1, 3).forEach(i -> apiService.sendMessage(CHECK_FILTERS_TOPIC));
+    IntStream.range(1, 110).forEach(i -> apiService.sendMessage(MESSAGES_COUNT_TOPIC));
   }
 
-  @QaseId(222)
   @Test(priority = 1)
   public void produceMessageCheck() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_MESSAGES.getName());
+    navigateToTopicsAndOpenDetails(PRODUCE_MESSAGE_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES);
-    produceMessage(TOPIC_FOR_MESSAGES);
-    Assert.assertEquals(topicDetails.getMessageByKey(TOPIC_FOR_MESSAGES.getMessageKey()).getValue(),
-        TOPIC_FOR_MESSAGES.getMessageValue(), "message.getValue()");
+    produceMessage(PRODUCE_MESSAGE_TOPIC);
+    Assert.assertEquals(topicDetails.getMessageByKey(PRODUCE_MESSAGE_TOPIC.getMessageKey()).getValue(),
+        PRODUCE_MESSAGE_TOPIC.getMessageValue(), "message.getValue()");
   }
 
-  @QaseId(19)
   @Test(priority = 2)
   public void clearMessageCheck() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_MESSAGES.getName());
+    navigateToTopicsAndOpenDetails(PRODUCE_MESSAGE_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.OVERVIEW);
     int messageAmount = topicDetails.getMessageCountAmount();
-    produceMessage(TOPIC_FOR_MESSAGES);
+    produceMessage(PRODUCE_MESSAGE_TOPIC);
     Assert.assertEquals(topicDetails.getMessageCountAmount(), messageAmount + 1, "getMessageCountAmount()");
     topicDetails
         .openDotMenu()
@@ -84,44 +67,42 @@ public class MessagesTest extends BaseTest {
     Assert.assertEquals(topicDetails.getMessageCountAmount(), 0, "getMessageCountAmount()");
   }
 
-  @QaseId(239)
   @Test(priority = 3)
-  public void checkClearTopicMessage() {
-    navigateToTopicsAndOpenDetails(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName());
+  public void clearTopicMessageCheck() {
+    navigateToTopicsAndOpenDetails(CLEAR_MESSAGE_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.OVERVIEW);
-    produceMessage(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES);
+    produceMessage(CLEAR_MESSAGE_TOPIC);
     navigateToTopics();
-    Assert.assertEquals(topicsList.getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName()).getNumberOfMessages(), 1,
+    Assert.assertEquals(topicsList.getTopicItem(CLEAR_MESSAGE_TOPIC.getName()).getNumberOfMessages(), 1,
         "getNumberOfMessages()");
     topicsList
-        .openDotMenuByTopicName(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName())
+        .openDotMenuByTopicName(CLEAR_MESSAGE_TOPIC.getName())
         .clickClearMessagesBtn()
         .clickConfirmBtnMdl();
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(topicsList.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
-            String.format("%s messages have been successfully cleared!", TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName())),
+            String.format("%s messages have been successfully cleared!", CLEAR_MESSAGE_TOPIC.getName())),
         "isAlertWithMessageVisible()");
-    softly.assertEquals(topicsList.getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName()).getNumberOfMessages(), 0,
+    softly.assertEquals(topicsList.getTopicItem(CLEAR_MESSAGE_TOPIC.getName()).getNumberOfMessages(), 0,
         "getNumberOfMessages()");
     softly.assertAll();
   }
 
-  @QaseId(10)
   @Test(priority = 4)
-  public void checkPurgeMessagePossibility() {
+  public void purgeMessagePossibilityCheck() {
     navigateToTopics();
-    int messageAmount = topicsList.getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName()).getNumberOfMessages();
+    int messageAmount = topicsList.getTopicItem(CLEAR_MESSAGE_TOPIC.getName()).getNumberOfMessages();
     topicsList
-        .openTopic(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName());
+        .openTopic(CLEAR_MESSAGE_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.OVERVIEW);
-    produceMessage(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES);
+    produceMessage(CLEAR_MESSAGE_TOPIC);
     navigateToTopics();
-    Assert.assertEquals(topicsList.getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName()).getNumberOfMessages(),
+    Assert.assertEquals(topicsList.getTopicItem(CLEAR_MESSAGE_TOPIC.getName()).getNumberOfMessages(),
         messageAmount + 1, "getNumberOfMessages()");
     topicsList
-        .getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName())
+        .getTopicItem(CLEAR_MESSAGE_TOPIC.getName())
         .selectItem(true)
         .clickPurgeMessagesOfSelectedTopicsBtn();
     Assert.assertTrue(topicsList.isConfirmationMdlVisible(), "isConfirmationMdlVisible()");
@@ -131,23 +112,22 @@ public class MessagesTest extends BaseTest {
         .clickConfirmBtnMdl();
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(topicsList.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
-            String.format("%s messages have been successfully cleared!", TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName())),
+            String.format("%s messages have been successfully cleared!", CLEAR_MESSAGE_TOPIC.getName())),
         "isAlertWithMessageVisible()");
-    softly.assertEquals(topicsList.getTopicItem(TOPIC_TO_CLEAR_AND_PURGE_MESSAGES.getName()).getNumberOfMessages(), 0,
+    softly.assertEquals(topicsList.getTopicItem(CLEAR_MESSAGE_TOPIC.getName()).getNumberOfMessages(), 0,
         "getNumberOfMessages()");
     softly.assertAll();
   }
 
-  @QaseId(15)
   @Test(priority = 6)
-  public void checkMessageFilteringByOffset() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
+  public void messageFilteringByOffsetCheck() {
+    navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     int nextOffset = topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
+        .selectSeekTypeDdlMessagesTab(SeekType.FROM_OFFSET)
         .getAllMessages().stream()
         .findFirst().orElseThrow().getOffset() + 1;
     topicDetails
-        .selectSeekTypeDdlMessagesTab("Offset")
         .setSeekTypeValueFldMessagesTab(String.valueOf(nextOffset))
         .clickSubmitFiltersBtnMessagesTab();
     SoftAssert softly = new SoftAssert();
@@ -158,12 +138,11 @@ public class MessagesTest extends BaseTest {
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/3215")
-  @Issue("https://github.com/kafbat/kafka-ui/issues/2345")
-  @QaseId(16)
+  @Issue("https://github.com/kafbat/kafka-ui/issues/281")
+  @Issue("https://github.com/kafbat/kafka-ui/issues/282")
   @Test(priority = 7)
-  public void checkMessageFilteringByTimestamp() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
+  public void messageFilteringByTimestampCheck() {
+    navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     LocalDateTime firstTimestamp = topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
         .getMessageByOffset(0).getTimestamp();
@@ -171,7 +150,7 @@ public class MessagesTest extends BaseTest {
         .filter(message -> message.getTimestamp().getMinute() != firstTimestamp.getMinute())
         .findFirst().orElseThrow().getTimestamp();
     topicDetails
-        .selectSeekTypeDdlMessagesTab("Timestamp")
+        .selectSeekTypeDdlMessagesTab(SeekType.SINCE_TIME)
         .openCalendarSeekType()
         .selectDateAndTimeByCalendar(nextTimestamp)
         .clickSubmitFiltersBtnMessagesTab();
@@ -182,10 +161,9 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @QaseId(246)
   @Test(priority = 8)
-  public void checkClearTopicMessageFromOverviewTab() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_FILTERS.getName());
+  public void clearTopicMessageFromOverviewTabCheck() {
+    navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.OVERVIEW)
         .openDotMenu()
@@ -193,42 +171,39 @@ public class MessagesTest extends BaseTest {
         .clickConfirmBtnMdl();
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(topicDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
-            String.format("%s messages have been successfully cleared!", TOPIC_FOR_CHECK_FILTERS.getName())),
+            String.format("%s messages have been successfully cleared!", CHECK_FILTERS_TOPIC.getName())),
         "isAlertWithMessageVisible()");
-    softly.assertEquals(topicDetails.getMessageCountAmount(), 0,
-        "getMessageCountAmount()= " + topicDetails.getMessageCountAmount());
+    softly.assertEquals(topicDetails.getMessageCountAmount(), 0, "getMessageCountAmount()");
     softly.assertAll();
   }
 
-  @QaseId(240)
   @Test(priority = 9)
-  public void checkRecreateTopic() {
-    navigateToTopicsAndOpenDetails(TOPIC_TO_RECREATE.getName());
+  public void recreateTopicCheck() {
+    navigateToTopicsAndOpenDetails(RECREATE_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.OVERVIEW);
-    produceMessage(TOPIC_TO_RECREATE);
+    produceMessage(RECREATE_TOPIC);
     navigateToTopics();
-    Assert.assertEquals(topicsList.getTopicItem(TOPIC_TO_RECREATE.getName()).getNumberOfMessages(), 1,
+    Assert.assertEquals(topicsList.getTopicItem(RECREATE_TOPIC.getName()).getNumberOfMessages(), 1,
         "getNumberOfMessages()");
     topicsList
-        .openDotMenuByTopicName(TOPIC_TO_RECREATE.getName())
+        .openDotMenuByTopicName(RECREATE_TOPIC.getName())
         .clickRecreateTopicBtn()
         .clickConfirmBtnMdl();
     SoftAssert softly = new SoftAssert();
     softly.assertTrue(topicDetails.isAlertWithMessageVisible(BasePage.AlertHeader.SUCCESS,
-            String.format("Topic %s successfully recreated!", TOPIC_TO_RECREATE.getName())),
+            String.format("Topic %s successfully recreated!", RECREATE_TOPIC.getName())),
         "isAlertWithMessageVisible()");
-    softly.assertEquals(topicsList.getTopicItem(TOPIC_TO_RECREATE.getName()).getNumberOfMessages(), 0,
+    softly.assertEquals(topicsList.getTopicItem(RECREATE_TOPIC.getName()).getNumberOfMessages(), 0,
         "getNumberOfMessages()");
     softly.assertAll();
   }
 
   @Ignore
-  @Issue("https://github.com/kafbat/kafka-ui/issues/3129")
-  @QaseId(267)
+  @Issue("https://github.com/kafbat/kafka-ui/issues/270")
   @Test(priority = 10)
-  public void checkMessagesCountPerPageWithinTopic() {
-    navigateToTopicsAndOpenDetails(TOPIC_FOR_CHECK_MESSAGES_COUNT.getName());
+  public void messagesCountPerPageCheck() {
+    navigateToTopicsAndOpenDetails(MESSAGES_COUNT_TOPIC.getName());
     topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES);
     int messagesPerPage = topicDetails.getAllMessages().size();
@@ -242,7 +217,7 @@ public class MessagesTest extends BaseTest {
     topicDetails
         .clickNextButton();
     softly.assertEquals(topicDetails.getAllMessages().stream().findFirst().orElseThrow().getOffset(),
-        lastOffsetOnPage + 1, "findFirst().getOffset()");
+        lastOffsetOnPage - 1, "getAllMessages().findFirst().getOffset()");
     softly.assertTrue(topicDetails.isBackButtonEnabled(), "isBackButtonEnabled()");
     softly.assertFalse(topicDetails.isNextButtonEnabled(), "isNextButtonEnabled()");
     softly.assertAll();

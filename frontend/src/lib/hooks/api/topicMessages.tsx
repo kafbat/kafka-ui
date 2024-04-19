@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { BASE_PARAMS, MESSAGES_PER_PAGE } from 'lib/constants';
-import { ClusterName, TopicName } from 'redux/interfaces';
 import {
   GetSerdesRequest,
   PollingMode,
@@ -17,6 +16,8 @@ import { useSearchParams } from 'react-router-dom';
 import { MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
+import { TopicName } from 'lib/interfaces/topic';
+import { ClusterName } from 'lib/interfaces/cluster';
 
 interface UseTopicMessagesProps {
   clusterName: ClusterName;
