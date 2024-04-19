@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useCreateProducerAcl } from 'lib/hooks/api/acl';
 import { FormProvider, useForm } from 'react-hook-form';
 import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import Input from 'components/common/Input/Input';
 import ControlledMultiSelect from 'components/common/MultiSelect/ControlledMultiSelect';
 import Checkbox from 'components/common/Checkbox/Checkbox';

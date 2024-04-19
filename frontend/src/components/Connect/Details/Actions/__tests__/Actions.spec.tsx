@@ -2,7 +2,7 @@ import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
 import { clusterConnectConnectorPath } from 'lib/paths';
 import Actions from 'components/Connect/Details/Actions/Actions';
-import { ConnectorAction, ConnectorState } from 'generated-sources';
+import { Connector, ConnectorAction, ConnectorState } from 'generated-sources';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -10,7 +10,16 @@ import {
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import { connector } from 'lib/fixtures/kafkaConnect';
-import set from 'lodash/set';
+
+function setConnectorStatus(con: Connector, state: ConnectorState) {
+  return {
+    ...con,
+    status: {
+      ...con,
+      state,
+    },
+  };
+}
 
 const mockHistoryPush = jest.fn();
 const deleteConnector = jest.fn();
@@ -66,7 +75,7 @@ describe('Actions', () => {
 
     it('renders buttons when paused', async () => {
       (useConnector as jest.Mock).mockImplementation(() => ({
-        data: set({ ...connector }, 'status.state', ConnectorState.PAUSED),
+        data: setConnectorStatus(connector, ConnectorState.PAUSED),
       }));
       renderComponent();
       await afterClickRestartButton();
@@ -78,7 +87,7 @@ describe('Actions', () => {
 
     it('renders buttons when failed', async () => {
       (useConnector as jest.Mock).mockImplementation(() => ({
-        data: set({ ...connector }, 'status.state', ConnectorState.FAILED),
+        data: setConnectorStatus(connector, ConnectorState.FAILED),
       }));
       renderComponent();
       await afterClickRestartButton();
@@ -90,7 +99,7 @@ describe('Actions', () => {
 
     it('renders buttons when unassigned', async () => {
       (useConnector as jest.Mock).mockImplementation(() => ({
-        data: set({ ...connector }, 'status.state', ConnectorState.UNASSIGNED),
+        data: setConnectorStatus(connector, ConnectorState.UNASSIGNED),
       }));
       renderComponent();
       await afterClickRestartButton();
@@ -102,7 +111,7 @@ describe('Actions', () => {
 
     it('renders buttons when running connector action', async () => {
       (useConnector as jest.Mock).mockImplementation(() => ({
-        data: set({ ...connector }, 'status.state', ConnectorState.RUNNING),
+        data: setConnectorStatus(connector, ConnectorState.RUNNING),
       }));
       renderComponent();
       await afterClickRestartButton();
@@ -115,7 +124,7 @@ describe('Actions', () => {
     describe('mutations', () => {
       beforeEach(() => {
         (useConnector as jest.Mock).mockImplementation(() => ({
-          data: set({ ...connector }, 'status.state', ConnectorState.RUNNING),
+          data: setConnectorStatus(connector, ConnectorState.RUNNING),
         }));
       });
 
@@ -185,7 +194,7 @@ describe('Actions', () => {
       it('calls resumeConnector when resume button clicked', async () => {
         const resumeConnector = jest.fn();
         (useConnector as jest.Mock).mockImplementation(() => ({
-          data: set({ ...connector }, 'status.state', ConnectorState.PAUSED),
+          data: setConnectorStatus(connector, ConnectorState.PAUSED),
         }));
         (useUpdateConnectorState as jest.Mock).mockImplementation(() => ({
           mutateAsync: resumeConnector,

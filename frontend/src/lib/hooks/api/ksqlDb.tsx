@@ -1,6 +1,6 @@
 import { ksqlDbApiClient as api } from 'lib/api';
 import { useMutation, useQueries } from '@tanstack/react-query';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { BASE_PARAMS } from 'lib/constants';
 import React from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';

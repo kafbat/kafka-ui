@@ -1,37 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ClusterSubjectParam } from 'lib/paths';
-import { useAppDispatch, useAppSelector } from 'lib/hooks/redux';
 import useAppParams from 'lib/hooks/useAppParams';
-import {
-  fetchLatestSchema,
-  getSchemaLatest,
-  SCHEMA_LATEST_FETCH_ACTION,
-  getAreSchemaLatestFulfilled,
-} from 'redux/reducers/schemas/schemasSlice';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import { resetLoaderById } from 'redux/reducers/loader/loaderSlice';
+import { useNavigate } from 'react-router-dom';
+import { useGetLatestSchema } from 'lib/hooks/api/schemas';
 
 import Form from './Form';
 
 const Edit: React.FC = () => {
-  const dispatch = useAppDispatch();
-
+  const navigate = useNavigate();
   const { clusterName, subject } = useAppParams<ClusterSubjectParam>();
+  const {
+    isFetching,
+    isError,
+    data: schema,
+  } = useGetLatestSchema({
+    clusterName,
+    subject,
+  });
 
-  React.useEffect(() => {
-    dispatch(fetchLatestSchema({ clusterName, subject }));
-    return () => {
-      dispatch(resetLoaderById(SCHEMA_LATEST_FETCH_ACTION));
-    };
-  }, [clusterName, dispatch, subject]);
+  useEffect(() => {
+    if (isError) {
+      navigate('/404');
+    }
+  }, [isError]);
 
-  const schema = useAppSelector((state) => getSchemaLatest(state));
-  const isFetched = useAppSelector(getAreSchemaLatestFulfilled);
-
-  if (!isFetched || !schema) {
+  if (isFetching) {
     return <PageLoader />;
   }
-  return <Form />;
+
+  if (!schema) return null;
+
+  return <Form schema={schema} />;
 };
 
 export default Edit;

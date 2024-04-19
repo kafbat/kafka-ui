@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Row } from '@tanstack/react-table';
 import { Action, Topic, ResourceType } from 'generated-sources';
 import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import {
   topicKeys,
   useClearTopicMessages,

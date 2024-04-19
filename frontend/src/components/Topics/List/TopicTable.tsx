@@ -3,7 +3,7 @@ import { SortOrder, Topic, TopicColumnsToSort } from 'generated-sources';
 import { ColumnDef } from '@tanstack/react-table';
 import Table, { SizeCell } from 'components/common/NewTable';
 import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { useSearchParams } from 'react-router-dom';
 import ClusterContext from 'components/contexts/ClusterContext';
 import { useTopics } from 'lib/hooks/api/topics';

@@ -1,7 +1,7 @@
 import React, { FC, useContext } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { useCreateConsumersAcl } from 'lib/hooks/api/acl';
 import useAppParams from 'lib/hooks/useAppParams';
 import ControlledMultiSelect from 'components/common/MultiSelect/ControlledMultiSelect';

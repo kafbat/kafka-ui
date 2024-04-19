@@ -2,37 +2,40 @@ import React from 'react';
 import List from 'components/Schemas/List/List';
 import { render, WithRoute } from 'lib/testHelpers';
 import { clusterSchemaPath, clusterSchemasPath } from 'lib/paths';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import {
-  schemasFulfilledState,
-  schemasInitialState,
   schemaVersion1,
   schemaVersion2,
-} from 'redux/reducers/schemas/__test__/fixtures';
+} from 'components/Schemas/Edit/__tests__/fixtures';
 import ClusterContext, {
   ContextProps,
   initialValue as contextInitialValue,
 } from 'components/contexts/ClusterContext';
-import { RootState } from 'redux/interfaces';
-import fetchMock from 'fetch-mock';
 import userEvent from '@testing-library/user-event';
+import { useGetSchemas } from 'lib/hooks/api/schemas';
 
 import { schemasPayload, schemasEmptyPayload } from './fixtures';
 
 const mockedUsedNavigate = jest.fn();
+
+const GlobalSchemaSelectorText = 'GlobalSchemaSelectorText';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedUsedNavigate,
 }));
 
+jest.mock('lib/hooks/api/schemas', () => ({
+  useGetSchemas: jest.fn(),
+}));
+
+jest.mock(
+  'components/Schemas/List/GlobalSchemaSelector/GlobalSchemaSelector',
+  () => () => <div>{GlobalSchemaSelectorText}</div>
+);
+
 const clusterName = 'testClusterName';
-const schemasAPIUrl = `/api/clusters/${clusterName}/schemas?page=1&perPage=25`;
-const schemasAPICompabilityUrl = `/api/clusters/${clusterName}/schemas/compatibility`;
-const renderComponent = (
-  initialState: RootState['schemas'] = schemasInitialState,
-  context: ContextProps = contextInitialValue
-) =>
+const renderComponent = (context: ContextProps = contextInitialValue) =>
   render(
     <WithRoute path={clusterSchemasPath()}>
       <ClusterContext.Provider value={context}>
@@ -41,29 +44,17 @@ const renderComponent = (
     </WithRoute>,
     {
       initialEntries: [clusterSchemasPath(clusterName)],
-      preloadedState: {
-        schemas: initialState,
-      },
     }
   );
 
 describe('List', () => {
-  afterEach(() => {
-    fetchMock.reset();
-  });
-
   describe('fetch error', () => {
     it('shows progressbar', async () => {
-      const fetchSchemasMock = fetchMock.getOnce(schemasAPIUrl, 404);
-      const fetchCompabilityMock = fetchMock.getOnce(
-        schemasAPICompabilityUrl,
-        404
-      );
-      await act(() => {
-        renderComponent();
-      });
-      expect(fetchSchemasMock.called()).toBeTruthy();
-      expect(fetchCompabilityMock.called()).toBeTruthy();
+      (useGetSchemas as jest.Mock).mockImplementation(() => ({
+        data: {},
+        isError: true,
+      }));
+      renderComponent();
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
     });
   });
@@ -71,19 +62,12 @@ describe('List', () => {
   describe('fetch success', () => {
     describe('responded without schemas', () => {
       beforeEach(async () => {
-        const fetchSchemasMock = fetchMock.getOnce(
-          schemasAPIUrl,
-          schemasEmptyPayload
-        );
-        const fetchCompabilityMock = fetchMock.getOnce(
-          schemasAPICompabilityUrl,
-          200
-        );
-        await act(() => {
-          renderComponent();
-        });
-        expect(fetchSchemasMock.called()).toBeTruthy();
-        expect(fetchCompabilityMock.called()).toBeTruthy();
+        (useGetSchemas as jest.Mock).mockImplementation(() => ({
+          data: schemasEmptyPayload,
+          isFetching: false,
+          isError: false,
+        }));
+        renderComponent();
       });
       it('renders empty table', () => {
         expect(screen.getByText('No schemas found')).toBeInTheDocument();
@@ -91,19 +75,12 @@ describe('List', () => {
     });
     describe('responded with schemas', () => {
       beforeEach(async () => {
-        const fetchSchemasMock = fetchMock.getOnce(
-          schemasAPIUrl,
-          schemasPayload
-        );
-        const fetchCompabilityMock = fetchMock.getOnce(
-          schemasAPICompabilityUrl,
-          200
-        );
-        await act(() => {
-          renderComponent(schemasFulfilledState);
-        });
-        expect(fetchSchemasMock.called()).toBeTruthy();
-        expect(fetchCompabilityMock.called()).toBeTruthy();
+        (useGetSchemas as jest.Mock).mockImplementation(() => ({
+          data: schemasPayload,
+          isFetching: false,
+          isError: false,
+        }));
+        renderComponent();
       });
       it('renders list', () => {
         expect(screen.getByText(schemaVersion1.subject)).toBeInTheDocument();
@@ -125,22 +102,31 @@ describe('List', () => {
 
     describe('responded with readonly cluster schemas', () => {
       beforeEach(async () => {
-        const fetchSchemasMock = fetchMock.getOnce(
-          schemasAPIUrl,
-          schemasPayload
-        );
-        fetchMock.getOnce(schemasAPICompabilityUrl, 200);
-        await act(() => {
-          renderComponent(schemasFulfilledState, {
-            ...contextInitialValue,
-            isReadOnly: true,
-          });
+        (useGetSchemas as jest.Mock).mockImplementation(() => ({
+          data: schemasPayload,
+          isFetching: false,
+          isError: false,
+        }));
+        renderComponent({
+          ...contextInitialValue,
+          isReadOnly: true,
         });
-        expect(fetchSchemasMock.called()).toBeTruthy();
       });
       it('does not render Create Schema button', () => {
         expect(screen.queryByText('Create Schema')).not.toBeInTheDocument();
       });
+    });
+  });
+
+  describe('check the compatibility layer', () => {
+    it('should check if the compatibility layer component is being shown', () => {
+      (useGetSchemas as jest.Mock).mockImplementation(() => ({
+        data: {},
+        isError: false,
+        isFetching: false,
+      }));
+      renderComponent();
+      expect(screen.getByText(GlobalSchemaSelectorText)).toBeInTheDocument();
     });
   });
 });

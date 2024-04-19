@@ -1,6 +1,6 @@
 import { Partition, PollingMode, SeekType } from 'generated-sources';
-import compact from 'lodash/compact';
 import { Option } from 'react-multi-select-component';
+import compact from 'lib/functions/compact';
 
 export function isModeOptionWithInput(value: PollingMode) {
   return (

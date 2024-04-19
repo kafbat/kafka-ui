@@ -12,20 +12,13 @@
     <artifactId>e2e-tests</artifactId>
 
     <properties>
-        <maven.surefire-plugin.version>3.2.5</maven.surefire-plugin.version>
-        <contract>${project.version}</contract>
-        <testcontainers.version>1.19.5</testcontainers.version>
-        <httpcomponents.version>5.2.1</httpcomponents.version>
-        <selenium.version>4.8.1</selenium.version>
-        <selenide.version>6.12.3</selenide.version>
-        <testng.version>7.9.0</testng.version>
-        <allure.version>2.25.0</allure.version>
-        <qase.io.version>3.0.5</qase.io.version>
-        <aspectj.version>1.9.9.1</aspectj.version>
-        <assertj.version>3.25.3</assertj.version>
-        <hamcrest.version>2.2</hamcrest.version>
-        <slf4j.version>2.0.7</slf4j.version>
         <kafka.version>3.3.1</kafka.version>
+        <contract>${project.version}</contract>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.surefire.release>3.2.3</maven.surefire.release>
+        <maven.surefire-testng>3.2.5</maven.surefire-testng>
+        <aspectj.version>1.9.9.1</aspectj.version>
+        <allure.version>2.27.0</allure.version>
     </properties>
 
     <dependencies>
@@ -33,93 +26,17 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.13</artifactId>
             <version>${kafka.version}</version>
-            <exclusions> <!-- could be removed when kafka version will contain zookeeper with netty 4.1.69 -->
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-buffer</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-codec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-handler</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-resolver</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-transport</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-transport-native-epoll</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-transport-native-unix-common</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--
-        whole netty dependency block could be removed
-        when kafka version will contain zookeeper with netty 4.1.69
-        -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-unix-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver-dns-native-macos</artifactId>
-            <classifier>osx-aarch_64</classifier>
+            <groupId>io.kafbat.ui</groupId>
+            <artifactId>contract</artifactId>
+            <version>${contract}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>selenium</artifactId>
-            <version>${testcontainers.version}</version>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -127,39 +44,19 @@
             <version>${org.projectlombok.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5</artifactId>
-            <version>${httpcomponents.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>${httpcomponents.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-http-jdk-client</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-http</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.codeborne</groupId>
-            <artifactId>selenide</artifactId>
-            <version>${selenide.version}</version>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <version>7.10.0</version>
         </dependency>
         <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-selenide</artifactId>
-            <version>${allure.version}</version>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>7.2.3</version>
         </dependency>
         <dependency>
             <groupId>io.qameta.allure</groupId>
@@ -167,39 +64,14 @@
             <version>${allure.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.qase</groupId>
-            <artifactId>qase-testng</artifactId>
-            <version>${qase.io.version}</version>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-selenide</artifactId>
+            <version>${allure.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.qase</groupId>
-            <artifactId>qase-api</artifactId>
-            <version>${qase.io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>${hamcrest.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.kafbat.ui</groupId>
-            <artifactId>contract</artifactId>
-            <version>${contract}</version>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.8.0</version>
         </dependency>
     </dependencies>
 
@@ -210,28 +82,9 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skipTests>true</skipTests>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.apache.maven.surefire</groupId>
-                                <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire-plugin.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
         </profile>
         <profile>
             <id>prod</id>
@@ -240,17 +93,26 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven.surefire-plugin.version}</version>
+                        <version>${maven.surefire.release}</version>
                         <configuration>
                             <argLine>
                                 -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                             </argLine>
+                            <systemPropertyVariables>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <headless>${headless.state}</headless>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <selenoid>${selenoid.state}</selenoid>
+                                <allure.results.directory>
+                                    ${project.basedir}/target/allure-results
+                                </allure.results.directory>
+                            </systemPropertyVariables>
                         </configuration>
                         <dependencies>
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
                                 <artifactId>surefire-testng</artifactId>
-                                <version>${maven.surefire-plugin.version}</version>
+                                <version>${maven.surefire-testng}</version>
                             </dependency>
                             <dependency>
                                 <groupId>org.aspectj</groupId>
@@ -287,16 +149,27 @@
                                     <failOnViolation>true</failOnViolation>
                                     <failsOnError>true</failsOnError>
                                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                                    <configLocation>file:${basedir}/../etc/checkstyle/checkstyle-e2e.xml</configLocation>
+                                    <configLocation>file:${basedir}/../etc/checkstyle/checkstyle-e2e.xml
+                                    </configLocation>
                                     <headerLocation>file:${basedir}/../etc/checkstyle/apache-header.txt</headerLocation>
                                 </configuration>
                             </execution>
                         </executions>
-
                     </plugin>
-
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>e2e-headless-off</id>
+            <properties>
+                <headless.state>false</headless.state>
+            </properties>
+        </profile>
+        <profile>
+            <id>e2e-selenoid-off</id>
+            <properties>
+                <selenoid.state>false</selenoid.state>
+            </properties>
         </profile>
     </profiles>
 </project>

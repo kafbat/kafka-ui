@@ -1,5 +1,4 @@
 import React from 'react';
-import { TopicConfigByName, TopicFormData } from 'redux/interfaces';
 import { useForm, FormProvider } from 'react-hook-form';
 import TopicForm from 'components/Topics/shared/Form/TopicForm';
 import { RouteParamsClusterTopic } from 'lib/paths';
@@ -16,6 +15,7 @@ import {
 } from 'lib/hooks/api/topics';
 import DangerZone from 'components/Topics/Topic/Edit/DangerZone/DangerZone';
 import { ConfigSource } from 'generated-sources';
+import { TopicConfigByName, TopicFormData } from 'lib/interfaces/topic';
 
 export const TOPIC_EDIT_FORM_DEFAULT_PROPS = {
   partitions: 1,
