@@ -111,7 +111,11 @@ export const Span = styled.span(
     left: calc(50% - 8px);
     transform-origin: center;
     transition-duration: 86ms;
-    transition-property: background-color, opacity, transform, -webkit-transform;
+    transition-property:
+      background-color,
+      opacity,
+      transform,
+      -webkit-transform;
     transition-timing-function: ease-out;
     width: 16px;
 
