@@ -20,11 +20,12 @@
     "jsx": "react-jsx",
     "baseUrl": "src",
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client"]
+    "types": ["vite/client","@testing-library/jest-dom"]
   },
   "include": [
     "src",
     "vite.config.ts",
     "jest.config.ts",
+    "src/setupTests.ts"
   ]
 }
