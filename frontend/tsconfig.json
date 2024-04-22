@@ -26,6 +26,5 @@
     "src",
     "vite.config.ts",
     "jest.config.ts",
-    "src/setupTests.ts"
   ]
 }
