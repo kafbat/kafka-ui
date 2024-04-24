@@ -352,7 +352,7 @@ export const theme = {
     color: {
       normal: Colors.neutral[90],
     },
-    backgroundColor: Colors.neutral[0],
+    backgroundColor: Colors.brand[0],
     transparentColor: 'transparent',
   },
   link: {
@@ -836,7 +836,7 @@ export const darkTheme: ThemeType = {
     color: {
       normal: Colors.neutral[0],
     },
-    backgroundColor: Colors.neutral[90],
+    backgroundColor: Colors.brand[90],
     transparentColor: 'transparent',
   },
   link: {
