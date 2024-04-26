@@ -29,11 +29,11 @@ public class TopicCreateEditForm extends BasePage {
   protected SelenideElement minInSyncReplicasField = $x("//input[@name='minInSyncReplicas']");
   protected SelenideElement cleanUpPolicyDdl = $x("//ul[@id='topicFormCleanupPolicy']");
   protected SelenideElement maxSizeOnDiscDdl = $x("//ul[@id='topicFormRetentionBytes']");
-  protected SelenideElement customParameterDdl = $x("//ul[contains(@name,'customParams')]");
-  protected SelenideElement deleteCustomParameterBtn = $x("//span[contains(@title,'Delete customParam')]");
-  protected SelenideElement addCustomParameterTypeBtn = $x("//button[contains(text(),'Add Custom Parameter')]");
+  protected SelenideElement customParameterDdl = $x("//input[contains(@name, 'customParams')][@role='listitem']");
+  protected SelenideElement deleteCustomParameterBtn = $x("//span[contains(@title, 'Delete customParam')]");
+  protected SelenideElement addCustomParameterTypeBtn = $x("//button[contains(text(), 'Add Custom Parameter')]");
   protected SelenideElement customParameterValueField = $x("//input[@placeholder='Value']");
-  protected SelenideElement validationCustomParameterValueMsg = $x("//p[contains(text(),'Value is required')]");
+  protected SelenideElement validationCustomParameterValueMsg = $x("//p[contains(text(), 'Value is required')]");
   protected String ddlElementLocator = "//li[@value='%s']";
   protected String btnTimeToRetainLocator = "//button[@class][text()='%s']";
   protected String customParamsElmCss = "ul[role=listbox][name^=customParams][name$=name]";

@@ -90,7 +90,7 @@ public class SchemasTest extends BaseTest {
         .getVersionsNumberFromList();
     Assert.assertEquals(versionsNumberFromDdl, latestVersion, "Versions number is not matched");
     schemaCreateForm
-        .selectVersionFromDropDown(1);
+        .selectVersionFromDropDown(latestVersion);
     Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getMarkedLinesNumber()");
   }
 
