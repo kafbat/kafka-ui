@@ -3,6 +3,7 @@ package io.kafbat.ui.screens.schemas;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
+import static com.codeborne.selenide.Selenide.sleep;
 import static org.openqa.selenium.By.id;
 
 import com.codeborne.selenide.Condition;
@@ -96,6 +97,7 @@ public class SchemaCreateForm extends BasePage {
   @Step
   public SchemaCreateForm selectVersionFromDropDown(int versionNumberDd) {
     $x(String.format(ddlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
+    sleep(1000);
     return this;
   }
 
