@@ -51,18 +51,18 @@ export const Title = styled.div`
 `;
 
 export const StatusIconWrapper = styled.svg.attrs({
-  viewBox: '0 0 4 4',
+  viewBox: '0 0 6 6',
   xmlns: 'http://www.w3.org/2000/svg',
 })`
   fill: none;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 `;
 
 export const StatusIcon = styled.circle.attrs({
-  cx: 2,
-  cy: 2,
-  r: 2,
+  cx: 3,
+  cy: 3,
+  r: 3,
   role: 'status-circle',
 })<{ status: ServerStatus }>(({ theme, status }) => {
   const statusColor: {
