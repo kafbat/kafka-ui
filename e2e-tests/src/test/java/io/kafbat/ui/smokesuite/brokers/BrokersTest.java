@@ -160,7 +160,7 @@ public class BrokersTest extends BaseTest {
     configItem
         .setValue(String.valueOf(newValue))
         .clickCancelBtn();
-    Assert.assertEquals(getIntegerFromString(configItem.getValue(), false), defaultValue,
+    Assert.assertEquals(getIntegerFromString(configItem.getValue(), true), defaultValue,
         "configItem.getValue()");
     configItem
         .clickEditBtn()
@@ -173,7 +173,7 @@ public class BrokersTest extends BaseTest {
     softly.assertFalse(configItem.getSaveBtn().isDisplayed(), "getSaveBtn().isDisplayed()");
     softly.assertFalse(configItem.getCancelBtn().isDisplayed(), "getCancelBtn().isDisplayed()");
     softly.assertTrue(configItem.getEditBtn().isDisplayed(), "getEditBtn().isDisplayed()");
-    softly.assertEquals(getIntegerFromString(configItem.getValue(), false), newValue,
+    softly.assertEquals(getIntegerFromString(configItem.getValue(), true), newValue,
         "configItem.getValue()");
     softly.assertAll();
   }
