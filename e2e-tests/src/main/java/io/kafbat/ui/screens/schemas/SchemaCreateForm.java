@@ -36,7 +36,7 @@ public class SchemaCreateForm extends BasePage {
   protected ElementsCollection visibleMarkers =
       $$x("//div[@class='ace_scroller']//div[contains(@class,'codeMarker')]");
   protected ElementsCollection elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
-  protected String ddlElementLocator = "//li[@value='%s']";
+  protected String ddlElementLocator = "//ul/li[text()='Version %s']";
 
   @Step
   public SchemaCreateForm waitUntilScreenReady() {

@@ -57,6 +57,8 @@ public class SchemasTest extends BaseTest {
     AVRO_SCHEMA.setValuePath(
         System.getProperty("user.dir") + "/src/main/resources/testdata/schemas/schema_avro_update.json");
     navigateToSchemaRegistryAndOpenDetails(AVRO_SCHEMA.getName());
+    int latestVersion = schemaDetails
+        .getLatestVersion();
     schemaDetails
         .openEditSchema();
     schemaCreateForm
@@ -72,8 +74,10 @@ public class SchemasTest extends BaseTest {
         .clickSubmitButton();
     schemaDetails
         .waitUntilScreenReady();
-    Assert.assertEquals(schemaDetails.getCompatibility(), CompatibilityLevel.CompatibilityEnum.NONE.toString(),
+    softly.assertEquals(schemaDetails.getLatestVersion(), latestVersion + 1, "getLatestVersion()");
+    softly.assertEquals(schemaDetails.getCompatibility(), CompatibilityLevel.CompatibilityEnum.NONE.toString(),
         "getCompatibility()");
+    softly.assertAll();
   }
 
   @Test(priority = 3)
