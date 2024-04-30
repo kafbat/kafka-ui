@@ -3,7 +3,6 @@ package io.kafbat.ui.screens.schemas;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
-import static com.codeborne.selenide.Selenide.sleep;
 import static org.openqa.selenium.By.id;
 
 import com.codeborne.selenide.Condition;
@@ -36,6 +35,7 @@ public class SchemaCreateForm extends BasePage {
   protected ElementsCollection visibleMarkers =
       $$x("//div[@class='ace_scroller']//div[contains(@class,'codeMarker')]");
   protected ElementsCollection elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
+  protected String versionDdlElementLocator = "//ul/li[text()='Version %s']";
   protected String ddlElementLocator = "//li[@value='%s']";
 
   @Step
@@ -96,14 +96,14 @@ public class SchemaCreateForm extends BasePage {
 
   @Step
   public SchemaCreateForm selectVersionFromDropDown(int versionNumberDd) {
-    $x(String.format(ddlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
-    sleep(1000);
+    $x(String.format(versionDdlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
+    waitUntilSpinnerDisappear(1);
     return this;
   }
 
   @Step
   public int getMarkedLinesNumber() {
-    return visibleMarkers.size();
+    return Math.toIntExact(visibleMarkers.asDynamicIterable().stream().count());
   }
 
   @Step
