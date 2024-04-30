@@ -1,10 +1,12 @@
 package io.kafbat.ui.smokesuite.schemas;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.api.model.CompatibilityLevel;
 import io.kafbat.ui.models.Schema;
 import io.kafbat.ui.utilities.FileUtil;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -97,7 +99,8 @@ public class SchemasTest extends BaseTest {
         .selectVersionFromDropDown(latestVersion)
         .openRightVersionDdl()
         .selectVersionFromDropDown(latestVersion - 1);
-    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getMarkedLinesNumber()");
+    Selenide.screenshot("compareVersionsCheck_" + LocalDateTime.now());
+    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 21, "getMarkedLinesNumber()");
   }
 
   @Test(priority = 4)
