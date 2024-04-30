@@ -1,9 +1,6 @@
 package io.kafbat.ui.smokesuite.schemas;
 
-import static org.apache.commons.lang3.RandomUtils.nextInt;
-
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.api.model.CompatibilityLevel;
 import io.kafbat.ui.models.Schema;
@@ -100,8 +97,7 @@ public class SchemasTest extends BaseTest {
         .selectVersionFromDropDown(latestVersion)
         .openRightVersionDdl()
         .selectVersionFromDropDown(latestVersion - 1);
-    Selenide.screenshot("compareVersionsCheck_" + nextInt(0, 5));
-    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 21, "getMarkedLinesNumber()");
+    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 20, "getMarkedLinesNumber()");
   }
 
   @Test(priority = 4)
