@@ -103,7 +103,7 @@ public class SchemaCreateForm extends BasePage {
 
   @Step
   public int getMarkedLinesNumber() {
-    return visibleMarkers.size();
+    return Math.toIntExact(visibleMarkers.asDynamicIterable().stream().count());
   }
 
   @Step
