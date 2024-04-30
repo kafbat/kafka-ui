@@ -36,7 +36,8 @@ public class SchemaCreateForm extends BasePage {
   protected ElementsCollection visibleMarkers =
       $$x("//div[@class='ace_scroller']//div[contains(@class,'codeMarker')]");
   protected ElementsCollection elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
-  protected String ddlElementLocator = "//ul/li[text()='Version %s']";
+  protected String versionDdlElementLocator = "//ul/li[text()='Version %s']";
+  protected String ddlElementLocator = "//li[@value='%s']";
 
   @Step
   public SchemaCreateForm waitUntilScreenReady() {
@@ -96,8 +97,8 @@ public class SchemaCreateForm extends BasePage {
 
   @Step
   public SchemaCreateForm selectVersionFromDropDown(int versionNumberDd) {
-    $x(String.format(ddlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
-    sleep(1000);
+    $x(String.format(versionDdlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
+    waitUntilSpinnerDisappear(1);
     return this;
   }
 
