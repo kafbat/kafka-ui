@@ -26,6 +26,7 @@
 
         <sonar.organization>kafbat</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.exclusions>**/e2e-tests/**/*</sonar.exclusions>
         <git.revision>latest</git.revision>
 
         <!-- Dependency versions -->

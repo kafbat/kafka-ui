@@ -42,34 +42,32 @@ export const ButtonsContainer = styled.div`
 `;
 
 export const SQLEditor = styled(BaseSQLEditor)(
-  ({ readOnly, theme }) =>
-    css`
-      background: ${readOnly && theme.ksqlDb.query.editor.readonly.background};
-      .ace-cursor {
-        ${readOnly && `background: ${theme.default.transparentColor} `}
-      }
+  ({ readOnly, theme }) => css`
+    background: ${readOnly && theme.ksqlDb.query.editor.readonly.background};
+    .ace-cursor {
+      ${readOnly && `background: ${theme.default.transparentColor} `}
+    }
 
-      .ace_content {
-        background-color: ${theme.default.backgroundColor};
-        color: ${theme.default.color.normal};
-      }
-      .ace_line {
-        background-color: ${theme.ksqlDb.query.editor.activeLine
-          .backgroundColor};
-      }
-      .ace_gutter-cell {
-        background-color: ${theme.ksqlDb.query.editor.cell.backgroundColor};
-      }
-      .ace_gutter-layer {
-        background-color: ${theme.ksqlDb.query.editor.layer.backgroundColor};
-        color: ${theme.default.color.normal};
-      }
-      .ace_cursor {
-        color: ${theme.ksqlDb.query.editor.cursor};
-      }
+    .ace_content {
+      background-color: ${theme.default.backgroundColor};
+      color: ${theme.default.color.normal};
+    }
+    .ace_line {
+      background-color: ${theme.ksqlDb.query.editor.activeLine.backgroundColor};
+    }
+    .ace_gutter-cell {
+      background-color: ${theme.ksqlDb.query.editor.cell.backgroundColor};
+    }
+    .ace_gutter-layer {
+      background-color: ${theme.ksqlDb.query.editor.layer.backgroundColor};
+      color: ${theme.default.color.normal};
+    }
+    .ace_cursor {
+      color: ${theme.ksqlDb.query.editor.cursor};
+    }
 
-      .ace_print-margin {
-        display: none;
-      }
-    `
+    .ace_print-margin {
+      display: none;
+    }
+  `
 );

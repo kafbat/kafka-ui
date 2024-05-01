@@ -1,20 +1,24 @@
 import React from 'react';
 import { render } from 'lib/testHelpers';
-import { theme } from 'theme/theme';
 import { screen } from '@testing-library/react';
-import * as S from 'components/Nav/ClusterTab/ClusterTab.styled';
+import * as S from 'components/Nav/Menu/styled';
+import { theme } from 'theme/theme';
 import { ServerStatus } from 'generated-sources';
 
 describe('Cluster Styled Components', () => {
   const getMenuItem = () => screen.getByRole('menuitem');
-  describe('Wrapper Component', () => {
+  describe('MenuItem Component', () => {
     it('should check the rendering and correct Styling when it is open', () => {
-      render(<S.Wrapper isOpen />);
-      expect(getMenuItem()).toHaveStyle(`color:${theme.menu.color.isOpen}`);
+      render(<S.MenuItem $variant="primary" $isActive />);
+      expect(getMenuItem()).toHaveStyle(
+        `color:${theme.menu.primary.color.active}`
+      );
     });
     it('should check the rendering and correct Styling when it is Not open', () => {
-      render(<S.Wrapper isOpen={false} />);
-      expect(getMenuItem()).toHaveStyle(`color:${theme.menu.color.normal}`);
+      render(<S.MenuItem $variant="primary" $isActive={false} />);
+      expect(getMenuItem()).toHaveStyle(
+        `color:${theme.menu.primary.color.normal}`
+      );
     });
   });
 
@@ -28,7 +32,7 @@ describe('Cluster Styled Components', () => {
       );
 
       expect(getStatusCircle()).toHaveStyle(
-        `fill:${theme.menu.statusIconColor.online}`
+        `fill:${theme.menu.primary.statusIconColor.online}`
       );
     });
 
@@ -39,7 +43,7 @@ describe('Cluster Styled Components', () => {
         </svg>
       );
       expect(getStatusCircle()).toHaveStyle(
-        `fill:${theme.menu.statusIconColor.offline}`
+        `fill:${theme.menu.primary.statusIconColor.offline}`
       );
     });
 
@@ -50,7 +54,7 @@ describe('Cluster Styled Components', () => {
         </svg>
       );
       expect(getStatusCircle()).toHaveStyle(
-        `fill:${theme.menu.statusIconColor.initializing}`
+        `fill:${theme.menu.primary.statusIconColor.initializing}`
       );
     });
   });

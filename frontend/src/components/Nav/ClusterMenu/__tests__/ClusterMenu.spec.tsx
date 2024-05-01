@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
-import ClusterMenu from 'components/Nav/ClusterMenu';
+import ClusterMenu from 'components/Nav/ClusterMenu/ClusterMenu';
 import userEvent from '@testing-library/user-event';
 import { clusterConnectorsPath } from 'lib/paths';
 import { render } from 'lib/testHelpers';
@@ -9,7 +9,12 @@ import { onlineClusterPayload } from 'lib/fixtures/clusters';
 
 describe('ClusterMenu', () => {
   const setupComponent = (cluster: Cluster, singleMode?: boolean) => (
-    <ClusterMenu cluster={cluster} singleMode={singleMode} />
+    <ClusterMenu
+      name={cluster.name}
+      status={cluster.status}
+      features={cluster.features}
+      singleMode={singleMode}
+    />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');
   const getMenuItem = () => screen.getByRole('menuitem');

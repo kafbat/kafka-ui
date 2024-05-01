@@ -116,6 +116,7 @@ const TopicForm: React.FC<Props> = ({
                   id="topicFormNumberOfPartitions"
                   type="number"
                   placeholder="Number of Partitions"
+                  defaultValue="1"
                   min="1"
                   name="partitions"
                   positiveOnly
