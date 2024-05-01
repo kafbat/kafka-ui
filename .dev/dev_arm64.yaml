@@ -5,7 +5,7 @@
 # https://hub.docker.com/r/confluentinc/cp-kafka/tags?page=1&name=arm64
 ---
 version: '3.8'
-name: "kafbat-dev"
+name: "kafbat-ui-dev"
 
 services:
 
