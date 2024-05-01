@@ -16,12 +16,11 @@ const contentTest =
   '{"payload":{"author":"DwaywelayTOP","archived":false,"name":"t3_11jshwd","id":"11jshwd"}}';
 jest.mock(
   'components/Topics/Topic/Messages/MessageContent/MessageContent',
-  () => () =>
-    (
-      <tr>
-        <td>{messageContentText}</td>
-      </tr>
-    )
+  () => () => (
+    <tr>
+      <td>{messageContentText}</td>
+    </tr>
+  )
 );
 
 describe('Message component', () => {

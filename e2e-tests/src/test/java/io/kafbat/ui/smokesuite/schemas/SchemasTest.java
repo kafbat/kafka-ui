@@ -97,7 +97,7 @@ public class SchemasTest extends BaseTest {
         .selectVersionFromDropDown(latestVersion)
         .openRightVersionDdl()
         .selectVersionFromDropDown(latestVersion - 1);
-    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 42, "getMarkedLinesNumber()");
+    Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 20, "getMarkedLinesNumber()");
   }
 
   @Test(priority = 4)

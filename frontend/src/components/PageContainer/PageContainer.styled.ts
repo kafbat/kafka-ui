@@ -36,7 +36,10 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
     bottom: 0;
     padding: 16px;
     overflow-y: auto;
-    transition: width 0.25s, opacity 0.25s, transform 0.25s,
+    transition:
+      width 0.25s,
+      opacity 0.25s,
+      transform 0.25s,
       -webkit-transform 0.25s;
     background: ${theme.default.backgroundColor};
     transform: ${$visible ? 'translateX(0)' : 'translateX(-100%)'};
