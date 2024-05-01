@@ -17,8 +17,8 @@ overrides:
 
 dependencies:
   '@floating-ui/react':
-    specifier: 0.26.12
-    version: 0.26.12(react-dom@18.2.0)(react@18.2.0)
+    specifier: 0.26.13
+    version: 0.26.13(react-dom@18.2.0)(react@18.2.0)
   '@hookform/error-message':
     specifier: 2.0.1
     version: 2.0.1(react-dom@18.2.0)(react-hook-form@7.51.3)(react@18.2.0)
@@ -902,8 +902,8 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  /@floating-ui/react@0.26.12(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-D09o62HrWdIkstF2kGekIKAC0/N/Dl6wo3CQsnLcOmO3LkW6Ik8uIb3kw8JYkwxNCcg+uJ2bpWUiIijTBep05w==}
+  /@floating-ui/react@0.26.13(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-kBa9wntpugzrZ8t/4yWelvSmEKZdeTXTJzrxqyrLmcU/n1SM4nvse8yQh2e1b37rJGvtu0EplV9+IkBrCJ1vkw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -2014,7 +2014,7 @@ packages:
   /@types/react-datepicker@6.2.0(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-+JtO4Fm97WLkJTH8j8/v3Ldh7JCNRwjMYjRaKh4KHH0M3jJoXtwiD3JBCsdlg3tsFIw9eQSqyAPeVDN2H2oM9Q==}
     dependencies:
-      '@floating-ui/react': 0.26.12(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.2.0)
       '@types/react': 18.2.79
       date-fns: 3.6.0
     transitivePeerDependencies:
@@ -6255,7 +6255,7 @@ packages:
       react: ^16.9.0 || ^17 || ^18
       react-dom: ^16.9.0 || ^17 || ^18
     dependencies:
-      '@floating-ui/react': 0.26.12(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.2.0)
       clsx: 2.1.0
       date-fns: 3.6.0
       prop-types: 15.8.1
