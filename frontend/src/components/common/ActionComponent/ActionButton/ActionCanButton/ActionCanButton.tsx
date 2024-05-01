@@ -20,17 +20,17 @@ const ActionButton: React.FC<Props> = ({
 }) => {
   const isDisabled = !canDoAction;
 
-  const { x, y, reference, floating, strategy, open } = useActionTooltip(
+  const { x, y, refs, strategy, open } = useActionTooltip(
     isDisabled,
     placement
   );
 
   return (
-    <S.Wrapper ref={reference}>
+    <S.Wrapper ref={refs.setReference}>
       <Button {...props} disabled={disabled || isDisabled} />
       {open && (
         <S.MessageTooltipLimited
-          ref={floating}
+          ref={refs.setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

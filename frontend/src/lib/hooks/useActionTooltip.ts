@@ -16,7 +16,7 @@ export function useActionTooltip(isDisabled?: boolean, placement?: Placement) {
     setOpen(state);
   };
 
-  const { x, y, reference, floating, strategy, context } = useFloating({
+  const { x, y, refs, strategy, context } = useFloating({
     open,
     onOpenChange: setTooltipOpen,
     placement,
@@ -28,8 +28,7 @@ export function useActionTooltip(isDisabled?: boolean, placement?: Placement) {
   return {
     x,
     y,
-    reference,
-    floating,
+    refs,
     strategy,
     open,
   };

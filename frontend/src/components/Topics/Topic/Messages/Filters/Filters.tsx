@@ -1,7 +1,7 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
-import React, { useMemo, useState } from 'react';
+import React, { ChangeEvent, useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
@@ -17,6 +17,7 @@ import { useTopicDetails } from 'lib/hooks/api/topics';
 import EditIcon from 'components/common/Icons/EditIcon';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
+import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 import * as S from './Filters.styled';
 import {
@@ -66,6 +67,7 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
+  const remove = useMessageFiltersStore((state) => state.remove);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -126,7 +128,9 @@ const Filters: React.FC<FiltersProps> = ({
                   inputSize="M"
                   value={offset}
                   placeholder="Offset"
-                  onChange={({ target: { value } }) => {
+                  onChange={({
+                    target: { value },
+                  }: ChangeEvent<HTMLInputElement>) => {
                     setOffsetValue(value);
                   }}
                 />
@@ -209,7 +213,10 @@ const Filters: React.FC<FiltersProps> = ({
               <EditIcon />
             </S.EditSmartFilterIcon>
             <S.DeleteSmartFilterIcon
-              onClick={() => setSmartFilter(null)}
+              onClick={() => {
+                setSmartFilter(null);
+                remove(smartFilter.id);
+              }}
               disabled={!!createdEditedSmartId}
             >
               <CloseIcon />

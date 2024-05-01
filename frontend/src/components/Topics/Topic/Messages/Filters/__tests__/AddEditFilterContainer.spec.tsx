@@ -108,7 +108,7 @@ describe('AddEditFilterContainer component', () => {
       const textAreaElement = inputs[0] as HTMLTextAreaElement;
       const inputNameElement = inputs[1];
       expect(inputNameElement).toHaveValue(mockData.id);
-      expect(textAreaElement.value).toEqual('');
+      expect(textAreaElement).toHaveValue('');
     });
 
     it('should display the checkbox is not shown during the edit mode', async () => {
