@@ -9,6 +9,7 @@ permissions:
   contents: read
 
 jobs:
+
   build-and-test:
     runs-on: ubuntu-latest
 
@@ -67,3 +68,11 @@ jobs:
           image-ref: "ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}"
           format: "table"
           exit-code: "1"
+
+  notify:
+    needs: build-and-test
+    if: ${{ always() && needs.build-and-test.result == 'failure' }}
+    uses: ./.github/workflows/infra_discord_hook.yml
+    with:
+      message: "Achtung! CVE checks run failed!"
+      webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL_CVE }}
