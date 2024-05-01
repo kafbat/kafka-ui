@@ -23,7 +23,7 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
@@ -36,12 +36,12 @@ jobs:
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}

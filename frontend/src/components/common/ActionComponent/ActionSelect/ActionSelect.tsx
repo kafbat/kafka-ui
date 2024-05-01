@@ -25,19 +25,19 @@ const ActionSelect = <T,>({
 
   const isDisabled = !canDoAction;
 
-  const { x, y, reference, floating, strategy, open } = useActionTooltip(
+  const { x, y, refs, strategy, open } = useActionTooltip(
     isDisabled,
     placement
   );
 
   return (
     <>
-      <div ref={reference}>
+      <div ref={refs.setReference}>
         <Select {...props} disabled={disabled || isDisabled} />
       </div>
       {open && (
         <S.MessageTooltipLimited
-          ref={floating}
+          ref={refs.setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

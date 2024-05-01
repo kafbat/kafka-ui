@@ -1,17 +1,26 @@
 import styled, { css } from 'styled-components';
 
-export const Container = styled.main(
-  ({ theme }) => css`
+export const Container = styled.main<{ $isSidebarVisible: boolean }>(
+  ({ theme, $isSidebarVisible }) => css`
     margin-top: ${theme.layout.navBarHeight};
-    margin-left: ${theme.layout.navBarWidth};
+    margin-left: ${$isSidebarVisible ? theme.layout.navBarWidth : 0};
     position: relative;
     padding-bottom: 30px;
     z-index: 20;
-    max-width: calc(100vw - ${theme.layout.navBarWidth});
-    @media screen and (max-width: 1023px) {
-      margin-left: initial;
-      max-width: 100vw;
+    max-width: calc(
+      100vw - ${$isSidebarVisible ? theme.layout.navBarWidth : 0}
+    );
+    transition: ${
+      $isSidebarVisible
+        ? 'max-width 0.75s ease-in-out'
+        : 'margin-left 0.25s ease-in-out'
     }
+  }
+
+  @media screen and (max-width: 1024px) {
+    margin-left: initial;
+    max-width: 100vw;
+  }
   `
 );
 
@@ -25,18 +34,23 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
     top: ${theme.layout.navBarHeight};
     left: 0;
     bottom: 0;
-    padding: 8px 16px;
-    overflow-y: scroll;
-    transition: width 0.25s, opacity 0.25s, transform 0.25s,
+    padding: 16px;
+    overflow-y: auto;
+    transition:
+      width 0.25s,
+      opacity 0.25s,
+      transform 0.25s,
       -webkit-transform 0.25s;
-    background: ${theme.menu.backgroundColor.normal};
-    @media screen and (max-width: 1023px) {
+    background: ${theme.default.backgroundColor};
+    transform: ${$visible ? 'translateX(0)' : 'translateX(-100%)'};
+
+    @media screen and (max-width: 1024px) {
       ${$visible &&
       css`
         transform: translate3d(${theme.layout.navBarWidth}, 0, 0);
       `};
       left: -${theme.layout.navBarWidth};
-      z-index: 100;
+      z-index: 1000;
     }
 
     &::-webkit-scrollbar {
@@ -76,7 +90,7 @@ export const Overlay = styled.div<{ $visible: boolean }>(
     top: 0;
     ${$visible &&
     css`
-      @media screen and (max-width: 1023px) {
+      @media screen and (max-width: 1024px) {
         bottom: 0;
         right: 0;
         visibility: visible;

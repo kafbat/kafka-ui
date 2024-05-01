@@ -2,7 +2,7 @@ import { Params, useParams } from 'react-router-dom';
 import { ClusterNameRoute } from 'lib/paths';
 
 export default function useAppParams<
-  T extends { [K in keyof Params]?: string }
+  T extends { [K in keyof Params]?: string },
 >() {
   const params = useParams<T>() as T;
 

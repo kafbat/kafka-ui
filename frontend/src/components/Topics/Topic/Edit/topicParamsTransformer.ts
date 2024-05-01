@@ -19,11 +19,14 @@ const topicParamsTransformer = (topic?: Topic, config?: TopicConfig[]) => {
     return TOPIC_EDIT_FORM_DEFAULT_PROPS;
   }
 
-  const customParams = config.reduce((acc, { name, value, defaultValue }) => {
-    if (value === defaultValue) return acc;
-    if (!TOPIC_CUSTOM_PARAMS[name]) return acc;
-    return [...acc, { name, value }];
-  }, [] as { name: string; value?: string }[]);
+  const customParams = config.reduce(
+    (acc, { name, value, defaultValue }) => {
+      if (value === defaultValue) return acc;
+      if (!TOPIC_CUSTOM_PARAMS[name]) return acc;
+      return [...acc, { name, value }];
+    },
+    [] as { name: string; value?: string }[]
+  );
 
   return {
     ...TOPIC_EDIT_FORM_DEFAULT_PROPS,
