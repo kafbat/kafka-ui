@@ -92,13 +92,19 @@ export function useConnectorTasks(props: UseConnectorProps) {
     }
   );
 }
-export function useUpdateConnectorState(props: UseConnectorProps) {
+export function useUpdateConnectorState(clusterName: ClusterName) {
   const client = useQueryClient();
   return useMutation(
-    (action: ConnectorAction) => api.updateConnectorState({ ...props, action }),
+    ({
+      props,
+      action,
+    }: {
+      props: UseConnectorProps;
+      action: ConnectorAction;
+    }) => api.updateConnectorState({ ...props, action }),
     {
-      onSuccess: () =>
-        client.invalidateQueries(['clusters', props.clusterName, 'connectors']),
+      onSuccess: async () =>
+        client.invalidateQueries(['clusters', clusterName, 'connectors']),
     }
   );
 }
@@ -154,10 +160,13 @@ export function useCreateConnector(clusterName: ClusterName) {
   };
 }
 
-export function useDeleteConnector(props: UseConnectorProps) {
+export function useDeleteConnector(clusterName: ClusterName) {
   const client = useQueryClient();
 
-  return useMutation(() => api.deleteConnector(props), {
-    onSuccess: () => client.invalidateQueries(connectorsKey(props.clusterName)),
-  });
+  return useMutation(
+    ({ props }: { props: UseConnectorProps }) => api.deleteConnector(props),
+    {
+      onSuccess: () => client.invalidateQueries(connectorsKey(clusterName)),
+    }
+  );
 }

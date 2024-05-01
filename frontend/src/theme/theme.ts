@@ -1269,6 +1269,7 @@ export const darkTheme: ThemeType = {
   },
   icons: {
     ...baseTheme.icons,
+    chevronDownIcon: Colors.neutral[90],
     editIcon: {
       normal: Colors.neutral[50],
       hover: Colors.neutral[30],
