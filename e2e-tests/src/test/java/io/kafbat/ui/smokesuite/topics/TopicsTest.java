@@ -214,7 +214,7 @@ public class TopicsTest extends BaseTest {
     Assert.assertFalse(topicCreateEditForm.isCreateTopicButtonEnabled(), "isCreateTopicButtonEnabled()");
     topicCreateEditForm
         .setTopicName("testName");
-    Assert.assertFalse(topicCreateEditForm.isCreateTopicButtonEnabled(), "isCreateTopicButtonEnabled()");
+    Assert.assertTrue(topicCreateEditForm.isCreateTopicButtonEnabled(), "isCreateTopicButtonEnabled()");
     topicCreateEditForm
         .setTopicName(null)
         .setNumberOfPartitions(nextInt(1, 10));
