@@ -60,6 +60,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Login to Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build & push docker image
         id: docker_build_and_push
         uses: docker/build-push-action@v5
@@ -72,6 +78,8 @@ jobs:
           tags: |
             ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
             ghcr.io/kafbat/kafka-ui:main
+            kafbat/kafka-ui:${{ steps.build.outputs.version }}
+            kafbat/kafka-ui:main            
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
