@@ -18,10 +18,10 @@ overrides:
 dependencies:
   '@floating-ui/react':
     specifier: 0.26.13
-    version: 0.26.13(react-dom@18.2.0)(react@18.2.0)
+    version: 0.26.13(react-dom@18.2.0)(react@18.3.1)
   '@hookform/error-message':
     specifier: 2.0.1
-    version: 2.0.1(react-dom@18.2.0)(react-hook-form@7.51.3)(react@18.2.0)
+    version: 2.0.1(react-dom@18.2.0)(react-hook-form@7.51.3)(react@18.3.1)
   '@hookform/resolvers':
     specifier: 2.7.1
     version: 2.7.1(react-hook-form@7.51.3)
@@ -30,16 +30,16 @@ dependencies:
     version: 2.0.1
   '@szhsin/react-menu':
     specifier: 3.5.3
-    version: 3.5.3(react-dom@18.2.0)(react@18.2.0)
+    version: 3.5.3(react-dom@18.2.0)(react@18.3.1)
   '@tanstack/react-query':
     specifier: 4.36.1
-    version: 4.36.1(react-dom@18.2.0)(react@18.2.0)
+    version: 4.36.1(react-dom@18.2.0)(react@18.3.1)
   '@tanstack/react-query-devtools':
     specifier: 4.36.1
-    version: 4.36.1(@tanstack/react-query@4.36.1)(react-dom@18.2.0)(react@18.2.0)
+    version: 4.36.1(@tanstack/react-query@4.36.1)(react-dom@18.2.0)(react@18.3.1)
   '@tanstack/react-table':
     specifier: 8.16.0
-    version: 8.16.0(react-dom@18.2.0)(react@18.2.0)
+    version: 8.16.0(react-dom@18.2.0)(react@18.3.1)
   ace-builds:
     specifier: 1.33.0
     version: 1.33.0
@@ -62,50 +62,50 @@ dependencies:
     specifier: 7.0.1
     version: 7.0.1
   react:
-    specifier: 18.2.0
-    version: 18.2.0
+    specifier: 18.3.1
+    version: 18.3.1
   react-ace:
     specifier: 11.0.1
-    version: 11.0.1(react-dom@18.2.0)(react@18.2.0)
+    version: 11.0.1(react-dom@18.2.0)(react@18.3.1)
   react-datepicker:
     specifier: 6.9.0
-    version: 6.9.0(react-dom@18.2.0)(react@18.2.0)
+    version: 6.9.0(react-dom@18.2.0)(react@18.3.1)
   react-dom:
     specifier: 18.2.0
-    version: 18.2.0(react@18.2.0)
+    version: 18.2.0(react@18.3.1)
   react-error-boundary:
     specifier: 4.0.13
-    version: 4.0.13(react@18.2.0)
+    version: 4.0.13(react@18.3.1)
   react-hook-form:
     specifier: 7.51.3
-    version: 7.51.3(react@18.2.0)
+    version: 7.51.3(react@18.3.1)
   react-hot-toast:
     specifier: 2.4.1
-    version: 2.4.1(csstype@3.1.2)(react-dom@18.2.0)(react@18.2.0)
+    version: 2.4.1(csstype@3.1.2)(react-dom@18.2.0)(react@18.3.1)
   react-is:
     specifier: 18.2.0
     version: 18.2.0
   react-multi-select-component:
     specifier: 4.3.4
-    version: 4.3.4(react-dom@18.2.0)(react@18.2.0)
+    version: 4.3.4(react-dom@18.2.0)(react@18.3.1)
   react-router-dom:
     specifier: 6.4.3
-    version: 6.4.3(react-dom@18.2.0)(react@18.2.0)
+    version: 6.4.3(react-dom@18.2.0)(react@18.3.1)
   sass:
     specifier: 1.66.1
     version: 1.66.1
   styled-components:
     specifier: 6.1.8
-    version: 6.1.8(react-dom@18.2.0)(react@18.2.0)
+    version: 6.1.8(react-dom@18.2.0)(react@18.3.1)
   use-debounce:
     specifier: 10.0.0
-    version: 10.0.0(react@18.2.0)
+    version: 10.0.0(react@18.3.1)
   yup:
     specifier: 1.4.0
     version: 1.4.0
   zustand:
     specifier: 4.5.2
-    version: 4.5.2(@types/react@18.2.79)(react@18.2.0)
+    version: 4.5.2(@types/react@18.3.1)(react@18.3.1)
 
 devDependencies:
   '@jest/types':
@@ -128,7 +128,7 @@ devDependencies:
     version: 6.4.2(jest@29.7.0)
   '@testing-library/react':
     specifier: 14.3.1
-    version: 14.3.1(react-dom@18.2.0)(react@18.2.0)
+    version: 14.3.1(react-dom@18.2.0)(react@18.3.1)
   '@testing-library/user-event':
     specifier: 14.5.2
     version: 14.5.2(@testing-library/dom@10.0.0)
@@ -142,11 +142,11 @@ devDependencies:
     specifier: 20.11.17
     version: 20.11.17
   '@types/react':
-    specifier: 18.2.79
-    version: 18.2.79
+    specifier: 18.3.1
+    version: 18.3.1
   '@types/react-datepicker':
     specifier: 6.2.0
-    version: 6.2.0(react-dom@18.2.0)(react@18.2.0)
+    version: 6.2.0(react-dom@18.2.0)(react@18.3.1)
   '@types/react-dom':
     specifier: 18.2.25
     version: 18.2.25
@@ -892,41 +892,41 @@ packages:
       '@floating-ui/core': 1.2.1
       '@floating-ui/utils': 0.2.1
 
-  /@floating-ui/react-dom@2.0.8(react-dom@18.2.0)(react@18.2.0):
+  /@floating-ui/react-dom@2.0.8(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-HOdqOt3R3OGeTKidaLvJKcgg75S6tibQ3Tif4eyd91QnIJWr0NLvoXFpJA/j8HqkFSL68GDca9AuyWEHlhyClw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@floating-ui/dom': 1.6.3
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
 
-  /@floating-ui/react@0.26.13(react-dom@18.2.0)(react@18.2.0):
+  /@floating-ui/react@0.26.13(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-kBa9wntpugzrZ8t/4yWelvSmEKZdeTXTJzrxqyrLmcU/n1SM4nvse8yQh2e1b37rJGvtu0EplV9+IkBrCJ1vkw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@floating-ui/react-dom': 2.0.8(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/react-dom': 2.0.8(react-dom@18.2.0)(react@18.3.1)
       '@floating-ui/utils': 0.2.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
       tabbable: 6.1.1
 
   /@floating-ui/utils@0.2.1:
     resolution: {integrity: sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==}
 
-  /@hookform/error-message@2.0.1(react-dom@18.2.0)(react-hook-form@7.51.3)(react@18.2.0):
+  /@hookform/error-message@2.0.1(react-dom@18.2.0)(react-hook-form@7.51.3)(react@18.3.1):
     resolution: {integrity: sha512-U410sAr92xgxT1idlu9WWOVjndxLdgPUHEB8Schr27C9eh7/xUnITWpCMF93s+lGiG++D4JnbSnrb5A21AdSNg==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
       react-hook-form: ^7.0.0
     dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-hook-form: 7.51.3(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
+      react-hook-form: 7.51.3(react@18.3.1)
     dev: false
 
   /@hookform/resolvers@2.7.1(react-hook-form@7.51.3):
@@ -934,7 +934,7 @@ packages:
     peerDependencies:
       react-hook-form: ^7.0.0
     dependencies:
-      react-hook-form: 7.51.3(react@18.2.0)
+      react-hook-form: 7.51.3(react@18.3.1)
     dev: false
 
   /@humanwhocodes/config-array@0.11.14:
@@ -1711,16 +1711,16 @@ packages:
       '@swc/counter': 0.1.3
     dev: true
 
-  /@szhsin/react-menu@3.5.3(react-dom@18.2.0)(react@18.2.0):
+  /@szhsin/react-menu@3.5.3(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-jxo8oaRwxmVjUzkyOi/ZJiXaZiuFPMIxFzyJdUKfnhBLYiEOVTU9M2CiPuEkirILoareR2GJj2K3y8a81CBPlw==}
     peerDependencies:
       react: '>=16.14.0'
       react-dom: '>=16.14.0'
     dependencies:
       prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-transition-state: 1.1.5(react-dom@18.2.0)(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
+      react-transition-state: 1.1.5(react-dom@18.2.0)(react@18.3.1)
     dev: false
 
   /@tanstack/match-sorter-utils@8.15.1:
@@ -1734,7 +1734,7 @@ packages:
     resolution: {integrity: sha512-DJSilV5+ytBP1FbFcEJovv4rnnm/CokuVvrBEtW/Va9DvuJ3HksbXUJEpI0aV1KtuL4ZoO9AVE6PyNLzF7tLeA==}
     dev: false
 
-  /@tanstack/react-query-devtools@4.36.1(@tanstack/react-query@4.36.1)(react-dom@18.2.0)(react@18.2.0):
+  /@tanstack/react-query-devtools@4.36.1(@tanstack/react-query@4.36.1)(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-WYku83CKP3OevnYSG8Y/QO9g0rT75v1om5IvcWUwiUZJ4LanYGLVCZ8TdFG5jfsq4Ej/lu2wwDAULEUnRIMBSw==}
     peerDependencies:
       '@tanstack/react-query': ^4.36.1
@@ -1742,14 +1742,14 @@ packages:
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
       '@tanstack/match-sorter-utils': 8.15.1
-      '@tanstack/react-query': 4.36.1(react-dom@18.2.0)(react@18.2.0)
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      '@tanstack/react-query': 4.36.1(react-dom@18.2.0)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
       superjson: 1.13.3
-      use-sync-external-store: 1.2.0(react@18.2.0)
+      use-sync-external-store: 1.2.0(react@18.3.1)
     dev: false
 
-  /@tanstack/react-query@4.36.1(react-dom@18.2.0)(react@18.2.0):
+  /@tanstack/react-query@4.36.1(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-y7ySVHFyyQblPl3J3eQBWpXZkliroki3ARnBKsdJchlgt7yJLRDUcf4B8soufgiYt3pEQIkBWBx1N9/ZPIeUWw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -1762,12 +1762,12 @@ packages:
         optional: true
     dependencies:
       '@tanstack/query-core': 4.36.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      use-sync-external-store: 1.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
+      use-sync-external-store: 1.2.0(react@18.3.1)
     dev: false
 
-  /@tanstack/react-table@8.16.0(react-dom@18.2.0)(react@18.2.0):
+  /@tanstack/react-table@8.16.0(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-rKRjnt8ostqN2fercRVOIH/dq7MAmOENCMvVlKx6P9Iokhh6woBGnIZEkqsY/vEJf1jN3TqLOb34xQGLVRuhAg==}
     engines: {node: '>=12'}
     peerDependencies:
@@ -1775,8 +1775,8 @@ packages:
       react-dom: '>=16.8'
     dependencies:
       '@tanstack/table-core': 8.16.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: false
 
   /@tanstack/table-core@8.16.0:
@@ -1844,7 +1844,7 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react@14.3.1(react-dom@18.2.0)(react@18.2.0):
+  /@testing-library/react@14.3.1(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-H99XjUhWQw0lTgyMN05W3xQG1Nh4lq574D8keFf1dDoNTJgp66VbJozRaczoF+wsiaPJNt/TcnfpLGufGxSrZQ==}
     engines: {node: '>=14'}
     peerDependencies:
@@ -1854,8 +1854,8 @@ packages:
       '@babel/runtime': 7.22.11
       '@testing-library/dom': 9.3.1
       '@types/react-dom': 18.2.25
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: true
 
   /@testing-library/user-event@14.5.2(@testing-library/dom@10.0.0):
@@ -1951,7 +1951,7 @@ packages:
   /@types/hoist-non-react-statics@3.3.1:
     resolution: {integrity: sha512-iMIqiko6ooLrTh1joXodJK5X9xeEALT1kM5G3ZLhD3hszxBdIEd5C75U834D9mLcINgD4OyZf5uQXjkuYydWvA==}
     dependencies:
-      '@types/react': 18.2.79
+      '@types/react': 18.3.1
       hoist-non-react-statics: 3.3.2
     dev: true
 
@@ -2011,11 +2011,11 @@ packages:
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
 
-  /@types/react-datepicker@6.2.0(react-dom@18.2.0)(react@18.2.0):
+  /@types/react-datepicker@6.2.0(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-+JtO4Fm97WLkJTH8j8/v3Ldh7JCNRwjMYjRaKh4KHH0M3jJoXtwiD3JBCsdlg3tsFIw9eQSqyAPeVDN2H2oM9Q==}
     dependencies:
-      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.2.0)
-      '@types/react': 18.2.79
+      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.3.1)
+      '@types/react': 18.3.1
       date-fns: 3.6.0
     transitivePeerDependencies:
       - react
@@ -2025,14 +2025,14 @@ packages:
   /@types/react-dom@18.2.25:
     resolution: {integrity: sha512-o/V48vf4MQh7juIKZU2QGDfli6p1+OOi5oXx36Hffpc9adsHeXjVp8rHuPkjd8VT8sOJ2Zp05HR7CdpGTIUFUA==}
     dependencies:
-      '@types/react': 18.2.79
+      '@types/react': 18.3.1
     dev: true
 
   /@types/react-router-dom@5.3.3:
     resolution: {integrity: sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.2.79
+      '@types/react': 18.3.1
       '@types/react-router': 5.1.18
     dev: true
 
@@ -2040,11 +2040,11 @@ packages:
     resolution: {integrity: sha512-YYknwy0D0iOwKQgz9v8nOzt2J6l4gouBmDnWqUUznltOTaon+r8US8ky8HvN0tXvc38U9m6z/t2RsVsnd1zM0g==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.2.79
+      '@types/react': 18.3.1
     dev: true
 
-  /@types/react@18.2.79:
-    resolution: {integrity: sha512-RwGAGXPl9kSXwdNTafkOEuFrTBD5SA2B3iEB96xi8+xu5ddUa/cpvyVCSNn+asgLCTHkb5ZxN8gbuibYJi4s1w==}
+  /@types/react@18.3.1:
+    resolution: {integrity: sha512-V0kuGBX3+prX+DQ/7r2qsv1NsdfnCLnTgnRJ1pYnxykBhGMz+qj+box5lq7XsO5mtZsBqpjwwTu/7wszPfMBcw==}
     dependencies:
       '@types/prop-types': 15.7.5
       csstype: 3.1.2
@@ -2061,7 +2061,7 @@ packages:
     resolution: {integrity: sha512-mmiVvwpYklFIv9E8qfxuPyIt/OuyIrn6gMOAMOFUO3WJfSrSE+sGUoa4PiZj77Ut7bKZpaa6o1fBKS/4TOEvnA==}
     dependencies:
       '@types/hoist-non-react-statics': 3.3.1
-      '@types/react': 18.2.79
+      '@types/react': 18.3.1
       csstype: 3.1.2
     dev: true
 
@@ -5312,7 +5312,7 @@ packages:
       styled-components: '>= 5'
     dependencies:
       '@adobe/css-tools': 4.3.3
-      styled-components: 6.1.8(react-dom@18.2.0)(react@18.2.0)
+      styled-components: 6.1.8(react-dom@18.2.0)(react@18.3.1)
     dev: true
 
   /jest-util@29.6.3:
@@ -6234,7 +6234,7 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /react-ace@11.0.1(react-dom@18.2.0)(react@18.2.0):
+  /react-ace@11.0.1(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-ulk2851Fx2j59AAahZHTe7rmQ5bITW1xytskAt11F8dv3rPLtdwBXCyT2qSbRnJvOq8UpuAhWO4/JhKGqQBEDA==}
     peerDependencies:
       react: ^0.13.0 || ^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0
@@ -6245,53 +6245,53 @@ packages:
       lodash.get: 4.4.2
       lodash.isequal: 4.5.0
       prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: false
 
-  /react-datepicker@6.9.0(react-dom@18.2.0)(react@18.2.0):
+  /react-datepicker@6.9.0(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-QTxuzeem7BUfVFWv+g5WuvzT0c5BPo+XTCNbMTZKSZQLU+cMMwSUHwspaxuIcDlwNcOH0tiJ+bh1fJ2yxOGYWA==}
     peerDependencies:
       react: ^16.9.0 || ^17 || ^18
       react-dom: ^16.9.0 || ^17 || ^18
     dependencies:
-      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/react': 0.26.13(react-dom@18.2.0)(react@18.3.1)
       clsx: 2.1.0
       date-fns: 3.6.0
       prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-onclickoutside: 6.13.0(react-dom@18.2.0)(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
+      react-onclickoutside: 6.13.0(react-dom@18.2.0)(react@18.3.1)
     dev: false
 
-  /react-dom@18.2.0(react@18.2.0):
+  /react-dom@18.2.0(react@18.3.1):
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
     peerDependencies:
       react: ^18.2.0
     dependencies:
       loose-envify: 1.4.0
-      react: 18.2.0
+      react: 18.3.1
       scheduler: 0.23.0
 
-  /react-error-boundary@4.0.13(react@18.2.0):
+  /react-error-boundary@4.0.13(react@18.3.1):
     resolution: {integrity: sha512-b6PwbdSv8XeOSYvjt8LpgpKrZ0yGdtZokYwkwV2wlcZbxgopHX/hgPl5VgpnoVOWd868n1hktM8Qm4b+02MiLQ==}
     peerDependencies:
       react: '>=16.13.1'
     dependencies:
       '@babel/runtime': 7.24.4
-      react: 18.2.0
+      react: 18.3.1
     dev: false
 
-  /react-hook-form@7.51.3(react@18.2.0):
+  /react-hook-form@7.51.3(react@18.3.1):
     resolution: {integrity: sha512-cvJ/wbHdhYx8aviSWh28w9ImjmVsb5Y05n1+FW786vEZQJV5STNM0pW6ujS+oiBecb0ARBxJFyAnXj9+GHXACQ==}
     engines: {node: '>=12.22.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
     dev: false
 
-  /react-hot-toast@2.4.1(csstype@3.1.2)(react-dom@18.2.0)(react@18.2.0):
+  /react-hot-toast@2.4.1(csstype@3.1.2)(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-j8z+cQbWIM5LY37pR6uZR6D4LfseplqnuAO4co4u8917hBUvXlEqyP1ZzqVLcqoyUesZZv/ImreoCeHVDpE5pQ==}
     engines: {node: '>=10'}
     peerDependencies:
@@ -6299,8 +6299,8 @@ packages:
       react-dom: '>=16'
     dependencies:
       goober: 2.1.10(csstype@3.1.2)
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     transitivePeerDependencies:
       - csstype
     dev: false
@@ -6315,27 +6315,27 @@ packages:
   /react-is@18.2.0:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
 
-  /react-multi-select-component@4.3.4(react-dom@18.2.0)(react@18.2.0):
+  /react-multi-select-component@4.3.4(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-Ui/bzCbROF4WfKq3OKWyQJHmy/bd1mW7CQM+L83TfiltuVvHElhKEyPM3JzO9urIcWplBUKv+kyxqmEnd9jPcA==}
     peerDependencies:
       react: ^16 || ^17 || ^18
       react-dom: ^16 || ^17 || ^18
     dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: false
 
-  /react-onclickoutside@6.13.0(react-dom@18.2.0)(react@18.2.0):
+  /react-onclickoutside@6.13.0(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-ty8So6tcUpIb+ZE+1HAhbLROvAIJYyJe/1vRrrcmW+jLsaM+/powDRqxzo6hSh9CuRZGSL1Q8mvcF5WRD93a0A==}
     peerDependencies:
       react: ^15.5.x || ^16.x || ^17.x || ^18.x
       react-dom: ^15.5.x || ^16.x || ^17.x || ^18.x
     dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: false
 
-  /react-router-dom@6.4.3(react-dom@18.2.0)(react@18.2.0):
+  /react-router-dom@6.4.3(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-MiaYQU8CwVCaOfJdYvt84KQNjT78VF0TJrA17SIQgNHRvLnXDJO6qsFqq8F/zzB1BWZjCFIrQpu4QxcshitziQ==}
     engines: {node: '>=14'}
     peerDependencies:
@@ -6343,33 +6343,33 @@ packages:
       react-dom: '>=16.8'
     dependencies:
       '@remix-run/router': 1.0.3
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-router: 6.4.3(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
+      react-router: 6.4.3(react@18.3.1)
     dev: false
 
-  /react-router@6.4.3(react@18.2.0):
+  /react-router@6.4.3(react@18.3.1):
     resolution: {integrity: sha512-BT6DoGn6aV1FVP5yfODMOiieakp3z46P1Fk0RNzJMACzE7C339sFuHebfvWtnB4pzBvXXkHP2vscJzWRuUjTtA==}
     engines: {node: '>=14'}
     peerDependencies:
       react: '>=16.8'
     dependencies:
       '@remix-run/router': 1.0.3
-      react: 18.2.0
+      react: 18.3.1
     dev: false
 
-  /react-transition-state@1.1.5(react-dom@18.2.0)(react@18.2.0):
+  /react-transition-state@1.1.5(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-ITY2mZqc2dWG2eitJkYNdcSFW8aKeOlkL2A/vowRrLL8GH3J6Re/SpD/BLvQzrVOTqjsP0b5S9N10vgNNzwMUQ==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
     dev: false
 
-  /react@18.2.0:
-    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+  /react@18.3.1:
+    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
@@ -6935,7 +6935,7 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /styled-components@6.1.8(react-dom@18.2.0)(react@18.2.0):
+  /styled-components@6.1.8(react-dom@18.2.0)(react@18.3.1):
     resolution: {integrity: sha512-PQ6Dn+QxlWyEGCKDS71NGsXoVLKfE1c3vApkvDYS5KAK+V8fNWGhbSUEo9Gg2iaID2tjLXegEW3bZDUGpofRWw==}
     engines: {node: '>= 16'}
     peerDependencies:
@@ -6948,8 +6948,8 @@ packages:
       css-to-react-native: 3.2.0
       csstype: 3.1.2
       postcss: 8.4.31
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.2.0(react@18.3.1)
       shallowequal: 1.1.0
       stylis: 4.3.1
       tslib: 2.5.0
@@ -7360,21 +7360,21 @@ packages:
       requires-port: 1.0.0
     dev: true
 
-  /use-debounce@10.0.0(react@18.2.0):
+  /use-debounce@10.0.0(react@18.3.1):
     resolution: {integrity: sha512-XRjvlvCB46bah9IBXVnq/ACP2lxqXyZj0D9hj4K5OzNroMDpTEBg8Anuh1/UfRTRs7pLhQ+RiNxxwZu9+MVl1A==}
     engines: {node: '>= 16.0.0'}
     peerDependencies:
       react: '>=16.8.0'
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
     dev: false
 
-  /use-sync-external-store@1.2.0(react@18.2.0):
+  /use-sync-external-store@1.2.0(react@18.3.1):
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
     dev: false
 
   /util-deprecate@1.0.2:
@@ -7832,7 +7832,7 @@ packages:
       type-fest: 2.19.0
     dev: false
 
-  /zustand@4.5.2(@types/react@18.2.79)(react@18.2.0):
+  /zustand@4.5.2(@types/react@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -7847,7 +7847,7 @@ packages:
       react:
         optional: true
     dependencies:
-      '@types/react': 18.2.79
-      react: 18.2.0
-      use-sync-external-store: 1.2.0(react@18.2.0)
+      '@types/react': 18.3.1
+      react: 18.3.1
+      use-sync-external-store: 1.2.0(react@18.3.1)
     dev: false
