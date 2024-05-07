@@ -73,6 +73,10 @@ export const QUERY_REFETCH_OFF_OPTIONS = {
   refetchIntervalInBackground: false,
 };
 
+export const QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION = {
+  refetchOnWindowFocus: false,
+};
+
 // Cluster Form Constants
 export const AUTH_OPTIONS = [
   { value: 'SASL/JAAS', label: 'SASL/JAAS' },

@@ -21,6 +21,7 @@ import {
   TopicFormDataRaw,
   TopicFormFormattedParams,
 } from 'lib/interfaces/topic';
+import { QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION } from 'lib/constants';
 
 export const topicKeys = {
   all: (clusterName: ClusterName) =>
@@ -50,10 +51,10 @@ export function useTopics(props: GetTopicsRequest) {
   );
 }
 export function useTopicDetails(props: GetTopicDetailsRequest) {
-  return useQuery(topicKeys.details(props), () => api.getTopicDetails(props));
+  return useQuery(topicKeys.details(props), () => api.getTopicDetails(props), QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION);
 }
 export function useTopicConfig(props: GetTopicDetailsRequest) {
-  return useQuery(topicKeys.config(props), () => api.getTopicConfigs(props));
+  return useQuery(topicKeys.config(props), () => api.getTopicConfigs(props), QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION);
 }
 export function useTopicConsumerGroups(props: GetTopicDetailsRequest) {
   return useQuery(topicKeys.consumerGroups(props), () =>

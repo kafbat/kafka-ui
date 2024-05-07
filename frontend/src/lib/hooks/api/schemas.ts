@@ -17,8 +17,8 @@ import {
   UpdateSchemaCompatibilityLevelRequest,
 } from 'generated-sources';
 import { schemasApiClient } from 'lib/api';
-import { QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 import { ClusterName } from 'lib/interfaces/cluster';
+import { QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION } from 'lib/constants';
 
 export function useGetLatestSchema(param: GetLatestSchemaRequest) {
   return useQuery<SchemaSubject>({
@@ -29,7 +29,7 @@ export function useGetLatestSchema(param: GetLatestSchemaRequest) {
       param.subject,
     ],
     queryFn: () => schemasApiClient.getLatestSchema(param),
-    ...QUERY_REFETCH_OFF_OPTIONS,
+    ...QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION,
   });
 }
 
