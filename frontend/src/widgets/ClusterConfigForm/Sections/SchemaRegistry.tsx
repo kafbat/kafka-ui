@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFormContext } from 'react-hook-form';
 import SectionHeader from 'widgets/ClusterConfigForm/common/SectionHeader';
@@ -6,24 +7,21 @@ import SSLForm from 'widgets/ClusterConfigForm/common/SSLForm';
 import Credentials from 'widgets/ClusterConfigForm/common/Credentials';
 
 const SchemaRegistry = () => {
-  const { setValue, watch } = useFormContext();
-  const schemaRegistry = watch('schemaRegistry');
+  const { setValue } = useFormContext();
+  const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
-    setValue(
-      'schemaRegistry',
-      schemaRegistry ? undefined : { url: '', isAuth: false },
-      { shouldValidate: true, shouldDirty: true, shouldTouch: true }
-    );
+    setConfigOpen((prevConfigOpen) => !prevConfigOpen);
+    setValue('schemaRegistry', { url: '', isAuth: false });
   };
   return (
     <>
       <SectionHeader
         title="Schema Registry"
-        adding={!schemaRegistry}
+        adding={!configOpen}
         addButtonText="Configure Schema Registry"
         onClick={toggleConfig}
       />
-      {schemaRegistry && (
+      {configOpen && (
         <>
           <Input
             label="URL *"
