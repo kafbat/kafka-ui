@@ -7,11 +7,16 @@ import SSLForm from 'widgets/ClusterConfigForm/common/SSLForm';
 import Credentials from 'widgets/ClusterConfigForm/common/Credentials';
 
 const SchemaRegistry = () => {
-  const { setValue } = useFormContext();
+  const { setValue, watch } = useFormContext();
+  const schemaRegistry = watch('schemaRegistry');
   const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
     setConfigOpen((prevConfigOpen) => !prevConfigOpen);
-    setValue('schemaRegistry', { url: '', isAuth: false });
+    setValue('schemaRegistry', schemaRegistry ? undefined : { url: '', isAuth: false }, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+    });
   };
   return (
     <>
