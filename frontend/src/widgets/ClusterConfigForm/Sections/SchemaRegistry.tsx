@@ -12,11 +12,12 @@ const SchemaRegistry = () => {
   const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
     setConfigOpen((prevConfigOpen) => !prevConfigOpen);
-    setValue('schemaRegistry', schemaRegistry ? undefined : { url: '', isAuth: false }, {
+    setValue('schemaRegistry', schemaRegistry ? { isActive: false }: { isActive: true, url: '', isAuth: false }, {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
-    });
+      }
+    );
   };
   return (
     <>

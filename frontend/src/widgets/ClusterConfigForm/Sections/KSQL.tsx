@@ -11,11 +11,12 @@ const KSQL = () => {
   const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
     setConfigOpen((prevConfigOpen) => !prevConfigOpen);
-    setValue('ksql', ksql ? undefined : { url: '', isAuth: false }, {
-      shouldValidate: true,
-      shouldDirty: true,
-      shouldTouch: true,
-    });
+    setValue('ksql', ksql ? { isActive: false } : { isActive: false, url: '', isAuth: false }, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      }
+    );
   };
   return (
     <>
