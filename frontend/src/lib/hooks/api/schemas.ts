@@ -1,4 +1,9 @@
-import {useMutation, useQuery, useQueryClient, UseQueryOptions} from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from '@tanstack/react-query';
 import {
   GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
   LATEST_SCHEMA_QUERY_KEY,

@@ -50,7 +50,9 @@ describe('Topics hooks', () => {
   describe('useTopicConfig', () => {
     it('handles useTopicConfig', async () => {
       const mock = fetchMock.getOnce(`${topicPath}/config`, topicConfigPayload);
-      const { result } = renderQueryHook(() => hooks.useTopicConfig(topicParams));
+      const { result } = renderQueryHook(() =>
+        hooks.useTopicConfig(topicParams)
+      );
       await expectQueryWorks(mock, result);
     });
     it('handles useTopicConfig with queryOptions', async () => {
