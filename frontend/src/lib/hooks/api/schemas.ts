@@ -1,11 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {useMutation, useQuery, useQueryClient, UseQueryOptions} from '@tanstack/react-query';
 import {
   GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
   LATEST_SCHEMA_QUERY_KEY,
   SCHEMA_QUERY_KEY,
   SCHEMAS_VERSION_QUERY_KEY,
 } from 'lib/queries';
-import { QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION } from 'lib/constants';
 import {
   CompatibilityLevel,
   GetAllVersionsBySubjectRequest,
@@ -20,7 +19,10 @@ import {
 import { schemasApiClient } from 'lib/api';
 import { ClusterName } from 'lib/interfaces/cluster';
 
-export function useGetLatestSchema(param: GetLatestSchemaRequest) {
+export function useGetLatestSchema(
+  param: GetLatestSchemaRequest,
+  options?: UseQueryOptions<SchemaSubject>
+) {
   return useQuery<SchemaSubject>({
     queryKey: [
       SCHEMA_QUERY_KEY,
@@ -29,7 +31,7 @@ export function useGetLatestSchema(param: GetLatestSchemaRequest) {
       param.subject,
     ],
     queryFn: () => schemasApiClient.getLatestSchema(param),
-    ...QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION,
+    ...options,
   });
 }
 

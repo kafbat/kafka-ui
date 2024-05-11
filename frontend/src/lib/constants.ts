@@ -73,8 +73,9 @@ export const QUERY_REFETCH_OFF_OPTIONS = {
   refetchIntervalInBackground: false,
 };
 
-export const QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION = {
+export const QUERY_REFETCH_LIMITED_OPTIONS = {
   refetchOnWindowFocus: false,
+  refetchIntervalInBackground: false,
 };
 
 // Cluster Form Constants

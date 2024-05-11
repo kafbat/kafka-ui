@@ -4,7 +4,12 @@ import {
   consumerGroupsApiClient,
   messagesApiClient,
 } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from '@tanstack/react-query';
 import {
   CreateTopicMessage,
   GetTopicDetailsRequest,
@@ -12,6 +17,7 @@ import {
   Topic,
   TopicConfig,
   TopicCreation,
+  TopicDetails,
   TopicUpdate,
 } from 'generated-sources';
 import { showServerError, showSuccessAlert } from 'lib/errorHandling';
@@ -21,7 +27,6 @@ import {
   TopicFormDataRaw,
   TopicFormFormattedParams,
 } from 'lib/interfaces/topic';
-import { QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION } from 'lib/constants';
 
 export const topicKeys = {
   all: (clusterName: ClusterName) =>
@@ -50,18 +55,24 @@ export function useTopics(props: GetTopicsRequest) {
     { keepPreviousData: true }
   );
 }
-export function useTopicDetails(props: GetTopicDetailsRequest) {
-  return useQuery(
+export function useTopicDetails(
+  props: GetTopicDetailsRequest,
+  queryOptions?: UseQueryOptions<TopicDetails>
+) {
+  return useQuery<TopicDetails>(
     topicKeys.details(props),
     () => api.getTopicDetails(props),
-    QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION
+    queryOptions
   );
 }
-export function useTopicConfig(props: GetTopicDetailsRequest) {
-  return useQuery(
+export function useTopicConfig(
+  props: GetTopicDetailsRequest,
+  queryOptions?: UseQueryOptions<TopicConfig[]>
+) {
+  return useQuery<TopicConfig[]>(
     topicKeys.config(props),
     () => api.getTopicConfigs(props),
-    QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION
+    queryOptions
   );
 }
 export function useTopicConsumerGroups(props: GetTopicDetailsRequest) {
