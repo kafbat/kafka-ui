@@ -5,6 +5,7 @@ import {
   SCHEMA_QUERY_KEY,
   SCHEMAS_VERSION_QUERY_KEY,
 } from 'lib/queries';
+import { QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION } from 'lib/constants';
 import {
   CompatibilityLevel,
   GetAllVersionsBySubjectRequest,
@@ -28,6 +29,7 @@ export function useGetLatestSchema(param: GetLatestSchemaRequest) {
       param.subject,
     ],
     queryFn: () => schemasApiClient.getLatestSchema(param),
+    ...QUERY_REFETCH_ON_WINDOW_FOCUS_OFF_OPTION,
   });
 }
 
