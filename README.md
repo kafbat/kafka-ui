@@ -100,7 +100,7 @@ To run Kafbat UI, you can use either a pre-built Docker image or build it (or a 
 ## Quick start (Demo run)
 
 ```
-docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true image: ghcr.io/kafbat/kafka-ui
+docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true ghcr.io/kafbat/kafka-ui
 ```
 
 Then access the web UI at [http://localhost:8080](http://localhost:8080)
