@@ -5,7 +5,7 @@ import { ClusterColorKey } from 'theme/theme';
 
 import * as S from './MenuColorPicker.styled';
 
-interface MenuColorPickerProps {
+export interface MenuColorPickerProps {
   setColorKey: (key: ClusterColorKey) => void;
 }
 
@@ -32,6 +32,7 @@ const MenuColorPicker = ({ setColorKey }: MenuColorPickerProps) => {
       <S.Container>
         {COLOR_KEYS.map((key) => (
           <S.ColorCircle
+            data-testid={`color-circle-${key}`}
             onClick={handleCircleCLick(key)}
             $colorKey={key}
             key={key}
