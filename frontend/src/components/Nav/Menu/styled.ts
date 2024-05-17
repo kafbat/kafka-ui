@@ -1,6 +1,11 @@
 import styled, { css } from 'styled-components';
 import { ServerStatus } from 'generated-sources';
 
+export const ColorPickerWrapper = styled.div`
+  display: flex;
+  visibility: hidden;
+`;
+
 export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
   $variant: 'primary' | 'secondary';
   $isActive?: boolean;
@@ -28,6 +33,10 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
     &:hover {
       background-color: ${theme.menu[$variant].backgroundColor.hover};
       color: ${theme.menu[$variant].color.hover};
+
+      ${ColorPickerWrapper} {
+        visibility: visible;
+      }
     }
 
     &:active {
@@ -95,4 +104,9 @@ export const ChevronIcon = styled.path.attrs<ChevronIconProps>(
   })
 )<ChevronIconProps>`
   stroke: ${({ theme }) => theme.menu.primary.chevronIconColor};
+`;
+
+export const ActionsWrapper = styled.div`
+  display: flex;
+  align-items: center;
 `;

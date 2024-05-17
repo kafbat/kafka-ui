@@ -1,5 +1,5 @@
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useLocalStorage = (featureKey: string, defaultValue: string) => {
   const key = `${LOCAL_STORAGE_KEY_PREFIX}-${featureKey}`;
