@@ -94,10 +94,10 @@ export const useTopicMessages = ({
         default:
       }
 
-      searchParams.getAll(MessagesFilterKeys.partitions).forEach((value) => {
-        requestParams.append(MessagesFilterKeys.partitions, value);
-      });
-
+      const partitions = searchParams.get(MessagesFilterKeys.partitions);
+      if (partitions !== null) {
+        requestParams.append(MessagesFilterKeys.partitions, partitions);
+      }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
 
       const tempCompareUrl = new URLSearchParams(requestParams);
