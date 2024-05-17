@@ -2,8 +2,6 @@ import styled from 'styled-components';
 import { ClusterColorKey } from 'theme/theme';
 
 export const List = styled.ul.attrs({ role: 'menu' })`
-  padding: 2px 4px 6px 8px;
-
   & > & {
     padding: 0 0 0 8px;
   }

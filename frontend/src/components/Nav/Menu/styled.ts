@@ -13,7 +13,7 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
   ({ theme, $variant, $isActive }) => css`
     font-size: 14px;
     font-weight: ${theme.menu[$isActive ? 'primary' : $variant].fontWeight};
-    height: 32px;
+    min-height: 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -48,15 +48,12 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
 
 export const ContentWrapper = styled.div`
   display: flex;
-  align-items: center;
+  align-items: baseline;
   column-gap: 4px;
 `;
 
 export const Title = styled.div`
-  white-space: nowrap;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 100%;
 `;
 
 export const StatusIconWrapper = styled.svg.attrs({
