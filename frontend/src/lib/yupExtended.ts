@@ -7,7 +7,7 @@ declare module 'yup' {
     TType extends yup.Maybe<string> = string | undefined,
     TContext = yup.AnyObject,
     TDefault = undefined,
-    TFlags extends yup.Flags = ''
+    TFlags extends yup.Flags = '',
   > extends yup.Schema<TType, TContext, TDefault, TFlags> {
     isJsonObject(message?: string): StringSchema<TType, TContext>;
   }
@@ -84,10 +84,36 @@ export const topicFormValidationSchema = yup.object().shape({
   retentionBytes: yup.number(),
   maxMessageBytes: yup.string(),
   customParams: yup.array().of(
-    yup.object().shape({
-      name: yup.string().required('Custom parameter is required'),
-      value: yup.string().required('Value is required'),
-    })
+    yup
+      .object()
+      .shape({
+        name: yup.string().required('Custom parameter is required'),
+        value: yup.string().required('Value is required'),
+      })
+      .test(
+        'is_unique',
+        'Custom parameters must be unique',
+        (
+          value,
+          context: yup.TestContext<yup.AnyObject> & {
+            options: yup.ValidateOptions<yup.AnyObject> & { path?: string };
+          }
+        ) => {
+          const hasDuplicate =
+            context?.parent.filter(
+              (option: { name: string }) => option.name === value.name
+            ).length > 1;
+
+          if (hasDuplicate && 'path' in context.options) {
+            return context.createError({
+              message: 'Custom parameters must be unique',
+              path: `${context.options.path}.name`,
+            });
+          }
+
+          return true;
+        }
+      )
   ),
 });
 

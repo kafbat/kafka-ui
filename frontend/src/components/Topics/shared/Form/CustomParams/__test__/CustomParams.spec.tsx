@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import CustomParams, {
   CustomParamsProps,
@@ -10,28 +10,20 @@ import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
 
 import { defaultValues } from './fixtures';
 
-const selectOption = async (listbox: HTMLElement, option: string) => {
-  await act(async () => {
-    await userEvent.click(listbox);
-  });
+const selectOption = async (textinput: HTMLElement, option: string) => {
+  await userEvent.click(textinput);
+  await userEvent.clear(textinput);
   await userEvent.click(screen.getByText(option));
 };
 
-const expectOptionIsSelected = (listbox: HTMLElement, option: string) => {
-  const selectedOption = within(listbox).getAllByRole('option');
-  expect(selectedOption.length).toEqual(1);
-  expect(selectedOption[0]).toHaveTextContent(option);
-};
-
 const expectOptionAvailability = async (
-  listbox: HTMLElement,
+  textinput: () => HTMLElement,
+  listbox: () => HTMLElement,
   option: string,
   disabled: boolean
 ) => {
-  await act(async () => {
-    await userEvent.click(listbox);
-  });
-  const selectedOptions = within(listbox).getAllByText(option).reverse();
+  await userEvent.click(textinput());
+  const selectedOptions = within(listbox()).getAllByText(option).reverse();
   // its either two or one nodes, we only need last one
   const selectedOption = selectedOptions[0];
 
@@ -45,9 +37,7 @@ const expectOptionAvailability = async (
     'cursor',
     disabled ? 'not-allowed' : 'pointer'
   );
-  await act(async () => {
-    await userEvent.click(listbox);
-  });
+  await userEvent.click(document.body);
 };
 
 const renderComponent = (props: CustomParamsProps, defaults = {}) => {
@@ -63,144 +53,167 @@ const renderComponent = (props: CustomParamsProps, defaults = {}) => {
   );
 };
 
+const getCustomParamInput = () => screen.getByRole('listitem');
+const getAllCustomParamInputs = () => screen.getAllByRole('listitem');
+const getCustomParamsList = () => screen.getByRole('listbox');
+const getValueInput = () => screen.getByRole('textbox');
+const getAllValueInputs = () => screen.getAllByRole('textbox');
+const getAddNewFieldButton = () => screen.getByText('Add Custom Parameter');
+
+const topicCustomParam1 = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
+const topicCustomParam2 = Object.keys(TOPIC_CUSTOM_PARAMS)[1];
+const topicCustomParam3 = Object.keys(TOPIC_CUSTOM_PARAMS)[2];
+
 describe('CustomParams', () => {
   it('renders with props', () => {
     renderComponent({ isSubmitting: false });
 
-    const button = screen.getByRole('button');
-    expect(button).toBeInTheDocument();
-    expect(button).toHaveTextContent('Add Custom Parameter');
+    expect(getAddNewFieldButton()).toBeInTheDocument();
+    expect(getAddNewFieldButton()).toHaveTextContent('Add Custom Parameter');
   });
 
   it('has defaultValues when they are set', () => {
     renderComponent({ isSubmitting: false }, defaultValues);
 
-    expect(
-      screen.getByRole('option', { name: defaultValues.customParams[0].name })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('textbox')).toHaveValue(
-      defaultValues.customParams[0].value
+    expect(getCustomParamInput()).toHaveValue(
+      defaultValues.customParams[0].name
     );
+    expect(getValueInput()).toHaveValue(defaultValues.customParams[0].value);
   });
 
   describe('works with user inputs correctly', () => {
-    let button: HTMLButtonElement;
-
     beforeEach(async () => {
       renderComponent({ isSubmitting: false });
-      button = screen.getByRole('button');
-      await act(async () => {
-        await userEvent.click(button);
-      });
+      await userEvent.click(getAddNewFieldButton());
     });
 
     it('button click creates custom param fieldset', async () => {
-      const listbox = screen.getByRole('listbox');
-      expect(listbox).toBeInTheDocument();
-
-      const textbox = screen.getByRole('textbox');
-      expect(textbox).toBeInTheDocument();
+      await userEvent.click(getCustomParamInput());
+      expect(getCustomParamsList()).toBeInTheDocument();
+      expect(getValueInput()).toBeInTheDocument();
     });
 
     it('can select option', async () => {
-      const listbox = screen.getByRole('listbox');
+      await selectOption(getCustomParamInput(), topicCustomParam1);
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
 
-      await selectOption(listbox, 'compression.type');
-      expectOptionIsSelected(listbox, 'compression.type');
-      await expectOptionAvailability(listbox, 'compression.type', true);
-
-      const textbox = screen.getByRole('textbox');
-      expect(textbox).toHaveValue(TOPIC_CUSTOM_PARAMS['compression.type']);
-    });
-
-    it('when selected option changes disabled options update correctly', async () => {
-      const listbox = screen.getByRole('listbox');
-
-      await selectOption(listbox, 'compression.type');
-      expectOptionIsSelected(listbox, 'compression.type');
-      await expectOptionAvailability(listbox, 'compression.type', true);
-
-      await selectOption(listbox, 'delete.retention.ms');
-      await expectOptionAvailability(listbox, 'delete.retention.ms', true);
-      await expectOptionAvailability(listbox, 'compression.type', false);
-    });
-
-    it('multiple button clicks create multiple fieldsets', async () => {
-      await act(async () => {
-        await userEvent.click(button);
-      });
-      await act(async () => {
-        await userEvent.click(button);
-      });
-
-      const listboxes = screen.getAllByRole('listbox');
-      expect(listboxes.length).toBe(3);
-
-      const textboxes = screen.getAllByRole('textbox');
-      expect(textboxes.length).toBe(3);
-    });
-
-    it("can't select already selected option", async () => {
-      await act(async () => {
-        await userEvent.click(button);
-      });
-
-      const listboxes = screen.getAllByRole('listbox');
-
-      const firstListbox = listboxes[0];
-      await selectOption(firstListbox, 'compression.type');
-      await expectOptionAvailability(firstListbox, 'compression.type', true);
-
-      const secondListbox = listboxes[1];
-      await expectOptionAvailability(secondListbox, 'compression.type', true);
-    });
-
-    it('when fieldset with selected custom property type is deleted disabled options update correctly', async () => {
-      await act(async () => {
-        await userEvent.click(button);
-      });
-      await act(async () => {
-        await userEvent.click(button);
-      });
-
-      const listboxes = screen.getAllByRole('listbox');
-
-      const firstListbox = listboxes[0];
-      await selectOption(firstListbox, 'compression.type');
-      await expectOptionAvailability(firstListbox, 'compression.type', true);
-
-      const secondListbox = listboxes[1];
-      await selectOption(secondListbox, 'delete.retention.ms');
       await expectOptionAvailability(
-        secondListbox,
-        'delete.retention.ms',
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam1,
         true
       );
 
-      const thirdListbox = listboxes[2];
-      await selectOption(thirdListbox, 'file.delete.delay.ms');
+      expect(getValueInput()).toHaveValue(
+        TOPIC_CUSTOM_PARAMS[topicCustomParam1]
+      );
+    });
+
+    it('when selected option changes disabled options update correctly', async () => {
+      await selectOption(getCustomParamInput(), topicCustomParam1);
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
+
       await expectOptionAvailability(
-        thirdListbox,
-        'file.delete.delay.ms',
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam1,
+        true
+      );
+
+      await selectOption(getCustomParamInput(), topicCustomParam2);
+      await expectOptionAvailability(
+        getCustomParamInput,
+        getCustomParamsList,
+        topicCustomParam2,
+        true
+      );
+
+      await userEvent.click(getAddNewFieldButton());
+      await expectOptionAvailability(
+        () => getAllCustomParamInputs()[1],
+        getCustomParamsList,
+        topicCustomParam1,
+        false
+      );
+    });
+
+    it('multiple button clicks create multiple fieldsets', async () => {
+      await userEvent.click(getAddNewFieldButton());
+      await userEvent.click(getAddNewFieldButton());
+
+      expect(getAllCustomParamInputs().length).toBe(3);
+
+      expect(getAllValueInputs().length).toBe(3);
+    });
+
+    it("can't select already selected option", async () => {
+      await userEvent.click(getAddNewFieldButton());
+
+      await selectOption(getAllCustomParamInputs()[0], topicCustomParam1);
+      await expectOptionAvailability(
+        () => getAllCustomParamInputs()[0],
+        getCustomParamsList,
+        topicCustomParam1,
+        true
+      );
+
+      await expectOptionAvailability(
+        () => getAllCustomParamInputs()[1],
+        getCustomParamsList,
+        topicCustomParam1,
+        true
+      );
+    });
+
+    it('when fieldset with selected custom property type is deleted disabled options update correctly', async () => {
+      await userEvent.click(getAddNewFieldButton());
+      await userEvent.click(getAddNewFieldButton());
+
+      const [firstListBox, secondListbox, thirdListbox] =
+        getAllCustomParamInputs();
+      await selectOption(firstListBox, topicCustomParam1);
+      await expectOptionAvailability(
+        () => firstListBox,
+        getCustomParamsList,
+        topicCustomParam1,
+        true
+      );
+
+      await selectOption(secondListbox, topicCustomParam2);
+      await expectOptionAvailability(
+        () => secondListbox,
+        getCustomParamsList,
+        topicCustomParam2,
+        true
+      );
+
+      await selectOption(thirdListbox, topicCustomParam3);
+      await expectOptionAvailability(
+        () => thirdListbox,
+        getCustomParamsList,
+        topicCustomParam3,
         true
       );
 
       const deleteSecondFieldsetButton = screen.getByTitle(
         'Delete customParam field 1'
       );
-      await act(async () => {
-        await userEvent.click(deleteSecondFieldsetButton);
-      });
+      await userEvent.click(deleteSecondFieldsetButton);
       expect(secondListbox).not.toBeInTheDocument();
 
+      await userEvent.clear(firstListBox);
       await expectOptionAvailability(
-        firstListbox,
-        'delete.retention.ms',
+        () => firstListBox,
+        getCustomParamsList,
+        topicCustomParam2,
         false
       );
+
+      await userEvent.clear(thirdListbox);
       await expectOptionAvailability(
-        thirdListbox,
-        'delete.retention.ms',
+        () => thirdListbox,
+        getCustomParamsList,
+        topicCustomParam2,
         false
       );
     });

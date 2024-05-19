@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { useNavigate } from 'react-router-dom';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';

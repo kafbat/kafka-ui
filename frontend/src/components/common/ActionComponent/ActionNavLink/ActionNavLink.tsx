@@ -26,7 +26,7 @@ const ActionNavLink: React.FC<Props> = ({
 
   const isDisabled = !canDoAction;
 
-  const { x, y, reference, floating, strategy, open } = useActionTooltip(
+  const { x, y, refs, strategy, open } = useActionTooltip(
     isDisabled,
     placement
   );
@@ -35,7 +35,7 @@ const ActionNavLink: React.FC<Props> = ({
     <>
       <NavLink
         {...props}
-        ref={reference}
+        ref={refs.setReference}
         className={isDisabled ? 'is-disabled' : className}
         aria-disabled={isDisabled}
         onClick={(event) => (isDisabled ? event.preventDefault() : null)}
@@ -44,7 +44,7 @@ const ActionNavLink: React.FC<Props> = ({
       </NavLink>
       {open && (
         <S.MessageTooltipLimited
-          ref={floating}
+          ref={refs.setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

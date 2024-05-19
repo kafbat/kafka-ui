@@ -1,5 +1,5 @@
 import Heading from 'components/common/heading/Heading.styled';
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import styled from 'styled-components';
 
 export const Wrapper = styled.div`
@@ -39,9 +39,9 @@ export const Wrapper = styled.div`
   }
 `;
 
-export const MetaDataLabel = styled((props) => (
-  <Heading level={4} {...props} />
-))`
+const Heading4 = (props: PropsWithChildren) => <Heading level={4} {...props} />;
+
+export const MetaDataLabel = styled(Heading4)`
   color: ${({ theme }) => theme.lastestVersionItem.metaDataLabel.color};
   width: 110px;
 `;

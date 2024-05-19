@@ -92,7 +92,9 @@ export function useMessagesFilters() {
 
   const search = searchParams.get(MessagesFilterKeys.stringFilter) || '';
 
-  const partitions = searchParams.getAll(MessagesFilterKeys.partitions);
+  const partitions = (searchParams.get(MessagesFilterKeys.partitions) || '')
+    .split(',')
+    .filter((v) => v);
 
   const smartFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) ||
@@ -166,9 +168,12 @@ export function useMessagesFilters() {
     setSearchParams((params) => {
       params.delete(MessagesFilterKeys.partitions);
 
-      values.forEach((option) => {
-        params.append(MessagesFilterKeys.partitions, option.value);
-      });
+      if (values.length) {
+        params.append(
+          MessagesFilterKeys.partitions,
+          values.map((v) => v.value).join(',')
+        );
+      }
 
       return params;
     });

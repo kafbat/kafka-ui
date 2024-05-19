@@ -1,11 +1,9 @@
 package io.kafbat.ui.sanitysuite;
 
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-
 import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
-import io.kafbat.ui.pages.topics.enums.CleanupPolicyValue;
-import io.qase.api.annotation.QaseId;
+import io.kafbat.ui.screens.topics.enums.CleanupPolicyValue;
+import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.Assert;
@@ -16,12 +14,9 @@ public class TopicsTest extends BaseTest {
 
   private static final List<Topic> TOPIC_LIST = new ArrayList<>();
 
-  @QaseId(285)
   @Test()
   public void verifyClearMessagesMenuStateAfterTopicUpdate() {
-    Topic topic = new Topic()
-        .setName("topic-" + randomAlphabetic(5))
-        .setNumberOfPartitions(1)
+    Topic topic = Topic.createTopic()
         .setCleanupPolicyValue(CleanupPolicyValue.DELETE);
     navigateToTopics();
     topicsList
@@ -37,15 +32,16 @@ public class TopicsTest extends BaseTest {
     TOPIC_LIST.add(topic);
     topicDetails
         .openDotMenu();
-    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
     topic.setCleanupPolicyValue(CleanupPolicyValue.COMPACT);
     editCleanUpPolicyAndOpenDotMenu(topic);
-    Assert.assertFalse(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertFalse(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
     topic.setCleanupPolicyValue(CleanupPolicyValue.DELETE);
     editCleanUpPolicyAndOpenDotMenu(topic);
-    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled");
+    Assert.assertTrue(topicDetails.isClearMessagesMenuEnabled(), "isClearMessagesMenuEnabled()");
   }
 
+  @Step
   private void editCleanUpPolicyAndOpenDotMenu(Topic topic) {
     topicDetails
         .clickEditSettingsMenu();
