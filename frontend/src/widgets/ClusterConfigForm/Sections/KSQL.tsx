@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFormContext } from 'react-hook-form';
 import SectionHeader from 'widgets/ClusterConfigForm/common/SectionHeader';
