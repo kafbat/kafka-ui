@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFormContext } from 'react-hook-form';
 import SectionHeader from 'widgets/ClusterConfigForm/common/SectionHeader';
@@ -12,7 +11,12 @@ const SchemaRegistry = () => {
   const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
     setConfigOpen((prevConfigOpen) => !prevConfigOpen);
-    setValue('schemaRegistry', schemaRegistry ? { isActive: false }: { isActive: true, url: '', isAuth: false }, {
+    setValue(
+      'schemaRegistry',
+      schemaRegistry
+        ? { isActive: false }
+        : { isActive: true, url: '', isAuth: false },
+      {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFormContext } from 'react-hook-form';
 import ControlledSelect from 'components/common/Select/ControlledSelect';

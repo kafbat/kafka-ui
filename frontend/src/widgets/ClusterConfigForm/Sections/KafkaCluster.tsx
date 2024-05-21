@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormError, InputHint } from 'components/common/Input/Input.styled';
