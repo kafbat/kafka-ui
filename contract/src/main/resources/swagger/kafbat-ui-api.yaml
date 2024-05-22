@@ -3471,6 +3471,7 @@ components:
         - PAUSED
         - UNASSIGNED
         - TASK_FAILED
+        - RESTARTING
 
     ConnectorAction:
       type: string
