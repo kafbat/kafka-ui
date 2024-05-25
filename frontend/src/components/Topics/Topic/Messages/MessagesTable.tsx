@@ -5,7 +5,7 @@ import { TopicMessage } from 'generated-sources';
 import React, { useState } from 'react';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
-import { useIsLiveMode, useRefreshData } from 'lib/hooks/useMessagesFilters';
+import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 import PreviewModal from './PreviewModal';
@@ -20,7 +20,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,
 }) => {
-  const refreshData = useRefreshData();
+  const paginate = usePaginateTopics();
   const [previewFor, setPreviewFor] = useState<string | null>(null);
 
   const [keyFilters, setKeyFilters] = useState<PreviewFilter[]>([]);
@@ -101,7 +101,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
             disabled={isLive || isFetching || !nextCursor}
             buttonType="secondary"
             buttonSize="L"
-            onClick={refreshData}
+            onClick={paginate}
           >
             Next →
           </Button>

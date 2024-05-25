@@ -52,6 +52,25 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
   };
 }
 
+export function getCursorValue(urlSearchParam: URLSearchParams) {
+  return parseInt(urlSearchParam.get(MessagesFilterKeys.cursor) || '0', 10);
+}
+
+export function usePaginateTopics(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const cursor = getCursorValue(params) + 1;
+
+      if (cursor) {
+        params.set(MessagesFilterKeys.cursor, cursor.toString());
+      }
+
+      return params;
+    });
+  };
+}
+
 export function useMessagesFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const refreshData = useRefreshData(searchParams);

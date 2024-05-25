@@ -13,7 +13,10 @@ import { showServerError } from 'lib/errorHandling';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
-import { MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
+import {
+  getCursorValue,
+  MessagesFilterKeys,
+} from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
@@ -36,6 +39,7 @@ export const useTopicMessages = ({
   const [isFetching, setIsFetching] = React.useState(false);
   const abortController = useRef(new AbortController());
   const prevReqUrl = useRef<string>('');
+  const prevCursor = useRef(0);
 
   // get initial properties
 
@@ -62,7 +66,6 @@ export const useTopicMessages = ({
       const requestParams = new URLSearchParams({
         limit: searchParams.get(MessagesFilterKeys.limit) || MESSAGES_PER_PAGE,
         mode: searchParams.get(MessagesFilterKeys.mode) || '',
-        r: searchParams.get(MessagesFilterKeys.r) || '',
       });
 
       [
@@ -106,12 +109,19 @@ export const useTopicMessages = ({
 
       const tempToString = tempCompareUrl.toString();
 
+      const currentCursor = getCursorValue(searchParams);
+
       // filters stay the say and we have cursor set cursor
-      if (nextCursor && tempToString === prevReqUrl.current) {
+      if (
+        nextCursor &&
+        tempToString === prevReqUrl.current &&
+        prevCursor.current < currentCursor
+      ) {
         requestParams.set(MessagesFilterKeys.cursor, nextCursor);
       }
 
       prevReqUrl.current = tempToString;
+      prevCursor.current = currentCursor;
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
         signal: abortController.current.signal,
