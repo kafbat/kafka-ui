@@ -45,7 +45,7 @@
         <protobuf-java.version>3.23.3</protobuf-java.version>
         <scala-lang.library.version>2.13.9</scala-lang.library.version>
         <snakeyaml.version>2.2</snakeyaml.version>
-        <spring-boot.version>3.1.9</spring-boot.version>
+        <spring-boot.version>3.3.0</spring-boot.version>
         <serde-api.version>1.0.0</serde-api.version>
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
         <odd-oddrn-client.version>0.1.39</odd-oddrn-client.version>
