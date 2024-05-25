@@ -62,6 +62,7 @@ export const useTopicMessages = ({
       const requestParams = new URLSearchParams({
         limit: searchParams.get(MessagesFilterKeys.limit) || MESSAGES_PER_PAGE,
         mode: searchParams.get(MessagesFilterKeys.mode) || '',
+        r: searchParams.get(MessagesFilterKeys.r) || '',
       });
 
       [
