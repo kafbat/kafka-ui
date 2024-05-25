@@ -1,11 +1,8 @@
 package io.kafbat.ui.service.rbac.extractor;
 
-import io.kafbat.ui.config.auth.LdapProperties;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -14,25 +11,26 @@ import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
-import org.springframework.util.Assert;
+import org.springframework.security.ldap.userdetails.NestedLdapAuthoritiesPopulator;
 
 @Slf4j
-public class RbacLdapAuthoritiesExtractor extends DefaultLdapAuthoritiesPopulator {
+public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator {
 
   private final AccessControlService acs;
-  private final LdapProperties props;
 
   public RbacLdapAuthoritiesExtractor(ApplicationContext context,
                                       BaseLdapPathContextSource contextSource, String groupFilterSearchBase) {
     super(contextSource, groupFilterSearchBase);
     this.acs = context.getBean(AccessControlService.class);
-    this.props = context.getBean(LdapProperties.class);
   }
 
   @Override
   protected Set<GrantedAuthority> getAdditionalRoles(DirContextOperations user, String username) {
-    var ldapGroups = getRoles(user.getNameInNamespace(), username);
+    var ldapGroups = super.getGroupMembershipRoles(user.getNameInNamespace(), username)
+        .stream()
+        .map(GrantedAuthority::getAuthority)
+        .peek(group -> log.trace("Found LDAP group [{}] for user [{}]", group, username))
+        .collect(Collectors.toSet());
 
     return acs.getRoles()
         .stream()
@@ -47,32 +45,4 @@ public class RbacLdapAuthoritiesExtractor extends DefaultLdapAuthoritiesPopulato
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toSet());
   }
-
-  private Set<String> getRoles(String userDn, String username) {
-    var groupSearchBase = props.getGroupFilterSearchBase();
-    Assert.notNull(groupSearchBase, "groupSearchBase is empty");
-
-    var groupRoleAttribute = props.getGroupRoleAttribute();
-    if (groupRoleAttribute == null) {
-
-      groupRoleAttribute = "cn";
-    }
-
-    log.trace(
-        "Searching for roles for user [{}] with DN [{}], groupRoleAttribute [{}] and filter [{}] in search base [{}]",
-        username, userDn, groupRoleAttribute, getGroupSearchFilter(), groupSearchBase);
-
-    var ldapTemplate = getLdapTemplate();
-    ldapTemplate.setIgnoreNameNotFoundException(true);
-
-    Set<Map<String, List<String>>> userRoles = ldapTemplate.searchForMultipleAttributeValues(
-        groupSearchBase, getGroupSearchFilter(), new String[] {userDn, username},
-        new String[] {groupRoleAttribute});
-
-    return userRoles.stream()
-        .map(record -> record.get(getGroupRoleAttribute()).get(0))
-        .peek(group -> log.trace("Found LDAP group [{}] for user [{}]", group, username))
-        .collect(Collectors.toSet());
-  }
-
 }

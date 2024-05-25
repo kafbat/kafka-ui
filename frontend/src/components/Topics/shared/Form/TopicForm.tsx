@@ -206,7 +206,7 @@ const TopicForm: React.FC<Props> = ({
               id="topicFormRetentionBytesLabel"
               htmlFor="topicFormRetentionBytes"
             >
-              Max size on disk in GB
+              Max partition size in GB
             </InputLabel>
             <Controller
               control={control}

@@ -3,7 +3,9 @@ package io.kafbat.ui.emitter;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +86,8 @@ abstract class RangePollingEmitter extends AbstractEmitter {
     range.forEach((tp, fromTo) -> consumer.seek(tp, fromTo.from));
 
     List<ConsumerRecord<Bytes, Bytes>> result = new ArrayList<>();
-    while (!sink.isCancelled() && consumer.paused().size() < range.size()) {
+    Set<TopicPartition> paused = new HashSet<>();
+    while (!sink.isCancelled() && paused.size() < range.size()) {
       var polledRecords = poll(sink, consumer);
       range.forEach((tp, fromTo) -> {
         polledRecords.records(tp).stream()
@@ -92,12 +95,13 @@ abstract class RangePollingEmitter extends AbstractEmitter {
             .forEach(result::add);
 
         //next position is out of target range -> pausing partition
-        if (consumer.position(tp) >= fromTo.to) {
+        if (!paused.contains(tp) && consumer.position(tp) >= fromTo.to) {
+          paused.add(tp);
           consumer.pause(List.of(tp));
         }
       });
     }
-    consumer.resume(consumer.paused());
+    consumer.resume(paused);
     return result;
   }
 }
