@@ -23,16 +23,18 @@ cd ./frontend
 
 Install [pnpm](https://pnpm.io/installation)
 ```
-curl -fsSL https://get.pnpm.io/install.sh | sh -
+npm install -g pnpm
 ```
 
 Update pnpm
 ```
-rm -rf $PNPM_HOME
-```
-or
-```
 npm rm -g pnpm
+```
+Then reinstall it
+
+or use
+```
+npm install -g pnpm@<version>
 ```
 
 Install dependencies
