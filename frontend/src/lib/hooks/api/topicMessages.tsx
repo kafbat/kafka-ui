@@ -111,7 +111,7 @@ export const useTopicMessages = ({
 
       const currentCursor = getCursorValue(searchParams);
 
-      // filters stay the say and we have cursor set cursor
+      // filters stay the same and we have cursor set cursor
       if (
         nextCursor &&
         tempToString === prevReqUrl.current &&
