@@ -53,7 +53,16 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
 }
 
 export function getCursorValue(urlSearchParam: URLSearchParams) {
-  return parseInt(urlSearchParam.get(MessagesFilterKeys.cursor) || '0', 10);
+  const cursor = parseInt(
+    urlSearchParam.get(MessagesFilterKeys.cursor) || '0',
+    10
+  );
+
+  if (Number.isNaN(cursor)) {
+    return 0;
+  }
+
+  return cursor;
 }
 
 export function usePaginateTopics(initSearchParams?: URLSearchParams) {
@@ -87,6 +96,8 @@ export function useMessagesFilters() {
         params.delete(MessagesFilterKeys.activeFilterNPId);
         params.delete(MessagesFilterKeys.smartFilterId);
       }
+
+      params.delete(MessagesFilterKeys.cursor);
       return params;
     });
   }, []);
