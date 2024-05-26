@@ -98,6 +98,7 @@ export function useMessagesFilters() {
       }
 
       params.delete(MessagesFilterKeys.cursor);
+
       return params;
     });
   }, []);
