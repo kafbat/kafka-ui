@@ -3820,6 +3820,7 @@ components:
     Action:
       type: string
       enum:
+        - ALL
         - VIEW
         - EDIT
         - CREATE

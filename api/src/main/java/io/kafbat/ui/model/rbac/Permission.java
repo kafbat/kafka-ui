@@ -3,6 +3,7 @@ package io.kafbat.ui.model.rbac;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import com.google.common.base.Preconditions;
+import io.kafbat.ui.model.ActionDTO;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -50,7 +51,7 @@ public class Permission {
     if (value != null) {
       this.compiledValuePattern = Pattern.compile(value);
     }
-    if (actions.stream().anyMatch("ALL"::equalsIgnoreCase)) {
+    if (actions.stream().anyMatch(ActionDTO.ALL.name()::equalsIgnoreCase)) {
       this.parsedActions = resource.allActions();
     } else {
       this.parsedActions = resource.parseActionsWithDependantsUnnest(actions);
