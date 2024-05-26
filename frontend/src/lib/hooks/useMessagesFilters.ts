@@ -52,6 +52,34 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
   };
 }
 
+export function getCursorValue(urlSearchParam: URLSearchParams) {
+  const cursor = parseInt(
+    urlSearchParam.get(MessagesFilterKeys.cursor) || '0',
+    10
+  );
+
+  if (Number.isNaN(cursor)) {
+    return 0;
+  }
+
+  return cursor;
+}
+
+export function usePaginateTopics(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const cursor = getCursorValue(params) + 1;
+
+      if (cursor) {
+        params.set(MessagesFilterKeys.cursor, cursor.toString());
+      }
+
+      return params;
+    });
+  };
+}
+
 export function useMessagesFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const refreshData = useRefreshData(searchParams);
@@ -68,6 +96,9 @@ export function useMessagesFilters() {
         params.delete(MessagesFilterKeys.activeFilterNPId);
         params.delete(MessagesFilterKeys.smartFilterId);
       }
+
+      params.delete(MessagesFilterKeys.cursor);
+
       return params;
     });
   }, []);
