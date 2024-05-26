@@ -1,4 +1,10 @@
-import React, { PropsWithChildren, ReactElement, useMemo } from 'react';
+import React, {
+  FC,
+  ReactNode,
+  PropsWithChildren,
+  ReactElement,
+  useMemo,
+} from 'react';
 import {
   MemoryRouter,
   MemoryRouterProps,
@@ -6,7 +12,6 @@ import {
   Routes,
 } from 'react-router-dom';
 import fetchMock from 'fetch-mock';
-import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'theme/theme';
 import {
@@ -15,10 +20,6 @@ import {
   RenderOptions,
   waitFor,
 } from '@testing-library/react';
-import { AnyAction, Store } from 'redux';
-import { RootState } from 'redux/interfaces';
-import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from 'redux/reducers';
 import {
   QueryClient,
   QueryClientProvider,
@@ -32,8 +33,6 @@ import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAcc
 import { RolesType, modifyRolesData } from './permissions';
 
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  preloadedState?: Partial<RootState>;
-  store?: Store<Partial<RootState>, AnyAction>;
   initialEntries?: MemoryRouterProps['initialEntries'];
   userInfo?: {
     roles?: RolesType;
@@ -45,7 +44,7 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
 }
 
 interface WithRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   path: string;
 }
 
@@ -58,7 +57,7 @@ export const expectQueryWorks = async (
   expect(result.current.data).toBeDefined();
 };
 
-export const WithRoute: React.FC<WithRouteProps> = ({ children, path }) => {
+export const WithRoute: FC<WithRouteProps> = ({ children, path }) => {
   return (
     <Routes>
       <Route path={path} element={children} />
@@ -66,7 +65,7 @@ export const WithRoute: React.FC<WithRouteProps> = ({ children, path }) => {
   );
 };
 
-export const TestQueryClientProvider: React.FC<PropsWithChildren<unknown>> = ({
+export const TestQueryClientProvider: FC<PropsWithChildren<unknown>> = ({
   children,
 }) => {
   // use new QueryClient instance for each test run to avoid issues with cache
@@ -82,7 +81,7 @@ export const TestQueryClientProvider: React.FC<PropsWithChildren<unknown>> = ({
  * @description it will create a UserInfo Provider that will actually
  * disable the rbacFlag , to user if you can pass it as an argument
  * */
-const TestUserInfoProvider: React.FC<
+const TestUserInfoProvider: FC<
   PropsWithChildren<{ data?: { roles?: RolesType; rbacFlag: boolean } }>
 > = ({ children, data }) => {
   const contextValue = useMemo(() => {
@@ -107,11 +106,6 @@ const TestUserInfoProvider: React.FC<
 const customRender = (
   ui: ReactElement,
   {
-    preloadedState,
-    store = configureStore<RootState>({
-      reducer: rootReducer,
-      preloadedState,
-    }),
     initialEntries,
     userInfo,
     globalSettings,
@@ -119,9 +113,7 @@ const customRender = (
   }: CustomRenderOptions = {}
 ) => {
   // overrides @testing-library/react render.
-  const AllTheProviders: React.FC<PropsWithChildren<unknown>> = ({
-    children,
-  }) => (
+  const AllTheProviders: FC<PropsWithChildren<unknown>> = ({ children }) => (
     <TestQueryClientProvider>
       <GlobalSettingsContext.Provider
         value={globalSettings || { hasDynamicConfig: false }}
@@ -129,14 +121,12 @@ const customRender = (
         <ThemeProvider theme={theme}>
           <TestUserInfoProvider data={userInfo}>
             <ConfirmContextProvider>
-              <Provider store={store}>
-                <MemoryRouter initialEntries={initialEntries}>
-                  <div>
-                    {children}
-                    <ConfirmationModal />
-                  </div>
-                </MemoryRouter>
-              </Provider>
+              <MemoryRouter initialEntries={initialEntries}>
+                <div>
+                  {children}
+                  <ConfirmationModal />
+                </div>
+              </MemoryRouter>
             </ConfirmContextProvider>
           </TestUserInfoProvider>
         </ThemeProvider>
@@ -150,23 +140,3 @@ const customRenderHook = (hook: () => UseQueryResult<unknown, unknown>) =>
   renderHook(hook, { wrapper: TestQueryClientProvider });
 
 export { customRender as render, customRenderHook as renderQueryHook };
-
-export class EventSourceMock {
-  url: string;
-
-  close: () => void;
-
-  open: () => void;
-
-  error: () => void;
-
-  onmessage: () => void;
-
-  constructor(url: string) {
-    this.url = url;
-    this.open = jest.fn();
-    this.error = jest.fn();
-    this.onmessage = jest.fn();
-    this.close = jest.fn();
-  }
-}

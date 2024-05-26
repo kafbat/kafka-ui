@@ -49,6 +49,7 @@ import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.io.ByteArrayInputStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -404,7 +405,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
     @SneakyThrows
     private Map<String, ProtoFile> loadFilesWithLocations() {
       Map<String, ProtoFile> filesByLocations = new HashMap<>();
-      try (var files = Files.walk(baseLocation)) {
+      try (var files = Files.walk(baseLocation, FileVisitOption.FOLLOW_LINKS)) {
         files.filter(p -> !Files.isDirectory(p) && p.toString().endsWith(".proto"))
             .forEach(path -> {
               // relative path will be used as "import" statement

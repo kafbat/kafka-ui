@@ -2,15 +2,15 @@ import React, { useRef } from 'react';
 import { ErrorMessage } from '@hookform/error-message';
 import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
 import { FieldArrayWithId, useFormContext, Controller } from 'react-hook-form';
-import { TopicConfigParams, TopicFormData } from 'redux/interfaces';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { FormError } from 'components/common/Input/Input.styled';
-import Select from 'components/common/Select/Select';
 import Input from 'components/common/Input/Input';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
 import * as C from 'components/Topics/shared/Form/TopicForm.styled';
 import { ConfigSource } from 'generated-sources';
+import InputWithOptions from 'components/common/InputWithOptions/InputWithOptions';
+import { TopicConfigParams, TopicFormData } from 'lib/interfaces/topic';
 
 import * as S from './CustomParams.styled';
 
@@ -37,6 +37,7 @@ const CustomParamField: React.FC<Props> = ({
     formState: { errors },
     setValue,
     watch,
+    trigger,
     control,
   } = useFormContext<TopicFormData>();
   const nameValue = watch(`customParams.${index}.name`);
@@ -76,17 +77,18 @@ const CustomParamField: React.FC<Props> = ({
         <InputLabel>Custom Parameter *</InputLabel>
         <Controller
           control={control}
-          rules={{ required: 'Custom Parameter is required.' }}
           name={`customParams.${index}.name`}
-          render={({ field: { value, name, onChange } }) => (
-            <Select
-              name={name}
-              placeholder="Select"
-              disabled={isDisabled}
-              minWidth="270px"
-              onChange={onChange}
+          render={({ field: { name, onChange, value } }) => (
+            <InputWithOptions
               value={value}
               options={options}
+              name={name}
+              onChange={(s) => {
+                onChange(s);
+                trigger('customParams');
+              }}
+              minWidth="270px"
+              placeholder="Select"
             />
           )}
         />
@@ -101,9 +103,6 @@ const CustomParamField: React.FC<Props> = ({
         <InputLabel>Value *</InputLabel>
         <Input
           name={`customParams.${index}.value` as const}
-          hookFormOptions={{
-            required: 'Value is required.',
-          }}
           placeholder="Value"
           defaultValue={field.value}
           autoComplete="off"

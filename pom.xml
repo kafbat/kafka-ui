@@ -26,6 +26,7 @@
 
         <sonar.organization>kafbat</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.exclusions>**/e2e-tests/**/*</sonar.exclusions>
         <git.revision>latest</git.revision>
 
         <!-- Dependency versions -->
@@ -40,10 +41,10 @@
         <jackson.version>2.14.0</jackson.version>
         <kafka-clients.version>3.5.2</kafka-clients.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
-        <org.projectlombok.version>1.18.30</org.projectlombok.version>
+        <org.projectlombok.version>1.18.32</org.projectlombok.version>
         <protobuf-java.version>3.23.3</protobuf-java.version>
         <scala-lang.library.version>2.13.9</scala-lang.library.version>
-        <snakeyaml.version>2.0</snakeyaml.version>
+        <snakeyaml.version>2.2</snakeyaml.version>
         <spring-boot.version>3.1.9</spring-boot.version>
         <serde-api.version>1.0.0</serde-api.version>
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
@@ -53,13 +54,13 @@
         <guava.version>33.0.0-jre</guava.version>
         <!-- Test dependency versions -->
         <junit.version>5.9.1</junit.version>
-        <mockito.version>5.3.1</mockito.version>
+        <mockito.version>5.11.0</mockito.version>
         <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
         <testcontainers.version>1.19.5</testcontainers.version>
 
         <!-- Frontend dependency versions -->
         <node.version>v18.17.1</node.version>
-        <pnpm.version>v8.6.12</pnpm.version>
+        <pnpm.version>v9.1.2</pnpm.version>
 
         <!-- Plugin versions -->
         <fabric8-maven-plugin.version>0.42.1</fabric8-maven-plugin.version>

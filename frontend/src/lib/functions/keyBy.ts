@@ -13,7 +13,6 @@ export function keyBy<A extends object, K extends AvailableKeys<A>>(
   return collection.reduce<Record<PropertyKey, A>>((acc, cur) => {
     const key = cur[property] as unknown as PropertyKey;
 
-    // eslint-disable-next-line no-param-reassign
     acc[key] = cur;
 
     return acc;

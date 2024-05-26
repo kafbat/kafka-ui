@@ -447,6 +447,7 @@ components:
                 - FAILED
                 - PAUSED
                 - UNASSIGNED
+                - RESTARTING
             worker_id:
               type: string
             trace:

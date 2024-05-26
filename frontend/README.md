@@ -26,6 +26,17 @@ Install [pnpm](https://pnpm.io/installation)
 npm install -g pnpm
 ```
 
+Update pnpm
+```
+npm rm -g pnpm
+```
+Then reinstall it
+
+or use
+```
+npm install -g pnpm@<version>
+```
+
 Install dependencies
 ```
 pnpm install

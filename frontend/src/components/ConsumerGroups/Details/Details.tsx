@@ -11,7 +11,7 @@ import ClusterContext from 'components/contexts/ClusterContext';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import * as Metrics from 'components/common/Metrics';
 import { Tag } from 'components/common/Tag/Tag.styled';
-import groupBy from 'lodash/groupBy';
+import groupBy from 'lib/functions/groupBy';
 import { Table } from 'components/common/table/Table/Table.styled';
 import getTagColor from 'components/common/Tag/getTagColor';
 import { Dropdown } from 'components/common/Dropdown';
@@ -48,7 +48,10 @@ const Details: React.FC = () => {
     navigate(clusterConsumerGroupResetRelativePath);
   };
 
-  const partitionsByTopic = groupBy(consumerGroup.data?.partitions, 'topic');
+  const partitionsByTopic = groupBy(
+    consumerGroup.data?.partitions || [],
+    'topic'
+  );
   const filteredPartitionsByTopic = Object.keys(partitionsByTopic).filter(
     (el) => el.includes(searchValue)
   );

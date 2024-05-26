@@ -1,25 +1,25 @@
 package io.kafbat.ui;
 
-import io.kafbat.ui.pages.brokers.BrokersConfigTab;
-import io.kafbat.ui.pages.brokers.BrokersDetails;
-import io.kafbat.ui.pages.brokers.BrokersList;
-import io.kafbat.ui.pages.connectors.ConnectorCreateForm;
-import io.kafbat.ui.pages.connectors.ConnectorDetails;
-import io.kafbat.ui.pages.connectors.KafkaConnectList;
-import io.kafbat.ui.pages.consumers.ConsumersDetails;
-import io.kafbat.ui.pages.consumers.ConsumersList;
-import io.kafbat.ui.pages.ksqldb.KsqlDbList;
-import io.kafbat.ui.pages.ksqldb.KsqlQueryForm;
-import io.kafbat.ui.pages.panels.NaviSideBar;
-import io.kafbat.ui.pages.panels.TopPanel;
-import io.kafbat.ui.pages.schemas.SchemaCreateForm;
-import io.kafbat.ui.pages.schemas.SchemaDetails;
-import io.kafbat.ui.pages.schemas.SchemaRegistryList;
-import io.kafbat.ui.pages.topics.ProduceMessagePanel;
-import io.kafbat.ui.pages.topics.TopicCreateEditForm;
-import io.kafbat.ui.pages.topics.TopicDetails;
-import io.kafbat.ui.pages.topics.TopicSettingsTab;
-import io.kafbat.ui.pages.topics.TopicsList;
+import io.kafbat.ui.screens.brokers.BrokersConfigTab;
+import io.kafbat.ui.screens.brokers.BrokersDetails;
+import io.kafbat.ui.screens.brokers.BrokersList;
+import io.kafbat.ui.screens.connectors.ConnectorCreateForm;
+import io.kafbat.ui.screens.connectors.ConnectorDetails;
+import io.kafbat.ui.screens.connectors.KafkaConnectList;
+import io.kafbat.ui.screens.consumers.ConsumersDetails;
+import io.kafbat.ui.screens.consumers.ConsumersList;
+import io.kafbat.ui.screens.ksqldb.KsqlDbList;
+import io.kafbat.ui.screens.ksqldb.KsqlQueryForm;
+import io.kafbat.ui.screens.panels.NaviSideBar;
+import io.kafbat.ui.screens.panels.TopPanel;
+import io.kafbat.ui.screens.schemas.SchemaCreateForm;
+import io.kafbat.ui.screens.schemas.SchemaDetails;
+import io.kafbat.ui.screens.schemas.SchemaRegistryList;
+import io.kafbat.ui.screens.topics.ProduceMessagePanel;
+import io.kafbat.ui.screens.topics.TopicCreateEditForm;
+import io.kafbat.ui.screens.topics.TopicDetails;
+import io.kafbat.ui.screens.topics.TopicSettingsTab;
+import io.kafbat.ui.screens.topics.TopicsList;
 import io.kafbat.ui.services.ApiService;
 
 public abstract class Facade {

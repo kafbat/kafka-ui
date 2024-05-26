@@ -5,19 +5,21 @@ import Table from 'components/common/NewTable';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useAcls, useDeleteAcl } from 'lib/hooks/api/acl';
-import { ClusterName } from 'redux/interfaces';
+import { ClusterName } from 'lib/interfaces/cluster';
 import {
+  Action,
   KafkaAcl,
   KafkaAclNamePatternType,
   KafkaAclPermissionEnum,
+  ResourceType,
 } from 'generated-sources';
 import useBoolean from 'lib/hooks/useBoolean';
-import { Button } from 'components/common/Button/Button';
 import ACLForm from 'components/ACLPage/Form/Form';
 import DeleteIcon from 'components/common/Icons/DeleteIcon';
 import { useTheme } from 'styled-components';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 import PlusIcon from 'components/common/Icons/PlusIcon';
+import ActionButton from 'components/common/ActionComponent/ActionButton/ActionButton';
 
 import * as S from './List.styled';
 
@@ -148,9 +150,17 @@ const ACList: React.FC = () => {
   return (
     <S.Container>
       <PageHeading text="Access Control List">
-        <Button buttonType="primary" buttonSize="M" onClick={openFrom}>
+        <ActionButton
+          buttonType="primary"
+          buttonSize="M"
+          onClick={openFrom}
+          permission={{
+            resource: ResourceType.ACL,
+            action: Action.EDIT,
+          }}
+        >
           <PlusIcon /> Create ACL
-        </Button>
+        </ActionButton>
       </PageHeading>
       <Table
         columns={columns}

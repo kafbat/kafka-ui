@@ -1,7 +1,7 @@
 import React from 'react';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { Link } from 'react-router-dom';
-import { ClusterName } from 'redux/interfaces/cluster';
+import { ClusterName } from 'lib/interfaces/cluster';
 import { clusterTopicPath } from 'lib/paths';
 import MessageToggleIcon from 'components/common/Icons/MessageToggleIcon';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';

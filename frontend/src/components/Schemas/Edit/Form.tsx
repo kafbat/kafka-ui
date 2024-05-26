@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import {
   CompatibilityLevelCompatibilityEnum,
+  SchemaSubject,
   SchemaType,
 } from 'generated-sources';
 import {
@@ -11,39 +12,33 @@ import {
   ClusterSubjectParam,
 } from 'lib/paths';
 import yup from 'lib/yupExtended';
-import { NewSchemaSubjectRaw } from 'redux/interfaces';
+import { NewSchemaSubjectRaw } from 'lib/interfaces/schema';
 import Editor from 'components/common/Editor/Editor';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import PageHeading from 'components/common/PageHeading/PageHeading';
-import { useAppDispatch, useAppSelector } from 'lib/hooks/redux';
 import useAppParams from 'lib/hooks/useAppParams';
-import {
-  schemaAdded,
-  getSchemaLatest,
-  getAreSchemaLatestFulfilled,
-  schemaUpdated,
-  getAreSchemaLatestRejected,
-} from 'redux/reducers/schemas/schemasSlice';
-import PageLoader from 'components/common/PageLoader/PageLoader';
-import { schemasApiClient } from 'lib/api';
-import { showServerError } from 'lib/errorHandling';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormError } from 'components/common/Input/Input.styled';
 import { ErrorMessage } from '@hookform/error-message';
+import {
+  useCreateSchema,
+  useUpdateSchemaCompatibilityLayer,
+} from 'lib/hooks/api/schemas';
 
 import * as S from './Edit.styled';
 
-const Form: React.FC = () => {
+interface FormProps {
+  schema: SchemaSubject;
+}
+
+const Form: React.FC<FormProps> = ({ schema }) => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-
   const { clusterName, subject } = useAppParams<ClusterSubjectParam>();
-
-  const schema = useAppSelector((state) => getSchemaLatest(state));
-  const isFetched = useAppSelector(getAreSchemaLatestFulfilled);
-  const isRejected = useAppSelector(getAreSchemaLatestRejected);
+  const { mutateAsync: createSchema } = useCreateSchema(clusterName);
+  const { mutateAsync: updateCompatibilityLayer } =
+    useUpdateSchemaCompatibilityLayer({ clusterName, subject });
 
   const formatedSchema = React.useMemo(() => {
     return schema?.schemaType === SchemaType.PROTOBUF
@@ -77,47 +72,26 @@ const Form: React.FC = () => {
   const onSubmit = async (props: NewSchemaSubjectRaw) => {
     if (!schema) return;
 
-    try {
-      if (dirtyFields.compatibilityLevel) {
-        await schemasApiClient.updateSchemaCompatibilityLevel({
-          clusterName,
-          subject,
-          compatibilityLevel: {
-            compatibility: props.compatibilityLevel,
-          },
-        });
-        dispatch(
-          schemaUpdated({
-            ...schema,
-            compatibilityLevel: props.compatibilityLevel,
-          })
-        );
-      }
-      if (dirtyFields.newSchema || dirtyFields.schemaType) {
-        const resp = await schemasApiClient.createNewSchema({
-          clusterName,
-          newSchemaSubject: {
-            ...schema,
-            schema: props.newSchema || schema.schema,
-            schemaType: props.schemaType || schema.schemaType,
-          },
-        });
-        dispatch(schemaAdded(resp));
-      }
-
-      navigate(clusterSchemaPath(clusterName, subject));
-    } catch (e) {
-      showServerError(e as Response);
+    if (dirtyFields.compatibilityLevel) {
+      await updateCompatibilityLayer({
+        ...schema,
+        compatibilityLevel: {
+          compatibility: props.compatibilityLevel,
+        },
+      });
     }
+
+    if (dirtyFields.newSchema || dirtyFields.schemaType) {
+      await createSchema({
+        ...schema,
+        schema: props.newSchema || schema.schema,
+        schemaType: props.schemaType || schema.schemaType,
+      });
+    }
+
+    navigate(clusterSchemaPath(clusterName, subject));
   };
 
-  if (isRejected) {
-    navigate('/404');
-  }
-
-  if (!isFetched || !schema) {
-    return <PageLoader />;
-  }
   return (
     <FormProvider {...methods}>
       <PageHeading

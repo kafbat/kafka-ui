@@ -7,16 +7,8 @@ import {
 import ClusterContext from 'components/contexts/ClusterContext';
 import { ActionButton } from 'components/common/ActionComponent';
 import PageHeading from 'components/common/PageHeading/PageHeading';
-import { useAppDispatch, useAppSelector } from 'lib/hooks/redux';
 import useAppParams from 'lib/hooks/useAppParams';
-import {
-  selectAllSchemas,
-  fetchSchemas,
-  getAreSchemasFulfilled,
-  SCHEMAS_FETCH_ACTION,
-} from 'redux/reducers/schemas/schemasSlice';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import { resetLoaderById } from 'redux/reducers/loader/loaderSlice';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import Search from 'components/common/Search/Search';
 import PlusIcon from 'components/common/Icons/PlusIcon';
@@ -25,32 +17,25 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Action, SchemaSubject, ResourceType } from 'generated-sources';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
+import { useGetSchemas } from 'lib/hooks/api/schemas';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
 const List: React.FC = () => {
-  const dispatch = useAppDispatch();
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const navigate = useNavigate();
-  const schemas = useAppSelector(selectAllSchemas);
-  const isFetched = useAppSelector(getAreSchemasFulfilled);
-  const totalPages = useAppSelector((state) => state.schemas.totalPages);
   const [searchParams] = useSearchParams();
-
-  React.useEffect(() => {
-    dispatch(
-      fetchSchemas({
-        clusterName,
-        page: Number(searchParams.get('page') || 1),
-        perPage: Number(searchParams.get('perPage') || PER_PAGE),
-        search: searchParams.get('q') || '',
-      })
-    );
-    return () => {
-      dispatch(resetLoaderById(SCHEMAS_FETCH_ACTION));
-    };
-  }, [clusterName, dispatch, searchParams]);
+  const {
+    isFetching,
+    isError,
+    data = { pageCount: 1, schemas: [] as SchemaSubject[] },
+  } = useGetSchemas({
+    clusterName,
+    page: Number(searchParams.get('page') || 1),
+    perPage: Number(searchParams.get('perPage') || PER_PAGE),
+    search: searchParams.get('q') || '',
+  });
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
     () => [
@@ -96,19 +81,19 @@ const List: React.FC = () => {
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Schema Name" />
       </ControlPanelWrapper>
-      {isFetched ? (
+      {isFetching || isError ? (
+        <PageLoader />
+      ) : (
         <Table
           columns={columns}
-          data={schemas}
-          pageCount={totalPages}
+          data={data.schemas || []}
+          pageCount={data.pageCount || 1}
           emptyMessage="No schemas found"
           onRowClick={(row) =>
             navigate(clusterSchemaPath(clusterName, row.original.subject))
           }
           serverSideProcessing
         />
-      ) : (
-        <PageLoader />
       )}
     </>
   );
