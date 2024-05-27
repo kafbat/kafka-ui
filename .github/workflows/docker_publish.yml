@@ -10,32 +10,8 @@ on:
       generic_tag:
         required: true
         type: string
+
 jobs:
-
-  # load-image:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Download docker image
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: image
-  #         path: /tmp
-
-  #     # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
-  #     - name: Setup docker with containerd
-  #       uses: crazy-max/ghaction-setup-docker@v3
-  #       with:
-  #         daemon-config: |
-  #           {
-  #             "features": {
-  #               "containerd-snapshotter": true
-  #             }
-  #           }
-
-  #     - name: Load docker image into daemon
-  #       run: |
-  #         docker load --input /tmp/image.tar
-
   deploy-ghcr:
     permissions:
       packages: write

@@ -12,7 +12,6 @@ on:
         type: string
 
 jobs:
-
   deploy-ghcr:
     runs-on: ubuntu-latest
 

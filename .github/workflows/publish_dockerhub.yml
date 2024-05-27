@@ -10,8 +10,8 @@ on:
       generic_tag:
         required: true
         type: string
-jobs:
 
+jobs:
   deploy-dockerhub:
     runs-on: ubuntu-latest
     steps:
