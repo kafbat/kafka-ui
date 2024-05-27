@@ -52,7 +52,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
   }
 
   // Schema Registry
-  if (data.schemaRegistry) {
+  if (data.schemaRegistry?.isActive) {
     config.schemaRegistry = data.schemaRegistry.url;
     config.schemaRegistryAuth = transformToCredentials(
       data.schemaRegistry.isAuth,
@@ -65,7 +65,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
   }
 
   // KSQL
-  if (data.ksql) {
+  if (data.ksql?.isActive) {
     config.ksqldbServer = data.ksql.url;
     config.ksqldbServerAuth = transformToCredentials(
       data.ksql.isAuth,
@@ -88,7 +88,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
   }
 
   // Metrics
-  if (data.metrics) {
+  if (data.metrics?.isActive) {
     config.metrics = {
       type: data.metrics.type,
       port: Number(data.metrics.port),
@@ -106,7 +106,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
   };
 
   // Authentication
-  if (data.auth) {
+  if (data.auth?.isActive) {
     const { method, props, securityProtocol, keystore } = data.auth;
     switch (method) {
       case 'SASL/JAAS':
