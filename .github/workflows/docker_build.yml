@@ -1,0 +1,93 @@
+name: "Docker build"
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }}
+
+      - name: Download maven artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: kafbat-ui-${{ inputs.version }}
+          path: api/target
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ inputs.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+        # Build multi platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
+        # So let's use containerd instead as it supports this option
+        # Also containerd is one of the option to allow preserving provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
+      - name: Setup docker with containerd
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          daemon-config: |
+            {
+                "features": {
+                "containerd-snapshotter": true
+                }
+            }
+
+      - name: debug
+        run: |
+          ls -laRh api/target
+
+      - name: Build docker image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: api
+          platforms: linux/amd64,linux/arm64
+          provenance: mode=min
+          sbom: true
+          push: false
+          load: true
+          tags: |
+            kafka-ui:temp
+          build-args: |
+            JAR_FILE=api-${{ inputs.version }}.jar
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Dump docker image
+        run: |
+          docker image save kafka-ui:temp > /tmp/image.tar
+
+      - name: Upload docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: image
+          path: /tmp/image.tar
+          retention-days: 1

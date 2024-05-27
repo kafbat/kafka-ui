@@ -1,0 +1,50 @@
+
+name: "Docker hub publish"
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      generic_tag:
+        required: true
+        type: string
+jobs:
+
+  deploy-dockerhub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: image
+          path: /tmp
+
+      # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
+      - name: Setup docker with containerd
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Load docker image into daemon
+        run: |
+          docker load --input /tmp/image.tar
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push images to dockerhub
+        run: |
+          docker tag kafka-ui:temp docker.io/${{ secrets.DOCKERHUB_USERNAME }}/kafka-ui:${{ inputs.generic_tag }}
+          docker tag kafka-ui:temp docker.io/${{ secrets.DOCKERHUB_USERNAME }}/kafka-ui:${{ inputs.version }}
+          docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/kafka-ui:${{ inputs.generic_tag }}
+          docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/kafka-ui:${{ inputs.version }}
