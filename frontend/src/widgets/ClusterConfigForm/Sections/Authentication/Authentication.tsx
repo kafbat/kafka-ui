@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { AUTH_OPTIONS, SECURITY_PROTOCOL_OPTIONS } from 'lib/constants';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
@@ -10,25 +10,28 @@ const Authentication: React.FC = () => {
   const { watch, setValue } = useFormContext();
   const hasAuth = !!watch('auth');
   const authMethod = watch('auth.method');
+  const [configOpen, setConfigOpen] = useState(false);
   const hasSecurityProtocolField =
     authMethod && !['Delegation tokens', 'mTLS'].includes(authMethod);
 
-  const toggle = () =>
-    setValue('auth', hasAuth ? undefined : {}, {
+  const toggle = () => {
+    setConfigOpen((prevConfigOpen) => !prevConfigOpen);
+    setValue('auth', hasAuth ? { isActive: false } : { isActive: true }, {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
     });
+  };
 
   return (
     <>
       <SectionHeader
         title="Authentication"
-        adding={!hasAuth}
+        adding={!configOpen}
         addButtonText="Configure Authentication"
         onClick={toggle}
       />
-      {hasAuth && (
+      {configOpen && (
         <>
           <ControlledSelect
             name="auth.method"
