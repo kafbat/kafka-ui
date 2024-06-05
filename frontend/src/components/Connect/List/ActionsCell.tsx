@@ -67,7 +67,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.EDIT,
-            value: name,
+            value: connect,
           }}
         >
           Resume
@@ -79,7 +79,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         permission={{
           resource: ResourceType.CONNECT,
           action: Action.RESTART,
-          value: name,
+          value: connect,
         }}
       >
         Restart Connector
@@ -90,7 +90,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         permission={{
           resource: ResourceType.CONNECT,
           action: Action.RESTART,
-          value: name,
+          value: connect,
         }}
       >
         Restart All Tasks
@@ -101,7 +101,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         permission={{
           resource: ResourceType.CONNECT,
           action: Action.RESTART,
-          value: name,
+          value: connect,
         }}
       >
         Restart Failed Tasks

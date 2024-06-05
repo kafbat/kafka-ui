@@ -3471,6 +3471,7 @@ components:
         - PAUSED
         - UNASSIGNED
         - TASK_FAILED
+        - RESTARTING
 
     ConnectorAction:
       type: string
@@ -3820,6 +3821,7 @@ components:
     Action:
       type: string
       enum:
+        - ALL
         - VIEW
         - EDIT
         - CREATE

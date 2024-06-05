@@ -52,6 +52,34 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
   };
 }
 
+export function getCursorValue(urlSearchParam: URLSearchParams) {
+  const cursor = parseInt(
+    urlSearchParam.get(MessagesFilterKeys.cursor) || '0',
+    10
+  );
+
+  if (Number.isNaN(cursor)) {
+    return 0;
+  }
+
+  return cursor;
+}
+
+export function usePaginateTopics(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const cursor = getCursorValue(params) + 1;
+
+      if (cursor) {
+        params.set(MessagesFilterKeys.cursor, cursor.toString());
+      }
+
+      return params;
+    });
+  };
+}
+
 export function useMessagesFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
   const refreshData = useRefreshData(searchParams);
@@ -68,6 +96,9 @@ export function useMessagesFilters() {
         params.delete(MessagesFilterKeys.activeFilterNPId);
         params.delete(MessagesFilterKeys.smartFilterId);
       }
+
+      params.delete(MessagesFilterKeys.cursor);
+
       return params;
     });
   }, []);
@@ -92,7 +123,9 @@ export function useMessagesFilters() {
 
   const search = searchParams.get(MessagesFilterKeys.stringFilter) || '';
 
-  const partitions = searchParams.getAll(MessagesFilterKeys.partitions);
+  const partitions = (searchParams.get(MessagesFilterKeys.partitions) || '')
+    .split(',')
+    .filter((v) => v);
 
   const smartFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) ||
@@ -166,9 +199,12 @@ export function useMessagesFilters() {
     setSearchParams((params) => {
       params.delete(MessagesFilterKeys.partitions);
 
-      values.forEach((option) => {
-        params.append(MessagesFilterKeys.partitions, option.value);
-      });
+      if (values.length) {
+        params.append(
+          MessagesFilterKeys.partitions,
+          values.map((v) => v.value).join(',')
+        );
+      }
 
       return params;
     });

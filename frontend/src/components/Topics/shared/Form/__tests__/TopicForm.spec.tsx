@@ -52,7 +52,7 @@ describe('TopicForm', () => {
     expectByRoleAndNameToBeInDocument('button', '7 days');
     expectByRoleAndNameToBeInDocument('button', '4 weeks');
 
-    expectByRoleAndNameToBeInDocument('listbox', 'Max size on disk in GB');
+    expectByRoleAndNameToBeInDocument('listbox', 'Max partition size in GB');
     expectByRoleAndNameToBeInDocument(
       'spinbutton',
       'Maximum message size in bytes'

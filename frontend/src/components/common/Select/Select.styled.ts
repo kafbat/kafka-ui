@@ -81,7 +81,7 @@ export const OptionList = styled.ul`
   line-height: 18px;
   color: ${({ theme }) => theme.select.color.normal};
   overflow-y: auto;
-  z-index: 10;
+  z-index: 12;
   max-width: 300px;
   min-width: 100%;
   align-items: center;
