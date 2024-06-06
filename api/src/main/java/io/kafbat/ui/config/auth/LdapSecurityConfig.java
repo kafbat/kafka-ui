@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
+import org.springframework.ldap.core.support.DefaultTlsDirContextAuthenticationStrategy;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -90,6 +91,9 @@ public class LdapSecurityConfig {
     ctx.setUserDn(props.getAdminUser());
     ctx.setPassword(props.getAdminPassword());
     ctx.afterPropertiesSet();
+    if (props.getUrls().startsWith("ldaps://")) {
+      ctx.setAuthenticationStrategy(new DefaultTlsDirContextAuthenticationStrategy());
+    }
     return ctx;
   }
 
