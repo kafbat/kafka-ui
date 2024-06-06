@@ -14,7 +14,6 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
 
     outputs:
       version: ${{steps.build.outputs.version}}
@@ -46,7 +45,7 @@ jobs:
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
-          retention-days: 7
+          retention-days: 1
 
   docker-build:
     needs: jar-build
