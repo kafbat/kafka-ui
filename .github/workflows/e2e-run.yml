@@ -134,7 +134,7 @@ jobs:
   reports:
     runs-on: ubuntu-latest
     needs: tests
-    if: ${{ !cancelled() && github.repository == 'kafbat/kafka-ui' }}
+    if: ${{ !cancelled() && github.repository == 'kafbat/kafka-ui' && github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Download allure reports artifact
         uses: actions/download-artifact@v4
