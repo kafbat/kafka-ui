@@ -58,7 +58,7 @@ jobs:
       sha: ${{ github.sha }}
       version: ${{ needs.jar-build.outputs.version }}
 
-  docker-deploy:
+  docker-deploy: 
     needs: [jar-build, docker-build]
     permissions:
       contents: read # To read secrets
