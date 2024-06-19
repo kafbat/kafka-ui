@@ -1,0 +1,38 @@
+ARG BASE_UI_IMAGE=ghcr.io/kafbat/kafka-ui:main
+FROM $BASE_UI_IMAGE
+
+USER root
+RUN mkdir /usr/lib/serdes; \
+    chown -R kafkaui:kafkaui /usr/lib/serdes
+USER kafkaui
+
+# Install Smile Serde
+ARG SERDE_SMILE_JAR=https://github.com/kafbat/ui-serde-smile/releases/download/v1.0.1/serde-smile-v1.0.1-jar-with-dependencies.jar
+ARG SERDE_SMILE_VERSION=1.0.1
+
+RUN cd /usr/lib/serdes; \
+    wget -O "kafka-ui-smile-serde-${SERDE_SMILE_VERSION}.jar" $SERDE_SMILE_JAR
+
+ENV kafka.clusters.0.serde.0.name="Smile"
+ENV kafka.clusters.0.serde.0.filePath="/usr/lib/serdes/kafka-ui-serde-smile-${SERDE_SMILE_VERSION}.jar"
+ENV kafka.clusters.0.serde.0.className="io.kafbat.serde.smile.SmileSerde"
+
+# Install Glue Serde
+ARG SERDE_GLUE_JAR=https://github.com/kafbat/ui-serde-glue/releases/download/v1.0.1/serde-glue-v1.0.1-jar-with-dependencies.jar
+ARG SERDE_GLUE_VERSION=1.0.1
+RUN cd /usr/lib/serdes; \
+    wget -O "kafka-ui-serde-glue-${SERDE_GLUE_VERSION}.jar" $SERDE_GLUE_JAR
+ENV kafka.clusters.0.serde.1.name="Glue"
+ENV kafka.clusters.0.serde.1.filePath="/usr/lib/serdes/kafka-ui-serde-glue-${SERDE_GLUE_VERSION}.jar"
+ENV kafka.clusters.0.serde.1.className="io.kafbat.ui.serde.glue.GlueSerde"
+ENV kafka.clusters.0.serde.1.properties.region="us-east-1"
+ENV kafka.clusters.0.serde.1.properties.registry="kui-test"
+# template that will be used to find schema name for topic key. Optional, default is null (not set).
+ENV kafka.clusters.0.serde.0.properties.keySchemaNameTemplate="%s-key"
+# template that will be used to find schema name for topic value. Optional, default is  '%s'
+ENV kafka.clusters.0.serde.0.properties.valueSchemaNameTemplate="%s-value"
+# schema name -> topics pattern where it will be used for keys. Optional.
+ENV kafka.clusters.0.serde.0.properties.topicKeysSchemas.some-topic-key="some-topic1|some-topic2"
+# schema name -> topics pattern where it will be used for values. Optional.
+ENV kafka.clusters.0.serde.0.properties.topicValuesSchemas.some-topic-value="some-topic1|some-topic2"
+ENV kafka.clusters.0.serde.0.properties.topicValuesSchemas.another-topic-val="another-topic-value"
