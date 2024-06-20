@@ -7,6 +7,8 @@ import MessagesTable, {
 } from 'components/Topics/Topic/Messages/MessagesTable';
 import { TopicMessage, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { useIsLiveMode } from 'lib/hooks/useMessagesFilters';
+import useAppParams from 'lib/hooks/useAppParams';
+import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
 
 export const topicMessagePayload: TopicMessage = {
   partition: 29,
@@ -33,8 +35,16 @@ jest.mock('lib/hooks/useMessagesFilters', () => ({
   usePaginateTopics: jest.fn(),
 }));
 
+jest.mock('lib/hooks/useAppParams', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 describe('MessagesTable', () => {
   const renderComponent = (props?: Partial<MessagesTableProps>) => {
+    (useAppParams as jest.Mock).mockImplementation(() => ({
+      topicName: 'testTopic',
+    }));
     return render(
       <MessagesTable messages={[]} isFetching={false} {...props} />
     );
@@ -97,6 +107,36 @@ describe('MessagesTable', () => {
           screen.getByText(mockTopicsMessages[0].content)
         ).toBeInTheDocument();
       }
+    });
+  });
+
+  describe('should save messages preview into localstorage', () => {
+    beforeEach(() => {
+      renderComponent({ messages: mockTopicsMessages, isFetching: false });
+    });
+
+    it('should save messages preview into localstorage', async () => {
+      const previewButtons = screen.getAllByText('Preview');
+      await userEvent.click(previewButtons[0]);
+      await userEvent.type(screen.getByPlaceholderText('Field'), 'test1');
+      await userEvent.type(screen.getByPlaceholderText('Json Path'), 'test2');
+      await userEvent.click(screen.getByText('Save'));
+      await userEvent.click(previewButtons[1]);
+      await userEvent.type(screen.getByPlaceholderText('Field'), 'test3');
+      await userEvent.type(screen.getByPlaceholderText('Json Path'), 'test4');
+      await userEvent.click(screen.getByText('Save'));
+      expect(
+        global.localStorage.getItem(
+          `${LOCAL_STORAGE_KEY_PREFIX}-message-preview`
+        )
+      ).toEqual(
+        JSON.stringify({
+          testTopic: {
+            keyFilters: [{ field: 'test1', path: 'test2' }],
+            contentFilters: [{ field: 'test3', path: 'test4' }],
+          },
+        })
+      );
     });
   });
 });
