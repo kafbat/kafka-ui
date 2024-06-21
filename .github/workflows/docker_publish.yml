@@ -11,6 +11,10 @@ on:
         required: true
         type: string        
 
+permissions:
+  packages: write
+  id-token: write # Required to authenticate with OIDC for AWS
+
 jobs:
   deploy:
     continue-on-error: true

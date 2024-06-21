@@ -57,7 +57,6 @@ jobs:
     needs: release
     permissions:
       contents: read
-      packages: write
     uses: ./.github/workflows/docker_build.yml
     secrets: inherit
     with:
@@ -67,9 +66,8 @@ jobs:
   docker-deploy:
     needs: [release, docker-build]
     permissions:
-      contents: read # To read secrets
-      id-token: write # This is required for requesting the JWT
       packages: write
+      id-token: write # Required to authenticate with OIDC for AWS
     uses: ./.github/workflows/docker_publish.yml
     secrets: inherit
     with:
