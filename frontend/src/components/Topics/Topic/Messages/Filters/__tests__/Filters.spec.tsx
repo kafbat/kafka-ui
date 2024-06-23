@@ -10,12 +10,10 @@ import { useTopicDetails } from 'lib/hooks/api/topics';
 import { externalTopicPayload } from 'lib/fixtures/topics';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
 import { serdesPayload } from 'lib/fixtures/topicMessages';
-import {
-  MessagesFilterKeys,
-  MessagesFilterKeysTypes,
-} from 'lib/hooks/useMessagesFilters';
 import { PollingMode } from 'generated-sources';
 import { ModeOptions } from 'lib/hooks/filterUtils';
+import { MessagesFilterKeysTypes } from 'lib/types';
+import { MessagesFilterKeys } from 'lib/constants';
 
 const closeIconMock = 'closeIconMock';
 const filtersSideBarMock = 'filtersSideBarMock';
