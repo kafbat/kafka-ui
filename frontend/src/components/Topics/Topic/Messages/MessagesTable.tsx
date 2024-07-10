@@ -2,7 +2,7 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
 import { TopicMessage } from 'generated-sources';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
 import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
@@ -50,33 +50,38 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
     setContentFilters(messagesPreview[topicName]?.contentFilters || []);
   }, []);
 
+  const setFilters = useCallback(
+    (payload: PreviewFilter[]) => {
+      if (previewFor === 'key') {
+        setKeyFilters(payload);
+        setMessagesPreview({
+          ...messagesPreview,
+          [topicName]: {
+            ...messagesPreview[topicName],
+            keyFilters: payload,
+          },
+        });
+      } else {
+        setContentFilters(payload);
+        setMessagesPreview({
+          ...messagesPreview,
+          [topicName]: {
+            ...messagesPreview[topicName],
+            contentFilters: payload,
+          },
+        });
+      }
+    },
+    [previewFor, messagesPreview, topicName]
+  );
+
   return (
     <div style={{ position: 'relative' }}>
       {previewFor !== null && (
         <PreviewModal
           values={previewFor === 'key' ? keyFilters : contentFilters}
           toggleIsOpen={() => setPreviewFor(null)}
-          setFilters={(payload: PreviewFilter[]) => {
-            if (previewFor === 'key') {
-              setKeyFilters(payload);
-              setMessagesPreview({
-                ...messagesPreview,
-                [topicName]: {
-                  ...messagesPreview[topicName],
-                  keyFilters: payload,
-                },
-              });
-            } else {
-              setContentFilters(payload);
-              setMessagesPreview({
-                ...messagesPreview,
-                [topicName]: {
-                  ...messagesPreview[topicName],
-                  contentFilters: payload,
-                },
-              });
-            }
-          }}
+          setFilters={setFilters}
         />
       )}
       <Table isFullwidth>
