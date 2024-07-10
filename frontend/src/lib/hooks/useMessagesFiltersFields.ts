@@ -1,4 +1,3 @@
-import { PollingMode } from 'generated-sources';
 import { MessagesFilterKeysTypes } from 'lib/types';
 import { MessagesFilterKeys } from 'lib/constants';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
@@ -47,108 +46,42 @@ export function useMessagesFiltersFields(topicName: string) {
 
   const initMessagesFiltersFields = (params: URLSearchParams) => {
     const topicMessagesFilters = messageFilters[topicName];
+
+    const setTopicMessageFiltersFromLocalStorage = (
+      key: keyof MessagesFilterFieldsType
+    ) => {
+      if (topicMessagesFilters[key]) {
+        params.set(MessagesFilterKeys[key], topicMessagesFilters[key]);
+      }
+    };
+
+    const setTopicMessageFiltersFromUrlParams = (
+      key: keyof MessagesFilterFieldsType
+    ) => {
+      const filters = params.get(MessagesFilterKeys[key]);
+      if (filters) {
+        setMessagesFiltersField(key, filters);
+      }
+    };
+
+    // if url params are empty and topicMessagesFilters from local storage are existing then we apply them
     if (params.size === 0 && !!topicMessagesFilters) {
-      if (topicMessagesFilters.mode) {
-        params.set(MessagesFilterKeys.mode, topicMessagesFilters.mode);
-        if (
-          topicMessagesFilters.mode === PollingMode.FROM_OFFSET ||
-          topicMessagesFilters.mode === PollingMode.TO_OFFSET
-        ) {
-          if (topicMessagesFilters.offset) {
-            params.set(MessagesFilterKeys.offset, topicMessagesFilters.offset);
-          }
-        }
-
-        if (
-          topicMessagesFilters.mode === PollingMode.FROM_TIMESTAMP ||
-          topicMessagesFilters.mode === PollingMode.TO_TIMESTAMP
-        ) {
-          if (topicMessagesFilters.timestamp) {
-            params.set(
-              MessagesFilterKeys.timestamp,
-              topicMessagesFilters.timestamp
-            );
-          }
-        }
-      }
-      if (topicMessagesFilters.partitions) {
-        params.set(
-          MessagesFilterKeys.partitions,
-          topicMessagesFilters.partitions
-        );
-      }
-      if (topicMessagesFilters.keySerde) {
-        params.set(MessagesFilterKeys.keySerde, topicMessagesFilters.keySerde);
-      }
-      if (topicMessagesFilters.valueSerde) {
-        params.set(
-          MessagesFilterKeys.valueSerde,
-          topicMessagesFilters.valueSerde
-        );
-      }
-      if (topicMessagesFilters.stringFilter) {
-        params.set(
-          MessagesFilterKeys.stringFilter,
-          topicMessagesFilters.stringFilter
-        );
-      }
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.mode);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.offset);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.timestamp);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.partitions);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.keySerde);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.valueSerde);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.stringFilter);
     } else {
-      const MessagesFiltersMode = params.get(MessagesFilterKeys.mode);
-      if (MessagesFiltersMode) {
-        removeMessagesFilterFields();
-        setMessagesFiltersField(MessagesFilterKeys.mode, MessagesFiltersMode);
-        const MessagesFiltersOffset = params.get(MessagesFilterKeys.offset);
-        if (MessagesFiltersOffset) {
-          setMessagesFiltersField(
-            MessagesFilterKeys.offset,
-            MessagesFiltersOffset
-          );
-        }
-        const MessagesFiltersTimestamp = params.get(
-          MessagesFilterKeys.timestamp
-        );
-        if (MessagesFiltersTimestamp) {
-          setMessagesFiltersField(
-            MessagesFilterKeys.timestamp,
-            MessagesFiltersTimestamp
-          );
-        }
-      }
-
-      const MessageFiltersPartitions = params.get(
-        MessagesFilterKeys.partitions
-      );
-      if (MessageFiltersPartitions) {
-        setMessagesFiltersField(
-          MessagesFilterKeys.partitions,
-          MessageFiltersPartitions
-        );
-      }
-      const MessagesFiltersKeySerde = params.get(MessagesFilterKeys.keySerde);
-      if (MessagesFiltersKeySerde) {
-        setMessagesFiltersField(
-          MessagesFilterKeys.keySerde,
-          MessagesFiltersKeySerde
-        );
-      }
-      const MessagesFiltersValueSerde = params.get(
-        MessagesFilterKeys.valueSerde
-      );
-      if (MessagesFiltersValueSerde) {
-        setMessagesFiltersField(
-          MessagesFilterKeys.valueSerde,
-          MessagesFiltersValueSerde
-        );
-      }
-      const MessagesFiltersStringFilter = params.get(
-        MessagesFilterKeys.stringFilter
-      );
-      if (MessagesFiltersStringFilter) {
-        setMessagesFiltersField(
-          MessagesFilterKeys.stringFilter,
-          MessagesFiltersStringFilter
-        );
-      }
+      removeMessagesFilterFields();
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.mode);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.offset);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.timestamp);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.partitions);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.keySerde);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.valueSerde);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.stringFilter);
     }
   };
 
