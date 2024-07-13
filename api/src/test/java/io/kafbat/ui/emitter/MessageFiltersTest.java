@@ -10,10 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Nested;
@@ -100,7 +101,7 @@ class MessageFiltersTest {
       var ts = OffsetDateTime.now();
       var f = celScriptFilter("record.timestampMs == " + ts.toInstant().toEpochMilli());
       assertTrue(f.test(msg().timestamp(ts)));
-      assertFalse(f.test(msg().timestamp(ts.plus(1L, ChronoUnit.SECONDS))));
+      assertFalse(f.test(msg().timestamp(ts.plusSeconds(1L))));
     }
 
     @Test
@@ -177,6 +178,7 @@ class MessageFiltersTest {
         toFilter.add(msg().content(jsonContent).key(randString));
       }
       // first iteration for warmup
+      // noinspection ResultOfMethodCallIgnored
       toFilter.stream().filter(f).count();
 
       long before = System.currentTimeMillis();
@@ -188,10 +190,15 @@ class MessageFiltersTest {
     }
   }
 
+  @Test
+  void testBase64DecodingWorks() {
+    var uuid = UUID.randomUUID().toString();
+    var msg = "test." + Base64.getEncoder().encodeToString(uuid.getBytes());
+    var f = celScriptFilter("string(base64.decode(record.value.split('.')[1])).contains('" + uuid + "')");
+    assertTrue(f.test(msg().content(msg)));
+  }
+
   private TopicMessageDTO msg() {
-    return new TopicMessageDTO()
-        .timestamp(OffsetDateTime.now())
-        .offset(-1L)
-        .partition(1);
+    return new TopicMessageDTO(1, -1L, OffsetDateTime.now());
   }
 }
