@@ -50,8 +50,9 @@ export function useMessagesFiltersFields(topicName: string) {
     const setTopicMessageFiltersFromLocalStorage = (
       key: keyof MessagesFilterFieldsType
     ) => {
-      if (topicMessagesFilters[key]) {
-        params.set(MessagesFilterKeys[key], topicMessagesFilters[key]);
+      const value = topicMessagesFilters[key];
+      if (value) {
+        params.set(MessagesFilterKeys[key], value);
       }
     };
 
