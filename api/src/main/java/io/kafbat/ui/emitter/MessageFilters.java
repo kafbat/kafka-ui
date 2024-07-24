@@ -18,12 +18,12 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import io.kafbat.ui.exception.CelException;
-import io.kafbat.ui.model.MessageFilterTypeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,8 +42,7 @@ public class MessageFilters {
   private static final String CEL_RECORD_TYPE_NAME = TopicMessageDTO.class.getSimpleName();
 
   private static final CelCompiler CEL_COMPILER = createCompiler();
-  private static final CelRuntime CEL_RUNTIME = CelRuntimeFactory.standardCelRuntimeBuilder()
-      .build();
+  private static final CelRuntime CEL_RUNTIME = createRuntime();
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -143,6 +142,7 @@ public class MessageFilters {
     return CelCompilerFactory.standardCelCompilerBuilder()
         .setOptions(CelOptions.DEFAULT)
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addLibraries(CelExtensions.strings(), CelExtensions.encoders())
         .addVar(CEL_RECORD_VAR_NAME, recordType)
         .setResultType(SimpleType.BOOL)
         .setTypeProvider(new CelTypeProvider() {
@@ -156,6 +156,12 @@ public class MessageFilters {
             return CEL_RECORD_TYPE_NAME.equals(typeName) ? Optional.of(recordType) : Optional.empty();
           }
         })
+        .build();
+  }
+
+  private static CelRuntime createRuntime() {
+    return CelRuntimeFactory.standardCelRuntimeBuilder()
+        .addLibraries(CelExtensions.strings(), CelExtensions.encoders())
         .build();
   }
 
