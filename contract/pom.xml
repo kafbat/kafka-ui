@@ -46,6 +46,11 @@
                     <artifactId>javax.annotation-api</artifactId>
                     <version>1.3.2</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                    <version>${org.projectlombok.version}</version>
+                </dependency>
             </dependencies>
 
             <build>
@@ -100,6 +105,12 @@
                                         <useTags>true</useTags>
                                         <useSpringBoot3>true</useSpringBoot3>
                                         <dateLibrary>java8</dateLibrary>
+                                        <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
+                                        <additionalModelTypeAnnotations>
+                                            @lombok.experimental.SuperBuilder
+                                            @lombok.NoArgsConstructor
+                                            @lombok.AllArgsConstructor
+                                        </additionalModelTypeAnnotations>
                                     </configOptions>
                                 </configuration>
                             </execution>
