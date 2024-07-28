@@ -80,13 +80,15 @@ public class SerdeInstance implements Closeable {
   }
 
   public Serde.Serializer serializer(String topic, Serde.Target type) {
-    Serde.Serializer realSerializer = serde.serializer(topic, type);
+    var serializer = serde.serializer(topic, type);
+    // Create a dynamic proxy instance for the Serde.Serializer interface
     return (Serde.Serializer) Proxy.newProxyInstance(
         classLoader,
         new Class<?>[] { Serde.Serializer.class },
-        (proxy, method, args) -> wrapWithClassloader(() -> {
+        (proxy, method, args) -> wrapWithClassloader(() -> { // Invocation handler to wrap method calls
           try {
-            return method.invoke(realSerializer, args);
+            // Invoke the actual serializer method with the provided arguments
+            return method.invoke(serializer, args);
           } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Error invoking serializer method", e.getCause());
           }

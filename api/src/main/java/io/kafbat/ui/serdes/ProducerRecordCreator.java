@@ -22,14 +22,12 @@ public class ProducerRecordCreator {
                                                @Nullable Map<String, String> headers) {
 
     Headers kafkaHeaders = createHeaders(headers);
-    byte[] keyBytes = keySerializer.serialize(key, kafkaHeaders);
-    byte[] valueBytes = valuesSerializer.serialize(value, kafkaHeaders);
 
     return new ProducerRecord<>(
         topic,
         partition,
-        keyBytes,
-        valueBytes,
+        key == null ? null : keySerializer.serialize(key, kafkaHeaders),
+        value == null ? null : valuesSerializer.serialize(value, kafkaHeaders),
         kafkaHeaders
     );
   }
