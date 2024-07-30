@@ -7,12 +7,14 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AppConfigurationEntry;
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler;
+import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,10 @@ import org.slf4j.LoggerFactory;
 public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AzureEntraLoginCallbackHandler.class);
+
+  private static final Duration ACCESS_TOKEN_REQUEST_BLOCK_TIME = Duration.ofSeconds(10);
+
+  private static final int ACCESS_TOKEN_REQUEST_MAX_RETRIES = 6;
 
   private static final String TOKEN_AUDIENCE_FORMAT = "%s://%s/.default";
 
@@ -79,9 +85,15 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
 
   private void handleOAuthCallback(OAuthBearerTokenCallback oauthCallback) {
     try {
-      final AccessToken accessToken = tokenCredential.getTokenSync(tokenRequestContext);
-      final AzureEntraOAuthBearerTokenImpl oauthBearerToken = new AzureEntraOAuthBearerTokenImpl(accessToken);
-      oauthCallback.token(oauthBearerToken);
+      final OAuthBearerToken token = tokenCredential
+          .getToken(tokenRequestContext)
+          .map(AzureEntraOAuthBearerTokenImpl::new)
+          .timeout(ACCESS_TOKEN_REQUEST_BLOCK_TIME)
+          .doOnError(e -> LOGGER.warn("Failed to acquire Azure token for Event Hub Authentication. Retrying.", e))
+          .retry(ACCESS_TOKEN_REQUEST_MAX_RETRIES)
+          .block();
+
+      oauthCallback.token(token);
     } catch (final RuntimeException e) {
       final String message =
           "Failed to acquire Azure token for Event Hub Authentication. "
