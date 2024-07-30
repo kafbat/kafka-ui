@@ -143,6 +143,7 @@ const authSchema = lazy((value) => {
           'Delegation tokens',
           'SASL/LDAP',
           'SASL/AWS IAM',
+          'SASL/Azure Entra',
           'mTLS',
         ]),
       securityProtocol: string()
