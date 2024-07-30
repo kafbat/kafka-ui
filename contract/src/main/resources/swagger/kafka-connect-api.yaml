@@ -448,6 +448,7 @@ components:
                 - PAUSED
                 - UNASSIGNED
                 - RESTARTING
+                - STOPPED
             worker_id:
               type: string
             trace:
