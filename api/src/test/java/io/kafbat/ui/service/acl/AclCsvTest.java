@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.kafbat.ui.exception.ValidationException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
 import org.apache.kafka.common.acl.AclOperation;
@@ -15,6 +16,8 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class AclCsvTest {
@@ -29,20 +32,24 @@ class AclCsvTest {
   );
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host\n"
-          + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*\n"
-          + "User:test2,GROUP,PREFIXED,group1,DESCRIBE,DENY,localhost",
-
-      //without header
-      "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*\n"
-          + "\n"
-          + "User:test2,GROUP,PREFIXED,group1,DESCRIBE,DENY,localhost"
-          + "\n"
-  })
+  @MethodSource
   void parsesValidInputCsv(String csvString) {
     Collection<AclBinding> parsed = AclCsv.parseCsv(csvString);
     assertThat(parsed).containsExactlyInAnyOrderElementsOf(TEST_BINDINGS);
+  }
+
+  private static Stream<Arguments> parsesValidInputCsv() {
+    return Stream.of(
+        Arguments.of(
+            "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host" + System.lineSeparator()
+                + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*" + System.lineSeparator()
+                + "User:test2,GROUP,PREFIXED,group1,DESCRIBE,DENY,localhost"),
+        Arguments.of(
+            //without header
+            "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*" + System.lineSeparator()
+                + System.lineSeparator()
+                + "User:test2,GROUP,PREFIXED,group1,DESCRIBE,DENY,localhost"
+                + System.lineSeparator()));
   }
 
   @ParameterizedTest
