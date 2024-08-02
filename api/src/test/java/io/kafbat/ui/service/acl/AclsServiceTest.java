@@ -68,8 +68,8 @@ class AclsServiceTest {
 
     aclsService.syncAclWithAclCsv(
         CLUSTER,
-        "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host\n"
-            + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*\n"
+        "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host" + System.lineSeparator()
+            + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*" + System.lineSeparator()
             + "User:test3,GROUP,PREFIXED,groupNew,DESCRIBE,DENY,localhost"
     ).block();
 

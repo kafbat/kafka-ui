@@ -501,7 +501,7 @@ export const theme = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: hexToRgba(Colors.brand[95], 0),
+        normal: Colors.brand[0],
         hover: hexToRgba(Colors.brand[95], 0.03),
         active: hexToRgba(Colors.brand[95], 0.05),
       },
@@ -985,7 +985,7 @@ export const darkTheme: ThemeType = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: hexToRgba(Colors.brand[0], 0),
+        normal: Colors.brand[90],
         hover: hexToRgba(Colors.brand[0], 0.05),
         active: hexToRgba(Colors.brand[0], 0.1),
       },
