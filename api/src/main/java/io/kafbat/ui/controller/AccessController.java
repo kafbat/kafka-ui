@@ -45,7 +45,7 @@ public class AccessController implements AuthorizationApi {
         .map(SecurityContext::getAuthentication)
         .map(Principal::getName);
 
-    AuthenticationInfoDTO.AuthenticationInfoDTOBuilder<?, ?> builder = AuthenticationInfoDTO.builder()
+    var builder = AuthenticationInfoDTO.builder()
         .rbacEnabled(accessControlService.isRbacEnabled());
 
     return userName
