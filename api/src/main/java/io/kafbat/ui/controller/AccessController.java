@@ -45,33 +45,34 @@ public class AccessController implements AuthorizationApi {
         .map(SecurityContext::getAuthentication)
         .map(Principal::getName);
 
+    var builder = AuthenticationInfoDTO.builder()
+        .rbacEnabled(accessControlService.isRbacEnabled());
+
     return userName
         .zipWith(permissions)
-        .map(data -> {
-          var dto = new AuthenticationInfoDTO(accessControlService.isRbacEnabled());
-          dto.setUserInfo(new UserInfoDTO(data.getT1(), data.getT2()));
-          return dto;
-        })
-        .switchIfEmpty(Mono.just(new AuthenticationInfoDTO(accessControlService.isRbacEnabled())))
+        .map(data -> (AuthenticationInfoDTO) builder
+            .userInfo(new UserInfoDTO(data.getT1(), data.getT2()))
+            .build()
+        )
+        .switchIfEmpty(Mono.just(builder.build()))
         .map(ResponseEntity::ok);
   }
 
   private List<UserPermissionDTO> mapPermissions(List<Permission> permissions, List<String> clusters) {
     return permissions
         .stream()
-        .map(permission -> {
-          UserPermissionDTO dto = new UserPermissionDTO();
-          dto.setClusters(clusters);
-          dto.setResource(ResourceTypeDTO.fromValue(permission.getResource().toString().toUpperCase()));
-          dto.setValue(permission.getValue());
-          dto.setActions(permission.getParsedActions()
-              .stream()
-              .map(p -> p.name().toUpperCase())
-              .map(this::mapAction)
-              .filter(Objects::nonNull)
-              .toList());
-          return dto;
-        })
+        .map(permission -> (UserPermissionDTO) UserPermissionDTO.builder()
+            .clusters(clusters)
+            .resource(ResourceTypeDTO.fromValue(permission.getResource().toString().toUpperCase()))
+            .value(permission.getValue())
+            .actions(permission.getParsedActions()
+                .stream()
+                .map(p -> p.name().toUpperCase())
+                .map(this::mapAction)
+                .filter(Objects::nonNull)
+                .toList())
+            .build()
+        )
         .toList();
   }
 
