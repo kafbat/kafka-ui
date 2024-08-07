@@ -350,18 +350,12 @@ public class TopicsController extends AbstractController implements TopicsApi {
     if (orderBy == null) {
       return defaultComparator;
     }
-    switch (orderBy) {
-      case TOTAL_PARTITIONS:
-        return Comparator.comparing(InternalTopic::getPartitionCount);
-      case OUT_OF_SYNC_REPLICAS:
-        return Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
-      case REPLICATION_FACTOR:
-        return Comparator.comparing(InternalTopic::getReplicationFactor);
-      case SIZE:
-        return Comparator.comparing(InternalTopic::getSegmentSize);
-      case NAME:
-      default:
-        return defaultComparator;
-    }
+    return switch (orderBy) {
+      case TOTAL_PARTITIONS -> Comparator.comparing(InternalTopic::getPartitionCount);
+      case OUT_OF_SYNC_REPLICAS -> Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
+      case REPLICATION_FACTOR -> Comparator.comparing(InternalTopic::getReplicationFactor);
+      case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
+      default -> defaultComparator;
+    };
   }
 }
