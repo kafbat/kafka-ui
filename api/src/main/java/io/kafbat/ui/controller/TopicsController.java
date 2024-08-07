@@ -1,9 +1,10 @@
 package io.kafbat.ui.controller;
 
+import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_RUN;
+import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_VIEW;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.CREATE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
-import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
 
@@ -272,7 +273,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_RUN)
         .operationName("analyzeTopic")
         .build();
 
@@ -288,7 +289,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
                                                         ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_RUN)
         .operationName("cancelTopicAnalysis")
         .build();
 
@@ -306,7 +307,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_VIEW)
         .operationName("getTopicAnalysis")
         .build();
 
