@@ -4,6 +4,7 @@ import useAppParams from 'lib/hooks/useAppParams';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { useNavigate } from 'react-router-dom';
 import { useGetLatestSchema } from 'lib/hooks/api/schemas';
+import { QUERY_REFETCH_LIMITED_OPTIONS } from 'lib/constants';
 
 import Form from './Form';
 
@@ -14,10 +15,13 @@ const Edit: React.FC = () => {
     isFetching,
     isError,
     data: schema,
-  } = useGetLatestSchema({
-    clusterName,
-    subject,
-  });
+  } = useGetLatestSchema(
+    {
+      clusterName,
+      subject,
+    },
+    QUERY_REFETCH_LIMITED_OPTIONS
+  );
 
   useEffect(() => {
     if (isError) {

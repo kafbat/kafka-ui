@@ -7,7 +7,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { topicFormValidationSchema } from 'lib/yupExtended';
 import useAppParams from 'lib/hooks/useAppParams';
 import topicParamsTransformer from 'components/Topics/Topic/Edit/topicParamsTransformer';
-import { MILLISECONDS_IN_WEEK } from 'lib/constants';
+import {
+  MILLISECONDS_IN_WEEK,
+  QUERY_REFETCH_LIMITED_OPTIONS,
+} from 'lib/constants';
 import {
   useTopicConfig,
   useTopicDetails,
@@ -30,8 +33,14 @@ export const TOPIC_EDIT_FORM_DEFAULT_PROPS = {
 
 const Edit: React.FC = () => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
-  const { data: topic } = useTopicDetails({ clusterName, topicName });
-  const { data: topicConfig } = useTopicConfig({ clusterName, topicName });
+  const { data: topic } = useTopicDetails(
+    { clusterName, topicName },
+    QUERY_REFETCH_LIMITED_OPTIONS
+  );
+  const { data: topicConfig } = useTopicConfig(
+    { clusterName, topicName },
+    QUERY_REFETCH_LIMITED_OPTIONS
+  );
   const updateTopic = useUpdateTopic({ clusterName, topicName });
 
   const defaultValues = topicParamsTransformer(topic, topicConfig);
