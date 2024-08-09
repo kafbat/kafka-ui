@@ -2,6 +2,7 @@ package io.kafbat.ui.serde.api;
 
 import java.io.Closeable;
 import java.util.Optional;
+import org.apache.kafka.common.header.Headers;
 
 /**
  * Main interface of  serialization/deserialization logic.
@@ -96,6 +97,10 @@ public interface Serde extends Closeable {
      * @param input string entered by user into UI text field.<br/> Note: this input is not formatted in any way.
      */
     byte[] serialize(String input);
+
+    default byte[] serialize(String input, Headers headers) {
+      return serialize(input);
+    }
   }
 
   /**

@@ -5,7 +5,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
@@ -20,18 +20,23 @@ public class ProducerRecordCreator {
                                                @Nullable String key,
                                                @Nullable String value,
                                                @Nullable Map<String, String> headers) {
+
+    Headers kafkaHeaders = createHeaders(headers);
+
     return new ProducerRecord<>(
         topic,
         partition,
-        key == null ? null : keySerializer.serialize(key),
-        value == null ? null : valuesSerializer.serialize(value),
-        headers == null ? null : createHeaders(headers)
+        key == null ? null : keySerializer.serialize(key, kafkaHeaders),
+        value == null ? null : valuesSerializer.serialize(value, kafkaHeaders),
+        kafkaHeaders
     );
   }
 
-  private Iterable<Header> createHeaders(Map<String, String> clientHeaders) {
+  private Headers createHeaders(Map<String, String> clientHeaders) {
     RecordHeaders headers = new RecordHeaders();
-    clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v.getBytes())));
+    if (clientHeaders != null) {
+      clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v.getBytes())));
+    }
     return headers;
   }
 
