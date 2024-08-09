@@ -27,3 +27,5 @@ jobs:
           git config --global user.name "infra-tech"
           git add ../kafka-ui-from-branch/
           git commit -m "removed env:${{ needs.build.outputs.deploy }}" && git push || true
+
+# TODO remove the image from registry
