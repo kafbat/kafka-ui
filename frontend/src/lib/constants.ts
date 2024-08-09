@@ -106,3 +106,23 @@ export const CONSUMER_GROUP_STATE_TOOLTIPS: Record<ConsumerGroupState, string> =
     DEAD: 'The group is going to be removed. It might be due to the inactivity, or the group is being migrated to different group coordinator.',
     UNKNOWN: '',
   } as const;
+
+/**
+ * @description !! Note !!
+ * Key value should match
+ * */
+export const MessagesFilterKeys = {
+  mode: 'mode',
+  timestamp: 'timestamp',
+  keySerde: 'keySerde',
+  valueSerde: 'valueSerde',
+  limit: 'limit',
+  offset: 'offset',
+  stringFilter: 'stringFilter',
+  partitions: 'partitions',
+  smartFilterId: 'smartFilterId',
+  activeFilterId: 'activeFilterId',
+  activeFilterNPId: 'activeFilterNPId', // not persisted filter name to indicate the refresh
+  cursor: 'cursor',
+  r: 'r', // used tp force refresh of the data
+} as const;
