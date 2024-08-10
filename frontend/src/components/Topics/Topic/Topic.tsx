@@ -194,12 +194,17 @@ const Topic: React.FC = () => {
         >
           Settings
         </NavLink>
-        <NavLink
+        <ActionNavLink
           to={clusterTopicStatisticsRelativePath}
           className={({ isActive }) => (isActive ? 'is-active' : '')}
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.ANALYSIS_VIEW,
+            value: topicName,
+          }}
         >
           Statistics
-        </NavLink>
+        </ActionNavLink>
       </Navbar>
       <Suspense fallback={<PageLoader />}>
         <Routes>

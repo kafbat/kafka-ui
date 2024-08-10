@@ -60,7 +60,7 @@ const Metrics: React.FC = () => {
           buttonSize="M"
           permission={{
             resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_READ,
+            action: Action.ANALYSIS_RUN,
             value: params.topicName,
           }}
         >
@@ -110,7 +110,7 @@ const Metrics: React.FC = () => {
           buttonSize="S"
           permission={{
             resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_READ,
+            action: Action.ANALYSIS_RUN,
             value: params.topicName,
           }}
         >
