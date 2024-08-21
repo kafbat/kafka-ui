@@ -5,12 +5,14 @@ import * as S from './PageHeading.styled';
 
 interface PageHeadingProps {
   text: string;
+  clusterName?: string;
   backTo?: string;
   backText?: string;
 }
 
 const PageHeading: React.FC<PropsWithChildren<PageHeadingProps>> = ({
   text,
+  clusterName,
   backTo,
   backText,
   children,
@@ -20,8 +22,21 @@ const PageHeading: React.FC<PropsWithChildren<PageHeadingProps>> = ({
   return (
     <S.Wrapper>
       <S.Breadcrumbs>
-        {isBackButtonVisible && <S.BackLink to={backTo}>{backText}</S.BackLink>}
-        <Heading>{text}</Heading>
+        <Heading>
+          {clusterName && (
+            <>
+              <S.ClusterTitle>{clusterName}</S.ClusterTitle>
+              <S.Slash>/</S.Slash>
+            </>
+          )}
+          {isBackButtonVisible && (
+            <>
+              <S.BackLink to={backTo}>{backText}</S.BackLink>
+              <S.Slash>/</S.Slash>
+            </>
+          )}
+          {text}
+        </Heading>
       </S.Breadcrumbs>
       <div>{children}</div>
     </S.Wrapper>

@@ -38,6 +38,7 @@ const ResetOffsets: React.FC = () => {
   return (
     <>
       <PageHeading
+        clusterName={routerParams.clusterName}
         text={consumerGroupID}
         backTo={clusterConsumerGroupsPath(routerParams.clusterName)}
         backText="Consumers"

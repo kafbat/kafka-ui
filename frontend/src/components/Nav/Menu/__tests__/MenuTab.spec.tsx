@@ -15,7 +15,7 @@ describe('MenuTab component', () => {
       status={ServerStatus.ONLINE}
       isOpen
       title={testClusterName}
-      toggleClusterMenu={toggleClusterMenuMock}
+      onClick={toggleClusterMenuMock}
       {...props}
     />
   );

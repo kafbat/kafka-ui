@@ -65,6 +65,7 @@ const Details: React.FC = () => {
     <div>
       <div>
         <PageHeading
+          clusterName={clusterName}
           text={consumerGroupID}
           backTo={clusterConsumerGroupsPath(clusterName)}
           backText="Consumers"

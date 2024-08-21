@@ -9,38 +9,38 @@ export interface MenuTabProps {
   title: string;
   status: ServerStatus;
   isOpen: boolean;
-  toggleClusterMenu: () => void;
+  onClick: () => void;
   setColorKey: Dispatch<SetStateAction<ClusterColorKey>>;
 }
 
 const MenuTab: FC<MenuTabProps> = ({
   title,
-  toggleClusterMenu,
+  onClick,
   status,
   isOpen,
   setColorKey,
 }) => (
-  <S.MenuItem $variant="secondary" onClick={toggleClusterMenu}>
-    <S.ContentWrapper>
-      <S.StatusIconWrapper>
-        <S.StatusIcon status={status} aria-label="status">
-          <title>{status}</title>
-        </S.StatusIcon>
-      </S.StatusIconWrapper>
+    <S.MenuItem $variant="secondary" onClick={onClick}>
+      <S.ContentWrapper>
+        <S.StatusIconWrapper>
+          <S.StatusIcon status={status} aria-label="status">
+            <title>{status}</title>
+          </S.StatusIcon>
+        </S.StatusIconWrapper>
 
-      <S.Title title={title}>{title}</S.Title>
-    </S.ContentWrapper>
+        <S.Title title={title}>{title}</S.Title>
+      </S.ContentWrapper>
 
-    <S.ActionsWrapper>
-      <S.ColorPickerWrapper>
-        <MenuColorPicker setColorKey={setColorKey} />
-      </S.ColorPickerWrapper>
+      <S.ActionsWrapper>
+        <S.ColorPickerWrapper>
+          <MenuColorPicker setColorKey={setColorKey} />
+        </S.ColorPickerWrapper>
 
-      <S.ChevronWrapper>
-        <S.ChevronIcon $isOpen={isOpen} />
-      </S.ChevronWrapper>
-    </S.ActionsWrapper>
-  </S.MenuItem>
-);
+        <S.ChevronWrapper>
+          <S.ChevronIcon $isOpen={isOpen} />
+        </S.ChevronWrapper>
+      </S.ActionsWrapper>
+    </S.MenuItem>
+  );
 
 export default MenuTab;

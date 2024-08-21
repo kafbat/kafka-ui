@@ -6,6 +6,11 @@ export const Breadcrumbs = styled.div`
   align-items: baseline;
 `;
 
+export const ClusterTitle = styled.text`
+  color: ${({ theme }) => theme.pageHeading.backLink.color.disabled};
+  position: relative;
+`;
+
 export const BackLink = styled(NavLink)`
   color: ${({ theme }) => theme.pageHeading.backLink.color.normal};
   position: relative;
@@ -13,16 +18,12 @@ export const BackLink = styled(NavLink)`
   &:hover {
     ${({ theme }) => theme.pageHeading.backLink.color.hover};
   }
+`;
 
-  &::after {
-    content: '';
-    position: absolute;
-    right: -11px;
-    bottom: 2px;
-    border-left: 1px solid ${({ theme }) => theme.pageHeading.dividerColor};
-    height: 20px;
-    transform: rotate(14deg);
-  }
+export const Slash = styled.text`
+  color: ${({ theme }) => theme.pageHeading.backLink.color.disabled};
+  position: relative;
+  margin: 0 8px;
 `;
 
 export const Wrapper = styled.div`

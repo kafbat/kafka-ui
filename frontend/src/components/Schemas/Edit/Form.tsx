@@ -95,6 +95,7 @@ const Form: React.FC<FormProps> = ({ schema }) => {
   return (
     <FormProvider {...methods}>
       <PageHeading
+        clusterName={clusterName}
         text={`${subject} Edit`}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}

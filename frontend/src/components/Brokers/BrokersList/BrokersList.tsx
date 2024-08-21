@@ -45,7 +45,7 @@ const BrokersList: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Brokers" />
+      <PageHeading clusterName={clusterName} text="Brokers" />
 
       <BrokersMetrics
         brokerCount={brokerCount}

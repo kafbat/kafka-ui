@@ -8,12 +8,15 @@ import { render } from 'lib/testHelpers';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
 
 describe('ClusterMenu', () => {
-  const setupComponent = (cluster: Cluster, singleMode?: boolean) => (
+  const handleTabClick = jest.fn();
+
+  const setupComponent = (cluster: Cluster, openTab?: string | false) => (
     <ClusterMenu
       name={cluster.name}
       status={cluster.status}
       features={cluster.features}
-      singleMode={singleMode}
+      openTab={openTab}
+      onTabClick={handleTabClick}
     />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');
@@ -59,7 +62,7 @@ describe('ClusterMenu', () => {
     expect(screen.getByTitle('KSQL DB')).toBeInTheDocument();
   });
   it('renders open cluster menu', () => {
-    render(setupComponent(onlineClusterPayload, true), {
+    render(setupComponent(onlineClusterPayload), {
       initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)],
     });
 
