@@ -37,7 +37,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     'transparent'
   );
 
-  const getIsMenuItemActive = (path: string) => location.pathname === path;
+  const getIsMenuItemActive = (path: string) => location.pathname.includes(path);
 
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
