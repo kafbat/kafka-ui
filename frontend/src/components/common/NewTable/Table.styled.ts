@@ -153,24 +153,30 @@ export const Table = styled.table(
     vertical-align: middle;
     word-wrap: break-word;
 
-    & a {
-      color: ${table.td.color.normal};
-      font-weight: 500;
-      max-width: 450px;
-      white-space: nowrap;
+    &:first-of-type {
+      max-width: 530px;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: block;
+      white-space: nowrap;
 
-      &:hover {
+      & a {
+        color: ${table.td.color.normal};
+        font-weight: 500;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover {
         color: ${table.link.color.hover};
-      }
+        }
 
-      &:active {
+        &:active {
+          color: ${table.link.color.active};
+        }
+        &:button {
         color: ${table.link.color.active};
-      }
-      &:button {
-      color: ${table.link.color.active};
+        }
       }
 
     }
