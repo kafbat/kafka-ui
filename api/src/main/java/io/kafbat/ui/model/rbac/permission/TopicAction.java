@@ -13,6 +13,8 @@ public enum TopicAction implements PermissibleAction {
   MESSAGES_READ(VIEW),
   MESSAGES_PRODUCE(VIEW),
   MESSAGES_DELETE(VIEW, EDIT),
+  ANALYSIS_VIEW(VIEW),
+  ANALYSIS_RUN(VIEW, ANALYSIS_VIEW),
 
   ;
 
