@@ -2,11 +2,9 @@ import React, { Suspense } from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterNameRoute, clusterConnectorNewRelativePath } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
-import Search from 'components/common/Search/Search';
 import * as Metrics from 'components/common/Metrics';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 import Tooltip from 'components/common/Tooltip/Tooltip';
-import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ConnectorState, Action, ResourceType } from 'generated-sources';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
@@ -81,9 +79,6 @@ const ListPage: React.FC = () => {
           </Metrics.Indicator>
         </Metrics.Section>
       </Metrics.Wrapper>
-      <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Connect Name, Status or Type" />
-      </ControlPanelWrapper>
       <Suspense fallback={<PageLoader />}>
         <List />
       </Suspense>
