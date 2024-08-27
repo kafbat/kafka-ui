@@ -1,8 +1,7 @@
-package io.kafbat.ui.sasl.azure.entra;
+package io.kafbat.ui.config.auth.azure;
 
 import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 
-import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -13,15 +12,13 @@ import java.util.Map;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AppConfigurationEntry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandler {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AzureEntraLoginCallbackHandler.class);
 
   private static final Duration ACCESS_TOKEN_REQUEST_BLOCK_TIME = Duration.ofSeconds(10);
 
@@ -53,7 +50,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
 
     if (null == bootstrapServers) {
       final String message = BOOTSTRAP_SERVERS_CONFIG + " is missing from the Kafka configuration.";
-      LOGGER.error(message);
+      log.error(message);
       throw new IllegalArgumentException(message);
     }
 
@@ -61,7 +58,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
       final String message =
           BOOTSTRAP_SERVERS_CONFIG
               + " contains multiple bootstrap servers. Only a single bootstrap server is supported.";
-      LOGGER.error(message);
+      log.error(message);
       throw new IllegalArgumentException(message);
     }
 
@@ -87,9 +84,9 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     try {
       final OAuthBearerToken token = tokenCredential
           .getToken(tokenRequestContext)
-          .map(AzureEntraOAuthBearerTokenImpl::new)
+          .map(AzureEntraOAuthBearerToken::new)
           .timeout(ACCESS_TOKEN_REQUEST_BLOCK_TIME)
-          .doOnError(e -> LOGGER.warn("Failed to acquire Azure token for Event Hub Authentication. Retrying.", e))
+          .doOnError(e -> log.warn("Failed to acquire Azure token for Event Hub Authentication. Retrying.", e))
           .retry(ACCESS_TOKEN_REQUEST_MAX_RETRIES)
           .block();
 
@@ -98,7 +95,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
       final String message =
           "Failed to acquire Azure token for Event Hub Authentication. "
               + "Please ensure valid Azure credentials are configured.";
-      LOGGER.error(message, e);
+      log.error(message, e);
       oauthCallback.error("invalid_grant", message, null);
     }
   }

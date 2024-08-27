@@ -1,4 +1,4 @@
-package io.kafbat.ui.sasl.azure.entra;
+package io.kafbat.ui.config.auth.azure;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -12,7 +12,7 @@ import java.util.Set;
 import org.apache.kafka.common.errors.SaslAuthenticationException;
 import org.junit.jupiter.api.Test;
 
-public class AzureEntraOAuthBearerTokenImplTest {
+public class AzureEntraOAuthBearerTokenTest {
 
   // These are not real tokens. It was generated using fake values with an invalid signature,
   // so it is safe to store here.
@@ -39,8 +39,8 @@ public class AzureEntraOAuthBearerTokenImplTest {
   void constructorShouldParseToken() {
     final AccessToken accessToken = new AccessToken(VALID_SAMPLE_TOKEN, OffsetDateTime.MIN);
 
-    final AzureEntraOAuthBearerTokenImpl azureOAuthBearerToken =
-        new AzureEntraOAuthBearerTokenImpl(accessToken);
+    final AzureEntraOAuthBearerToken azureOAuthBearerToken =
+        new AzureEntraOAuthBearerToken(accessToken);
 
     assertThat(azureOAuthBearerToken, is(notNullValue()));
     assertThat(azureOAuthBearerToken.value(), is(VALID_SAMPLE_TOKEN));
@@ -53,7 +53,7 @@ public class AzureEntraOAuthBearerTokenImplTest {
 
   @Test
   void constructorShouldRejectInvalidToken() {
-    assertThrows(SaslAuthenticationException.class, () -> new AzureEntraOAuthBearerTokenImpl(
+    assertThrows(SaslAuthenticationException.class, () -> new AzureEntraOAuthBearerToken(
         new AccessToken("invalid", OffsetDateTime.MIN)));
   }
 }
