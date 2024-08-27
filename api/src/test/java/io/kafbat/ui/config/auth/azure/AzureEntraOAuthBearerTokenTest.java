@@ -1,4 +1,4 @@
-package io.kafbat.ui.sasl.azure.entra;
+package io.kafbat.ui.config.auth.azure;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

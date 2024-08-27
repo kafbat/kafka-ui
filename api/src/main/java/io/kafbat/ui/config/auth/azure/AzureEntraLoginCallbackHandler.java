@@ -1,4 +1,4 @@
-package io.kafbat.ui.sasl.azure.entra;
+package io.kafbat.ui.config.auth.azure;
 
 import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 

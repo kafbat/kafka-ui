@@ -1,4 +1,4 @@
-package io.kafbat.ui.sasl.azure.entra;
+package io.kafbat.ui.config.auth.azure;
 
 import com.azure.core.credential.AccessToken;
 import com.nimbusds.jwt.JWTClaimsSet;
