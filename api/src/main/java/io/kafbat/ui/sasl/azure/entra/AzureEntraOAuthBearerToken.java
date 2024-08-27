@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 import org.apache.kafka.common.errors.SaslAuthenticationException;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 
-public class AzureEntraOAuthBearerTokenImpl implements OAuthBearerToken {
+public class AzureEntraOAuthBearerToken implements OAuthBearerToken {
 
   private final AccessToken accessToken;
 
   private final JWTClaimsSet claims;
 
-  public AzureEntraOAuthBearerTokenImpl(AccessToken accessToken) {
+  public AzureEntraOAuthBearerToken(AccessToken accessToken) {
     this.accessToken = accessToken;
 
     try {
@@ -48,9 +48,7 @@ public class AzureEntraOAuthBearerTokenImpl implements OAuthBearerToken {
     // https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims, the
     // scp
     // claim is a String which is presented as a space separated list.
-    return Optional.ofNullable(claims.getClaim("scp"))
-        .map(s -> Arrays.stream(((String) s).split(" ")).collect(Collectors.toSet()))
-        .orElse(null);
+    return Arrays.stream(((String) claims.getClaim("scp")).split(" ")).collect(Collectors.toSet());
   }
 
   @Override

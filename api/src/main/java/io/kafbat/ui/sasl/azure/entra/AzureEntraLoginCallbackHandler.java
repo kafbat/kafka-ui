@@ -2,7 +2,6 @@ package io.kafbat.ui.sasl.azure.entra;
 
 import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 
-import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -87,7 +86,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     try {
       final OAuthBearerToken token = tokenCredential
           .getToken(tokenRequestContext)
-          .map(AzureEntraOAuthBearerTokenImpl::new)
+          .map(AzureEntraOAuthBearerToken::new)
           .timeout(ACCESS_TOKEN_REQUEST_BLOCK_TIME)
           .doOnError(e -> LOGGER.warn("Failed to acquire Azure token for Event Hub Authentication. Retrying.", e))
           .retry(ACCESS_TOKEN_REQUEST_MAX_RETRIES)
