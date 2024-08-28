@@ -154,7 +154,6 @@ export const Table = styled.table(
     word-wrap: break-word;
 
     &:first-of-type {
-      max-width: 530px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
