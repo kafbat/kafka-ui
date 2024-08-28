@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterNameRoute, clusterConnectorNewRelativePath } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -11,16 +11,20 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ConnectorState, Action, ResourceType } from 'generated-sources';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
 import { ActionButton } from 'components/common/ActionComponent';
+import * as S from './ListPage.styled';
 
 import List from './List';
+import ClustersList from './ClustersList';
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
+
   const { data: connects = [] } = useConnects(clusterName);
 
   // Fetches all connectors from the API, without search criteria. Used to display general metrics.
   const { data: connectorsMetrics, isLoading } = useConnectors(clusterName);
+  const [viewType, setViewType] = useState<string>('connectors');
 
   const numberOfFailedConnectors = connectorsMetrics?.filter(
     ({ status: { state } }) => state === ConnectorState.FAILED
@@ -79,13 +83,39 @@ const ListPage: React.FC = () => {
           >
             {numberOfFailedTasks ?? '-'}
           </Metrics.Indicator>
+          <Metrics.Indicator
+            label="Clusters"
+            title="Total number of clusters"
+            fetching={isLoading}
+          >
+            {connects?.length || '-'}
+          </Metrics.Indicator>
         </Metrics.Section>
       </Metrics.Wrapper>
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Connect Name, Status or Type" />
       </ControlPanelWrapper>
+      <S.Navbar>
+        <S.Tab
+          isActive={viewType === 'connectors'}
+          onClick={() => setViewType('connectors')}
+        >
+          Connectors
+        </S.Tab>
+        <S.Tab
+          isActive={viewType === 'clusters'}
+          onClick={() => setViewType('clusters')}
+        >
+          Clusters
+        </S.Tab>
+      </S.Navbar>
       <Suspense fallback={<PageLoader />}>
-        <List />
+        {viewType === 'connectors' && (
+          <List />
+        )}
+        {viewType === 'clusters' && (
+          <ClustersList />
+        )}
       </Suspense>
     </>
   );
