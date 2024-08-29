@@ -4,7 +4,7 @@ import { ClusterNameRoute } from 'lib/paths';
 import Table from 'components/common/NewTable';
 import { Connect, ConnectorState } from 'generated-sources';
 import { useConnects, useConnectors } from 'lib/hooks/api/kafkaConnect';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 
 interface ClusterWithStats extends Connect {
   runningConnectorsCount: number;
@@ -12,6 +12,34 @@ interface ClusterWithStats extends Connect {
   runningTasksCount: number;
   totalTasksCount: number;
 }
+
+const ClusterNameCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => (
+  <span>{row.original.name}</span>
+);
+
+const ConnectorsCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => {
+  const { runningConnectorsCount, totalConnectorsCount } = row.original;
+
+  return (
+    <span>
+      {totalConnectorsCount === 0
+        ? runningConnectorsCount
+        : `${runningConnectorsCount} of ${totalConnectorsCount}`}
+    </span>
+  );
+};
+
+const TasksCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => {
+  const { runningTasksCount, totalTasksCount } = row.original;
+
+  return (
+    <span>
+      {totalTasksCount === 0
+        ? runningTasksCount
+        : `${runningTasksCount} of ${totalTasksCount}`}
+    </span>
+  );
+};
 
 const ClustersList: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -53,29 +81,16 @@ const ClustersList: React.FC = () => {
       };
     });
 
-    setClustersData(clustersWithStats);
+    if (JSON.stringify(clustersData) !== JSON.stringify(clustersWithStats)) {
+      setClustersData(clustersWithStats);
+    }
   }, [connects, connectorsMetrics]);
 
   const columns = useMemo<ColumnDef<ClusterWithStats>[]>(
     () => [
-      { header: 'Cluster Name', accessorKey: 'name' },
-      { header: 'Version', accessorKey: 'address' },
-      {
-        header: 'Connectors',
-        cell: ({ row }) => (
-          <>
-            {row.original.runningConnectorsCount} / {row.original.totalConnectorsCount}
-          </>
-        ),
-      },
-      {
-        header: 'Tasks',
-        cell: ({ row }) => (
-          <>
-            {row.original.runningTasksCount} / {row.original.totalTasksCount}
-          </>
-        ),
-      },
+      { header: 'Cluster Name', accessorKey: 'name', cell: ClusterNameCell },
+      { header: 'Connectors', cell: ConnectorsCell },
+      { header: 'Running Tasks', cell: TasksCell },
     ],
     []
   );
