@@ -4,7 +4,7 @@ import { ClusterNameRoute } from 'lib/paths';
 import Table from 'components/common/NewTable';
 import { Connect, ConnectorState } from 'generated-sources';
 import { useConnects, useConnectors } from 'lib/hooks/api/kafkaConnect';
-import { ColumnDef, Row } from '@tanstack/react-table';
+import { ColumnDef, Row, CellContext } from '@tanstack/react-table';
 
 interface ClusterWithStats extends Connect {
   runningConnectorsCount: number;
@@ -12,10 +12,6 @@ interface ClusterWithStats extends Connect {
   runningTasksCount: number;
   totalTasksCount: number;
 }
-
-const ClusterNameCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => (
-  <span>{row.original.name}</span>
-);
 
 const ConnectorsCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => {
   const { runningConnectorsCount, totalConnectorsCount } = row.original;
@@ -39,6 +35,40 @@ const TasksCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => {
         : `${runningTasksCount} of ${totalTasksCount}`}
     </span>
   );
+};
+
+const ClusterVersionCell: React.FC<CellContext<ClusterWithStats, unknown>> = ({
+  row,
+}) => {
+  const { address } = row.original;
+  const [version, setVersion] = useState<string>('Loading...');
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      if (!address) {
+        setVersion('Unknown');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${address}/`);
+
+        if (!response.ok) {
+          setVersion('?');
+          return;
+        }
+
+        const data = await response.json();
+        setVersion(data.version || 'Unknown');
+      } catch (e) {
+        setVersion('?');
+      }
+    };
+
+    fetchVersion().then();
+  }, [address]);
+
+  return <span>{version}</span>;
 };
 
 const ClustersList: React.FC = () => {
@@ -88,7 +118,8 @@ const ClustersList: React.FC = () => {
 
   const columns = useMemo<ColumnDef<ClusterWithStats>[]>(
     () => [
-      { header: 'Cluster Name', accessorKey: 'name', cell: ClusterNameCell },
+      { header: 'Cluster Name', accessorKey: 'name' },
+      { header: 'Version', cell: ClusterVersionCell },
       { header: 'Connectors', cell: ConnectorsCell },
       { header: 'Running Tasks', cell: TasksCell },
     ],
