@@ -19,3 +19,7 @@ logging:
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
 
+web:
+  exception:
+    include:
+      stacktrace: false
