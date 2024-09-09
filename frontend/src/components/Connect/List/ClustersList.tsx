@@ -3,8 +3,13 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterNameRoute } from 'lib/paths';
 import Table from 'components/common/NewTable';
 import { Connect, ConnectorState } from 'generated-sources';
-import { useConnects, useConnectors } from 'lib/hooks/api/kafkaConnect';
-import { ColumnDef, Row, CellContext } from '@tanstack/react-table';
+import {
+  useConnects,
+  useConnectors,
+  fetchVersion,
+} from 'lib/hooks/api/kafkaConnect';
+import { ColumnDef, Row } from '@tanstack/react-table';
+import toast from 'react-hot-toast';
 
 interface ClusterWithStats extends Connect {
   runningConnectorsCount: number;
@@ -37,35 +42,25 @@ const TasksCell: React.FC<{ row: Row<ClusterWithStats> }> = ({ row }) => {
   );
 };
 
-const ClusterVersionCell: React.FC<CellContext<ClusterWithStats, unknown>> = ({
+const ClusterVersionCell: React.FC<{ row: Row<ClusterWithStats> }> = ({
   row,
 }) => {
-  const { address } = row.original;
+  const { name, address } = row.original;
   const [version, setVersion] = useState<string>('Loading...');
 
   useEffect(() => {
-    const fetchVersion = async () => {
-      if (!address) {
+    const fetchClusterVersion = async () => {
+      if (address) {
+        const fetchedVersion = await fetchVersion(name, address);
+        setVersion(fetchedVersion);
+      } else {
+        toast.error(
+          `Failed to retrieve the version from cluster ${name}, address is missing.`
+        );
         setVersion('Unknown');
-        return;
-      }
-
-      try {
-        const response = await fetch(`${address}/`);
-
-        if (!response.ok) {
-          setVersion('?');
-          return;
-        }
-
-        const data = await response.json();
-        setVersion(data.version || 'Unknown');
-      } catch (e) {
-        setVersion('?');
       }
     };
-
-    fetchVersion().then();
+    fetchClusterVersion().then();
   }, [address]);
 
   return <span>{version}</span>;

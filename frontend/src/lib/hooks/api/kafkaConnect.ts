@@ -8,6 +8,7 @@ import { kafkaConnectApiClient as api } from 'lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { showSuccessAlert } from 'lib/errorHandling';
+import toast from 'react-hot-toast';
 
 interface UseConnectorProps {
   clusterName: ClusterName;
@@ -160,4 +161,24 @@ export function useDeleteConnector(props: UseConnectorProps) {
   return useMutation(() => api.deleteConnector(props), {
     onSuccess: () => client.invalidateQueries(connectorsKey(props.clusterName)),
   });
+}
+
+export async function fetchVersion(name: string, address: string) {
+  try {
+    const response = await fetch(`${address}/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    return data.version || 'Unknown';
+  } catch (e) {
+    const error = e as Error;
+    toast.error(
+      `Failed to retrieve the version from cluster ${name}. Error: ${error?.message}. Please verify your CORS configuration.`
+    );
+    return 'Unknown';
+  }
 }
