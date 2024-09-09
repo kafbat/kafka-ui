@@ -61,6 +61,7 @@ const MultiSearch: React.FC<MultiSearchProps> = ({
   };
 
   const clearAll = () => {
+    setInputValue('');
     if (onChange) {
       onChange('', []);
     }
