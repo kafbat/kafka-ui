@@ -157,6 +157,7 @@ export const Table = styled.table(
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      max-width: 150ch;
 
       & a {
         color: ${table.td.color.normal};
