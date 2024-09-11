@@ -31,8 +31,9 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
   private TokenRequestContext tokenRequestContext;
 
   @Override
-  public void configure(
-      Map<String, ?> configs, String mechanism, List<AppConfigurationEntry> jaasConfigEntries) {
+  public void configure(Map<String, ?> configs,
+                        String mechanism,
+                        List<AppConfigurationEntry> jaasConfigEntries) {
     tokenRequestContext = buildTokenRequestContext(configs);
   }
 
@@ -45,16 +46,17 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     return request;
   }
 
+  @SuppressWarnings("unchecked")
   private URI buildEventHubsServerUri(Map<String, ?> configs) {
     final List<String> bootstrapServers = (List<String>) configs.get(BOOTSTRAP_SERVERS_CONFIG);
 
-    if (null == bootstrapServers) {
+    if (bootstrapServers == null) {
       final String message = BOOTSTRAP_SERVERS_CONFIG + " is missing from the Kafka configuration.";
       log.error(message);
       throw new IllegalArgumentException(message);
     }
 
-    if (bootstrapServers.size() != 1) {
+    if (bootstrapServers.size() > 1) {
       final String message =
           BOOTSTRAP_SERVERS_CONFIG
               + " contains multiple bootstrap servers. Only a single bootstrap server is supported.";
@@ -72,11 +74,10 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
   @Override
   public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
     for (Callback callback : callbacks) {
-      if (callback instanceof OAuthBearerTokenCallback oauthCallback) {
-        handleOAuthCallback(oauthCallback);
-      } else {
+      if (!(callback instanceof OAuthBearerTokenCallback oauthCallback)) {
         throw new UnsupportedCallbackException(callback);
       }
+      handleOAuthCallback(oauthCallback);
     }
   }
 
@@ -91,7 +92,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
           .block();
 
       oauthCallback.token(token);
-    } catch (final RuntimeException e) {
+    } catch (RuntimeException e) {
       final String message =
           "Failed to acquire Azure token for Event Hub Authentication. "
               + "Please ensure valid Azure credentials are configured.";
@@ -104,7 +105,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     // NOOP
   }
 
-  void setTokenCredential(final TokenCredential tokenCredential) {
+  void setTokenCredential(TokenCredential tokenCredential) {
     AzureEntraLoginCallbackHandler.tokenCredential = tokenCredential;
   }
 }
