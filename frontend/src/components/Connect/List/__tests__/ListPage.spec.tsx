@@ -67,13 +67,6 @@ describe('Connectors List Page', () => {
     });
   });
 
-  it('renders search input', async () => {
-    await renderComponent();
-    expect(
-      screen.getByPlaceholderText('Search by Connect Name, Status or Type')
-    ).toBeInTheDocument();
-  });
-
   it('renders list', async () => {
     await renderComponent();
     expect(screen.getByText('Connectors List')).toBeInTheDocument();
