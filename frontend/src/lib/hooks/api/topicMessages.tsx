@@ -102,10 +102,13 @@ export const useTopicMessages = ({
         requestParams.append(MessagesFilterKeys.partitions, partitions);
       }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
+      const { prevCursor, setPrevCursor } = useMessageFiltersStore.getState();
 
       const searchParamPage = getPageValue(searchParams);
       if (currentPage.current < searchParamPage && nextCursor) {
         requestParams.set(MessagesFilterKeys.cursor, nextCursor);
+      } else if (currentPage.current > searchParamPage && prevCursor) {
+        requestParams.set(MessagesFilterKeys.cursor, prevCursor);
       }
       currentPage.current = searchParamPage;
 
@@ -147,6 +150,9 @@ export const useTopicMessages = ({
               if (nextCursor !== parsedData.nextCursor?.id) {
                 setNextCursor(parsedData.nextCursor?.id || undefined);
               }
+              if (prevCursor !== parsedData.prevCursor?.id) {
+                setPrevCursor(parsedData.prevCursor?.id || undefined);
+              }
               break;
             default:
           }
@@ -157,6 +163,7 @@ export const useTopicMessages = ({
         },
         onerror(err) {
           setNextCursor(undefined);
+          setPrevCursor(undefined);
           setIsFetching(false);
           abortController.current = new AbortController();
           showServerError(err);

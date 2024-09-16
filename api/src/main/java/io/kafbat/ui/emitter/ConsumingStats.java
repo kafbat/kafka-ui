@@ -32,6 +32,9 @@ class ConsumingStats {
     sink.next(
         new TopicMessageEventDTO()
             .type(TopicMessageEventDTO.TypeEnum.DONE)
+            .prevCursor( // FIXME
+                null
+            )
             .nextCursor(
                 cursor != null
                     ? new TopicMessagePageCursorDTO().id(cursor.registerCursor())

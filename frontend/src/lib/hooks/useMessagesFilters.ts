@@ -63,6 +63,18 @@ export function getPageValue(urlSearchParam: URLSearchParams) {
   return page;
 }
 
+export function useGoToPrevPage(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const prevPage = getPageValue(params) - 1;
+      params.set(MessagesFilterKeys.page, prevPage.toString());
+
+      return params;
+    });
+  };
+}
+
 export function useGoToNextPage(initSearchParams?: URLSearchParams) {
   const [, setSearchParams] = useSearchParams(initSearchParams);
   return () => {

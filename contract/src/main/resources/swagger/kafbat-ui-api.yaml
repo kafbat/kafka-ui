@@ -2954,6 +2954,8 @@ components:
           $ref: "#/components/schemas/TopicMessagePhase"
         consuming:
           $ref: "#/components/schemas/TopicMessageConsuming"
+        prevCursor:
+          $ref: "#/components/schemas/TopicMessagePageCursor"
         nextCursor:
           $ref: "#/components/schemas/TopicMessagePageCursor"
 

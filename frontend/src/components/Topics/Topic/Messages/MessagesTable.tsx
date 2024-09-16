@@ -5,7 +5,7 @@ import { TopicMessage } from 'generated-sources';
 import React, { useState } from 'react';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
-import { useGoToNextPage, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
+import { useGoToPrevPage, useGoToNextPage, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 import PreviewModal from './PreviewModal';
@@ -21,11 +21,13 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   isFetching,
 }) => {
   const goToNextPage = useGoToNextPage();
+  const goToPrevPage = useGoToPrevPage();
   const [previewFor, setPreviewFor] = useState<string | null>(null);
 
   const [keyFilters, setKeyFilters] = useState<PreviewFilter[]>([]);
   const [contentFilters, setContentFilters] = useState<PreviewFilter[]>([]);
   const nextCursor = useMessageFiltersStore((state) => state.nextCursor);
+  const prevCursor = useMessageFiltersStore((state) => state.prevCursor);
   const isLive = useIsLiveMode();
 
   return (
@@ -97,6 +99,14 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
       </Table>
       <S.Pagination>
         <S.Pages>
+          <Button
+            disabled={isLive || isFetching || !prevCursor}
+            buttonType="secondary"
+            buttonSize="L"
+            onClick={goToPrevPage}
+          >
+            ← Previous
+          </Button>
           <Button
             disabled={isLive || isFetching || !nextCursor}
             buttonType="secondary"
