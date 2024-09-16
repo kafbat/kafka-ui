@@ -14,7 +14,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
 import {
-  getCursorValue,
+  getPageValue,
   MessagesFilterKeys,
 } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
@@ -38,7 +38,7 @@ export const useTopicMessages = ({
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
   const abortController = useRef(new AbortController());
-  const prevCursor = useRef(0);
+  const currentPage = useRef(1);
 
   // get initial properties
 
@@ -103,17 +103,13 @@ export const useTopicMessages = ({
       }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
 
-      const tempCompareUrl = new URLSearchParams(requestParams);
-      tempCompareUrl.delete(MessagesFilterKeys.cursor);
 
-      const currentCursor = getCursorValue(searchParams);
-
-      // filters stay the same and we have cursor set cursor
-      if (nextCursor && prevCursor.current < currentCursor) {
+      const searchParamPage = getPageValue(searchParams);
+      if (currentPage.current < searchParamPage && nextCursor) {
         requestParams.set(MessagesFilterKeys.cursor, nextCursor);
       }
+      currentPage.current = searchParamPage;
 
-      prevCursor.current = currentCursor;
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
         signal: abortController.current.signal,
