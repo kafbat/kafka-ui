@@ -164,7 +164,7 @@ class CursorTest extends AbstractIntegrationTest {
   }
 
   private Cursor.Tracking createCursor(ConsumerPosition position) {
-    return cursorsStorage.createNewCursor(createRecordsDeserializer(), position, m -> true, PAGE_SIZE);
+    return cursorsStorage.createNewCursor(createRecordsDeserializer(), position, m -> true, PAGE_SIZE, null);
   }
 
   private EnhancedConsumer createConsumer() {

@@ -222,7 +222,8 @@ public class MessagesService {
         deserializationService.deserializerFor(cluster, topic, keySerde, valueSerde),
         consumerPosition,
         getMsgFilter(containsStringFilter, filterId),
-        fixPageSize(limit)
+        fixPageSize(limit),
+        null
     );
   }
 
@@ -235,7 +236,8 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        cursor.limit()
+        cursor.limit(),
+        cursorId
     );
   }
 
@@ -244,18 +246,20 @@ public class MessagesService {
                                                   ConsumerRecordDeserializer deserializer,
                                                   ConsumerPosition consumerPosition,
                                                   Predicate<TopicMessageDTO> filter,
-                                                  int limit) {
+                                                  int limit,
+                                                  String cursorId) {
     return withExistingTopic(cluster, topic)
         .flux()
         .publishOn(Schedulers.boundedElastic())
-        .flatMap(td -> loadMessagesImpl(cluster, deserializer, consumerPosition, filter, limit));
+        .flatMap(td -> loadMessagesImpl(cluster, deserializer, consumerPosition, filter, limit, cursorId));
   }
 
   private Flux<TopicMessageEventDTO> loadMessagesImpl(KafkaCluster cluster,
                                                       ConsumerRecordDeserializer deserializer,
                                                       ConsumerPosition consumerPosition,
                                                       Predicate<TopicMessageDTO> filter,
-                                                      int limit) {
+                                                      int limit,
+                                                      String cursorId) {
     var emitter = switch (consumerPosition.pollingMode()) {
       case TO_OFFSET, TO_TIMESTAMP, LATEST -> new BackwardEmitter(
           () -> consumerGroupService.createConsumer(cluster),
@@ -264,7 +268,7 @@ public class MessagesService {
           deserializer,
           filter,
           cluster.getPollingSettings(),
-          cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
+          cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit, cursorId)
       );
       case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> new ForwardEmitter(
           () -> consumerGroupService.createConsumer(cluster),
@@ -273,7 +277,7 @@ public class MessagesService {
           deserializer,
           filter,
           cluster.getPollingSettings(),
-          cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
+          cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit, cursorId)
       );
       case TAILING -> new TailingEmitter(
           () -> consumerGroupService.createConsumer(cluster),

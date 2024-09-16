@@ -29,11 +29,14 @@ class ConsumingStats {
   }
 
   void sendFinishEvent(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
+    String previousCursorId = cursor != null ? cursor.getPreviousCursorId() : null;
     sink.next(
         new TopicMessageEventDTO()
             .type(TopicMessageEventDTO.TypeEnum.DONE)
-            .prevCursor( // FIXME
-                null
+            .prevCursor(
+                previousCursorId != null
+                    ? new TopicMessagePageCursorDTO().id(previousCursorId)
+                    : null
             )
             .nextCursor(
                 cursor != null

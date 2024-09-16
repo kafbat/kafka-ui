@@ -8,6 +8,8 @@ import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.kafka.common.TopicPartition;
@@ -22,7 +24,9 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
     private final ConsumerPosition originalPosition;
     private final Predicate<TopicMessageDTO> filter;
     private final int limit;
-    private final Function<Cursor, String> registerAction;
+    private final String cursorId;
+    private final BiFunction<Cursor, String, String> registerAction;
+    private final Function<String, Optional<String>> previousCursorIdGetter;
 
     //topic -> partition -> offset
     private final Table<String, Integer, Long> trackingOffsets = HashBasedTable.create();
@@ -31,12 +35,16 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
                     ConsumerPosition originalPosition,
                     Predicate<TopicMessageDTO> filter,
                     int limit,
-                    Function<Cursor, String> registerAction) {
+                    String cursorId,
+                    BiFunction<Cursor, String, String> registerAction,
+                    Function<String, Optional<String>> previousCursorIdGetter) {
       this.deserializer = deserializer;
       this.originalPosition = originalPosition;
       this.filter = filter;
       this.limit = limit;
+      this.cursorId = cursorId;
       this.registerAction = registerAction;
+      this.previousCursorIdGetter = previousCursorIdGetter;
     }
 
     void trackOffset(String topic, int partition, long offset) {
@@ -82,8 +90,13 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
               ),
               filter,
               limit
-          )
+          ),
+          this.cursorId
       );
+    }
+
+    String getPreviousCursorId() {
+      return this.previousCursorIdGetter.apply(this.cursorId).orElse(null);
     }
   }
 
