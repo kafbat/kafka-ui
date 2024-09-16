@@ -2954,8 +2954,8 @@ components:
           $ref: "#/components/schemas/TopicMessagePhase"
         consuming:
           $ref: "#/components/schemas/TopicMessageConsuming"
-        cursor:
-          $ref: "#/components/schemas/TopicMessageNextPageCursor"
+        nextCursor:
+          $ref: "#/components/schemas/TopicMessagePageCursor"
 
     TopicMessagePhase:
       type: object
@@ -2985,7 +2985,7 @@ components:
         filterApplyErrors:
           type: integer
 
-    TopicMessageNextPageCursor:
+    TopicMessagePageCursor:
       type: object
       properties:
         id:

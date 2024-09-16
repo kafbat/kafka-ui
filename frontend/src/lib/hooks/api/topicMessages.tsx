@@ -103,7 +103,6 @@ export const useTopicMessages = ({
       }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
 
-
       const searchParamPage = getPageValue(searchParams);
       if (currentPage.current < searchParamPage && nextCursor) {
         requestParams.set(MessagesFilterKeys.cursor, nextCursor);
@@ -125,11 +124,7 @@ export const useTopicMessages = ({
         },
         onmessage(event) {
           const parsedData: TopicMessageEvent = JSON.parse(event.data);
-          const { message, consuming, cursor } = parsedData;
-
-          if (useMessageFiltersStore.getState().nextCursor !== cursor?.id) {
-            setNextCursor(cursor?.id || undefined);
-          }
+          const { message, consuming } = parsedData;
 
           switch (parsedData.type) {
             case TopicMessageEventTypeEnum.MESSAGE:
@@ -147,6 +142,11 @@ export const useTopicMessages = ({
               break;
             case TopicMessageEventTypeEnum.CONSUMING:
               if (consuming) setConsumptionStats(consuming);
+              break;
+            case TopicMessageEventTypeEnum.DONE:
+              if (nextCursor !== parsedData.nextCursor?.id) {
+                setNextCursor(parsedData.nextCursor?.id || undefined);
+              }
               break;
             default:
           }

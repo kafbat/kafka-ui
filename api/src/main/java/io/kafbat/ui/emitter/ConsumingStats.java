@@ -2,7 +2,7 @@ package io.kafbat.ui.emitter;
 
 import io.kafbat.ui.model.TopicMessageConsumingDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
-import io.kafbat.ui.model.TopicMessageNextPageCursorDTO;
+import io.kafbat.ui.model.TopicMessagePageCursorDTO;
 import javax.annotation.Nullable;
 import reactor.core.publisher.FluxSink;
 
@@ -32,9 +32,9 @@ class ConsumingStats {
     sink.next(
         new TopicMessageEventDTO()
             .type(TopicMessageEventDTO.TypeEnum.DONE)
-            .cursor(
+            .nextCursor(
                 cursor != null
-                    ? new TopicMessageNextPageCursorDTO().id(cursor.registerCursor())
+                    ? new TopicMessagePageCursorDTO().id(cursor.registerCursor())
                     : null
             )
             .consuming(createConsumingStats())
