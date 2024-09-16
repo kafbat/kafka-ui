@@ -49,7 +49,7 @@ describe('Connectors List Page', () => {
     it('renders header without create button for readonly cluster', async () => {
       await renderComponent({ ...initialValue, isReadOnly: true });
       expect(
-        screen.getByRole('heading', { name: 'Connectors' })
+        screen.getByRole('heading', { name: /local \/ Connectors/ })
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('link', { name: 'Create Connector' })
@@ -59,7 +59,7 @@ describe('Connectors List Page', () => {
     it('renders header with create button for read/write cluster', async () => {
       await renderComponent();
       expect(
-        screen.getByRole('heading', { name: 'Connectors' })
+        screen.getByRole('heading', { name: /local \/ Connectors/ })
       ).toBeInTheDocument();
       expect(
         screen.getByRole('link', { name: 'Create Connector' })

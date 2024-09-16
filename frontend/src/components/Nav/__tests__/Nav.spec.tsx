@@ -34,8 +34,8 @@ describe('Nav', () => {
 
   it('renders ClusterMenu', () => {
     renderComponent([onlineClusterPayload, offlineClusterPayload]);
-    expect(screen.getAllByRole('menu').length).toEqual(3);
-    expect(getMenuItemsCount()).toEqual(3);
+    expect(screen.getAllByRole('menu').length).toEqual(5);
+    expect(getMenuItemsCount()).toEqual(9);
     expect(getDashboard()).toBeInTheDocument();
     expect(screen.getByText(onlineClusterPayload.name)).toBeInTheDocument();
     expect(screen.getByText(offlineClusterPayload.name)).toBeInTheDocument();

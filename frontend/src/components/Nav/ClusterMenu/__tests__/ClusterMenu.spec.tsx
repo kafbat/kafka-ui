@@ -2,7 +2,6 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
 import ClusterMenu from 'components/Nav/ClusterMenu/ClusterMenu';
-import userEvent from '@testing-library/user-event';
 import { clusterConnectorsPath } from 'lib/paths';
 import { render } from 'lib/testHelpers';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
@@ -31,8 +30,6 @@ describe('ClusterMenu', () => {
     render(setupComponent(onlineClusterPayload));
     expect(getCluster()).toBeInTheDocument();
 
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(4);
 
     expect(getBrokers()).toBeInTheDocument();
@@ -50,8 +47,6 @@ describe('ClusterMenu', () => {
         ],
       })
     );
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(7);
 
     expect(getBrokers()).toBeInTheDocument();
@@ -80,8 +75,6 @@ describe('ClusterMenu', () => {
       }),
       { initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)] }
     );
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(5);
 
     const kafkaConnect = getKafkaConnect();
