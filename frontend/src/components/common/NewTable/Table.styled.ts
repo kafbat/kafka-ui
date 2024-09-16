@@ -153,32 +153,43 @@ export const Table = styled.table(
     vertical-align: middle;
     word-wrap: break-word;
 
-    &:first-of-type {
+    & a {
+      color: ${table.td.color.normal};
+      font-weight: 500;
+      max-width: 150ch;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 150ch;
+      display: block;
 
-      & a {
-        color: ${table.td.color.normal};
-        font-weight: 500;
-        max-width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        &:hover {
+      &:hover {
         color: ${table.link.color.hover};
-        }
-
-        &:active {
-          color: ${table.link.color.active};
-        }
-        &:button {
-        color: ${table.link.color.active};
-        }
       }
 
+      &:active {
+        color: ${table.link.color.active};
+      }
+      &:button {
+      color: ${table.link.color.active};
+      }
+    }
+
+    @media (max-width: 1500px) {
+      & a {
+        max-width: 70ch;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      & a {
+        max-width: 50ch;
+      }
+    }
+
+    @media (max-width: 768px) {
+      & a {
+        max-width: 40ch;
+      }
     }
   }
 `
