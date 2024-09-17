@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -245,6 +246,13 @@ public class ConsumerGroupService {
                                             String groupId) {
     return adminClientService.get(cluster)
         .flatMap(adminClient -> adminClient.deleteConsumerGroups(List.of(groupId)));
+  }
+
+  public Mono<Void> deleteConsumerGroupOffset(KafkaCluster cluster,
+                                            String groupId,
+                                              String topicName) {
+    return adminClientService.get(cluster)
+        .flatMap(adminClient -> adminClient.deleteConsumerGroupOffsets(groupId, topicName));
   }
 
   public EnhancedConsumer createConsumer(KafkaCluster cluster) {

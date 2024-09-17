@@ -16,12 +16,14 @@ import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
 import io.kafbat.ui.model.PartitionOffsetDTO;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.service.ConsumerGroupService;
 import io.kafbat.ui.service.OffsetsResetService;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +57,22 @@ public class ConsumerGroupsController extends AbstractController implements Cons
 
     return validateAccess(context)
         .then(consumerGroupService.deleteConsumerGroupById(getCluster(clusterName), id))
+        .doOnEach(sig -> audit(context, sig))
+        .thenReturn(ResponseEntity.ok().build());
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName, String groupId, String topicName,
+                                                               ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .consumerGroupActions(groupId, RESET_OFFSETS)
+        .topicActions(topicName, TopicAction.VIEW)
+        .operationName("deleteConsumerGroupOffsets")
+        .build();
+
+    return validateAccess(context)
+        .then(consumerGroupService.deleteConsumerGroupOffset(getCluster(clusterName), groupId, topicName))
         .doOnEach(sig -> audit(context, sig))
         .thenReturn(ResponseEntity.ok().build());
   }
