@@ -17,19 +17,23 @@ export const Tab = styled.a<{ isActive?: boolean }>`
   font-size: 14px;
   white-space: nowrap;
   color: ${({ theme, isActive }) =>
-  isActive ? theme.primaryTab.color.active : theme.primaryTab.color.normal};
+    isActive ? theme.primaryTab.color.active : theme.primaryTab.color.normal};
   border-bottom: 1px
     ${({ theme, isActive }) =>
-  isActive ? theme.primaryTab.borderColor.active : theme.default.transparentColor}
+      isActive
+        ? theme.primaryTab.borderColor.active
+        : theme.default.transparentColor}
     solid;
   cursor: ${({ isActive }) => (isActive ? 'default' : 'pointer')};
 
   &:hover {
     color: ${({ theme, isActive }) =>
-  isActive ? theme.primaryTab.color.active : theme.primaryTab.color.hover};
+      isActive ? theme.primaryTab.color.active : theme.primaryTab.color.hover};
     border-bottom: 1px
       ${({ theme, isActive }) =>
-  isActive ? theme.primaryTab.borderColor.active : theme.default.transparentColor}
+        isActive
+          ? theme.primaryTab.borderColor.active
+          : theme.default.transparentColor}
       solid;
   }
 `;

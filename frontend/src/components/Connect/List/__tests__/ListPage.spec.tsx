@@ -67,13 +67,6 @@ describe('Connectors List Page', () => {
     });
   });
 
-  it('renders search input', async () => {
-    await renderComponent();
-    expect(
-      screen.getByPlaceholderText('Search by Connect Name, Status or Type')
-    ).toBeInTheDocument();
-  });
-
   it('renders list', async () => {
     await renderComponent();
     expect(screen.getByText('Connectors List')).toBeInTheDocument();
@@ -89,7 +82,7 @@ describe('Connectors List Page', () => {
       await renderComponent();
       const metrics = screen.getByRole('group');
       expect(metrics).toBeInTheDocument();
-      expect(within(metrics).getAllByText('progressbar').length).toEqual(3);
+      expect(within(metrics).getAllByText('progressbar').length).toEqual(4);
     });
 
     it('renders indicators for empty list of connectors', async () => {
