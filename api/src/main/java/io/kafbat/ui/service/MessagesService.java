@@ -46,6 +46,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -216,42 +217,29 @@ public class MessagesService {
                                                  @Nullable Integer limit,
                                                  @Nullable String keySerde,
                                                  @Nullable String valueSerde) {
-    return loadMessages(
-        cluster,
-        topic,
+    Cursor cursor = new Cursor(
         deserializationService.deserializerFor(cluster, topic, keySerde, valueSerde),
         consumerPosition,
         getMsgFilter(containsStringFilter, filterId),
-        fixPageSize(limit),
-        null
+        fixPageSize(limit)
     );
+    String cursorId = cursorsStorage.register(cursor, null);
+    return loadMessages(cluster, topic, cursorId, cursor);
   }
 
   public Flux<TopicMessageEventDTO> loadMessages(KafkaCluster cluster, String topic, String cursorId) {
     Cursor cursor = cursorsStorage.getCursor(cursorId)
         .orElseThrow(() -> new ValidationException("Next page cursor not found. Maybe it was evicted from cache."));
-    return loadMessages(
-        cluster,
-        topic,
-        cursor.deserializer(),
-        cursor.consumerPosition(),
-        cursor.filter(),
-        cursor.limit(),
-        cursorId
-    );
+    return loadMessages(cluster, topic, cursorId, cursor);
   }
 
-  private Flux<TopicMessageEventDTO> loadMessages(KafkaCluster cluster,
-                                                  String topic,
-                                                  ConsumerRecordDeserializer deserializer,
-                                                  ConsumerPosition consumerPosition,
-                                                  Predicate<TopicMessageDTO> filter,
-                                                  int limit,
-                                                  String cursorId) {
+  private @NotNull Flux<TopicMessageEventDTO> loadMessages(KafkaCluster cluster, String topic,
+                                                           String cursorId, Cursor cursor) {
     return withExistingTopic(cluster, topic)
         .flux()
         .publishOn(Schedulers.boundedElastic())
-        .flatMap(td -> loadMessagesImpl(cluster, deserializer, consumerPosition, filter, limit, cursorId));
+        .flatMap(td -> loadMessagesImpl(cluster,
+            cursor.deserializer(), cursor.consumerPosition(), cursor.filter(), cursor.limit(), cursorId));
   }
 
   private Flux<TopicMessageEventDTO> loadMessagesImpl(KafkaCluster cluster,

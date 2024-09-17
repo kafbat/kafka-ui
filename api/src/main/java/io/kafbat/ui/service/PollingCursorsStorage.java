@@ -29,28 +29,25 @@ public class PollingCursorsStorage {
                                          ConsumerPosition originalPosition,
                                          Predicate<TopicMessageDTO> filter,
                                          int limit,
-                                         @Nullable String cursorId) {
-    return new Cursor.Tracking(deserializer, originalPosition, filter, limit, cursorId, this::register,
-        this::getPreviousCursorId);
+                                         String cursorId) {
+    return new Cursor.Tracking(deserializer, originalPosition, filter, limit, cursorId,
+        this::register, this::getPreviousCursorId);
   }
 
   public Optional<Cursor> getCursor(String id) {
     return Optional.ofNullable(cursorsCache.getIfPresent(id));
   }
 
-  public String register(Cursor nextCursor, @Nullable String currentCursorId) {
+  public String register(Cursor cursor, @Nullable String previousCursorId) {
     var id = RandomStringUtils.random(8, true, true);
-    cursorsCache.put(id, nextCursor);
-    if (currentCursorId != null) {
-      previousCursorsMap.put(id, currentCursorId);
+    cursorsCache.put(id, cursor);
+    if (previousCursorId != null) {
+      previousCursorsMap.put(id, previousCursorId);
     }
     return id;
   }
 
-  public Optional<String> getPreviousCursorId(@Nullable String cursorId) {
-    if (cursorId == null) {
-      return Optional.empty();
-    }
+  public Optional<String> getPreviousCursorId(String cursorId) {
     return Optional.ofNullable(previousCursorsMap.getIfPresent(cursorId));
   }
 
