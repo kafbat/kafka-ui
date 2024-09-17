@@ -31,13 +31,14 @@ export const useTopicMessages = ({
   clusterName,
   topicName,
 }: UseTopicMessagesProps) => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = React.useState<TopicMessage[]>([]);
   const [phase, setPhase] = React.useState<string>();
   const [consumptionStats, setConsumptionStats] =
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
   const abortController = useRef(new AbortController());
+  const prevReqUrl = useRef<string>('');
   const currentPage = useRef(1);
 
   // get initial properties
@@ -103,6 +104,16 @@ export const useTopicMessages = ({
       }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
       const { prevCursor, setPrevCursor } = useMessageFiltersStore.getState();
+
+      const searchParamsWithoutPage = new URLSearchParams(searchParams);
+      searchParamsWithoutPage.delete(MessagesFilterKeys.page);
+      if (prevReqUrl.current !== searchParamsWithoutPage.toString()) {
+        searchParams.delete(MessagesFilterKeys.page);
+        setSearchParams(searchParams);
+        setPrevCursor(undefined);
+        setNextCursor(undefined);
+      }
+      prevReqUrl.current = searchParamsWithoutPage.toString();
 
       const searchParamPage = getPageValue(searchParams);
       if (currentPage.current < searchParamPage && nextCursor) {
