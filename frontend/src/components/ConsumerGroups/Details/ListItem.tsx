@@ -1,8 +1,12 @@
 import React from 'react';
-import { ConsumerGroupTopicPartition } from 'generated-sources';
+import { Action, ConsumerGroupTopicPartition, ResourceType } from 'generated-sources';
 import { Link } from 'react-router-dom';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { clusterTopicPath } from 'lib/paths';
+import { ClusterGroupParam, clusterTopicPath } from 'lib/paths';
+import { useDeleteConsumerGroupOffsetsMutation } from 'lib/hooks/api/consumers';
+import useAppParams from 'lib/hooks/useAppParams';
+import { Dropdown } from 'components/common/Dropdown';
+import { ActionDropdownItem } from 'components/common/ActionComponent';
 import MessageToggleIcon from 'components/common/Icons/MessageToggleIcon';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import { TableKeyLink } from 'components/common/table/Table/TableKeyLink.styled';
@@ -18,6 +22,8 @@ interface Props {
 
 const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const consumerProps = useAppParams<ClusterGroupParam>();
+  const deleteOffsetMutation = useDeleteConsumerGroupOffsetsMutation(consumerProps);
 
   const getTotalconsumerLag = () => {
     let count = 0;
@@ -25,6 +31,11 @@ const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
       count += consumer?.consumerLag || 0;
     });
     return count;
+  };
+
+  const deleteOffsetHandler = (topicName?: string) => {
+    if (topicName === undefined) return;
+    deleteOffsetMutation.mutateAsync(topicName);
   };
 
   return (
@@ -41,6 +52,22 @@ const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
           </FlexWrapper>
         </td>
         <td>{getTotalconsumerLag()}</td>
+        <td>
+          <Dropdown>
+            <ActionDropdownItem
+              onClick={() => deleteOffsetHandler(name)}
+              danger
+              confirm="Are you sure you want to delete offsets from the topic?"
+              permission={{
+                resource: ResourceType.CONSUMER,
+                action: Action.RESET_OFFSETS,
+                value: consumerProps.consumerGroupID,
+              }}
+            >
+              <span>Delete offsets</span>
+            </ActionDropdownItem>
+          </Dropdown>
+        </td>
       </tr>
       {isOpen && <TopicContents consumers={consumers} />}
     </>
