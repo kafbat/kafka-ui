@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
+import io.kafbat.ui.producer.KafkaTestProducer;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Comparator;
@@ -11,7 +12,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Stream;
-import io.kafbat.ui.producer.KafkaTestProducer;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.RandomStringUtils;

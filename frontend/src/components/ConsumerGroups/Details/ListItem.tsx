@@ -1,5 +1,9 @@
 import React from 'react';
-import { Action, ConsumerGroupTopicPartition, ResourceType } from 'generated-sources';
+import {
+  Action,
+  ConsumerGroupTopicPartition,
+  ResourceType,
+} from 'generated-sources';
 import { Link } from 'react-router-dom';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { ClusterGroupParam, clusterTopicPath } from 'lib/paths';
@@ -23,7 +27,8 @@ interface Props {
 const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const consumerProps = useAppParams<ClusterGroupParam>();
-  const deleteOffsetMutation = useDeleteConsumerGroupOffsetsMutation(consumerProps);
+  const deleteOffsetMutation =
+    useDeleteConsumerGroupOffsetsMutation(consumerProps);
 
   const getTotalconsumerLag = () => {
     let count = 0;
