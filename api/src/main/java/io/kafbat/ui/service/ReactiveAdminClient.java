@@ -445,7 +445,11 @@ public class ReactiveAdminClient implements Closeable {
           Set<TopicPartition> partitions = table.row(groupId).keySet().stream()
               .filter(tp -> tp.topic().equals(topicName))
               .collect(Collectors.toSet());
-          return toMono(client.deleteConsumerGroupOffsets(groupId, partitions).all());
+          // check if partitions have no committed offsets
+          return partitions.isEmpty()
+              ? Mono.error(new NotFoundException("The topic or partition is unknown"))
+              // call deleteConsumerGroupOffsets
+              : toMono(client.deleteConsumerGroupOffsets(groupId, partitions).all());
         })
         .onErrorResume(GroupIdNotFoundException.class,
             th -> Mono.error(new NotFoundException("The group id does not exist")))
