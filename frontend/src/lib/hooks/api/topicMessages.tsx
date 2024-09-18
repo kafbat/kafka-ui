@@ -13,10 +13,7 @@ import { showServerError } from 'lib/errorHandling';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
-import {
-  getPageValue,
-  MessagesFilterKeys,
-} from 'lib/hooks/useMessagesFilters';
+import { getPageValue, MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
