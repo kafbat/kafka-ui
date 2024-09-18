@@ -74,10 +74,21 @@ describe('MessagesTable', () => {
       expect(screen.queryByText(/next/i)).toBeDisabled();
     });
 
+    it('should check if previous button is disabled isLive Param', () => {
+      renderComponent({ isFetching: true });
+      expect(screen.queryByText(/previous/i)).toBeDisabled();
+    });
+
     it('should check if next button is disabled if there is no nextCursor', () => {
       (useIsLiveMode as jest.Mock).mockImplementation(() => false);
       renderComponent({ isFetching: false });
       expect(screen.queryByText(/next/i)).toBeDisabled();
+    });
+
+    it('should check if previous button is disabled if there is no prevCursor', () => {
+      (useIsLiveMode as jest.Mock).mockImplementation(() => false);
+      renderComponent({ isFetching: false });
+      expect(screen.queryByText(/previous/i)).toBeDisabled();
     });
 
     it('should check the display of the loader element during loader', () => {
