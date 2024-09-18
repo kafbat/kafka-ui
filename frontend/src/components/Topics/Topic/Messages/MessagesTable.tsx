@@ -5,7 +5,11 @@ import { TopicMessage } from 'generated-sources';
 import React, { useState } from 'react';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
-import { useGoToNextPage, useGoToPrevPage, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
+import {
+  useGoToNextPage,
+  useGoToPrevPage,
+  useIsLiveMode,
+} from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 import PreviewModal from './PreviewModal';
