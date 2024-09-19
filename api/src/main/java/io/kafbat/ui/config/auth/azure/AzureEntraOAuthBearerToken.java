@@ -5,7 +5,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.errors.SaslAuthenticationException;
@@ -14,7 +13,6 @@ import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 public class AzureEntraOAuthBearerToken implements OAuthBearerToken {
 
   private final AccessToken accessToken;
-
   private final JWTClaimsSet claims;
 
   public AzureEntraOAuthBearerToken(AccessToken accessToken) {
@@ -48,7 +46,9 @@ public class AzureEntraOAuthBearerToken implements OAuthBearerToken {
     // https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims, the
     // scp
     // claim is a String which is presented as a space separated list.
-    return Arrays.stream(((String) claims.getClaim("scp")).split(" ")).collect(Collectors.toSet());
+    return Arrays
+        .stream(((String) claims.getClaim("scp")).split(" "))
+        .collect(Collectors.toSet());
   }
 
   @Override
