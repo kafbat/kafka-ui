@@ -2,6 +2,7 @@ package io.kafbat.ui.exception;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+import io.kafbat.ui.config.CorsGlobalConfiguration;
 import io.kafbat.ui.model.ErrorResponseDTO;
 import java.math.BigDecimal;
 import java.util.List;
@@ -78,6 +79,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(ErrorCode.UNEXPECTED.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(CorsGlobalConfiguration::fillCorsHeader)
         .bodyValue(response);
   }
 
@@ -92,6 +94,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(errorCode.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(CorsGlobalConfiguration::fillCorsHeader)
         .bodyValue(response);
   }
 
@@ -122,6 +125,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(CorsGlobalConfiguration::fillCorsHeader)
         .bodyValue(response);
   }
 
@@ -136,6 +140,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(exception.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(CorsGlobalConfiguration::fillCorsHeader)
         .bodyValue(response);
   }
 
