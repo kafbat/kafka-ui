@@ -31,8 +31,8 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   );
 
   return (
-    <S.ValueWrapper $isDynamic={isDynamic}>
-      <S.Value title={title}>{displayValue}</S.Value>
+    <S.ValueWrapper>
+      <S.Value $isDynamic={isDynamic} title={title}>{displayValue}</S.Value>
       <Tooltip
         value={
           <Button
