@@ -22,7 +22,7 @@ public class CorsGlobalConfiguration {
 
       final ServerHttpResponse response = ctx.getResponse();
       final HttpHeaders headers = response.getHeaders();
-      fillCorsHeader(headers);
+      fillCorsHeader(headers, request);
 
       if (request.getMethod() == HttpMethod.OPTIONS) {
         response.setStatusCode(HttpStatus.OK);
@@ -33,8 +33,9 @@ public class CorsGlobalConfiguration {
     };
   }
 
-  public static void fillCorsHeader(HttpHeaders responseHeaders) {
-    responseHeaders.add("Access-Control-Allow-Origin", "*");
+  public static void fillCorsHeader(HttpHeaders responseHeaders, ServerHttpRequest request) {
+    responseHeaders.add("Access-Control-Allow-Origin", request.getHeaders().getOrigin());
+    responseHeaders.add("Access-Control-Allow-Credentials", "true");
     responseHeaders.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
     responseHeaders.add("Access-Control-Max-Age", "3600");
     responseHeaders.add("Access-Control-Allow-Headers", "Content-Type");

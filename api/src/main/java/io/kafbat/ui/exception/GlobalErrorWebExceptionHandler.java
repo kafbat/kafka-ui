@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.web.WebProperties;
@@ -17,6 +18,7 @@ import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
@@ -79,7 +81,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(ErrorCode.UNEXPECTED.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
-        .headers(CorsGlobalConfiguration::fillCorsHeader)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
@@ -94,7 +96,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(errorCode.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
-        .headers(CorsGlobalConfiguration::fillCorsHeader)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
@@ -125,7 +127,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
-        .headers(CorsGlobalConfiguration::fillCorsHeader)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
@@ -140,12 +142,18 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(exception.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
-        .headers(CorsGlobalConfiguration::fillCorsHeader)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
   private String requestId(ServerRequest request) {
     return request.exchange().getRequest().getId();
+  }
+
+  private Consumer<HttpHeaders> headers(ServerRequest request) {
+    return (HttpHeaders headers) -> {
+      CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
+    };
   }
 
   private BigDecimal currentTimestamp() {
