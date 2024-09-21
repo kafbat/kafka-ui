@@ -33,7 +33,8 @@ public class ReadOnlyModeFilter implements WebFilter {
   @NotNull
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
-    var isSafeMethod = exchange.getRequest().getMethod() == HttpMethod.GET;
+    var isSafeMethod =
+        exchange.getRequest().getMethod() == HttpMethod.GET || exchange.getRequest().getMethod() == HttpMethod.OPTIONS;
     if (isSafeMethod) {
       return chain.filter(exchange);
     }
