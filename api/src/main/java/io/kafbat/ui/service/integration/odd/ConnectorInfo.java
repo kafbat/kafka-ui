@@ -63,7 +63,14 @@ record ConnectorInfo(List<String> inputs,
     List<String> outputs = new ArrayList<>();
     @Nullable var knownJdbcPath = new JdbcUrlParser().parse(connectionUrl);
     if (knownJdbcPath instanceof PostgreSqlPath p) {
-      targetTables.forEach(t -> outputs.add(p.toBuilder().table(t).build().oddrn()));
+      targetTables.forEach(t -> {
+        String[] tableParts = t.split(".");
+        if (tableParts.length > 1) {
+          outputs.add(p.toBuilder().schema(tableParts[tableParts.length - 2]).table(tableParts[tableParts.length - 1]).build().oddrn());
+        } else if (tableParts.length == 1) {
+          outputs.add(p.toBuilder().schema("public").table(tableParts[0]).build().oddrn());
+        }
+      });
     }
     if (knownJdbcPath instanceof MysqlPath p) {
       targetTables.forEach(t -> outputs.add(p.toBuilder().table(t).build().oddrn()));
