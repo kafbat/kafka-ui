@@ -12,6 +12,6 @@ public class ApplicationInfoServiceTest extends AbstractIntegrationTest {
 
   @Test
   public void testCustomGithubReleaseInfoTimeout() {
-    assertEquals(timeout, service.githubReleaseInfo().getGithubApiMaxWaitTime());
+    assertEquals(100, service.githubReleaseInfo().getGithubApiMaxWaitTime());
   }
 }

@@ -34,7 +34,6 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class AbstractIntegrationTest {
   public static final String LOCAL = "local";
   public static final String SECOND_LOCAL = "secondLocal";
-  protected static final int timeout = 100;
 
   private static final boolean IS_ARM =
       System.getProperty("os.arch").contains("arm") || System.getProperty("os.arch").contains("aarch64");
@@ -101,7 +100,7 @@ public abstract class AbstractIntegrationTest {
 
       System.setProperty("dynamic.config.enabled", "true");
       System.setProperty("config.related.uploads.dir", tmpDir.toString());
-      System.setProperty(GITHUB_RELEASE_INFO_TIMEOUT, String.valueOf(timeout));
+      System.setProperty(GITHUB_RELEASE_INFO_TIMEOUT, String.valueOf(100));
     }
   }
 
