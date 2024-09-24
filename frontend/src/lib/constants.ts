@@ -89,6 +89,7 @@ export const AUTH_OPTIONS = [
   { value: 'Delegation tokens', label: 'Delegation tokens' },
   { value: 'SASL/LDAP', label: 'SASL/LDAP' },
   { value: 'SASL/AWS IAM', label: 'SASL/AWS IAM' },
+  { value: 'SASL/Azure Entra', label: 'SASL/Azure Entra' },
   { value: 'mTLS', label: 'mTLS' },
 ];
 
