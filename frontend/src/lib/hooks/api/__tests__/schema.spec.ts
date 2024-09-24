@@ -5,6 +5,7 @@ import {
 } from 'lib/testHelpers';
 import fetchMock from 'fetch-mock';
 import * as hooks from 'lib/hooks/api/schemas';
+import { QUERY_REFETCH_LIMITED_OPTIONS } from 'lib/constants';
 import { act } from 'react-dom/test-utils';
 import { renderHook, waitFor } from '@testing-library/react';
 import { CompatibilityLevelCompatibilityEnum } from 'generated-sources';
@@ -44,6 +45,16 @@ describe('Schema hooks', () => {
         const mock = fetchMock.getOnce(schemasAPILatestUrl, schemaVersion);
         const { result } = renderQueryHook(() =>
           hooks.useGetLatestSchema({ clusterName, subject })
+        );
+        await expectQueryWorks(mock, result);
+      });
+      it('returns the correct data with queryOptions', async () => {
+        const mock = fetchMock.getOnce(schemasAPILatestUrl, schemaVersion);
+        const { result } = renderQueryHook(() =>
+          hooks.useGetLatestSchema(
+            { clusterName, subject },
+            QUERY_REFETCH_LIMITED_OPTIONS
+          )
         );
         await expectQueryWorks(mock, result);
       });
