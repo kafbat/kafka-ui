@@ -1690,6 +1690,32 @@ paths:
         200:
           description: OK
 
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets:
+    delete:
+      tags:
+        - Kafka Connect
+      summary: reset the offsets for the specified connector
+      operationId: resetConnectorOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+
   /api/clusters/{clusterName}/ksql/v2:
     post:
       tags:

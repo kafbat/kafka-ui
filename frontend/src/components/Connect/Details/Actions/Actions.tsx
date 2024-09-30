@@ -11,6 +11,7 @@ import useAppParams from 'lib/hooks/useAppParams';
 import {
   useConnector,
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import {
@@ -63,6 +64,17 @@ const Actions: React.FC = () => {
     stateMutation.mutateAsync(ConnectorAction.STOP);
   const resumeConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESUME);
+
+  const resetConnectorOffsetsMutation = useResetConnectorOffsets(routerProps);
+  const resetConnectorOffsetsHandler = () =>
+    confirm(
+      <>
+        Are you sure you want to reset <b>{routerProps.connectorName}</b>{' '}
+        connector offsets?
+      </>,
+      () => resetConnectorOffsetsMutation.mutateAsync()
+    );
+
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
@@ -147,6 +159,20 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
       </Dropdown>
       <Dropdown>
+        {connector?.status.state === ConnectorState.STOPPED && (
+          <ActionDropdownItem
+            onClick={resetConnectorOffsetsHandler}
+            disabled={isMutating}
+            danger
+            permission={{
+              resource: ResourceType.CONNECT,
+              action: Action.RESET_OFFSETS,
+              value: routerProps.connectName,
+            }}
+          >
+            Reset Connector Offsets
+          </ActionDropdownItem>
+        )}
         <ActionDropdownItem
           onClick={deleteConnectorHandler}
           disabled={isMutating}

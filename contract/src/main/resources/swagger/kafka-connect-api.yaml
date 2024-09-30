@@ -144,6 +144,27 @@ paths:
         500:
           description: Internal server error
 
+  /connectors/{connector}/offsets:
+    delete:
+      tags:
+        - KafkaConnectClient
+      summary: Reset the offsets for the specified connector
+      operationId: resetConnectorOffsets
+      parameters:
+        - in: path
+          name: connector
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorOffsetsReset'
 
   /connectors/{connectorName}/status:
     get:
@@ -448,6 +469,14 @@ components:
         trace:
           type: string
 
+    ConnectorOffsetsReset:
+      type: object
+      properties:
+        error_code:
+          type: number
+        message:
+          type: string
+
     ConnectorStatus:
       type: object
       properties:
@@ -577,7 +606,5 @@ components:
           items:
             type: string
 
-
 security:
   - basicAuth: []
-

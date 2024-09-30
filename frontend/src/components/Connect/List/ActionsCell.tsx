@@ -12,6 +12,7 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { Dropdown, DropdownItem } from 'components/common/Dropdown';
 import {
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import { useConfirm } from 'lib/hooks/useConfirm';
@@ -36,10 +37,15 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     connectName: connect,
     connectorName: name,
   });
+  const resetConnectorOffsetsMutation = useResetConnectorOffsets({
+    clusterName,
+    connectName: connect,
+    connectorName: name,
+  });
   const handleDelete = () => {
     confirm(
       <>
-        Are you sure want to remove <b>{name}</b> connector?
+        Are you sure you want to remove <b>{name}</b> connector?
       </>,
       async () => {
         await deleteMutation.mutateAsync();
@@ -63,6 +69,15 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
 
   const stopConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.STOP);
+
+  const resetOffsetsHandler = () => {
+    confirm(
+      <>
+        Are you sure you want to reset the <b>{name}</b> connector offsets?
+      </>,
+      () => resetConnectorOffsetsMutation.mutateAsync()
+    );
+  };
 
   return (
     <Dropdown>
@@ -138,6 +153,20 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       >
         Restart Failed Tasks
       </ActionDropdownItem>
+      {status.state === ConnectorState.STOPPED && (
+        <ActionDropdownItem
+          onClick={resetOffsetsHandler}
+          disabled={isMutating}
+          danger
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.RESET_OFFSETS,
+            value: connect,
+          }}
+        >
+          Reset Connector Offsets
+        </ActionDropdownItem>
+      )}
       <DropdownItem onClick={handleDelete} danger>
         Remove Connector
       </DropdownItem>

@@ -161,3 +161,11 @@ export function useDeleteConnector(props: UseConnectorProps) {
     onSuccess: () => client.invalidateQueries(connectorsKey(props.clusterName)),
   });
 }
+
+export function useResetConnectorOffsets(props: UseConnectorProps) {
+  const client = useQueryClient();
+
+  return useMutation(() => api.resetConnectorOffsets(props), {
+    onSuccess: () => client.invalidateQueries(connectorKey(props)),
+  });
+}
