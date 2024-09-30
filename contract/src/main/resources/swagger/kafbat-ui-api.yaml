@@ -1542,7 +1542,7 @@ paths:
     post:
       tags:
         - Kafka Connect
-      summary: update connector state (restart, pause or resume)
+      summary: update connector state (restart, pause, stop or resume)
       operationId: updateConnectorState
       parameters:
         - name: clusterName
@@ -3482,6 +3482,7 @@ components:
         - RESTART_FAILED_TASKS
         - PAUSE
         - RESUME
+        - STOP
 
     TaskAction:
       type: string
@@ -3867,7 +3868,16 @@ components:
 
     KafkaAcl:
       type: object
-      required: [resourceType, resourceName, namePatternType, principal, host, operation, permission]
+      required:
+        [
+          resourceType,
+          resourceName,
+          namePatternType,
+          principal,
+          host,
+          operation,
+          permission,
+        ]
       properties:
         resourceType:
           $ref: '#/components/schemas/KafkaAclResourceType'

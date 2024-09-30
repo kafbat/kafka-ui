@@ -59,6 +59,8 @@ const Actions: React.FC = () => {
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
   const pauseConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.PAUSE);
+  const stopConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.STOP);
   const resumeConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESUME);
   return (
@@ -84,7 +86,20 @@ const Actions: React.FC = () => {
             Pause
           </ActionDropdownItem>
         )}
-        {connector?.status.state === ConnectorState.PAUSED && (
+        {connector?.status.state === ConnectorState.RUNNING && (
+          <ActionDropdownItem
+            onClick={stopConnectorHandler}
+            disabled={isMutating}
+            permission={{
+              resource: ResourceType.CONNECT,
+              action: Action.EDIT,
+              value: routerProps.connectName,
+            }}
+          >
+            Stop Connector
+          </ActionDropdownItem>
+        )}
+        {(connector?.status.state === ConnectorState.PAUSED || connector?.status.state === ConnectorState.STOPPED) && (
           <ActionDropdownItem
             onClick={resumeConnectorHandler}
             disabled={isMutating}

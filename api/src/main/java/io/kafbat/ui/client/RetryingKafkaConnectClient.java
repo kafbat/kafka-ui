@@ -191,6 +191,11 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
+  public Mono<Void> stopConnector(String connectorName) throws WebClientResponseException {
+    return withRetryOnConflict(super.stopConnector(connectorName));
+  }
+
+  @Override
   public Mono<ResponseEntity<Void>> pauseConnectorWithHttpInfo(String connectorName) throws WebClientResponseException {
     return withRetryOnConflict(super.pauseConnectorWithHttpInfo(connectorName));
   }

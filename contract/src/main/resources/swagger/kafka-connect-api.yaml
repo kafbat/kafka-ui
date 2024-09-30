@@ -230,6 +230,22 @@ paths:
         202:
           description: Accepted
 
+  /connectors/{connectorName}/stop:
+    put:
+      tags:
+        - KafkaConnectClient
+      summary: stop the connector
+      operationId: stopConnector
+      parameters:
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: No Content
+
   /connectors/{connectorName}/tasks:
     get:
       tags:

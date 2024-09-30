@@ -229,6 +229,8 @@ public class KafkaConnectService {
                   t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
             case PAUSE:
               return client.pauseConnector(connectorName);
+            case STOP:
+              return client.stopConnector(connectorName);
             case RESUME:
               return client.resumeConnector(connectorName);
             default:

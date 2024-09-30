@@ -58,9 +58,15 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   const restartFailedTasksHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
 
+  const pauseConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.PAUSE);
+
+  const stopConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.STOP);
+
   return (
     <Dropdown>
-      {status.state === ConnectorState.PAUSED && (
+      {(status.state === ConnectorState.PAUSED || status.state === ConnectorState.STOPPED) && (
         <ActionDropdownItem
           onClick={resumeConnectorHandler}
           disabled={isMutating}
@@ -71,6 +77,32 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           }}
         >
           Resume
+        </ActionDropdownItem>
+      )}
+      {status.state === ConnectorState.RUNNING && (
+        <ActionDropdownItem
+          onClick={pauseConnectorHandler}
+          disabled={isMutating}
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.EDIT,
+            value: connect,
+          }}
+        >
+          Pause Connector
+        </ActionDropdownItem>
+      )}
+      {status.state === ConnectorState.RUNNING && (
+        <ActionDropdownItem
+          onClick={stopConnectorHandler}
+          disabled={isMutating}
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.EDIT,
+            value: connect,
+          }}
+        >
+          Stop Connector
         </ActionDropdownItem>
       )}
       <ActionDropdownItem
