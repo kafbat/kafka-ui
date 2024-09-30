@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   title: Api Documentation
   termsOfService: urn:tos
-  contact: { }
+  contact: {}
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
@@ -31,7 +31,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/Cluster'
 
-
   /api/clusters/{clusterName}/cache:
     post:
       tags:
@@ -53,7 +52,6 @@ paths:
                 $ref: '#/components/schemas/Cluster'
         404:
           description: Not found
-
 
   /api/clusters/{clusterName}/brokers:
     get:
@@ -432,7 +430,6 @@ paths:
         404:
           description: Not found
 
-
   /api/clusters/{clusterName}/topics/{topicName}:
     get:
       tags:
@@ -644,7 +641,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/SmartFilterTestExecutionResult'
 
-
   /api/clusters/{clusterName}/topics/{topicName}/messages:
     get:
       tags:
@@ -665,7 +661,7 @@ paths:
         - name: seekType
           in: query
           schema:
-            $ref: "#/components/schemas/SeekType"
+            $ref: '#/components/schemas/SeekType'
         - name: seekTo
           in: query
           schema:
@@ -684,19 +680,19 @@ paths:
         - name: filterQueryType
           in: query
           schema:
-            $ref:  "#/components/schemas/MessageFilterType"
+            $ref: '#/components/schemas/MessageFilterType'
         - name: seekDirection
           in: query
           schema:
-            $ref: "#/components/schemas/SeekDirection"
+            $ref: '#/components/schemas/SeekDirection'
         - name: keySerde
           in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
+          description: 'Serde that should be used for deserialization. Will be chosen automatically if not set.'
           schema:
             type: string
         - name: valueSerde
           in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
+          description: 'Serde that should be used for deserialization. Will be chosen automatically if not set.'
           schema:
             type: string
       responses:
@@ -793,7 +789,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageFilterId'
 
-
   /api/clusters/{clusterName}/topics/{topicName}/messages/v2:
     get:
       tags:
@@ -815,7 +810,7 @@ paths:
           in: query
           description: Messages polling mode
           schema:
-            $ref: "#/components/schemas/PollingMode"
+            $ref: '#/components/schemas/PollingMode'
         - name: partitions
           in: query
           schema:
@@ -852,17 +847,17 @@ paths:
             format: int64
         - name: keySerde
           in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
+          description: 'Serde that should be used for deserialization. Will be chosen automatically if not set.'
           schema:
             type: string
         - name: valueSerde
           in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
+          description: 'Serde that should be used for deserialization. Will be chosen automatically if not set.'
           schema:
             type: string
         - name: cursor
           in: query
-          description: "id of the cursor for pagination, if passed - all other query params ignored"
+          description: 'id of the cursor for pagination, if passed - all other query params ignored'
           schema:
             type: string
       responses:
@@ -874,7 +869,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TopicMessageEvent'
-
 
   /api/clusters/{clusterName}/topics/{topicName}/activeproducers:
     get:
@@ -902,7 +896,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TopicProducerState'
-
 
   /api/clusters/{clusterName}/topics/{topicName}/consumer-groups:
     get:
@@ -975,7 +968,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsumerGroupsPageResponse'
-
 
   /api/clusters/{clusterName}/consumer-groups/{id}:
     get:
@@ -1207,7 +1199,6 @@ paths:
           description: OK
         404:
           description: Not found
-
 
   /api/clusters/{clusterName}/schemas/{subject}/versions/{version}:
     get:
@@ -1698,7 +1689,6 @@ paths:
       responses:
         200:
           description: OK
-
 
   /api/clusters/{clusterName}/ksql/v2:
     post:
@@ -2194,7 +2184,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApplicationConfigValidation'
 
-
   /api/config/relatedfiles:
     post:
       tags:
@@ -2240,7 +2229,7 @@ components:
         description:
           type: string
         preferred:
-          description: "This serde was automatically chosen by cluster config. This should be enabled in UI by default. Also it will be used for deserialization if no serdes passed."
+          description: 'This serde was automatically chosen by cluster config. This should be enabled in UI by default. Also it will be used for deserialization if no serdes passed.'
           type: boolean
         schema:
           type: string
@@ -2527,7 +2516,7 @@ components:
         partitions:
           type: array
           items:
-            $ref: "#/components/schemas/Partition"
+            $ref: '#/components/schemas/Partition'
       required:
         - name
 
@@ -2571,7 +2560,7 @@ components:
         partitionStats:
           type: array
           items:
-            $ref: "#/components/schemas/TopicAnalysisStats"
+            $ref: '#/components/schemas/TopicAnalysisStats'
 
     TopicAnalysisStats:
       type: object
@@ -2579,7 +2568,7 @@ components:
         partition:
           type: integer
           format: int32
-          description: "null if this is total stats"
+          description: 'null if this is total stats'
         totalMsgs:
           type: integer
           format: int64
@@ -2608,9 +2597,9 @@ components:
           type: integer
           format: int64
         keySize:
-          $ref: "#/components/schemas/TopicAnalysisSizeStats"
+          $ref: '#/components/schemas/TopicAnalysisSizeStats'
         valueSize:
-          $ref: "#/components/schemas/TopicAnalysisSizeStats"
+          $ref: '#/components/schemas/TopicAnalysisSizeStats'
         hourlyMsgCounts:
           type: array
           items:
@@ -2625,7 +2614,7 @@ components:
 
     TopicAnalysisSizeStats:
       type: object
-      description: "All sizes in bytes"
+      description: 'All sizes in bytes'
       properties:
         sum:
           type: integer
@@ -2675,7 +2664,7 @@ components:
         partitions:
           type: array
           items:
-            $ref: "#/components/schemas/Partition"
+            $ref: '#/components/schemas/Partition'
         partitionCount:
           type: integer
         replicationFactor:
@@ -2714,7 +2703,7 @@ components:
         defaultValue:
           type: string
         source:
-          $ref: "#/components/schemas/ConfigSource"
+          $ref: '#/components/schemas/ConfigSource'
         isSensitive:
           type: boolean
         isReadOnly:
@@ -2722,7 +2711,7 @@ components:
         synonyms:
           type: array
           items:
-            $ref: "#/components/schemas/ConfigSynonym"
+            $ref: '#/components/schemas/ConfigSynonym'
         doc:
           type: string
       required:
@@ -2838,7 +2827,7 @@ components:
       discriminator:
         propertyName: inherit
         mapping:
-          details: "#/components/schemas/ConsumerGroupDetails"
+          details: '#/components/schemas/ConsumerGroupDetails'
       type: object
       properties:
         groupId:
@@ -2852,9 +2841,9 @@ components:
         partitionAssignor:
           type: string
         state:
-          $ref: "#/components/schemas/ConsumerGroupState"
+          $ref: '#/components/schemas/ConsumerGroupState'
         coordinator:
-          $ref: "#/components/schemas/Broker"
+          $ref: '#/components/schemas/Broker'
         consumerLag:
           type: integer
           format: int64
@@ -2949,13 +2938,13 @@ components:
             # otherwise ui should pass cursor param to continue polling
             - DONE
         message:
-          $ref: "#/components/schemas/TopicMessage"
+          $ref: '#/components/schemas/TopicMessage'
         phase:
-          $ref: "#/components/schemas/TopicMessagePhase"
+          $ref: '#/components/schemas/TopicMessagePhase'
         consuming:
-          $ref: "#/components/schemas/TopicMessageConsuming"
+          $ref: '#/components/schemas/TopicMessageConsuming'
         cursor:
-          $ref: "#/components/schemas/TopicMessageNextPageCursor"
+          $ref: '#/components/schemas/TopicMessageNextPageCursor'
 
     TopicMessagePhase:
       type: object
@@ -3018,10 +3007,10 @@ components:
           type: string
         keyFormat:
           #deprecated - wont be filled - use 'keySerde' field instead
-          $ref: "#/components/schemas/MessageFormat"
+          $ref: '#/components/schemas/MessageFormat'
         valueFormat:
           #deprecated - wont be filled - use 'valueSerde' field instead
-          $ref: "#/components/schemas/MessageFormat"
+          $ref: '#/components/schemas/MessageFormat'
         keySize:
           type: integer
           format: int64
@@ -3146,7 +3135,6 @@ components:
       required:
         - topic
         - partition
-
 
     ConsumerGroupDetails:
       allOf:
@@ -3868,16 +3856,7 @@ components:
 
     KafkaAcl:
       type: object
-      required:
-        [
-          resourceType,
-          resourceName,
-          namePatternType,
-          principal,
-          host,
-          operation,
-          permission,
-        ]
+      required: [resourceType, resourceName, namePatternType, principal, host, operation, permission]
       properties:
         resourceType:
           $ref: '#/components/schemas/KafkaAclResourceType'
@@ -3894,15 +3873,15 @@ components:
           enum:
             - UNKNOWN # Unknown operation, need to update mapping code on BE
             - ALL # Cluster, Topic, Group
-            - READ  # Topic, Group
+            - READ # Topic, Group
             - WRITE # Topic, TransactionalId
             - CREATE # Cluster, Topic
-            - DELETE  # Topic, Group
-            - ALTER  # Cluster, Topic,
+            - DELETE # Topic, Group
+            - ALTER # Cluster, Topic,
             - DESCRIBE # Cluster, Topic, Group, TransactionalId, DelegationToken
             - CLUSTER_ACTION # Cluster
             - DESCRIBE_CONFIGS # Cluster, Topic
-            - ALTER_CONFIGS   # Cluster, Topic
+            - ALTER_CONFIGS # Cluster, Topic
             - IDEMPOTENT_WRITE # Cluster
             - CREATE_TOKENS
             - DESCRIBE_TOKENS
@@ -4133,7 +4112,7 @@ components:
               properties:
                 maxInMemoryBufferSize:
                   type: string
-                  description: "examples: 20, 12KB, 5MB"
+                  description: 'examples: 20, 12KB, 5MB'
             kafka:
               type: object
               properties:
@@ -4190,7 +4169,7 @@ components:
                           keystoreLocation:
                             type: string
                           keystorePassword:
-                              type: string
+                            type: string
                       ksqldbServerAuth:
                         type: object
                         properties:
@@ -4298,7 +4277,7 @@ components:
                         properties:
                           level:
                             type: string
-                            enum: [ "ALL", "ALTER_ONLY" ]
+                            enum: ['ALL', 'ALTER_ONLY']
                           topic:
                             type: string
                           auditTopicsPartitions:
