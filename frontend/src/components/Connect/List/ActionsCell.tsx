@@ -167,9 +167,16 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           Reset Connector Offsets
         </ActionDropdownItem>
       )}
-      <DropdownItem onClick={handleDelete} danger>
+      <ActionDropdownItem
+        onClick={handleDelete}
+        danger
+        permission={{
+          resource: ResourceType.CONNECT,
+          action: Action.DELETE,
+          value: connect,
+        }}>
         Remove Connector
-      </DropdownItem>
+      </ActionDropdownItem>
     </Dropdown>
   );
 };
