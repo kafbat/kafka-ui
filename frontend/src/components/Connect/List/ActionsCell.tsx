@@ -9,7 +9,7 @@ import {
 import { CellContext } from '@tanstack/react-table';
 import { ClusterNameRoute } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
-import { Dropdown, DropdownItem } from 'components/common/Dropdown';
+import { Dropdown } from 'components/common/Dropdown';
 import {
   useDeleteConnector,
   useResetConnectorOffsets,
@@ -104,7 +104,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
             value: connect,
           }}
         >
-          Pause Connector
+          Pause
         </ActionDropdownItem>
       )}
       {status.state === ConnectorState.RUNNING && (
@@ -117,7 +117,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
             value: connect,
           }}
         >
-          Stop Connector
+          Stop
         </ActionDropdownItem>
       )}
       <ActionDropdownItem
@@ -153,20 +153,18 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       >
         Restart Failed Tasks
       </ActionDropdownItem>
-      {status.state === ConnectorState.STOPPED && (
-        <ActionDropdownItem
-          onClick={resetOffsetsHandler}
-          disabled={isMutating}
-          danger
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.RESET_OFFSETS,
-            value: connect,
-          }}
-        >
-          Reset Connector Offsets
-        </ActionDropdownItem>
-      )}
+      <ActionDropdownItem
+        onClick={resetOffsetsHandler}
+        disabled={isMutating || status.state !== ConnectorState.STOPPED}
+        danger
+        permission={{
+          resource: ResourceType.CONNECT,
+          action: Action.RESET_OFFSETS,
+          value: connect,
+        }}
+      >
+        Reset Offsets
+      </ActionDropdownItem>
       <ActionDropdownItem
         onClick={handleDelete}
         danger
@@ -175,7 +173,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           action: Action.DELETE,
           value: connect,
         }}>
-        Remove Connector
+        Delete
       </ActionDropdownItem>
     </Dropdown>
   );

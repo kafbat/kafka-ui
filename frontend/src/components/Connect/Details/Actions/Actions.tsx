@@ -108,7 +108,7 @@ const Actions: React.FC = () => {
               value: routerProps.connectName,
             }}
           >
-            Stop Connector
+            Stop
           </ActionDropdownItem>
         )}
         {(connector?.status.state === ConnectorState.PAUSED || connector?.status.state === ConnectorState.STOPPED) && (
@@ -159,20 +159,18 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
       </Dropdown>
       <Dropdown>
-        {connector?.status.state === ConnectorState.STOPPED && (
-          <ActionDropdownItem
-            onClick={resetConnectorOffsetsHandler}
-            disabled={isMutating}
-            danger
-            permission={{
-              resource: ResourceType.CONNECT,
-              action: Action.RESET_OFFSETS,
-              value: routerProps.connectName,
-            }}
-          >
-            Reset Connector Offsets
-          </ActionDropdownItem>
-        )}
+        <ActionDropdownItem
+          onClick={resetConnectorOffsetsHandler}
+          disabled={isMutating || connector?.status.state !== ConnectorState.STOPPED}
+          danger
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.RESET_OFFSETS,
+            value: routerProps.connectName,
+          }}
+        >
+          Reset Offsets
+        </ActionDropdownItem>
         <ActionDropdownItem
           onClick={deleteConnectorHandler}
           disabled={isMutating}
