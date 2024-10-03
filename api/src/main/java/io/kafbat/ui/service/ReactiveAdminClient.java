@@ -531,6 +531,21 @@ public class ReactiveAdminClient implements Closeable {
         .all());
   }
 
+  public Mono<Void> deleteConsumerGroupOffsets(String groupId, String topic) {
+    var offsets = listConsumerGroupOffsets(List.of(groupId), null);
+    Mono<Set<TopicPartition>> partitions = offsets.map(tps ->
+        tps.row(groupId)
+            .keySet()
+            .stream()
+            .filter(tp -> tp.topic().equals(topic))
+            .collect(Collectors.toSet())
+    );
+
+    return partitions.flatMap(partitionSet ->
+        toMono(client.deleteConsumerGroupOffsets(groupId, partitionSet).all())
+    );
+  }
+
   /**
    * List offset for the topic's partitions and OffsetSpec.
    *

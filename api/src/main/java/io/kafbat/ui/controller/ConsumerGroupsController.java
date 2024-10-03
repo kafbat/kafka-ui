@@ -3,6 +3,7 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.RESET_OFFSETS;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.VIEW;
+import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.DELETE_OFFSETS;
 import static java.util.stream.Collectors.toMap;
 
 import io.kafbat.ui.api.ConsumerGroupsApi;
@@ -186,6 +187,24 @@ public class ConsumerGroupsController extends AbstractController implements Cons
           .then(mono.get())
           .doOnEach(sig -> audit(context, sig));
     }).thenReturn(ResponseEntity.ok().build());
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName,
+                                                              String group,
+                                                              String topic,
+                                                              ServerWebExchange exchange) {
+      var context = AccessContext.builder()
+          .cluster(clusterName)
+          .topicActions(topic, TopicAction.VIEW)
+          .consumerGroupActions(group, DELETE_OFFSETS)
+          .operationName("resetConsumerGroupOffsets")
+          .build();
+
+      return validateAccess(context)
+          .then(consumerGroupService.deleteConsumerGroupOffsets(getCluster(clusterName), group, topic))
+          .doOnEach(sig -> audit(context, sig))
+          .thenReturn(ResponseEntity.ok().build());
   }
 
   private ConsumerGroupsPageResponseDTO convertPage(ConsumerGroupService.ConsumerGroupsPage

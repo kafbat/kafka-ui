@@ -90,3 +90,30 @@ export const useResetConsumerGroupOffsetsMutation = ({
     }
   );
 };
+
+export const useDeleteConsumerGroupOffsetsMutation = ({
+                                                       clusterName,
+                                                       consumerGroupID,
+                                                     }: UseConsumerGroupDetailsProps) => {
+  const queryClient = useQueryClient();
+  return useMutation(
+    (topic: string) =>
+      api.deleteConsumerGroupOffsets({
+        clusterName,
+        id: consumerGroupID,
+        topic,
+      }),
+    {
+      onSuccess: () => {
+        showSuccessAlert({
+          message: `Consumer ${consumerGroupID} group offsets deleted.`,
+        });
+        queryClient.invalidateQueries([
+          'clusters',
+          clusterName,
+          'consumerGroups',
+        ]);
+      },
+    }
+  );
+};
