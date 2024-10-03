@@ -53,8 +53,6 @@ const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
           <Dropdown>
             <ActionDropdownItem
               onClick={() => deleteOffset.mutateAsync(name)}
-              danger
-              confirm={"Are you sure you want to delete offsets for this topic?"}
               permission={{
                 resource: ResourceType.CONSUMER,
                 action: Action.DELETE_OFFSETS,
