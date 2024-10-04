@@ -84,6 +84,23 @@ describe('Actions', () => {
       expect(screen.getByText('Resume')).toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
+      expectActionButtonsExists();
+    });
+
+    it('renders buttons when stopped', async () => {
+      (useConnector as jest.Mock).mockImplementation(() => ({
+        data: setConnectorStatus(connector, ConnectorState.PAUSED),
+      }));
+      renderComponent();
+      await afterClickRestartButton();
+      expect(screen.getAllByRole('menuitem').length).toEqual(4);
+      expect(screen.getByText('Resume')).toBeInTheDocument();
+      expect(screen.queryByText('Pause')).not.toBeInTheDocument();
+      expect(screen.queryByText('Stop')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Connector Offsets')).not.toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -97,6 +114,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -110,6 +129,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
+      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -123,6 +144,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.getByText('Pause')).toBeInTheDocument();
       expect(screen.getByText('Stop')).toBeInTheDocument();
+      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
