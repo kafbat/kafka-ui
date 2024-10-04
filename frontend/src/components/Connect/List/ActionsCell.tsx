@@ -81,7 +81,8 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
 
   return (
     <Dropdown>
-      {(status.state === ConnectorState.PAUSED || status.state === ConnectorState.STOPPED) && (
+      {(status.state === ConnectorState.PAUSED ||
+        status.state === ConnectorState.STOPPED) && (
         <ActionDropdownItem
           onClick={resumeConnectorHandler}
           disabled={isMutating}
@@ -172,7 +173,8 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           resource: ResourceType.CONNECT,
           action: Action.DELETE,
           value: connect,
-        }}>
+        }}
+      >
         Delete
       </ActionDropdownItem>
     </Dropdown>

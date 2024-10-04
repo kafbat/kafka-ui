@@ -84,8 +84,8 @@ describe('Actions', () => {
       expect(screen.getByText('Resume')).toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
+      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -99,8 +99,8 @@ describe('Actions', () => {
       expect(screen.getByText('Resume')).toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Connector Offsets')).not.toBeDisabled();
+      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Offsets')).toBeEnabled();
       expectActionButtonsExists();
     });
 
@@ -114,8 +114,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
+      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -129,8 +129,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
+      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -144,8 +144,8 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.getByText('Pause')).toBeInTheDocument();
       expect(screen.getByText('Stop')).toBeInTheDocument();
-      expect(screen.queryByText('Reset Connector Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Connector Offsets')).toBeDisabled();
+      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByText('Reset Offsets')).toBeDisabled();
       expectActionButtonsExists();
     });
 
@@ -169,7 +169,9 @@ describe('Actions', () => {
         renderComponent();
         await afterClickDropDownButton();
         await waitFor(async () =>
-          userEvent.click(screen.getByRole('menuitem', { name: 'Reset Offsets' }))
+          userEvent.click(
+            screen.getByRole('menuitem', { name: 'Reset Offsets' })
+          )
         );
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });

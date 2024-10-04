@@ -111,7 +111,8 @@ const Actions: React.FC = () => {
             Stop
           </ActionDropdownItem>
         )}
-        {(connector?.status.state === ConnectorState.PAUSED || connector?.status.state === ConnectorState.STOPPED) && (
+        {(connector?.status.state === ConnectorState.PAUSED ||
+          connector?.status.state === ConnectorState.STOPPED) && (
           <ActionDropdownItem
             onClick={resumeConnectorHandler}
             disabled={isMutating}
@@ -161,7 +162,9 @@ const Actions: React.FC = () => {
       <Dropdown>
         <ActionDropdownItem
           onClick={resetConnectorOffsetsHandler}
-          disabled={isMutating || connector?.status.state !== ConnectorState.STOPPED}
+          disabled={
+            isMutating || connector?.status.state !== ConnectorState.STOPPED
+          }
           danger
           permission={{
             resource: ResourceType.CONNECT,
