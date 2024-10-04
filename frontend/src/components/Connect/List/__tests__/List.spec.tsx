@@ -94,7 +94,7 @@ describe('Connectors List', () => {
     });
   });
 
-  describe('when remove connector modal is open', () => {
+  describe('when delete modal is open', () => {
     beforeEach(() => {
       (useConnectors as jest.Mock).mockImplementation(() => ({
         data: connectors,
@@ -104,10 +104,10 @@ describe('Connectors List', () => {
       }));
     });
 
-    it('calls removeConnector on confirm', async () => {
+    it('calls deleteConnector on confirm', async () => {
       renderComponent();
-      const removeButton = screen.getAllByText('Remove Connector')[0];
-      await waitFor(() => userEvent.click(removeButton));
+      const deleteButton = screen.getAllByText('Delete')[0];
+      await waitFor(() => userEvent.click(deleteButton));
 
       const submitButton = screen.getAllByRole('button', {
         name: 'Confirm',
@@ -118,8 +118,8 @@ describe('Connectors List', () => {
 
     it('closes the modal when cancel button is clicked', async () => {
       renderComponent();
-      const removeButton = screen.getAllByText('Remove Connector')[0];
-      await waitFor(() => userEvent.click(removeButton));
+      const deleteButton = screen.getAllByText('Delete')[0];
+      await waitFor(() => userEvent.click(deleteButton));
 
       const cancelButton = screen.getAllByRole('button', {
         name: 'Cancel',
