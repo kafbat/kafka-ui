@@ -38,7 +38,7 @@ const Actions: React.FC = () => {
   const deleteConnectorHandler = () =>
     confirm(
       <>
-        Are you sure you want to remove <b>{routerProps.connectorName}</b>{' '}
+        Are you sure you want to remove the <b>{routerProps.connectorName}</b>{' '}
         connector?
       </>,
       async () => {
@@ -69,7 +69,7 @@ const Actions: React.FC = () => {
   const resetConnectorOffsetsHandler = () =>
     confirm(
       <>
-        Are you sure you want to reset <b>{routerProps.connectorName}</b>{' '}
+        Are you sure you want to reset the <b>{routerProps.connectorName}</b>{' '}
         connector offsets?
       </>,
       () => resetConnectorOffsetsMutation.mutateAsync()

@@ -45,7 +45,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   const handleDelete = () => {
     confirm(
       <>
-        Are you sure you want to remove <b>{name}</b> connector?
+        Are you sure you want to remove the <b>{name}</b> connector?
       </>,
       async () => {
         await deleteMutation.mutateAsync();
