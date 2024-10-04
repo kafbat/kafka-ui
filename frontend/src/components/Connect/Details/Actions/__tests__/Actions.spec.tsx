@@ -23,6 +23,7 @@ function setConnectorStatus(con: Connector, state: ConnectorState) {
 
 const mockHistoryPush = jest.fn();
 const deleteConnector = jest.fn();
+const resetConnectorOffsets = jest.fn();
 const cancelMock = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -34,6 +35,7 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
   useConnector: jest.fn(),
   useDeleteConnector: jest.fn(),
   useUpdateConnectorState: jest.fn(),
+  useResetConnectorOffsets: jest.fn(),
 }));
 
 const expectActionButtonsExists = () => {
@@ -56,6 +58,7 @@ describe('Actions', () => {
     mockHistoryPush.mockClear();
     deleteConnector.mockClear();
     cancelMock.mockClear();
+    resetConnectorOffsets.mockClear();
   });
 
   describe('view', () => {

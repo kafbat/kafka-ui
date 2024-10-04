@@ -27,6 +27,7 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
   useConnectors: jest.fn(),
   useDeleteConnector: jest.fn(),
   useUpdateConnectorState: jest.fn(),
+  useResetConnectorOffsets: jest.fn(),
 }));
 
 const clusterName = 'local';
