@@ -1,5 +1,6 @@
 package io.kafbat.ui.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,9 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class CorsGlobalConfiguration {
 
+  @Autowired
+  private CorsProperties corsProperties;
+
   @Bean
   public WebFilter corsFilter() {
     return (final ServerWebExchange ctx, final WebFilterChain chain) -> {
@@ -22,10 +26,10 @@ public class CorsGlobalConfiguration {
 
       final ServerHttpResponse response = ctx.getResponse();
       final HttpHeaders headers = response.getHeaders();
-      headers.add("Access-Control-Allow-Origin", "*");
-      headers.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-      headers.add("Access-Control-Max-Age", "3600");
-      headers.add("Access-Control-Allow-Headers", "Content-Type");
+      headers.add("Access-Control-Allow-Origin", corsProperties.getAllowedOrigins());
+      headers.add("Access-Control-Allow-Methods", corsProperties.getAllowedMethods());
+      headers.add("Access-Control-Max-Age", corsProperties.getMaxAge());
+      headers.add("Access-Control-Allow-Headers", corsProperties.getAllowedHeaders());
 
       if (request.getMethod() == HttpMethod.OPTIONS) {
         response.setStatusCode(HttpStatus.OK);

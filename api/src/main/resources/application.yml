@@ -19,3 +19,9 @@ logging:
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
 
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET, PUT, POST, DELETE, OPTIONS"
+  allowed-headers: "Content-Type"
+  max-age: "3600"
+
