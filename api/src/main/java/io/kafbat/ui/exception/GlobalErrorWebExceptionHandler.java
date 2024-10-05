@@ -151,9 +151,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
   }
 
   private Consumer<HttpHeaders> headers(ServerRequest request) {
-    return (HttpHeaders headers) -> {
-      CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
-    };
+    return CorsGlobalConfiguration::fillCorsHeader;
   }
 
   private BigDecimal currentTimestamp() {

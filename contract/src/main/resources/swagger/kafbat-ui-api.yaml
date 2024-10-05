@@ -4391,3 +4391,42 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+            cors:
+              type: object
+              properties:
+                allowedOrigins:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    List of allowed origins for CORS.
+                    If not provided, defaults to allowing all origins (`*`)
+                  default: ["*"]
+                allowedMethods:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    List of allowed HTTP methods for CORS
+                    If not provided, defaults to `GET, POST, PUT, DELETE, OPTIONS`.
+                  default: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+                allowedHeaders:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    List of allowed HTTP headers for CORS.
+                    If not provided, defaults to allowing all headers (`*`).
+                  default: ["*"]
+                allowCredentials:
+                  type: boolean
+                  description: >-
+                    Whether to allow credentials in CORS requests.
+                    If not provided, defaults to `true`
+                  default: true
+                maxAge:
+                  type: integer
+                  description: >-
+                    Maximum age (in seconds) for CORS preflight requests.
+                    If not provided, defaults to `3600` seconds.
+                  default: 3600

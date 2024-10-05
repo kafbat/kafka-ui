@@ -1,5 +1,6 @@
 package io.kafbat.ui.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,9 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class CorsGlobalConfiguration {
 
+  @Autowired
+  private static CorsProperties corsProperties;
+
   @Bean
   public WebFilter corsFilter() {
     return (final ServerWebExchange ctx, final WebFilterChain chain) -> {
@@ -22,7 +26,7 @@ public class CorsGlobalConfiguration {
 
       final ServerHttpResponse response = ctx.getResponse();
       final HttpHeaders headers = response.getHeaders();
-      fillCorsHeader(headers, request);
+      fillCorsHeader(headers);
 
       if (request.getMethod() == HttpMethod.OPTIONS) {
         response.setStatusCode(HttpStatus.OK);
@@ -33,11 +37,11 @@ public class CorsGlobalConfiguration {
     };
   }
 
-  public static void fillCorsHeader(HttpHeaders responseHeaders, ServerHttpRequest request) {
-    responseHeaders.add("Access-Control-Allow-Origin", request.getHeaders().getOrigin());
-    responseHeaders.add("Access-Control-Allow-Credentials", "true");
-    responseHeaders.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-    responseHeaders.add("Access-Control-Max-Age", "3600");
-    responseHeaders.add("Access-Control-Allow-Headers", "Content-Type");
+  public static void fillCorsHeader(HttpHeaders responseHeaders) {
+    responseHeaders.add("Access-Control-Allow-Origin", corsProperties.getAllowedOrigins());
+    responseHeaders.add("Access-Control-Allow-Credentials", corsProperties.getAllowCredentials());
+    responseHeaders.add("Access-Control-Allow-Methods", corsProperties.getAllowedMethods());
+    responseHeaders.add("Access-Control-Max-Age", corsProperties.getMaxAge());
+    responseHeaders.add("Access-Control-Allow-Headers", corsProperties.getAllowedHeaders());
   }
 }
