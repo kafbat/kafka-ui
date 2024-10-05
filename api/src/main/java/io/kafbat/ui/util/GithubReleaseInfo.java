@@ -43,6 +43,8 @@ public class GithubReleaseInfo {
         .onErrorResume(th -> true, th -> Mono.just(GithubReleaseDto.empty()))
         .doOnNext(release -> this.release = release)
         .then();
+
+    this.refreshMono.block();
   }
 
   public GithubReleaseDto get() {
