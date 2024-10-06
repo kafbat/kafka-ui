@@ -25,6 +25,9 @@ class GithubReleaseInfoTest {
 
   @Test
   void test() {
+    var infoHolder = new GithubReleaseInfo(10);
+    var url = mockWebServer.url("repos/kafbat/kafka-ui/releases/latest").toString();
+
     mockWebServer.enqueue(new MockResponse()
         .addHeader("content-type: application/json")
         .setBody("""
@@ -35,10 +38,8 @@ class GithubReleaseInfoTest {
               "some_unused_prop": "ololo"
             }
             """));
-    var url = mockWebServer.url("repos/kafbat/kafka-ui/releases/latest").toString();
 
-    var infoHolder = new GithubReleaseInfo(url, 10);
-    infoHolder.refresh().block();
+    infoHolder.refresh(url);
 
     var i = infoHolder.get();
     assertThat(i.html_url())
