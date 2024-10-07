@@ -34,8 +34,8 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   private static final Duration RETRIES_DELAY = Duration.ofMillis(200);
 
   public RetryingKafkaConnectClient(ClustersProperties.ConnectCluster config,
-      @Nullable ClustersProperties.TruststoreConfig truststoreConfig,
-      DataSize maxBuffSize) {
+                                    @Nullable ClustersProperties.TruststoreConfig truststoreConfig,
+                                    DataSize maxBuffSize) {
     super(new RetryingApiClient(config, truststoreConfig, maxBuffSize));
   }
 
@@ -43,8 +43,9 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
     return Retry
         .fixedDelay(MAX_RETRIES, RETRIES_DELAY)
         .filter(e -> e instanceof WebClientResponseException.Conflict)
-        .onRetryExhaustedThrow((spec, signal) -> new KafkaConnectConflictReponseException(
-            (WebClientResponseException.Conflict) signal.failure()));
+        .onRetryExhaustedThrow((spec, signal) ->
+            new KafkaConnectConflictReponseException(
+                (WebClientResponseException.Conflict) signal.failure()));
   }
 
   private static <T> Mono<T> withRetryOnConflict(Mono<T> publisher) {
@@ -57,23 +58,25 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   private static <T> Mono<T> withBadRequestErrorHandling(Mono<T> publisher) {
     return publisher
-        .onErrorResume(WebClientResponseException.BadRequest.class,
-            e -> Mono.error(new ValidationException("Invalid configuration")))
-        .onErrorResume(WebClientResponseException.InternalServerError.class,
-            e -> Mono.error(new ValidationException("Invalid configuration")));
+        .onErrorResume(WebClientResponseException.BadRequest.class, e ->
+            Mono.error(new ValidationException("Invalid configuration")))
+        .onErrorResume(WebClientResponseException.InternalServerError.class, e ->
+            Mono.error(new ValidationException("Invalid configuration")));
   }
 
   @Override
   public Mono<Connector> createConnector(NewConnector newConnector) throws RestClientException {
     return withBadRequestErrorHandling(
-        super.createConnector(newConnector));
+        super.createConnector(newConnector)
+    );
   }
 
   @Override
   public Mono<Connector> setConnectorConfig(String connectorName, Map<String, Object> requestBody)
       throws RestClientException {
     return withBadRequestErrorHandling(
-        super.setConnectorConfig(connectorName, requestBody));
+        super.setConnectorConfig(connectorName, requestBody)
+    );
   }
 
   @Override
@@ -92,6 +95,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
       throws WebClientResponseException {
     return withRetryOnConflict(super.deleteConnectorWithHttpInfo(connectorName));
   }
+
 
   @Override
   public Mono<Connector> getConnector(String connectorName) throws WebClientResponseException {
@@ -204,7 +208,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   @Override
   public Mono<ResponseEntity<Void>> restartConnectorWithHttpInfo(String connectorName, Boolean includeTasks,
-      Boolean onlyFailed) throws WebClientResponseException {
+                                                                 Boolean onlyFailed) throws WebClientResponseException {
     return withRetryOnConflict(super.restartConnectorWithHttpInfo(connectorName, includeTasks, onlyFailed));
   }
 
@@ -232,14 +236,14 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   @Override
   public Mono<ResponseEntity<Connector>> setConnectorConfigWithHttpInfo(String connectorName,
-      Map<String, Object> requestBody)
+                                                                        Map<String, Object> requestBody)
       throws WebClientResponseException {
     return withRetryOnConflict(super.setConnectorConfigWithHttpInfo(connectorName, requestBody));
   }
 
   @Override
   public Mono<ConnectorPluginConfigValidationResponse> validateConnectorPluginConfig(String pluginName,
-      Map<String, Object> requestBody)
+                                                                                     Map<String, Object> requestBody)
       throws WebClientResponseException {
     return withRetryOnConflict(super.validateConnectorPluginConfig(pluginName, requestBody));
   }
@@ -253,8 +257,8 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   private static class RetryingApiClient extends ApiClient {
 
     public RetryingApiClient(ClustersProperties.ConnectCluster config,
-        ClustersProperties.TruststoreConfig truststoreConfig,
-        DataSize maxBuffSize) {
+                             ClustersProperties.TruststoreConfig truststoreConfig,
+                             DataSize maxBuffSize) {
       super(buildWebClient(maxBuffSize, config, truststoreConfig), null, null);
       setBasePath(config.getAddress());
       setUsername(config.getUsername());
@@ -262,17 +266,20 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
     }
 
     public static WebClient buildWebClient(DataSize maxBuffSize,
-        ClustersProperties.ConnectCluster config,
-        ClustersProperties.TruststoreConfig truststoreConfig) {
+                                           ClustersProperties.ConnectCluster config,
+                                           ClustersProperties.TruststoreConfig truststoreConfig) {
       return new WebClientConfigurator()
           .configureSsl(
               truststoreConfig,
               new ClustersProperties.KeystoreConfig(
                   config.getKeystoreLocation(),
-                  config.getKeystorePassword()))
+                  config.getKeystorePassword()
+              )
+          )
           .configureBasicAuth(
               config.getUsername(),
-              config.getPassword())
+              config.getPassword()
+          )
           .configureBufferSize(maxBuffSize)
           .build();
     }

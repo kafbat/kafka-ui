@@ -172,9 +172,7 @@ describe('Actions', () => {
         renderComponent();
         await afterClickDropDownButton();
         await waitFor(async () =>
-          userEvent.click(
-            screen.getByRole('menuitem', { name: 'Reset Offsets' })
-          )
+          userEvent.click(screen.getByRole('menuitem', { name: 'Reset Offsets' }))
         );
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });

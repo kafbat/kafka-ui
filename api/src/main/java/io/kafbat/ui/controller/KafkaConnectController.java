@@ -61,7 +61,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context)
-        .thenReturn(ResponseEntity.ok(kafkaConnectService.getConnectorNames(getCluster(clusterName), connectName)))
+        .thenReturn(
+            ResponseEntity.ok(kafkaConnectService.getConnectorNames(getCluster(clusterName), connectName)))
         .doOnEach(sig -> audit(context, sig));
   }
 
@@ -136,8 +137,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         : getConnectorsComparator(orderBy).reversed();
 
     Flux<FullConnectorInfoDTO> job = kafkaConnectService.getAllConnectors(getCluster(clusterName), search)
-        .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(),
-            clusterName))
+        .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(), clusterName))
         .sort(comparator);
 
     return Mono.just(ResponseEntity.ok(job))
@@ -177,9 +177,9 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context).then(
-            kafkaConnectService
-                .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
-                .map(ResponseEntity::ok))
+        kafkaConnectService
+            .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
+            .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
 
@@ -205,8 +205,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService
             .updateConnectorState(getCluster(clusterName), connectName, connectorName, action)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+            .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -224,8 +224,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).thenReturn(
         ResponseEntity
             .ok(kafkaConnectService
-                .getConnectorTasks(getCluster(clusterName), connectName, connectorName))
-    ).doOnEach(sig -> audit(context, sig));
+                .getConnectorTasks(getCluster(clusterName), connectName, connectorName)))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -243,8 +243,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService
             .restartConnectorTask(getCluster(clusterName), connectName, connectorName, taskId)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+            .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -260,14 +260,13 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         Mono.just(
             ResponseEntity.ok(
-                kafkaConnectService.getConnectorPlugins(getCluster(clusterName), connectName)))
-    ).doOnEach(sig -> audit(context, sig));
+                kafkaConnectService.getConnectorPlugins(getCluster(clusterName), connectName))))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
   public Mono<ResponseEntity<ConnectorPluginConfigValidationResponseDTO>> validateConnectorPluginConfig(
-      String clusterName, String connectName, String pluginName,
-      @Valid Mono<Map<String, Object>> requestBody,
+      String clusterName, String connectName, String pluginName, @Valid Mono<Map<String, Object>> requestBody,
       ServerWebExchange exchange) {
     return kafkaConnectService
         .validateConnectorPluginConfig(
@@ -283,8 +282,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return switch (orderBy) {
       case CONNECT -> Comparator.comparing(FullConnectorInfoDTO::getConnect);
       case TYPE -> Comparator.comparing(FullConnectorInfoDTO::getType);
-      case STATUS -> Comparator
-          .comparing(fullConnectorInfoDTO -> fullConnectorInfoDTO.getStatus().getState());
+      case STATUS -> Comparator.comparing(fullConnectorInfoDTO -> fullConnectorInfoDTO.getStatus().getState());
       default -> defaultComparator;
     };
   }
@@ -306,8 +304,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     return validateAccess(context).then(
         kafkaConnectService
-            .resetConnectorOffsets(getCluster(clusterName), connectName,
-                connectorName)
+            .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
             .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
