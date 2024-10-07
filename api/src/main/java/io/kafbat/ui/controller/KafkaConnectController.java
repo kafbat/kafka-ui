@@ -61,8 +61,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context)
-        .thenReturn(
-            ResponseEntity.ok(kafkaConnectService.getConnectorNames(getCluster(clusterName), connectName)))
+        .thenReturn(ResponseEntity.ok(kafkaConnectService.getConnectorNames(getCluster(clusterName), connectName)))
         .doOnEach(sig -> audit(context, sig));
   }
 
@@ -177,9 +176,9 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context).then(
-        kafkaConnectService
-            .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
-            .map(ResponseEntity::ok))
+            kafkaConnectService
+                .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
+                .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
 
@@ -205,8 +204,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService
             .updateConnectorState(getCluster(clusterName), connectName, connectorName, action)
-            .map(ResponseEntity::ok))
-        .doOnEach(sig -> audit(context, sig));
+            .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -224,8 +223,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).thenReturn(
         ResponseEntity
             .ok(kafkaConnectService
-                .getConnectorTasks(getCluster(clusterName), connectName, connectorName)))
-        .doOnEach(sig -> audit(context, sig));
+                .getConnectorTasks(getCluster(clusterName), connectName, connectorName))
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -243,8 +242,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService
             .restartConnectorTask(getCluster(clusterName), connectName, connectorName, taskId)
-            .map(ResponseEntity::ok))
-        .doOnEach(sig -> audit(context, sig));
+            .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -260,8 +259,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         Mono.just(
             ResponseEntity.ok(
-                kafkaConnectService.getConnectorPlugins(getCluster(clusterName), connectName))))
-        .doOnEach(sig -> audit(context, sig));
+                kafkaConnectService.getConnectorPlugins(getCluster(clusterName), connectName)))
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
