@@ -104,7 +104,7 @@
   },
   "engines": {
     "node": "v18.17.1",
-    "pnpm": "v9.1.2"
+    "pnpm": "v9.11.0"
   },
   "pnpm": {
     "overrides": {

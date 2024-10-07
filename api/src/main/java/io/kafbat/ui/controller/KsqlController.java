@@ -53,6 +53,7 @@ public class KsqlController extends AbstractController implements KsqlApi {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Mono<ResponseEntity<Flux<KsqlResponseDTO>>> openKsqlResponsePipe(String clusterName,
                                                                           String pipeId,
                                                                           ServerWebExchange exchange) {
