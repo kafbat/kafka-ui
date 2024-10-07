@@ -4,7 +4,12 @@ import {
   consumerGroupsApiClient,
   messagesApiClient,
 } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from '@tanstack/react-query';
 import {
   CreateTopicMessage,
   GetTopicDetailsRequest,
@@ -12,6 +17,7 @@ import {
   Topic,
   TopicConfig,
   TopicCreation,
+  TopicDetails,
   TopicUpdate,
 } from 'generated-sources';
 import { showServerError, showSuccessAlert } from 'lib/errorHandling';
@@ -49,11 +55,25 @@ export function useTopics(props: GetTopicsRequest) {
     { keepPreviousData: true }
   );
 }
-export function useTopicDetails(props: GetTopicDetailsRequest) {
-  return useQuery(topicKeys.details(props), () => api.getTopicDetails(props));
+export function useTopicDetails(
+  props: GetTopicDetailsRequest,
+  queryOptions?: UseQueryOptions<TopicDetails>
+) {
+  return useQuery<TopicDetails>(
+    topicKeys.details(props),
+    () => api.getTopicDetails(props),
+    queryOptions
+  );
 }
-export function useTopicConfig(props: GetTopicDetailsRequest) {
-  return useQuery(topicKeys.config(props), () => api.getTopicConfigs(props));
+export function useTopicConfig(
+  props: GetTopicDetailsRequest,
+  queryOptions?: UseQueryOptions<TopicConfig[]>
+) {
+  return useQuery<TopicConfig[]>(
+    topicKeys.config(props),
+    () => api.getTopicConfigs(props),
+    queryOptions
+  );
 }
 export function useTopicConsumerGroups(props: GetTopicDetailsRequest) {
   return useQuery(topicKeys.consumerGroups(props), () =>
