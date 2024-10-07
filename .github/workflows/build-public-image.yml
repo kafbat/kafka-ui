@@ -6,6 +6,7 @@ on:
     types: ['labeled']
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -47,12 +48,12 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Configure AWS credentials for Kafka-UI account
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          audience: sts.amazonaws.com
           aws-region: us-east-1
+          role-to-assume: arn:aws:iam::187584688086:role/github-actions-ecr-poweruser
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -65,7 +66,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
           push: true
-          tags: public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+          tags: public.ecr.aws/s0v8j8q9/kafbat/kafka-ui:${{ steps.extract_branch.outputs.tag }}
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -75,6 +76,6 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Image published at public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+            Image published at public.ecr.aws/s0v8j8q9/kafbat/kafka-ui:${{ steps.extract_branch.outputs.tag }}
     outputs:
       tag: ${{ steps.extract_branch.outputs.tag }}
