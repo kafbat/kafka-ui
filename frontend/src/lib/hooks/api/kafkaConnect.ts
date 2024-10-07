@@ -98,7 +98,10 @@ export function useUpdateConnectorState(props: UseConnectorProps) {
     (action: ConnectorAction) => api.updateConnectorState({ ...props, action }),
     {
       onSuccess: () =>
-        client.invalidateQueries(['clusters', props.clusterName, 'connectors']),
+        Promise.all([
+          client.invalidateQueries(connectorsKey(props.clusterName)),
+          client.invalidateQueries(connectorKey(props)),
+        ]),
     }
   );
 }

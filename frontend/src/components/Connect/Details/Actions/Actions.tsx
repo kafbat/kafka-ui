@@ -78,6 +78,7 @@ const Actions: React.FC = () => {
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
+        disabled={isMutating}
         label={
           <S.RestartButton>
             <S.ButtonLabel>Restart</S.ButtonLabel>
@@ -88,7 +89,6 @@ const Actions: React.FC = () => {
         {connector?.status.state === ConnectorState.RUNNING && (
           <ActionDropdownItem
             onClick={pauseConnectorHandler}
-            disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
               action: Action.EDIT,
@@ -101,7 +101,6 @@ const Actions: React.FC = () => {
         {connector?.status.state === ConnectorState.RUNNING && (
           <ActionDropdownItem
             onClick={stopConnectorHandler}
-            disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
               action: Action.EDIT,
@@ -115,7 +114,6 @@ const Actions: React.FC = () => {
           connector?.status.state === ConnectorState.STOPPED) && (
           <ActionDropdownItem
             onClick={resumeConnectorHandler}
-            disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
               action: Action.EDIT,
@@ -127,7 +125,6 @@ const Actions: React.FC = () => {
         )}
         <ActionDropdownItem
           onClick={restartConnectorHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
@@ -138,7 +135,6 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
         <ActionDropdownItem
           onClick={restartAllTasksHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
@@ -149,7 +145,6 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
         <ActionDropdownItem
           onClick={restartFailedTasksHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
@@ -176,7 +171,6 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
         <ActionDropdownItem
           onClick={deleteConnectorHandler}
-          disabled={isMutating}
           danger
           permission={{
             resource: ResourceType.CONNECT,
