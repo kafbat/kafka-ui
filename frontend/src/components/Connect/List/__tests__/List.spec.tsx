@@ -131,7 +131,7 @@ describe('Connectors List', () => {
       expect(cancelButton).not.toBeInTheDocument();
     });
   });
-  
+
   describe('when reset connector offsets modal is open', () => {
     beforeEach(() => {
       (useConnectors as jest.Mock).mockImplementation(() => ({

@@ -89,7 +89,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
       await afterClickDropDownButton();
       expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
+      expect(
+        screen.getByRole('menuitem', { name: 'Reset Offsets' })
+      ).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -105,7 +107,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
       await afterClickDropDownButton();
       expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).not.toHaveAttribute('aria-disabled');
+      expect(
+        screen.getByRole('menuitem', { name: 'Reset Offsets' })
+      ).not.toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -121,7 +125,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
       await afterClickDropDownButton();
       expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
+      expect(
+        screen.getByRole('menuitem', { name: 'Reset Offsets' })
+      ).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -137,7 +143,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
       await afterClickDropDownButton();
       expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
+      expect(
+        screen.getByRole('menuitem', { name: 'Reset Offsets' })
+      ).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -153,7 +161,9 @@ describe('Actions', () => {
       expect(screen.getByText('Stop')).toBeInTheDocument();
       await afterClickDropDownButton();
       expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
+      expect(
+        screen.getByRole('menuitem', { name: 'Reset Offsets' })
+      ).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -180,7 +190,9 @@ describe('Actions', () => {
         renderComponent();
         await afterClickDropDownButton();
         await waitFor(async () =>
-          userEvent.click(screen.getByRole('menuitem', { name: 'Reset Offsets' }))
+          userEvent.click(
+            screen.getByRole('menuitem', { name: 'Reset Offsets' })
+          )
         );
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });

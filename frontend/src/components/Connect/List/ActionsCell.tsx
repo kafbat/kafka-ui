@@ -173,7 +173,8 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           resource: ResourceType.CONNECT,
           action: Action.DELETE,
           value: connect,
-        }}>
+        }}
+      >
         Delete
       </ActionDropdownItem>
     </Dropdown>
