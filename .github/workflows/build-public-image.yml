@@ -17,17 +17,20 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
+
       - name: get branch name
         id: extract_branch
         run: |
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
           cache: 'maven'
+
       - name: Build
         id: build
         run: |
@@ -35,41 +38,13 @@ jobs:
           ./mvnw -B -V -ntp clean package -Pprod -DskipTests
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Cache Docker layers
-        uses: actions/cache@v4
+
+      - name: Build and Test Docker Image
+        uses: ./.github/workflows/build-docker
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Configure AWS credentials for Kafka-UI account
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-type: 'public'
-      - name: Build and push
-        id: docker_build_and_push
-        uses: docker/build-push-action@v5
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          context: api
-          push: true
-          tags: public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
-          build-args: |
-            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          tag: ${{ steps.extract_branch.outputs.tag }}
+          version: ${{ steps.build.outputs.version }}
+
       - name: make comment with private deployment link
         uses: peter-evans/create-or-update-comment@v4
         with:
