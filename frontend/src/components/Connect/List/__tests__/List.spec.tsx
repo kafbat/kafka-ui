@@ -12,11 +12,13 @@ import { clusterConnectConnectorPath, clusterConnectorsPath } from 'lib/paths';
 import {
   useConnectors,
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 
 const mockedUsedNavigate = jest.fn();
 const mockDelete = jest.fn();
+const mockResetOffsets = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -57,7 +59,7 @@ describe('Connectors List', () => {
     it('renders', async () => {
       renderComponent();
       expect(screen.getByRole('table')).toBeInTheDocument();
-      expect(screen.getAllByRole('row').length).toEqual(3);
+      expect(screen.getAllByRole('row').length).toEqual(4);
     });
 
     it('opens broker when row clicked', async () => {
@@ -121,6 +123,41 @@ describe('Connectors List', () => {
       renderComponent();
       const deleteButton = screen.getAllByText('Delete')[0];
       await waitFor(() => userEvent.click(deleteButton));
+
+      const cancelButton = screen.getAllByRole('button', {
+        name: 'Cancel',
+      })[0];
+      await waitFor(() => userEvent.click(cancelButton));
+      expect(cancelButton).not.toBeInTheDocument();
+    });
+  });
+  
+  describe('when reset connector offsets modal is open', () => {
+    beforeEach(() => {
+      (useConnectors as jest.Mock).mockImplementation(() => ({
+        data: connectors,
+      }));
+      (useResetConnectorOffsets as jest.Mock).mockImplementation(() => ({
+        mutateAsync: mockResetOffsets,
+      }));
+    });
+
+    it('calls resetConnectorOffsets on confirm', async () => {
+      renderComponent();
+      const resetButton = screen.getAllByText('Reset Offsets')[2];
+      await waitFor(() => userEvent.click(resetButton));
+
+      const submitButton = screen.getAllByRole('button', {
+        name: 'Confirm',
+      })[0];
+      await userEvent.click(submitButton);
+      expect(mockResetOffsets).toHaveBeenCalledWith();
+    });
+
+    it('closes the modal when cancel button is clicked', async () => {
+      renderComponent();
+      const resetButton = screen.getAllByText('Reset Offsets')[2];
+      await waitFor(() => userEvent.click(resetButton));
 
       const cancelButton = screen.getAllByRole('button', {
         name: 'Cancel',

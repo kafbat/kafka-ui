@@ -87,14 +87,15 @@ describe('Actions', () => {
       expect(screen.getByText('Resume')).toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Offsets')).toBeDisabled();
+      await afterClickDropDownButton();
+      expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
     it('renders buttons when stopped', async () => {
       (useConnector as jest.Mock).mockImplementation(() => ({
-        data: setConnectorStatus(connector, ConnectorState.PAUSED),
+        data: setConnectorStatus(connector, ConnectorState.STOPPED),
       }));
       renderComponent();
       await afterClickRestartButton();
@@ -102,8 +103,9 @@ describe('Actions', () => {
       expect(screen.getByText('Resume')).toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Offsets')).toBeEnabled();
+      await afterClickDropDownButton();
+      expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).not.toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -117,8 +119,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Offsets')).toBeDisabled();
+      await afterClickDropDownButton();
+      expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -132,8 +135,9 @@ describe('Actions', () => {
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.queryByText('Pause')).not.toBeInTheDocument();
       expect(screen.queryByText('Stop')).not.toBeInTheDocument();
-      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Offsets')).toBeDisabled();
+      await afterClickDropDownButton();
+      expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -143,12 +147,13 @@ describe('Actions', () => {
       }));
       renderComponent();
       await afterClickRestartButton();
-      expect(screen.getAllByRole('menuitem').length).toEqual(4);
+      expect(screen.getAllByRole('menuitem').length).toEqual(5);
       expect(screen.queryByText('Resume')).not.toBeInTheDocument();
       expect(screen.getByText('Pause')).toBeInTheDocument();
       expect(screen.getByText('Stop')).toBeInTheDocument();
-      expect(screen.queryByText('Reset Offsets')).toBeInTheDocument();
-      expect(screen.getByText('Reset Offsets')).toBeDisabled();
+      await afterClickDropDownButton();
+      expect(screen.getByText('Reset Offsets')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reset Offsets' })).toHaveAttribute('aria-disabled');
       expectActionButtonsExists();
     });
 
@@ -168,7 +173,10 @@ describe('Actions', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      it('opens confirmation modal when reset offsets button clicked', async () => {
+      it('opens confirmation modal when reset offsets button clicked on a STOPPED connector', async () => {
+        (useConnector as jest.Mock).mockImplementation(() => ({
+          data: setConnectorStatus(connector, ConnectorState.STOPPED),
+        }));
         renderComponent();
         await afterClickDropDownButton();
         await waitFor(async () =>
