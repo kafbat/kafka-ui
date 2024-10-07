@@ -57,8 +57,8 @@ jobs:
       sha: ${{ github.sha }}
       version: ${{ needs.jar-build.outputs.version }}
 
-  docker-deploy: 
-    needs: [jar-build, docker-build]
+  docker-deploy:
+    needs: [ jar-build, docker-build ]
     permissions:
       packages: write
       id-token: write # Required to authenticate with OIDC for AWS
