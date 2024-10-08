@@ -85,7 +85,7 @@ jobs:
             echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
             echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
           elif [ ${{ matrix.registry }} == 'ecr' ]; then
-            echo "REGISTRY=${{ steps.login-ecr-public.outputs.registry }}" >> $GITHUB_ENV
+            echo "REGISTRY=${{ env.ECR_REGISTRY }}" >> $GITHUB_ENV
             echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
           else
             echo "REGISTRY=" >> $GITHUB_ENV
