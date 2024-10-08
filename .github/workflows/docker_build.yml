@@ -44,6 +44,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+        # Build multi platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
+        # So let's use containerd instead as it supports this option
+        # Also containerd is one of the option to allow preserving provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
         uses: crazy-max/ghaction-setup-docker@v3
         with:

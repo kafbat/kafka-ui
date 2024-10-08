@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  jar-jar-build:
+  jar-build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
       - name: Set up JDK
@@ -40,8 +40,6 @@ jobs:
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Upload jar
-        uses: actions/upload-artifact@v4
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
