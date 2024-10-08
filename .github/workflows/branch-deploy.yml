@@ -41,7 +41,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker Image
-        uses: ./.github/workflows/docker_build
+        uses: ./.github/workflows/docker_build.yml
         with:
           tag: ${{ steps.extract_branch.outputs.tag }}
           version: ${{ steps.build.outputs.version }}
