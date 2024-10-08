@@ -9,17 +9,20 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  jar-build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write
+
+    outputs:
+      version: ${{steps.build.outputs.version}}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}  # Используем входной параметр sha
           token: ${{ github.token }}
 
       - name: Set up JDK
@@ -37,25 +40,30 @@ jobs:
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Build & Push Docker Image
-        uses: ./.github/workflows/build-docker
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
         with:
-          tag: ${{ steps.build.outputs.version }}
-          version: ${{ steps.build.outputs.version }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-          repository: ghcr.io/kafbat/kafka-ui
-          build-context: api
+          name: kafbat-ui-${{ steps.build.outputs.version }}
+          path: api/target/api-${{ steps.build.outputs.version }}.jar
+          retention-days: 1
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  docker-build:
+    needs: jar-build
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+      version: ${{ needs.jar-build.outputs.version }}
 
-      - name: Push additional tag for main branch
-        run: |
-          docker tag ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }} ghcr.io/kafbat/kafka-ui:main
-          docker push ghcr.io/kafbat/kafka-ui:main
+  docker-deploy:
+    needs: [ jar-build, docker-build ]
+    permissions:
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/docker_publish.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.jar-build.outputs.version }}
+      generic_tag: main

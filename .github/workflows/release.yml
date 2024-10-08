@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           token: ${{ github.token }}
 
       - run: |
@@ -54,17 +54,26 @@ jobs:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
 
-      # Docker images
-      - name: Build & Push Docker Image
-        uses: ./.github/workflows/build-docker
-        with:
-          tag: ${{ steps.build.outputs.version }}
-          version: ${{ steps.build.outputs.version }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-          repository: ghcr.io/kafbat/kafka-ui
-          build-context: api
+  docker-build:
+    needs: release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+      version: ${{ needs.release.outputs.version }}
+
+  docker-deploy:
+    needs: [release, docker-build]
+    permissions:
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/docker_publish.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.release.outputs.version }}
+      generic_tag: latest
 
   charts:
     runs-on: ubuntu-latest
