@@ -9,11 +9,14 @@ permissions:
   contents: read
 
 jobs:
-  jar-build:
+  jar-jar-build:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
+
+    outputs:
+      version: ${{steps.build.outputs.version}}
 
     outputs:
       version: ${{steps.build.outputs.version}}
@@ -42,7 +45,33 @@ jobs:
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
         with:
+          name: kafbat-ui-${{ steps.build.outputs.version }}
+          path: api/target/api-${{ steps.build.outputs.version }}.jar
+          retention-days: 1
+
+  docker-build:
+    needs: jar-build
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+      version: ${{ needs.jar-build.outputs.version }}
+
+  docker-deploy:
+    needs: [ jar-build, docker-build ]
+    permissions:
+      packages: write
+      id-token: write # Required to authenticate with OIDC for AWS
+    uses: ./.github/workflows/docker_publish.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.jar-build.outputs.version }}
+      generic_tag: main
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/target/api-${{ steps.build.outputs.version }}.jar
           retention-days: 1
