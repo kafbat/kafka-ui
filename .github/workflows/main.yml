@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}  # Используем входной параметр sha
+          ref: ${{ github.sha }}
           token: ${{ github.token }}
 
       - name: Set up JDK
