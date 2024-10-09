@@ -60,7 +60,9 @@ public class ConsumerGroupsController extends AbstractController implements Cons
   }
 
   @Override
-  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName, String groupId, String topicName,
+  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName,
+                                                               String groupId,
+                                                               String topicName,
                                                                ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
