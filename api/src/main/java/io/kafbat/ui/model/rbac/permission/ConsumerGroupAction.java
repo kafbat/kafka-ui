@@ -8,11 +8,10 @@ public enum ConsumerGroupAction implements PermissibleAction {
 
   VIEW,
   DELETE(VIEW),
-  RESET_OFFSETS(VIEW)
+  RESET_OFFSETS(VIEW),
+  DELETE_OFFSETS(VIEW);
 
-  ;
-
-  public static final Set<ConsumerGroupAction> ALTER_ACTIONS = Set.of(DELETE, RESET_OFFSETS);
+  public static final Set<ConsumerGroupAction> ALTER_ACTIONS = Set.of(DELETE, RESET_OFFSETS, DELETE_OFFSETS);
 
   private final ConsumerGroupAction[] dependantActions;
 

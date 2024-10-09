@@ -270,4 +270,11 @@ public class ConsumerGroupService {
     );
   }
 
+  public Mono<Void> deleteConsumerGroupOffsets(KafkaCluster cluster,
+                                               String groupId,
+                                               String topic) {
+    return adminClientService
+        .get(cluster)
+        .flatMap(adminClient -> adminClient.deleteConsumerGroupOffsets(groupId, topic));
+  }
 }
