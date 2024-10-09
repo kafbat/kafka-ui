@@ -1,7 +1,7 @@
 name: "Main: Build & deploy"
+
 on:
   workflow_dispatch:
-
   push:
     branches: [ "main" ]
 

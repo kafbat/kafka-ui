@@ -1,4 +1,5 @@
 name: "Infra: Release"
+
 on:
   release:
     types: [ published ]
