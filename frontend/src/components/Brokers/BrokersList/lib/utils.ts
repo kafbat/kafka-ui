@@ -69,7 +69,7 @@ export const getBrokersTableColumns = () => {
       header: 'Leader skew',
       cell: Cell.Skew,
     }),
-    columnHelper.accessor('onlinePartitionCount', {
+    columnHelper.accessor('inSyncPartitions', {
       header: 'Online partitions',
       cell: Cell.OnlinePartitions,
     }),
