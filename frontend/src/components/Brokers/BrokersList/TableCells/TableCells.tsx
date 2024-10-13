@@ -75,16 +75,13 @@ export const Skew = ({ getValue }: ScewProps) => {
 
 type OnlinePartitionsProps = CellContext<
   BrokersTableRow,
-  BrokersTableRow['onlinePartitionCount']
+  BrokersTableRow['inSyncPartitions']
 >;
 
 export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
   const { count, inSyncPartitions } = row.original;
 
-  if (
-    count === undefined ||
-    inSyncPartitions === undefined
-  ) {
+  if (count === undefined || inSyncPartitions === undefined) {
     return null;
   }
 
