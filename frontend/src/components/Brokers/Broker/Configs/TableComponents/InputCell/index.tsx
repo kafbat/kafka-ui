@@ -24,7 +24,6 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
     source,
     value: initialValue,
     isSensitive,
-    isReadOnly,
   } = row.original;
 
   const handleSave = (newValue: string) => {
@@ -52,7 +51,6 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
       onEdit={() => setIsEdit(true)}
       isDynamic={isDynamic}
       isSensitive={isSensitive}
-      isReadOnly={isReadOnly}
     />
   );
 };

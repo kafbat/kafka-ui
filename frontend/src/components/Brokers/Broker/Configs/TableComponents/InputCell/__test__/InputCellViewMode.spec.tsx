@@ -16,7 +16,6 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
-        isReadOnly={false}
       />
     );
     expect(screen.getByTitle(value)).toBeInTheDocument();
@@ -30,7 +29,6 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive
-        isReadOnly={false}
       />
     );
     expect(screen.getByTitle('Sensitive Value')).toBeInTheDocument();
@@ -46,7 +44,6 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
-        isReadOnly={false}
       />
     );
     await user.click(screen.getByLabelText('editAction'));
@@ -61,7 +58,6 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
-        isReadOnly
       />
     );
     expect(screen.getByLabelText('editAction')).toBeDisabled();

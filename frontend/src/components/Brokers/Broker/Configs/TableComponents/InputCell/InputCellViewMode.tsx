@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import React, { type FC, useContext } from 'react';
 import { Button } from 'components/common/Button/Button';
 import EditIcon from 'components/common/Icons/EditIcon';
 import type { ConfigUnit } from 'components/Brokers/Broker/Configs/lib/types';
@@ -6,6 +6,7 @@ import Tooltip from 'components/common/Tooltip/Tooltip';
 import { getConfigDisplayValue } from 'components/Brokers/Broker/Configs/lib/utils';
 
 import * as S from './styled';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 interface InputCellViewModeProps {
   value: string;
@@ -13,7 +14,6 @@ interface InputCellViewModeProps {
   onEdit: () => void;
   isDynamic: boolean;
   isSensitive: boolean;
-  isReadOnly: boolean;
 }
 
 const InputCellViewMode: FC<InputCellViewModeProps> = ({
@@ -22,13 +22,14 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   onEdit,
   isDynamic,
   isSensitive,
-  isReadOnly,
 }) => {
   const { displayValue, title } = getConfigDisplayValue(
     isSensitive,
     value,
     unit
   );
+
+  const { isReadOnly } = useContext(ClusterContext);
 
   return (
     <S.ValueWrapper $isDynamic={isDynamic}>
