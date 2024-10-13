@@ -7,6 +7,7 @@ export type BrokersTableRow = {
   partitionsLeader: number | undefined;
   partitionsSkew: number | undefined;
   leadersSkew: number | undefined;
+  inSyncPartitions: number | undefined;
   onlinePartitionCount: number | undefined;
   offlinePartitionCount: number | undefined;
   activeControllers: number | undefined;

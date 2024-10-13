@@ -79,19 +79,19 @@ type OnlinePartitionsProps = CellContext<
 >;
 
 export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
-  const { onlinePartitionCount, offlinePartitionCount } = row.original;
+  const { count, inSyncPartitions } = row.original;
 
   if (
-    onlinePartitionCount === undefined ||
-    offlinePartitionCount === undefined
+    count === undefined ||
+    inSyncPartitions === undefined
   ) {
     return null;
   }
 
   return (
     <ColoredCell
-      value={onlinePartitionCount}
-      attention={offlinePartitionCount > 0}
+      value={inSyncPartitions}
+      attention={inSyncPartitions !== count}
     />
   );
 };

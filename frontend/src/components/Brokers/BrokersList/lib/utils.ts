@@ -40,6 +40,7 @@ export const getBrokersTableRows = ({
       partitionsLeader: broker.partitionsLeader,
       partitionsSkew: broker.partitionsSkew,
       leadersSkew: broker.leadersSkew,
+      inSyncPartitions: broker.inSyncPartitions,
       onlinePartitionCount,
       offlinePartitionCount,
       activeControllers,
