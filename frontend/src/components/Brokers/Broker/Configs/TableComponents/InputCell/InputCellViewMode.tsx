@@ -8,7 +8,6 @@ import ClusterContext from 'components/contexts/ClusterContext';
 
 import * as S from './styled';
 
-
 interface InputCellViewModeProps {
   value: string;
   unit: ConfigUnit | undefined;

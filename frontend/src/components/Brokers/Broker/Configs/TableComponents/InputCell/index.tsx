@@ -19,12 +19,7 @@ export interface InputCellProps
 const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
   const [isEdit, setIsEdit] = useState(false);
   const confirm = useConfirm();
-  const {
-    name,
-    source,
-    value: initialValue,
-    isSensitive,
-  } = row.original;
+  const { name, source, value: initialValue, isSensitive } = row.original;
 
   const handleSave = (newValue: string) => {
     if (newValue !== initialValue) {
