@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
 import InputCellViewMode from 'components/Brokers/Broker/Configs/TableComponents/InputCell/InputCellViewMode';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 describe('InputCellViewMode', () => {
   const mockOnEdit = jest.fn();
@@ -51,6 +52,8 @@ describe('InputCellViewMode', () => {
   });
 
   it('disables edit button for read-only properties', () => {
+    const cluster = useContext(ClusterContext);
+    cluster.isReadOnly = true;
     render(
       <InputCellViewMode
         value={value}
