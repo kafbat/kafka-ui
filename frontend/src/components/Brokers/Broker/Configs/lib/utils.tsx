@@ -3,12 +3,12 @@ import { type BrokerConfig, ConfigSource } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import * as BrokerConfigTableComponents from 'components/Brokers/Broker/Configs/TableComponents/index';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
+
 import type {
   BrokerConfigsTableRow,
   ConfigUnit,
   UpdateBrokerConfigCallback,
 } from './types';
-
 import { CONFIG_SOURCE_NAME_MAP, CONFIG_SOURCE_PRIORITY } from './constants';
 
 const getConfigFieldMatch = (field: string, query: string) =>
