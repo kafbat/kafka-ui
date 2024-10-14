@@ -7,7 +7,6 @@ import {
   UpdateBrokerConfigCallback,
 } from 'components/Brokers/Broker/Configs/lib/types';
 import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
-
 import ClusterContext from 'components/contexts/ClusterContext';
 
 import InputCellViewMode from './InputCellViewMode';

@@ -22,7 +22,7 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   onEdit,
   isDynamic,
   isSensitive,
-  isReadOnly
+  isReadOnly,
 }) => {
   const { displayValue, title } = getConfigDisplayValue(
     isSensitive,
