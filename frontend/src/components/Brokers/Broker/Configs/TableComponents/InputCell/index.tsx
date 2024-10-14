@@ -8,9 +8,10 @@ import {
 } from 'components/Brokers/Broker/Configs/lib/types';
 import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
 
+import ClusterContext from 'components/contexts/ClusterContext';
+
 import InputCellViewMode from './InputCellViewMode';
 import InputCellEditMode from './InputCellEditMode';
-import ClusterContext from 'components/contexts/ClusterContext';
 
 export interface InputCellProps
   extends CellContext<BrokerConfigsTableRow, BrokerConfig['value']> {
