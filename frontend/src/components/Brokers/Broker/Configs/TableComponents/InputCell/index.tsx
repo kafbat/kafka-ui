@@ -1,4 +1,4 @@
-import React, { type FC, useState } from 'react';
+import React, { type FC, useState, useContext } from 'react';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { type CellContext } from '@tanstack/react-table';
 import { type BrokerConfig } from 'generated-sources';
@@ -10,6 +10,7 @@ import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
 
 import InputCellViewMode from './InputCellViewMode';
 import InputCellEditMode from './InputCellEditMode';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 export interface InputCellProps
   extends CellContext<BrokerConfigsTableRow, BrokerConfig['value']> {
@@ -32,6 +33,7 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
 
   const isDynamic = source === 'DYNAMIC_BROKER_CONFIG';
   const configUnit = getConfigUnit(name);
+  const { isReadOnly } = useContext(ClusterContext);
 
   return isEdit ? (
     <InputCellEditMode
@@ -46,6 +48,7 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
       onEdit={() => setIsEdit(true)}
       isDynamic={isDynamic}
       isSensitive={isSensitive}
+      isReadOnly={isReadOnly}
     />
   );
 };

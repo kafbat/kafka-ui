@@ -1,9 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
 import InputCellViewMode from 'components/Brokers/Broker/Configs/TableComponents/InputCell/InputCellViewMode';
-import ClusterContext from 'components/contexts/ClusterContext';
 
 describe('InputCellViewMode', () => {
   const mockOnEdit = jest.fn();
@@ -17,6 +16,7 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
+        isReadOnly={false}
       />
     );
     expect(screen.getByTitle(value)).toBeInTheDocument();
@@ -30,6 +30,7 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive
+        isReadOnly={false}
       />
     );
     expect(screen.getByTitle('Sensitive Value')).toBeInTheDocument();
@@ -45,6 +46,7 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
+        isReadOnly={false}
       />
     );
     await user.click(screen.getByLabelText('editAction'));
@@ -52,8 +54,6 @@ describe('InputCellViewMode', () => {
   });
 
   it('disables edit button for read-only properties', () => {
-    const cluster = useContext(ClusterContext);
-    cluster.isReadOnly = true;
     render(
       <InputCellViewMode
         value={value}
@@ -61,6 +61,7 @@ describe('InputCellViewMode', () => {
         onEdit={mockOnEdit}
         isDynamic
         isSensitive={false}
+        isReadOnly
       />
     );
     expect(screen.getByLabelText('editAction')).toBeDisabled();

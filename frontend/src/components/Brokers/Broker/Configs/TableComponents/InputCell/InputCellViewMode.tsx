@@ -14,6 +14,7 @@ interface InputCellViewModeProps {
   onEdit: () => void;
   isDynamic: boolean;
   isSensitive: boolean;
+  isReadOnly: boolean;
 }
 
 const InputCellViewMode: FC<InputCellViewModeProps> = ({
@@ -22,14 +23,13 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
   onEdit,
   isDynamic,
   isSensitive,
+  isReadOnly
 }) => {
   const { displayValue, title } = getConfigDisplayValue(
     isSensitive,
     value,
     unit
   );
-
-  const { isReadOnly } = useContext(ClusterContext);
 
   return (
     <S.ValueWrapper $isDynamic={isDynamic}>

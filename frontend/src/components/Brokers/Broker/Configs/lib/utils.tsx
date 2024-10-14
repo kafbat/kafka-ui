@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { type BrokerConfig, ConfigSource } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import * as BrokerConfigTableComponents from 'components/Brokers/Broker/Configs/TableComponents/index';
@@ -10,6 +10,7 @@ import type {
   UpdateBrokerConfigCallback,
 } from './types';
 import { CONFIG_SOURCE_NAME_MAP, CONFIG_SOURCE_PRIORITY } from './constants';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 const getConfigFieldMatch = (field: string, query: string) =>
   field.toLocaleLowerCase().includes(query.toLocaleLowerCase());
