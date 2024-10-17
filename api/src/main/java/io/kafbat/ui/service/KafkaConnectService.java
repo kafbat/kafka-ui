@@ -229,6 +229,8 @@ public class KafkaConnectService {
                   t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
             case PAUSE:
               return client.pauseConnector(connectorName);
+            case STOP:
+              return client.stopConnector(connectorName);
             case RESUME:
               return client.resumeConnector(connectorName);
             default:
@@ -291,5 +293,11 @@ public class KafkaConnectService {
           "Connect %s not found for cluster %s".formatted(connectName, cluster.getName()));
     }
     return client;
+  }
+
+  public Mono<Void> resetConnectorOffsets(KafkaCluster cluster, String connectName,
+      String connectorName) {
+    return api(cluster, connectName)
+        .mono(client -> client.resetConnectorOffsets(connectorName));
   }
 }

@@ -285,4 +285,26 @@ public class KafkaConnectController extends AbstractController implements KafkaC
       default -> defaultComparator;
     };
   }
+
+  @Override
+  public Mono<ResponseEntity<Void>> resetConnectorOffsets(String clusterName, String connectName,
+      String connectorName,
+      ServerWebExchange exchange) {
+    ConnectAction[] connectActions;
+
+    connectActions = new ConnectAction[] { ConnectAction.VIEW, ConnectAction.RESET_OFFSETS };
+
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .connectActions(connectName, connectActions)
+        .operationName("resetConnectorOffsets")
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
+        .build();
+
+    return validateAccess(context).then(
+        kafkaConnectService
+            .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
+            .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
+  }
 }
