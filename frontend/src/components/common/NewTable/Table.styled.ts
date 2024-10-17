@@ -157,7 +157,7 @@ export const Table = styled.table(
     & a {
       color: ${table.td.color.normal};
       font-weight: 500;
-      max-width: 450px;
+      max-width: 150ch;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -173,7 +173,24 @@ export const Table = styled.table(
       &:button {
       color: ${table.link.color.active};
       }
+    }
 
+    @media (max-width: 1500px) {
+      & a {
+        max-width: 70ch;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      & a {
+        max-width: 50ch;
+      }
+    }
+
+    @media (max-width: 768px) {
+      & a {
+        max-width: 40ch;
+      }
     }
   }
 `
