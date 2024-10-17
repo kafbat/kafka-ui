@@ -36,7 +36,7 @@
         <avro.version>1.11.4</avro.version>
         <byte-buddy.version>1.12.19</byte-buddy.version>
         <confluent.version>7.4.4</confluent.version>
-        <datasketches-java.version>3.1.0</datasketches-java.version>
+        <datasketches-java.version>6.1.1</datasketches-java.version>
         <groovy.version>3.0.13</groovy.version>
         <jackson.version>2.14.0</jackson.version>
         <kafka-clients.version>3.5.2</kafka-clients.version>
