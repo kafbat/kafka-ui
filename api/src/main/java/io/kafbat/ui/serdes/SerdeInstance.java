@@ -3,6 +3,7 @@ package io.kafbat.ui.serdes;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
 import java.io.Closeable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -10,6 +11,7 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.proxy.Proxy;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -78,10 +80,20 @@ public class SerdeInstance implements Closeable {
   }
 
   public Serde.Serializer serializer(String topic, Serde.Target type) {
-    return wrapWithClassloader(() -> {
-      var serializer = serde.serializer(topic, type);
-      return input -> wrapWithClassloader(() -> serializer.serialize(input));
-    });
+    var serializer = serde.serializer(topic, type);
+    // Create a dynamic proxy instance for the Serde.Serializer interface
+    return (Serde.Serializer) Proxy.newProxyInstance(
+        classLoader,
+        new Class<?>[] { Serde.Serializer.class },
+        (proxy, method, args) -> wrapWithClassloader(() -> { // Invocation handler to wrap method calls
+          try {
+            // Invoke the actual serializer method with the provided arguments
+            return method.invoke(serializer, args);
+          } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Error invoking serializer method", e.getCause());
+          }
+        })
+    );
   }
 
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
