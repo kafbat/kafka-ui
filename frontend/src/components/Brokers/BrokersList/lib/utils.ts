@@ -40,6 +40,7 @@ export const getBrokersTableRows = ({
       partitionsLeader: broker.partitionsLeader,
       partitionsSkew: broker.partitionsSkew,
       leadersSkew: broker.leadersSkew,
+      inSyncPartitions: broker.inSyncPartitions,
       onlinePartitionCount,
       offlinePartitionCount,
       activeControllers,
@@ -68,7 +69,7 @@ export const getBrokersTableColumns = () => {
       header: 'Leader skew',
       cell: Cell.Skew,
     }),
-    columnHelper.accessor('onlinePartitionCount', {
+    columnHelper.accessor('inSyncPartitions', {
       header: 'Online partitions',
       cell: Cell.OnlinePartitions,
     }),
