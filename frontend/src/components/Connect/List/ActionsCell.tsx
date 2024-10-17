@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   Action,
   ConnectorAction,
@@ -17,12 +17,14 @@ import {
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { useIsMutating } from '@tanstack/react-query';
 import { ActionDropdownItem } from 'components/common/ActionComponent';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   row,
 }) => {
   const { connect, name, status } = row.original;
   const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { isReadOnly } = useContext(ClusterContext);
   const mutationsNumber = useIsMutating();
   const isMutating = mutationsNumber > 0;
   const confirm = useConfirm();
@@ -59,7 +61,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
 
   return (
-    <Dropdown>
+    <Dropdown disabled={isReadOnly}>
       {status.state === ConnectorState.PAUSED && (
         <ActionDropdownItem
           onClick={resumeConnectorHandler}
