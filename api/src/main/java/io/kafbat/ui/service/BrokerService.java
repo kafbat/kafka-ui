@@ -59,7 +59,7 @@ public class BrokerService {
     }
     return loadBrokersConfig(cluster, brokerId)
         .map(list -> list.stream()
-            .map(InternalBrokerConfig::from)
+            .map(configEntry -> InternalBrokerConfig.from(configEntry, cluster.isReadOnly()))
             .collect(Collectors.toList()))
         .flatMapMany(Flux::fromIterable);
   }
