@@ -158,7 +158,7 @@ public class AclsService {
         .then();
   }
 
-  //Read, Describe on topics, Read on consumerGroups
+  //Read, Describe on topics and consumerGroups
   private List<AclBinding> createConsumerBindings(CreateConsumerAclDTO request) {
     List<AclBinding> bindings = new ArrayList<>();
     bindings.addAll(
@@ -172,7 +172,7 @@ public class AclsService {
     bindings.addAll(
         createAllowBindings(
             GROUP,
-            List.of(READ),
+            List.of(READ, DESCRIBE),
             request.getPrincipal(),
             request.getHost(),
             request.getConsumerGroupsPrefix(),
