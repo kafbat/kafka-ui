@@ -131,8 +131,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             null, null, pageSize, StringSerde.name(), StringSerde.name())
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
-            assertThat(evt.getCursor()).isNotNull();
-            cursorIdCatcher.set(evt.getCursor().getId());
+            assertThat(evt.getNextCursor()).isNotNull();
+            cursorIdCatcher.set(evt.getNextCursor().getId());
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
@@ -147,7 +147,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     Flux<String> remainingMsgs = messagesService.loadMessages(cluster, testTopic, cursorIdCatcher.get())
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
-            assertThat(evt.getCursor()).isNull();
+            assertThat(evt.getNextCursor()).isNull();
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
