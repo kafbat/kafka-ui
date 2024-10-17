@@ -23,11 +23,16 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
           cache: 'maven'
+      - name: Set short commit sha
+        id: variables
+        run: | 
+              calculatedSha=$(git rev-parse --short ${{github.sha}})
+              echo "SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
 
       - name: Build project
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
+          ./mvnw -B -ntp versions:set -DnewVersion=$SHORT_SHA
           ./mvnw -B -V -ntp clean package -DskipTests
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
@@ -42,7 +47,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ env.SHORT_SHA }}
           restore-keys: |
             ${{ runner.os }}-buildx-
 
