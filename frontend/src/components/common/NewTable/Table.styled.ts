@@ -152,6 +152,7 @@ export const Table = styled.table(
     color: ${table.td.color.normal};
     vertical-align: middle;
     word-wrap: break-word;
+    white-space: pre;
 
     & a {
       color: ${table.td.color.normal};
