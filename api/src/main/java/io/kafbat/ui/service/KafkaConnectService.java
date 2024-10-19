@@ -106,9 +106,9 @@ public class KafkaConnectService {
 
   public Flux<String> getConnectorNames(KafkaCluster cluster, String connectName) {
     return api(cluster, connectName)
-        .flux(client -> client.getConnectors(null))
+        .mono(client -> client.getConnectors(null))
         // for some reason `getConnectors` method returns the response as a single string
-        .collectList().map(e -> e.get(0))
+        .map(List::getFirst)
         .map(this::parseConnectorsNamesStringToList)
         .flatMapMany(Flux::fromIterable);
   }
