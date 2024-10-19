@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:17.0.11-jre-headless
+FROM azul/zulu-openjdk-alpine:21.0.4-jre-headless
 
 RUN apk add --no-cache \
     # snappy codec
