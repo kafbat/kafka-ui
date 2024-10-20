@@ -1,6 +1,5 @@
 package io.kafbat.ui.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
@@ -31,7 +30,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -107,21 +105,12 @@ public class KafkaConnectService {
   public Flux<String> getConnectorNames(KafkaCluster cluster, String connectName) {
     return api(cluster, connectName)
         .mono(client -> client.getConnectors(null))
-        // for some reason `getConnectors` method returns the response as a single string
-        .map(List::getFirst)
-        .map(this::parseConnectorsNamesStringToList)
         .flatMapMany(Flux::fromIterable);
   }
 
   // returns empty flux if there was an error communicating with Connect
   public Flux<String> getConnectorNamesWithErrorsSuppress(KafkaCluster cluster, String connectName) {
     return getConnectorNames(cluster, connectName).onErrorComplete();
-  }
-
-  @SneakyThrows
-  private List<String> parseConnectorsNamesStringToList(String json) {
-    return objectMapper.readValue(json, new TypeReference<>() {
-    });
   }
 
   public Mono<ConnectorDTO> createConnector(KafkaCluster cluster, String connectName,
