@@ -61,7 +61,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
 
   return (
-    <Dropdown disabled={isReadOnly}>
+    <Dropdown>
       {status.state === ConnectorState.PAUSED && (
         <ActionDropdownItem
           onClick={resumeConnectorHandler}
@@ -77,7 +77,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       )}
       <ActionDropdownItem
         onClick={restartConnectorHandler}
-        disabled={isMutating}
+        disabled={isMutating || isReadOnly}
         permission={{
           resource: ResourceType.CONNECT,
           action: Action.RESTART,
@@ -108,7 +108,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       >
         Restart Failed Tasks
       </ActionDropdownItem>
-      <DropdownItem onClick={handleDelete} danger>
+      <DropdownItem onClick={handleDelete} disabled={isReadOnly} danger>
         Remove Connector
       </DropdownItem>
     </Dropdown>
