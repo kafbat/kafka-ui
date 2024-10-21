@@ -3,12 +3,11 @@ package io.kafbat.ui.service.ksql;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.DecimalNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.kafbat.ui.AbstractIntegrationTest;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -80,11 +79,11 @@ class KsqlApiClientTest extends AbstractIntegrationTest {
           assertThat(header.getValues()).isNull();
         })
         .assertNext(row -> {
-          var distance = (DecimalNode) row.getValues().get(0).get(0);
+          var distance = (DoubleNode) row.getValues().get(0).get(0);
           var riders = (ArrayNode) row.getValues().get(0).get(1);
           var count = (IntNode) row.getValues().get(0).get(2);
 
-          assertThat(distance).isEqualTo(new DecimalNode(new BigDecimal(0)));
+          assertThat(distance).isEqualTo(new DoubleNode(0D));
           assertThat(riders).isEqualTo(new ArrayNode(JsonNodeFactory.instance)
               .add(new TextNode("4ab5cbad"))
               .add(new TextNode("8b6eae59"))
@@ -92,11 +91,11 @@ class KsqlApiClientTest extends AbstractIntegrationTest {
           assertThat(count).isEqualTo(new IntNode(3));
         })
         .assertNext(row -> {
-          var distance = (DecimalNode) row.getValues().get(0).get(0);
+          var distance = (DoubleNode) row.getValues().get(0).get(0);
           var riders = (ArrayNode) row.getValues().get(0).get(1);
           var count = (IntNode) row.getValues().get(0).get(2);
 
-          assertThat(distance).isEqualTo(new DecimalNode(new BigDecimal(10)));
+          assertThat(distance).isEqualTo(new DoubleNode(10D));
           assertThat(riders).isEqualTo(new ArrayNode(JsonNodeFactory.instance)
               .add(new TextNode("18f4ea86")));
           assertThat(count).isEqualTo(new IntNode(1));
