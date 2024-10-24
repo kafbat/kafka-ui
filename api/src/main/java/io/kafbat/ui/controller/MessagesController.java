@@ -6,15 +6,11 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_PRODUCE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 
 import io.kafbat.ui.api.MessagesApi;
-import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.MessageFilterIdDTO;
 import io.kafbat.ui.model.MessageFilterRegistrationDTO;
-import io.kafbat.ui.model.MessageFilterTypeDTO;
 import io.kafbat.ui.model.PollingModeDTO;
-import io.kafbat.ui.model.SeekDirectionDTO;
-import io.kafbat.ui.model.SeekTypeDTO;
 import io.kafbat.ui.model.SerdeUsageDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
@@ -73,25 +69,8 @@ public class MessagesController extends AbstractController implements MessagesAp
         .map(ResponseEntity::ok);
   }
 
-  @Deprecated
   @Override
-  public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessages(String clusterName,
-                                                                           String topicName,
-                                                                           SeekTypeDTO seekType,
-                                                                           List<String> seekTo,
-                                                                           Integer limit,
-                                                                           String q,
-                                                                           MessageFilterTypeDTO filterQueryType,
-                                                                           SeekDirectionDTO seekDirection,
-                                                                           String keySerde,
-                                                                           String valueSerde,
-                                                                           ServerWebExchange exchange) {
-    throw new ValidationException("Not supported");
-  }
-
-
-  @Override
-  public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessagesV2(String clusterName, String topicName,
+  public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessages(String clusterName, String topicName,
                                                                              PollingModeDTO mode,
                                                                              List<Integer> partitions,
                                                                              Integer limit,
