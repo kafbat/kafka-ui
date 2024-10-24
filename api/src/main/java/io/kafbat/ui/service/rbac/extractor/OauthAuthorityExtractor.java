@@ -76,7 +76,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
     var rolesFieldName = provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME);
 
     if (rolesFieldName == null) {
-      log.warn("Provider [{}] doesn't contain a roles field param name, won't map roles", provider);
+      log.warn("Provider [{}] doesn't contain a roles field param name, won't map roles", provider.getClientName());
       return Collections.emptySet();
     }
 
