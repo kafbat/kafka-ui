@@ -72,23 +72,3 @@ export const Skew = ({ getValue }: ScewProps) => {
     />
   );
 };
-
-type OnlinePartitionsProps = CellContext<
-  BrokersTableRow,
-  BrokersTableRow['inSyncPartitions']
->;
-
-export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
-  const { count, inSyncPartitions } = row.original;
-
-  if (count === undefined || inSyncPartitions === undefined) {
-    return null;
-  }
-
-  return (
-    <ColoredCell
-      value={inSyncPartitions}
-      attention={inSyncPartitions !== count}
-    />
-  );
-};
