@@ -68,8 +68,8 @@ class AclsServiceTest {
 
     aclsService.syncAclWithAclCsv(
         CLUSTER,
-        "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host\n"
-            + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*\n"
+        "Principal,ResourceType, PatternType, ResourceName,Operation,PermissionType,Host" + System.lineSeparator()
+            + "User:test1,TOPIC,LITERAL,*,READ,ALLOW,*" + System.lineSeparator()
             + "User:test3,GROUP,PREFIXED,groupNew,DESCRIBE,DENY,localhost"
     ).block();
 
@@ -103,10 +103,10 @@ class AclsServiceTest {
             .topics(List.of("t1", "t2"))
     ).block();
 
-    //Read, Describe on topics, Read on consumerGroups
+    //Read, Describe on topics and consumerGroups
     Collection<AclBinding> createdBindings = createdCaptor.getValue();
     assertThat(createdBindings)
-        .hasSize(6)
+        .hasSize(8)
         .contains(new AclBinding(
             new ResourcePattern(ResourceType.TOPIC, "t1", PatternType.LITERAL),
             new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)))
@@ -123,8 +123,14 @@ class AclsServiceTest {
             new ResourcePattern(ResourceType.GROUP, "cg1", PatternType.LITERAL),
             new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)))
         .contains(new AclBinding(
+            new ResourcePattern(ResourceType.GROUP, "cg1", PatternType.LITERAL),
+            new AccessControlEntry(principal, host, AclOperation.DESCRIBE, AclPermissionType.ALLOW)))
+        .contains(new AclBinding(
             new ResourcePattern(ResourceType.GROUP, "cg2", PatternType.LITERAL),
-            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)));
+            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)))
+        .contains(new AclBinding(
+            new ResourcePattern(ResourceType.GROUP, "cg2", PatternType.LITERAL),
+            new AccessControlEntry(principal, host, AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
   }
 
   @Test
@@ -145,10 +151,10 @@ class AclsServiceTest {
             .topicsPrefix("topicPref")
     ).block();
 
-    //Read, Describe on topics, Read on consumerGroups
+    //Read, Describe on topics and consumerGroups
     Collection<AclBinding> createdBindings = createdCaptor.getValue();
     assertThat(createdBindings)
-        .hasSize(3)
+        .hasSize(4)
         .contains(new AclBinding(
             new ResourcePattern(ResourceType.TOPIC, "topicPref", PatternType.PREFIXED),
             new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)))
@@ -157,7 +163,10 @@ class AclsServiceTest {
             new AccessControlEntry(principal, host, AclOperation.DESCRIBE, AclPermissionType.ALLOW)))
         .contains(new AclBinding(
             new ResourcePattern(ResourceType.GROUP, "cgPref", PatternType.PREFIXED),
-            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)));
+            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW)))
+        .contains(new AclBinding(
+            new ResourcePattern(ResourceType.GROUP, "cgPref", PatternType.PREFIXED),
+            new AccessControlEntry(principal, host, AclOperation.DESCRIBE, AclPermissionType.ALLOW)));
   }
 
   @Test

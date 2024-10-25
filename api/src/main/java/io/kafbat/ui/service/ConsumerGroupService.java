@@ -209,12 +209,13 @@ public class ConsumerGroupService {
   }
 
 
-  private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(ReactiveAdminClient ac,
-                                                                                  List<ConsumerGroupListing> groups,
-                                                                                  Comparator<GroupWithDescr> comparator,
-                                                                                  int pageNum,
-                                                                                  int perPage,
-                                                                                  SortOrderDTO sortOrderDto) {
+  private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(
+      ReactiveAdminClient ac,
+      List<ConsumerGroupListing> groups,
+      Comparator<GroupWithDescr> comparator,
+      int pageNum,
+      int perPage,
+      SortOrderDTO sortOrderDto) {
     var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
 
     return ac.describeConsumerGroups(groupNames)
@@ -245,6 +246,13 @@ public class ConsumerGroupService {
                                             String groupId) {
     return adminClientService.get(cluster)
         .flatMap(adminClient -> adminClient.deleteConsumerGroups(List.of(groupId)));
+  }
+
+  public Mono<Void> deleteConsumerGroupOffset(KafkaCluster cluster,
+                                              String groupId,
+                                              String topicName) {
+    return adminClientService.get(cluster)
+        .flatMap(adminClient -> adminClient.deleteConsumerGroupOffsets(groupId, topicName));
   }
 
   public EnhancedConsumer createConsumer(KafkaCluster cluster) {

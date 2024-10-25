@@ -1,5 +1,7 @@
 package io.kafbat.ui;
 
+import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_TIMEOUT;
+
 import io.kafbat.ui.container.KafkaConnectContainer;
 import io.kafbat.ui.container.KsqlDbContainer;
 import io.kafbat.ui.container.SchemaRegistryContainer;
@@ -98,6 +100,7 @@ public abstract class AbstractIntegrationTest {
 
       System.setProperty("dynamic.config.enabled", "true");
       System.setProperty("config.related.uploads.dir", tmpDir.toString());
+      System.setProperty(GITHUB_RELEASE_INFO_TIMEOUT, String.valueOf(100));
     }
   }
 

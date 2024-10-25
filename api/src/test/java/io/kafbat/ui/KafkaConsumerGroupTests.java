@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
+import io.kafbat.ui.producer.KafkaTestProducer;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -23,6 +23,8 @@ import org.apache.kafka.common.utils.Bytes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
@@ -32,13 +34,76 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
   @Test
   void shouldNotFoundWhenNoSuchConsumerGroupId() {
     String groupId = "groupA";
-    String expError = "The group id does not exist";
+    String topicName = "topicX";
+
     webTestClient
         .delete()
         .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
         .exchange()
         .expectStatus()
         .isNotFound();
+
+    webTestClient
+        .delete()
+        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId, topicName)
+        .exchange()
+        .expectStatus()
+        .isNotFound();
+  }
+
+  @Test
+  void shouldNotFoundWhenNoSuchTopic() {
+    String topicName = createTopicWithRandomName();
+    String topicNameUnSubscribed = "topicX";
+
+    //Create a consumer and subscribe to the topic
+    String groupId = UUID.randomUUID().toString();
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
+
+      webTestClient
+          .delete()
+          .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId,
+              topicNameUnSubscribed)
+          .exchange()
+          .expectStatus()
+          .isNotFound();
+    }
+  }
+
+  @Test
+  void shouldOkWhenConsumerGroupIsNotActiveAndPartitionOffsetExists() {
+    String topicName = createTopicWithRandomName();
+
+    //Create a consumer and subscribe to the topic
+    String groupId = UUID.randomUUID().toString();
+
+    try (KafkaTestProducer<String, String> producer = KafkaTestProducer.forKafka(kafka)) {
+      Flux.fromStream(
+          Stream.of("one", "two", "three", "four")
+              .map(value -> Mono.fromFuture(producer.send(topicName, value)))
+      ).blockLast();
+    } catch (Throwable e) {
+      log.error("Error on sending", e);
+      throw new RuntimeException(e);
+    }
+
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
+
+      //Stop consumers to delete consumer offset from the topic
+      consumer.pause(consumer.assignment());
+    }
+
+    //Delete the consumer offset when it's INACTIVE and check
+    webTestClient
+        .delete()
+        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId, topicName)
+        .exchange()
+        .expectStatus()
+        .isOk();
   }
 
   @Test
@@ -47,12 +112,13 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
 
     //Create a consumer and subscribe to the topic
     String groupId = UUID.randomUUID().toString();
-    val consumer = createTestConsumerWithGroupId(groupId);
-    consumer.subscribe(List.of(topicName));
-    consumer.poll(Duration.ofMillis(100));
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
 
-    //Unsubscribe from all topics to be able to delete this consumer
-    consumer.unsubscribe();
+      //Unsubscribe from all topics to be able to delete this consumer
+      consumer.unsubscribe();
+    }
 
     //Delete the consumer when it's INACTIVE and check
     webTestClient
@@ -69,24 +135,24 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
 
     //Create a consumer and subscribe to the topic
     String groupId = UUID.randomUUID().toString();
-    val consumer = createTestConsumerWithGroupId(groupId);
-    consumer.subscribe(List.of(topicName));
-    consumer.poll(Duration.ofMillis(100));
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
 
-    //Try to delete the consumer when it's ACTIVE
-    String expError = "The group is not empty";
-    webTestClient
-        .delete()
-        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
-        .exchange()
-        .expectStatus()
-        .isBadRequest();
+      //Try to delete the consumer when it's ACTIVE
+      webTestClient
+          .delete()
+          .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
+          .exchange()
+          .expectStatus()
+          .isBadRequest();
+    }
   }
 
   @Test
   void shouldReturnConsumerGroupsWithPagination() throws Exception {
-    try (var groups1 = startConsumerGroups(3, "cgPageTest1");
-        var groups2 = startConsumerGroups(2, "cgPageTest2")) {
+    try (var ignored = startConsumerGroups(3, "cgPageTest1");
+         var ignored1 = startConsumerGroups(2, "cgPageTest2")) {
       webTestClient
           .get()
           .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=3&search=cgPageTest", LOCAL)
@@ -114,19 +180,19 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
           });
 
       webTestClient
-            .get()
-            .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=10&&search"
-                + "=cgPageTest&orderBy=NAME&sortOrder=DESC", LOCAL)
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody(ConsumerGroupsPageResponseDTO.class)
-            .value(page -> {
-              assertThat(page.getPageCount()).isEqualTo(1);
-              assertThat(page.getConsumerGroups().size()).isEqualTo(5);
-              assertThat(page.getConsumerGroups())
-                  .isSortedAccordingTo(Comparator.comparing(ConsumerGroupDTO::getGroupId).reversed());
-            });
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?perPage=10&&search"
+              + "=cgPageTest&orderBy=NAME&sortOrder=DESC", LOCAL)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> {
+            assertThat(page.getPageCount()).isEqualTo(1);
+            assertThat(page.getConsumerGroups().size()).isEqualTo(5);
+            assertThat(page.getConsumerGroups())
+                .isSortedAccordingTo(Comparator.comparing(ConsumerGroupDTO::getGroupId).reversed());
+          });
 
       webTestClient
           .get()
@@ -156,7 +222,7 @@ public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
           return consumer;
         })
         .limit(count)
-        .collect(Collectors.toList());
+        .toList();
     return () -> {
       consumers.forEach(KafkaConsumer::close);
       deleteTopic(topicName);

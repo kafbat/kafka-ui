@@ -74,6 +74,7 @@ import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.GroupIdNotFoundException;
 import org.apache.kafka.common.errors.GroupNotEmptyException;
+import org.apache.kafka.common.errors.GroupSubscribedToTopicException;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.apache.kafka.common.errors.SecurityDisabledException;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
@@ -433,6 +434,27 @@ public class ReactiveAdminClient implements Closeable {
         .onErrorResume(GroupIdNotFoundException.class,
             th -> Mono.error(new NotFoundException("The group id does not exist")))
         .onErrorResume(GroupNotEmptyException.class,
+            th -> Mono.error(new IllegalEntityStateException("The group is not empty")));
+  }
+
+  public Mono<Void> deleteConsumerGroupOffsets(String groupId, String topicName) {
+    return listConsumerGroupOffsets(List.of(groupId), null)
+        .flatMap(table -> {
+          // filter TopicPartitions by topicName
+          Set<TopicPartition> partitions = table.row(groupId).keySet().stream()
+              .filter(tp -> tp.topic().equals(topicName))
+              .collect(Collectors.toSet());
+          // check if partitions have no committed offsets
+          return partitions.isEmpty()
+              ? Mono.error(new NotFoundException("The topic or partition is unknown"))
+              // call deleteConsumerGroupOffsets
+              : toMono(client.deleteConsumerGroupOffsets(groupId, partitions).all());
+        })
+        .onErrorResume(GroupIdNotFoundException.class,
+            th -> Mono.error(new NotFoundException("The group id does not exist")))
+        .onErrorResume(UnknownTopicOrPartitionException.class,
+            th -> Mono.error(new NotFoundException("The topic or partition is unknown")))
+        .onErrorResume(GroupSubscribedToTopicException.class,
             th -> Mono.error(new IllegalEntityStateException("The group is not empty")));
   }
 

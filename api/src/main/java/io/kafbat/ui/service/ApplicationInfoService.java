@@ -3,7 +3,9 @@ package io.kafbat.ui.service;
 import static io.kafbat.ui.api.model.AuthType.DISABLED;
 import static io.kafbat.ui.api.model.AuthType.OAUTH2;
 import static io.kafbat.ui.model.ApplicationInfoDTO.EnabledFeaturesEnum;
+import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_TIMEOUT;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import io.kafbat.ui.model.AppAuthenticationSettingsDTO;
 import io.kafbat.ui.model.ApplicationInfoBuildDTO;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.context.ApplicationContext;
@@ -31,9 +34,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ApplicationInfoService {
-
-  private final GithubReleaseInfo githubReleaseInfo = new GithubReleaseInfo();
-
+  private final GithubReleaseInfo githubReleaseInfo;
   private final ApplicationContext applicationContext;
   private final DynamicConfigOperations dynamicConfigOperations;
   private final BuildProperties buildProperties;
@@ -42,11 +43,13 @@ public class ApplicationInfoService {
   public ApplicationInfoService(DynamicConfigOperations dynamicConfigOperations,
                                 ApplicationContext applicationContext,
                                 @Autowired(required = false) BuildProperties buildProperties,
-                                @Autowired(required = false) GitProperties gitProperties) {
+                                @Autowired(required = false) GitProperties gitProperties,
+                                @Value("${" + GITHUB_RELEASE_INFO_TIMEOUT + ":10}") int githubApiMaxWaitTime) {
     this.applicationContext = applicationContext;
     this.dynamicConfigOperations = dynamicConfigOperations;
     this.buildProperties = Optional.ofNullable(buildProperties).orElse(new BuildProperties(new Properties()));
     this.gitProperties = Optional.ofNullable(gitProperties).orElse(new GitProperties(new Properties()));
+    githubReleaseInfo = new GithubReleaseInfo(githubApiMaxWaitTime);
   }
 
   public ApplicationInfoDTO getApplicationInfo() {
@@ -119,4 +122,8 @@ public class ApplicationInfoService {
     githubReleaseInfo.refresh().subscribe();
   }
 
+  @VisibleForTesting
+  GithubReleaseInfo githubReleaseInfo() {
+    return githubReleaseInfo;
+  }
 }

@@ -1048,6 +1048,32 @@ paths:
         200:
           description: OK
 
+  /api/clusters/{clusterName}/consumer-groups/{id}/topics/{topicName}:
+    delete:
+      tags:
+        - Consumer Groups
+      summary: delete consumer group offsets
+      operationId: deleteConsumerGroupOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+
   /api/clusters/{clusterName}/schemas:
     post:
       tags:
@@ -3512,6 +3538,7 @@ components:
         - UNASSIGNED
         - TASK_FAILED
         - RESTARTING
+        - STOPPED
 
     ConnectorAction:
       type: string
