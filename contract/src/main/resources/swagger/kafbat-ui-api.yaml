@@ -2124,7 +2124,7 @@ paths:
     get:
       tags:
         - Authorization
-      summary: Get user authentication related info
+      summary: Get user authorization related info
       operationId: getUserAuthInfo
       responses:
         200:
@@ -2217,6 +2217,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadedFileInfo'
+
+  /api/config/authentication:
+    get:
+      tags:
+        - ApplicationConfig
+      summary: Get authentication methods enabled for the app and other related settings
+      operationId: getAuthenticationSettings
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppAuthenticationSettings'
 
 components:
   schemas:
@@ -2327,6 +2341,32 @@ components:
               type: string
             htmlUrl:
               type: string
+
+    AppAuthenticationSettings:
+      type: object
+      properties:
+        authType:
+          $ref: '#/components/schemas/AuthType'
+        oAuthProviders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthProvider'
+
+    OAuthProvider:
+      type: object
+      properties:
+        clientName:
+          type: string
+        authorizationUri:
+          type: string
+
+    AuthType:
+      type: string
+      enum:
+        - DISABLED
+        - OAUTH2
+        - LOGIN_FORM
+        - LDAP
 
     Cluster:
       type: object
