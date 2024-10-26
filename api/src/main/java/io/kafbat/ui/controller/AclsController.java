@@ -67,6 +67,7 @@ public class AclsController extends AbstractController implements AclsApi {
                                                           KafkaAclResourceTypeDTO resourceTypeDto,
                                                           String resourceName,
                                                           KafkaAclNamePatternTypeDTO namePatternTypeDto,
+                                                          String search,
                                                           ServerWebExchange exchange) {
     AccessContext context = AccessContext.builder()
         .cluster(clusterName)
@@ -87,7 +88,7 @@ public class AclsController extends AbstractController implements AclsApi {
     return validateAccess(context).then(
         Mono.just(
             ResponseEntity.ok(
-                aclsService.listAcls(getCluster(clusterName), filter)
+                aclsService.listAcls(getCluster(clusterName), filter, search)
                     .map(ClusterMapper::toKafkaAclDto)))
     ).doOnEach(sig -> audit(context, sig));
   }
