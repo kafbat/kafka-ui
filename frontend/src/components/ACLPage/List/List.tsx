@@ -28,7 +28,7 @@ import * as S from './List.styled';
 
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const { data: aclList } = useAcls({ clusterName, search });
   const { deleteResource } = useDeleteAcl(clusterName);
