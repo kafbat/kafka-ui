@@ -14,19 +14,23 @@ import {
   KafkaAcl,
 } from 'generated-sources';
 
-export function useAcls({ clusterName, search }: { 
-  clusterName: ClusterName; 
-  search?: string; 
+export function useAcls({
+  clusterName,
+  search,
+}: {
+  clusterName: ClusterName;
+  search?: string;
 }) {
   return useQuery(
     ['clusters', clusterName, 'acls', { search }],
-    () => api.listAcls({
+    () =>
+      api.listAcls({
         clusterName,
-        search
-    }),
+        search,
+      }),
     {
-        keepPreviousData: true,
-        suspense: false,
+      keepPreviousData: true,
+      suspense: false,
     }
   );
 }
