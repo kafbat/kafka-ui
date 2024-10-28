@@ -25,6 +25,7 @@ updates:
   open-pull-requests-limit: 10
   ignore:
   - dependency-name: "*"
+    # Limit dependabot pull requests to minor Java upgrades
     update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
