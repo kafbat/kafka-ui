@@ -24,7 +24,7 @@ updates:
     - "kafbat/backend"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: "*"
+  - dependency-name: "azul/zulu-openjdk-alpine"
     # Limit dependabot pull requests to minor Java upgrades
     update-types: ["version-update:semver-major"]
   labels:
