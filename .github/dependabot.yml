@@ -15,7 +15,7 @@ updates:
     - "scope/backend"
 
 - package-ecosystem: docker
-  directory: "/"
+  directory: "/api"
   schedule:
     interval: weekly
     time: "10:00"
