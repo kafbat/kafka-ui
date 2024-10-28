@@ -1,6 +1,8 @@
 package io.kafbat.ui.serdes;
 
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.Serde;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,7 @@ public class ProducerRecordCreator {
                                                @Nullable Integer partition,
                                                @Nullable String key,
                                                @Nullable String value,
-                                               @Nullable Map<String, String> headers) {
+                                               @Nullable Map<String, Object> headers) {
     return new ProducerRecord<>(
         topic,
         partition,
@@ -29,10 +31,23 @@ public class ProducerRecordCreator {
     );
   }
 
-  private Iterable<Header> createHeaders(Map<String, String> clientHeaders) {
+  private Iterable<Header> createHeaders(Map<String, Object> clientHeaders) {
     RecordHeaders headers = new RecordHeaders();
-    clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v.getBytes())));
+    clientHeaders.forEach((k, v) -> {
+      if (v instanceof List<?> valueList) {
+        valueList.forEach(value -> headers.add(new RecordHeader(k, valueToBytes(value))));
+      } else {
+        headers.add(new RecordHeader(k, valueToBytes(v)));
+      }
+    });
     return headers;
+  }
+
+  private byte[] valueToBytes(Object value) {
+    if (value instanceof List<?> || value instanceof Map<?, ?>) {
+      throw new ValidationException("Header values can only be string or list of strings");
+    }
+    return value != null ? String.valueOf(value).getBytes() : null;
   }
 
 }

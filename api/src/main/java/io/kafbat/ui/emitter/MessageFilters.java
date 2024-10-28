@@ -123,7 +123,7 @@ public class MessageFilters {
         "timestampMs", SimpleType.INT,
         "keyAsText", SimpleType.STRING,
         "valueAsText", SimpleType.STRING,
-        "headers", MapType.create(SimpleType.STRING, SimpleType.STRING),
+        "headers", MapType.create(SimpleType.STRING, SimpleType.DYN),
         "key", SimpleType.DYN,
         "value", SimpleType.DYN
     );

@@ -6,8 +6,10 @@ import io.kafbat.ui.serde.api.Serde;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
@@ -63,14 +65,16 @@ public class ConsumerRecordDeserializer {
   }
 
   private void fillHeaders(TopicMessageDTO message, ConsumerRecord<Bytes, Bytes> rec) {
-    Map<String, String> headers = new HashMap<>();
+    Map<String, List<String>> headersMap = new HashMap<>();
     rec.headers().iterator()
-        .forEachRemaining(header ->
-            headers.put(
-                header.key(),
-                header.value() != null ? new String(header.value()) : null
-            ));
-    message.setHeaders(headers);
+        .forEachRemaining(header -> {
+          String key = header.key();
+          String value = header.value() != null ? new String(header.value()) : null;
+          headersMap.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+        });
+    Map<String, Object> finalHeadersMap = new HashMap<>();
+    headersMap.forEach((key, values) -> finalHeadersMap.put(key, values.size() == 1 ? values.get(0) : values));
+    message.setHeaders(finalHeadersMap);
   }
 
   private void fillKey(TopicMessageDTO message, ConsumerRecord<Bytes, Bytes> rec) {

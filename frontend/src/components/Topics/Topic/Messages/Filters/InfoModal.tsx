@@ -54,6 +54,13 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
             record.headers[&apos;k2&apos;] == &apos;v2&apos;
           </code>
         </S.ListItem>
+        <S.ListItem>
+          <code>
+            &quot;v1&quot; in (type(record.headers.k1) == list ?
+            record.headers.k1 : [record.headers.k1])
+          </code> - in case a header can hold either a single value (string) or
+          multiple values (list of strings)
+        </S.ListItem>
       </ol>
       <Flexbox justifyContent="center" margin="20px 0 0 0">
         <Button
