@@ -1,3 +1,6 @@
+# The tag is ignored when a sha is included but the reason to add it are:  
+# 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
+# 2. Helps dependabot during discovery of upgrades
 FROM azul/zulu-openjdk-alpine:17-jre-headless-latest@sha256:af4df00adaec356d092651af50d9e80fd179f96722d267e79acb564aede10fda
 
 RUN apk add --no-cache \
