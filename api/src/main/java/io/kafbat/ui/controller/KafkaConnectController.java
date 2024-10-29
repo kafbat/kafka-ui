@@ -3,6 +3,8 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.RESET_OFFSETS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.VIEW;
 
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
@@ -290,13 +292,10 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   public Mono<ResponseEntity<Void>> resetConnectorOffsets(String clusterName, String connectName,
       String connectorName,
       ServerWebExchange exchange) {
-    ConnectAction[] connectActions;
-
-    connectActions = new ConnectAction[] { ConnectAction.VIEW, ConnectAction.RESET_OFFSETS };
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, connectActions)
+        .connectActions(connectName, VIEW, RESET_OFFSETS)
         .operationName("resetConnectorOffsets")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
