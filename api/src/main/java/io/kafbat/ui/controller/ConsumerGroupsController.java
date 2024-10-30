@@ -60,6 +60,24 @@ public class ConsumerGroupsController extends AbstractController implements Cons
   }
 
   @Override
+  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName,
+                                                               String groupId,
+                                                               String topicName,
+                                                               ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .consumerGroupActions(groupId, RESET_OFFSETS)
+        .topicActions(topicName, TopicAction.VIEW)
+        .operationName("deleteConsumerGroupOffsets")
+        .build();
+
+    return validateAccess(context)
+        .then(consumerGroupService.deleteConsumerGroupOffset(getCluster(clusterName), groupId, topicName))
+        .doOnEach(sig -> audit(context, sig))
+        .thenReturn(ResponseEntity.ok().build());
+  }
+
+  @Override
   public Mono<ResponseEntity<ConsumerGroupDetailsDTO>> getConsumerGroup(String clusterName,
                                                                         String consumerGroupId,
                                                                         ServerWebExchange exchange) {

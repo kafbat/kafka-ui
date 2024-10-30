@@ -16,12 +16,12 @@ public class InternalBrokerConfig {
   private final boolean isReadOnly;
   private final List<ConfigEntry.ConfigSynonym> synonyms;
 
-  public static InternalBrokerConfig from(ConfigEntry configEntry) {
+  public static InternalBrokerConfig from(ConfigEntry configEntry, boolean readOnlyCluster) {
     InternalBrokerConfig.InternalBrokerConfigBuilder builder = InternalBrokerConfig.builder()
         .name(configEntry.name())
         .value(configEntry.value())
         .source(configEntry.source())
-        .isReadOnly(configEntry.isReadOnly())
+        .isReadOnly(readOnlyCluster || configEntry.isReadOnly())
         .isSensitive(configEntry.isSensitive())
         .synonyms(configEntry.synonyms());
     return builder.build();
