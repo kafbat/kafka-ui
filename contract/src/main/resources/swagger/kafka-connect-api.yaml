@@ -164,7 +164,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConnectorOffsetsReset'
+                $ref: '#/components/schemas/ConnectorOffsetsError'
+                
+    get:
+      tags:
+        - KafkaConnectClient
+      summary: Get the offsets for the specified connector
+      operationId: getConnectorOffsets
+      parameters:
+        - in: path
+          name: connector
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
 
   /connectors/{connectorName}/status:
     get:
@@ -469,7 +484,7 @@ components:
         trace:
           type: string
 
-    ConnectorOffsetsReset:
+    ConnectorOffsetsError:
       type: object
       properties:
         error_code:
