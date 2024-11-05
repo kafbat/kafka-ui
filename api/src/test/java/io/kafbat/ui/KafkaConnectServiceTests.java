@@ -408,7 +408,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .expectStatus()
         .isBadRequest();
   }
-    
+
   @Test
   public void shouldResetConnectorWhenInStoppedState() {
     webTestClient.put()
@@ -422,6 +422,17 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
             connectName, connectorName)
         .exchange()
         .expectStatus().isOk();
+
+  }
+
+  @Test
+  public void shouldReturn400WhenResettingConnectorInRunningState() {
+
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connectors/{connectName}/connectors/{connectorName}/offsets", LOCAL,
+            connectName, connectorName)
+        .exchange()
+        .expectStatus().isBadRequest();
 
   }
 }
