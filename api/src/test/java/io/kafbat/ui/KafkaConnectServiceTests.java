@@ -17,6 +17,7 @@ import io.kafbat.ui.model.TaskIdDTO;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,26 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @BeforeEach
   public void setUp() {
+
+    int limit = 5;
+    int tries = 0;
+    boolean failed = false;
+
+    do {
+      try {
+        TimeUnit.SECONDS.sleep(1);
+        webTestClient.get()
+            .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL,
+                connectName)
+            .exchange()
+            .expectStatus().isOk();
+      } catch (Exception e) {
+        failed = true;
+        System.out.println("failed to retrieve connectors: " + tries);
+      }
+      tries++;
+    } while (failed == true && tries < limit);
+
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
