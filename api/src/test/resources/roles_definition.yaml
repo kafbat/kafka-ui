@@ -1,0 +1,34 @@
+- name: 'admin'
+  subjects:
+    - provider: 'OAUTH'
+      value: 'ROLE-[A-Z]+'
+      type: 'role'
+  clusters:
+    - local
+    - remote
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
+- name: 'viewer'
+  subjects:
+    - provider: 'LDAP'
+      value: 'CS-XXX'
+      type: 'kafka-viewer'
+    - provider: 'OAUTH'
+      value: '.*@kafka.com'
+      type: 'user'
+  clusters:
+    - remote
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
+- name: 'editor'
+  subjects:
+    - provider: 'OAUTH'
+      value: 'ROLE_EDITOR'
+      type: 'role'
+  clusters:
+    - local
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
