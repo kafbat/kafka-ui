@@ -411,15 +411,24 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   public void shouldResetConnectorWhenInStoppedState() {
-    webTestClient.put()
-        .uri("/api/clusters/{clusterName}/connectors/{connectName}/connectors/{connectorName}/action/STOP", LOCAL,
-            connectName, connectorName)
+
+    webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/action/STOP",
+            LOCAL, connectName, connectorName)
         .exchange()
         .expectStatus().isOk();
 
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.STOPPED));
+
     webTestClient.delete()
-        .uri("/api/clusters/{clusterName}/connectors/{connectName}/connectors/{connectorName}/offsets", LOCAL,
-            connectName, connectorName)
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets",
+            LOCAL, connectName, connectorName)
         .exchange()
         .expectStatus().isOk();
 
@@ -427,6 +436,14 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   public void shouldReturn400WhenResettingConnectorInRunningState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
 
     webTestClient.delete()
         .uri("/api/clusters/{clusterName}/connectors/{connectName}/connectors/{connectorName}/offsets", LOCAL,
