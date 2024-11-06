@@ -47,7 +47,7 @@ public class ProviderAuthorityExtractorTest {
 
   @SneakyThrows
   @Test
-  void ExtractAuthoritiesFromRegex() {
+  void extractAuthoritiesFromRegex() {
 
     OAuth2User oauth2User = new DefaultOAuth2User(
         AuthorityUtils.createAuthorityList("SCOPE_message:read"),
@@ -55,9 +55,9 @@ public class ProviderAuthorityExtractorTest {
         "user_name");
 
     HashMap<String, Object> additionalParams = new HashMap<>();
-    OAuthProperties.OAuth2Provider oAuth2Provider = new OAuthProperties.OAuth2Provider();
-    oAuth2Provider.setCustomParams(Map.of("roles-field", "role_definition"));
-    additionalParams.put("provider", oAuth2Provider);
+    OAuthProperties.OAuth2Provider provider = new OAuthProperties.OAuth2Provider();
+    provider.setCustomParams(Map.of("roles-field", "role_definition"));
+    additionalParams.put("provider", provider);
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
 
