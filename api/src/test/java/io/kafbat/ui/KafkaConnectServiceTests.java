@@ -446,7 +446,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
 
     webTestClient.delete()
-        .uri("/api/clusters/{clusterName}/connectors/{connectName}/connectors/{connectorName}/offsets", LOCAL,
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets", LOCAL,
             connectName, connectorName)
         .exchange()
         .expectStatus().isBadRequest();
