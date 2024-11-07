@@ -24,6 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.reactive.server.ExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @Slf4j
@@ -51,34 +53,35 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
     boolean failed = false;
 
     do {
-      try {
-        TimeUnit.SECONDS.sleep(1);
-        webTestClient.get()
-            .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL,
-                connectName)
-            .exchange()
-            .expectStatus().isOk();
-      } catch (Exception e) {
-        failed = true;
-        System.out.println("failed to retrieve connectors: " + tries);
-      }
+
+      ExchangeResult result = webTestClient.post()
+              .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
+          .bodyValue(new NewConnectorDTO()
+              .name(connectorName)
+              .config(Map.of(
+                  "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
+                  "tasks.max", "1",
+                  "topics", "output-topic",
+                  "file", "/tmp/test",
+                  "test.password", "test-credentials")))
+          .exchange()
+          .expectBody()
+          .returnResult();
+
+      // Kafka Connect returns an error 500 during occasional rebalances
+      failed = result.getStatus() == HttpStatus.INTERNAL_SERVER_ERROR;
       tries++;
+
+      if (failed) {
+        System.out.println("Failed to setUp connector %s time(s), got status: %s".formatted(tries, result.getStatus()));
+        try {
+          TimeUnit.SECONDS.sleep(1);
+        } catch (Exception e) {
+          System.out.println("Sleep got interrupted");
+        }
+      }
     } while (failed == true && tries < limit);
 
-    webTestClient.post()
-        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
-        .bodyValue(new NewConnectorDTO()
-            .name(connectorName)
-            .config(Map.of(
-                "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
-                "tasks.max", "1",
-                "topics", "output-topic",
-                "file", "/tmp/test",
-                "test.password", "test-credentials"
-            ))
-        )
-        .exchange()
-        .expectStatus().isOk();
   }
 
   @AfterEach
@@ -432,6 +435,14 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   public void shouldResetConnectorWhenInStoppedState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
 
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/action/STOP",
