@@ -118,7 +118,7 @@ public class MessagesController extends AbstractController implements MessagesAp
     if (cursor != null) {
       messagesFlux = messagesService.loadMessages(getCluster(clusterName), topicName, cursor);
     } else {
-      var pollingMode = mode == null ? PollingModeDTO.EARLIEST : mode;
+      var pollingMode = mode == null ? PollingModeDTO.LATEST : mode;
       messagesFlux = messagesService.loadMessages(
           getCluster(clusterName),
           topicName,
