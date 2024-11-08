@@ -48,40 +48,31 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   @BeforeEach
   public void setUp() {
 
-    int limit = 5;
-    int tries = 0;
-    boolean failed = false;
+    ExchangeResult creationResult = webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
+        .bodyValue(new NewConnectorDTO()
+            .name(connectorName)
+            .config(Map.of(
+                "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
+                "tasks.max", "1",
+                "topics", "output-topic",
+                "file", "/tmp/test",
+                "test.password", "test-credentials")))
+        .exchange()
+        .expectBody()
+        .returnResult();
 
-    do {
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
 
-      ExchangeResult result = webTestClient.post()
-              .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
-          .bodyValue(new NewConnectorDTO()
-              .name(connectorName)
-              .config(Map.of(
-                  "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
-                  "tasks.max", "1",
-                  "topics", "output-topic",
-                  "file", "/tmp/test",
-                  "test.password", "test-credentials")))
-          .exchange()
-          .expectBody()
-          .returnResult();
-
-      // Kafka Connect returns an error 500 during occasional rebalances
-      failed = result.getStatus() == HttpStatus.INTERNAL_SERVER_ERROR;
-      tries++;
-
-      if (failed) {
-        System.out.println("Failed to setUp connector %s time(s), got status: %s".formatted(tries, result.getStatus()));
-        try {
-          TimeUnit.SECONDS.sleep(1);
-        } catch (Exception e) {
-          System.out.println("Sleep got interrupted");
-        }
-      }
-    } while (failed == true && tries < limit);
-
+    // Kafka Connect may return transient HTTP 500 errors during rebalances
+    if (creationResult.getStatus() != HttpStatus.OK) {
+      log.warn(
+          "Ignoring a transient error while setting up the tested connector, because it has been created anyway.");
+    }
   }
 
   @AfterEach
