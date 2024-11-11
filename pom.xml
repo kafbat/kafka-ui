@@ -30,7 +30,7 @@
         <git.revision>latest</git.revision>
 
         <!-- Dependency versions -->
-        <antlr4-maven-plugin.version>4.12.0</antlr4-maven-plugin.version>
+        <antlr4-maven-plugin.version>4.13.2</antlr4-maven-plugin.version>
         <apache.commons.version>2.12.0</apache.commons.version>
         <assertj.version>3.25.3</assertj.version>
         <avro.version>1.11.4</avro.version>
@@ -50,7 +50,7 @@
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
         <odd-oddrn-client.version>0.1.39</odd-oddrn-client.version>
         <org.json.version>20240303</org.json.version>
-        <dev.cel.version>0.3.0</dev.cel.version>
+        <dev.cel.version>0.7.0</dev.cel.version>
         <guava.version>33.3.1-jre</guava.version>
         <!-- Test dependency versions -->
         <junit.version>5.11.2</junit.version>

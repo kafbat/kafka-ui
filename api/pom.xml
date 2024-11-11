@@ -216,12 +216,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>${antlr4-maven-plugin.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.opendatadiscovery</groupId>
             <artifactId>oddrn-generator-java</artifactId>
             <version>${odd-oddrn-generator.version}</version>
