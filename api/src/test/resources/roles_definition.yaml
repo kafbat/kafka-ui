@@ -3,6 +3,12 @@
     - provider: 'OAUTH'
       value: 'ROLE-[A-Z]+'
       type: 'role'
+    - provider: 'OAUTH_COGNITO'
+      value: 'ROLE-[A-Z]+'
+      type: 'group'
+    - provider: 'OAUTH_GOOGLE'
+      value: '.*.domain.com'
+      type: 'domain'
   clusters:
     - local
     - remote
@@ -15,6 +21,15 @@
       value: 'CS-XXX'
       type: 'kafka-viewer'
     - provider: 'OAUTH'
+      value: '.*@kafka.com'
+      type: 'user'
+    - provider: 'OAUTH_COGNITO'
+      value: '.*@kafka.com'
+      type: 'user'
+    - provider: 'OAUTH_GITHUB'
+      value: '.*@kafka.com'
+      type: 'user'
+    - provider: 'OAUTH_GOOGLE'
       value: '.*@kafka.com'
       type: 'user'
   clusters:
