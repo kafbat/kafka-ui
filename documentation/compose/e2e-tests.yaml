@@ -29,7 +29,8 @@ services:
       KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb:8088
 
   kafka0:
-    image: confluentinc/cp-kafka:7.2.1
+    image: confluentinc/cp-kafka:7.6.0
+    user: "0:0"
     hostname: kafka0
     container_name: kafka0
     healthcheck:
@@ -58,12 +59,10 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-    volumes:
-      - ./scripts/update_run.sh:/tmp/update_run.sh
-    command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
 
   schemaregistry0:
-    image: confluentinc/cp-schema-registry:7.2.1
+    image: confluentinc/cp-schema-registry:7.6.0
     ports:
       - 8085:8085
     depends_on:
@@ -88,7 +87,7 @@ services:
     build:
       context: ./kafka-connect
       args:
-        image: confluentinc/cp-kafka-connect:6.0.1
+        image: confluentinc/cp-kafka-connect:7.6.0
     ports:
       - 8083:8083
     depends_on:
@@ -122,7 +121,7 @@ services:
   #      AWS_SECRET_ACCESS_KEY: ""
 
   kafka-init-topics:
-    image: confluentinc/cp-kafka:7.2.1
+    image: confluentinc/cp-kafka:7.6.0
     volumes:
       - ./data/message.json:/data/message.json
     depends_on:
@@ -162,7 +161,7 @@ services:
     command: bash -c '/connectors/start.sh'
 
   ksqldb:
-    image: confluentinc/ksqldb-server:0.18.0
+    image: confluentinc/cp-ksqldb-server:7.6.0
     healthcheck:
       test: [ "CMD", "timeout", "1", "curl", "--silent", "--fail", "http://localhost:8088/info" ]
       interval: 30s
