@@ -1,15 +1,15 @@
 import React, { ElementType } from 'react';
-import { Button } from 'components/common/Button/Button';
 import ServiceImage from 'components/common/Icons/ServiceImage';
 
 import * as S from './AuthCard.styled';
 
 interface Props {
   serviceName: string;
+  authPath: string | undefined;
   Icon?: ElementType;
 }
 
-function AuthCard({ serviceName, Icon = ServiceImage }: Props) {
+function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
   return (
     <S.AuthCardStyled>
       <S.ServiceData>
@@ -21,14 +21,13 @@ function AuthCard({ serviceName, Icon = ServiceImage }: Props) {
           </S.ServiceTextStyled>
         </S.ServiceDataTextContainer>
       </S.ServiceData>
-      <Button
+      <S.ServiceButton
         buttonSize="L"
         buttonType="primary"
-        onClick={() => console.log('click')}
-        style={{ borderRadius: '8px', fontSize: '14px' }}
+        to={`http://localhost:8080${authPath}`}
       >
         Log in with {serviceName}
-      </Button>
+      </S.ServiceButton>
     </S.AuthCardStyled>
   );
 }

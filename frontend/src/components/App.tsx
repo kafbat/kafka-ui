@@ -1,5 +1,5 @@
 import React, { Suspense, useContext } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useMatch } from 'react-router-dom';
 import {
   accessErrorPage,
   clusterPath,
@@ -50,17 +50,16 @@ const queryClient = new QueryClient({
 });
 const App: React.FC = () => {
   const { isDarkMode } = useContext(ThemeModeContext);
-  const location = useLocation();
-  const isAuthPage = location.pathname === '/auth';
+  const isAuthRoute = useMatch('/auth/*');
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GlobalSettingsProvider>
-        <ThemeProvider theme={isDarkMode ? darkTheme : theme}>
-          <Suspense fallback={<PageLoader fullSize />}>
-            {isAuthPage ? (
-              <AuthPage />
-            ) : (
+      <ThemeProvider theme={isDarkMode ? darkTheme : theme}>
+        {isAuthRoute ? (
+          <AuthPage />
+        ) : (
+          <GlobalSettingsProvider>
+            <Suspense fallback={<PageLoader fullSize />}>
               <UserInfoRolesAccessProvider>
                 <ConfirmContextProvider>
                   <GlobalCSS />
@@ -100,10 +99,10 @@ const App: React.FC = () => {
                   <ConfirmationModal />
                 </ConfirmContextProvider>
               </UserInfoRolesAccessProvider>
-            )}
-          </Suspense>
-        </ThemeProvider>
-      </GlobalSettingsProvider>
+            </Suspense>
+          </GlobalSettingsProvider>
+        )}
+      </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
     </QueryClientProvider>
   );
