@@ -6,6 +6,14 @@ import {
 } from 'generated-sources';
 import { QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 
+export function useAuthSettings() {
+  return useQuery(
+    ['app', 'authSettings'],
+    () => api.getAuthenticationSettings(),
+    QUERY_REFETCH_OFF_OPTIONS
+  );
+}
+
 export function useAppInfo() {
   return useQuery(
     ['app', 'info'],

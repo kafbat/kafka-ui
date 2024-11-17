@@ -5,16 +5,16 @@ import { useLatestVersion } from 'lib/hooks/api/latestVersion';
 import * as S from './Footer.styled';
 
 function Footer() {
-  const { data: latestVersionInfo = {} } = useLatestVersion();
-  const { versionTag } = latestVersionInfo.latestRelease;
-  const { commitId } = latestVersionInfo.build;
+  // const { data: latestVersionInfo = {} } = useLatestVersion();
+  // const { versionTag } = latestVersionInfo.latestRelease;
+  // const { commitId } = latestVersionInfo.build;
 
   return (
     <S.FooterStyledWrapper>
       <S.AppVersionStyled>
         <GitHubIcon />
         <S.AppVersionTextStyled>
-          {versionTag} ({commitId})
+          {/* {versionTag} ({commitId}) */}
         </S.AppVersionTextStyled>
       </S.AppVersionStyled>
       <S.InformationTextStyled>
