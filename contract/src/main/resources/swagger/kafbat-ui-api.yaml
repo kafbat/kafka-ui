@@ -2919,8 +2919,9 @@ components:
           type: string
         headers:
           type: object
+          description: header values can be string or list of strings (for keys with multiple values)
           additionalProperties:
-            type: string
+            type: object
         partition:
           type: integer
         offset:
@@ -2948,8 +2949,9 @@ components:
           nullable: true
         headers:
           type: object
+          description: header values can be string or list of strings (for keys with multiple values)
           additionalProperties:
-            type: string
+            type: object
         content:
           type: string
           nullable: true
@@ -3038,8 +3040,9 @@ components:
           type: string
         headers:
           type: object
+          description: header values can be string or list of strings (for keys with multiple values)
           additionalProperties:
-            type: string
+            type: object
         content:
           type: string
         keyFormat:
