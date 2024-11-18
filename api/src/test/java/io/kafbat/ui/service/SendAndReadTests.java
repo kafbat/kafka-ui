@@ -19,6 +19,7 @@ import io.kafbat.ui.serdes.builtin.Int64Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -424,6 +425,25 @@ public class SendAndReadTests extends AbstractIntegrationTest {
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
         });
   }
+
+  @Test
+  void headerValueNullPresentTest() {
+    new SendAndReadSpec()
+        .withKeySchema(JSON_SCHEMA)
+        .withValueSchema(JSON_SCHEMA)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key(JSON_SCHEMA_RECORD)
+                .keySerde(SchemaRegistrySerde.name())
+                .content(JSON_SCHEMA_RECORD)
+                .valueSerde(SchemaRegistrySerde.name())
+                .headers(Collections.singletonMap("header123", null))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getHeaders().get("header123")).isNull();
+        });
+  }
+
 
   @Test
   void noKeyAndNoContentPresentTest() {
