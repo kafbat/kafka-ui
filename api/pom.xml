@@ -399,10 +399,65 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${frontend-maven-plugin.version}</version>
+                <configuration>
+                    <skip>${skipUIBuild}</skip>
+                    <workingDirectory>../frontend</workingDirectory>
+                    <environmentVariables>
+                        <VITE_TAG>${project.version}</VITE_TAG>
+                        <VITE_COMMIT>${git.commit.id.abbrev}</VITE_COMMIT>
+                    </environmentVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and pnpm</id>
+                        <goals>
+                            <goal>install-node-and-pnpm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <pnpmVersion>${pnpm.version}</pnpmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>pnpm install</id>
+                        <goals>
+                            <goal>pnpm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>pnpm build</id>
+                        <goals>
+                            <goal>pnpm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <id>!local</id>
+            <properties>
+                <skipUIBuild>true</skipUIBuild>
+            </properties>
+        </profile>
+        <profile>
+            <id>!prod</id>
+            <properties>
+                <skipUIBuild>true</skipUIBuild>
+            </properties>
+        </profile>
         <profile>
             <id>prod</id>
             <build>
@@ -451,49 +506,6 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>${frontend-maven-plugin.version}</version>
-                        <configuration>
-                            <skip>${skipUIBuild}</skip>
-                            <workingDirectory>../frontend</workingDirectory>
-                            <environmentVariables>
-                                <VITE_TAG>${project.version}</VITE_TAG>
-                                <VITE_COMMIT>${git.commit.id.abbrev}</VITE_COMMIT>
-                            </environmentVariables>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install node and pnpm</id>
-                                <goals>
-                                    <goal>install-node-and-pnpm</goal>
-                                </goals>
-                                <configuration>
-                                    <nodeVersion>${node.version}</nodeVersion>
-                                    <pnpmVersion>${pnpm.version}</pnpmVersion>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>pnpm install</id>
-                                <goals>
-                                    <goal>pnpm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>pnpm build</id>
-                                <goals>
-                                    <goal>pnpm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>build</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>${fabric8-maven-plugin.version}</version>
@@ -525,5 +537,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>

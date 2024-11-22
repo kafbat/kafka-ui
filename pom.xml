@@ -193,4 +193,13 @@
         </pluginManagement>
     </build>
 
+    <profiles>
+        <profile>
+            <id>contract</id>
+            <modules>
+                <module>contract</module>
+            </modules>
+        </profile>
+    </profiles>
+
 </project>
