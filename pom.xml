@@ -10,12 +10,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
-    <modules>
-        <module>contract</module>
-        <module>api</module>
-        <module>serde-api</module>
-        <module>e2e-tests</module>
-    </modules>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
@@ -194,6 +188,18 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>all</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>api</module>
+                <module>contract</module>
+                <module>e2e-tests</module>
+                <module>serde-api</module>
+            </modules>
+        </profile>
         <profile>
             <id>contract</id>
             <modules>

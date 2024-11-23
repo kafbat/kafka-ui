@@ -16,8 +16,10 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.language>java</sonar.language>
+        <skipUIBuild>true</skipUIBuild>
     </properties>
 
     <dependencies>
@@ -447,19 +449,16 @@
 
     <profiles>
         <profile>
-            <id>!local</id>
+            <id>local</id>
             <properties>
-                <skipUIBuild>true</skipUIBuild>
-            </properties>
-        </profile>
-        <profile>
-            <id>!prod</id>
-            <properties>
-                <skipUIBuild>true</skipUIBuild>
+                <skipUIBuild>false</skipUIBuild>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
+            <properties>
+                <skipUIBuild>false</skipUIBuild>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
