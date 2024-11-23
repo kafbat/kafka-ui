@@ -10,7 +10,7 @@ RUN apk add --no-cache \
     tzdata
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
-RUN mkdir /etc/kafkaui/certs
+RUN mkdir -p /etc/kafkaui/certs
 
 RUN for cert in /etc/kafkaui/certs/*.crt; do \
         keytool -import -noprompt -trustcacerts -alias $(basename $cert .crt) -file $cert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
