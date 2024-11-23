@@ -1,4 +1,4 @@
-# The tag is ignored when a sha is included but the reason to add it are:  
+# The tag is ignored when a sha is included but the reason to add it are:
 # 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
 # 2. Helps dependabot during discovery of upgrades
 FROM azul/zulu-openjdk-alpine:17-jre-headless-latest@sha256:af4df00adaec356d092651af50d9e80fd179f96722d267e79acb564aede10fda
@@ -9,6 +9,12 @@ RUN apk add --no-cache \
     # configuring timezones
     tzdata
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
+
+RUN mkdir /etc/kafkaui/certs
+
+RUN for cert in /etc/kafkaui/certs/*.crt; do \
+        keytool -import -noprompt -trustcacerts -alias $(basename $cert .crt) -file $cert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
+    done
 
 # creating folder for dynamic config usage (certificates uploads, etc)
 RUN mkdir /etc/kafkaui/
