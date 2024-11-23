@@ -11,7 +11,10 @@ RUN apk add --no-cache \
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
 # creating folder for dynamic config usage (certificates uploads, etc)
-RUN mkdir /etc/kafkaui/
+RUN mkdir -p /etc/kafkaui/certs
+COPY ./import-certs.sh /usr/local/bin/import-certs.sh
+RUN chmod +x /usr/local/bin/import-certs.sh
+
 RUN chown kafkaui /etc/kafkaui
 
 USER kafkaui
@@ -24,4 +27,4 @@ ENV JAVA_OPTS=
 EXPOSE 8080
 
 # see JmxSslSocketFactory docs to understand why add-opens is needed
-CMD java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED  $JAVA_OPTS -jar api.jar
+CMD ["sh", "-c", "/usr/local/bin/import-certs.sh && java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED $JAVA_OPTS -jar api.jar"]
