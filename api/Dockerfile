@@ -12,9 +12,13 @@ RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
 # creating folder for dynamic config usage (certificates uploads, etc)
 RUN mkdir -p /etc/kafkaui/certs
-RUN for cert in /etc/kafkaui/certs/*.crt; do \
-        keytool -import -noprompt -trustcacerts -alias $(basename $cert .crt) -file $cert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
-    done
+RUN if ls /etc/kafkaui/certs/*.crt 1> /dev/null 2>&1; then \
+        for cert in /etc/kafkaui/certs/*.crt; do \
+            keytool -import -noprompt -trustcacerts -alias $(basename $cert .crt) -file $cert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
+        done \
+    else \
+        echo "No certificates found in /etc/kafkaui/certs/"; \
+    fi
 
 RUN chown kafkaui /etc/kafkaui
 
