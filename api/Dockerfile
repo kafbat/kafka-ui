@@ -10,14 +10,12 @@ RUN apk add --no-cache \
     tzdata
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
+# creating folder for dynamic config usage (certificates uploads, etc)
 RUN mkdir -p /etc/kafkaui/certs
-
 RUN for cert in /etc/kafkaui/certs/*.crt; do \
         keytool -import -noprompt -trustcacerts -alias $(basename $cert .crt) -file $cert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit; \
     done
 
-# creating folder for dynamic config usage (certificates uploads, etc)
-RUN mkdir /etc/kafkaui/
 RUN chown kafkaui /etc/kafkaui
 
 USER kafkaui
