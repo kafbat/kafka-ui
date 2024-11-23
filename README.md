@@ -50,7 +50,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 * **View Consumer Groups** — view per-partition parked offsets, combined and per-partition lag
 * **Browse Messages** — browse messages with JSON, plain text, and Avro encoding
 * **Dynamic Topic Configuration** — create and configure new topics with dynamic configuration
-* **Configurable Authentification** — [secure](https://ui.docs.kafbat.io/configuration/authentication) your installation with optional Github/Gitlab/Google OAuth 2.0
+* **Configurable Authentication** — [secure](https://ui.docs.kafbat.io/configuration/authentication) your installation with optional Github/Gitlab/Google OAuth 2.0
 * **Custom serialization/deserialization plugins** - [use](https://ui.docs.kafbat.io/configuration/serialization-serde) a ready-to-go serde for your data like AWS Glue or Smile, or code your own!
 * **Role based access control** - [manage permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) to access the UI with granular precision
 * **Data masking** - [obfuscate](https://ui.docs.kafbat.io/configuration/data-masking) sensitive data in topic messages
