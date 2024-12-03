@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type {
   ColumnDef,
   OnChangeFn,
@@ -18,6 +18,9 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { Button } from 'components/common/Button/Button';
 import Input from 'components/common/Input/Input';
+import Search from 'components/common/Search/Search';
+import SearchAutocomplete from 'components/common/SearchAutocomplete/SearchAutocomplete';
+import MultiSearch from 'components/common/MultiSearch/MultiSearch';
 
 import * as S from './Table.styled';
 import updateSortingState from './utils/updateSortingState';
@@ -60,6 +63,14 @@ export interface TableProps<TData> {
   onMouseLeave?: () => void;
 
   setRowId?: (originalRow: TData) => string;
+  enableColumnSearch?: boolean;
+  columnSearchPlaceholders?: {
+    id: string;
+    columnName: string;
+    placeholder: string;
+    type: string;
+    options?: { label: string; value: string }[];
+  }[];
 }
 
 type UpdaterFn<T> = (previousState: T) => T;
@@ -137,10 +148,51 @@ function Table<TData>({
   onRowHover,
   onMouseLeave,
   setRowId,
+  enableColumnSearch = false,
+  columnSearchPlaceholders = [],
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [rowSelection, setRowSelection] = useState({});
+
+  const [searchState, setSearchState] = useState<
+    Record<string, string | undefined>
+  >(
+    columnSearchPlaceholders.reduce(
+      (acc, curr) => {
+        acc[curr.id] = curr.type === 'input' ? '' : undefined;
+        return acc;
+      },
+      {} as Record<string, string | undefined>
+    )
+  );
+
+  const [multiSearchState, setMultiSearchState] = useState<
+    Record<string, string[] | undefined>
+  >(
+    columnSearchPlaceholders.reduce(
+      (acc, curr) => {
+        acc[curr.id] = curr.type === 'input' ? [] : undefined;
+        return acc;
+      },
+      {} as Record<string, string[] | undefined>
+    )
+  );
+
+  const handleSearchChange = (id: string, value: string) => {
+    setSearchState((prevState) => ({
+      ...prevState,
+      [id]: value,
+    }));
+  };
+
+  const handleMultiSearchChange = (id: string, values: string[]) => {
+    setMultiSearchState((prevState) => ({
+      ...prevState,
+      [id]: values,
+    }));
+  };
+
   const onSortingChange = React.useCallback(
     (updater: UpdaterFn<SortingState>) => {
       const newState = updateSortingState(updater, searchParams);
@@ -159,8 +211,52 @@ function Table<TData>({
     [searchParams, location]
   );
 
+  const filteredConnectors = data?.filter((connector) => {
+    return columnSearchPlaceholders.every((placeholder) => {
+      const searchValue = searchState[placeholder.id];
+      const multiSearchValues = multiSearchState[placeholder.id];
+
+      const connectorValue =
+        connector[placeholder.columnName as keyof typeof connector];
+
+      if (multiSearchValues && multiSearchValues.length > 0) {
+        const matchesAllTags = multiSearchValues.every((value) =>
+          Array.isArray(connectorValue)
+            ? connectorValue.includes(value)
+            : connectorValue?.toString() === value
+        );
+
+        if (!matchesAllTags) {
+          return false;
+        }
+      }
+
+      if (searchValue) {
+        if (Array.isArray(connectorValue)) {
+          return connectorValue.some((item: string) =>
+            item.toLowerCase().includes(searchValue.toLowerCase())
+          );
+        }
+
+        if (typeof connectorValue === 'object' && connectorValue !== null) {
+          return Object.values(connectorValue as Record<string, unknown>).some(
+            (item) =>
+              item?.toString().toLowerCase().includes(searchValue.toLowerCase())
+          );
+        }
+
+        return connectorValue
+          ?.toString()
+          .toLowerCase()
+          .includes(searchValue.toLowerCase());
+      }
+
+      return true;
+    });
+  });
+
   const table = useReactTable<TData>({
-    data,
+    data: filteredConnectors,
     pageCount,
     columns,
     state: {
@@ -242,41 +338,104 @@ function Table<TData>({
         <S.Table>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {!!enableRowSelection && (
-                  <S.Th key={`${headerGroup.id}-select`}>
-                    {flexRender(
-                      SelectRowHeader<TData>,
-                      headerGroup.headers[0].getContext()
-                    )}
-                  </S.Th>
-                )}
-                {table.getCanSomeRowsExpand() && (
-                  <S.Th expander key={`${headerGroup.id}-expander`} />
-                )}
-                {headerGroup.headers.map((header) => (
-                  <S.Th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    sortable={header.column.getCanSort()}
-                    sortOrder={header.column.getIsSorted()}
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{
-                      width:
-                        header.column.getSize() !== 150
-                          ? header.column.getSize()
-                          : undefined,
-                    }}
-                  >
-                    <div>
+              <React.Fragment key={headerGroup.id}>
+                <tr>
+                  {!!enableRowSelection && (
+                    <S.Th key={`${headerGroup.id}-select`}>
                       {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+                        SelectRowHeader<TData>,
+                        headerGroup.headers[0].getContext()
                       )}
-                    </div>
-                  </S.Th>
-                ))}
-              </tr>
+                    </S.Th>
+                  )}
+                  {table.getCanSomeRowsExpand() && (
+                    <S.Th expander key={`${headerGroup.id}-expander`} />
+                  )}
+                  {headerGroup.headers.map((header) => (
+                    <S.Th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      sortable={header.column.getCanSort()}
+                      sortOrder={header.column.getIsSorted()}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{
+                        width:
+                          header.column.getSize() !== 150
+                            ? header.column.getSize()
+                            : undefined,
+                      }}
+                    >
+                      <div>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </div>
+                    </S.Th>
+                  ))}
+                </tr>
+                {enableColumnSearch && (
+                  <tr>
+                    {!!enableRowSelection && <S.Th />}
+                    {table.getCanSomeRowsExpand() && <S.Th />}
+                    {headerGroup.headers.map((header) => {
+                      const placeholderObj = columnSearchPlaceholders?.find(
+                        (placeholder) => placeholder.id === header.column.id
+                      );
+
+                      if (placeholderObj) {
+                        return (
+                          <S.Th key={`${header.id}-search`}>
+                            {placeholderObj.type === 'autocomplete' && (
+                              <SearchAutocomplete
+                                value={searchState[placeholderObj.id] || ''}
+                                onChange={(value) => {
+                                  handleSearchChange(placeholderObj.id, value);
+                                  table.setPageIndex(0);
+                                }}
+                                placeholder={placeholderObj.placeholder}
+                                options={placeholderObj.options || []}
+                                searchIcon={false}
+                              />
+                            )}
+                            {placeholderObj.type === 'multiInput' && (
+                              <MultiSearch
+                                name={placeholderObj.id}
+                                value={searchState[placeholderObj.id] || ''}
+                                values={
+                                  multiSearchState[placeholderObj.id] || []
+                                }
+                                onChange={(value, values) => {
+                                  handleMultiSearchChange(
+                                    placeholderObj.id,
+                                    values
+                                  );
+                                  handleSearchChange(placeholderObj.id, value);
+                                  table.setPageIndex(0);
+                                }}
+                                placeholder={placeholderObj.placeholder}
+                                searchIcon={false}
+                              />
+                            )}
+                            {placeholderObj.type === 'input' && (
+                              <Search
+                                value={searchState[placeholderObj.id] || ''}
+                                onChange={(value) => {
+                                  handleSearchChange(placeholderObj.id, value);
+                                  table.setPageIndex(0);
+                                }}
+                                placeholder={placeholderObj.placeholder}
+                                searchIcon={false}
+                              />
+                            )}
+                          </S.Th>
+                        );
+                      }
+                      return <S.Th key={`${header.id}-empty`} />;
+                    })}
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </thead>
           <tbody>
