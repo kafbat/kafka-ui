@@ -150,6 +150,24 @@ class MessageFiltersTest {
     }
 
     @Test
+    void canFilterNullValueInJsonObjectIfItCanBeParsedToJson() {
+      var filter1 = celScriptFilter("record.value.age == 24");
+      assertTrue(filter1.test(msg().content("{\"name\": null, \"age\": 24, \"address\": { \"city\": \"Lille\"}}")), "Age filter KO");
+      var filter2 = celScriptFilter("record.value.name == 'Paul'");
+      assertTrue(filter2.test(msg().content("{\"name\": \"Paul\", \"age\": 24, \"address\": { \"city\": \"Lille\"}}")), "Name filter KO");
+      var filter3 = celScriptFilter("record.value.name == ''");
+      assertTrue(filter3.test(msg().content("{\"name\": \"\", \"age\": 24, \"address\": { \"city\": \"Lille\"}}")), "Empty Name filter KO");
+      var filter4 = celScriptFilter("record.value.name == null");
+      assertFalse(filter4.test(msg().content("{\"name\": \"Paul\", \"age\": 24, \"address\": { \"city\": \"Lille\"}}")), "Null Name in filter KO");
+      var filter5 = celScriptFilter("record.value.address.city == \"Lille\"");
+      assertTrue(filter5.test(msg().content("{\"name\": null, \"age\": 24, \"address\": { \"city\": \"Lille\"}}")), "Null Name filter KO");
+      var filter6 = celScriptFilter("record.value.address.city == \"\"");
+      assertTrue(filter6.test(msg().content("{\"name\": null, \"age\": 24, \"address\": { \"city\": \"\"}}")), "Null Name filter KO");
+      var filter7 = celScriptFilter("record.value.address.city == null");
+      assertTrue(filter7.test(msg().content("{\"name\": null, \"age\": 24, \"address\": { \"city\": null}}")), "Null Name filter KO");
+    }
+
+    @Test
     void valueSetToContentStringIfCantBeParsedToJson() {
       var f = celScriptFilter("record.value == \"not json\"");
       assertTrue(f.test(msg().content("not json")));
