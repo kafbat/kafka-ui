@@ -149,7 +149,7 @@ const ACList: React.FC = () => {
 
   return (
     <S.Container>
-      <PageHeading text="Access Control List">
+      <PageHeading clusterName={clusterName} text="Access Control List">
         <ActionButton
           buttonType="primary"
           buttonSize="M"
