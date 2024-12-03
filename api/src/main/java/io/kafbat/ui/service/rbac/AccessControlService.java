@@ -113,11 +113,11 @@ public class AccessControlService {
     return context.isAccessible(getUserPermissions(user, context.cluster()));
   }
 
-  private List<Permission> getUserPermissions(AuthenticatedUser user, String clusterName) {
+  private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
     return properties.getRoles()
         .stream()
         .filter(filterRole(user))
-        .filter(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+        .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
         .flatMap(role -> role.getPermissions().stream())
         .toList();
   }
