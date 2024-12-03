@@ -79,6 +79,42 @@ const Colors = {
 
 const baseTheme = {
   defaultIconColor: Colors.neutral[50],
+  auth_page: {
+    backgroundColor: Colors.brand[0],
+    fontFamily: 'Inter, sans-serif',
+    header: {
+      cellBorderColor: Colors.brand[10],
+      LogoBgColor: Colors.brand[90],
+      LogoTextColor: Colors.brand[0],
+    },
+    signIn: {
+      titleColor: Colors.brand[90],
+      label: {
+        color: Colors.brand[70],
+      },
+      authCard: {
+        borderRadius: '16px',
+        borderColor: Colors.brand[10],
+        backgroundColor: Colors.brand[0],
+        serviceNamecolor: Colors.brand[90],
+        serviceTextColor: Colors.brand[50],
+      },
+    },
+    footer: {
+      fontSize: '12px',
+      span: {
+        color: Colors.brand[70],
+        fontWeight: 500,
+      },
+      p: {
+        color: Colors.brand[50],
+        fontWeight: 400,
+      },
+    },
+    icons: {
+      githubColor: Colors.brand[90],
+    },
+  },
   heading: {
     h1: {
       color: Colors.neutral[90],
@@ -821,6 +857,36 @@ export type ThemeType = typeof theme;
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  auth_page: {
+    backgroundColor: Colors.neutral[90],
+    fontFamily: baseTheme.auth_page.fontFamily,
+    header: {
+      cellBorderColor: Colors.brand[80],
+      LogoBgColor: Colors.brand[0],
+      LogoTextColor: Colors.brand[90],
+    },
+    signIn: {
+      titleColor: Colors.brand[0],
+      label: {
+        color: Colors.brand[30],
+      },
+      authCard: {
+        ...baseTheme.auth_page.signIn.authCard,
+        backgroundColor: Colors.brand[85],
+        serviceNamecolor: Colors.brand[0],
+      },
+    },
+    footer: {
+      ...baseTheme.auth_page.footer,
+      span: {
+        color: Colors.brand[10],
+        fontWeight: 500,
+      },
+    },
+    icons: {
+      githubColor: Colors.brand[0],
+    },
+  },
   logo: {
     color: '#FDFDFD',
   },
