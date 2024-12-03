@@ -194,6 +194,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>frontend</module>
                 <module>api</module>
                 <module>contract</module>
                 <module>e2e-tests</module>
@@ -201,9 +202,12 @@
             </modules>
         </profile>
         <profile>
-            <id>contract</id>
+            <id>backend</id>
             <modules>
+                <module>api</module>
                 <module>contract</module>
+                <module>e2e-tests</module>
+                <module>serde-api</module>
             </modules>
         </profile>
     </profiles>
