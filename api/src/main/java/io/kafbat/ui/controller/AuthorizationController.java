@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class AccessController implements AuthorizationApi {
+public class AuthorizationController implements AuthorizationApi {
 
   private final AccessControlService accessControlService;
 

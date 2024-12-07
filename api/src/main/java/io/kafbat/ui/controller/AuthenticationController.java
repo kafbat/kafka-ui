@@ -13,13 +13,13 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class AuthController {
+public class AuthenticationController {
 
   @GetMapping(value = "/auth", produces = {"text/html"})
   public Mono<byte[]> getAuth(ServerWebExchange exchange) {
     Mono<CsrfToken> token = exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
     return token
-        .map(AuthController::csrfToken)
+        .map(AuthenticationController::csrfToken)
         .defaultIfEmpty("")
         .map(csrfTokenHtmlInput -> createPage(exchange, csrfTokenHtmlInput));
   }
