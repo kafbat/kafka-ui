@@ -1,4 +1,4 @@
-# The tag is ignored when a sha is included but the reason to add it are:  
+# The tag is ignored when a sha is included but the reason to add it are:
 # 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
 # 2. Helps dependabot during discovery of upgrades
 FROM azul/zulu-openjdk-alpine:17-jre-headless-latest@sha256:af4df00adaec356d092651af50d9e80fd179f96722d267e79acb564aede10fda
@@ -11,7 +11,10 @@ RUN apk add --no-cache \
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
 # creating folder for dynamic config usage (certificates uploads, etc)
-RUN mkdir /etc/kafkaui/
+RUN mkdir -p /etc/kafkaui/certs
+COPY ./import-certs.sh /usr/local/bin/import-certs.sh
+RUN chmod +x /usr/local/bin/import-certs.sh
+
 RUN chown kafkaui /etc/kafkaui
 
 USER kafkaui
@@ -24,4 +27,4 @@ ENV JAVA_OPTS=
 EXPOSE 8080
 
 # see JmxSslSocketFactory docs to understand why add-opens is needed
-CMD java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED  $JAVA_OPTS -jar api.jar
+CMD ["sh", "-c", "/usr/local/bin/import-certs.sh && java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED $JAVA_OPTS -jar api.jar"]
