@@ -14,6 +14,10 @@ import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
+import io.kafbat.ui.serdes.builtin.Int32Serde;
+import io.kafbat.ui.serdes.builtin.Int64Serde;
+import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
+import io.kafbat.ui.serdes.builtin.ProtobufRawSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.HashSet;
 import java.util.List;
@@ -22,13 +26,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 class MessagesServiceTest extends AbstractIntegrationTest {
@@ -213,6 +220,35 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     );
     assertThat(result.getResult()).isNull();
     assertThat(result.getError()).containsIgnoringCase("Compilation error");
+  }
+
+  @Test
+  void sendMessageWithProtobufAnyType() {
+    String jsonContent = """
+        {
+          "name": "testFromSpringApp",
+          "payload": {
+            "@type": "type.googleapis.com/test.Referenced",
+            "id": "123"
+          }
+        }
+        """;
+
+    CreateTopicMessageDTO testMessage = new CreateTopicMessageDTO()
+        .key(null)
+        .partition(0)
+        .keySerde(StringSerde.name())
+        .content(jsonContent)
+        .valueSerde(ProtobufFileSerde.name());
+
+    String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));
+
+    StepVerifier.create(messagesService.sendMessage(cluster, testTopic, testMessage))
+        .expectNextMatches(metadata -> metadata.topic().equals(testTopic) &&
+            metadata.partition() == 0 &&
+            metadata.offset() >= 0)
+        .verifyComplete();
   }
 
 }
