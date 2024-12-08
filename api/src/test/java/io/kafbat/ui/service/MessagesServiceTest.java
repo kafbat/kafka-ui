@@ -238,9 +238,9 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));
 
     StepVerifier.create(messagesService.sendMessage(cluster, testTopic, testMessage))
-        .expectNextMatches(metadata -> metadata.topic().equals(testTopic) &&
-            metadata.partition() == 0 &&
-            metadata.offset() >= 0)
+        .expectNextMatches(metadata -> metadata.topic().equals(testTopic)
+            && metadata.partition() == 0
+            && metadata.offset() >= 0)
         .verifyComplete();
   }
 
