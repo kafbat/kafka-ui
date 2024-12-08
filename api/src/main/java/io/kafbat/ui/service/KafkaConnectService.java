@@ -7,6 +7,7 @@ import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.TaskStatus;
+import io.kafbat.ui.exception.ConnectorOffsetsResetException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.ClusterMapper;
@@ -229,6 +230,8 @@ public class KafkaConnectService {
                   t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
             case PAUSE:
               return client.pauseConnector(connectorName);
+            case STOP:
+              return client.stopConnector(connectorName);
             case RESUME:
               return client.resumeConnector(connectorName);
             default:
@@ -291,5 +294,21 @@ public class KafkaConnectService {
           "Connect %s not found for cluster %s".formatted(connectName, cluster.getName()));
     }
     return client;
+  }
+
+  public Mono<Void> resetConnectorOffsets(KafkaCluster cluster, String connectName,
+      String connectorName) {
+    return api(cluster, connectName)
+        .mono(client -> client.resetConnectorOffsets(connectorName))
+        .onErrorResume(WebClientResponseException.NotFound.class,
+            e -> {
+              throw new NotFoundException("Connector %s not found in %s".formatted(connectorName, connectName));
+            })
+        .onErrorResume(WebClientResponseException.BadRequest.class,
+            e -> {
+              throw new ConnectorOffsetsResetException(
+                  "Failed to reset offsets of connector %s of %s. Make sure it is STOPPED first."
+                      .formatted(connectorName, connectName));
+            });
   }
 }
