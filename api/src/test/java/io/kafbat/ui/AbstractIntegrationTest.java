@@ -87,7 +87,7 @@ public abstract class AbstractIntegrationTest {
       } catch (FileNotFoundException e) {
         throw new RuntimeException(e);
       }
-      System.setProperty("kafka.clusters.0.serde.0.properties.protobufMessageName", "test.Main");
+      System.setProperty("kafka.clusters.0.serde.0.properties.protobufMessageName", "test.MessageWithAny");
 
       // List unavailable hosts to verify failover
       System.setProperty("kafka.clusters.0.schemaRegistry",

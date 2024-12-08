@@ -10,14 +10,10 @@ import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
-import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
-import io.kafbat.ui.serdes.builtin.Int32Serde;
-import io.kafbat.ui.serdes.builtin.Int64Serde;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
-import io.kafbat.ui.serdes.builtin.ProtobufRawSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.HashSet;
 import java.util.List;
@@ -26,16 +22,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 class MessagesServiceTest extends AbstractIntegrationTest {
@@ -226,9 +219,9 @@ class MessagesServiceTest extends AbstractIntegrationTest {
   void sendMessageWithProtobufAnyType() {
     String jsonContent = """
         {
-          "name": "testFromSpringApp",
+          "name": "testName",
           "payload": {
-            "@type": "type.googleapis.com/test.Referenced",
+            "@type": "type.googleapis.com/test.PayloadMessage",
             "id": "123"
           }
         }
