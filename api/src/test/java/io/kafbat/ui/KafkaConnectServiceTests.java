@@ -166,7 +166,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   public void shouldRetrieveConnector() {
-    ConnectorDTO expected = (ConnectorDTO) new ConnectorDTO()
+    ConnectorDTO expected = new ConnectorDTO()
         .connect(connectName)
         .status(new ConnectorStatusDTO()
             .state(ConnectorStateDTO.RUNNING)
@@ -383,7 +383,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
               .map(ConnectorPluginConfigDTO::getValue)
               .map(ConnectorPluginConfigValueDTO::getErrors)
               .filter(not(List::isEmpty))
-              .findFirst().get();
+              .findFirst().orElseThrow();
           assertEquals(
               "Invalid value 0 for configuration tasks.max: Value must be at least 1",
               error.get(0)

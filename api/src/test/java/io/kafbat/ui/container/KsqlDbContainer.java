@@ -34,6 +34,6 @@ public class KsqlDbContainer extends GenericContainer<KsqlDbContainer> {
   }
 
   public String url() {
-    return "http://" + getContainerIpAddress() + ":" + getMappedPort(PORT);
+    return "http://" + getHost() + ":" + getMappedPort(PORT);
   }
 }
