@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import useClickOutside from 'lib/hooks/useClickOutside';
 import DropdownArrowIcon from 'components/common/Icons/DropdownArrowIcon';
 
@@ -41,6 +41,10 @@ const Select = <T extends object>(
 ) => {
   const [selectedOption, setSelectedOption] = useState(value);
   const [showOptions, setShowOptions] = useState(false);
+
+  useEffect(() => {
+    setSelectedOption(value);
+  }, [value]);
 
   const showOptionsHandler = () => {
     if (!disabled) setShowOptions(!showOptions);
