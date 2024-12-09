@@ -118,10 +118,11 @@ public class MessagesController extends AbstractController implements MessagesAp
     if (cursor != null) {
       messagesFlux = messagesService.loadMessages(getCluster(clusterName), topicName, cursor);
     } else {
+      var pollingMode = mode == null ? PollingModeDTO.LATEST : mode;
       messagesFlux = messagesService.loadMessages(
           getCluster(clusterName),
           topicName,
-          ConsumerPosition.create(checkNotNull(mode), checkNotNull(topicName), partitions, timestamp, offset),
+          ConsumerPosition.create(pollingMode, checkNotNull(topicName), partitions, timestamp, offset),
           stringFilter,
           smartFilterId,
           limit,

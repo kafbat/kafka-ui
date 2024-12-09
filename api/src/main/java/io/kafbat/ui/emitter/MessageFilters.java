@@ -52,7 +52,23 @@ public class MessageFilters {
 
   public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
     return msg -> StringUtils.contains(msg.getKey(), string)
-        || StringUtils.contains(msg.getContent(), string);
+        || StringUtils.contains(msg.getContent(), string) || headersContains(msg, string);
+  }
+
+  private static boolean headersContains(TopicMessageDTO msg, String searchString) {
+    final var headers = msg.getHeaders();
+
+    if (headers == null) {
+      return false;
+    }
+
+    for (final var entry : headers.entrySet()) {
+      if (StringUtils.contains(entry.getKey(), searchString) || StringUtils.contains(entry.getValue(), searchString)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public static Predicate<TopicMessageDTO> celScriptFilter(String script) {

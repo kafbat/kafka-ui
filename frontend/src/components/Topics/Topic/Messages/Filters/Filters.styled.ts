@@ -142,7 +142,7 @@ export const SavedFilterName = styled.div`
 
 export const FilterButtonWrapper = styled.div<{ isEdit: boolean }>`
   display: flex;
-  justify-content: ${(props) => (props.isEdit ? 'flex-end' : 'space-between')};
+  justify-content: space-between;
   margin-top: 10px;
   gap: 10px;
   padding-top: 16px;
