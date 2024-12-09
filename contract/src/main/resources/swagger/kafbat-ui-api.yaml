@@ -662,33 +662,45 @@ paths:
           required: true
           schema:
             type: string
-        - name: seekType
+        - name: mode
           in: query
+          description: Messages polling mode
           schema:
-            $ref: "#/components/schemas/SeekType"
-        - name: seekTo
+            $ref: "#/components/schemas/PollingMode"
+        - name: partitions
           in: query
           schema:
             type: array
+            description: List of target partitions (all partitions if not provided)
             items:
-              type: string
-          description: The format is [partition]::[offset] for specifying offsets or [partition]::[timestamp in millis] for specifying timestamps
+              type: integer
         - name: limit
           in: query
+          description: Max number of messages can be returned
           schema:
             type: integer
-        - name: q
+        - name: stringFilter
           in: query
+          description: query string to contains string filtration
           schema:
             type: string
-        - name: filterQueryType
+        - name: smartFilterId
           in: query
+          description: filter id, that was registered beforehand
           schema:
-            $ref:  "#/components/schemas/MessageFilterType"
-        - name: seekDirection
+            type: string
+        - name: offset
           in: query
+          description: message offset to read from / to
           schema:
-            $ref: "#/components/schemas/SeekDirection"
+            type: integer
+            format: int64
+        - name: timestamp
+          in: query
+          description: timestamp (in ms) to read from / to
+          schema:
+            type: integer
+            format: int64
         - name: keySerde
           in: query
           description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
@@ -697,6 +709,11 @@ paths:
         - name: valueSerde
           in: query
           description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          description: "id of the cursor for pagination, if passed - all other query params ignored"
           schema:
             type: string
       responses:
@@ -792,89 +809,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageFilterId'
-
-
-  /api/clusters/{clusterName}/topics/{topicName}/messages/v2:
-    get:
-      tags:
-        - Messages
-      summary: getTopicMessagesV2
-      operationId: getTopicMessagesV2
-      parameters:
-        - name: clusterName
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: topicName
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: mode
-          in: query
-          description: Messages polling mode
-          schema:
-            $ref: "#/components/schemas/PollingMode"
-        - name: partitions
-          in: query
-          schema:
-            type: array
-            description: List of target partitions (all partitions if not provided)
-            items:
-              type: integer
-        - name: limit
-          in: query
-          description: Max number of messages can be returned
-          schema:
-            type: integer
-        - name: stringFilter
-          in: query
-          description: query string to contains string filtration
-          schema:
-            type: string
-        - name: smartFilterId
-          in: query
-          description: filter id, that was registered beforehand
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: message offset to read from / to
-          schema:
-            type: integer
-            format: int64
-        - name: timestamp
-          in: query
-          description: timestamp (in ms) to read from / to
-          schema:
-            type: integer
-            format: int64
-        - name: keySerde
-          in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
-          schema:
-            type: string
-        - name: valueSerde
-          in: query
-          description: "Serde that should be used for deserialization. Will be chosen automatically if not set."
-          schema:
-            type: string
-        - name: cursor
-          in: query
-          description: "id of the cursor for pagination, if passed - all other query params ignored"
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          content:
-            text/event-stream:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TopicMessageEvent'
-
 
   /api/clusters/{clusterName}/topics/{topicName}/activeproducers:
     get:
@@ -3080,14 +3014,6 @@ components:
         - offset
         - timestamp
 
-    SeekType:
-      type: string
-      enum:
-        - BEGINNING
-        - OFFSET
-        - TIMESTAMP
-        - LATEST
-
     MessageFilterRegistration:
       type: object
       properties:
@@ -3110,20 +3036,6 @@ components:
         - LATEST
         - EARLIEST
         - TAILING
-
-    MessageFilterType:
-      type: string
-      enum:
-        - STRING_CONTAINS
-        - CEL_SCRIPT
-
-    SeekDirection:
-      type: string
-      enum:
-        - FORWARD
-        - BACKWARD
-        - TAILING
-      default: FORWARD
 
     Partition:
       type: object
