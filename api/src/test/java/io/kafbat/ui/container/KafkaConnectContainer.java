@@ -47,6 +47,6 @@ public class KafkaConnectContainer extends GenericContainer<KafkaConnectContaine
   }
 
   public String getTarget() {
-    return "http://" + getContainerIpAddress() + ":" + getMappedPort(CONNECT_PORT);
+    return "http://" + getHost() + ":" + getMappedPort(CONNECT_PORT);
   }
 }

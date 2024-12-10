@@ -56,7 +56,8 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
   void init() {
     AdminClientService adminClientService = applicationContext.getBean(AdminClientService.class);
     ClustersStorage clustersStorage = applicationContext.getBean(ClustersStorage.class);
-    reactiveAdminClient = requireNonNull(adminClientService.get(clustersStorage.getClusterByName(LOCAL).get()).block());
+    reactiveAdminClient =
+        requireNonNull(adminClientService.get(clustersStorage.getClusterByName(LOCAL).orElseThrow()).block());
     adminClient = reactiveAdminClient.getClient();
   }
 
@@ -103,7 +104,6 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
     assertThat(config.get("compression.type").value()).isEqualTo("snappy");
     assertThat(config.get("file.delete.delay.ms").value()).isEqualTo("12345");
   }
-
 
   @SneakyThrows
   void createTopics(NewTopic... topics) {
@@ -207,24 +207,19 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
     );
 
     StepVerifier.create(reactiveAdminClient.listOffsetsUnsafe(requestedPartitions, OffsetSpec.earliest()))
-        .assertNext(offsets -> {
-          Assertions.assertThat(offsets)
-              .hasSize(2)
-              .containsEntry(new TopicPartition(topic, 0), 0L)
-              .containsEntry(new TopicPartition(topic, 1), 0L);
-        })
+        .assertNext(offsets -> Assertions.assertThat(offsets)
+            .hasSize(2)
+            .containsEntry(new TopicPartition(topic, 0), 0L)
+            .containsEntry(new TopicPartition(topic, 1), 0L))
         .verifyComplete();
 
     StepVerifier.create(reactiveAdminClient.listOffsetsUnsafe(requestedPartitions, OffsetSpec.latest()))
-        .assertNext(offsets -> {
-          Assertions.assertThat(offsets)
-              .hasSize(2)
-              .containsEntry(new TopicPartition(topic, 0), 0L)
-              .containsEntry(new TopicPartition(topic, 1), 2L);
-        })
+        .assertNext(offsets -> Assertions.assertThat(offsets)
+            .hasSize(2)
+            .containsEntry(new TopicPartition(topic, 0), 0L)
+            .containsEntry(new TopicPartition(topic, 1), 2L))
         .verifyComplete();
   }
-
 
   @Test
   void testListConsumerGroupOffsets() throws Exception {
@@ -241,7 +236,7 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
       p.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
       p.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
       p.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-      return new KafkaConsumer<String, String>(p);
+      return new KafkaConsumer<>(p);
     };
 
     String fullyPolledConsumer = UUID.randomUUID().toString();

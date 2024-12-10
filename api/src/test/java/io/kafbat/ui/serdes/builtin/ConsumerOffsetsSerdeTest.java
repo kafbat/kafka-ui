@@ -168,6 +168,7 @@ class ConsumerOffsetsSerdeTest extends AbstractIntegrationTest {
   }
 
   @SneakyThrows
+  @SuppressWarnings("unchecked")
   private Map<String, Object> toMapFromJsom(DeserializeResult result) {
     return new JsonMapper().readValue(result.getResult(), Map.class);
   }

@@ -89,6 +89,8 @@ public class ConfigTest extends AbstractIntegrationTest {
         .returnResult()
         .getResponseBody();
 
+    assertThat(configs).isNotNull();
+
     return configs.stream()
         .filter(c -> c.getName().equals(name))
         .findAny();
