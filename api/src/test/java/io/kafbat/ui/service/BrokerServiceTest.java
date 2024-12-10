@@ -15,7 +15,7 @@ class BrokerServiceTest extends AbstractIntegrationTest {
 
   @Test
   void getBrokersReturnsFilledBrokerDto() {
-    var localCluster = clustersStorage.getClusterByName(LOCAL).get();
+    var localCluster = clustersStorage.getClusterByName(LOCAL).orElseThrow();
     StepVerifier.create(brokerService.getBrokers(localCluster))
         .expectNextMatches(b -> b.getId().equals(1)
             && b.getHost().equals(kafka.getHost())
