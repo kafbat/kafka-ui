@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.security.auth.callback.Callback;
@@ -60,9 +59,6 @@ public class AzureEntraLoginCallbackHandlerTest {
   private OAuthBearerTokenCallback oauthBearerTokenCallBack;
 
   @Mock
-  private OAuthBearerToken oauthBearerToken;
-
-  @Mock
   private TokenCredential tokenCredential;
 
   @Mock
@@ -77,12 +73,8 @@ public class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
-  public void shouldProvideTokenToCallbackWithSuccessfulTokenRequest()
-      throws UnsupportedCallbackException {
-    final Map<String, Object> configs = new HashMap<>();
-    configs.put(
-        "bootstrap.servers",
-        List.of("test-eh.servicebus.windows.net:9093"));
+  public void shouldProvideTokenToCallbackWithSuccessfulTokenRequest() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
 
     when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
     when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
@@ -114,10 +106,7 @@ public class AzureEntraLoginCallbackHandlerTest {
 
   @Test
   public void shouldProvideErrorToCallbackWithTokenError() throws UnsupportedCallbackException {
-    final Map<String, Object> configs = new HashMap<>();
-    configs.put(
-        "bootstrap.servers",
-        List.of("test-eh.servicebus.windows.net:9093"));
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
 
     when(tokenCredential.getToken(any(TokenRequestContext.class)))
         .thenThrow(new RuntimeException("failed to acquire token"));
@@ -136,16 +125,13 @@ public class AzureEntraLoginCallbackHandlerTest {
 
   @Test
   public void shouldThrowExceptionWithNullBootstrapServers() {
-    final Map<String, Object> configs = new HashMap<>();
-
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
-        configs, null, null));
+        Map.of(), null, null));
   }
 
   @Test
   public void shouldThrowExceptionWithMultipleBootstrapServers() {
-    final Map<String, Object> configs = new HashMap<>();
-    configs.put("bootstrap.servers", List.of("server1", "server2"));
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of("server1", "server2"));
 
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
         configs, null, null));
