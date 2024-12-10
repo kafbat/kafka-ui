@@ -150,7 +150,7 @@ services:
       POSTGRES_PASSWORD: '12345'
 
   create-connectors:
-    image: ellerbrock/alpine-bash-curl-ssl
+    image: curlimages/curl
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -158,7 +158,7 @@ services:
         condition: service_healthy
     volumes:
       - ./connectors:/connectors
-    command: bash -c '/connectors/start.sh'
+    command: sh -c '/connectors/start.sh'
 
   ksqldb:
     image: confluentinc/cp-ksqldb-server:7.6.0
