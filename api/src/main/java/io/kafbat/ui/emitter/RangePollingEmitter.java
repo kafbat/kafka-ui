@@ -64,7 +64,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       if (sink.isCancelled()) {
         log.debug("Polling finished due to sink cancellation");
       }
-      sendFinishStatsAndCompleteSink(sink, pollRange.isEmpty() ? null : cursor);
+      sendFinishStatsAndCompleteSink(sink, cursor, !pollRange.isEmpty());
       log.debug("Polling finished");
     } catch (InterruptException kafkaInterruptException) {
       log.debug("Polling finished due to thread interruption");
