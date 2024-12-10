@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' kafka-connect0:8083)" != "200" ]]
     do sleep 5
 done
