@@ -207,22 +207,13 @@ public class KafkaConnectService {
   public Mono<Void> updateConnectorState(KafkaCluster cluster, String connectName,
                                          String connectorName, ConnectorActionDTO action) {
     return api(cluster, connectName)
-        .mono(client -> {
-          switch (action) {
-            case RESTART:
-              return client.restartConnector(connectorName, false, false);
-            case RESTART_ALL_TASKS:
-              return restartTasks(cluster, connectName, connectorName, task -> true);
-            case RESTART_FAILED_TASKS:
-              return restartTasks(cluster, connectName, connectorName,
-                  t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
-            case PAUSE:
-              return client.pauseConnector(connectorName);
-            case RESUME:
-              return client.resumeConnector(connectorName);
-            default:
-              throw new IllegalStateException("Unexpected value: " + action);
-          }
+        .mono(client -> switch (action) {
+          case RESTART -> client.restartConnector(connectorName, false, false);
+          case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, task -> true);
+          case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
+              t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
+          case PAUSE -> client.pauseConnector(connectorName);
+          case RESUME -> client.resumeConnector(connectorName);
         });
   }
 
