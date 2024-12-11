@@ -244,6 +244,48 @@ class AvroJsonSchemaConverterTest {
     convertAndCompare(expectedJsonSchema, avroSchema);
   }
 
+  @Test
+  void testNullableUnionEnum()  {
+    String avroSchema =
+        " {"
+            + "     \"type\": \"record\","
+            + "     \"name\": \"Message\","
+            + "     \"namespace\": \"com.provectus.kafka\","
+            + "     \"fields\": ["
+            + "                     {"
+            + "                         \"name\": \"enum_nullable_union\","
+            + "                         \"type\": [\"null\", {"
+            + "                             \"type\": \"enum\","
+            + "                             \"name\": \"Suit\","
+            + "                             \"symbols\": [\"SPADES\",\"HEARTS\",\"DIAMONDS\",\"CLUBS\"]"
+            + "                         }]"
+            + "                     }"
+            + "     ]"
+            + " }";
+
+    String expectedJsonSchema =
+        "{\"$id\":\"http://example.com/Message\","
+            + "\"$schema\":\"https://json-schema.org/draft/2020-12/schema\","
+            + "\"type\":\"object\","
+            + "\"properties\":{"
+            + "\"enum_nullable_union\":{"
+            + "\"oneOf\":["
+            + "{\"type\":\"null\"},"
+            + "{\"type\":\"object\","
+            + "\"properties\":{"
+            + "\"Suit\":{"
+            + "\"type\":\"string\","
+            + "\"enum\":[\"SPADES\",\"HEARTS\",\"DIAMONDS\",\"CLUBS\"]"
+            + "}}}"
+            + "]"
+            + "}},"
+            + "\"definitions\":{"
+            + "\"com.provectus.kafka.Message\":{\"$ref\":\"#\"}"
+            + "}}";
+
+    convertAndCompare(expectedJsonSchema, avroSchema);
+  }
+
   @SneakyThrows
   private void convertAndCompare(String expectedJsonSchema, String sourceAvroSchema) {
     var parseAvroSchema = new Schema.Parser().parse(sourceAvroSchema);
