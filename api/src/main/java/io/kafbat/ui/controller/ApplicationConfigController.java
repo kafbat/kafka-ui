@@ -6,6 +6,7 @@ import static io.kafbat.ui.model.rbac.permission.ApplicationConfigAction.VIEW;
 import io.kafbat.ui.api.ApplicationConfigApi;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ActionDTO;
+import io.kafbat.ui.model.AppAuthenticationSettingsDTO;
 import io.kafbat.ui.model.ApplicationConfigDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigValidationDTO;
@@ -67,6 +68,13 @@ public class ApplicationConfigController extends AbstractController implements A
   }
 
   @Override
+  public Mono<ResponseEntity<AppAuthenticationSettingsDTO>> getAuthenticationSettings(
+      ServerWebExchange exchange) {
+    return Mono.just(applicationInfoService.getAuthenticationProperties())
+        .map(ResponseEntity::ok);
+  }
+
+  @Override
   public Mono<ResponseEntity<ApplicationConfigDTO>> getCurrentConfig(ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .applicationConfigActions(VIEW)
@@ -109,7 +117,7 @@ public class ApplicationConfigController extends AbstractController implements A
         .then(fileFlux.single())
         .flatMap(file ->
             dynamicConfigOperations.uploadConfigRelatedFile((FilePart) file)
-                .map(path -> new UploadedFileInfoDTO().location(path.toString()))
+                .map(path -> new UploadedFileInfoDTO(path.toString()))
                 .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
