@@ -56,7 +56,7 @@ describe('Connectors List', () => {
     it('renders', async () => {
       renderComponent();
       expect(screen.getByRole('table')).toBeInTheDocument();
-      expect(screen.getAllByRole('row').length).toEqual(3);
+      expect(screen.getAllByRole('row').length).toEqual(4);
     });
 
     it('opens broker when row clicked', async () => {
