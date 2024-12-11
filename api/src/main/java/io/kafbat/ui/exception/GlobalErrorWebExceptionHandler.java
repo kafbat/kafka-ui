@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
@@ -34,6 +35,9 @@ import reactor.core.publisher.Mono;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
+
+  @Value("${web.exception.include.stacktrace}")
+  private boolean includeStacktraceInException;
 
   public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes,
                                         ApplicationContext applicationContext,
@@ -74,7 +78,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(coalesce(throwable.getMessage(), "Unexpected internal error"))
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(throwable));
+        .stackTrace(getStackTrace(throwable));
     return ServerResponse
         .status(ErrorCode.UNEXPECTED.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +92,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(coalesce(baseException.getMessage(), "Internal error"))
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(baseException));
+        .stackTrace(getStackTrace(baseException));
     return ServerResponse
         .status(errorCode.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
@@ -118,7 +122,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
         .fieldsErrors(fieldsErrors)
-        .stackTrace(Throwables.getStackTraceAsString(exception));
+        .stackTrace(getStackTrace(exception));
     return ServerResponse
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
@@ -132,11 +136,19 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(msg)
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(exception));
+        .stackTrace(getStackTrace(exception));
     return ServerResponse
         .status(exception.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(response);
+  }
+
+  private String getStackTrace(Throwable exception) {
+    if (!includeStacktraceInException) {
+      return "";
+    }
+
+    return Throwables.getStackTraceAsString(exception);
   }
 
   private String requestId(ServerRequest request) {
