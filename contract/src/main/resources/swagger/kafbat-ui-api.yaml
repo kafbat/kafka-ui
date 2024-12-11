@@ -1568,7 +1568,7 @@ paths:
     post:
       tags:
         - Kafka Connect
-      summary: update connector state (restart, pause or resume)
+      summary: update connector state (restart, pause, stop or resume)
       operationId: updateConnectorState
       parameters:
         - name: clusterName
@@ -1725,6 +1725,31 @@ paths:
         200:
           description: OK
 
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets:
+    delete:
+      tags:
+        - Kafka Connect
+      summary: reset the offsets for the specified connector
+      operationId: resetConnectorOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
 
   /api/clusters/{clusterName}/ksql/v2:
     post:
@@ -3508,6 +3533,7 @@ components:
         - RESTART_FAILED_TASKS
         - PAUSE
         - RESUME
+        - STOP
 
     TaskAction:
       type: string
@@ -3894,7 +3920,16 @@ components:
 
     KafkaAcl:
       type: object
-      required: [resourceType, resourceName, namePatternType, principal, host, operation, permission]
+      required:
+        [
+          resourceType,
+          resourceName,
+          namePatternType,
+          principal,
+          host,
+          operation,
+          permission,
+        ]
       properties:
         resourceType:
           $ref: '#/components/schemas/KafkaAclResourceType'
