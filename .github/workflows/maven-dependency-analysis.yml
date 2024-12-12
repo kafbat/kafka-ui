@@ -1,0 +1,25 @@
+name: "Submit Dependency Analysis"
+
+on:
+  push:
+    branches: [ main ]
+
+  schedule:
+    - cron: '45 15 * * 6' # https://crontab.guru/#45_15_*_*_6
+
+jobs:
+  submit-dependency-analysis:
+    name: Submit Dependency Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Setup the JDK to restore the maven cache and avoid pulling the dependencies from scratch
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'maven'
+      - name: Submit Maven Dependency Snapshot
+        uses: advanced-security/maven-dependency-submission-action@v4.1.1 # https://github.com/advanced-security/maven-dependency-submission-action/releases/tag/v4.1.1
