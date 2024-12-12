@@ -51,8 +51,8 @@ class UInt32SerdeTest {
     var deserializer = serde.deserializer("anyTopic", type);
     byte[] uint32Bytes = Ints.toByteArray(UnsignedInteger.MAX_VALUE.intValue());
     var result = deserializer.deserialize(new RecordHeadersImpl(), uint32Bytes);
-    assertThat(result.getResult()).isEqualTo(UnsignedInteger.MAX_VALUE.toString());
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.result()).isEqualTo(UnsignedInteger.MAX_VALUE.toString());
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.JSON);
   }
 
 }

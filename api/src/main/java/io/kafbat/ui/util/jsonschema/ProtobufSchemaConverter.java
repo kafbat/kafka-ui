@@ -59,7 +59,7 @@ public class ProtobufSchemaConverter implements JsonSchemaConverter<Descriptors.
     return JsonSchema.builder()
         .id(basePath.resolve(schema.getFullName()))
         .type(new SimpleJsonType(JsonType.Type.OBJECT))
-        .rootRef(rootRef.getRef())
+        .rootRef(rootRef.ref())
         .definitions(definitions)
         .build();
   }
