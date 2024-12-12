@@ -9,26 +9,9 @@ import java.util.stream.Collectors;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-class ObjectFieldSchema implements FieldSchema {
+record ObjectFieldSchema(Map<String, FieldSchema> properties, List<String> required) implements FieldSchema {
 
   static final ObjectFieldSchema EMPTY = new ObjectFieldSchema(Map.of(), List.of());
-
-  private final Map<String, FieldSchema> properties;
-  private final List<String> required;
-
-  ObjectFieldSchema(Map<String, FieldSchema> properties,
-                           List<String> required) {
-    this.properties = properties;
-    this.required = required;
-  }
-
-  Map<String, FieldSchema> getProperties() {
-    return properties;
-  }
-
-  List<String> getRequired() {
-    return required;
-  }
 
   @Override
   public JsonNode toJsonNode(ObjectMapper mapper) {
