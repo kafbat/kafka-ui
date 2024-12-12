@@ -41,9 +41,9 @@ class Base64SerdeTest {
   void deserializesDataAsBase64Bytes(Serde.Target type) {
     var deserializer = base64Serde.deserializer("anyTopic", type);
     var result = deserializer.deserialize(new RecordHeadersImpl(), TEST_BYTES);
-    assertThat(result.getResult()).isEqualTo(TEST_BYTES_BASE64_ENCODED);
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
-    assertThat(result.getAdditionalProperties()).isEmpty();
+    assertThat(result.result()).isEqualTo(TEST_BYTES_BASE64_ENCODED);
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.STRING);
+    assertThat(result.additionalProperties()).isEmpty();
   }
 
   @ParameterizedTest

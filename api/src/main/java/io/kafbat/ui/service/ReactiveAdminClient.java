@@ -124,14 +124,9 @@ public class ReactiveAdminClient implements Closeable {
     }
   }
 
-  @Value
-  public static class ClusterDescription {
-    @Nullable
-    Node controller;
-    String clusterId;
-    Collection<Node> nodes;
-    @Nullable // null, if ACL is disabled
-    Set<AclOperation> authorizedOperations;
+  public record ClusterDescription(@Nullable Node controller, String clusterId, Collection<Node> nodes,
+                                     // null, if ACL is disabled
+                                     @Nullable Set<AclOperation> authorizedOperations) {
   }
 
   @Builder
@@ -147,7 +142,7 @@ public class ReactiveAdminClient implements Closeable {
             // choosing node from which we will get configs (starting with controller)
             var targetNodeId = Optional.ofNullable(desc.controller)
                 .map(Node::id)
-                .orElse(desc.getNodes().iterator().next().id());
+                .orElse(desc.nodes().iterator().next().id());
             return loadBrokersConfig(ac, List.of(targetNodeId))
                 .map(map -> map.isEmpty() ? List.<ConfigEntry>of() : map.get(targetNodeId))
                 .flatMap(configs -> {
@@ -391,7 +386,7 @@ public class ReactiveAdminClient implements Closeable {
 
   public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs() {
     return describeCluster()
-        .map(d -> d.getNodes().stream().map(Node::id).collect(toList()))
+        .map(d -> d.nodes().stream().map(Node::id).collect(toList()))
         .flatMap(this::describeLogDirs);
   }
 

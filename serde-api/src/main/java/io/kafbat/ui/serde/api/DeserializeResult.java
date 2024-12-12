@@ -6,21 +6,19 @@ import java.util.Objects;
 
 /**
  * Result of {@code Deserializer} work.
+ *
+ * @param result nullable
  */
-public final class DeserializeResult {
+public record DeserializeResult(String result, io.kafbat.ui.serde.api.DeserializeResult.Type type,
+                                Map<String, Object> additionalProperties) {
 
   public enum Type {
     STRING, JSON
   }
 
-  // nullable
-  private final String result;
-  private final Type type;
-  private final Map<String, Object> additionalProperties;
-
   /**
-   * @param result string representation of deserialized binary data
-   * @param type type of string - can it be converted to json or not
+   * @param result               string representation of deserialized binary data
+   * @param type                 type of string - can it be converted to json or not
    * @param additionalProperties additional information about deserialized value (will be shown in UI)
    */
   public DeserializeResult(String result, Type type, Map<String, Object> additionalProperties) {
@@ -32,7 +30,8 @@ public final class DeserializeResult {
   /**
    * @return string representation of deserialized binary data, can be null
    */
-  public String getResult() {
+  @Override
+  public String result() {
     return result;
   }
 
@@ -41,7 +40,8 @@ public final class DeserializeResult {
    * Will be show as json dictionary in UI (serialized with Jackson object mapper).
    * It is recommended to use primitive types and strings for values.
    */
-  public Map<String, Object> getAdditionalProperties() {
+  @Override
+  public Map<String, Object> additionalProperties() {
     return additionalProperties;
   }
 
@@ -49,7 +49,8 @@ public final class DeserializeResult {
    * @return type of deserialized result. Will be used as hint for some internal logic
    * (ex. if type==STRING smart filters won't try to parse it as json for further usage)
    */
-  public Type getType() {
+  @Override
+  public Type type() {
     return type;
   }
 
@@ -65,11 +66,6 @@ public final class DeserializeResult {
     return Objects.equals(result, that.result)
         && type == that.type
         && additionalProperties.equals(that.additionalProperties);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(result, type, additionalProperties);
   }
 
   @Override

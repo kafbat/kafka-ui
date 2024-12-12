@@ -77,8 +77,8 @@ public class InternalTopic {
 
           partitionsOffsets.get(topicDescription.name(), partition.partition())
               .ifPresent(offsets -> {
-                partitionDto.offsetMin(offsets.getEarliest());
-                partitionDto.offsetMax(offsets.getLatest());
+                partitionDto.offsetMin(offsets.earliest());
+                partitionDto.offsetMax(offsets.latest());
               });
 
           var segmentStats =

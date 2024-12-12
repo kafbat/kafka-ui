@@ -61,7 +61,7 @@ public class FeatureService {
   }
 
   private Mono<ClusterFeature> aclEdit(ReactiveAdminClient adminClient, ClusterDescription clusterDescription) {
-    var authorizedOps = Optional.ofNullable(clusterDescription.getAuthorizedOperations()).orElse(Set.of());
+    var authorizedOps = Optional.ofNullable(clusterDescription.authorizedOperations()).orElse(Set.of());
     boolean canEdit = aclViewEnabled(adminClient)
         && (authorizedOps.contains(AclOperation.ALL) || authorizedOps.contains(AclOperation.ALTER));
     return canEdit

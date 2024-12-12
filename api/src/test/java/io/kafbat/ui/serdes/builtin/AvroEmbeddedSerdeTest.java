@@ -69,9 +69,9 @@ class AvroEmbeddedSerdeTest {
 
     var deserializer = avroEmbeddedSerde.deserializer("anyTopic", Serde.Target.KEY);
     DeserializeResult result = deserializer.deserialize(null, serializedRecordBytes);
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
-    assertThat(result.getAdditionalProperties()).isEmpty();
-    assertJsonEquals(jsonRecord, result.getResult());
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.additionalProperties()).isEmpty();
+    assertJsonEquals(jsonRecord, result.result());
   }
 
   private void assertJsonEquals(String expected, String actual) throws IOException {

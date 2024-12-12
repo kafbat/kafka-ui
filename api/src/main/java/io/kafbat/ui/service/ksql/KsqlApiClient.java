@@ -59,10 +59,7 @@ public class KsqlApiClient {
     }
   }
 
-  @Value
-  private static class KsqlRequest {
-    String ksql;
-    Map<String, String> streamsProperties;
+  private record KsqlRequest(String ksql, Map<String, String> streamsProperties) {
   }
 
   //--------------------------------------------------------------------------------------------
@@ -172,7 +169,7 @@ public class KsqlApiClient {
     if (parsedStatements.isEmpty()) {
       return errorTableFlux("Sql statement is invalid or unsupported");
     }
-    var statements = parsedStatements.get().getStatements();
+    var statements = parsedStatements.get().statements();
     if (statements.size() > 1) {
       return errorTableFlux("Only single statement supported now");
     }

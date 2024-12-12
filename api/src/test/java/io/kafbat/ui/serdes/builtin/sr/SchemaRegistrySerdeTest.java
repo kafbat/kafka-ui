@@ -52,10 +52,10 @@ class SchemaRegistrySerdeTest {
     assertThat(schemaOptional).isPresent();
 
     SchemaDescription schemaDescription = schemaOptional.get();
-    assertThat(schemaDescription.getSchema())
+    assertThat(schemaDescription.schema())
         .contains(
             "{\"$id\":\"int\",\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"integer\"}");
-    assertThat(schemaDescription.getAdditionalProperties())
+    assertThat(schemaDescription.additionalProperties())
         .containsOnlyKeys("subject", "schemaId", "latestVersion", "type")
         .containsEntry("subject", subject)
         .containsEntry("schemaId", schemaId)
@@ -123,9 +123,9 @@ class SchemaRegistrySerdeTest {
     byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonValue, schema);
     var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
 
-    assertJsonsEqual(jsonValue, result.getResult());
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
-    assertThat(result.getAdditionalProperties())
+    assertJsonsEqual(jsonValue, result.result());
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.additionalProperties())
         .contains(Map.entry("type", "AVRO"))
         .contains(Map.entry("schemaId", schemaId));
   }
@@ -378,7 +378,7 @@ class SchemaRegistrySerdeTest {
     byte[] serializedBytes = serde.serializer(topic, Serde.Target.VALUE).serialize(jsonInput);
     var deserializedJson = serde.deserializer(topic, Serde.Target.VALUE)
         .deserialize(null, serializedBytes)
-        .getResult();
+        .result();
     assertJsonsEqual(jsonInput, deserializedJson);
   }
 

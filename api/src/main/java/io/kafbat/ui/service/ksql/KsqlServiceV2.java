@@ -20,11 +20,7 @@ import reactor.core.publisher.Flux;
 @Service
 public class KsqlServiceV2 {
 
-  @lombok.Value
-  private static class KsqlExecuteCommand {
-    KafkaCluster cluster;
-    String ksql;
-    Map<String, String> streamProperties;
+  private record KsqlExecuteCommand(KafkaCluster cluster, String ksql, Map<String, String> streamProperties) {
   }
 
   private final Cache<String, KsqlExecuteCommand> registeredCommands =

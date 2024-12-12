@@ -38,8 +38,8 @@ class Int32SerdeTest {
   void deserializeUses4BytesIntRepresentation(Serde.Target type) {
     var deserializer = serde.deserializer("anyTopic", type);
     var result = deserializer.deserialize(new RecordHeadersImpl(), Ints.toByteArray(1234));
-    assertThat(result.getResult()).isEqualTo("1234");
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.result()).isEqualTo("1234");
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.JSON);
   }
 
 }

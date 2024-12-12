@@ -1,9 +1,6 @@
 package io.kafbat.ui.model;
 
 import com.google.common.base.Throwables;
-import io.kafbat.ui.model.BrokerDiskUsageDTO;
-import io.kafbat.ui.model.MetricsCollectionErrorDTO;
-import io.kafbat.ui.model.ServerStatusDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -40,8 +37,8 @@ public class InternalClusterState {
             .stackTrace(Throwables.getStackTraceAsString(e)))
         .orElse(null);
     topicCount = statistics.getTopicDescriptions().size();
-    brokerCount = statistics.getClusterDescription().getNodes().size();
-    activeControllers = Optional.ofNullable(statistics.getClusterDescription().getController())
+    brokerCount = statistics.getClusterDescription().nodes().size();
+    activeControllers = Optional.ofNullable(statistics.getClusterDescription().controller())
         .map(Node::id)
         .orElse(null);
     version = statistics.getVersion();

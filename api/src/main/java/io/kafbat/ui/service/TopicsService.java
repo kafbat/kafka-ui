@@ -253,7 +253,7 @@ public class TopicsService {
           Integer actual = topic.getReplicationFactor();
           Integer requested = replicationFactorChange.getTotalReplicationFactor();
           Integer brokersCount = statisticsCache.get(cluster).getClusterDescription()
-              .getNodes().size();
+              .nodes().size();
 
           if (requested.equals(actual)) {
             return Mono.error(
@@ -361,14 +361,14 @@ public class TopicsService {
         .collect(toMap(
             InternalPartition::getPartition,
             p -> p.getReplicas().stream()
-                .map(InternalReplica::getBroker)
+                .map(InternalReplica::broker)
                 .collect(toList())
         ));
   }
 
   private Map<Integer, Integer> getBrokersMap(KafkaCluster cluster,
                                               Map<Integer, List<Integer>> currentAssignment) {
-    Map<Integer, Integer> result = statisticsCache.get(cluster).getClusterDescription().getNodes()
+    Map<Integer, Integer> result = statisticsCache.get(cluster).getClusterDescription().nodes()
         .stream()
         .map(Node::id)
         .collect(toMap(
