@@ -37,10 +37,10 @@ public class StatisticsService {
   private Mono<Statistics> getStatistics(KafkaCluster cluster) {
     return adminClientService.get(cluster).flatMap(ac ->
             ac.describeCluster().flatMap(description ->
-                ac.updateInternalStats(description.getController()).then(
+                ac.updateInternalStats(description.controller()).then(
                     Mono.zip(
                         List.of(
-                            metricsCollector.getBrokerMetrics(cluster, description.getNodes()),
+                            metricsCollector.getBrokerMetrics(cluster, description.nodes()),
                             getLogDirInfo(description, ac),
                             featureService.getAvailableFeatures(ac, cluster, description),
                             loadTopicConfigs(cluster),
@@ -64,7 +64,7 @@ public class StatisticsService {
   }
 
   private Mono<InternalLogDirStats> getLogDirInfo(ClusterDescription desc, ReactiveAdminClient ac) {
-    var brokerIds = desc.getNodes().stream().map(Node::id).collect(Collectors.toSet());
+    var brokerIds = desc.nodes().stream().map(Node::id).collect(Collectors.toSet());
     return ac.describeLogDirs(brokerIds).map(InternalLogDirStats::new);
   }
 

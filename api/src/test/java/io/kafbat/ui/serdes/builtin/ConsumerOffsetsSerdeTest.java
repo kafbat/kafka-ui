@@ -170,7 +170,7 @@ class ConsumerOffsetsSerdeTest extends AbstractIntegrationTest {
   @SneakyThrows
   @SuppressWarnings("unchecked")
   private Map<String, Object> toMapFromJsom(DeserializeResult result) {
-    return new JsonMapper().readValue(result.getResult(), Map.class);
+    return new JsonMapper().readValue(result.result(), Map.class);
   }
 
   private static KafkaConsumer<Bytes, Bytes> createConsumer(String groupId) {

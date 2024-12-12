@@ -45,14 +45,14 @@ class ProtobufRawSerdeTest {
   void deserializeSimpleMessage() {
     var deserialized = serde.deserializer(DUMMY_TOPIC, Serde.Target.VALUE)
         .deserialize(null, getProtobufMessage());
-    assertThat(deserialized.getResult()).isEqualTo("1: 5\n");
+    assertThat(deserialized.result()).isEqualTo("1: 5\n");
   }
 
   @Test
   void deserializeEmptyMessage() {
     var deserialized = serde.deserializer(DUMMY_TOPIC, Serde.Target.VALUE)
         .deserialize(null, new byte[0]);
-    assertThat(deserialized.getResult()).isEqualTo("");
+    assertThat(deserialized.result()).isEqualTo("");
   }
 
   @Test
@@ -101,6 +101,6 @@ class ProtobufRawSerdeTest {
   void deserializeNestedMessage() {
     var deserialized = serde.deserializer(DUMMY_TOPIC, Serde.Target.VALUE)
         .deserialize(null, getComplexProtobufMessage());
-    assertThat(deserialized.getResult()).isEqualTo("1: 5\n2: {\n  1: 10\n}\n");
+    assertThat(deserialized.result()).isEqualTo("1: 5\n2: {\n  1: 10\n}\n");
   }
 }

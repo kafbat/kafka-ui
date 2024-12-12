@@ -290,15 +290,15 @@ class ProtobufFileSerdeTest {
 
     var deserializedPerson = serde.deserializer("persons", Serde.Target.VALUE)
         .deserialize(null, personMessageBytes);
-    assertJsonEquals(samplePersonMsgJson, deserializedPerson.getResult());
+    assertJsonEquals(samplePersonMsgJson, deserializedPerson.result());
 
     var deserializedBook = serde.deserializer("books", Serde.Target.KEY)
         .deserialize(null, addressBookMessageBytes);
-    assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+    assertJsonEquals(sampleBookMsgJson, deserializedBook.result());
 
     var deserializedSensor = serde.deserializer("langs", Serde.Target.VALUE)
         .deserialize(null, langDescriptionMessageBytes);
-    assertJsonEquals(sampleLangDescriptionMsgJson, deserializedSensor.getResult());
+    assertJsonEquals(sampleLangDescriptionMsgJson, deserializedSensor.result());
   }
 
   @Test
@@ -316,11 +316,11 @@ class ProtobufFileSerdeTest {
 
     var deserializedPerson = serde.deserializer("persons", Serde.Target.VALUE)
         .deserialize(null, personMessageBytes);
-    assertJsonEquals(samplePersonMsgJson, deserializedPerson.getResult());
+    assertJsonEquals(samplePersonMsgJson, deserializedPerson.result());
 
     var deserializedBook = serde.deserializer("books", Serde.Target.KEY)
         .deserialize(null, addressBookMessageBytes);
-    assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+    assertJsonEquals(sampleBookMsgJson, deserializedBook.result());
   }
 
   @Test
