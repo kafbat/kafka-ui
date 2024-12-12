@@ -57,7 +57,9 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
     return publisher.retryWhen(conflictCodeRetry());
   }
 
-  // Adapted from https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ErrorMessage.java#L35
+  // Adapted from https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ErrorMessage.java
+  // We only need this class from the connect runtime and adding the entire dependency seems excessive
+  // We also only need the `message` property
   private record ErrorMessage(@JsonProperty("message") String message) {
   }
 
