@@ -1,6 +1,5 @@
 package io.kafbat.ui.client;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
@@ -19,7 +18,6 @@ import io.kafbat.ui.util.WebClientConfigurator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
