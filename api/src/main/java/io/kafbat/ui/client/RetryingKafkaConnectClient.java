@@ -1,5 +1,7 @@
 package io.kafbat.ui.client;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
@@ -17,6 +19,7 @@ import io.kafbat.ui.util.WebClientConfigurator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -56,10 +59,21 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
     return publisher.retryWhen(conflictCodeRetry());
   }
 
+  // Adapted from https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ErrorMessage.java#L35
+  private record ErrorMessage(@JsonProperty("message") String message) {
+  }
+
   private static <T> Mono<T> withBadRequestErrorHandling(Mono<T> publisher) {
     return publisher
-        .onErrorResume(WebClientResponseException.BadRequest.class, e ->
-            Mono.error(new ValidationException("Invalid configuration")))
+        .onErrorResume(WebClientResponseException.BadRequest.class, e -> {
+          final var errorMessage = e.getResponseBodyAs(ErrorMessage.class);
+
+          if (errorMessage != null && errorMessage.message() != null) {
+            return Mono.error(new ValidationException(errorMessage.message()));
+          }
+
+          return Mono.error(new ValidationException("Invalid configuration"));
+        })
         .onErrorResume(WebClientResponseException.InternalServerError.class, e ->
             Mono.error(new ValidationException("Invalid configuration")));
   }
