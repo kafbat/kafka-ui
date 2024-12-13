@@ -12,7 +12,6 @@
     <artifactId>e2e-tests</artifactId>
 
     <properties>
-        <kafka.version>3.8.0</kafka.version>
         <contract>${project.version}</contract>
         <maven.compiler.release>21</maven.compiler.release>
         <maven.surefire.release>3.5.1</maven.surefire.release>
@@ -25,7 +24,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.13</artifactId>
-            <version>${kafka.version}</version>
+            <version>${confluent.version}-ccs</version>
         </dependency>
         <dependency>
             <groupId>io.kafbat.ui</groupId>
