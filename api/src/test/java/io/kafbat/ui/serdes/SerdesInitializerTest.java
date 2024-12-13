@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -145,6 +144,8 @@ class SerdesInitializerTest {
   }
 
   private void verifyPatternsMatch(ClustersProperties.SerdeConfig config, SerdeInstance serde) {
+    assertThat(serde.topicKeyPattern).isNotNull();
+    assertThat(serde.topicValuePattern).isNotNull();
     assertThat(serde.topicKeyPattern.pattern()).isEqualTo(config.getTopicKeysPattern());
     assertThat(serde.topicValuePattern.pattern()).isEqualTo(config.getTopicValuesPattern());
   }

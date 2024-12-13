@@ -99,6 +99,7 @@ class CursorTest extends AbstractIntegrationTest {
 
     var cursorPosition = registeredCursor.consumerPosition();
     assertThat(cursorPosition).isNotNull();
+    assertThat(cursorPosition.offsets()).isNotNull();
     assertThat(cursorPosition.topic()).isEqualTo(TOPIC);
     assertThat(cursorPosition.partitions()).isEqualTo(List.of());
     assertThat(cursorPosition.pollingMode()).isEqualTo(expectedMode);
@@ -111,6 +112,7 @@ class CursorTest extends AbstractIntegrationTest {
     List<TopicMessageEventDTO> events = Flux.create(emitter)
         .collectList()
         .block();
+    assertThat(events).isNotNull();
     assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE).count())
         .isEqualTo(expectedMsgsCnt);
   }

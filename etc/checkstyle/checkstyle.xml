@@ -46,7 +46,12 @@
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 
+    <!-- Needed to use the SuppressWarningsHolder configured below. See https://checkstyle.sourceforge.io/filters/suppresswarningsfilter.html -->
+    <module name="SuppressWarningsFilter" />
+
     <module name="TreeWalker">
+        <!-- Make the @SuppressWarnings annotations available to Checkstyle -->
+        <module name="SuppressWarningsHolder"/>
         <module name="OuterTypeFilename"/>
         <module name="IllegalTokenText">
             <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>

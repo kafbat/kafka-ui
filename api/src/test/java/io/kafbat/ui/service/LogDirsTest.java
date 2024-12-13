@@ -38,7 +38,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
 
     BrokerTopicLogdirsDTO topic = dir.getTopics().stream()
         .filter(t -> t.getName().equals("__consumer_offsets"))
-        .findAny().get();
+        .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
     assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
@@ -63,7 +63,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
 
     BrokerTopicLogdirsDTO topic = dir.getTopics().stream()
         .filter(t -> t.getName().equals("__consumer_offsets"))
-        .findAny().get();
+        .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
     assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
@@ -99,6 +99,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .returnResult()
         .getResponseBody();
 
+    assertThat(dirs).isNotNull();
     assertThat(dirs.getMessage())
         .isEqualTo(new LogDirNotFoundApiException().getMessage());
 
@@ -116,6 +117,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .returnResult()
         .getResponseBody();
 
+    assertThat(dirs).isNotNull();
     assertThat(dirs.getMessage())
         .isEqualTo(new TopicOrPartitionNotFoundException().getMessage());
   }

@@ -1,6 +1,5 @@
 package io.kafbat.ui.service.integration.odd;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
