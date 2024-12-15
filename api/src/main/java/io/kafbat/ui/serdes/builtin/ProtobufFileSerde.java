@@ -411,7 +411,10 @@ public class ProtobufFileSerde implements BuiltInSerde {
               // relative path will be used as "import" statement
               String relativePath = baseLocation.relativize(path).toString();
               var protoFileElement = ProtoParser.Companion.parse(
-                  Location.get(baseLocation.toString(), relativePath),
+                  Location.get(
+                      baseLocation.toString().replace('\\', '/'),
+                      relativePath.replace('\\', '/')
+                  ),
                   readFileAsString(path)
               );
               filesByLocations.put(relativePath, ProtoFile.Companion.get(protoFileElement));
