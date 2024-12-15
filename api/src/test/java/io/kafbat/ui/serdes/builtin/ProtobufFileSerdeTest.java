@@ -226,7 +226,7 @@ class ProtobufFileSerdeTest {
     }
 
     @Test
-    void createConfigureFillsDescriptorMappingsWhenProtoFileDirProvided() throws Exception {
+    void createConfigureFillsDescriptorMappingsWhenProtoFileDirProvided() {
       PropertyResolver resolver = mock(PropertyResolver.class);
       when(resolver.getProperty("protobufFilesDir", String.class))
           .thenReturn(Optional.of(protoFilesDir()));

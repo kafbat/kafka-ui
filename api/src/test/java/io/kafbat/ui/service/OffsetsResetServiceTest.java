@@ -45,7 +45,7 @@ public class OffsetsResetServiceTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void init() {
-    cluster = applicationContext.getBean(ClustersStorage.class).getClusterByName(LOCAL).get();
+    cluster = applicationContext.getBean(ClustersStorage.class).getClusterByName(LOCAL).orElseThrow();
     offsetsResetService = new OffsetsResetService(applicationContext.getBean(AdminClientService.class));
     createTopic(new NewTopic(topic, PARTITIONS, (short) 1));
     createConsumerGroup();
