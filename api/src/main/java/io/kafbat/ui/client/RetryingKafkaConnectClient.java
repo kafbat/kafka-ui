@@ -1,5 +1,6 @@
 package io.kafbat.ui.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
@@ -14,9 +15,11 @@ import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.exception.KafkaConnectConflictReponseException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.WebClientConfigurator;
+import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -58,10 +61,24 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   private static <T> Mono<T> withBadRequestErrorHandling(Mono<T> publisher) {
     return publisher
-        .onErrorResume(WebClientResponseException.BadRequest.class, e ->
-            Mono.error(new ValidationException("Invalid configuration")))
-        .onErrorResume(WebClientResponseException.InternalServerError.class, e ->
-            Mono.error(new ValidationException("Invalid configuration")));
+        .onErrorResume(WebClientResponseException.BadRequest.class,
+            RetryingKafkaConnectClient::parseConnectErrorMessage)
+        .onErrorResume(WebClientResponseException.InternalServerError.class,
+            RetryingKafkaConnectClient::parseConnectErrorMessage);
+  }
+
+  // Adapted from https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ErrorMessage.java
+  // Adding the connect runtime dependency for this single class seems excessive
+  private record ErrorMessage(@NotNull @JsonProperty("message") String message) {
+  }
+
+  private static <T> @NotNull Mono<T> parseConnectErrorMessage(WebClientResponseException parseException) {
+    final var errorMessage = parseException.getResponseBodyAs(ErrorMessage.class);
+    return Mono.error(new ValidationException(
+        Objects.requireNonNull(errorMessage,
+                // see https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/errors/ConnectExceptionMapper.java
+                "This should not happen according to the ConnectExceptionMapper")
+            .message()));
   }
 
   @Override
@@ -176,7 +193,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
-  public Flux<String> getConnectors(String search) throws WebClientResponseException {
+  public Mono<List<String>> getConnectors(String search) throws WebClientResponseException {
     return withRetryOnConflict(super.getConnectors(search));
   }
 

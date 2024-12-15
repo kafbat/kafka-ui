@@ -48,7 +48,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     cluster = applicationContext
         .getBean(ClustersStorage.class)
         .getClusterByName(LOCAL)
-        .get();
+        .orElseThrow();
   }
 
   @AfterEach
