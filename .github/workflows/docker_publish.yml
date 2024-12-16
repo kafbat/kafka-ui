@@ -33,7 +33,7 @@ jobs:
 
       # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: crazy-max/ghaction-setup-docker@v4
         with:
           daemon-config: |
             {
