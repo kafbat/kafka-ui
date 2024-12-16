@@ -12,7 +12,7 @@
     <artifactId>e2e-tests</artifactId>
 
     <properties>
-        <kafka.version>3.8.0</kafka.version>
+        <kafka.version>7.8.0-ce</kafka.version>
         <contract>${project.version}</contract>
         <maven.compiler.release>21</maven.compiler.release>
         <maven.surefire.release>3.5.1</maven.surefire.release>
