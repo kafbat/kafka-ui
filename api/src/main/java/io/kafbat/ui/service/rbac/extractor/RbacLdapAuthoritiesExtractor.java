@@ -16,6 +16,8 @@ import org.springframework.security.ldap.userdetails.NestedLdapAuthoritiesPopula
 @Slf4j
 public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator {
 
+  private static final Set<Provider> SUPPORTED_PROVIDERS = Set.of(Provider.LDAP, Provider.LDAP_AD);
+
   private final AccessControlService acs;
 
   public RbacLdapAuthoritiesExtractor(ApplicationContext context,
@@ -36,7 +38,7 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
-            .filter(subject -> subject.getProvider().equals(Provider.LDAP))
+            .filter(subject -> SUPPORTED_PROVIDERS.contains(subject.getProvider()))
             .filter(subject -> subject.getType().equals("group"))
             .anyMatch(subject -> ldapGroups.contains(subject.getValue()))
         )
