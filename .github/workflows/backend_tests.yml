@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest-xlarge
+    runs-on: macos-latest
     steps:
 
       - name: Checkout
