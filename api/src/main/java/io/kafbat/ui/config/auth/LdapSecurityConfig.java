@@ -63,24 +63,32 @@ public class LdapSecurityConfig {
       ba.setUserSearch(userSearch);
     }
 
+    var authenticationProvider = getAuthenticationProvider(authoritiesExtractor, rbacEnabled, ba);
+
+    AuthenticationManager am = new ProviderManager(List.of(authenticationProvider));
+
+    return new ReactiveAuthenticationManagerAdapter(am);
+  }
+
+  private AbstractLdapAuthenticationProvider getAuthenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
+                                                                       boolean rbacEnabled,
+                                                                       BindAuthenticator bindAuthenticator) {
     AbstractLdapAuthenticationProvider authenticationProvider;
+
     if (!props.isActiveDirectory()) {
       authenticationProvider = rbacEnabled
-          ? new LdapAuthenticationProvider(ba, authoritiesExtractor)
-          : new LdapAuthenticationProvider(ba);
+          ? new LdapAuthenticationProvider(bindAuthenticator, authoritiesExtractor)
+          : new LdapAuthenticationProvider(bindAuthenticator);
     } else {
       authenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
-          props.getUrls()); // TODO Issue #3741
+          props.getUrls());
       authenticationProvider.setUseAuthenticationRequestCredentials(true);
     }
 
     if (rbacEnabled) {
       authenticationProvider.setUserDetailsContextMapper(new UserDetailsMapper());
     }
-
-    AuthenticationManager am = new ProviderManager(List.of(authenticationProvider));
-
-    return new ReactiveAuthenticationManagerAdapter(am);
+    return authenticationProvider;
   }
 
   @Bean
@@ -98,6 +106,10 @@ public class LdapSecurityConfig {
                                                                   BaseLdapPathContextSource contextSource,
                                                                   AccessControlService acs) {
     var rbacEnabled = acs != null && acs.isRbacEnabled();
+
+    if (props.isActiveDirectory()) {
+      return null;
+    }
 
     DefaultLdapAuthoritiesPopulator extractor;
 
