@@ -2,8 +2,7 @@ package io.kafbat.ui.emitter;
 
 import io.kafbat.ui.model.TopicMessageConsumingDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
-import io.kafbat.ui.model.TopicMessageNextPageCursorDTO;
-import javax.annotation.Nullable;
+import io.kafbat.ui.model.TopicMessagePageCursorDTO;
 import reactor.core.publisher.FluxSink;
 
 class ConsumingStats {
@@ -28,13 +27,19 @@ class ConsumingStats {
     filterApplyErrors++;
   }
 
-  void sendFinishEvent(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
+  void sendFinishEvent(FluxSink<TopicMessageEventDTO> sink, Cursor.Tracking cursor, boolean hasNext) {
+    String previousCursorId = cursor.getPreviousCursorId();
     sink.next(
         new TopicMessageEventDTO()
             .type(TopicMessageEventDTO.TypeEnum.DONE)
-            .cursor(
-                cursor != null
-                    ? new TopicMessageNextPageCursorDTO().id(cursor.registerCursor())
+            .prevCursor(
+                previousCursorId != null
+                    ? new TopicMessagePageCursorDTO().id(previousCursorId)
+                    : null
+            )
+            .nextCursor(
+                hasNext
+                    ? new TopicMessagePageCursorDTO().id(cursor.registerCursor())
                     : null
             )
             .consuming(createConsumingStats())

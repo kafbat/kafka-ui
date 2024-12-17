@@ -15,7 +15,9 @@ interface MessageFiltersState {
   notPersistedFilter: AdvancedFilter | undefined;
   save: (filter: AdvancedFilter) => void;
   nextCursor: string | undefined;
+  prevCursor: string | undefined;
   setNextCursor: (str: string | undefined) => void;
+  setPrevCursor: (str: string | undefined) => void;
   replace: (filterId: string, filter: AdvancedFilter) => void;
   commit: (filter: AdvancedFilter | undefined) => void;
   remove: (id: string) => void;
@@ -39,6 +41,7 @@ export const useMessageFiltersStore = create<MessageFiltersState>()(
     (set) => ({
       filters: {},
       nextCursor: undefined,
+      prevCursor: undefined,
       notPersistedFilter: undefined,
       save: (filter) =>
         set((state) => ({
@@ -73,6 +76,7 @@ export const useMessageFiltersStore = create<MessageFiltersState>()(
         }),
       removeAll: () => set(() => ({ filters: {} })),
       setNextCursor: (cursor) => set(() => ({ nextCursor: cursor })),
+      setPrevCursor: (cursor) => set(() => ({ prevCursor: cursor })),
     }),
     {
       name: `${LOCAL_STORAGE_KEY_PREFIX}-message-filters`,
