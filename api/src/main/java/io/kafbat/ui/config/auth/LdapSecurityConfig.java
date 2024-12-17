@@ -105,11 +105,11 @@ public class LdapSecurityConfig {
   public DefaultLdapAuthoritiesPopulator ldapAuthoritiesExtractor(ApplicationContext context,
                                                                   BaseLdapPathContextSource contextSource,
                                                                   AccessControlService acs) {
-    var rbacEnabled = acs != null && acs.isRbacEnabled();
-
     if (props.isActiveDirectory()) {
       return null;
     }
+
+    var rbacEnabled = acs != null && acs.isRbacEnabled();
 
     DefaultLdapAuthoritiesPopulator extractor;
 
