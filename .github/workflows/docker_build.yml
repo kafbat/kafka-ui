@@ -48,7 +48,7 @@ jobs:
         # So let's use containerd instead as it supports this option
         # Also containerd is one of the option to allow preserving provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
-        uses: crazy-max/ghaction-setup-docker@v3
+        uses: crazy-max/ghaction-setup-docker@v4
         with:
           daemon-config: |
             {
