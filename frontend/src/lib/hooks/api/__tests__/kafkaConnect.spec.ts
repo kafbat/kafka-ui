@@ -88,10 +88,19 @@ describe('kafkaConnect hooks', () => {
         const uri = `${connectorPath}/action/${action}`;
         const mock = fetchMock.postOnce(uri, connectors[0]);
         const { result } = renderHook(
-          () => hooks.useUpdateConnectorState(connectorProps),
+          () => hooks.useUpdateConnectorState(connectorProps.clusterName),
           { wrapper: TestQueryClientProvider }
         );
-        await act(() => result.current.mutateAsync(action));
+        await act(() =>
+          result.current.mutateAsync({
+            props: {
+              clusterName: connectorProps.clusterName,
+              connectName: connectorProps.connectName,
+              connectorName: connectorProps.connectorName,
+            },
+            action,
+          })
+        );
         await waitFor(() => expect(result.current.isSuccess).toBeTruthy());
         expect(mock.calls()).toHaveLength(1);
       });
@@ -148,11 +157,17 @@ describe('kafkaConnect hooks', () => {
       it('returns the correct data', async () => {
         const mock = fetchMock.deleteOnce(connectorPath, {});
         const { result } = renderHook(
-          () => hooks.useDeleteConnector(connectorProps),
+          () => hooks.useDeleteConnector(connectorProps.clusterName),
           { wrapper: TestQueryClientProvider }
         );
         await act(async () => {
-          await result.current.mutateAsync();
+          await result.current.mutateAsync({
+            props: {
+              clusterName: connectorProps.clusterName,
+              connectName: connectorProps.connectName,
+              connectorName: connectorProps.connectorName,
+            },
+          });
         });
         await waitFor(() => expect(result.current.isSuccess).toBeTruthy());
         expect(mock.calls()).toHaveLength(1);

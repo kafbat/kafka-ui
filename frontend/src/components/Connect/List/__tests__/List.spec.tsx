@@ -17,6 +17,7 @@ import {
 
 const mockedUsedNavigate = jest.fn();
 const mockDelete = jest.fn();
+const mockUpdate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -30,6 +31,8 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
 }));
 
 const clusterName = 'local';
+
+const getButtonByName = (name: string) => screen.getByRole('button', { name });
 
 const renderComponent = (contextValue: ContextProps = initialValue) =>
   render(
@@ -59,22 +62,92 @@ describe('Connectors List', () => {
       expect(screen.getAllByRole('row').length).toEqual(3);
     });
 
-    it('opens broker when row clicked', async () => {
+    it('connector link has correct href', async () => {
       renderComponent();
-      await userEvent.click(
-        screen.getByRole('row', {
-          name: 'hdfs-source-connector first SOURCE FileStreamSource a b c RUNNING 2 of 2',
-        })
-      );
-      await waitFor(() =>
-        expect(mockedUsedNavigate).toBeCalledWith(
-          clusterConnectConnectorPath(
-            clusterName,
-            'first',
-            'hdfs-source-connector'
-          )
+      const connectorTitleLink = screen.getByTitle(
+        connectors[0].name
+      ) as HTMLAnchorElement;
+      expect(connectorTitleLink).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          connectors[0].connect,
+          connectors[0].name
         )
       );
+    });
+
+    describe('Batch actions bar', () => {
+      beforeEach(() => {
+        renderComponent();
+        expect(screen.getAllByRole('checkbox').length).toEqual(3);
+        expect(screen.getAllByRole('checkbox')[1]).toBeEnabled();
+        expect(screen.getAllByRole('checkbox')[2]).toBeEnabled();
+        (useUpdateConnectorState as jest.Mock).mockImplementation(() => ({
+          mutateAsync: mockUpdate,
+        }));
+        (useDeleteConnector as jest.Mock).mockImplementation(() => ({
+          mutateAsync: mockDelete,
+        }));
+      });
+      describe('when only one connector is selected', () => {
+        beforeEach(async () => {
+          await userEvent.click(screen.getAllByRole('checkbox')[1]);
+        });
+        it('renders batch actions bar', () => {
+          expect(getButtonByName('Pause Connectors')).toBeEnabled();
+          expect(getButtonByName('Resume Connectors')).toBeEnabled();
+          expect(getButtonByName('Restart Connectors')).toBeEnabled();
+          expect(getButtonByName('Restart All Tasks')).toBeEnabled();
+          expect(getButtonByName('Restart Failed Tasks')).toBeEnabled();
+          expect(getButtonByName('Remove Connectors')).toBeEnabled();
+        });
+        it('handels pause button click', async () => {
+          const button = getButtonByName('Pause Connectors');
+          await userEvent.click(button);
+          expect(
+            screen.getByText(
+              'Are you sure you want to pause selected connectors?'
+            )
+          ).toBeInTheDocument();
+          const confirmBtn = getButtonByName('Confirm');
+          expect(confirmBtn).toBeInTheDocument();
+          expect(mockUpdate).not.toHaveBeenCalled();
+          await userEvent.click(confirmBtn);
+          expect(mockUpdate).toHaveBeenCalledTimes(1);
+          expect(screen.getAllByRole('checkbox')[1]).not.toBeChecked();
+        });
+      });
+      describe('when more then one connectors are selected', () => {
+        beforeEach(async () => {
+          await userEvent.click(screen.getAllByRole('checkbox')[1]);
+          await userEvent.click(screen.getAllByRole('checkbox')[2]);
+        });
+        it('renders batch actions bar', () => {
+          expect(getButtonByName('Pause Connectors')).toBeEnabled();
+          expect(getButtonByName('Resume Connectors')).toBeEnabled();
+          expect(getButtonByName('Restart Connectors')).toBeEnabled();
+          expect(getButtonByName('Restart All Tasks')).toBeEnabled();
+          expect(getButtonByName('Restart Failed Tasks')).toBeEnabled();
+          expect(getButtonByName('Remove Connectors')).toBeEnabled();
+        });
+        it('handels delete button click', async () => {
+          const button = getButtonByName('Remove Connectors');
+          await userEvent.click(button);
+          expect(
+            screen.getByText(
+              'Are you sure you want to delete selected connectors?'
+            )
+          ).toBeInTheDocument();
+          const confirmBtn = getButtonByName('Confirm');
+          expect(confirmBtn).toBeInTheDocument();
+          expect(mockDelete).not.toHaveBeenCalled();
+          await userEvent.click(confirmBtn);
+          expect(mockDelete).toHaveBeenCalledTimes(2);
+          expect(screen.getAllByRole('checkbox')[1]).not.toBeChecked();
+          expect(screen.getAllByRole('checkbox')[2]).not.toBeChecked();
+        });
+      });
     });
   });
 
@@ -113,7 +186,13 @@ describe('Connectors List', () => {
         name: 'Confirm',
       })[0];
       await userEvent.click(submitButton);
-      expect(mockDelete).toHaveBeenCalledWith();
+      expect(mockDelete).toHaveBeenCalledWith({
+        props: {
+          clusterName,
+          connectName: connectors[0].connect,
+          connectorName: connectors[0].name,
+        },
+      });
     });
 
     it('closes the modal when cancel button is clicked', async () => {
