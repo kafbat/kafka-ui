@@ -1,17 +1,16 @@
 import React from 'react';
-import { AppAuthenticationSettings, AuthType } from 'generated-sources';
+import { AuthType, OAuthProvider } from 'generated-sources';
 
 import BasicSignIn from './BasicSignIn/BasicSignIn';
 import * as S from './SignIn.styled';
 import OAuthSignIn from './OAuthSignIn/OAuthSignIn';
 
 interface Props {
-  appAuthenticationSettings: AppAuthenticationSettings;
+  authType?: AuthType;
+  oAuthProviders?: OAuthProvider[];
 }
 
-function SignInForm({ appAuthenticationSettings }: Props) {
-  const { authType, oAuthProviders } = appAuthenticationSettings;
-
+function SignInForm({ authType, oAuthProviders }: Props) {
   return (
     <S.SignInStyled>
       <S.SignInTitle>Sign in</S.SignInTitle>

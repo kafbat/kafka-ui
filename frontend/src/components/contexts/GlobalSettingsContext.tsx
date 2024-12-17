@@ -17,20 +17,24 @@ export const GlobalSettingsProvider: React.FC<
 > = ({ children }) => {
   const info = useAppInfo();
   const navigate = useNavigate();
+  const [value, setValue] = React.useState<GlobalSettingsContextProps>({
+    hasDynamicConfig: false,
+  });
 
   React.useEffect(() => {
     if (info.data?.raw.url.includes('auth')) {
       navigate('auth');
+      return;
     }
-  }, []);
 
-  const value = React.useMemo(() => {
-    const features = info.data?.enabledFeatures || [];
-    return {
-      hasDynamicConfig: features.includes(
-        ApplicationInfoEnabledFeaturesEnum.DYNAMIC_CONFIG
-      ),
-    };
+    info.data?.value().then((res) => {
+      const features = res?.enabledFeatures || [];
+      setValue({
+        hasDynamicConfig: features.includes(
+          ApplicationInfoEnabledFeaturesEnum.DYNAMIC_CONFIG
+        ),
+      });
+    });
   }, [info.data]);
 
   return (
