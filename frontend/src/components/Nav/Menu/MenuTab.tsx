@@ -1,5 +1,6 @@
 import React, { type FC } from 'react';
 import { ServerStatus } from 'generated-sources';
+import MenuColorPicker from 'components/Nav/Menu/MenuColorPicker/MenuColorPicker';
 
 import * as S from './styled';
 
@@ -8,6 +9,7 @@ export interface MenuTabProps {
   status: ServerStatus;
   isOpen: boolean;
   toggleClusterMenu: () => void;
+  setColorKey: () => void;
 }
 
 const MenuTab: FC<MenuTabProps> = ({
@@ -15,6 +17,7 @@ const MenuTab: FC<MenuTabProps> = ({
   toggleClusterMenu,
   status,
   isOpen,
+  setColorKey,
 }) => (
   <S.MenuItem $variant="primary" onClick={toggleClusterMenu}>
     <S.ContentWrapper>
@@ -27,9 +30,15 @@ const MenuTab: FC<MenuTabProps> = ({
       <S.Title title={title}>{title}</S.Title>
     </S.ContentWrapper>
 
-    <S.ChevronWrapper>
-      <S.ChevronIcon $isOpen={isOpen} />
-    </S.ChevronWrapper>
+    <S.ActionsWrapper>
+      <S.ColorPickerWrapper>
+        <MenuColorPicker setColorKey={setColorKey} />
+      </S.ColorPickerWrapper>
+
+      <S.ChevronWrapper>
+        <S.ChevronIcon $isOpen={isOpen} />
+      </S.ChevronWrapper>
+    </S.ActionsWrapper>
   </S.MenuItem>
 );
 
