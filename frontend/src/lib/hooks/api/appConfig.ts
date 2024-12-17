@@ -1,4 +1,7 @@
-import { appConfigApiClient as api } from 'lib/api';
+import {
+  appConfigApiClient as appConfig,
+  internalApiClient as internalApi,
+} from 'lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ApplicationConfig,
@@ -9,7 +12,7 @@ import { QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 export function useAuthSettings() {
   return useQuery(
     ['app', 'authSettings'],
-    () => api.getAuthenticationSettings(),
+    () => appConfig.getAuthenticationSettings(),
     QUERY_REFETCH_OFF_OPTIONS
   );
 }
@@ -17,7 +20,7 @@ export function useAuthSettings() {
 export function useAuthenticate() {
   return useMutation({
     mutationFn: (params: { username: string; password: string }) =>
-      api.authenticateRaw(params, {
+      internalApi.authenticateRaw(params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       }),
   });
@@ -26,13 +29,13 @@ export function useAuthenticate() {
 export function useAppInfo() {
   return useQuery(
     ['app', 'info'],
-    () => api.getApplicationInfoRaw(),
+    () => appConfig.getApplicationInfoRaw(),
     QUERY_REFETCH_OFF_OPTIONS
   );
 }
 
 export function useAppConfig() {
-  return useQuery(['app', 'config'], () => api.getCurrentConfig());
+  return useQuery(['app', 'config'], () => appConfig.getCurrentConfig());
 }
 
 function aggregateClusters(
@@ -64,7 +67,7 @@ export function useUpdateAppConfig({
   const client = useQueryClient();
   return useMutation(
     async (cluster: ApplicationConfigPropertiesKafkaClusters) => {
-      const existingConfig = await api.getCurrentConfig();
+      const existingConfig = await appConfig.getCurrentConfig();
 
       const clusters = aggregateClusters(
         cluster,
@@ -80,7 +83,7 @@ export function useUpdateAppConfig({
           kafka: { clusters },
         },
       };
-      return api.restartWithConfig({ restartRequest: { config } });
+      return appConfig.restartWithConfig({ restartRequest: { config } });
     },
     {
       onSuccess: () => client.invalidateQueries(['app', 'config']),
@@ -99,7 +102,7 @@ export function useAppConfigFilesUpload() {
 
 export function useValidateAppConfig() {
   return useMutation((config: ApplicationConfigPropertiesKafkaClusters) =>
-    api.validateConfig({
+    appConfig.validateConfig({
       applicationConfig: { properties: { kafka: { clusters: [config] } } },
     })
   );

@@ -2257,7 +2257,7 @@ paths:
   /auth:
     post:
       tags:
-        - ApplicationConfig
+        - Unmapped
       summary: Authenticate
       operationId: authenticate
       requestBody:
