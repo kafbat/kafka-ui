@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import GitHubIcon from 'components/common/Icons/GitHubIcon';
-import { Link } from 'react-router-dom';
 import { Button } from 'components/common/Button/Button';
 
 export const AuthCardStyled = styled.div(
@@ -64,4 +63,4 @@ export const ServiceButton = styled(Button)`
   border-radius: 8px;
   font-size: 14px;
   text-decoration: none;
-`
+`;

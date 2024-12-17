@@ -24,7 +24,11 @@ function OAuthSignIn({ oAuthProviders }: Props) {
         <AuthCard
           key={provider.clientName}
           authPath={provider.authorizationUri}
-          Icon={ServiceIconMap[provider.clientName?.toLowerCase() || 'unknownService']}
+          Icon={
+            ServiceIconMap[
+              provider.clientName?.toLowerCase() || 'unknownService'
+            ]
+          }
           serviceName={provider.clientName || ''}
         />
       ))}
