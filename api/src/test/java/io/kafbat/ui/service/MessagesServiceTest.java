@@ -10,7 +10,6 @@ import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
-import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
@@ -48,7 +47,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     cluster = applicationContext
         .getBean(ClustersStorage.class)
         .getClusterByName(LOCAL)
-        .get();
+        .orElseThrow();
   }
 
   @AfterEach

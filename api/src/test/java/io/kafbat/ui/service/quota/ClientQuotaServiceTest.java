@@ -6,6 +6,7 @@ import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.ClustersStorage;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,7 +22,7 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void init() {
-    cluster = applicationContext.getBean(ClustersStorage.class).getClusterByName(LOCAL).get();
+    cluster = applicationContext.getBean(ClustersStorage.class).getClusterByName(LOCAL).orElseThrow();
   }
 
   @ParameterizedTest
@@ -72,7 +73,7 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
   }
 
   private boolean quotaRecordExists(ClientQuotaRecord rec) {
-    return quotaService.getAll(cluster).collectList().block().contains(rec);
+    return Objects.requireNonNull(quotaService.getAll(cluster).collectList().block()).contains(rec);
   }
 
 }

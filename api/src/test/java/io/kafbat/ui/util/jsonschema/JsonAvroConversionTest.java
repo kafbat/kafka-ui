@@ -304,6 +304,7 @@ class JsonAvroConversionTest {
       assertThat(record.get("self_ref_map"))
           .isNotNull();
 
+      @SuppressWarnings("unchecked")
       Map<String, Object> selfRefMapField = (Map<String, Object>) record.get("self_ref_map");
       assertThat(selfRefMapField)
           .hasSize(1)
