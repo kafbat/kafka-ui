@@ -1,7 +1,10 @@
 import React from 'react';
 import { Button } from 'components/common/Button/Button';
 import Input from 'components/common/Input/Input';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { useAuthenticate } from 'lib/hooks/api/appConfig';
+import AlertIcon from 'components/common/Icons/AlertIcon';
+import { useNavigate } from 'react-router-dom';
 
 import * as S from './BasicSignIn.styled';
 
@@ -11,36 +14,78 @@ interface FormValues {
 }
 
 function BasicSignIn() {
-  const methods = useForm<FormValues>();
+  const methods = useForm<FormValues>({
+    defaultValues: { username: '', password: '' },
+  });
+  const navigate = useNavigate();
+  const { mutateAsync } = useAuthenticate();
+
+  const onSubmit = async (data: FormValues) => {
+    await mutateAsync(data, {
+      onSuccess(response) {
+        if (response.raw.url.includes('error')) {
+          methods.setError('root', { message: 'error' });
+        } else {
+          navigate('/');
+        }
+      },
+    });
+  };
 
   return (
     <FormProvider {...methods}>
-      <S.Form style={{ width: '100%' }}>
-        <S.Fieldset style={{ width: '100%' }}>
-          <S.Field>
-            <S.Label htmlFor="username">Username</S.Label>
-            <Input
-              name="username"
-              id="username"
-              placeholder="Enter your username"
-              style={{ borderRadius: '8px' }}
-            />
-          </S.Field>
-          <S.Field>
-            <S.Label htmlFor="password">Password</S.Label>
-            <Input
-              name="password"
-              id="password"
-              placeholder="Enter your password"
-              style={{ borderRadius: '8px' }}
-            />
-          </S.Field>
+      <S.Form onSubmit={methods.handleSubmit(onSubmit)}>
+        <S.Fieldset>
+          {methods.formState.errors.root && (
+            <S.ErrorMessage>
+              <AlertIcon />
+              <S.ErrorMessageText>
+                Username or password entered incorrectly
+              </S.ErrorMessageText>
+            </S.ErrorMessage>
+          )}
+          <Controller
+            name="username"
+            control={methods.control}
+            render={({ field }) => (
+              <S.Field>
+                <S.Label htmlFor={field.name}>Username</S.Label>
+                <Input
+                  onChange={field.onChange}
+                  value={field.value}
+                  name={field.name}
+                  id={field.name}
+                  placeholder="Enter your username"
+                  style={{ borderRadius: '8px' }}
+                />
+              </S.Field>
+            )}
+          />
+          <Controller
+            name="password"
+            control={methods.control}
+            render={({ field }) => (
+              <S.Field>
+                <S.Label htmlFor={field.name}>Password</S.Label>
+                <Input
+                  onChange={field.onChange}
+                  value={field.value}
+                  name={field.name}
+                  type="password"
+                  id={field.name}
+                  placeholder="Enter your password"
+                  style={{ borderRadius: '8px' }}
+                />
+              </S.Field>
+            )}
+          />
         </S.Fieldset>
         <Button
           buttonSize="L"
           buttonType="primary"
-          onClick={() => console.log('click')}
+          type="submit"
           style={{ width: '100%', borderRadius: '8px' }}
+          disabled={!methods.formState.isValid}
         >
           Log in
         </Button>

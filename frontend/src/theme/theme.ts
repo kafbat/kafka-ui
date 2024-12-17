@@ -57,6 +57,7 @@ const Colors = {
     '10': '#FAD1D1',
     '20': '#F5A3A3',
     '50': '#E51A1A',
+    '52': '#E63B19',
     '55': '#CF1717',
     '60': '#B81414',
   },
@@ -89,6 +90,9 @@ const baseTheme = {
     },
     signIn: {
       titleColor: Colors.brand[90],
+      errorMessage: {
+        color: Colors.red[52],
+      },
       label: {
         color: Colors.brand[70],
       },
@@ -866,12 +870,14 @@ export const darkTheme: ThemeType = {
       LogoTextColor: Colors.brand[90],
     },
     signIn: {
+      ...baseTheme.auth_page.signIn,
       titleColor: Colors.brand[0],
       label: {
         color: Colors.brand[30],
       },
       authCard: {
         ...baseTheme.auth_page.signIn.authCard,
+        borderColor: Colors.brand[80],
         backgroundColor: Colors.brand[85],
         serviceNamecolor: Colors.brand[0],
       },

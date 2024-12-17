@@ -7,6 +7,7 @@ export const SignInStyled = styled.div`
   justify-content: center;
   width: 320px;
   gap: 56px;
+  flex-grow: 1;
 `;
 
 export const SignInTitle = styled.span(

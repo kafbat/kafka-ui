@@ -15,8 +15,9 @@ function SignInForm({ appAuthenticationSettings }: Props) {
   return (
     <S.SignInStyled>
       <S.SignInTitle>Sign in</S.SignInTitle>
-      {(authType === AuthType.LDAP ||
-        authType === AuthType.LOGIN_FORM) && <BasicSignIn />}
+      {(authType === AuthType.LDAP || authType === AuthType.LOGIN_FORM) && (
+        <BasicSignIn />
+      )}
       {authType === AuthType.OAUTH2 && (
         <OAuthSignIn oAuthProviders={oAuthProviders} />
       )}

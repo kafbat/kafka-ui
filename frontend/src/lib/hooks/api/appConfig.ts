@@ -14,10 +14,19 @@ export function useAuthSettings() {
   );
 }
 
+export function useAuthenticate() {
+  return useMutation({
+    mutationFn: (params: { username: string; password: string }) =>
+      api.authenticateRaw(params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }),
+  });
+}
+
 export function useAppInfo() {
   return useQuery(
     ['app', 'info'],
-    () => api.getApplicationInfo(),
+    () => api.getApplicationInfoRaw(),
     QUERY_REFETCH_OFF_OPTIONS
   );
 }

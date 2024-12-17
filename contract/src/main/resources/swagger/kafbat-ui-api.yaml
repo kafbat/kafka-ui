@@ -2256,7 +2256,10 @@ paths:
 
   /login:
     post:
+      tags:
+        - ApplicationConfig
       summary: Authenticate
+      operationId: authenticate
       requestBody:
         required: true
         content:
