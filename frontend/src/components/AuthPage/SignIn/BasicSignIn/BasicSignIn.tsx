@@ -27,6 +27,7 @@ function BasicSignIn() {
           methods.setError('root', { message: 'error' });
         } else {
           navigate('/');
+          window.location.reload();
         }
       },
     });

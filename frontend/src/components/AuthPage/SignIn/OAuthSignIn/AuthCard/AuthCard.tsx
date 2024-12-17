@@ -24,7 +24,7 @@ function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
       <S.ServiceButton
         buttonSize="L"
         buttonType="primary"
-        to={`http://localhost:8080${authPath}`}
+        to={`${window.basePath}${authPath}`}
       >
         Log in with {serviceName}
       </S.ServiceButton>

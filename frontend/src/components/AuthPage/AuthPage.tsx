@@ -11,7 +11,9 @@ function AuthPage() {
   return (
     <S.AuthPageStyled>
       <Header />
-      {data && <SignIn appAuthenticationSettings={data} />}
+      {data && (
+        <SignIn authType={data.authType} oAuthProviders={data.oAuthProviders} />
+      )}
     </S.AuthPageStyled>
   );
 }
