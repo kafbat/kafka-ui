@@ -69,8 +69,10 @@ public record AccessContext(String cluster,
             if (name == null && permission.getCompiledValuePattern() == null) {
               return true;
             }
-            Preconditions.checkState(permission.getCompiledValuePattern() != null && name != null);
-            return permission.getCompiledValuePattern().matcher(name).matches();
+            if (permission.getCompiledValuePattern() != null && name != null) {
+              return permission.getCompiledValuePattern().matcher(name).matches();
+            }
+            return false;
           })
           .flatMap(p -> p.getParsedActions().stream())
           .collect(Collectors.toSet());
