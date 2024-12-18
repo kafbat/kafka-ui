@@ -22,15 +22,7 @@ public class DataMasking {
 
   private static final JsonMapper JSON_MAPPER = new JsonMapper();
 
-  @Value
-  static class Mask {
-    @Nullable
-    Pattern topicKeysPattern;
-    @Nullable
-    Pattern topicValuesPattern;
-
-    MaskingPolicy policy;
-
+  record Mask(@Nullable Pattern topicKeysPattern, @Nullable Pattern topicValuesPattern, MaskingPolicy policy) {
     boolean shouldBeApplied(String topic, Serde.Target target) {
       return target == Serde.Target.KEY
           ? topicKeysPattern != null && topicKeysPattern.matcher(topic).matches()

@@ -55,9 +55,9 @@ public class HexSerdeTest {
   void deserializesDataAsHexBytes(Serde.Target type) {
     var deserializer = hexSerde.deserializer("anyTopic", type);
     var result = deserializer.deserialize(new RecordHeadersImpl(), TEST_BYTES);
-    assertThat(result.getResult()).isEqualTo(TEST_BYTES_HEX_ENCODED);
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
-    assertThat(result.getAdditionalProperties()).isEmpty();
+    assertThat(result.result()).isEqualTo(TEST_BYTES_HEX_ENCODED);
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.STRING);
+    assertThat(result.additionalProperties()).isEmpty();
   }
 
   @ParameterizedTest

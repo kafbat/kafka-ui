@@ -6,7 +6,6 @@ import java.util.Optional;
 import ksql.KsqlGrammarLexer;
 import ksql.KsqlGrammarParser;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.experimental.Delegate;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -22,9 +21,7 @@ class KsqlGrammar {
   private KsqlGrammar() {
   }
 
-  @Value
-  static class KsqlStatements {
-    List<KsqlGrammarParser.SingleStatementContext> statements;
+  record KsqlStatements(List<KsqlGrammarParser.SingleStatementContext> statements) {
   }
 
   // returns Empty if no valid statements found

@@ -4,16 +4,11 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import java.util.Map;
 import java.util.Optional;
-import lombok.Value;
 import org.apache.kafka.common.TopicPartition;
-
 
 public class InternalPartitionsOffsets {
 
-  @Value
-  public static class Offsets {
-    Long earliest;
-    Long latest;
+  public record Offsets(Long earliest, Long latest) {
   }
 
   private final Table<String, Integer, Offsets> offsets = HashBasedTable.create();

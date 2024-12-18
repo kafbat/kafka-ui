@@ -52,7 +52,7 @@ public class BrokerService {
   }
 
   private Flux<InternalBrokerConfig> getBrokersConfig(KafkaCluster cluster, Integer brokerId) {
-    if (statisticsCache.get(cluster).getClusterDescription().getNodes()
+    if (statisticsCache.get(cluster).getClusterDescription().nodes()
         .stream().noneMatch(node -> node.id() == brokerId)) {
       return Flux.error(
           new NotFoundException(String.format("Broker with id %s not found", brokerId)));
@@ -70,7 +70,7 @@ public class BrokerService {
     return adminClientService
         .get(cluster)
         .flatMap(ReactiveAdminClient::describeCluster)
-        .map(description -> description.getNodes().stream()
+        .map(description -> description.nodes().stream()
             .map(node -> new InternalBroker(node, partitionsDistribution, stats))
             .collect(Collectors.toList()))
         .flatMapMany(Flux::fromIterable);
@@ -113,7 +113,7 @@ public class BrokerService {
       KafkaCluster cluster, List<Integer> reqBrokers) {
     return adminClientService.get(cluster)
         .flatMap(admin -> {
-          List<Integer> brokers = statisticsCache.get(cluster).getClusterDescription().getNodes()
+          List<Integer> brokers = statisticsCache.get(cluster).getClusterDescription().nodes()
               .stream()
               .map(Node::id)
               .collect(Collectors.toList());
