@@ -9,6 +9,7 @@ export interface Props
     ButtonProps {
   to?: string | object;
   inProgress?: boolean;
+  className?: string;
 }
 
 export const Button: FC<Props> = ({
@@ -20,7 +21,7 @@ export const Button: FC<Props> = ({
 }) => {
   if (to) {
     return (
-      <Link to={to}>
+      <Link to={to} className={props.className}>
         <StyledButton disabled={disabled} type="button" {...props}>
           {children}
         </StyledButton>
