@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ApplicationConfig,
   ApplicationConfigPropertiesKafkaClusters,
+  ApplicationInfo,
 } from 'generated-sources';
 import { QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 
@@ -29,8 +30,21 @@ export function useAuthenticate() {
 export function useAppInfo() {
   return useQuery(
     ['app', 'info'],
-    () => appConfig.getApplicationInfoRaw(),
-    QUERY_REFETCH_OFF_OPTIONS
+    async () => {
+      const data = await appConfig.getApplicationInfoRaw()
+
+      let response: ApplicationInfo = {}
+      try {
+        response = await data.value()
+      } catch {
+        response = {}
+      }
+
+      return {
+        redirect: data.raw.url.includes('auth'),
+        response,
+      }
+    },
   );
 }
 
