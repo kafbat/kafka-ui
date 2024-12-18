@@ -28,24 +28,21 @@ export function useAuthenticate() {
 }
 
 export function useAppInfo() {
-  return useQuery(
-    ['app', 'info'],
-    async () => {
-      const data = await appConfig.getApplicationInfoRaw()
+  return useQuery(['app', 'info'], async () => {
+    const data = await appConfig.getApplicationInfoRaw();
 
-      let response: ApplicationInfo = {}
-      try {
-        response = await data.value()
-      } catch {
-        response = {}
-      }
+    let response: ApplicationInfo = {};
+    try {
+      response = await data.value();
+    } catch {
+      response = {};
+    }
 
-      return {
-        redirect: data.raw.url.includes('auth'),
-        response,
-      }
-    },
-  );
+    return {
+      redirect: data.raw.url.includes('auth'),
+      response,
+    };
+  });
 }
 
 export function useAppConfig() {
