@@ -103,8 +103,8 @@
     "whatwg-fetch": "3.6.20"
   },
   "engines": {
-    "node": "v18.17.1",
-    "pnpm": "v9.11.0"
+    "node": "18.17.1",
+    "pnpm": "9.15.0"
   },
   "pnpm": {
     "overrides": {
