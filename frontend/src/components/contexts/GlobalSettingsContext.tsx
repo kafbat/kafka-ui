@@ -22,19 +22,20 @@ export const GlobalSettingsProvider: React.FC<
   });
 
   React.useEffect(() => {
-    if (info.data?.raw.url.includes('auth')) {
+    if (info.data?.redirect && !info.isFetching) {
       navigate('auth');
       return;
     }
 
-    info.data?.value().then((res) => {
-      const features = res?.enabledFeatures || [];
+    const features = info?.data?.response.enabledFeatures
+
+    if (features) {
       setValue({
         hasDynamicConfig: features.includes(
           ApplicationInfoEnabledFeaturesEnum.DYNAMIC_CONFIG
         ),
-      });
-    });
+      })
+    }
   }, [info.data]);
 
   return (

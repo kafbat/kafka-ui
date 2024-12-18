@@ -7,6 +7,7 @@ import AlertIcon from 'components/common/Icons/AlertIcon';
 import { useNavigate } from 'react-router-dom';
 
 import * as S from './BasicSignIn.styled';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface FormValues {
   username: string;
@@ -19,15 +20,16 @@ function BasicSignIn() {
   });
   const navigate = useNavigate();
   const { mutateAsync } = useAuthenticate();
+  const client = useQueryClient();
 
   const onSubmit = async (data: FormValues) => {
     await mutateAsync(data, {
-      onSuccess(response) {
+      onSuccess: async (response) => {
         if (response.raw.url.includes('error')) {
           methods.setError('root', { message: 'error' });
         } else {
+          await client.invalidateQueries({queryKey: ['app', 'info']});
           navigate('/');
-          window.location.reload();
         }
       },
     });
