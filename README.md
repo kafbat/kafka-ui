@@ -15,7 +15,7 @@ Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
 
 <p align="center">
     <a href="https://ui.docs.kafbat.io/">Documentation</a> • 
-    <a href="https://ui.docs.kafbat.io/configuration/quick-start">Quick Start</a> • 
+    <a href="https://ui.docs.kafbat.io/quick-start/demo-run">Quick Start</a> • 
     <a href="https://discord.gg/4DWzD7pGE5">Community</a>
     <br/>
     <a href="https://aws.amazon.com/marketplace/pp/{replaceMe}">AWS Marketplace</a>  •
