@@ -5,9 +5,9 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useAuthenticate } from 'lib/hooks/api/appConfig';
 import AlertIcon from 'components/common/Icons/AlertIcon';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 import * as S from './BasicSignIn.styled';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface FormValues {
   username: string;
@@ -28,7 +28,7 @@ function BasicSignIn() {
         if (response.raw.url.includes('error')) {
           methods.setError('root', { message: 'error' });
         } else {
-          await client.invalidateQueries({queryKey: ['app', 'info']});
+          await client.invalidateQueries({ queryKey: ['app', 'info'] });
           navigate('/');
         }
       },
