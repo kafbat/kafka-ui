@@ -72,9 +72,9 @@ class MessagesProcessing {
     }
   }
 
-  void sendFinishEvents(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
+  void sendFinishEvents(FluxSink<TopicMessageEventDTO> sink, Cursor.Tracking cursor, boolean hasNext) {
     if (!sink.isCancelled()) {
-      consumingStats.sendFinishEvent(sink, cursor);
+      consumingStats.sendFinishEvent(sink, cursor, hasNext);
     }
   }
 
