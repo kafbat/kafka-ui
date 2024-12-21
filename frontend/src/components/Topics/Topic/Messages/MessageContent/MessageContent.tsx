@@ -1,8 +1,11 @@
 import React from 'react';
 import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
+import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
+import { Button } from 'components/common/Button/Button';
 import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './MessageContent.styled';
 
@@ -42,6 +45,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
         return JSON.stringify(headers);
     }
   };
+
+  const tabContent = activeTabContent() || '';
+
+  const { copyToClipboard } = useDataSaver('topic-message', tabContent);
 
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -90,9 +97,17 @@ const MessageContent: React.FC<MessageContentProps> = ({
               >
                 Headers
               </S.Tab>
+              <Button
+                type="button"
+                buttonSize="M"
+                buttonType="text"
+                onClick={copyToClipboard}
+              >
+                <ClipboardIcon />
+              </Button>
             </S.Tabs>
             <EditorViewer
-              data={activeTabContent() || ''}
+              data={tabContent}
               maxLines={28}
               schemaType={contentType}
             />
