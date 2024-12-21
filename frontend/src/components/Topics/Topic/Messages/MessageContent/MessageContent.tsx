@@ -5,8 +5,13 @@ import {
   TopicMessage,
   TopicMessageTimestampTypeEnum,
 } from 'generated-sources';
+import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
+import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
+import { Button } from 'components/common/Button/Button';
+import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './MessageContent.styled';
 import Serde from './components/Serde/Serde';
@@ -23,8 +28,6 @@ export interface MessageContentProps {
   contentSize?: number;
   keySerde?: string;
   valueSerde?: string;
-  valueDeserializeProperties?: TopicMessage['valueDeserializeProperties'];
-  keyDeserializeProperties?: TopicMessage['keyDeserializeProperties'];
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
@@ -36,12 +39,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
   keySize,
   contentSize,
   keySerde,
-  keyDeserializeProperties,
-  valueDeserializeProperties,
   valueSerde,
 }) => {
-  const { currentTimezone } = useTimezone();
-
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
   const activeTabContent = () => {
     switch (activeTab) {
@@ -70,9 +69,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
   };
 
   const contentType =
-    messageContent &&
-    (messageContent.trim().startsWith('{') ||
-      messageContent.trim().startsWith('['))
+    messageContent && messageContent.trim().startsWith('{')
       ? SchemaType.JSON
       : SchemaType.PROTOBUF;
 
@@ -114,28 +111,30 @@ const MessageContent: React.FC<MessageContentProps> = ({
             <S.Metadata>
               <S.MetadataLabel>Timestamp</S.MetadataLabel>
               <span>
-                <S.MetadataValue>
-                  {formatTimestamp({
-                    timestamp,
-                    timezone: currentTimezone.value,
-                    withMilliseconds: true,
-                  })}
-                </S.MetadataValue>
+                <S.MetadataValue>{formatTimestamp(timestamp)}</S.MetadataValue>
                 <S.MetadataMeta>Timestamp type: {timestampType}</S.MetadataMeta>
               </span>
             </S.Metadata>
-            <Serde
-              title="Key Serde"
-              serde={keySerde}
-              size={keySize}
-              properties={keyDeserializeProperties}
-            />
-            <Serde
-              title="Value Serde"
-              serde={valueSerde}
-              size={contentSize}
-              properties={valueDeserializeProperties}
-            />
+
+            <S.Metadata>
+              <S.MetadataLabel>Key Serde</S.MetadataLabel>
+              <span>
+                <S.MetadataValue>{keySerde}</S.MetadataValue>
+                <S.MetadataMeta>
+                  Size: <BytesFormatted value={keySize} />
+                </S.MetadataMeta>
+              </span>
+            </S.Metadata>
+
+            <S.Metadata>
+              <S.MetadataLabel>Value Serde</S.MetadataLabel>
+              <span>
+                <S.MetadataValue>{valueSerde}</S.MetadataValue>
+                <S.MetadataMeta>
+                  Size: <BytesFormatted value={contentSize} />
+                </S.MetadataMeta>
+              </span>
+            </S.Metadata>
           </S.MetadataWrapper>
         </S.Section>
       </td>
