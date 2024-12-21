@@ -3,6 +3,7 @@ import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
 import { Button } from 'components/common/Button/Button';
+import Flexbox from 'components/common/FlexBox/FlexBox';
 import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import useDataSaver from 'lib/hooks/useDataSaver';
@@ -76,35 +77,41 @@ const MessageContent: React.FC<MessageContentProps> = ({
         <S.Section>
           <S.ContentBox>
             <S.Tabs>
-              <S.Tab
-                type="button"
-                $active={activeTab === 'key'}
-                onClick={handleKeyTabClick}
-              >
-                Key
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'content'}
-                type="button"
-                onClick={handleContentTabClick}
-              >
-                Value
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'headers'}
-                type="button"
-                onClick={handleHeadersTabClick}
-              >
-                Headers
-              </S.Tab>
-              <Button
-                type="button"
-                buttonSize="M"
-                buttonType="text"
-                onClick={copyToClipboard}
-              >
-                <ClipboardIcon />
-              </Button>
+              <Flexbox justifyContent="space-between">
+                <Flexbox>
+                  <S.Tab
+                    type="button"
+                    $active={activeTab === 'key'}
+                    onClick={handleKeyTabClick}
+                  >
+                    Key
+                  </S.Tab>
+                  <S.Tab
+                    $active={activeTab === 'content'}
+                    type="button"
+                    onClick={handleContentTabClick}
+                  >
+                    Value
+                  </S.Tab>
+                  <S.Tab
+                    $active={activeTab === 'headers'}
+                    type="button"
+                    onClick={handleHeadersTabClick}
+                  >
+                    Headers
+                  </S.Tab>
+                </Flexbox>
+                <Flexbox>
+                  <Button
+                    type="button"
+                    buttonSize="M"
+                    buttonType="text"
+                    onClick={copyToClipboard}
+                  >
+                    <ClipboardIcon />
+                  </Button>
+                </Flexbox>
+              </Flexbox>
             </S.Tabs>
             <EditorViewer
               data={tabContent}
