@@ -15,6 +15,7 @@ import com.google.protobuf.SourceContextProto;
 import com.google.protobuf.StructProto;
 import com.google.protobuf.TimestampProto;
 import com.google.protobuf.TypeProto;
+import com.google.protobuf.TypeRegistry;
 import com.google.protobuf.WrappersProto;
 import com.google.protobuf.util.JsonFormat;
 import com.google.type.ColorProto;
@@ -147,12 +148,18 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    TypeRegistry typeRegistry = TypeRegistry.newBuilder()
+        .add(descriptorPaths.keySet())
+        .build();
+
     return new Serde.Serializer() {
       @SneakyThrows
       @Override
       public byte[] serialize(String input) {
         DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
-        JsonFormat.parser().merge(input, builder);
+        JsonFormat.parser()
+            .usingTypeRegistry(typeRegistry)
+            .merge(input, builder);
         return builder.build().toByteArray();
       }
     };
