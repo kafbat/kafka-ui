@@ -83,6 +83,7 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
           String oneOfFieldName = switch (f.getType()) {
             case RECORD -> f.getFullName();
             case ENUM -> f.getName();
+            // for primitive types - using type name
             default -> f.getType().getName().toLowerCase();
           };
           return Tuples.of(oneOfFieldName, convertSchema(f, definitions, false));
