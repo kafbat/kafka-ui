@@ -9,6 +9,7 @@ import fetchMock from 'fetch-mock';
 import { externalTopicPayload, topicConfigPayload } from 'lib/fixtures/topics';
 import { CreateTopicMessage } from 'generated-sources';
 import { TopicFormData, TopicFormDataRaw } from 'lib/interfaces/topic';
+import { QUERY_REFETCH_LIMITED_OPTIONS } from 'lib/constants';
 
 const clusterName = 'test-cluster';
 const topicName = 'test-topic';
@@ -30,17 +31,37 @@ describe('Topics hooks', () => {
     const { result } = renderQueryHook(() => hooks.useTopics({ clusterName }));
     await expectQueryWorks(mock, result);
   });
-  it('handles useTopicDetails', async () => {
-    const mock = fetchMock.getOnce(topicPath, externalTopicPayload);
-    const { result } = renderQueryHook(() =>
-      hooks.useTopicDetails(topicParams)
-    );
-    await expectQueryWorks(mock, result);
+  describe('useTopicDetails', () => {
+    it('handles useTopicDetails', async () => {
+      const mock = fetchMock.getOnce(topicPath, externalTopicPayload);
+      const { result } = renderQueryHook(() =>
+        hooks.useTopicDetails(topicParams)
+      );
+      await expectQueryWorks(mock, result);
+    });
+    it('handles useTopicDetails with queryOptions', async () => {
+      const mock = fetchMock.getOnce(topicPath, externalTopicPayload);
+      const { result } = renderQueryHook(() =>
+        hooks.useTopicDetails(topicParams, QUERY_REFETCH_LIMITED_OPTIONS)
+      );
+      await expectQueryWorks(mock, result);
+    });
   });
-  it('handles useTopicConfig', async () => {
-    const mock = fetchMock.getOnce(`${topicPath}/config`, topicConfigPayload);
-    const { result } = renderQueryHook(() => hooks.useTopicConfig(topicParams));
-    await expectQueryWorks(mock, result);
+  describe('useTopicConfig', () => {
+    it('handles useTopicConfig', async () => {
+      const mock = fetchMock.getOnce(`${topicPath}/config`, topicConfigPayload);
+      const { result } = renderQueryHook(() =>
+        hooks.useTopicConfig(topicParams)
+      );
+      await expectQueryWorks(mock, result);
+    });
+    it('handles useTopicConfig with queryOptions', async () => {
+      const mock = fetchMock.getOnce(`${topicPath}/config`, topicConfigPayload);
+      const { result } = renderQueryHook(() =>
+        hooks.useTopicConfig(topicParams, QUERY_REFETCH_LIMITED_OPTIONS)
+      );
+      await expectQueryWorks(mock, result);
+    });
   });
   it('handles useTopicConsumerGroups', async () => {
     const mock = fetchMock.getOnce(`${topicPath}/consumer-groups`, []);

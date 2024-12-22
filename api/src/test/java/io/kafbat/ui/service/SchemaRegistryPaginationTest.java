@@ -59,6 +59,8 @@ public class SchemaRegistryPaginationTest {
     );
     var schemasFirst25 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
             null, null, null, null).block();
+    assertThat(schemasFirst25).isNotNull();
+    assertThat(schemasFirst25.getBody()).isNotNull();
     assertThat(schemasFirst25.getBody().getPageCount()).isEqualTo(4);
     assertThat(schemasFirst25.getBody().getSchemas()).hasSize(25);
     assertThat(schemasFirst25.getBody().getSchemas())
@@ -67,6 +69,8 @@ public class SchemaRegistryPaginationTest {
     var schemasFirst10 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
             null, 10, null, null).block();
 
+    assertThat(schemasFirst10).isNotNull();
+    assertThat(schemasFirst10.getBody()).isNotNull();
     assertThat(schemasFirst10.getBody().getPageCount()).isEqualTo(10);
     assertThat(schemasFirst10.getBody().getSchemas()).hasSize(10);
     assertThat(schemasFirst10.getBody().getSchemas())
@@ -83,6 +87,8 @@ public class SchemaRegistryPaginationTest {
     );
     var schemasSearch7 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
             null, null, "1", null).block();
+    assertThat(schemasSearch7).isNotNull();
+    assertThat(schemasSearch7.getBody()).isNotNull();
     assertThat(schemasSearch7.getBody().getPageCount()).isEqualTo(1);
     assertThat(schemasSearch7.getBody().getSchemas()).hasSize(20);
   }
@@ -98,6 +104,8 @@ public class SchemaRegistryPaginationTest {
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
             0, -1, null, null).block();
 
+    assertThat(schemas).isNotNull();
+    assertThat(schemas.getBody()).isNotNull();
     assertThat(schemas.getBody().getPageCount()).isEqualTo(4);
     assertThat(schemas.getBody().getSchemas()).hasSize(25);
     assertThat(schemas.getBody().getSchemas()).isSortedAccordingTo(Comparator.comparing(SchemaSubjectDTO::getSubject));
@@ -115,11 +123,14 @@ public class SchemaRegistryPaginationTest {
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
             4, 33, null, null).block();
 
+    assertThat(schemas).isNotNull();
+    assertThat(schemas.getBody()).isNotNull();
     assertThat(schemas.getBody().getPageCount()).isEqualTo(4);
     assertThat(schemas.getBody().getSchemas()).hasSize(1);
     assertThat(schemas.getBody().getSchemas().get(0).getSubject()).isEqualTo("subject99");
   }
 
+  @SuppressWarnings("unchecked")
   private KafkaCluster buildKafkaCluster(String clusterName) {
     return KafkaCluster.builder()
             .name(clusterName)
