@@ -28,7 +28,7 @@ class MessageFiltersTest {
     Predicate<TopicMessageDTO> filter = containsStringFilter("abC");
 
     @Test
-    void returnsTrueWhenStringContainedInKeyOrContentOrInBoth() {
+    void returnsTrueWhenStringContainedInKeyOrContentOrHeadersOrInAllThree() {
       assertTrue(
           filter.test(msg().key("contains abCd").content("some str"))
       );
@@ -39,6 +39,14 @@ class MessageFiltersTest {
 
       assertTrue(
           filter.test(msg().key("contains abCd").content("contains abCd"))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("abC", "value")))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("x1", "some abC")))
       );
     }
 
@@ -55,6 +63,11 @@ class MessageFiltersTest {
       assertFalse(
           filter.test(msg().key("aBc").content("AbC"))
       );
+
+      assertFalse(
+          filter.test(msg().key("aBc").content("AbC").headers(Map.of("abc", "value")))
+      );
+
     }
 
   }
