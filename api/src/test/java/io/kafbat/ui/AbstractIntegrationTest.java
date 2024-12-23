@@ -5,6 +5,7 @@ import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_TIMEOUT;
 import io.kafbat.ui.container.KafkaConnectContainer;
 import io.kafbat.ui.container.KsqlDbContainer;
 import io.kafbat.ui.container.SchemaRegistryContainer;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
@@ -22,6 +23,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.TestSocketUtils;
+import org.springframework.util.ResourceUtils;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
@@ -35,7 +37,7 @@ public abstract class AbstractIntegrationTest {
   public static final String LOCAL = "local";
   public static final String SECOND_LOCAL = "secondLocal";
 
-  private static final String CONFLUENT_PLATFORM_VERSION = "7.2.1";
+  private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
 
   public static final KafkaContainer kafka = new KafkaContainer(
       DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
@@ -72,6 +74,18 @@ public abstract class AbstractIntegrationTest {
     public void initialize(@NotNull ConfigurableApplicationContext context) {
       System.setProperty("kafka.clusters.0.name", LOCAL);
       System.setProperty("kafka.clusters.0.bootstrapServers", kafka.getBootstrapServers());
+
+      // Add ProtobufFileSerde configuration
+      System.setProperty("kafka.clusters.0.serde.0.name", "ProtobufFile");
+      System.setProperty("kafka.clusters.0.serde.0.topicValuesPattern", "masking-test-.*");
+      try {
+        System.setProperty("kafka.clusters.0.serde.0.properties.protobufFilesDir",
+            ResourceUtils.getFile("classpath:protobuf-serde").getAbsolutePath());
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+      System.setProperty("kafka.clusters.0.serde.0.properties.protobufMessageName", "test.MessageWithAny");
+
       // List unavailable hosts to verify failover
       System.setProperty("kafka.clusters.0.schemaRegistry",
           String.format("http://localhost:%1$s,http://localhost:%1$s,%2$s",
