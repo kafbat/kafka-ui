@@ -19,7 +19,12 @@ abstract class AbstractAuthSecurityConfig {
       "/logout",
       "/oauth2/**",
       "/static/**",
-      "/api/config/authentication"
+      "/api/config/authentication",
+      "/index.html",
+      "/assets/**",
+      "/manifest.json",
+      "/favicon/**",
+      "/api/authorization"
   };
 
 }

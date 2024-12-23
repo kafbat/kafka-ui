@@ -50,7 +50,7 @@ const queryClient = new QueryClient({
 });
 const App: React.FC = () => {
   const { isDarkMode } = useContext(ThemeModeContext);
-  const isAuthRoute = useMatch('/auth/*');
+  const isAuthRoute = useMatch('/login');
 
   return (
     <QueryClientProvider client={queryClient}>
