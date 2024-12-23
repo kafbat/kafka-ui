@@ -3,6 +3,7 @@ package io.kafbat.ui.controller;
 import java.nio.charset.Charset;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationController {
+
+  @GetMapping(value = "/login", produces = {"text/html"})
+  public Mono<ClassPathResource> getLoginPage(ServerWebExchange exchange) {
+    return Mono.just(new ClassPathResource("static/index.html"));
+  }
 
   @GetMapping(value = "/auth", produces = {"text/html"})
   public Mono<byte[]> getAuth(ServerWebExchange exchange) {
