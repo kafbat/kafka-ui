@@ -4,6 +4,7 @@ import static io.kafbat.ui.config.auth.AbstractAuthSecurityConfig.AUTH_WHITELIST
 
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
+import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -121,7 +123,7 @@ public class LdapSecurityConfig {
       log.info("Active Directory support for LDAP has been enabled.");
     }
 
-    return http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
@@ -129,8 +131,11 @@ public class LdapSecurityConfig {
         )
         .formLogin(Customizer.withDefaults())
         .logout(Customizer.withDefaults())
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .build();
+        .csrf(ServerHttpSecurity.CsrfSpec::disable);
+
+    builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+
+    return builder.build();
   }
 
   private static class UserDetailsMapper extends LdapUserDetailsMapper {

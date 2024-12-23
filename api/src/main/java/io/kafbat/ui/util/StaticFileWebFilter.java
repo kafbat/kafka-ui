@@ -17,8 +17,14 @@ import reactor.core.publisher.Mono;
 
 public class StaticFileWebFilter implements WebFilter {
 
+  private static final String INDEX_HTML = "/static/index.html";
+
   private final ServerWebExchangeMatcher matcher;
   private final String contents;
+
+  public StaticFileWebFilter() {
+    this("/login", new ClassPathResource(INDEX_HTML));
+  }
 
   public StaticFileWebFilter(String path, ClassPathResource resource) {
     this.matcher = ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, path);

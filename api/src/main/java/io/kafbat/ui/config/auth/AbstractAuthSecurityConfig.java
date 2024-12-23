@@ -6,8 +6,6 @@ abstract class AbstractAuthSecurityConfig {
 
   }
 
-  public static final String INDEX_HTML = "/static/index.html";
-
   protected static final String[] AUTH_WHITELIST = {
       /* STATIC */
       "/index.html",
