@@ -435,6 +435,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
      * to Linux/Unix-style forward slashes (`/`) when the application is running on a Windows OS.
      * On other operating systems, the input path is returned unchanged.</p>
      * This is needed because imports in Protobuf use forward slashes (`/`) for the imports
+     * which causes a conflict with Windows paths. Ie: `language/language.proto` is converted to `language\language.proto`
      *
      * @param path the file path to standardize; must not be {@code null}.
      * @return the standardized file path with forward slashes if running on Windows, or the original path otherwise.
