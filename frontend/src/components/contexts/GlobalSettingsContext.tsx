@@ -23,7 +23,7 @@ export const GlobalSettingsProvider: React.FC<
 
   React.useEffect(() => {
     if (info.data?.redirect && !info.isFetching) {
-      navigate('auth');
+      navigate('login');
       return;
     }
 

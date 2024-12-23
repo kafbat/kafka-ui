@@ -11,8 +11,6 @@ interface Props {
 }
 
 function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
-  const navigate = useNavigate();
-
   return (
     <S.AuthCardStyled>
       <S.ServiceData>
@@ -27,7 +25,7 @@ function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
       <S.ServiceButton
         buttonSize="L"
         buttonType="primary"
-        onClick={() => navigate(`${window.basePath}${authPath}`)}
+        onClick={() => window.location.replace(`${window.basePath}${authPath}`)}
       >
         Log in with {serviceName}
       </S.ServiceButton>
