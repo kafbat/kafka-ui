@@ -18,7 +18,7 @@
     <listeners />
     <method v="2">
       <option name="Make" enabled="true" />
-      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_Start Compose" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Lauch E2E Dependencies" run_configuration_type="docker-deploy" />
     </method>
   </configuration>
 </component>
