@@ -1,7 +1,7 @@
 package io.kafbat.ui.util;
 
 import java.io.IOException;
-import java.io.InputStream;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpMethod;
@@ -16,20 +16,22 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 public class StaticFileWebFilter implements WebFilter {
-  private ServerWebExchangeMatcher matcher;
-  private String contents;
+
+  private final ServerWebExchangeMatcher matcher;
+  private final String contents;
 
   public StaticFileWebFilter(String path, ClassPathResource resource) {
     this.matcher = ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, path);
-    try (InputStream inputStream = resource.getInputStream())  {
-      this.contents =  ResourceUtil.readAsString(resource);
+
+    try {
+      this.contents = ResourceUtil.readAsString(resource);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+  public @NotNull Mono<Void> filter(@NotNull ServerWebExchange exchange, WebFilterChain chain) {
     return this.matcher.matches(exchange)
         .filter(ServerWebExchangeMatcher.MatchResult::isMatch)
         .switchIfEmpty(chain.filter(exchange).then(Mono.empty()))
@@ -38,6 +40,7 @@ public class StaticFileWebFilter implements WebFilter {
 
   private Mono<Void> render(ServerWebExchange exchange) {
     String contextPath = exchange.getRequest().getPath().contextPath().value();
+
     String contentBody = contents
         .replace("\"assets/", "\"" + contextPath + "/assets/")
         .replace("PUBLIC-PATH-VARIABLE", contextPath);

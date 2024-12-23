@@ -53,7 +53,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   public SecurityWebFilterChain configure(ServerHttpSecurity http, OAuthLogoutSuccessHandler logoutHandler) {
     log.info("Configuring OAUTH2 authentication.");
 
-    ServerHttpSecurity builder = http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
@@ -64,9 +64,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
 
-    builder.addFilterAt(new StaticFileWebFilter(
-        "/login", new ClassPathResource("/static/index.html")
-    ), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+    builder.addFilterAt(new StaticFileWebFilter("/login", new ClassPathResource(INDEX_HTML)),
+        SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
   }

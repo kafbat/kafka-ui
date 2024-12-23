@@ -6,24 +6,29 @@ abstract class AbstractAuthSecurityConfig {
 
   }
 
+  public static final String INDEX_HTML = "/static/index.html";
+
   protected static final String[] AUTH_WHITELIST = {
-      "/css/**",
-      "/js/**",
-      "/media/**",
-      "/resources/**",
-      "/actuator/health/**",
-      "/actuator/info",
-      "/actuator/prometheus",
-      "/auth",
-      "/login",
-      "/logout",
-      "/oauth2/**",
-      "/static/**",
-      "/api/config/authentication",
+      /* STATIC */
       "/index.html",
       "/assets/**",
       "/manifest.json",
+      "/favicon.svg",
       "/favicon/**",
+
+      "/static/**",
+      "/resources/**",
+
+      /* ACTUATOR */
+      "/actuator/health/**",
+      "/actuator/info",
+      "/actuator/prometheus",
+
+      /* AUTH */
+      "/login",
+      "/logout",
+      "/oauth2/**",
+      "/api/config/authentication",
       "/api/authorization"
   };
 
