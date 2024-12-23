@@ -6,6 +6,8 @@ import OktaIcon from 'components/common/Icons/OktaIcon';
 import KeycloakIcon from 'components/common/Icons/KeycloakIcon';
 import ServiceImage from 'components/common/Icons/ServiceImage';
 import { OAuthProvider } from 'generated-sources';
+import { useLocation } from 'react-router-dom';
+import AlertIcon from 'components/common/Icons/AlertIcon';
 
 import * as S from './OAuthSignIn.styled';
 import AuthCard from './AuthCard/AuthCard';
@@ -24,8 +26,16 @@ const ServiceIconMap: Record<string, ElementType> = {
 };
 
 function OAuthSignIn({ oAuthProviders }: Props) {
+  const { search } = useLocation();
+
   return (
     <S.OAuthSignInStyled>
+      {search.includes('error') && (
+        <S.ErrorMessage>
+          <AlertIcon />
+          <S.ErrorMessageText>Invalid credentials</S.ErrorMessageText>
+        </S.ErrorMessage>
+      )}
       {oAuthProviders?.map((provider) => (
         <AuthCard
           key={provider.clientName}

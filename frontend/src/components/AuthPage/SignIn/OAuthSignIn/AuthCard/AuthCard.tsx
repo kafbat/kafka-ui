@@ -1,6 +1,5 @@
 import React, { ElementType } from 'react';
 import ServiceImage from 'components/common/Icons/ServiceImage';
-import { useNavigate } from 'react-router-dom';
 
 import * as S from './AuthCard.styled';
 
