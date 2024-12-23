@@ -1,0 +1,23 @@
+spring:
+  jmx:
+    enabled: true
+auth:
+  type: LDAP
+rbac:
+  roles:
+    - name: "roleName"
+      clusters:
+        - local
+      subjects:
+        - provider: ldap_ad
+          type: group
+          value: firstGroup
+        - provider: ldap_ad
+          type: group
+          value: secondGroup
+      permissions:
+        - resource: applicationconfig
+          actions: all
+        - resource: topic
+          value: ".*"
+          actions: all
