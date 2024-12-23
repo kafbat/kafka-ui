@@ -40,7 +40,7 @@ public abstract class AbstractIntegrationTest {
   private static final boolean IS_ARM =
       System.getProperty("os.arch").contains("arm") || System.getProperty("os.arch").contains("aarch64");
 
-  private static final String CONFLUENT_PLATFORM_VERSION = IS_ARM ? "7.2.1.arm64" : "7.2.1";
+  private static final String CONFLUENT_PLATFORM_VERSION = IS_ARM ? "7.8.0.arm64" : "7.8.0";
 
   public static final KafkaContainer kafka = new KafkaContainer(
       DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
