@@ -3,6 +3,7 @@
     <deployment type="docker-compose.yml">
       <settings>
         <option name="envFilePath" value="" />
+        <option name="removeOrphansOnComposeDown" value="false" />
         <option name="sourceFilePath" value="documentation/compose/e2e-tests.yaml" />
       </settings>
     </deployment>
