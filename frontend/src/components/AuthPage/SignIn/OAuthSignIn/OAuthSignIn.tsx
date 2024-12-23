@@ -1,6 +1,9 @@
 import React, { ElementType } from 'react';
 import GitHubIcon from 'components/common/Icons/GitHubIcon';
 import GoogleIcon from 'components/common/Icons/GoogleIcon';
+import CognitoIcon from 'components/common/Icons/CognitoIcon';
+import OktaIcon from 'components/common/Icons/OktaIcon';
+import KeycloakIcon from 'components/common/Icons/KeycloakIcon';
 import ServiceImage from 'components/common/Icons/ServiceImage';
 import { OAuthProvider } from 'generated-sources';
 
@@ -14,6 +17,9 @@ interface Props {
 const ServiceIconMap: Record<string, ElementType> = {
   github: GitHubIcon,
   google: GoogleIcon,
+  cognito: CognitoIcon,
+  keycloak: KeycloakIcon,
+  okta: OktaIcon,
   unknownService: ServiceImage,
 };
 

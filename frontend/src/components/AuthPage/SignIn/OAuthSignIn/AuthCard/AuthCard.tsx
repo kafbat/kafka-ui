@@ -1,5 +1,6 @@
 import React, { ElementType } from 'react';
 import ServiceImage from 'components/common/Icons/ServiceImage';
+import { useNavigate } from 'react-router-dom';
 
 import * as S from './AuthCard.styled';
 
@@ -10,6 +11,8 @@ interface Props {
 }
 
 function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
+  const navigate = useNavigate();
+
   return (
     <S.AuthCardStyled>
       <S.ServiceData>
@@ -24,7 +27,7 @@ function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
       <S.ServiceButton
         buttonSize="L"
         buttonType="primary"
-        to={`${window.basePath}${authPath}`}
+        onClick={() => navigate(`${window.basePath}${authPath}`)}
       >
         Log in with {serviceName}
       </S.ServiceButton>
