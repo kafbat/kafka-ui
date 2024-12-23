@@ -7,7 +7,7 @@
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="GROUP_NAME" value="" />
     <option name="TEST_OBJECT" value="CLASS" />
-    <option name="VM_PARAMETERS" value="-ea -Dheadless=false -Dselenoid=false" />
+    <option name="VM_PARAMETERS" value="-Dheadless=false -Dselenoid=false" />
     <option name="PARAMETERS" value="" />
     <option name="OUTPUT_DIRECTORY" value="" />
     <option name="TEST_SEARCH_SCOPE">
