@@ -1,0 +1,23 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="TestNG">
+    <shortenClasspath name="NONE" />
+    <useClassPathOnly />
+    <option name="SUITE_NAME" value="" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="GROUP_NAME" value="" />
+    <option name="TEST_OBJECT" value="CLASS" />
+    <option name="VM_PARAMETERS" value="-ea -Dheadless=false -Dselenoid=false" />
+    <option name="PARAMETERS" value="" />
+    <option name="OUTPUT_DIRECTORY" value="" />
+    <option name="TEST_SEARCH_SCOPE">
+      <value defaultName="moduleWithDependencies" />
+    </option>
+    <option name="PROPERTIES_FILE" value="" />
+    <properties />
+    <listeners />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
