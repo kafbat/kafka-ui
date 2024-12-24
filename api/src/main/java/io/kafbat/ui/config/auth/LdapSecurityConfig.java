@@ -1,7 +1,5 @@
 package io.kafbat.ui.config.auth;
 
-import static io.kafbat.ui.config.auth.AbstractAuthSecurityConfig.AUTH_WHITELIST;
-
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
@@ -15,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -22,7 +21,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -38,6 +36,7 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -45,7 +44,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableConfigurationProperties(LdapProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class LdapSecurityConfig {
+public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
   private final LdapProperties props;
 
@@ -129,8 +128,13 @@ public class LdapSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .formLogin(Customizer.withDefaults())
-        .logout(Customizer.withDefaults())
+        .formLogin(form -> form
+            .loginPage(LOGIN_URL)
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
+        )
+        .logout(spec -> spec
+            .logoutSuccessHandler(redirectLogoutSuccessHandler())
+            .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);

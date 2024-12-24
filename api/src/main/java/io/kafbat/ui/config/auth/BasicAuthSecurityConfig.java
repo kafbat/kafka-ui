@@ -22,18 +22,9 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @Slf4j
 public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
-  private static final String LOGIN_URL = "/login";
-  private static final String LOGOUT_URL = "/auth?logout";
-
   @Bean
   public SecurityWebFilterChain configure(ServerHttpSecurity http) {
     log.info("Configuring LOGIN_FORM authentication.");
-
-    final var authHandler = new RedirectServerAuthenticationSuccessHandler();
-    authHandler.setRedirectStrategy(new EmptyRedirectStrategy());
-
-    final var logoutSuccessHandler = new RedirectServerLogoutSuccessHandler();
-    logoutSuccessHandler.setLogoutSuccessUrl(URI.create(LOGOUT_URL));
 
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
@@ -43,10 +34,10 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
         )
         .formLogin(form -> form
             .loginPage(LOGIN_URL)
-            .authenticationSuccessHandler(authHandler)
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
         )
         .logout(spec -> spec
-            .logoutSuccessHandler(logoutSuccessHandler)
+            .logoutSuccessHandler(redirectLogoutSuccessHandler())
             .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
