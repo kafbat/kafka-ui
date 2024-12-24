@@ -15,6 +15,9 @@ rbac:
         - provider: ldap_ad
           type: group
           value: secondGroup
+        - provider: ldap_ad
+          type: user
+          value: JackSmith
       permissions:
         - resource: applicationconfig
           actions: all

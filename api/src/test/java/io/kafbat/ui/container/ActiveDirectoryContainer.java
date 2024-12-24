@@ -13,7 +13,8 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   public static final String PASSWORD = "StrongPassword123";
   public static final String FIRST_GROUP_USER = "JohnDoe";
   public static final String SECOND_GROUP_USER = "JohnWick";
-  public static final String USER_WITHOUT_GROUP = "JohnJames";
+  public static final String EMPTY_PERMISSIONS_USER = "JohnJames";
+  public static final String USER_WITHOUT_GROUP = "JackSmith";
 
   private static final String DOMAIN_DC = "dc=corp,dc=kafbat,dc=io";
   private static final String GROUP = "group";
@@ -39,6 +40,7 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   }
 
   protected void containerIsStarted(InspectContainerResponse containerInfo) {
+    createUser(EMPTY_PERMISSIONS_USER);
     createUser(USER_WITHOUT_GROUP);
     createUser(FIRST_GROUP_USER);
     createUser(SECOND_GROUP_USER);

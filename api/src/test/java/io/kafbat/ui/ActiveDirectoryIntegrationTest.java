@@ -3,6 +3,7 @@ package io.kafbat.ui;
 import static io.kafbat.ui.AbstractIntegrationTest.CONFLUENT_PLATFORM_VERSION;
 import static io.kafbat.ui.AbstractIntegrationTest.LOCAL;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.DOMAIN;
+import static io.kafbat.ui.container.ActiveDirectoryContainer.EMPTY_PERMISSIONS_USER;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.FIRST_GROUP_USER;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.PASSWORD;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.SECOND_GROUP_USER;
@@ -79,6 +80,7 @@ public class ActiveDirectoryIntegrationTest {
     assertTrue(permissions.stream().anyMatch(permission ->
         permission.getClusters().contains(LOCAL) && permission.getResource() == ResourceTypeDTO.TOPIC));
     assertEquals(permissions, authenticationInfo(SECOND_GROUP_USER).getUserInfo().getPermissions());
+    assertEquals(permissions, authenticationInfo(USER_WITHOUT_GROUP).getUserInfo().getPermissions());
   }
 
   @Test
@@ -106,7 +108,7 @@ public class ActiveDirectoryIntegrationTest {
 
   @Test
   public void testEmptyPermissions() {
-    assertTrue(Objects.requireNonNull(authenticationInfo(USER_WITHOUT_GROUP))
+    assertTrue(Objects.requireNonNull(authenticationInfo(EMPTY_PERMISSIONS_USER))
         .getUserInfo()
         .getPermissions()
         .isEmpty()
@@ -125,7 +127,7 @@ public class ActiveDirectoryIntegrationTest {
                 .isFound()
                 .returnResult(String.class)
                 .getResponseCookies()
-                .getFirst("SESSION"))
+                .getFirst(SESSION))
         .getValue();
   }
 
