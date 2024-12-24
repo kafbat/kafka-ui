@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => {
     ...defaultConfig.server,
     open: true,
     proxy: {
-      '/auth': {
+      '/login': {
         target: isProxy,
         changeOrigin: true,
         secure: false,
