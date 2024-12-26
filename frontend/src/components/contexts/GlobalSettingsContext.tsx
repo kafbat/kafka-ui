@@ -27,7 +27,7 @@ export const GlobalSettingsProvider: React.FC<
       return;
     }
 
-    const features = info?.data?.response.enabledFeatures;
+    const features = info?.data?.response?.enabledFeatures;
 
     if (features) {
       setValue({
