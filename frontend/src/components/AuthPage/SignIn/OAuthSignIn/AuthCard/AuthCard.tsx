@@ -1,4 +1,4 @@
-import React, { ElementType } from 'react';
+import React, { ElementType, useState } from 'react';
 import ServiceImage from 'components/common/Icons/ServiceImage';
 
 import * as S from './AuthCard.styled';
@@ -10,6 +10,8 @@ interface Props {
 }
 
 function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <S.AuthCardStyled>
       <S.ServiceData>
@@ -24,7 +26,11 @@ function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
       <S.ServiceButton
         buttonSize="L"
         buttonType="primary"
-        onClick={() => window.location.replace(`${window.basePath}${authPath}`)}
+        onClick={() => {
+          setIsLoading(true);
+          window.location.replace(`${window.basePath}${authPath}`);
+        }}
+        inProgress={isLoading}
       >
         Log in with {serviceName}
       </S.ServiceButton>

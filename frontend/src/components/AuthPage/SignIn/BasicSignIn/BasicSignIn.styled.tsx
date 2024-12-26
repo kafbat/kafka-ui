@@ -1,18 +1,5 @@
 import styled from 'styled-components';
 
-export const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  width: 100%;
-
-  div {
-    width: 100%;
-  }
-`;
-
 export const Fieldset = styled.fieldset`
   display: flex;
   flex-direction: column;
@@ -21,6 +8,19 @@ export const Fieldset = styled.fieldset`
   gap: 16px;
   border: none;
   width: 100%;
+`;
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+
+  ${Fieldset} div {
+    width: 100%;
+  }
 `;
 
 export const Field = styled.div`
