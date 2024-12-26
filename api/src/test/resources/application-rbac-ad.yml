@@ -1,0 +1,15 @@
+auth:
+  type: LDAP
+rbac:
+  roles:
+    - name: "test-AD-Group"
+      clusters:
+        - local
+      subjects:
+        - provider: ldap_ad
+      permissions:
+        - resource: applicationconfig
+          actions: all
+        - resource: topic
+          value: ".*"
+          actions: all
