@@ -91,7 +91,7 @@ function BasicSignIn() {
           disabled={!methods.formState.isValid}
           inProgress={isLoading}
         >
-          Log in
+          {!isLoading && 'Log in'}
         </Button>
       </S.Form>
     </FormProvider>

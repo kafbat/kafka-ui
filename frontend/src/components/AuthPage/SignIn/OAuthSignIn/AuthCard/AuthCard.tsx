@@ -32,7 +32,7 @@ function AuthCard({ serviceName, authPath, Icon = ServiceImage }: Props) {
         }}
         inProgress={isLoading}
       >
-        Log in with {serviceName}
+        {!isLoading && `Log in with ${serviceName}`}
       </S.ServiceButton>
     </S.AuthCardStyled>
   );
