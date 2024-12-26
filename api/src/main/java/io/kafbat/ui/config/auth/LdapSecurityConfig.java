@@ -1,8 +1,7 @@
 package io.kafbat.ui.config.auth;
 
-import static io.kafbat.ui.config.auth.AbstractAuthSecurityConfig.AUTH_WHITELIST;
-
 import io.kafbat.ui.service.rbac.AccessControlService;
+import io.kafbat.ui.service.rbac.extractor.RbacActiveDirectoryAuthoritiesExtractor;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
@@ -29,10 +27,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.authentication.AbstractLdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
+import org.springframework.security.ldap.authentication.NullLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
+import org.springframework.security.ldap.authentication.ad.DefaultActiveDirectoryAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.search.LdapUserSearch;
-import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -43,19 +42,47 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableConfigurationProperties(LdapProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-public class LdapSecurityConfig {
+public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
   private final LdapProperties props;
 
   @Bean
-  public ReactiveAuthenticationManager authenticationManager(LdapContextSource ldapContextSource,
-                                                             LdapAuthoritiesPopulator authoritiesExtractor,
-                                                             AccessControlService acs) {
+  public ReactiveAuthenticationManager authenticationManager(AbstractLdapAuthenticationProvider authProvider) {
+    return new ReactiveAuthenticationManagerAdapter(new ProviderManager(List.of(authProvider)));
+  }
+
+  @Bean
+  public AbstractLdapAuthenticationProvider authenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
+                                                                   BindAuthenticator bindAuthenticator,
+                                                                   AccessControlService acs) {
     var rbacEnabled = acs.isRbacEnabled();
+
+    AbstractLdapAuthenticationProvider authProvider;
+
+    if (!props.isActiveDirectory()) {
+      authProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesExtractor);
+    } else {
+      authProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
+          props.getUrls());
+      authProvider.setUseAuthenticationRequestCredentials(true);
+      ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setAuthoritiesPopulator(authoritiesExtractor);
+    }
+
+    if (rbacEnabled) {
+      authProvider.setUserDetailsContextMapper(new RbacUserDetailsMapper());
+    }
+
+    return authProvider;
+  }
+
+  @Bean
+  public BindAuthenticator ldapBindAuthentication(LdapContextSource ldapContextSource) {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
+
     if (props.getBase() != null) {
       ba.setUserDnPatterns(new String[] {props.getBase()});
     }
+
     if (props.getUserFilterSearchFilter() != null) {
       LdapUserSearch userSearch =
           new FilterBasedLdapUserSearch(props.getUserFilterSearchBase(), props.getUserFilterSearchFilter(),
@@ -63,32 +90,7 @@ public class LdapSecurityConfig {
       ba.setUserSearch(userSearch);
     }
 
-    var authenticationProvider = getAuthenticationProvider(authoritiesExtractor, rbacEnabled, ba);
-
-    AuthenticationManager am = new ProviderManager(List.of(authenticationProvider));
-
-    return new ReactiveAuthenticationManagerAdapter(am);
-  }
-
-  private AbstractLdapAuthenticationProvider getAuthenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
-                                                                       boolean rbacEnabled,
-                                                                       BindAuthenticator bindAuthenticator) {
-    AbstractLdapAuthenticationProvider authenticationProvider;
-
-    if (!props.isActiveDirectory()) {
-      authenticationProvider = rbacEnabled
-          ? new LdapAuthenticationProvider(bindAuthenticator, authoritiesExtractor)
-          : new LdapAuthenticationProvider(bindAuthenticator);
-    } else {
-      authenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
-          props.getUrls());
-      authenticationProvider.setUseAuthenticationRequestCredentials(true);
-    }
-
-    if (rbacEnabled) {
-      authenticationProvider.setUserDetailsContextMapper(new UserDetailsMapper());
-    }
-    return authenticationProvider;
+    return ba;
   }
 
   @Bean
@@ -102,28 +104,27 @@ public class LdapSecurityConfig {
   }
 
   @Bean
-  public DefaultLdapAuthoritiesPopulator ldapAuthoritiesExtractor(ApplicationContext context,
-                                                                  BaseLdapPathContextSource contextSource,
-                                                                  AccessControlService acs) {
-    if (props.isActiveDirectory()) {
-      return null;
-    }
+  public LdapAuthoritiesPopulator authoritiesExtractor(ApplicationContext ctx,
+                                                       BaseLdapPathContextSource ldapCtx,
+                                                       AccessControlService acs) {
+    if (!props.isActiveDirectory()) {
+      if (!acs.isRbacEnabled()) {
+        return new NullLdapAuthoritiesPopulator();
+      }
 
-    var rbacEnabled = acs != null && acs.isRbacEnabled();
+      var extractor = new RbacLdapAuthoritiesExtractor(ctx, ldapCtx, props.getGroupFilterSearchBase());
 
-    DefaultLdapAuthoritiesPopulator extractor;
+      Optional.ofNullable(props.getGroupFilterSearchFilter()).ifPresent(extractor::setGroupSearchFilter);
+      extractor.setRolePrefix("");
+      extractor.setConvertToUpperCase(false);
+      extractor.setSearchSubtree(true);
 
-    if (rbacEnabled) {
-      extractor = new RbacLdapAuthoritiesExtractor(context, contextSource, props.getGroupFilterSearchBase());
+      return extractor;
     } else {
-      extractor = new DefaultLdapAuthoritiesPopulator(contextSource, props.getGroupFilterSearchBase());
+      return acs.isRbacEnabled()
+          ? new RbacActiveDirectoryAuthoritiesExtractor(ctx)
+          : new DefaultActiveDirectoryAuthoritiesPopulator();
     }
-
-    Optional.ofNullable(props.getGroupFilterSearchFilter()).ifPresent(extractor::setGroupSearchFilter);
-    extractor.setRolePrefix("");
-    extractor.setConvertToUpperCase(false);
-    extractor.setSearchSubtree(true);
-    return extractor;
   }
 
   @Bean
@@ -145,7 +146,7 @@ public class LdapSecurityConfig {
         .build();
   }
 
-  private static class UserDetailsMapper extends LdapUserDetailsMapper {
+  private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
     @Override
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
                                           Collection<? extends GrantedAuthority> authorities) {
