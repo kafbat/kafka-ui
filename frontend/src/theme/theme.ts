@@ -139,7 +139,7 @@ const baseTheme = {
   },
   layout: {
     minWidth: '1200px',
-    navBarWidth: '240px',
+    navBarWidth: '280px',
     navBarHeight: '51px',
     rightSidebarWidth: '70vw',
     filtersSidebarWidth: '300px',
