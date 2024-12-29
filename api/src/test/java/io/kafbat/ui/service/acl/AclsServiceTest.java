@@ -58,11 +58,11 @@ class AclsServiceTest {
     when(adminClientMock.listAcls(ResourcePatternFilter.ANY))
         .thenReturn(Mono.just(List.of(existingBinding1, existingBinding2)));
 
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    ArgumentCaptor<Collection<AclBinding>> deletedCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> deletedCaptor = captor();
     when(adminClientMock.deleteAcls(deletedCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -87,7 +87,7 @@ class AclsServiceTest {
 
   @Test
   void createsConsumerDependantAcls() {
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -135,7 +135,7 @@ class AclsServiceTest {
 
   @Test
   void createsConsumerDependantAclsWhenTopicsAndGroupsSpecifiedByPrefix() {
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -171,7 +171,7 @@ class AclsServiceTest {
 
   @Test
   void createsProducerDependantAcls() {
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -216,7 +216,7 @@ class AclsServiceTest {
 
   @Test
   void createsProducerDependantAclsWhenTopicsAndTxIdSpecifiedByPrefix() {
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -258,7 +258,7 @@ class AclsServiceTest {
 
   @Test
   void createsStreamAppDependantAcls() {
-    ArgumentCaptor<Collection<AclBinding>> createdCaptor = ArgumentCaptor.forClass(Collection.class);
+    ArgumentCaptor<Collection<AclBinding>> createdCaptor = captor();
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
@@ -295,5 +295,10 @@ class AclsServiceTest {
         .contains(new AclBinding(
             new ResourcePattern(ResourceType.TOPIC, "appId1", PatternType.PREFIXED),
             new AccessControlEntry(principal, host, AclOperation.ALL, AclPermissionType.ALLOW)));
+  }
+
+  @SuppressWarnings("unchecked")
+  private ArgumentCaptor<Collection<AclBinding>> captor() {
+    return ArgumentCaptor.forClass(Collection.class);
   }
 }
