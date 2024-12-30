@@ -8,8 +8,7 @@ import * as S from 'components/common/NewTable/Table.styled';
 import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import Select from 'components/common/Select/Select';
-import { SelectOption } from 'components/common/Select/Select';
+import { Select, SelectOption } from 'components/common/Select/Select';
 
 import PreviewModal from './PreviewModal';
 import Message, { PreviewFilter } from './Message';
@@ -82,7 +81,6 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 
   const convertToCSV = (messages: MessageData[]) => {
     const headers = ['Value', 'Offset', 'Key', 'Partition', 'Headers', 'Timestamp'] as const;
-    type Header = typeof headers[number];
 
     const rows = messages.map(msg =>
       headers.map(header => {
@@ -98,8 +96,8 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   };
 
     const baseFileName = 'topic-messages'+padCurrentDateTimeString();
-    const jsonSaver = useDataSaver(baseFileName+'.json', JSON.stringify(savedMessagesJson, null, '\t'));
-    const csvSaver = useDataSaver(baseFileName+'.csv', convertToCSV(savedMessagesJson));
+    const jsonSaver = useDataSaver(`${baseFileName}.json`, JSON.stringify(savedMessagesJson, null, '\t'));
+    const csvSaver = useDataSaver(`${baseFileName}.csv`, convertToCSV(savedMessagesJson));
 
     if (selectedFormat === 'json') {
       jsonSaver.saveFile();
