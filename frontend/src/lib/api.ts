@@ -11,6 +11,7 @@ import {
   AuthorizationApi,
   ApplicationConfigApi,
   AclsApi,
+  UnmappedApi,
 } from 'generated-sources';
 import { BASE_PARAMS } from 'lib/constants';
 
@@ -27,3 +28,4 @@ export const consumerGroupsApiClient = new ConsumerGroupsApi(apiClientConf);
 export const authApiClient = new AuthorizationApi(apiClientConf);
 export const appConfigApiClient = new ApplicationConfigApi(apiClientConf);
 export const aclApiClient = new AclsApi(apiClientConf);
+export const internalApiClient = new UnmappedApi(apiClientConf);

@@ -3,6 +3,7 @@ package io.kafbat.ui.config.auth;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.RbacActiveDirectoryAuthoritiesExtractor;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
+import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -14,14 +15,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,6 +38,7 @@ import org.springframework.security.ldap.search.LdapUserSearch;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -136,16 +139,24 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
       log.info("Active Directory support for LDAP has been enabled.");
     }
 
-    return http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
             .authenticated()
         )
-        .formLogin(Customizer.withDefaults())
-        .logout(Customizer.withDefaults())
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .build();
+        .formLogin(form -> form
+            .loginPage(LOGIN_URL)
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
+        )
+        .logout(spec -> spec
+            .logoutSuccessHandler(redirectLogoutSuccessHandler())
+            .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
+        .csrf(ServerHttpSecurity.CsrfSpec::disable);
+
+    builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+
+    return builder.build();
   }
 
   private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
