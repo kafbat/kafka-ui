@@ -30,7 +30,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
           cache: 'maven'
 
@@ -72,7 +72,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
           cache: 'maven'
 
@@ -103,8 +103,8 @@ jobs:
         run: |
           mkdir -p ./e2e-tests/target/selenoid-results/video
           mkdir -p ./e2e-tests/target/selenoid-results/logs
-          docker-compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
-          docker-compose -f ./documentation/compose/e2e-tests.yaml up -d
+          docker compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
+          docker compose -f ./documentation/compose/e2e-tests.yaml up -d
 
       - name: Dump Docker logs on failure
         if: failure()

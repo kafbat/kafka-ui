@@ -16,12 +16,12 @@
     "ajv": "8.8.2",
     "ajv-formats": "2.1.1",
     "json-schema-faker": "0.5.6",
-    "jsonpath-plus": "8.1.0",
+    "jsonpath-plus": "10.0.7",
     "lossless-json": "2.0.11",
     "pretty-ms": "7.0.1",
     "react": "18.2.0",
     "react-ace": "11.0.1",
-    "react-datepicker": "6.9.0",
+    "react-datepicker": "7.4.0",
     "react-dom": "18.2.0",
     "react-error-boundary": "4.0.13",
     "react-hook-form": "7.51.3",
@@ -96,15 +96,15 @@
     "ts-node": "10.9.2",
     "ts-prune": "0.10.3",
     "typescript": "5.3.3",
-    "vite": "5.2.10",
+    "vite": "5.2.14",
     "vite-plugin-checker": "0.6.4",
     "vite-plugin-ejs": "1.7.0",
     "vite-tsconfig-paths": "4.3.2",
     "whatwg-fetch": "3.6.20"
   },
   "engines": {
-    "node": "v18.17.1",
-    "pnpm": "v9.1.2"
+    "node": "18.17.1",
+    "pnpm": "9.15.0"
   },
   "pnpm": {
     "overrides": {
@@ -116,7 +116,8 @@
       "follow-redirects@<1.15.4": ">=1.15.4",
       "json5@>=2.0.0 <2.2.2": ">=2.2.2",
       "semver@>=7.0.0 <7.5.2": ">=7.5.2",
-      "axios@>=0.8.1 <0.28.0": ">=0.28.0"
+      "axios@>=0.8.1 <0.28.0": ">=0.28.0",
+      "braces": "3.0.3"
     }
   }
 }

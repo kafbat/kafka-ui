@@ -28,7 +28,7 @@ public class SchemaRegistryContainer extends GenericContainer<SchemaRegistryCont
   }
 
   public String getUrl() {
-    return "http://" + getContainerIpAddress() + ":" + getMappedPort(SCHEMA_PORT);
+    return "http://" + getHost() + ":" + getMappedPort(SCHEMA_PORT);
   }
 
   public SchemaRegistryClient schemaRegistryClient() {

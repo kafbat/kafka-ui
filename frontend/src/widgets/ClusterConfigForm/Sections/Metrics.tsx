@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFormContext } from 'react-hook-form';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
@@ -11,28 +11,32 @@ import Credentials from 'widgets/ClusterConfigForm/common/Credentials';
 const Metrics = () => {
   const { setValue, watch } = useFormContext();
   const visibleMetrics = !!watch('metrics');
-  const toggleMetrics = () =>
+  const [configOpen, setConfigOpen] = useState(false);
+  const toggleMetrics = () => {
+    setConfigOpen((prevConfigOpen) => !prevConfigOpen);
     setValue(
       'metrics',
       visibleMetrics
-        ? undefined
+        ? { isActive: false }
         : {
+            isActive: true,
             type: '',
             port: 0,
             isAuth: false,
           },
       { shouldValidate: true, shouldDirty: true, shouldTouch: true }
     );
+  };
 
   return (
     <>
       <SectionHeader
         title="Metrics"
-        adding={!visibleMetrics}
+        adding={!configOpen}
         addButtonText="Configure Metrics"
         onClick={toggleMetrics}
       />
-      {visibleMetrics && (
+      {configOpen && (
         <>
           <ControlledSelect
             name="metrics.type"

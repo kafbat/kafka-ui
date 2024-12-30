@@ -57,6 +57,7 @@ const Colors = {
     '10': '#FAD1D1',
     '20': '#F5A3A3',
     '50': '#E51A1A',
+    '52': '#E63B19',
     '55': '#CF1717',
     '60': '#B81414',
   },
@@ -79,6 +80,45 @@ const Colors = {
 
 const baseTheme = {
   defaultIconColor: Colors.neutral[50],
+  auth_page: {
+    backgroundColor: Colors.brand[0],
+    fontFamily: 'Inter, sans-serif',
+    header: {
+      cellBorderColor: Colors.brand[10],
+      LogoBgColor: Colors.brand[90],
+      LogoTextColor: Colors.brand[0],
+    },
+    signIn: {
+      titleColor: Colors.brand[90],
+      errorMessage: {
+        color: Colors.red[52],
+      },
+      label: {
+        color: Colors.brand[70],
+      },
+      authCard: {
+        borderRadius: '16px',
+        borderColor: Colors.brand[10],
+        backgroundColor: Colors.brand[0],
+        serviceNamecolor: Colors.brand[90],
+        serviceTextColor: Colors.brand[50],
+      },
+    },
+    footer: {
+      fontSize: '12px',
+      span: {
+        color: Colors.brand[70],
+        fontWeight: 500,
+      },
+      p: {
+        color: Colors.brand[50],
+        fontWeight: 400,
+      },
+    },
+    icons: {
+      githubColor: Colors.brand[90],
+    },
+  },
   heading: {
     h1: {
       color: Colors.neutral[90],
@@ -501,7 +541,7 @@ export const theme = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: hexToRgba(Colors.brand[95], 0),
+        normal: Colors.brand[0],
         hover: hexToRgba(Colors.brand[95], 0.03),
         active: hexToRgba(Colors.brand[95], 0.05),
       },
@@ -821,6 +861,38 @@ export type ThemeType = typeof theme;
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  auth_page: {
+    backgroundColor: Colors.neutral[90],
+    fontFamily: baseTheme.auth_page.fontFamily,
+    header: {
+      cellBorderColor: Colors.brand[80],
+      LogoBgColor: Colors.brand[0],
+      LogoTextColor: Colors.brand[90],
+    },
+    signIn: {
+      ...baseTheme.auth_page.signIn,
+      titleColor: Colors.brand[0],
+      label: {
+        color: Colors.brand[30],
+      },
+      authCard: {
+        ...baseTheme.auth_page.signIn.authCard,
+        borderColor: Colors.brand[80],
+        backgroundColor: Colors.brand[85],
+        serviceNamecolor: Colors.brand[0],
+      },
+    },
+    footer: {
+      ...baseTheme.auth_page.footer,
+      span: {
+        color: Colors.brand[10],
+        fontWeight: 500,
+      },
+    },
+    icons: {
+      githubColor: Colors.brand[0],
+    },
+  },
   logo: {
     color: '#FDFDFD',
   },
@@ -985,7 +1057,7 @@ export const darkTheme: ThemeType = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: hexToRgba(Colors.brand[0], 0),
+        normal: Colors.brand[90],
         hover: hexToRgba(Colors.brand[0], 0.05),
         active: hexToRgba(Colors.brand[0], 0.1),
       },

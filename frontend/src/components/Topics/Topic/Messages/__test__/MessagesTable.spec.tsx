@@ -30,7 +30,7 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('lib/hooks/useMessagesFilters', () => ({
   useIsLiveMode: jest.fn(),
-  useRefreshData: jest.fn(),
+  usePaginateTopics: jest.fn(),
 }));
 
 describe('MessagesTable', () => {

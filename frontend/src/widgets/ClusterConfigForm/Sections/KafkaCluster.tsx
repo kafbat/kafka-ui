@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from 'components/common/Input/Input';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormError, InputHint } from 'components/common/Input/Input.styled';
@@ -21,19 +21,22 @@ const KafkaCluster: React.FC = () => {
     name: 'bootstrapServers',
   });
 
-  const hasTrustStore = !!watch('truststore');
+  const [hasTrustStore, setHasTrustStore] = useState(false);
 
-  const toggleSection = (section: string) => () =>
+  const toggleSection = (section: string) => () => {
+    setHasTrustStore((prevConfigOpen) => !prevConfigOpen);
     setValue(
       section,
       watch(section)
-        ? undefined
+        ? { isActive: false }
         : {
+            isActive: true,
             location: '',
             password: '',
           },
       { shouldValidate: true, shouldDirty: true, shouldTouch: true }
     );
+  };
 
   return (
     <>
