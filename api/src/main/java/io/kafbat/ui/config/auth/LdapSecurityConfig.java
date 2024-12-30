@@ -1,6 +1,7 @@
 package io.kafbat.ui.config.auth;
 
 import io.kafbat.ui.service.rbac.AccessControlService;
+import io.kafbat.ui.service.rbac.extractor.RbacActiveDirectoryAuthoritiesExtractor;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.Collection;
@@ -64,24 +65,39 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
       ba.setUserSearch(userSearch);
     }
 
+    AuthenticationManager manager = new ProviderManager(List.of(
+        authenticationProvider(authoritiesExtractor, rbacEnabled, ba)
+    ));
+
+    return new ReactiveAuthenticationManagerAdapter(manager);
+  }
+
+  private AbstractLdapAuthenticationProvider authenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
+                                                                    boolean rbacEnabled,
+                                                                    BindAuthenticator bindAuthenticator) {
     AbstractLdapAuthenticationProvider authenticationProvider;
+
     if (!props.isActiveDirectory()) {
       authenticationProvider = rbacEnabled
-          ? new LdapAuthenticationProvider(ba, authoritiesExtractor)
-          : new LdapAuthenticationProvider(ba);
+          ? new LdapAuthenticationProvider(bindAuthenticator, authoritiesExtractor)
+          : new LdapAuthenticationProvider(bindAuthenticator);
     } else {
-      authenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
-          props.getUrls()); // TODO Issue #3741
+      authenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(
+          props.getActiveDirectoryDomain(), props.getUrls()
+      );
       authenticationProvider.setUseAuthenticationRequestCredentials(true);
+
+      if (rbacEnabled) {
+        ((ActiveDirectoryLdapAuthenticationProvider) authenticationProvider)
+            .setAuthoritiesPopulator(authoritiesExtractor);
+      }
     }
 
     if (rbacEnabled) {
       authenticationProvider.setUserDetailsContextMapper(new UserDetailsMapper());
     }
 
-    AuthenticationManager am = new ProviderManager(List.of(authenticationProvider));
-
-    return new ReactiveAuthenticationManagerAdapter(am);
+    return authenticationProvider;
   }
 
   @Bean
@@ -95,9 +111,13 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public DefaultLdapAuthoritiesPopulator ldapAuthoritiesExtractor(ApplicationContext context,
-                                                                  BaseLdapPathContextSource contextSource,
-                                                                  AccessControlService acs) {
+  public LdapAuthoritiesPopulator ldapAuthoritiesExtractor(ApplicationContext context,
+                                                           BaseLdapPathContextSource contextSource,
+                                                           AccessControlService acs) {
+    if (props.isActiveDirectory()) {
+      return new RbacActiveDirectoryAuthoritiesExtractor(acs);
+    }
+
     var rbacEnabled = acs != null && acs.isRbacEnabled();
 
     DefaultLdapAuthoritiesPopulator extractor;
