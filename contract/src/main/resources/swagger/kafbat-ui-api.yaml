@@ -4242,6 +4242,10 @@ components:
                             type: string
                           truststorePassword:
                             type: string
+                          verifySsl:
+                            type: boolean
+                            description: Skip SSL verification for the host.
+                            default: true
                       schemaRegistry:
                         type: string
                       schemaRegistryAuth:
