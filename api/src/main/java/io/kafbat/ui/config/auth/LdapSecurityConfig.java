@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -53,14 +54,14 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public AbstractLdapAuthenticationProvider authenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
-                                                                   BindAuthenticator bindAuthenticator,
+                                                                   @Autowired(required = false) BindAuthenticator ba,
                                                                    AccessControlService acs) {
     var rbacEnabled = acs.isRbacEnabled();
 
     AbstractLdapAuthenticationProvider authProvider;
 
     if (!props.isActiveDirectory()) {
-      authProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesExtractor);
+      authProvider = new LdapAuthenticationProvider(ba, authoritiesExtractor);
     } else {
       authProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
           props.getUrls());
@@ -76,6 +77,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
+  @ConditionalOnProperty(value = "oauth2.ldap.activeDirectory", havingValue = "false")
   public BindAuthenticator ldapBindAuthentication(LdapContextSource ldapContextSource) {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
 
