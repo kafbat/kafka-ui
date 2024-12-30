@@ -33,7 +33,7 @@ const Actions: React.FC = () => {
   const { data: connector } = useConnector(routerProps);
   const confirm = useConfirm();
 
-  const deleteConnectorMutation = useDeleteConnector(routerProps);
+  const deleteConnectorMutation = useDeleteConnector(routerProps.clusterName);
   const deleteConnectorHandler = () =>
     confirm(
       <>
@@ -42,7 +42,9 @@ const Actions: React.FC = () => {
       </>,
       async () => {
         try {
-          await deleteConnectorMutation.mutateAsync();
+          await deleteConnectorMutation.mutateAsync({
+            props: routerProps,
+          });
           navigate(clusterConnectorsPath(routerProps.clusterName));
         } catch {
           // do not redirect
@@ -50,17 +52,18 @@ const Actions: React.FC = () => {
       }
     );
 
-  const stateMutation = useUpdateConnectorState(routerProps);
-  const restartConnectorHandler = () =>
-    stateMutation.mutateAsync(ConnectorAction.RESTART);
-  const restartAllTasksHandler = () =>
-    stateMutation.mutateAsync(ConnectorAction.RESTART_ALL_TASKS);
-  const restartFailedTasksHandler = () =>
-    stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
-  const pauseConnectorHandler = () =>
-    stateMutation.mutateAsync(ConnectorAction.PAUSE);
-  const resumeConnectorHandler = () =>
-    stateMutation.mutateAsync(ConnectorAction.RESUME);
+  const stateMutation = useUpdateConnectorState(routerProps.clusterName);
+  const performConnectorAction = (action: ConnectorAction) => {
+    stateMutation.mutateAsync({
+      props: {
+        clusterName: routerProps.clusterName,
+        connectName: routerProps.connectName,
+        connectorName: routerProps.connectorName,
+      },
+      action,
+    });
+  };
+
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
@@ -73,7 +76,7 @@ const Actions: React.FC = () => {
       >
         {connector?.status.state === ConnectorState.RUNNING && (
           <ActionDropdownItem
-            onClick={pauseConnectorHandler}
+            onClick={() => performConnectorAction(ConnectorAction.PAUSE)}
             disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
@@ -86,7 +89,7 @@ const Actions: React.FC = () => {
         )}
         {connector?.status.state === ConnectorState.PAUSED && (
           <ActionDropdownItem
-            onClick={resumeConnectorHandler}
+            onClick={() => performConnectorAction(ConnectorAction.RESUME)}
             disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
@@ -98,7 +101,7 @@ const Actions: React.FC = () => {
           </ActionDropdownItem>
         )}
         <ActionDropdownItem
-          onClick={restartConnectorHandler}
+          onClick={() => performConnectorAction(ConnectorAction.RESTART)}
           disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
@@ -109,7 +112,9 @@ const Actions: React.FC = () => {
           Restart Connector
         </ActionDropdownItem>
         <ActionDropdownItem
-          onClick={restartAllTasksHandler}
+          onClick={() =>
+            performConnectorAction(ConnectorAction.RESTART_ALL_TASKS)
+          }
           disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
@@ -120,7 +125,9 @@ const Actions: React.FC = () => {
           Restart All Tasks
         </ActionDropdownItem>
         <ActionDropdownItem
-          onClick={restartFailedTasksHandler}
+          onClick={() =>
+            performConnectorAction(ConnectorAction.RESTART_FAILED_TASKS)
+          }
           disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,

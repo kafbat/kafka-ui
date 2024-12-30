@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ActionCanButton } from 'components/common/ActionComponent';
 import { isPermitted } from 'lib/permissions';
 import { useUserInfo } from 'lib/hooks/useUserInfo';
+import { showServerError } from 'lib/errorHandling';
 
 interface BatchActionsbarProps {
   rows: Row<Topic>[];
@@ -42,7 +43,7 @@ const BatchActionsbar: React.FC<BatchActionsbarProps> = ({
         );
         resetRowSelection();
       } catch (e) {
-        // do nothing;
+        showServerError(e as Response);
       }
     });
   };
@@ -59,7 +60,7 @@ const BatchActionsbar: React.FC<BatchActionsbarProps> = ({
           );
           resetRowSelection();
         } catch (e) {
-          // do nothing;
+          showServerError(e as Response);
         } finally {
           client.invalidateQueries(topicKeys.all(clusterName));
         }
