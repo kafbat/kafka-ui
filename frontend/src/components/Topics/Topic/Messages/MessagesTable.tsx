@@ -8,7 +8,7 @@ import * as S from 'components/common/NewTable/Table.styled';
 import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import { Select, SelectOption } from 'components/common/Select/Select';
+import Select, { SelectOption } from 'components/common/Select/Select';
 
 import PreviewModal from './PreviewModal';
 import Message, { PreviewFilter } from './Message';
