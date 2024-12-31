@@ -53,7 +53,7 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
       return AdminClient.create(properties);
     }).flatMap(ac -> ReactiveAdminClient.create(ac).doOnError(th -> ac.close()))
         .onErrorMap(th -> new IllegalStateException(
-            "Error while creating AdminClient for Cluster " + cluster.getName(), th));
+            "Error while creating AdminClient for the cluster " + cluster.getName(), th));
   }
 
   @Override
