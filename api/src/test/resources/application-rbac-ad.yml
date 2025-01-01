@@ -2,11 +2,19 @@ auth:
   type: LDAP
 rbac:
   roles:
-    - name: "test-AD-Group"
+    - name: "roleName"
       clusters:
         - local
       subjects:
         - provider: ldap_ad
+          type: group
+          value: firstGroup
+        - provider: ldap_ad
+          type: group
+          value: secondGroup
+        - provider: ldap_ad
+          type: user
+          value: JackSmith
       permissions:
         - resource: applicationconfig
           actions: all

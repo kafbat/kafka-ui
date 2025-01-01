@@ -2,6 +2,7 @@ package io.kafbat.ui;
 
 import static io.kafbat.ui.AbstractIntegrationTest.LOCAL;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.DOMAIN;
+import static io.kafbat.ui.container.ActiveDirectoryContainer.EMPTY_PERMISSIONS_USER;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.FIRST_USER_WITH_GROUP;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.PASSWORD;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.SECOND_USER_WITH_GROUP;
@@ -67,11 +68,12 @@ public class ActiveDirectoryIntegrationTest {
     assertTrue(permissions.stream().anyMatch(permission ->
         permission.getClusters().contains(LOCAL) && permission.getResource() == ResourceTypeDTO.TOPIC));
     assertEquals(permissions, authenticationInfo(SECOND_USER_WITH_GROUP).getUserInfo().getPermissions());
+    assertEquals(permissions, authenticationInfo(USER_WITHOUT_GROUP).getUserInfo().getPermissions());
   }
 
   @Test
   public void testEmptyPermissions() {
-    assertTrue(Objects.requireNonNull(authenticationInfo(USER_WITHOUT_GROUP))
+    assertTrue(Objects.requireNonNull(authenticationInfo(EMPTY_PERMISSIONS_USER))
         .getUserInfo()
         .getPermissions()
         .isEmpty()

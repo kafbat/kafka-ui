@@ -13,10 +13,12 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   public static final String FIRST_USER_WITH_GROUP = "JohnDoe";
   public static final String SECOND_USER_WITH_GROUP = "JohnWick";
   public static final String USER_WITHOUT_GROUP = "JackSmith";
+  public static final String EMPTY_PERMISSIONS_USER = "JohnJames";
 
   private static final String DOMAIN_DC = "dc=corp,dc=kafbat,dc=io";
   private static final String GROUP = "group";
-  private static final String TEST_GROUP = "test-AD-Group";
+  private static final String FIRST_GROUP = "firstGroup";
+  private static final String SECOND_GROUP = "secondGroup";
   private static final String DOMAIN_EMAIL = "kafbat.io";
   private static final String SAMBA_TOOL = "samba-tool";
   private static final int LDAP_PORT = 389;
@@ -38,13 +40,15 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   }
 
   protected void containerIsStarted(InspectContainerResponse containerInfo) {
+    createUser(EMPTY_PERMISSIONS_USER);
     createUser(USER_WITHOUT_GROUP);
     createUser(FIRST_USER_WITH_GROUP);
     createUser(SECOND_USER_WITH_GROUP);
 
-    exec(SAMBA_TOOL, GROUP, "add", TEST_GROUP);
-    exec(SAMBA_TOOL, GROUP, "addmembers", TEST_GROUP, FIRST_USER_WITH_GROUP);
-    exec(SAMBA_TOOL, GROUP, "addmembers", TEST_GROUP, SECOND_USER_WITH_GROUP);
+    exec(SAMBA_TOOL, GROUP, "add", FIRST_GROUP);
+    exec(SAMBA_TOOL, GROUP, "add", SECOND_GROUP);
+    exec(SAMBA_TOOL, GROUP, "addmembers", FIRST_GROUP, FIRST_USER_WITH_GROUP);
+    exec(SAMBA_TOOL, GROUP, "addmembers", SECOND_GROUP, SECOND_USER_WITH_GROUP);
   }
 
   public String getLdapUrl() {
