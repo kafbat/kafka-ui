@@ -64,6 +64,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 @Slf4j
@@ -416,7 +417,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
         files.filter(p -> !Files.isDirectory(p) && p.toString().endsWith(".proto"))
             .forEach(path -> {
               // relative path will be used as "import" statement
-              String relativePath = baseLocation.relativize(path).toString();
+              String relativePath = removeBackSlashes(baseLocation.relativize(path).toString());
               var protoFileElement = ProtoParser.Companion.parse(
                   Location.get(baseLocation.toString(), relativePath),
                   readFileAsString(path)
@@ -425,6 +426,27 @@ public class ProtobufFileSerde implements BuiltInSerde {
             });
       }
       return filesByLocations;
+    }
+
+    /**
+     * Replaces backslashes in the given file path with forward slashes if the operating system is Windows.
+     *
+     * <p>This method is designed to standardize file paths by converting Windows-style backslashes (`\`)
+     * to Linux/Unix-style forward slashes (`/`) when the application is running on a Windows OS.
+     * On other operating systems, the input path is returned unchanged.</p>
+     *
+     * <p>This is needed because imports in Protobuf use forward slashes (`/`)
+     * which causes a conflict with Windows paths. For example,`language/language.proto`
+     * would be converted to `language\language.proto` in Windows causing a resolution exception</p>
+     *
+     * @param path the file path to standardize; must not be {@code null}.
+     * @return the standardized file path with forward slashes if running on Windows, or the original path otherwise.
+     */
+    private @NotNull String removeBackSlashes(@NotNull final String path) {
+      if (SystemUtils.IS_OS_WINDOWS) {
+        return path.replace("\\", "/");
+      }
+      return path;
     }
   }
 

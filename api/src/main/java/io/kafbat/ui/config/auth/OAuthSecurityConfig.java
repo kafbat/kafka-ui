@@ -3,6 +3,7 @@ package io.kafbat.ui.config.auth;
 import io.kafbat.ui.config.auth.logout.OAuthLogoutSuccessHandler;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
+import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -50,7 +52,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   public SecurityWebFilterChain configure(ServerHttpSecurity http, OAuthLogoutSuccessHandler logoutHandler) {
     log.info("Configuring OAUTH2 authentication.");
 
-    return http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
@@ -58,8 +60,12 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         )
         .oauth2Login(Customizer.withDefaults())
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .build();
+        .csrf(ServerHttpSecurity.CsrfSpec::disable);
+
+
+    builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+
+    return builder.build();
   }
 
   @Bean
