@@ -48,6 +48,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           SKIP_SONAR: "true" # TODO remove when public
         run: |
+          ./mvnw clean install -DskipTests -Pprod
           ./mvnw -B -ntp versions:set -DnewVersion=${{ github.event.pull_request.head.sha }}
           ./mvnw -B -V -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.skip=${SKIP_SONAR} \
