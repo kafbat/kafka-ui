@@ -4,6 +4,7 @@ import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.kafbat.ui.api.model.ErrorResponse;
 import io.kafbat.ui.model.ConnectorDTO;
 import io.kafbat.ui.model.ConnectorPluginConfigDTO;
 import io.kafbat.ui.model.ConnectorPluginConfigValidationResponseDTO;
@@ -180,7 +181,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   public void shouldRetrieveConnector() {
-    ConnectorDTO expected = (ConnectorDTO) new ConnectorDTO()
+    ConnectorDTO expected = new ConnectorDTO()
         .connect(connectName)
         .status(new ConnectorStatusDTO()
             .state(ConnectorStateDTO.RUNNING)
@@ -282,19 +283,28 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
 
   @Test
+  @SuppressWarnings("checkstyle:LineLength")
   public void shouldReturn400WhenConnectReturns400ForInvalidConfigUpdate() {
     webTestClient.put()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config",
             LOCAL, connectName, connectorName)
         .bodyValue(Map.of(
-            "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
-            "tasks.max", "invalid number",
-            "topics", "another-topic",
-            "file", "/tmp/test"
+                "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
+                "tasks.max", "invalid number",
+                "topics", "another-topic",
+                "file", "/tmp/test"
             )
         )
         .exchange()
-        .expectStatus().isBadRequest();
+        .expectStatus().isBadRequest()
+        .expectBody(ErrorResponse.class)
+        .value(response -> assertThat(response.getMessage()).isEqualTo(
+            """
+                Connector configuration is invalid and contains the following 2 error(s):
+                Invalid value invalid number for configuration tasks.max: Not a number of type INT
+                Invalid value null for configuration tasks.max: Value must be non-null
+                You can also find the above list of errors at the endpoint `/connector-plugins/{connectorType}/config/validate`"""
+        ));
 
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config",
@@ -397,7 +407,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
               .map(ConnectorPluginConfigDTO::getValue)
               .map(ConnectorPluginConfigValueDTO::getErrors)
               .filter(not(List::isEmpty))
-              .findFirst().get();
+              .findFirst().orElseThrow();
           assertEquals(
               "Invalid value 0 for configuration tasks.max: Value must be at least 1",
               error.get(0)

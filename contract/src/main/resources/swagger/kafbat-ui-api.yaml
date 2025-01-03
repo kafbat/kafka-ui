@@ -31,7 +31,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/Cluster'
 
-
   /api/clusters/{clusterName}/cache:
     post:
       tags:
@@ -53,7 +52,6 @@ paths:
                 $ref: '#/components/schemas/Cluster'
         404:
           description: Not found
-
 
   /api/clusters/{clusterName}/brokers:
     get:
@@ -431,7 +429,6 @@ paths:
           description: Analysis cancelled
         404:
           description: Not found
-
 
   /api/clusters/{clusterName}/topics/{topicName}:
     get:
@@ -2175,7 +2172,7 @@ paths:
     get:
       tags:
         - Authorization
-      summary: Get user authentication related info
+      summary: Get user authorization related info
       operationId: getUserAuthInfo
       responses:
         200:
@@ -2245,7 +2242,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApplicationConfigValidation'
 
-
   /api/config/relatedfiles:
     post:
       tags:
@@ -2268,6 +2264,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadedFileInfo'
+
+  /api/config/authentication:
+    get:
+      tags:
+        - ApplicationConfig
+      summary: Get authentication methods enabled for the app and other related settings
+      operationId: getAuthenticationSettings
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppAuthenticationSettings'
+
+  /login:
+    post:
+      tags:
+        - Unmapped
+      summary: Authenticate
+      operationId: authenticate
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
 
 components:
   schemas:
@@ -2378,6 +2411,32 @@ components:
               type: string
             htmlUrl:
               type: string
+
+    AppAuthenticationSettings:
+      type: object
+      properties:
+        authType:
+          $ref: '#/components/schemas/AuthType'
+        oAuthProviders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthProvider'
+
+    OAuthProvider:
+      type: object
+      properties:
+        clientName:
+          type: string
+        authorizationUri:
+          type: string
+
+    AuthType:
+      type: string
+      enum:
+        - DISABLED
+        - OAUTH2
+        - LOGIN_FORM
+        - LDAP
 
     Cluster:
       type: object
@@ -3805,6 +3864,7 @@ components:
         - DYNAMIC_BROKER_LOGGER_CONFIG
         - DYNAMIC_BROKER_CONFIG
         - DYNAMIC_DEFAULT_BROKER_CONFIG
+        - DYNAMIC_CLIENT_METRICS_CONFIG
         - STATIC_BROKER_CONFIG
         - DEFAULT_CONFIG
         - UNKNOWN
@@ -4217,6 +4277,10 @@ components:
                             type: string
                           truststorePassword:
                             type: string
+                          verifySsl:
+                            type: boolean
+                            description: Skip SSL verification for the host.
+                            default: true
                       schemaRegistry:
                         type: string
                       schemaRegistryAuth:

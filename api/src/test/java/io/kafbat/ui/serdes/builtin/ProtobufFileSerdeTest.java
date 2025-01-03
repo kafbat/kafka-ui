@@ -80,14 +80,15 @@ class ProtobufFileSerdeTest {
   void loadsAllProtoFiledFromTargetDirectory() throws Exception {
     var protoDir = ResourceUtils.getFile("classpath:protobuf-serde/").getPath();
     List<ProtoFile> files = new ProtobufFileSerde.ProtoSchemaLoader(protoDir).load();
-    assertThat(files).hasSize(4);
+    assertThat(files).hasSize(5);
     assertThat(files)
         .map(f -> f.getLocation().getPath())
         .containsExactlyInAnyOrder(
             "language/language.proto",
             "sensor.proto",
             "address-book.proto",
-            "lang-description.proto"
+            "lang-description.proto",
+            "messagewithany.proto"
         );
   }
 
@@ -226,7 +227,7 @@ class ProtobufFileSerdeTest {
     }
 
     @Test
-    void createConfigureFillsDescriptorMappingsWhenProtoFileDirProvided() throws Exception {
+    void createConfigureFillsDescriptorMappingsWhenProtoFileDirProvided() {
       PropertyResolver resolver = mock(PropertyResolver.class);
       when(resolver.getProperty("protobufFilesDir", String.class))
           .thenReturn(Optional.of(protoFilesDir()));
