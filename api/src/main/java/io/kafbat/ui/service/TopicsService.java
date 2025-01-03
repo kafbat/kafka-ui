@@ -144,13 +144,13 @@ public class TopicsService {
     return ac.listOffsets(descriptions, OffsetSpec.earliest())
         .zipWith(ac.listOffsets(descriptions, OffsetSpec.latest()),
             (earliest, latest) ->
-            Sets.intersection(earliest.keySet(), latest.keySet())
-                .stream()
-                .map(tp ->
-                    Map.entry(tp,
-                        new InternalPartitionsOffsets.Offsets(
-                            earliest.get(tp), latest.get(tp))))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                Sets.intersection(earliest.keySet(), latest.keySet())
+                    .stream()
+                    .map(tp ->
+                        Map.entry(tp,
+                            new InternalPartitionsOffsets.Offsets(
+                                earliest.get(tp), latest.get(tp))))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)))
         .map(InternalPartitionsOffsets::new);
   }
 
