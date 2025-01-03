@@ -13,7 +13,6 @@ import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
-import io.kafbat.ui.model.InternalPartitionsOffsets.Offsets;
 import io.kafbat.ui.model.InternalReplica;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
@@ -144,11 +143,13 @@ public class TopicsService {
     var descriptions = descriptionsMap.values();
     return ac.listOffsets(descriptions, OffsetSpec.earliest())
         .zipWith(ac.listOffsets(descriptions, OffsetSpec.latest()),
-            (earliest, latest) -> (Map<TopicPartition, Offsets>) Sets.intersection(earliest.keySet(), latest.keySet())
+            (earliest, latest) ->
+            Sets.intersection(earliest.keySet(), latest.keySet())
                 .stream()
-                .map(tp -> Map.entry(tp,
-                    new InternalPartitionsOffsets.Offsets(
-                        earliest.get(tp), latest.get(tp))))
+                .map(tp ->
+                    Map.entry(tp,
+                        new InternalPartitionsOffsets.Offsets(
+                            earliest.get(tp), latest.get(tp))))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)))
         .map(InternalPartitionsOffsets::new);
   }

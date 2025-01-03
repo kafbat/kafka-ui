@@ -181,11 +181,11 @@ public class AuditService implements Closeable {
 
     return sig.getContextView().<Mono<SecurityContext>>get(key)
         .map(context -> context.getAuthentication().getPrincipal())
-        .map(AuditService::extractUserFromObject)
+        .map(AuditService::extractUser)
         .switchIfEmpty(Mono.just(UNKNOWN_USER));
   }
 
-  private static AuthenticatedUser extractUserFromObject(Object principal) {
+  private static AuthenticatedUser extractUser(Object principal) {
     if (principal instanceof UserDetails u) {
       return new AuthenticatedUser(u.getUsername(), Set.of());
     } else if (principal instanceof AuthenticatedPrincipal p) {
