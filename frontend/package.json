@@ -56,7 +56,7 @@
     "@openapitools/openapi-generator-cli": "2.13.4",
     "@swc/core": "1.3.107",
     "@swc/jest": "0.2.36",
-    "@testing-library/dom": "10.0.0",
+    "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "6.4.2",
     "@testing-library/react": "14.3.1",
     "@testing-library/user-event": "14.5.2",
