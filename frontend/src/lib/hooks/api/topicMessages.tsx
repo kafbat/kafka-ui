@@ -1,6 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { BASE_PARAMS, MESSAGES_PER_PAGE } from 'lib/constants';
+import {
+  BASE_PARAMS,
+  MESSAGES_PER_PAGE,
+  MessagesFilterKeys,
+} from 'lib/constants';
 import {
   GetSerdesRequest,
   PollingMode,
@@ -13,10 +17,7 @@ import { showServerError } from 'lib/errorHandling';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
-import {
-  getCursorValue,
-  MessagesFilterKeys,
-} from 'lib/hooks/useMessagesFilters';
+import { getCursorValue } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
