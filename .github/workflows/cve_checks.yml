@@ -1,5 +1,8 @@
 name: "Infra: CVE checks"
 on:
+  pull_request:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
@@ -71,7 +74,7 @@ jobs:
 
   notify:
     needs: check-cves
-    if: ${{ always() && needs.build-and-test.result == 'failure' }}
+    if: ${{ always() && needs.build-and-test.result == 'failure' && github.event_name == 'schedule' }}
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
       message: "Attention! CVE checks run failed! Please fix them CVEs :("
