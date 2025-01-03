@@ -74,6 +74,6 @@ jobs:
     if: ${{ always() && needs.build-and-test.result == 'failure' }}
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
-      message: "Achtung! CVE checks run failed!"
+      message: "Attention! CVE checks run failed! Please fix them CVEs :("
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL_CVE }}
