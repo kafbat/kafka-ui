@@ -58,7 +58,7 @@
         <testcontainers.version>1.20.2</testcontainers.version>
 
         <!-- Frontend dependency versions -->
-        <node.version>v18.17.1</node.version>
+        <node.version>v22.12.0</node.version>
         <pnpm.version>v9.15.0</pnpm.version>
 
         <!-- Plugin versions -->
