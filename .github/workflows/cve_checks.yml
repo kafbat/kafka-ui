@@ -75,4 +75,5 @@ jobs:
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
       message: "Achtung! CVE checks run failed!"
-      webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL_CVE }}
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL_CVE }}
