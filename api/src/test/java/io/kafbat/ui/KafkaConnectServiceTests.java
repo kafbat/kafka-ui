@@ -48,7 +48,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   @BeforeEach
   public void setUp() {
 
-    ExchangeResult creationResult = webTestClient.post()
+    webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
             .name(connectorName)
@@ -59,9 +59,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "file", "/tmp/test",
                 "test.password", "test-credentials")))
         .exchange()
-        .expectStatus().isOk()
-        .expectBody()
-        .returnResult();
+        .expectStatus().isOk();
 
   }
 
