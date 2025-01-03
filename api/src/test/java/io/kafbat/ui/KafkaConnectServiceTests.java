@@ -59,20 +59,10 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "file", "/tmp/test",
                 "test.password", "test-credentials")))
         .exchange()
+        .expectStatus().isOk()
         .expectBody()
         .returnResult();
 
-    webTestClient.get()
-        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
-            LOCAL, connectName, connectorName)
-        .exchange()
-        .expectStatus().isOk();
-
-    // Kafka Connect may return transient HTTP 500 errors during rebalances
-    if (creationResult.getStatus() != HttpStatus.OK) {
-      log.warn(
-          "Ignoring a transient error while setting up the tested connector, because it has been created anyway.");
-    }
   }
 
   @AfterEach
