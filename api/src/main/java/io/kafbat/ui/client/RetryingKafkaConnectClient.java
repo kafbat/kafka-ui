@@ -239,6 +239,16 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
+  public Mono<Void> stopConnector(String connectorName) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.stopConnector(connectorName));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> stopConnectorWithHttpInfo(String connectorName) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.stopConnectorWithHttpInfo(connectorName));
+  }
+
+  @Override
   public Mono<Void> restartConnector(String connectorName, Boolean includeTasks, Boolean onlyFailed)
       throws WebClientResponseException {
     return withRetryOnConflictOrRebalance(super.restartConnector(connectorName, includeTasks, onlyFailed));
@@ -259,6 +269,18 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   public Mono<ResponseEntity<Void>> restartConnectorTaskWithHttpInfo(String connectorName, Integer taskId)
       throws WebClientResponseException {
     return withRetryOnConflictOrRebalance(super.restartConnectorTaskWithHttpInfo(connectorName, taskId));
+  }
+
+  @Override
+  public Mono<Void> resetConnectorOffsets(String connectorName)
+      throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.resetConnectorOffsets(connectorName));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> resetConnectorOffsetsWithHttpInfo(String connectorName)
+      throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.resetConnectorOffsetsWithHttpInfo(connectorName));
   }
 
   @Override

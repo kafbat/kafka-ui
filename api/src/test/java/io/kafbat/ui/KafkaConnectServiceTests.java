@@ -24,6 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.reactive.server.ExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @Slf4j
@@ -45,6 +47,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @BeforeEach
   public void setUp() {
+
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
@@ -54,11 +57,10 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "tasks.max", "1",
                 "topics", "output-topic",
                 "file", "/tmp/test",
-                "test.password", "test-credentials"
-            ))
-        )
+                "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
+
   }
 
   @AfterEach
@@ -417,5 +419,57 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .exchange()
         .expectStatus()
         .isBadRequest();
+  }
+
+  @Test
+  public void shouldResetConnectorWhenInStoppedState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
+
+    webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/action/STOP",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.STOPPED));
+
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
+
+  }
+
+  @Test
+  public void shouldReturn400WhenResettingConnectorInRunningState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
+
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets", LOCAL,
+            connectName, connectorName)
+        .exchange()
+        .expectStatus().isBadRequest();
+
   }
 }

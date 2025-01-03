@@ -74,10 +74,6 @@
 
     <repositories>
         <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
-        </repository>
-        <repository>
             <id>central</id>
             <name>Central Repository</name>
             <url>https://repo.maven.apache.org/maven2</url>
@@ -86,13 +82,13 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
-        <pluginRepository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
-        </pluginRepository>
         <pluginRepository>
             <id>central</id>
             <name>Central Repository</name>
@@ -104,6 +100,10 @@
             <releases>
                 <updatePolicy>never</updatePolicy>
             </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
         </pluginRepository>
     </pluginRepositories>
 
