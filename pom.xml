@@ -55,7 +55,7 @@
         <junit.version>5.11.2</junit.version>
         <mockito.version>5.14.2</mockito.version>
         <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
-        <testcontainers.version>1.20.2</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
 
         <!-- Frontend dependency versions -->
         <node.version>v18.17.1</node.version>
