@@ -18,15 +18,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import lombok.Value;
-
 
 class CustomSerdeLoader {
 
-  @Value
-  static class CustomSerde {
-    Serde serde;
-    ClassLoader classLoader;
+  record CustomSerde(Serde serde, ClassLoader classLoader) {
   }
 
   // serde location -> classloader

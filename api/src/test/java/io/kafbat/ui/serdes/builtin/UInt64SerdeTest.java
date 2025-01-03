@@ -51,8 +51,8 @@ class UInt64SerdeTest {
     var deserializer = serde.deserializer("anyTopic", type);
     byte[] uint64Bytes = Longs.toByteArray(UnsignedLong.MAX_VALUE.longValue());
     var result = deserializer.deserialize(new RecordHeadersImpl(), uint64Bytes);
-    assertThat(result.getResult()).isEqualTo(UnsignedLong.MAX_VALUE.toString());
-    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.result()).isEqualTo(UnsignedLong.MAX_VALUE.toString());
+    assertThat(result.type()).isEqualTo(DeserializeResult.Type.JSON);
   }
 
 }

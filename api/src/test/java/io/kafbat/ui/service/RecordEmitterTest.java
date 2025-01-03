@@ -174,7 +174,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
         CURSOR_MOCK
     );
 
-    List<String> expectedValues = SENT_RECORDS.stream().map(Record::getValue).collect(Collectors.toList());
+    List<String> expectedValues = SENT_RECORDS.stream().map(Record::value).collect(Collectors.toList());
 
     expectEmitter(forwardEmitter, expectedValues);
     expectEmitter(backwardEmitter, expectedValues);
@@ -211,15 +211,15 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     );
 
     var expectedValues = SENT_RECORDS.stream()
-        .filter(r -> r.getOffset() >= targetOffsets.get(r.getTp()))
-        .map(Record::getValue)
+        .filter(r -> r.offset() >= targetOffsets.get(r.tp()))
+        .map(Record::value)
         .collect(Collectors.toList());
 
     expectEmitter(forwardEmitter, expectedValues);
 
     expectedValues = SENT_RECORDS.stream()
-        .filter(r -> r.getOffset() < targetOffsets.get(r.getTp()))
-        .map(Record::getValue)
+        .filter(r -> r.offset() < targetOffsets.get(r.tp()))
+        .map(Record::value)
         .collect(Collectors.toList());
 
     expectEmitter(backwardEmitter, expectedValues);
@@ -227,7 +227,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
   @Test
   void pollWithTimestamps() {
-    var tsStats = SENT_RECORDS.stream().mapToLong(Record::getTimestamp).summaryStatistics();
+    var tsStats = SENT_RECORDS.stream().mapToLong(Record::timestamp).summaryStatistics();
     //choosing ts in the middle
     long targetTimestamp = tsStats.getMin() + ((tsStats.getMax() - tsStats.getMin()) / 2);
 
@@ -244,8 +244,8 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     expectEmitter(
         forwardEmitter,
         SENT_RECORDS.stream()
-            .filter(r -> r.getTimestamp() >= targetTimestamp)
-            .map(Record::getValue)
+            .filter(r -> r.timestamp() >= targetTimestamp)
+            .map(Record::value)
             .collect(Collectors.toList())
     );
 
@@ -262,8 +262,8 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     expectEmitter(
         backwardEmitter,
         SENT_RECORDS.stream()
-            .filter(r -> r.getTimestamp() < targetTimestamp)
-            .map(Record::getValue)
+            .filter(r -> r.timestamp() < targetTimestamp)
+            .map(Record::value)
             .collect(Collectors.toList())
     );
   }
@@ -288,9 +288,9 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     );
 
     var expectedValues = SENT_RECORDS.stream()
-        .filter(r -> r.getOffset() < targetOffsets.get(r.getTp()))
-        .filter(r -> r.getOffset() >= (targetOffsets.get(r.getTp()) - (numMessages / PARTITIONS)))
-        .map(Record::getValue)
+        .filter(r -> r.offset() < targetOffsets.get(r.tp()))
+        .filter(r -> r.offset() >= (targetOffsets.get(r.tp()) - (numMessages / PARTITIONS)))
+        .map(Record::value)
         .collect(Collectors.toList());
 
     assertThat(expectedValues).size().isEqualTo(numMessages);
@@ -368,11 +368,6 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     return new EnhancedConsumer(props, PollingThrottler.noop(), ApplicationMetrics.noop());
   }
 
-  @Value
-  static class Record {
-    String value;
-    TopicPartition tp;
-    long offset;
-    long timestamp;
+  record Record(String value, TopicPartition tp, long offset, long timestamp) {
   }
 }

@@ -1,14 +1,7 @@
 package io.kafbat.ui.model;
 
 import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
-@Data
 @Builder
-@RequiredArgsConstructor
-public class InternalReplica {
-  private final int broker;
-  private final boolean leader;
-  private final boolean inSync;
+public record InternalReplica(int broker, boolean leader, boolean inSync) {
 }

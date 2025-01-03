@@ -27,8 +27,8 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
 
     if (type.getType().equals(JsonType.Type.OBJECT)) {
       final ObjectFieldSchema objectRoot = (ObjectFieldSchema) root;
-      builder.properties(objectRoot.getProperties());
-      builder.required(objectRoot.getRequired());
+      builder.properties(objectRoot.properties());
+      builder.required(objectRoot.required());
     }
 
     return builder.build();

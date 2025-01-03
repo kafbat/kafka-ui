@@ -79,14 +79,14 @@ public class ConsumerRecordDeserializer {
     }
     try {
       var deserResult = keyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
-      message.setKey(deserResult.getResult());
+      message.setKey(deserResult.result());
       message.setKeySerde(keySerdeName);
-      message.setKeyDeserializeProperties(deserResult.getAdditionalProperties());
+      message.setKeyDeserializeProperties(deserResult.additionalProperties());
     } catch (Exception e) {
       log.trace("Error deserializing key for key topic: {}, partition {}, offset {}, with serde {}",
           rec.topic(), rec.partition(), rec.offset(), keySerdeName, e);
       var deserResult = fallbackKeyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
-      message.setKey(deserResult.getResult());
+      message.setKey(deserResult.result());
       message.setKeySerde(fallbackSerdeName);
     }
   }
@@ -98,15 +98,15 @@ public class ConsumerRecordDeserializer {
     try {
       var deserResult = valueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setContent(deserResult.result());
       message.setValueSerde(valueSerdeName);
-      message.setValueDeserializeProperties(deserResult.getAdditionalProperties());
+      message.setValueDeserializeProperties(deserResult.additionalProperties());
     } catch (Exception e) {
       log.trace("Error deserializing key for value topic: {}, partition {}, offset {}, with serde {}",
           rec.topic(), rec.partition(), rec.offset(), valueSerdeName, e);
       var deserResult = fallbackValueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setContent(deserResult.result());
       message.setValueSerde(fallbackSerdeName);
     }
   }

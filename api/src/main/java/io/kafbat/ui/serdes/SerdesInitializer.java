@@ -266,10 +266,10 @@ public class SerdesInitializer {
         serdeConfig.getClassName(), serdeConfig.getFilePath(), serdeProps, clusterProps, globalProps);
     return new SerdeInstance(
         serdeConfig.getName(),
-        loaded.getSerde(),
+        loaded.serde(),
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        loaded.getClassLoader()
+        loaded.classLoader()
     );
   }
 
