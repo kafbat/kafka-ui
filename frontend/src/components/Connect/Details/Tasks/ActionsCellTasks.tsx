@@ -26,7 +26,7 @@ const ActionsCellTasks: React.FC<CellContext<Task, unknown>> = ({ row }) => {
         permission={{
           resource: ResourceType.CONNECT,
           action: Action.RESTART,
-          value: routerProps.connectorName,
+          value: routerProps.connectName,
         }}
       >
         <span>Restart task</span>

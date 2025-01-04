@@ -10,6 +10,6 @@ export const toRequest = (formValues: FormValues): CreateProducerAcl => {
     topicsPrefix: formValues.topicsPrefix,
     transactionalId: formValues.transactionalId,
     transactionsIdPrefix: formValues.transactionsIdPrefix,
-    idempotent: formValues.indemponent,
+    idempotent: formValues.idempotent,
   };
 };

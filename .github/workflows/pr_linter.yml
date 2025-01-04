@@ -5,13 +5,12 @@ on:
 permissions:
   checks: write
 jobs:
-  task-check:
+  check-tasks:
     runs-on: ubuntu-latest
     steps:
       - uses: kentaro-m/task-completed-checker-action@v0.1.2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: dekinderfiets/pr-description-enforcer@0.0.1
-        if: false # TODO remove when public
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"

@@ -20,6 +20,7 @@ type WithAuth = {
 type URLWithAuth = WithAuth &
   WithKeystore & {
     url?: string;
+    isActive?: string;
   };
 
 type KafkaConnect = WithAuth &
@@ -30,6 +31,7 @@ type KafkaConnect = WithAuth &
 
 type Metrics = WithAuth &
   WithKeystore & {
+    isActive?: string;
     type: string;
     port: string;
   };
@@ -43,6 +45,7 @@ export type ClusterConfigFormValues = {
     password: string;
   };
   auth?: WithKeystore & {
+    isActive?: string;
     method: string;
     securityProtocol: SecurityProtocol;
     props: Record<string, string>;

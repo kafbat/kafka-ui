@@ -1,5 +1,5 @@
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
-import create from 'zustand';
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type AdvancedFiltersType = Record<string, AdvancedFilter>;

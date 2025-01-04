@@ -1,5 +1,6 @@
 package io.kafbat.ui.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
@@ -14,11 +15,14 @@ import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.exception.KafkaConnectConflictReponseException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.WebClientConfigurator;
+import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestClientException;
@@ -48,26 +52,65 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
                 (WebClientResponseException.Conflict) signal.failure()));
   }
 
-  private static <T> Mono<T> withRetryOnConflict(Mono<T> publisher) {
-    return publisher.retryWhen(conflictCodeRetry());
+  private static @NotNull Retry retryOnRebalance() {
+    return Retry.fixedDelay(MAX_RETRIES, RETRIES_DELAY).filter(e -> {
+
+      if (e instanceof WebClientResponseException.InternalServerError exception) {
+        final var errorMessage = getMessage(exception);
+        return StringUtils.equals(errorMessage,
+            // From https://github.com/apache/kafka/blob/dfc07e0e0c6e737a56a5402644265f634402b864/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/distributed/DistributedHerder.java#L2340
+            "Request cannot be completed because a rebalance is expected");
+      }
+      return false;
+    });
   }
 
-  private static <T> Flux<T> withRetryOnConflict(Flux<T> publisher) {
-    return publisher.retryWhen(conflictCodeRetry());
+  private static <T> Mono<T> withRetryOnConflictOrRebalance(Mono<T> publisher) {
+    return publisher
+        .retryWhen(retryOnRebalance())
+        .retryWhen(conflictCodeRetry());
   }
+
+  private static <T> Flux<T> withRetryOnConflictOrRebalance(Flux<T> publisher) {
+    return publisher
+        .retryWhen(retryOnRebalance())
+        .retryWhen(conflictCodeRetry());
+  }
+
+  private static <T> Mono<T> withRetryOnRebalance(Mono<T> publisher) {
+    return publisher.retryWhen(retryOnRebalance());
+  }
+
 
   private static <T> Mono<T> withBadRequestErrorHandling(Mono<T> publisher) {
     return publisher
-        .onErrorResume(WebClientResponseException.BadRequest.class, e ->
-            Mono.error(new ValidationException("Invalid configuration")))
-        .onErrorResume(WebClientResponseException.InternalServerError.class, e ->
-            Mono.error(new ValidationException("Invalid configuration")));
+        .onErrorResume(WebClientResponseException.BadRequest.class,
+            RetryingKafkaConnectClient::parseConnectErrorMessage)
+        .onErrorResume(WebClientResponseException.InternalServerError.class,
+            RetryingKafkaConnectClient::parseConnectErrorMessage);
+  }
+
+  // Adapted from https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/entities/ErrorMessage.java
+  // Adding the connect runtime dependency for this single class seems excessive
+  private record ErrorMessage(@NotNull @JsonProperty("message") String message) {
+  }
+
+  private static <T> @NotNull Mono<T> parseConnectErrorMessage(WebClientResponseException parseException) {
+    return Mono.error(new ValidationException(getMessage(parseException)));
+  }
+
+  private static String getMessage(WebClientResponseException parseException) {
+    final var errorMessage = parseException.getResponseBodyAs(ErrorMessage.class);
+    return Objects.requireNonNull(errorMessage,
+            // see https://github.com/apache/kafka/blob/a0a501952b6d61f6f273bdb8f842346b51e9dfce/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/errors/ConnectExceptionMapper.java
+            "This should not happen according to the ConnectExceptionMapper")
+        .message();
   }
 
   @Override
   public Mono<Connector> createConnector(NewConnector newConnector) throws RestClientException {
     return withBadRequestErrorHandling(
-        super.createConnector(newConnector)
+        withRetryOnRebalance(super.createConnector(newConnector))
     );
   }
 
@@ -75,178 +118,178 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   public Mono<Connector> setConnectorConfig(String connectorName, Map<String, Object> requestBody)
       throws RestClientException {
     return withBadRequestErrorHandling(
-        super.setConnectorConfig(connectorName, requestBody)
+        withRetryOnRebalance(super.setConnectorConfig(connectorName, requestBody))
     );
   }
 
   @Override
   public Mono<ResponseEntity<Connector>> createConnectorWithHttpInfo(NewConnector newConnector)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.createConnectorWithHttpInfo(newConnector));
+    return withRetryOnConflictOrRebalance(super.createConnectorWithHttpInfo(newConnector));
   }
 
   @Override
   public Mono<Void> deleteConnector(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.deleteConnector(connectorName));
+    return withRetryOnConflictOrRebalance(super.deleteConnector(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Void>> deleteConnectorWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.deleteConnectorWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.deleteConnectorWithHttpInfo(connectorName));
   }
 
 
   @Override
   public Mono<Connector> getConnector(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnector(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnector(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Connector>> getConnectorWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorWithHttpInfo(connectorName));
   }
 
   @Override
   public Mono<Map<String, Object>> getConnectorConfig(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorConfig(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorConfig(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Map<String, Object>>> getConnectorConfigWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorConfigWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorConfigWithHttpInfo(connectorName));
   }
 
   @Override
   public Flux<ConnectorPlugin> getConnectorPlugins() throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorPlugins());
+    return withRetryOnConflictOrRebalance(super.getConnectorPlugins());
   }
 
   @Override
   public Mono<ResponseEntity<List<ConnectorPlugin>>> getConnectorPluginsWithHttpInfo()
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorPluginsWithHttpInfo());
+    return withRetryOnConflictOrRebalance(super.getConnectorPluginsWithHttpInfo());
   }
 
   @Override
   public Mono<ConnectorStatus> getConnectorStatus(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorStatus(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorStatus(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<ConnectorStatus>> getConnectorStatusWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorStatusWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorStatusWithHttpInfo(connectorName));
   }
 
   @Override
   public Mono<TaskStatus> getConnectorTaskStatus(String connectorName, Integer taskId)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTaskStatus(connectorName, taskId));
+    return withRetryOnConflictOrRebalance(super.getConnectorTaskStatus(connectorName, taskId));
   }
 
   @Override
   public Mono<ResponseEntity<TaskStatus>> getConnectorTaskStatusWithHttpInfo(String connectorName, Integer taskId)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTaskStatusWithHttpInfo(connectorName, taskId));
+    return withRetryOnConflictOrRebalance(super.getConnectorTaskStatusWithHttpInfo(connectorName, taskId));
   }
 
   @Override
   public Flux<ConnectorTask> getConnectorTasks(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTasks(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorTasks(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<List<ConnectorTask>>> getConnectorTasksWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTasksWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorTasksWithHttpInfo(connectorName));
   }
 
   @Override
   public Mono<Map<String, ConnectorTopics>> getConnectorTopics(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTopics(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorTopics(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Map<String, ConnectorTopics>>> getConnectorTopicsWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorTopicsWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.getConnectorTopicsWithHttpInfo(connectorName));
   }
 
   @Override
-  public Flux<String> getConnectors(String search) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectors(search));
+  public Mono<List<String>> getConnectors(String search) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.getConnectors(search));
   }
 
   @Override
   public Mono<ResponseEntity<List<String>>> getConnectorsWithHttpInfo(String search) throws WebClientResponseException {
-    return withRetryOnConflict(super.getConnectorsWithHttpInfo(search));
+    return withRetryOnConflictOrRebalance(super.getConnectorsWithHttpInfo(search));
   }
 
   @Override
   public Mono<Void> pauseConnector(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.pauseConnector(connectorName));
+    return withRetryOnConflictOrRebalance(super.pauseConnector(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Void>> pauseConnectorWithHttpInfo(String connectorName) throws WebClientResponseException {
-    return withRetryOnConflict(super.pauseConnectorWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.pauseConnectorWithHttpInfo(connectorName));
   }
 
   @Override
   public Mono<Void> restartConnector(String connectorName, Boolean includeTasks, Boolean onlyFailed)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.restartConnector(connectorName, includeTasks, onlyFailed));
+    return withRetryOnConflictOrRebalance(super.restartConnector(connectorName, includeTasks, onlyFailed));
   }
 
   @Override
   public Mono<ResponseEntity<Void>> restartConnectorWithHttpInfo(String connectorName, Boolean includeTasks,
                                                                  Boolean onlyFailed) throws WebClientResponseException {
-    return withRetryOnConflict(super.restartConnectorWithHttpInfo(connectorName, includeTasks, onlyFailed));
+    return withRetryOnConflictOrRebalance(super.restartConnectorWithHttpInfo(connectorName, includeTasks, onlyFailed));
   }
 
   @Override
   public Mono<Void> restartConnectorTask(String connectorName, Integer taskId) throws WebClientResponseException {
-    return withRetryOnConflict(super.restartConnectorTask(connectorName, taskId));
+    return withRetryOnConflictOrRebalance(super.restartConnectorTask(connectorName, taskId));
   }
 
   @Override
   public Mono<ResponseEntity<Void>> restartConnectorTaskWithHttpInfo(String connectorName, Integer taskId)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.restartConnectorTaskWithHttpInfo(connectorName, taskId));
+    return withRetryOnConflictOrRebalance(super.restartConnectorTaskWithHttpInfo(connectorName, taskId));
   }
 
   @Override
   public Mono<Void> resumeConnector(String connectorName) throws WebClientResponseException {
-    return super.resumeConnector(connectorName);
+    return withRetryOnRebalance(super.resumeConnector(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Void>> resumeConnectorWithHttpInfo(String connectorName)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.resumeConnectorWithHttpInfo(connectorName));
+    return withRetryOnConflictOrRebalance(super.resumeConnectorWithHttpInfo(connectorName));
   }
 
   @Override
   public Mono<ResponseEntity<Connector>> setConnectorConfigWithHttpInfo(String connectorName,
                                                                         Map<String, Object> requestBody)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.setConnectorConfigWithHttpInfo(connectorName, requestBody));
+    return withRetryOnConflictOrRebalance(super.setConnectorConfigWithHttpInfo(connectorName, requestBody));
   }
 
   @Override
   public Mono<ConnectorPluginConfigValidationResponse> validateConnectorPluginConfig(String pluginName,
                                                                                      Map<String, Object> requestBody)
       throws WebClientResponseException {
-    return withRetryOnConflict(super.validateConnectorPluginConfig(pluginName, requestBody));
+    return withRetryOnConflictOrRebalance(super.validateConnectorPluginConfig(pluginName, requestBody));
   }
 
   @Override
   public Mono<ResponseEntity<ConnectorPluginConfigValidationResponse>> validateConnectorPluginConfigWithHttpInfo(
       String pluginName, Map<String, Object> requestBody) throws WebClientResponseException {
-    return withRetryOnConflict(super.validateConnectorPluginConfigWithHttpInfo(pluginName, requestBody));
+    return withRetryOnConflictOrRebalance(super.validateConnectorPluginConfigWithHttpInfo(pluginName, requestBody));
   }
 
   private static class RetryingApiClient extends ApiClient {

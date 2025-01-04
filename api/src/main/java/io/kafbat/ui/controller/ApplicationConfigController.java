@@ -5,6 +5,8 @@ import static io.kafbat.ui.model.rbac.permission.ApplicationConfigAction.VIEW;
 
 import io.kafbat.ui.api.ApplicationConfigApi;
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.model.ActionDTO;
+import io.kafbat.ui.model.AppAuthenticationSettingsDTO;
 import io.kafbat.ui.model.ApplicationConfigDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigValidationDTO;
@@ -18,6 +20,7 @@ import io.kafbat.ui.service.KafkaClusterFactory;
 import io.kafbat.ui.util.ApplicationRestarter;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +49,12 @@ public class ApplicationConfigController extends AbstractController implements A
     DynamicConfigOperations.PropertiesStructure fromDto(ApplicationConfigPropertiesDTO dto);
 
     ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
+
+    default ActionDTO stringToActionDto(String str) {
+      return Optional.ofNullable(str)
+          .map(s -> Enum.valueOf(ActionDTO.class, s.toUpperCase()))
+          .orElseThrow();
+    }
   }
 
   private final DynamicConfigOperations dynamicConfigOperations;
@@ -56,6 +65,13 @@ public class ApplicationConfigController extends AbstractController implements A
   @Override
   public Mono<ResponseEntity<ApplicationInfoDTO>> getApplicationInfo(ServerWebExchange exchange) {
     return Mono.just(applicationInfoService.getApplicationInfo()).map(ResponseEntity::ok);
+  }
+
+  @Override
+  public Mono<ResponseEntity<AppAuthenticationSettingsDTO>> getAuthenticationSettings(
+      ServerWebExchange exchange) {
+    return Mono.just(applicationInfoService.getAuthenticationProperties())
+        .map(ResponseEntity::ok);
   }
 
   @Override
@@ -75,7 +91,7 @@ public class ApplicationConfigController extends AbstractController implements A
   @Override
   public Mono<ResponseEntity<Void>> restartWithConfig(Mono<RestartRequestDTO> restartRequestDto,
                                                       ServerWebExchange exchange) {
-    var context =  AccessContext.builder()
+    var context = AccessContext.builder()
         .applicationConfigActions(EDIT)
         .operationName("restartWithConfig")
         .build();
@@ -101,7 +117,7 @@ public class ApplicationConfigController extends AbstractController implements A
         .then(fileFlux.single())
         .flatMap(file ->
             dynamicConfigOperations.uploadConfigRelatedFile((FilePart) file)
-                .map(path -> new UploadedFileInfoDTO().location(path.toString()))
+                .map(path -> new UploadedFileInfoDTO(path.toString()))
                 .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }

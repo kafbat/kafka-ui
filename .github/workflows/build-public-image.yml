@@ -6,7 +6,9 @@ on:
     types: ['labeled']
 
 permissions:
+  id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
   build:
@@ -23,9 +25,9 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
           cache: 'maven'
       - name: Build
@@ -36,23 +38,22 @@ jobs:
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Configure AWS credentials for Kafka-UI account
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE }}
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -65,7 +66,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
           push: true
-          tags: public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+          tags: ${{ vars.ECR_REGISTRY }}/${{ github.repository }}:${{ steps.extract_branch.outputs.tag }}
           build-args: |
             JAR_FILE=api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -75,6 +76,6 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Image published at public.ecr.aws/kafbat/kafka-ui-custom-build:${{ steps.extract_branch.outputs.tag }}
+            Image published at ${{ vars.ECR_REGISTRY }}/${{ github.repository }}:${{ steps.extract_branch.outputs.tag }}
     outputs:
       tag: ${{ steps.extract_branch.outputs.tag }}

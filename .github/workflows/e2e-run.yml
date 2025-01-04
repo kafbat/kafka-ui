@@ -30,7 +30,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
           cache: 'maven'
 
@@ -72,7 +72,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
           cache: 'maven'
 
@@ -103,8 +103,8 @@ jobs:
         run: |
           mkdir -p ./e2e-tests/target/selenoid-results/video
           mkdir -p ./e2e-tests/target/selenoid-results/logs
-          docker-compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
-          docker-compose -f ./documentation/compose/e2e-tests.yaml up -d
+          docker compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
+          docker compose -f ./documentation/compose/e2e-tests.yaml up -d
 
       - name: Dump Docker logs on failure
         if: failure()
@@ -122,6 +122,14 @@ jobs:
           name: reports
           path: ./e2e-tests/target/allure-results
           retention-days: 7
+
+      - name: Upload selenide results artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenide-results
+          path: ./e2e-tests/target/selenide-results
+          retention-days: 3
 
   reports:
     runs-on: ubuntu-latest

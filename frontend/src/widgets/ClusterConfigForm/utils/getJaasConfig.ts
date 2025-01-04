@@ -1,5 +1,3 @@
-import { isUndefined } from 'lodash';
-
 const JAAS_CONFIGS = {
   'SASL/GSSAPI': 'com.sun.security.auth.module.Krb5LoginModule',
   'SASL/OAUTHBEARER':
@@ -11,6 +9,8 @@ const JAAS_CONFIGS = {
     'org.apache.kafka.common.security.scram.ScramLoginModule',
   'SASL/LDAP': 'org.apache.kafka.common.security.plain.PlainLoginModule',
   'SASL/AWS IAM': 'software.amazon.msk.auth.iam.IAMLoginModule',
+  'SASL/Azure Entra':
+    'org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule',
 };
 
 type MethodName = keyof typeof JAAS_CONFIGS;
@@ -21,7 +21,7 @@ export const getJaasConfig = (
 ) => {
   const optionsString = Object.entries(options)
     .map(([key, value]) => {
-      if (isUndefined(value)) return null;
+      if (value === undefined) return null;
       if (value === 'true' || value === 'false') {
         return ` ${key}=${value}`;
       }

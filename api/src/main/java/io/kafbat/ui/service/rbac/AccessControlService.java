@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -54,7 +55,9 @@ public class AccessControlService {
   private final RoleBasedAccessControlProperties properties;
   private final Environment environment;
 
+  @Getter
   private boolean rbacEnabled = false;
+  @Getter
   private Set<ProviderAuthorityExtractor> oauthExtractors = Collections.emptySet();
 
   @PostConstruct
@@ -107,12 +110,14 @@ public class AccessControlService {
     if (context.cluster() != null && !isClusterAccessible(context.cluster(), user)) {
       return false;
     }
-    return context.isAccessible(getUserPermissions(user));
+    return context.isAccessible(getUserPermissions(user, context.cluster()));
   }
 
-  private List<Permission> getUserPermissions(AuthenticatedUser user) {
-    return properties.getRoles().stream()
+  private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
+    return properties.getRoles()
+        .stream()
         .filter(filterRole(user))
+        .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
         .flatMap(role -> role.getPermissions().stream())
         .toList();
   }
@@ -188,10 +193,6 @@ public class AccessControlService {
     );
   }
 
-  public Set<ProviderAuthorityExtractor> getOauthExtractors() {
-    return oauthExtractors;
-  }
-
   public List<Role> getRoles() {
     if (!rbacEnabled) {
       return Collections.emptyList();
@@ -203,7 +204,4 @@ public class AccessControlService {
     return role -> user.groups().contains(role.getName());
   }
 
-  public boolean isRbacEnabled() {
-    return rbacEnabled;
-  }
 }

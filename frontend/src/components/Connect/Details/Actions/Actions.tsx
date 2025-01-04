@@ -78,7 +78,7 @@ const Actions: React.FC = () => {
             permission={{
               resource: ResourceType.CONNECT,
               action: Action.EDIT,
-              value: routerProps.connectorName,
+              value: routerProps.connectName,
             }}
           >
             Pause
@@ -91,7 +91,7 @@ const Actions: React.FC = () => {
             permission={{
               resource: ResourceType.CONNECT,
               action: Action.EDIT,
-              value: routerProps.connectorName,
+              value: routerProps.connectName,
             }}
           >
             Resume
@@ -103,7 +103,7 @@ const Actions: React.FC = () => {
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
-            value: routerProps.connectorName,
+            value: routerProps.connectName,
           }}
         >
           Restart Connector
@@ -114,7 +114,7 @@ const Actions: React.FC = () => {
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
-            value: routerProps.connectorName,
+            value: routerProps.connectName,
           }}
         >
           Restart All Tasks
@@ -125,7 +125,7 @@ const Actions: React.FC = () => {
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.RESTART,
-            value: routerProps.connectorName,
+            value: routerProps.connectName,
           }}
         >
           Restart Failed Tasks
@@ -139,7 +139,7 @@ const Actions: React.FC = () => {
           permission={{
             resource: ResourceType.CONNECT,
             action: Action.DELETE,
-            value: routerProps.connectorName,
+            value: routerProps.connectName,
           }}
         >
           Delete

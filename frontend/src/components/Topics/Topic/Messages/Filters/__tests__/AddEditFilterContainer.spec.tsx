@@ -73,6 +73,12 @@ describe('AddEditFilterContainer component', () => {
       expect(submitButtonElem).toBeEnabled();
     });
 
+    it('should display the CEL syntax help icon', async () => {
+      const celHelpIcon = screen.queryByLabelText('info');
+      expect(celHelpIcon).toBeVisible();
+      expect(celHelpIcon).toBeEnabled();
+    });
+
     // TODO needs a rethink
     // it('should view the error message after typing and clearing the input', async () => {
     //   const inputs = screen.getAllByRole('textbox');
@@ -108,12 +114,18 @@ describe('AddEditFilterContainer component', () => {
       const textAreaElement = inputs[0] as HTMLTextAreaElement;
       const inputNameElement = inputs[1];
       expect(inputNameElement).toHaveValue(mockData.id);
-      expect(textAreaElement.value).toEqual('');
+      expect(textAreaElement).toHaveValue('');
     });
 
     it('should display the checkbox is not shown during the edit mode', async () => {
       const checkbox = screen.queryByRole('checkbox');
       expect(checkbox).not.toBeInTheDocument();
+    });
+
+    it('should display the CEL syntax help icon', async () => {
+      const celHelpIcon = screen.queryByLabelText('info');
+      expect(celHelpIcon).toBeVisible();
+      expect(celHelpIcon).toBeEnabled();
     });
   });
 

@@ -1,17 +1,18 @@
-import React from 'react';
+import React, { type ButtonHTMLAttributes, type FC } from 'react';
 import { Link } from 'react-router-dom';
 import Spinner from 'components/common/Spinner/Spinner';
 
 import StyledButton, { ButtonProps } from './Button.styled';
 
 export interface Props
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
     ButtonProps {
   to?: string | object;
   inProgress?: boolean;
+  className?: string;
 }
 
-export const Button: React.FC<Props> = ({
+export const Button: FC<Props> = ({
   to,
   children,
   disabled,
@@ -20,7 +21,7 @@ export const Button: React.FC<Props> = ({
 }) => {
   if (to) {
     return (
-      <Link to={to}>
+      <Link to={to} className={props.className}>
         <StyledButton disabled={disabled} type="button" {...props}>
           {children}
         </StyledButton>

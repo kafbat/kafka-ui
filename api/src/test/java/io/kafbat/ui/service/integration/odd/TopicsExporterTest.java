@@ -78,7 +78,7 @@ class TopicsExporterTest {
 
           assertThat(entityList.getItems())
               .hasSize(1)
-              .allSatisfy(e -> e.getOddrn().contains("visible"));
+              .allSatisfy(e -> assertThat(e.getOddrn()).contains("visible"));
         })
         .verifyComplete();
   }

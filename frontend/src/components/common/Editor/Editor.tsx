@@ -1,4 +1,5 @@
 import AceEditor, { IAceEditorProps } from 'react-ace';
+import 'ace-builds/src-noconflict/ext-searchbox';
 import 'ace-builds/src-noconflict/mode-json5';
 import 'ace-builds/src-noconflict/mode-protobuf';
 import 'ace-builds/src-noconflict/theme-tomorrow';

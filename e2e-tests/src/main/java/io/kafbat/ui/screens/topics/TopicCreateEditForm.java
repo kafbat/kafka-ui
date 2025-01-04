@@ -1,5 +1,6 @@
 package io.kafbat.ui.screens.topics;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.$x;
@@ -17,6 +18,7 @@ import io.kafbat.ui.screens.topics.enums.MaxSizeOnDisk;
 import io.kafbat.ui.screens.topics.enums.TimeToRetain;
 import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
+import org.openqa.selenium.Keys;
 
 public class TopicCreateEditForm extends BasePage {
 
@@ -29,11 +31,11 @@ public class TopicCreateEditForm extends BasePage {
   protected SelenideElement minInSyncReplicasField = $x("//input[@name='minInSyncReplicas']");
   protected SelenideElement cleanUpPolicyDdl = $x("//ul[@id='topicFormCleanupPolicy']");
   protected SelenideElement maxSizeOnDiscDdl = $x("//ul[@id='topicFormRetentionBytes']");
-  protected SelenideElement customParameterDdl = $x("//ul[contains(@name,'customParams')]");
-  protected SelenideElement deleteCustomParameterBtn = $x("//span[contains(@title,'Delete customParam')]");
-  protected SelenideElement addCustomParameterTypeBtn = $x("//button[contains(text(),'Add Custom Parameter')]");
-  protected SelenideElement customParameterValueField = $x("//input[@placeholder='Value']");
-  protected SelenideElement validationCustomParameterValueMsg = $x("//p[contains(text(),'Value is required')]");
+  protected SelenideElement customParameterDdl = $x("//input[contains(@name, 'customParams')][@role='listitem']");
+  protected SelenideElement deleteCustomParameterBtn = $x("//span[contains(@title, 'Delete customParam')]");
+  protected SelenideElement addCustomParameterTypeBtn = $x("//button[contains(text(), 'Add Custom Parameter')]");
+  protected SelenideElement customParameterValueField = $x("//label[text()='Value *']/..//input");
+  protected SelenideElement validationCustomParameterValueMsg = $x("//p[contains(text(), 'Value is required')]");
   protected String ddlElementLocator = "//li[@value='%s']";
   protected String btnTimeToRetainLocator = "//button[@class][text()='%s']";
   protected String customParamsElmCss = "ul[role=listbox][name^=customParams][name$=name]";
@@ -116,20 +118,27 @@ public class TopicCreateEditForm extends BasePage {
 
   @Step
   public TopicCreateEditForm clearCustomParameterValue() {
-    WebUtil.clearByKeyboard(customParameterValueField);
+    customParameterValueField.shouldBe(enabled).sendKeys(Keys.END);
+    String value = customParameterValueField.getValue();
+    int valueLength = value != null
+        ? value.length()
+        : 0;
+    for (int i = 0; i < valueLength; i++) {
+      customParameterValueField.sendKeys(Keys.BACK_SPACE);
+    }
     return this;
   }
 
   @Step
   public TopicCreateEditForm setNumberOfPartitions(int partitions) {
-    partitionsField.shouldBe(Condition.enabled).clear();
+    partitionsField.shouldBe(enabled).clear();
     partitionsField.sendKeys(String.valueOf(partitions));
     return this;
   }
 
   @Step
   public TopicCreateEditForm setTimeToRetainDataByButtons(TimeToRetain timeToRetain) {
-    $x(String.format(btnTimeToRetainLocator, timeToRetain.getButton())).shouldBe(Condition.enabled).click();
+    $x(String.format(btnTimeToRetainLocator, timeToRetain.getButton())).shouldBe(enabled).click();
     return this;
   }
 

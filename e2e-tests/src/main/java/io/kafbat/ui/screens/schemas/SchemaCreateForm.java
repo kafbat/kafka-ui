@@ -32,9 +32,9 @@ public class SchemaCreateForm extends BasePage {
   protected SelenideElement latestSchemaTextArea = $x("//div[@id='latestSchema']");
   protected SelenideElement leftVersionDdl = $(id("left-select"));
   protected SelenideElement rightVersionDdl = $(id("right-select"));
-  protected ElementsCollection visibleMarkers =
-      $$x("//div[@class='ace_scroller']//div[contains(@class,'codeMarker')]");
+  protected ElementsCollection visibleMarkers = $$x("//div[contains(@class,'codeMarker ace_start')]");
   protected ElementsCollection elementsCompareVersionDdl = $$x("//ul[@role='listbox']/ul/li");
+  protected String versionDdlElementLocator = "//ul/li[text()='Version %s']";
   protected String ddlElementLocator = "//li[@value='%s']";
 
   @Step
@@ -95,13 +95,14 @@ public class SchemaCreateForm extends BasePage {
 
   @Step
   public SchemaCreateForm selectVersionFromDropDown(int versionNumberDd) {
-    $x(String.format(ddlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
+    $x(String.format(versionDdlElementLocator, versionNumberDd)).shouldBe(Condition.visible).click();
+    waitUntilSpinnerDisappear(1);
     return this;
   }
 
   @Step
   public int getMarkedLinesNumber() {
-    return visibleMarkers.size();
+    return Math.toIntExact(visibleMarkers.asDynamicIterable().stream().count());
   }
 
   @Step

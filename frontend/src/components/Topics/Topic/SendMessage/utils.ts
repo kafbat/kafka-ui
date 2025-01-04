@@ -6,7 +6,6 @@ import {
 import jsf from 'json-schema-faker';
 import Ajv, { DefinedError } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
-import upperFirst from 'lodash/upperFirst';
 
 jsf.option('fillProperties', false);
 jsf.option('alwaysFakeOptionals', true);
@@ -52,6 +51,10 @@ export const getSerdeOptions = (items: SerdeDescription[]) => {
     return acc;
   }, []);
 };
+
+function upperFirst(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 export const validateBySchema = (
   value: string,

@@ -1,4 +1,3 @@
-import { isArray } from 'lodash';
 import { object, string, number, array, boolean, mixed, lazy } from 'yup';
 
 const requiredString = string().required('required field');
@@ -61,7 +60,7 @@ const kafkaConnectSchema = object({
 });
 
 const kafkaConnectsSchema = lazy((value) => {
-  if (isArray(value)) {
+  if (Array.isArray(value)) {
     return array().of(kafkaConnectSchema);
   }
   return mixed().optional();
@@ -122,6 +121,7 @@ const authPropsSchema = lazy((_, { parent }) => {
       return object({
         awsProfileName: string(),
       });
+    case 'SASL/Azure Entra':
     case 'mTLS':
     default:
       return mixed().optional();
@@ -143,6 +143,7 @@ const authSchema = lazy((value) => {
           'Delegation tokens',
           'SASL/LDAP',
           'SASL/AWS IAM',
+          'SASL/Azure Entra',
           'mTLS',
         ]),
       securityProtocol: string()
@@ -158,6 +159,7 @@ const authSchema = lazy((value) => {
               'SASL/SCRAM-512',
               'SASL/LDAP',
               'SASL/AWS IAM',
+              'SASL/Azure Entra',
             ].includes(v);
           },
           then: (schema) => schema.required('required field'),
