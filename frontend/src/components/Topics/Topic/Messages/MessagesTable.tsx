@@ -86,7 +86,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
             }
             return String(value ?? '');
           })
-          .join(','),
+          .join(',')
       );
       return [headers.join(','), ...rows].join('\n');
     };
@@ -94,11 +94,11 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 
   const jsonSaver = useDataSaver(
     `${baseFileName}.json`,
-    JSON.stringify(savedMessagesJson, null, '\t'),
+    JSON.stringify(savedMessagesJson, null, '\t')
   );
   const csvSaver = useDataSaver(
     `${baseFileName}.csv`,
-    convertToCSV(savedMessagesJson),
+    convertToCSV(savedMessagesJson)
   );
 
   const handleFormatSelect = (downloadFormat: DownloadFormat) => {
@@ -226,4 +226,3 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 };
 
 export default MessagesTable;
-
