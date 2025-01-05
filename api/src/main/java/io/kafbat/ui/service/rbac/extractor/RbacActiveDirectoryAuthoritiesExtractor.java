@@ -3,44 +3,42 @@ package io.kafbat.ui.service.rbac.extractor;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
-import java.util.Set;
+import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.ldap.userdetails.NestedLdapAuthoritiesPopulator;
+import org.springframework.security.ldap.authentication.ad.DefaultActiveDirectoryAuthoritiesPopulator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 @Slf4j
-public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator {
+public class RbacActiveDirectoryAuthoritiesExtractor implements LdapAuthoritiesPopulator {
 
+  private final DefaultActiveDirectoryAuthoritiesPopulator populator = new DefaultActiveDirectoryAuthoritiesPopulator();
   private final AccessControlService acs;
 
-  public RbacLdapAuthoritiesExtractor(ApplicationContext context,
-                                      BaseLdapPathContextSource contextSource,
-                                      String groupFilterSearchBase) {
-    super(contextSource, groupFilterSearchBase);
+  public RbacActiveDirectoryAuthoritiesExtractor(ApplicationContext context) {
     this.acs = context.getBean(AccessControlService.class);
   }
 
   @Override
-  protected Set<GrantedAuthority> getAdditionalRoles(DirContextOperations user, String username) {
-    var ldapGroups = super.getGroupMembershipRoles(user.getNameInNamespace(), username)
+  public Collection<? extends GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
+    var adGroups = populator.getGrantedAuthorities(userData, username)
         .stream()
         .map(GrantedAuthority::getAuthority)
-        .peek(group -> log.trace("Found LDAP group [{}] for user [{}]", group, username))
+        .peek(group -> log.trace("Found AD group [{}] for user [{}]", group, username))
         .collect(Collectors.toSet());
 
     return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
-            .filter(subject -> subject.getProvider().equals(Provider.LDAP))
+            .filter(subject -> subject.getProvider().equals(Provider.LDAP_AD))
             .anyMatch(subject -> switch (subject.getType()) {
               case "user" -> username.equalsIgnoreCase(subject.getValue());
-              case "group" -> ldapGroups.contains(subject.getValue());
+              case "group" ->  adGroups.contains(subject.getValue());
               default -> false;
             })
         )
