@@ -1,18 +1,18 @@
-import PageLoader from 'components/common/PageLoader/PageLoader';
-import { Table } from 'components/common/table/Table/Table.styled';
-import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { TopicMessage } from 'generated-sources';
-import React, { useState, useMemo } from 'react';
-import { format } from 'date-fns';
-import { Button } from 'components/common/Button/Button';
-import * as S from 'components/common/NewTable/Table.styled';
-import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
-import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
-import useDataSaver from 'lib/hooks/useDataSaver';
-import Select, { SelectOption } from 'components/common/Select/Select';
+import PageLoader from "components/common/PageLoader/PageLoader";
+import { Table } from "components/common/table/Table/Table.styled";
+import TableHeaderCell from "components/common/table/TableHeaderCell/TableHeaderCell";
+import { TopicMessage } from "generated-sources";
+import React, { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { Button } from "components/common/Button/Button";
+import * as S from "components/common/NewTable/Table.styled";
+import { usePaginateTopics, useIsLiveMode } from "lib/hooks/useMessagesFilters";
+import { useMessageFiltersStore } from "lib/hooks/useMessageFiltersStore";
+import useDataSaver from "lib/hooks/useDataSaver";
+import Select, { SelectOption } from "components/common/Select/Select";
 
-import PreviewModal from './PreviewModal';
-import Message, { PreviewFilter } from './Message';
+import PreviewModal from "./PreviewModal";
+import Message, { PreviewFilter } from "./Message";
 
 export interface MessagesTableProps {
   messages: TopicMessage[];
@@ -24,19 +24,18 @@ interface MessageData {
   Offset: number;
   Key: string | undefined;
   Partition: number;
-  Headers: { [key: string]: string | undefined; } | undefined;
+  Headers: { [key: string]: string | undefined } | undefined;
   Timestamp: Date;
 }
 
-type DownloadFormat = 'json' | 'csv';
+type DownloadFormat = "json" | "csv";
 
 function padCurrentDateTimeString(): string {
   const now: Date = new Date();
-  const dateTimeString:string = format(now, 'yyyy-MM-dd HH:mm:ss');
+  const dateTimeString: string = format(now, "yyyy-MM-dd HH:mm:ss");
 
   return `_${dateTimeString}`;
 }
-
 
 const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
@@ -50,16 +49,16 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   const nextCursor = useMessageFiltersStore((state) => state.nextCursor);
   const isLive = useIsLiveMode();
 
-  const [selectedFormat, setSelectedFormat] = useState<DownloadFormat>('json');
+  const [selectedFormat, setSelectedFormat] = useState<DownloadFormat>("json");
 
   const formatOptions: SelectOption<DownloadFormat>[] = [
-    { label: 'JSON', value: 'json' },
-    { label: 'CSV', value: 'csv' }
+    { label: "JSON", value: "json" },
+    { label: "CSV", value: "csv" },
   ];
 
   const baseFileName = `topic-messages${padCurrentDateTimeString()}`;
 
-  const savedMessagesJson: MessageData[] = messages.map(message => ({
+  const savedMessagesJson: MessageData[] = messages.map((message) => ({
     Value: message.content,
     Offset: message.offset,
     Key: message.key,
@@ -70,30 +69,44 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 
   const convertToCSV = useMemo(() => {
     return (messagesData: MessageData[]) => {
-      const headers = ['Value', 'Offset', 'Key', 'Partition', 'Headers', 'Timestamp'] as const;
-      const rows = messagesData.map(msg =>
-        headers.map(header => {
-          const value = msg[header];
-          if (header === 'Headers') {
-            return JSON.stringify(value || {});
-          }
-          return String(value ?? '');
-        }).join(',')
+      const headers = [
+        "Value",
+        "Offset",
+        "Key",
+        "Partition",
+        "Headers",
+        "Timestamp",
+      ] as const;
+      const rows = messagesData.map((msg) =>
+        headers
+          .map((header) => {
+            const value = msg[header];
+            if (header === "Headers") {
+              return JSON.stringify(value || {});
+            }
+            return String(value ?? "");
+          })
+          .join(","),
       );
-      return [headers.join(','), ...rows].join('\n');
+      return [headers.join(","), ...rows].join("\n");
     };
   }, []);
 
-  const jsonSaver = useDataSaver(`${baseFileName}.json`, JSON.stringify(savedMessagesJson, null, '\t'));
-  const csvSaver = useDataSaver(`${baseFileName}.csv`, convertToCSV(savedMessagesJson));
-
+  const jsonSaver = useDataSaver(
+    `${baseFileName}.json`,
+    JSON.stringify(savedMessagesJson, null, "\t"),
+  );
+  const csvSaver = useDataSaver(
+    `${baseFileName}.csv`,
+    convertToCSV(savedMessagesJson),
+  );
 
   const handleFormatSelect = (downloadFormat: DownloadFormat) => {
     setSelectedFormat(downloadFormat);
   };
 
   const handleDownload = () => {
-    if (selectedFormat === 'json') {
+    if (selectedFormat === "json") {
       jsonSaver.saveFile();
     } else {
       csvSaver.saveFile();
@@ -101,16 +114,23 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', gap: '8px', marginLeft: '1rem', marginBottom: '1rem' }}>
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          marginLeft: "1rem",
+          marginBottom: "1rem",
+        }}
+      >
         <Select<DownloadFormat>
           id="download-format"
           name="download-format"
           onChange={handleFormatSelect}
           options={formatOptions}
           value={selectedFormat}
-	  minWidth="70px"
-	  selectSize="M"
+          minWidth="70px"
+          selectSize="M"
           placeholder="Select format to download"
           disabled={isFetching || messages.length === 0}
         />
@@ -126,10 +146,10 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 
       {previewFor !== null && (
         <PreviewModal
-          values={previewFor === 'key' ? keyFilters : contentFilters}
+          values={previewFor === "key" ? keyFilters : contentFilters}
           toggleIsOpen={() => setPreviewFor(null)}
           setFilters={(payload: PreviewFilter[]) =>
-            previewFor === 'key'
+            previewFor === "key"
               ? setKeyFilters(payload)
               : setContentFilters(payload)
           }
@@ -145,18 +165,18 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
             <TableHeaderCell
               title="Key"
               previewText={`Preview ${
-                keyFilters.length ? `(${keyFilters.length} selected)` : ''
+                keyFilters.length ? `(${keyFilters.length} selected)` : ""
               }`}
-              onPreview={() => setPreviewFor('key')}
+              onPreview={() => setPreviewFor("key")}
             />
             <TableHeaderCell
               title="Value"
               previewText={`Preview ${
                 contentFilters.length
                   ? `(${contentFilters.length} selected)`
-                  : ''
+                  : ""
               }`}
-              onPreview={() => setPreviewFor('content')}
+              onPreview={() => setPreviewFor("content")}
             />
             <TableHeaderCell> </TableHeaderCell>
           </tr>
@@ -169,7 +189,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
                 message.timestamp,
                 message.key,
                 message.partition,
-              ].join('-')}
+              ].join("-")}
               message={message}
               keyFilters={keyFilters}
               contentFilters={contentFilters}
@@ -206,3 +226,4 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 };
 
 export default MessagesTable;
+
