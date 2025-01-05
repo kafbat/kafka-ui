@@ -2,7 +2,8 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
 import { TopicMessage } from 'generated-sources';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
 import { usePaginateTopics, useIsLiveMode } from 'lib/hooks/useMessagesFilters';
@@ -31,15 +32,7 @@ type DownloadFormat = 'json' | 'csv';
 
 function padCurrentDateTimeString(): string {
   const now: Date = new Date();
-
-  const year: string = now.getFullYear().toString();
-  const month: string = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day: string = now.getDate().toString().padStart(2, '0');
-  const hours: string = now.getHours().toString().padStart(2, '0');
-  const minutes: string = now.getMinutes().toString().padStart(2, '0');
-  const seconds: string = now.getSeconds().toString().padStart(2, '0');
-
-  const dateTimeString: string = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+  const dateTimeString:string = format(now, 'yyyy-MM-dd HH:mm:ss');
 
   return `_${dateTimeString}`;
 }
@@ -64,11 +57,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
     { label: 'CSV', value: 'csv' }
   ];
 
-  const handleFormatSelect = (format: DownloadFormat) => {
-    setSelectedFormat(format);
-  };
-
-  const handleDownload = () => {
+  const baseFileName = `topic-messages${padCurrentDateTimeString()}`;
 
   const savedMessagesJson: MessageData[] = messages.map(message => ({
     Value: message.content,
@@ -79,26 +68,31 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
     Timestamp: message.timestamp,
   }));
 
-  const convertToCSV = (messages: MessageData[]) => {
-    const headers = ['Value', 'Offset', 'Key', 'Partition', 'Headers', 'Timestamp'] as const;
+  const convertToCSV = useMemo(() => {
+    return (messagesData: MessageData[]) => {
+      const headers = ['Value', 'Offset', 'Key', 'Partition', 'Headers', 'Timestamp'] as const;
+      const rows = messagesData.map(msg =>
+        headers.map(header => {
+          const value = msg[header];
+          if (header === 'Headers') {
+            return JSON.stringify(value || {});
+          }
+          return String(value ?? '');
+        }).join(',')
+      );
+      return [headers.join(','), ...rows].join('\n');
+    };
+  }, []);
 
-    const rows = messages.map(msg =>
-      headers.map(header => {
-        const value = msg[header];
-        if (header === 'Headers') {
-          return JSON.stringify(value || {});
-        }
-        return String(value ?? '');
-      }).join(',')
-    );
+  const jsonSaver = useDataSaver(`${baseFileName}.json`, JSON.stringify(savedMessagesJson, null, '\t'));
+  const csvSaver = useDataSaver(`${baseFileName}.csv`, convertToCSV(savedMessagesJson));
 
-    return [headers.join(','), ...rows].join('\n');
+
+  const handleFormatSelect = (format: DownloadFormat) => {
+    setSelectedFormat(format);
   };
 
-    const baseFileName = 'topic-messages'+padCurrentDateTimeString();
-    const jsonSaver = useDataSaver(`${baseFileName}.json`, JSON.stringify(savedMessagesJson, null, '\t'));
-    const csvSaver = useDataSaver(`${baseFileName}.csv`, convertToCSV(savedMessagesJson));
-
+  const handleDownload = () => {
     if (selectedFormat === 'json') {
       jsonSaver.saveFile();
     } else {
@@ -126,7 +120,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
           buttonSize="M"
           onClick={handleDownload}
         >
-          Download All Messages
+          Download Current Messages
         </Button>
       </div>
 
