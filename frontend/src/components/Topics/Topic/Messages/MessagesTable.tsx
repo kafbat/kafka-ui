@@ -88,8 +88,8 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   const csvSaver = useDataSaver(`${baseFileName}.csv`, convertToCSV(savedMessagesJson));
 
 
-  const handleFormatSelect = (format: DownloadFormat) => {
-    setSelectedFormat(format);
+  const handleFormatSelect = (downloadFormat: DownloadFormat) => {
+    setSelectedFormat(downloadFormat);
   };
 
   const handleDownload = () => {
