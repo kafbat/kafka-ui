@@ -32,7 +32,7 @@ const Search: React.FC<SearchProps> = ({
   const ref = useRef<ComponentRef<'input'>>(null);
 
   useEffect(() => {
-    if (ref.current != null && value) {
+    if (ref.current !== null && value) {
       ref.current.value = value;
     }
   }, [value]);
