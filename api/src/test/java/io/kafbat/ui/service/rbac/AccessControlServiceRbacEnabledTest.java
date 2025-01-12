@@ -9,6 +9,7 @@ import static io.kafbat.ui.service.rbac.MockedRbacUtils.PROD_CLUSTER;
 import static io.kafbat.ui.service.rbac.MockedRbacUtils.SCHEMA_NAME;
 import static io.kafbat.ui.service.rbac.MockedRbacUtils.TOPIC_NAME;
 import static io.kafbat.ui.service.rbac.MockedRbacUtils.getAccessContext;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -38,6 +40,7 @@ import reactor.test.StepVerifier;
 /**
  * Test cases for AccessControlService when RBAC is enabled.
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
 
   @Autowired
@@ -147,8 +150,6 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   void filterViewableTopics() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
-      ClusterDTO clusterDto = new ClusterDTO();
-      clusterDto.setName(DEV_CLUSTER);
       List<InternalTopic> topics = List.of(
           InternalTopic.builder()
               .name(TOPIC_NAME)
@@ -166,8 +167,6 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   void filterViewableTopics_notAccessibleTopic() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
-      ClusterDTO clusterDto = new ClusterDTO();
-      clusterDto.setName(DEV_CLUSTER);
       List<InternalTopic> topics = List.of(
           InternalTopic.builder()
               .name("some other topic")
@@ -289,6 +288,14 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
           .expectComplete()
           .verify();
     });
+  }
+
+  @Test
+  void getRoles() {
+    List<Role> roles = accessControlService.getRoles();
+    assertThat(roles).hasSize(2)
+        .anyMatch(role -> role.getName().equals(DEV_ROLE))
+        .anyMatch(role -> role.getName().equals(ADMIN_ROLE));
   }
 
 }

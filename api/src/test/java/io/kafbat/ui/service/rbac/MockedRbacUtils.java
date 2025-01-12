@@ -48,7 +48,7 @@ public class MockedRbacUtils {
   }
 
   /**
-   * View actions to topic, consumer, schema and connect
+   * View actions to topic, consumer, schema and connect.
    *
    * @return admin role
    */
