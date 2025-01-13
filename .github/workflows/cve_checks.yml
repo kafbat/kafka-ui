@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+
+  check-cves:
     runs-on: ubuntu-latest
 
     steps:
@@ -62,8 +63,17 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run CVE checks
-        uses: aquasecurity/trivy-action@0.19.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: "ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}"
           format: "table"
           exit-code: "1"
+
+  notify:
+    needs: check-cves
+    if: ${{ always() && needs.build-and-test.result == 'failure' }}
+    uses: ./.github/workflows/infra_discord_hook.yml
+    with:
+      message: "Attention! CVE checks run failed! Please fix them CVEs :("
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL_CVE }}
