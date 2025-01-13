@@ -80,14 +80,12 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
     final Map<String, FieldSchema> fields = schema.getTypes().stream()
         .filter(t -> !t.getType().equals(Schema.Type.NULL))
         .map(f -> {
-          String oneOfFieldName;
-          if (f.getType().equals(Schema.Type.RECORD)) {
-            // for records using full record name
-            oneOfFieldName = f.getFullName();
-          } else {
+          String oneOfFieldName = switch (f.getType()) {
+            case RECORD -> f.getFullName();
+            case ENUM -> f.getName();
             // for primitive types - using type name
-            oneOfFieldName = f.getType().getName().toLowerCase();
-          }
+            default -> f.getType().getName().toLowerCase();
+          };
           return Tuples.of(oneOfFieldName, convertSchema(f, definitions, false));
         }).collect(Collectors.toMap(
             Tuple2::getT1,
