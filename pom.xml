@@ -59,7 +59,7 @@
 
         <!-- Frontend dependency versions -->
         <node.version>v18.17.1</node.version>
-        <pnpm.version>v9.15.0</pnpm.version>
+        <pnpm.version>v9.15.4</pnpm.version>
 
         <!-- Plugin versions -->
         <fabric8-maven-plugin.version>0.45.1</fabric8-maven-plugin.version>
