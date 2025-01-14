@@ -50,7 +50,10 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
+            <!-- ccs stands for Confluent Community Edition
+             See https://www.confluent.io/confluent-community-license-faq/
+             -->
+            <version>${confluent.version}-ccs</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

@@ -9,10 +9,13 @@ import io.kafbat.ui.screens.BasePage;
 import io.qameta.allure.Step;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class TopicSettingsTab extends BasePage {
 
   protected SelenideElement defaultValueColumnHeaderLocator = $x("//div[text() = 'Default Value']");
+  protected SelenideElement nextButton = $x("//button[contains(text(), 'Next')]");
+  protected SelenideElement previousButton = $x("//button[contains(text(), 'Previous')]");
 
   @Step
   public TopicSettingsTab waitUntilScreenReady() {
@@ -36,7 +39,25 @@ public class TopicSettingsTab extends BasePage {
 
   @Step
   public String getValueByKey(String key) {
-    return getItemByKey(key).getValue();
+    while (true) {
+      try {
+        String value = getItemByKey(key).getValue();
+        resetPageNavigation();
+        return value;
+      } catch (NoSuchElementException e) {
+        if (nextButton.isEnabled()) {
+          nextButton.click();
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
+  private void resetPageNavigation() {
+    while (previousButton.isEnabled()) {
+      previousButton.click();
+    }
   }
 
   public static class SettingsGridItem extends BasePage {
