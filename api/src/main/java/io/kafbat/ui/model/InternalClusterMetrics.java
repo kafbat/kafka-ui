@@ -1,14 +1,11 @@
 package io.kafbat.ui.model;
 
-import io.kafbat.ui.model.MetricDTO;
-import io.kafbat.ui.model.ServerStatusDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
-
 
 @Data
 @Builder(toBuilder = true)

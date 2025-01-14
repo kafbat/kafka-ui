@@ -1,9 +1,6 @@
 package io.kafbat.ui.model;
 
 import com.google.common.base.Throwables;
-import io.kafbat.ui.model.BrokerDiskUsageDTO;
-import io.kafbat.ui.model.MetricsCollectionErrorDTO;
-import io.kafbat.ui.model.ServerStatusDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;

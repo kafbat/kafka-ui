@@ -7,7 +7,6 @@ import java.util.Optional;
 import lombok.Value;
 import org.apache.kafka.common.TopicPartition;
 
-
 public class InternalPartitionsOffsets {
 
   @Value
