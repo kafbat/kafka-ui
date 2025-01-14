@@ -1,6 +1,5 @@
 package io.kafbat.ui.model;
 
-import io.kafbat.ui.config.ClustersProperties;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +14,6 @@ import org.apache.kafka.common.TopicPartition;
 @Data
 @Builder(toBuilder = true)
 public class InternalTopic {
-
-  ClustersProperties clustersProperties;
 
   // from TopicDescription
   private final String name;
