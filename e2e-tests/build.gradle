@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'checkstyle'
-    id 'io.qameta.allure' version '2.10.0'
+    alias(libs.plugins.allure)
 }
 
 ext {
@@ -31,7 +31,7 @@ dependencies {
 
 checkstyle {
     toolVersion '10.3.1'
-    configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
+    configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
     ignoreFailures = false
     maxWarnings = 10
     maxErrors = 0

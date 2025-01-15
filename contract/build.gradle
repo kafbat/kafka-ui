@@ -2,7 +2,7 @@ import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
     id "java-library"
-    id 'org.openapi.generator' version '7.9.0'
+    alias(libs.plugins.openapi.generator)
 }
 
 

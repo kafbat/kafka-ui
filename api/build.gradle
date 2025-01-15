@@ -2,15 +2,16 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
-    id 'org.springframework.boot' version '3.4.1'
-    id 'com.gorylenko.gradle-git-properties' version "2.4.2"
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.git.properties)
 }
 
 dependencies {
     implementation project(":contract")
-    implementation project(":frontend")
+    if (prod) {
+        implementation project(":frontend")
+    }
     implementation project(":serde-api")
-
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.security
     implementation libs.spring.starter.actuator
@@ -104,7 +105,7 @@ tasks.withType(Checkstyle) {
 
 checkstyle {
     toolVersion '10.3.1'
-    configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
+    configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
     ignoreFailures = false
     maxWarnings = 0
     maxErrors = 0
