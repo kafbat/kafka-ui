@@ -80,7 +80,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "oauth2.ldap.activeDirectory", havingValue = "false")
+  @ConditionalOnProperty(value = "oauth2.ldap.activeDirectory", havingValue = "false", matchIfMissing = true)
   public BindAuthenticator ldapBindAuthentication(LdapContextSource ldapContextSource) {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
 
