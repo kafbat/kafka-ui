@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+    id 'io.qameta.allure' version '2.10.0'
+}
+
+ext {
+    kafkaVersion = "3.8.0"
+    aspectjVersion = "1.9.21"
+    allureVersion = "2.27.0"
+}
+
+dependencies {
+    implementation project(":contract")
+    implementation "org.apache.kafka:kafka_2.13:${kafkaVersion}"
+    implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+    implementation "commons-io:commons-io:2.16.1"
+    implementation "org.testng:testng:7.10.0"
+    implementation "com.codeborne:selenide:7.2.3"
+    implementation "io.qameta.allure:allure-testng:${allureVersion}"
+    implementation "io.qameta.allure:allure-selenide:${allureVersion}"
+    implementation "io.github.bonigarcia:webdrivermanager:5.8.0"
+    implementation libs.spring.starter.webflux
+    implementation "io.netty:netty-resolver-dns-native-macos:4.1.116.Final"
+
+    implementation libs.lombok
+
+    annotationProcessor libs.lombok
+    testAnnotationProcessor libs.lombok
+}
+
+checkstyle {
+    toolVersion '10.3.1'
+    configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
+    ignoreFailures = false
+    maxWarnings = 10
+    maxErrors = 0
+}
+
+
+test {
+    useTestNG()
+}
+
+tasks.named('test') {
+    enabled = prod
+}
+

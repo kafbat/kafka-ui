@@ -42,3 +42,6 @@ build/
 *.tgz
 
 /docker/*.override.yaml
+out/
+node_modules/
+.gradle

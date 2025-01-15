@@ -1,0 +1,115 @@
+
+plugins {
+    id 'antlr'
+    id 'checkstyle'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'com.gorylenko.gradle-git-properties' version "2.4.2"
+}
+
+dependencies {
+    implementation project(":contract")
+    implementation project(":frontend")
+    implementation project(":serde-api")
+
+    implementation libs.spring.starter.webflux
+    implementation libs.spring.starter.security
+    implementation libs.spring.starter.actuator
+    implementation libs.spring.starter.logging
+    implementation libs.spring.starter.oauth2.client
+    implementation libs.spring.boot.actuator
+    compileOnly libs.spring.boot.devtools
+
+    implementation libs.spring.security.ldap
+
+    implementation libs.kafka.clients
+
+    implementation libs.apache.avro
+    implementation libs.apache.commons
+    implementation libs.apache.commons.pool2
+    implementation libs.apache.datasketches
+
+    implementation libs.confluent.schema.registry.client
+    implementation libs.confluent.avro.serializer
+    implementation libs.confluent.protobuf.serializer
+    implementation libs.confluent.json.schema.serializer
+
+    implementation libs.aws.msk.auth
+    implementation (libs.azure.identity) {
+        exclude group: 'io.netty', module: 'netty-tcnative-boringssl-static'
+    }
+
+    implementation libs.jackson.databind.nullable
+    implementation libs.cel
+    antlr libs.antlr
+    implementation libs.antlr.runtime
+
+    implementation libs.opendatadiscovery.oddrn
+    implementation (libs.opendatadiscovery.client) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
+        exclude group: 'io.projectreactor', module: 'reactor-core'
+        exclude group: 'io.projectreactor.ipc', module: 'reactor-netty'
+    }
+
+    runtimeOnly libs.micrometer.registry.prometheus
+
+    // CVE Fixes
+    implementation libs.apache.commons.compress
+    implementation libs.okhttp3.logging.intercepter
+
+    // Annotation processors
+    implementation libs.lombok
+    implementation libs.mapstruct
+    annotationProcessor libs.lombok
+    annotationProcessor libs.mapstruct.processor
+    annotationProcessor libs.spring.boot.configuration.processor
+    testAnnotationProcessor libs.lombok
+    testAnnotationProcessor libs.mapstruct.processor
+
+    // Tests
+    testImplementation libs.spring.starter.test
+    testImplementation libs.reactor.test
+    testImplementation libs.testcontainers
+    testImplementation libs.testcontainers.kafka
+    testImplementation libs.testcontainers.jupiter
+    testImplementation libs.junit.jupiter.engine
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.jupiter
+    testImplementation libs.bytebuddy
+    testImplementation libs.assertj
+    testImplementation libs.jsonschemavalidator
+
+    testImplementation libs.okhttp3
+    testImplementation libs.okhttp3.mockwebserver
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-package", "ksql"]
+}
+
+sourceSets {
+    main {
+        antlr {
+            srcDirs = ["src/main/antlr4"]
+        }
+        java {
+            srcDirs += generateGrammarSource.outputDirectory
+        }
+    }
+}
+
+tasks.withType(Checkstyle) {
+    exclude '**/ksql/**'
+}
+
+checkstyle {
+    toolVersion '10.3.1'
+    configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
+    ignoreFailures = false
+    maxWarnings = 0
+    maxErrors = 0
+}
+
+test {
+    useJUnitPlatform()
+}

@@ -440,10 +440,10 @@
                                     <goal>copy-resources</goal>
                                 </goals>
                                 <configuration>
-                                    <outputDirectory>${basedir}/target/classes/static</outputDirectory>
+                                    <outputDirectory>${basedir}/target/classes/</outputDirectory>
                                     <resources>
                                         <resource>
-                                            <directory>../frontend/build</directory>
+                                            <directory>../frontend/build/vite/static</directory>
                                         </resource>
                                     </resources>
                                 </configuration>
