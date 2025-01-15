@@ -4,6 +4,7 @@ plugins {
     id 'checkstyle'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
+    alias(libs.plugins.jib)
 }
 
 dependencies {
@@ -113,4 +114,17 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+}
+
+jib {
+    from {
+        image = 'azul/zulu-openjdk-alpine:21.0.5-jre-headless'
+    }
+    to {
+        image = 'ghcr.io/kafbat/kafka-ui'
+    }
+    container {
+        user = "kafkaui"
+        jvmFlags = ['--add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED']
+    }
 }

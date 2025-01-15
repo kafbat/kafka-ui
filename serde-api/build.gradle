@@ -2,7 +2,6 @@ plugins {
     id 'java-library'
     id 'signing'
     id 'maven-publish'
-    alias(libs.plugins.nexus.publish.plugin)
 }
 
 tasks.register('sourceJar', Jar) {
@@ -19,14 +18,14 @@ artifacts {
     archives sourceJar, javadocJar
 }
 
-if (env == 'prod') {
+if (prod) {
     signing {
         sign(publishing.publications)
     }
 }
 
 publishing {
-    if (env == 'prod') {
+    if (prod) {
         repositories {
             maven {
                 url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
@@ -80,20 +79,6 @@ publishing {
                     developerConnection = 'scm:git:ssh://github.com:kafbat/kafka-ui.git'
                     url = 'https://github.com/kafbat/kafka-ui'
                 }
-            }
-        }
-    }
-}
-
-if (prod) {
-    nexusPublishing {
-        repositories {
-            sonatype {
-                nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
-                snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-
-                username = sonatypeUsername
-                password = sonatypePassword
             }
         }
     }
