@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 
-
 @Data
 @Builder
 public class InternalTopicConfig {
