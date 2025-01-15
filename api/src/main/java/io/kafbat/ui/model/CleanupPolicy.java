@@ -20,18 +20,10 @@ public enum CleanupPolicy {
     this.policies = policies;
   }
 
-  public String getPolicy() {
-    return policies.get(0);
-  }
-
   public static CleanupPolicy fromString(String string) {
     return Arrays.stream(CleanupPolicy.values())
-        .filter(v ->
-            v.policies.stream().anyMatch(
-                s -> s.equals(string.replace(" ", "")
-                )
-            )
-        ).findFirst()
+        .filter(v -> v.policies.stream().anyMatch(s -> s.equals(string.replace(" ", ""))))
+        .findFirst()
         .orElse(UNKNOWN);
   }
 }

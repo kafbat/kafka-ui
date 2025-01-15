@@ -1,6 +1,5 @@
 package io.kafbat.ui.model;
 
-
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -17,13 +16,13 @@ public class InternalBrokerConfig {
   private final List<ConfigEntry.ConfigSynonym> synonyms;
 
   public static InternalBrokerConfig from(ConfigEntry configEntry, boolean readOnlyCluster) {
-    InternalBrokerConfig.InternalBrokerConfigBuilder builder = InternalBrokerConfig.builder()
+    return InternalBrokerConfig.builder()
         .name(configEntry.name())
         .value(configEntry.value())
         .source(configEntry.source())
         .isReadOnly(readOnlyCluster || configEntry.isReadOnly())
         .isSensitive(configEntry.isSensitive())
-        .synonyms(configEntry.synonyms());
-    return builder.build();
+        .synonyms(configEntry.synonyms())
+        .build();
   }
 }
