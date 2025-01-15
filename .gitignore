@@ -43,3 +43,6 @@ build/
 
 /docker/*.override.yaml
 /e2e-tests/allure-results/
+out/
+node_modules/
+.gradle
