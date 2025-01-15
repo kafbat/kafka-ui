@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
       port: 3000,
     },
     build: {
-      outDir: 'build/vite/static',
+      outDir: 'build',
       rollupOptions: {
         output: {
           manualChunks(id: string) {
@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => {
     ...defaultConfig.server,
     open: true,
     proxy: {
-      '/auth': {
+      '/login': {
         target: isProxy,
         changeOrigin: true,
         secure: false,

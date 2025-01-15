@@ -16,5 +16,5 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-test:
     uses: ./.github/workflows/frontend_tests.yml

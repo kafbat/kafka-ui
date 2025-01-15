@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2Clien
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -53,7 +52,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   public SecurityWebFilterChain configure(ServerHttpSecurity http, OAuthLogoutSuccessHandler logoutHandler) {
     log.info("Configuring OAUTH2 authentication.");
 
-    ServerHttpSecurity builder = http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
@@ -64,9 +63,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
 
-    builder.addFilterAt(new StaticFileWebFilter(
-        "/login", new ClassPathResource("/static/index.html")
-    ), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+    builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
   }
