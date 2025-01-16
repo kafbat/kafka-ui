@@ -1,6 +1,7 @@
 package io.kafbat.ui.model.rbac;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 import lombok.Data;
 
@@ -13,9 +14,11 @@ public class Role {
   List<Permission> permissions;
 
   public void validate() {
-    Preconditions.checkArgument(!clusters.isEmpty(), "Role clusters cannot be empty");
+    checkArgument(!clusters.isEmpty(), "Role clusters cannot be empty");
+    checkArgument(!subjects.isEmpty(), "Role subjects cannot be empty");
     permissions.forEach(Permission::transform);
     permissions.forEach(Permission::validate);
+    subjects.forEach(Subject::validate);
   }
 
 }
