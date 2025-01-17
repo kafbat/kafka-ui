@@ -4,8 +4,9 @@ spring-boot = '3.4.1'
 aws-msk-auth = '2.2.0'
 azure-identity = '1.14.2'
 
-apache-commons = '2.12.0'
+apache-commons-lang3 = '3.12.0'
 apache-commons-io = '2.16.1'
+apache-commons-pool2 = '2.12.0'
 apache-datasketches = '3.1.0'
 apache-commons-compress = '1.26.0'
 
@@ -13,6 +14,7 @@ assertj = '3.25.3'
 avro = '1.11.4'
 byte-buddy = '1.14.19'
 confluent = '7.8.0'
+confluent-ccs = '7.8.0-ccs'
 
 mapstruct = '1.6.2'
 lombok = '1.18.34'
@@ -38,6 +40,7 @@ aspectj = '1.9.21'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version = '3.4.1' }
+spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.3' }
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
 openapi-generator = { id = 'org.openapi.generator', version = '7.9.0' }
 allure = { id = 'io.qameta.allure', version='2.10.0' }
@@ -66,15 +69,15 @@ mapstruct = {module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct'}
 mapstruct-processor = {module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct'}
 jakarta-annotation-api = {module = 'jakarta.annotation:jakarta.annotation-api', version.ref = 'jakarta-annotation-api'}
 jackson-databind-nullable = {module = 'org.openapitools:jackson-databind-nullable', version.ref = 'jackson-databind-nullable'}
-kafka-clients = { module = 'org.apache.kafka:kafka-clients', version = "${versions.confluent}-ccs"}
+kafka-clients = { module = 'org.apache.kafka:kafka-clients', version.ref = 'confluent-ccs'}
 
-apache-commons = { module = 'org.apache.commons:commons-lang3', version.ref = 'apache-commons'}
+apache-commons = { module = 'org.apache.commons:commons-lang3', version.ref = 'apache-commons-lang3'}
 apache-commons-compress = { module = 'org.apache.commons:commons-compress', version.ref = 'apache-commons-compress'}
 apache-commons-io = { module = 'commons-io:commons-io', version.ref = 'apache-commons-io'}
-apache-commons-pool2 = { module = 'org.apache.commons:commons-pool2', version.ref = 'apache-commons'}
+apache-commons-pool2 = { module = 'org.apache.commons:commons-pool2', version.ref = 'apache-commons-pool2'}
 apache-datasketches = { module = 'org.apache.datasketches:datasketches-java', version.ref='apache-datasketches'}
 apache-avro = { module = 'org.apache.avro:avro', version.ref = 'avro'}
-apache-kafka = { module = 'org.apache.kafka:kafka_2.13', version = "${versions.confluent}-ccs"}
+apache-kafka = { module = 'org.apache.kafka:kafka_2.13', version.ref = 'confluent-ccs'}
 
 confluent-schema-registry-client = { module = 'io.confluent:kafka-schema-registry-client', version.ref = 'confluent'}
 confluent-avro-serializer = { module = 'io.confluent:kafka-avro-serializer', version.ref = 'confluent'}

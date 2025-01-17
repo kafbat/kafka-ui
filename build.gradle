@@ -31,7 +31,7 @@ ext {
     prod = resolveBooleanProperty("prod")
 }
 
-if (prod) {
+if (prod) { // TODO shouldn't be prod, 'publish' instead?
     nexusPublishing {
         repositories {
             sonatype {

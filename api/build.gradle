@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
+    alias(libs.plugins.spring.dependency.management)
 }
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
@@ -127,4 +128,6 @@ tasks.register('buildDockerImage', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
-tasks.build.finalizedBy buildDockerImage
+if (prod) {
+    tasks.build.finalizedBy buildDockerImage
+}
