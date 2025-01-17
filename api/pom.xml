@@ -509,7 +509,7 @@
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
-                                            <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                                            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
                                         </args>
                                     </build>
                                 </image>

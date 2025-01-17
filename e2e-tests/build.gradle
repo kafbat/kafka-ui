@@ -4,24 +4,18 @@ plugins {
     alias(libs.plugins.allure)
 }
 
-ext {
-    kafkaVersion = "3.8.0"
-    aspectjVersion = "1.9.21"
-    allureVersion = "2.27.0"
-}
-
 dependencies {
     implementation project(":contract")
-    implementation "org.apache.kafka:kafka_2.13:${kafkaVersion}"
-    implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
-    implementation "commons-io:commons-io:2.16.1"
-    implementation "org.testng:testng:7.10.0"
-    implementation "com.codeborne:selenide:7.2.3"
-    implementation "io.qameta.allure:allure-testng:${allureVersion}"
-    implementation "io.qameta.allure:allure-selenide:${allureVersion}"
-    implementation "io.github.bonigarcia:webdrivermanager:5.8.0"
+    implementation libs.apache.kafka
+    implementation libs.apache.commons.io
+    implementation libs.aspectj
+    implementation libs.testng
+    implementation libs.codeborne.selenide
+    implementation libs.allure.testng
+    implementation libs.allure.selenide
+    implementation libs.bonigarcia.webdrivermanager
     implementation libs.spring.starter.webflux
-    implementation "io.netty:netty-resolver-dns-native-macos:4.1.116.Final"
+    implementation libs.netty.resolver.dns.native
 
     implementation libs.lombok
 
@@ -30,7 +24,7 @@ dependencies {
 }
 
 checkstyle {
-    toolVersion '10.3.1'
+    toolVersion = libs.versions.checkstyle.get()
     configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
     ignoreFailures = false
     maxWarnings = 10
