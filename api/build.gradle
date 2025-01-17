@@ -4,8 +4,10 @@ plugins {
     id 'checkstyle'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
-    alias(libs.plugins.jib)
+    alias(libs.plugins.docker.remote.api)
 }
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
     implementation project(":contract")
@@ -105,7 +107,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyle {
-    toolVersion '10.3.1'
+    toolVersion = libs.versions.checkstyle.get()
     configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
     ignoreFailures = false
     maxWarnings = 0
@@ -116,15 +118,13 @@ test {
     useJUnitPlatform()
 }
 
-jib {
-    from {
-        image = 'azul/zulu-openjdk-alpine:21.0.5-jre-headless'
-    }
-    to {
-        image = 'ghcr.io/kafbat/kafka-ui'
-    }
-    container {
-        user = "kafkaui"
-        jvmFlags = ['--add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED']
-    }
+tasks.register('buildDockerImage', DockerBuildImage) {
+    inputDir = projectDir
+    dockerFile = project.layout.projectDirectory.file('Dockerfile')
+    buildArgs = [
+       'JAR_FILE': "build/libs/${project.name}-${project.version}.jar"
+    ]
+    images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
+
+tasks.build.finalizedBy buildDockerImage

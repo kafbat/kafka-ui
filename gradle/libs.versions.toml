@@ -7,6 +7,7 @@ aws-msk-auth = '2.2.0'
 azure-identity = '1.14.2'
 
 apache-commons = '2.12.0'
+apache-commons-io = '2.16.1'
 apache-datasketches = '3.1.0'
 apache-commons-compress = '1.26.0'
 
@@ -37,6 +38,14 @@ project-reactor = '3.6.12'
 micrometer = '1.13.8'
 antlr = '4.12.0'
 json-schema-validator = '2.2.14'
+checkstyle = '10.3.1'
+allure = '2.27.0'
+codeborne-selenide = '7.2.3'
+testng = '7.10.0'
+bonigarcia-webdrivermanager = '5.8.0'
+aspectj = '1.9.21'
+kafka = '3.8.0'
+netty-resolver-dns-native = '4.1.116.Final'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version = '3.4.1' }
@@ -46,6 +55,8 @@ allure = { id = 'io.qameta.allure', version='2.10.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0'}
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.0.2'}
 jib = { id = 'com.google.cloud.tools.jib', version = '3.4.4' }
+docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0'}
+
 
 
 
@@ -74,9 +85,11 @@ kafka-clients = { module = 'org.apache.kafka:kafka-clients', version.ref = 'kafk
 
 apache-commons = { module = 'org.apache.commons:commons-lang3', version.ref = 'apache-commons'}
 apache-commons-compress = { module = 'org.apache.commons:commons-compress', version.ref = 'apache-commons-compress'}
+apache-commons-io = { module = 'commons-io:commons-io', version.ref = 'apache-commons-io'}
 apache-commons-pool2 = { module = 'org.apache.commons:commons-pool2', version.ref = 'apache-commons'}
 apache-datasketches = { module = 'org.apache.datasketches:datasketches-java', version.ref='apache-datasketches'}
 apache-avro = { module = 'org.apache.avro:avro', version.ref = 'avro'}
+apache-kafka = { module = 'org.apache.kafka:kafka_2.13', version.ref = 'kafka'}
 
 confluent-schema-registry-client = { module = 'io.confluent:kafka-schema-registry-client', version.ref = 'confluent'}
 confluent-avro-serializer = { module = 'io.confluent:kafka-avro-serializer', version.ref = 'confluent'}
@@ -111,3 +124,13 @@ opendatadiscovery-client = { module = 'org.opendatadiscovery:ingestion-contract-
 bytebuddy = {module = 'net.bytebuddy:byte-buddy', version.ref='byte-buddy'}
 assertj = {module = 'org.assertj:assertj-core', version.ref = 'assertj'}
 jsonschemavalidator = {module = 'com.github.java-json-tools:json-schema-validator', version.ref ='json-schema-validator'}
+
+allure-testng = { module = 'io.qameta.allure:allure-testng', version.ref = 'allure' }
+allure-selenide = { module = 'io.qameta.allure:allure-selenide', version.ref = 'allure' }
+
+codeborne-selenide = { module = 'com.codeborne:selenide', version.ref = 'codeborne-selenide'}
+testng = { module = 'org.testng:testng', version.ref = 'testng'}
+aspectj = { module = 'org.aspectj:aspectjweaver', version.ref = 'aspectj'}
+bonigarcia-webdrivermanager = { module = 'io.github.bonigarcia:webdrivermanager', version.ref = 'bonigarcia-webdrivermanager'}
+netty-resolver-dns-native = { module = 'io.netty:netty-resolver-dns-native-macos', version.ref = 'netty-resolver-dns-native'}
+
