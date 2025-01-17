@@ -3,7 +3,7 @@ plugins {
 }
 
 node {
-  download = !"true".equals(project.property("local_node"))
+  download = "true" != project.property("local_node")
   version = project.property("node_version").toString()
   pnpmVersion = project.property("pnpm_version").toString()
   nodeProjectDir = project.layout.projectDirectory
@@ -21,7 +21,6 @@ tasks.register('generateContract', PnpmTask) {
   outputs.dir(project.layout.projectDirectory.dir("src/generated-sources"))
   args = ['gen:sources']
 }
-
 
 tasks.register('buildFrontend', PnpmTask) {
   dependsOn generateContract
@@ -45,7 +44,3 @@ sourceSets {
 
 processResources.dependsOn buildFrontend
 compileJava.dependsOn buildFrontend
-
-
-
-

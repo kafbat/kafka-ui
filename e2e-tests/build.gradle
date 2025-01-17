@@ -27,10 +27,9 @@ checkstyle {
     toolVersion = libs.versions.checkstyle.get()
     configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
     ignoreFailures = false
-    maxWarnings = 10
+    maxWarnings = 0
     maxErrors = 0
 }
-
 
 test {
     useTestNG()

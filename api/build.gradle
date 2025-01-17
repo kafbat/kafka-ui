@@ -102,7 +102,7 @@ sourceSets {
     }
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
     exclude '**/ksql/**'
 }
 
@@ -123,7 +123,7 @@ tasks.register('buildDockerImage', DockerBuildImage) {
     dockerFile = project.layout.projectDirectory.file('Dockerfile')
     buildArgs = [
        'JAR_FILE': "build/libs/${project.name}-${project.version}.jar"
-    ]
+    ] as Map<String, String>
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
