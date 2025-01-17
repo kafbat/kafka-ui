@@ -15,7 +15,7 @@
         <contract>${project.version}</contract>
         <maven.compiler.release>21</maven.compiler.release>
         <maven.surefire.release>3.5.1</maven.surefire.release>
-        <maven.surefire-testng>3.5.1</maven.surefire-testng>
+        <maven.surefire-testng>3.5.2</maven.surefire-testng>
         <aspectj.version>1.9.21</aspectj.version>
         <allure.version>2.27.0</allure.version>
     </properties>
