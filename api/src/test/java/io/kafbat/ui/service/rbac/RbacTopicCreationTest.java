@@ -1,6 +1,5 @@
 package io.kafbat.ui.service.rbac;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,6 +10,7 @@ import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,7 +117,11 @@ class RbacTopicCreationTest extends AbstractIntegrationTest {
     Role role = new Role();
     role.setName(ROLE_NAME);
     role.setClusters(List.of(CLUSTER_NAME));
-
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider("ldap");
+    sub.setValue("kafbat.group");
+    role.setSubjects(List.of(sub));
     Permission testTopicsPermission = new Permission();
     testTopicsPermission.setResource(Resource.TOPIC.name());
     testTopicsPermission.setActions(List.of(

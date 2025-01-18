@@ -10,6 +10,7 @@ import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,7 +175,11 @@ class RbacClusterMistakenTest extends AbstractIntegrationTest {
     Role role = new Role();
     role.setName(ADMIN_ROLE_NAME);
     role.setClusters(List.of(DEV_CLUSTER_ADM, TST_CLUSTER_ADM, UAT_CLUSTER_ADM));
-
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider("ldap");
+    sub.setValue("kafbat.group");
+    role.setSubjects(List.of(sub));
     Permission permission = new Permission();
     permission.setResource(Resource.ACL.name());
     permission.setActions(List.of(AclAction.VIEW.name()));
@@ -191,7 +196,11 @@ class RbacClusterMistakenTest extends AbstractIntegrationTest {
     Role role = new Role();
     role.setName(LAB_ROLE_NAME);
     role.setClusters(List.of(LAB_CLUSTER_ALL));
-
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider("ldap");
+    sub.setValue("kafbat.group");
+    role.setSubjects(List.of(sub));
     Permission permission = new Permission();
     permission.setResource(Resource.ACL.name());
     permission.setActions(List.of(AclAction.VIEW.name(), AclAction.EDIT.name()));

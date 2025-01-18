@@ -8,6 +8,7 @@ import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
@@ -36,6 +37,11 @@ public class MockedRbacUtils {
     Role role = new Role();
     role.setName(ADMIN_ROLE);
     role.setClusters(List.of(DEV_CLUSTER, PROD_CLUSTER));
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider("ldap");
+    sub.setValue("kafbat.group");
+    role.setSubjects(List.of(sub));
     Permission applicationConfigPerm = new Permission();
     applicationConfigPerm.setResource(Resource.APPLICATIONCONFIG.name());
     applicationConfigPerm.setActions(List.of("all"));
@@ -56,7 +62,11 @@ public class MockedRbacUtils {
     Role role = new Role();
     role.setName(DEV_ROLE);
     role.setClusters(List.of(DEV_CLUSTER));
-
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider("ldap");
+    sub.setValue("kafbat.group");
+    role.setSubjects(List.of(sub));
     Permission topicViewPermission = new Permission();
     topicViewPermission.setResource(Resource.TOPIC.name());
     topicViewPermission.setActions(List.of(TopicAction.VIEW.name()));
