@@ -45,6 +45,8 @@
         <scala-lang.library.version>2.13.9</scala-lang.library.version>
         <snakeyaml.version>2.3</snakeyaml.version>
         <spring-boot.version>3.4.1</spring-boot.version>
+        <!-- Temporary overwrite to fix CVE-2024-12798 and CVE-2024-12801. Remove after Spring Boot > 3.4.1 is released  -->
+        <logback.version>1.5.16</logback.version>
         <serde-api.version>1.0.0</serde-api.version>
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
         <odd-oddrn-client.version>0.1.39</odd-oddrn-client.version>
