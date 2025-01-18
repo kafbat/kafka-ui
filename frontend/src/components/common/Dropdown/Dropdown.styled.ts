@@ -1,6 +1,6 @@
 import styled, { css, keyframes } from 'styled-components';
 import { ControlledMenu } from '@szhsin/react-menu';
-import { menuSelector, menuItemSelector } from '@szhsin/react-menu/style-utils';
+import { menuItemSelector, menuSelector } from '@szhsin/react-menu/style-utils';
 
 import '@szhsin/react-menu/dist/core.css';
 
@@ -18,6 +18,7 @@ const menuHide = keyframes`
 export const Dropdown = styled(ControlledMenu)(
   ({ theme: { dropdown } }) => css`
     // container for the menu items
+
     ${menuSelector.name} {
       border: 1px solid ${dropdown.borderColor};
       box-shadow: 0 4px 16px ${dropdown.shadow};
@@ -26,6 +27,7 @@ export const Dropdown = styled(ControlledMenu)(
       font-size: 14px;
       background-color: ${dropdown.backgroundColor};
       text-align: left;
+      cursor: auto;
     }
 
     ${menuSelector.stateOpening} {
@@ -34,6 +36,7 @@ export const Dropdown = styled(ControlledMenu)(
 
     // NOTE: animation-fill-mode: forwards is required to
     // prevent flickering with React 18 createRoot()
+
     ${menuSelector.stateClosing} {
       animation: ${menuHide} 0.2s ease-out forwards;
     }
@@ -62,6 +65,8 @@ export const DropdownButton = styled.button`
   display: flex;
   cursor: pointer;
   align-self: center;
+  padding: 0;
+  margin: 0 4px;
 
   &:disabled {
     opacity: 0.5;
