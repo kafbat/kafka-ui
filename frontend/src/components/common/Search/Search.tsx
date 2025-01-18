@@ -10,6 +10,7 @@ interface SearchProps {
   disabled?: boolean;
   onChange?: (value: string) => void;
   value?: string;
+  searchIcon?: boolean;
 }
 
 const IconButtonWrapper = styled.span.attrs(() => ({
@@ -27,6 +28,7 @@ const Search: React.FC<SearchProps> = ({
   disabled = false,
   value,
   onChange,
+  searchIcon = true,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
@@ -70,7 +72,7 @@ const Search: React.FC<SearchProps> = ({
       inputSize="M"
       disabled={disabled}
       ref={ref}
-      search
+      search={searchIcon}
       clearIcon={
         <IconButtonWrapper onClick={clearSearchValue}>
           <CloseCircleIcon />
