@@ -28,6 +28,7 @@ export const MessagesFilterKeys = {
   activeFilterId: 'activeFilterId',
   activeFilterNPId: 'activeFilterNPId', // not persisted filter name to indicate the refresh
   cursor: 'cursor',
+  page: 'page',
   r: 'r', // used tp force refresh of the data
 } as const;
 
@@ -52,28 +53,34 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
   };
 }
 
-export function getCursorValue(urlSearchParam: URLSearchParams) {
-  const cursor = parseInt(
-    urlSearchParam.get(MessagesFilterKeys.cursor) || '0',
-    10
-  );
+export function getPageValue(urlSearchParam: URLSearchParams) {
+  const page = parseInt(urlSearchParam.get(MessagesFilterKeys.page) || '1', 10);
 
-  if (Number.isNaN(cursor)) {
+  if (Number.isNaN(page)) {
     return 0;
   }
 
-  return cursor;
+  return page;
 }
 
-export function usePaginateTopics(initSearchParams?: URLSearchParams) {
+export function useGoToPrevPage(initSearchParams?: URLSearchParams) {
   const [, setSearchParams] = useSearchParams(initSearchParams);
   return () => {
     setSearchParams((params) => {
-      const cursor = getCursorValue(params) + 1;
+      const prevPage = getPageValue(params) - 1;
+      params.set(MessagesFilterKeys.page, prevPage.toString());
 
-      if (cursor) {
-        params.set(MessagesFilterKeys.cursor, cursor.toString());
-      }
+      return params;
+    });
+  };
+}
+
+export function useGoToNextPage(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const nextPage = getPageValue(params) + 1;
+      params.set(MessagesFilterKeys.page, nextPage.toString());
 
       return params;
     });

@@ -40,9 +40,9 @@ abstract class AbstractEmitter implements java.util.function.Consumer<FluxSink<T
     messagesProcessing.sentConsumingInfo(sink, records);
   }
 
-  // cursor is null if target partitions were fully polled (no, need to do paging)
-  protected void sendFinishStatsAndCompleteSink(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
-    messagesProcessing.sendFinishEvents(sink, cursor);
+  protected void sendFinishStatsAndCompleteSink(FluxSink<TopicMessageEventDTO> sink, Cursor.Tracking cursor,
+                                                boolean hasNext) {
+    messagesProcessing.sendFinishEvents(sink, cursor, hasNext);
     sink.complete();
   }
 }
