@@ -51,9 +51,9 @@ class UuidBinarySerdeTest {
       bb.putLong(uuid.getLeastSignificantBits());
 
       var result = serde.deserializer("anyTopic", type).deserialize(new RecordHeadersImpl(), bb.array());
-      assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
-      assertThat(result.getAdditionalProperties()).isEmpty();
-      assertThat(result.getResult()).isEqualTo(uuid.toString());
+      assertThat(result.type()).isEqualTo(DeserializeResult.Type.STRING);
+      assertThat(result.additionalProperties()).isEmpty();
+      assertThat(result.result()).isEqualTo(uuid.toString());
     }
   }
 
@@ -92,9 +92,9 @@ class UuidBinarySerdeTest {
       bb.putLong(uuid.getMostSignificantBits());
 
       var result = serde.deserializer("anyTopic", type).deserialize(new RecordHeadersImpl(), bb.array());
-      assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
-      assertThat(result.getAdditionalProperties()).isEmpty();
-      assertThat(result.getResult()).isEqualTo(uuid.toString());
+      assertThat(result.type()).isEqualTo(DeserializeResult.Type.STRING);
+      assertThat(result.additionalProperties()).isEmpty();
+      assertThat(result.result()).isEqualTo(uuid.toString());
     }
   }
 

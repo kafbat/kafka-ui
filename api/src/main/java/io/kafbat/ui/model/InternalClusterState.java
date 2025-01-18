@@ -37,8 +37,8 @@ public class InternalClusterState {
             .stackTrace(Throwables.getStackTraceAsString(e)))
         .orElse(null);
     topicCount = statistics.getTopicDescriptions().size();
-    brokerCount = statistics.getClusterDescription().getNodes().size();
-    activeControllers = Optional.ofNullable(statistics.getClusterDescription().getController())
+    brokerCount = statistics.getClusterDescription().nodes().size();
+    activeControllers = Optional.ofNullable(statistics.getClusterDescription().controller())
         .map(Node::id)
         .orElse(null);
     version = statistics.getVersion();
