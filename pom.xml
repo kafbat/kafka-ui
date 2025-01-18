@@ -49,7 +49,7 @@
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
         <odd-oddrn-client.version>0.1.39</odd-oddrn-client.version>
         <org.json.version>20240303</org.json.version>
-        <dev.cel.version>0.3.0</dev.cel.version>
+        <dev.cel.version>0.9.0-proto3</dev.cel.version>
         <guava.version>33.3.1-jre</guava.version>
         <!-- Test dependency versions -->
         <junit.version>5.11.2</junit.version>
