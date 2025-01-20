@@ -39,7 +39,7 @@
         <datasketches-java.version>3.1.0</datasketches-java.version>
         <groovy.version>3.0.13</groovy.version>
         <jackson.version>2.14.0</jackson.version>
-        <org.mapstruct.version>1.6.2</org.mapstruct.version>
+        <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <org.projectlombok.version>1.18.34</org.projectlombok.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <scala-lang.library.version>2.13.9</scala-lang.library.version>
