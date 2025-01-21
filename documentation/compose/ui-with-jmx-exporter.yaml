@@ -4,6 +4,7 @@ services:
 
   kafka0:
     image: confluentinc/cp-kafka:7.8.0
+    user: "0:0"
     hostname: kafka0
     container_name: kafka0
     ports:
@@ -25,10 +26,10 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_OPTS: -javaagent:/usr/share/jmx_exporter/jmx_prometheus_javaagent.jar=11001:/usr/share/jmx_exporter/kafka-broker.yml
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     volumes:
       - ./jmx-exporter:/usr/share/jmx_exporter/
-      - ./scripts/update_run.sh:/tmp/update_run.sh
-    command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /usr/share/jmx_exporter/kafka-prepare-and-run ; fi'"
+    command: "bash -c /usr/share/jmx_exporter/kafka-prepare-and-run"
 
   kafbat-ui:
     container_name: kafbat-ui
