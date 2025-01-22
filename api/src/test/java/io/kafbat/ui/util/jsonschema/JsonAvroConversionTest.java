@@ -700,6 +700,43 @@ class JsonAvroConversionTest {
 
   }
 
+  @Test
+  void unionNullableEnumField() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "com.test",
+               "name": "TestAvroRecord",
+               "fields": [
+                 {
+                   "name": "enum_nullable_union",
+                   "type" : [ "null", {
+                               "type" : "enum",
+                               "name" : "Suit",
+                               "symbols" : ["SPADES", "HEARTS", "DIAMONDS", "CLUBS"]
+                             } ]
+                 }
+               ]
+            }"""
+    );
+
+    GenericData.Record inputRecord = new GenericData.Record(schema);
+    inputRecord.put("enum_nullable_union",
+        new GenericData.EnumSymbol(
+            schema.getField("enum_nullable_union").schema().getTypes().get(1), "SPADES"));
+    String expectedJsonWithEnum = """
+          {
+            "enum_nullable_union": { "Suit": "SPADES"}\s
+          }
+         \s""";
+    assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema));
+
+    GenericData.Record inputNullRecord  = new GenericData.Record(schema);
+    inputNullRecord.put("enum_nullable_union", null);
+    assertJsonsEqual("{}", convertAvroToJson(inputNullRecord, schema));
+  }
+
   private Schema createSchema(String schema) {
     return new AvroSchema(schema).rawSchema();
   }
