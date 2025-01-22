@@ -10,6 +10,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.time.Duration;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -31,7 +32,8 @@ public class WebClientConfigurator {
   private final WebClient.Builder builder = WebClient.builder();
   private HttpClient httpClient = HttpClient
       .create()
-      .proxyWithSystemProperties();
+      .proxyWithSystemProperties()
+      .responseTimeout(Duration.ofSeconds(10));
 
   public WebClientConfigurator() {
     configureObjectMapper(defaultOM());
