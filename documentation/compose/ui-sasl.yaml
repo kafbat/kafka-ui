@@ -46,5 +46,6 @@ services:
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_SECURITY_PROTOCOL: 'SASL_PLAINTEXT'
       KAFKA_SUPER_USERS: 'User:admin,User:enzo'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     volumes:
       - ./jaas:/etc/kafka/jaas

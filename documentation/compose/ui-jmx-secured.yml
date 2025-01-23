@@ -49,6 +49,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
       # CHMOD 700 FOR JMXREMOTE.* FILES
       KAFKA_JMX_OPTS: >-
         -Dcom.sun.management.jmxremote
