@@ -28,7 +28,6 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.8.0
-    user: "0:0"
     hostname: kafka
     container_name: kafka
     ports:
