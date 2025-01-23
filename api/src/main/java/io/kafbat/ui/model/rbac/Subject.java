@@ -1,5 +1,8 @@
 package io.kafbat.ui.model.rbac;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import io.kafbat.ui.model.rbac.provider.Provider;
 import lombok.Getter;
 
@@ -20,5 +23,13 @@ public class Subject {
 
   public void setValue(String value) {
     this.value = value;
+  }
+
+  public void validate() {
+    checkNotNull(type, "Subject type cannot be null");
+    checkNotNull(value, "Subject value cannot be null");
+
+    checkArgument(!type.isEmpty(), "Subject type cannot be empty");
+    checkArgument(!value.isEmpty(), "Subject value cannot be empty");
   }
 }
