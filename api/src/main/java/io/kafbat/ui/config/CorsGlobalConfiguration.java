@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 public class CorsGlobalConfiguration {
 
   @Autowired
-  private static CorsProperties corsProperties;
+  private CorsProperties corsProperties;
 
   @Bean
   public WebFilter corsFilter() {
@@ -37,7 +37,7 @@ public class CorsGlobalConfiguration {
     };
   }
 
-  public static void fillCorsHeader(HttpHeaders responseHeaders) {
+  public void fillCorsHeader(HttpHeaders responseHeaders) {
     responseHeaders.add("Access-Control-Allow-Origin", corsProperties.getAllowedOrigins());
     responseHeaders.add("Access-Control-Allow-Credentials", corsProperties.getAllowCredentials());
     responseHeaders.add("Access-Control-Allow-Methods", corsProperties.getAllowedMethods());
