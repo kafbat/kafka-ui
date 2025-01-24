@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
@@ -37,6 +38,9 @@ import reactor.core.publisher.Mono;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
+
+  @Autowired
+  private CorsGlobalConfiguration corsGlobalConfiguration;
 
   public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes,
                                         ApplicationContext applicationContext,
@@ -151,9 +155,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
   }
 
   private Consumer<HttpHeaders> headers(ServerRequest request) {
-    return (HttpHeaders headers) -> {
-      CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
-    };
+    return corsGlobalConfiguration::fillCorsHeader;
   }
 
   private BigDecimal currentTimestamp() {
