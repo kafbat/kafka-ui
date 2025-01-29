@@ -12,7 +12,7 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
     implementation project(":contract")
-    if (prod) {
+    if (includeFrontend) {
         implementation project(":frontend")
     }
     implementation project(":serde-api")
@@ -119,7 +119,7 @@ test {
     useJUnitPlatform()
 }
 
-tasks.register('buildDockerImage', DockerBuildImage) {
+tasks.register('buildDockerImageTask', DockerBuildImage) {
     inputDir = projectDir
     dockerFile = project.layout.projectDirectory.file('Dockerfile')
     buildArgs = [
@@ -128,6 +128,6 @@ tasks.register('buildDockerImage', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
-if (prod) {
-    tasks.build.finalizedBy buildDockerImage
+if (buildDockerImages) {
+    tasks.build.finalizedBy buildDockerImageTask
 }

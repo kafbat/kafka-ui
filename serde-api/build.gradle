@@ -19,14 +19,14 @@ artifacts {
     archives sourceJar, javadocJar
 }
 
-if (prod) { // TODO shouldn't be prod, 'publish' instead?
+if (release) {
     signing {
         sign(publishing.publications)
     }
 }
 
 publishing {
-    if (prod) { // TODO shouldn't be prod, 'publish' instead?
+    if (release) { // TODO shouldn't be prod, 'publish' instead?
         repositories {
             maven {
                 url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
