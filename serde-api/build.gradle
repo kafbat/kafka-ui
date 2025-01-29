@@ -26,7 +26,7 @@ if (release) {
 }
 
 publishing {
-    if (release) { // TODO shouldn't be prod, 'publish' instead?
+    if (release) {
         repositories {
             maven {
                 url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
