@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze
+    name: CodeQL Analyze
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
