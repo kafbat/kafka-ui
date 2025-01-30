@@ -32,10 +32,9 @@ jobs:
       - name: Build project
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -B -V -ntp clean package -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          export VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          ./gradlew build -Pinclude-frontend -Pbuild-docker-images
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
