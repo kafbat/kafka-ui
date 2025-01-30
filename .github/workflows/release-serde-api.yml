@@ -22,9 +22,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "zulu"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
 
       - id: install-secret-key
         name: Install GPG secret key

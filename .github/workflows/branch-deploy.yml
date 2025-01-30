@@ -31,7 +31,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
       - name: Build
         id: build
         run: |

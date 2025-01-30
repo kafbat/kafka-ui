@@ -30,7 +30,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v4

@@ -32,7 +32,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
       - name: Build with Maven
         id: build_app
@@ -74,7 +74,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
       - name: Download maven artifacts
         uses: actions/download-artifact@v4
