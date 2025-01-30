@@ -8,8 +8,13 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ main ]
     paths:
+      - "build.gradle"
+      - "gradle.properties"
+      - "settings.gradle"
+      - "gradle/libs.versions.toml"
+
       - 'frontend/**'
-      - "pom.xml"
+
       - "contract/**"
       - 'api/**'
       - 'serde-api/**'
