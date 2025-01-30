@@ -41,6 +41,6 @@ test {
 }
 
 tasks.named('test') {
-    enabled = prod
+    enabled = release
 }
 
