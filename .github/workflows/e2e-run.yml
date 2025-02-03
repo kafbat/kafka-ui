@@ -143,7 +143,7 @@ jobs:
           path: ./e2e-tests/target/allure-results
 
       - name: Generate Allure report
-        uses: simple-elf/allure-report-action@v1.9
+        uses: simple-elf/allure-report-action@v1.12
         id: allure-report
         with:
           allure_results: ./e2e-tests/target/allure-results
