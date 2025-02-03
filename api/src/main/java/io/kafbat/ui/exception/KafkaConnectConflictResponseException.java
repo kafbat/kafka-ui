@@ -1,11 +1,10 @@
 package io.kafbat.ui.exception;
 
-
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-public class KafkaConnectConflictReponseException extends CustomBaseException {
+public class KafkaConnectConflictResponseException extends CustomBaseException {
 
-  public KafkaConnectConflictReponseException(WebClientResponseException.Conflict e) {
+  public KafkaConnectConflictResponseException(WebClientResponseException.Conflict e) {
     super("Kafka Connect responded with 409 (Conflict) code. Response body: "
         + e.getResponseBodyAsString());
   }

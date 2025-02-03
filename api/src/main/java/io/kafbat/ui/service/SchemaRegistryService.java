@@ -63,7 +63,7 @@ public class SchemaRegistryService {
   @SneakyThrows
   private List<String> parseSubjectListString(String subjectNamesStr) {
     //workaround for https://github.com/spring-projects/spring-framework/issues/24734
-    return new JsonMapper().readValue(subjectNamesStr, new TypeReference<List<String>>() {
+    return new JsonMapper().readValue(subjectNamesStr, new TypeReference<>() {
     });
   }
 

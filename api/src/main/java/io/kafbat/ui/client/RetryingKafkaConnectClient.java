@@ -12,7 +12,7 @@ import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.connect.model.TaskStatus;
-import io.kafbat.ui.exception.KafkaConnectConflictReponseException;
+import io.kafbat.ui.exception.KafkaConnectConflictResponseException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.WebClientConfigurator;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +48,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
         .fixedDelay(MAX_RETRIES, RETRIES_DELAY)
         .filter(e -> e instanceof WebClientResponseException.Conflict)
         .onRetryExhaustedThrow((spec, signal) ->
-            new KafkaConnectConflictReponseException(
+            new KafkaConnectConflictResponseException(
                 (WebClientResponseException.Conflict) signal.failure()));
   }
 

@@ -389,12 +389,6 @@ public class ReactiveAdminClient implements Closeable {
     );
   }
 
-  public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs() {
-    return describeCluster()
-        .map(d -> d.getNodes().stream().map(Node::id).collect(toList()))
-        .flatMap(this::describeLogDirs);
-  }
-
   public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs(
       Collection<Integer> brokerIds) {
     return toMono(client.describeLogDirs(brokerIds).all())
