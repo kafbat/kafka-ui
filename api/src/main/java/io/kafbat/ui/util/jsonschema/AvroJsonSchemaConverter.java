@@ -153,6 +153,7 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
       case INT, LONG -> new SimpleJsonType(JsonType.Type.INTEGER);
       case MAP, RECORD -> new SimpleJsonType(JsonType.Type.OBJECT);
       case ENUM -> new EnumJsonType(schema.getEnumSymbols());
+      case BYTES, STRING -> new SimpleJsonType(JsonType.Type.STRING);
       case NULL -> new SimpleJsonType(JsonType.Type.NULL);
       case ARRAY -> new SimpleJsonType(JsonType.Type.ARRAY);
       case FIXED, FLOAT, DOUBLE -> new SimpleJsonType(JsonType.Type.NUMBER);
