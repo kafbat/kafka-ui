@@ -143,8 +143,8 @@ public class DeserializationService implements Closeable {
     return new SerdeDescriptionDTO()
         .name(serdeInstance.getName())
         .description(serdeInstance.description().orElse(null))
-        .schema(schemaOpt.map(SchemaDescription::getSchema).orElse(null))
-        .additionalProperties(schemaOpt.map(SchemaDescription::getAdditionalProperties).orElse(null))
+        .schema(schemaOpt.map(SchemaDescription::schema).orElse(null))
+        .additionalProperties(schemaOpt.map(SchemaDescription::additionalProperties).orElse(null))
         .preferred(preferred);
   }
 
