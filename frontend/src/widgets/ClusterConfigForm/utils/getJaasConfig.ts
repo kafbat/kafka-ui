@@ -9,6 +9,8 @@ const JAAS_CONFIGS = {
     'org.apache.kafka.common.security.scram.ScramLoginModule',
   'SASL/LDAP': 'org.apache.kafka.common.security.plain.PlainLoginModule',
   'SASL/AWS IAM': 'software.amazon.msk.auth.iam.IAMLoginModule',
+  'SASL/Azure Entra':
+    'org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule',
 };
 
 type MethodName = keyof typeof JAAS_CONFIGS;

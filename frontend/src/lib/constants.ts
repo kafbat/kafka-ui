@@ -73,6 +73,11 @@ export const QUERY_REFETCH_OFF_OPTIONS = {
   refetchIntervalInBackground: false,
 };
 
+export const QUERY_REFETCH_LIMITED_OPTIONS = {
+  refetchOnWindowFocus: false,
+  refetchIntervalInBackground: false,
+};
+
 // Cluster Form Constants
 export const AUTH_OPTIONS = [
   { value: 'SASL/JAAS', label: 'SASL/JAAS' },
@@ -84,6 +89,7 @@ export const AUTH_OPTIONS = [
   { value: 'Delegation tokens', label: 'Delegation tokens' },
   { value: 'SASL/LDAP', label: 'SASL/LDAP' },
   { value: 'SASL/AWS IAM', label: 'SASL/AWS IAM' },
+  { value: 'SASL/Azure Entra', label: 'SASL/Azure Entra' },
   { value: 'mTLS', label: 'mTLS' },
 ];
 
