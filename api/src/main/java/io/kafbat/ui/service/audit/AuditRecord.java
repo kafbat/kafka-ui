@@ -54,12 +54,12 @@ record AuditRecord(String timestamp,
 
     static OperationResult error(Throwable th) {
       OperationError err = OperationError.UNRECOGNIZED_ERROR;
-      if (th instanceof AccessDeniedException) {
-        err = OperationError.ACCESS_DENIED;
-      } else if (th instanceof ValidationException) {
-        err = OperationError.VALIDATION_ERROR;
-      } else if (th instanceof CustomBaseException) {
-        err = OperationError.EXECUTION_ERROR;
+      switch (th) {
+        case AccessDeniedException ignored -> err = OperationError.ACCESS_DENIED;
+        case ValidationException ignored -> err = OperationError.VALIDATION_ERROR;
+        case CustomBaseException ignored -> err = OperationError.EXECUTION_ERROR;
+        case null, default -> {
+        }
       }
       return new OperationResult(false, err);
     }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.collections.CollectionUtils;
@@ -22,7 +22,7 @@ record ConnectorInfo(List<String> inputs,
                                ConnectorTypeDTO type,
                                Map<String, Object> config,
                                List<String> topicsFromApi, // can be empty for old Connect API versions
-                               Function<String, String> topicOddrnBuilder) {
+                               UnaryOperator<String> topicOddrnBuilder) {
     return switch (className) {
       case "org.apache.kafka.connect.file.FileStreamSinkConnector",
           "org.apache.kafka.connect.file.FileStreamSourceConnector",
@@ -43,7 +43,7 @@ record ConnectorInfo(List<String> inputs,
   private static ConnectorInfo extractFileIoConnector(ConnectorTypeDTO type,
                                                       List<String> topics,
                                                       Map<String, Object> config,
-                                                      Function<String, String> topicOddrnBuilder) {
+                                                      UnaryOperator<String> topicOddrnBuilder) {
     return new ConnectorInfo(
         extractInputs(type, topics, config, topicOddrnBuilder),
         extractOutputs(type, topics, config, topicOddrnBuilder)
@@ -53,7 +53,7 @@ record ConnectorInfo(List<String> inputs,
   private static ConnectorInfo extractJdbcSink(ConnectorTypeDTO type,
                                                List<String> topics,
                                                Map<String, Object> config,
-                                               Function<String, String> topicOddrnBuilder) {
+                                               UnaryOperator<String> topicOddrnBuilder) {
     String tableNameFormat = (String) config.getOrDefault("table.name.format", "${topic}");
     List<String> targetTables = extractTopicNamesBestEffort(topics, config)
         .map(topic -> tableNameFormat.replace("${kafka}", topic))
@@ -106,7 +106,7 @@ record ConnectorInfo(List<String> inputs,
   private static ConnectorInfo extractS3Sink(ConnectorTypeDTO type,
                                              List<String> topics,
                                              Map<String, Object> config,
-                                             Function<String, String> topicOrrdnBuilder) {
+                                             UnaryOperator<String> topicOrrdnBuilder) {
     String bucketName = (String) config.get("s3.bucket.name");
     String topicsDir = (String) config.getOrDefault("topics.dir", "topics");
     String directoryDelim = (String) config.getOrDefault("directory.delim", "/");
@@ -122,7 +122,7 @@ record ConnectorInfo(List<String> inputs,
   private static List<String> extractInputs(ConnectorTypeDTO type,
                                             List<String> topicsFromApi,
                                             Map<String, Object> config,
-                                            Function<String, String> topicOrrdnBuilder) {
+                                            UnaryOperator<String> topicOrrdnBuilder) {
     return type == ConnectorTypeDTO.SINK
         ? extractTopicsOddrns(config, topicsFromApi, topicOrrdnBuilder)
         : List.of();
@@ -131,7 +131,7 @@ record ConnectorInfo(List<String> inputs,
   private static List<String> extractOutputs(ConnectorTypeDTO type,
                                              List<String> topicsFromApi,
                                              Map<String, Object> config,
-                                             Function<String, String> topicOrrdnBuilder) {
+                                             UnaryOperator<String> topicOrrdnBuilder) {
     return type == ConnectorTypeDTO.SOURCE
         ? extractTopicsOddrns(config, topicsFromApi, topicOrrdnBuilder)
         : List.of();
@@ -158,7 +158,7 @@ record ConnectorInfo(List<String> inputs,
 
   private static List<String> extractTopicsOddrns(Map<String, Object> config,
                                                   List<String> topicsFromApi,
-                                                  Function<String, String> topicOrrdnBuilder) {
+                                                  UnaryOperator<String> topicOrrdnBuilder) {
     return extractTopicNamesBestEffort(topicsFromApi, config)
         .map(topicOrrdnBuilder)
         .toList();

@@ -25,14 +25,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class KafkaConsumerTests extends AbstractIntegrationTest {
+class KafkaConsumerTests extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;
 
 
   @Test
-  public void shouldDeleteRecords() {
+  void shouldDeleteRecords() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -97,7 +97,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldIncreasePartitionsUpTo10() {
+  void shouldIncreasePartitionsUpTo10() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -144,7 +144,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturn404ForNonExistingTopic() {
+  void shouldReturn404ForNonExistingTopic() {
     var topicName = UUID.randomUUID().toString();
 
     webTestClient.delete()
@@ -161,7 +161,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnConfigsForBroker() {
+  void shouldReturnConfigsForBroker() {
     List<BrokerConfigDTO> configs = webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/{id}/configs",
             LOCAL,
@@ -175,15 +175,16 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    Assertions.assertNotNull(configs.get(0).getName());
-    Assertions.assertNotNull(configs.get(0).getIsReadOnly());
-    Assertions.assertNotNull(configs.get(0).getIsSensitive());
-    Assertions.assertNotNull(configs.get(0).getSource());
-    Assertions.assertNotNull(configs.get(0).getSynonyms());
+    BrokerConfigDTO brokerConfigDTO = configs.getFirst();
+    Assertions.assertNotNull(brokerConfigDTO.getName());
+    Assertions.assertNotNull(brokerConfigDTO.getIsReadOnly());
+    Assertions.assertNotNull(brokerConfigDTO.getIsSensitive());
+    Assertions.assertNotNull(brokerConfigDTO.getSource());
+    Assertions.assertNotNull(brokerConfigDTO.getSynonyms());
   }
 
   @Test
-  public void shouldReturn404ForNonExistingBroker() {
+  void shouldReturn404ForNonExistingBroker() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/{id}/configs",
             LOCAL,
@@ -194,7 +195,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldRetrieveTopicConfig() {
+  void shouldRetrieveTopicConfig() {
     var topicName = UUID.randomUUID().toString();
 
     webTestClient.post()
@@ -220,10 +221,11 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    Assertions.assertNotNull(configs.get(0).getName());
-    Assertions.assertNotNull(configs.get(0).getIsReadOnly());
-    Assertions.assertNotNull(configs.get(0).getIsSensitive());
-    Assertions.assertNotNull(configs.get(0).getSource());
-    Assertions.assertNotNull(configs.get(0).getSynonyms());
+    TopicConfigDTO topicConfigDTO = configs.getFirst();
+    Assertions.assertNotNull(topicConfigDTO.getName());
+    Assertions.assertNotNull(topicConfigDTO.getIsReadOnly());
+    Assertions.assertNotNull(topicConfigDTO.getIsSensitive());
+    Assertions.assertNotNull(topicConfigDTO.getSource());
+    Assertions.assertNotNull(topicConfigDTO.getSynonyms());
   }
 }

@@ -54,18 +54,18 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     Throwable throwable = getError(request);
 
     // validation and params binding errors
-    if (throwable instanceof WebExchangeBindException) {
-      return render((WebExchangeBindException) throwable, request);
+    if (throwable instanceof WebExchangeBindException webExchangeBindException) {
+      return render(webExchangeBindException, request);
     }
 
     // requests mapping & access errors
-    if (throwable instanceof ResponseStatusException) {
-      return render((ResponseStatusException) throwable, request);
+    if (throwable instanceof ResponseStatusException responseStatusException) {
+      return render(responseStatusException, request);
     }
 
     // custom exceptions
-    if (throwable instanceof CustomBaseException) {
-      return render((CustomBaseException) throwable, request);
+    if (throwable instanceof CustomBaseException customBaseException) {
+      return render(customBaseException, request);
     }
 
     return renderDefault(throwable, request);
@@ -151,9 +151,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
   }
 
   private Consumer<HttpHeaders> headers(ServerRequest request) {
-    return (HttpHeaders headers) -> {
-      CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
-    };
+    return (HttpHeaders headers) -> CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
   }
 
   private BigDecimal currentTimestamp() {
