@@ -157,8 +157,7 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
       case ARRAY -> new SimpleJsonType(JsonType.Type.ARRAY);
       case FIXED, FLOAT, DOUBLE -> new SimpleJsonType(JsonType.Type.NUMBER);
       case BOOLEAN -> new SimpleJsonType(JsonType.Type.BOOLEAN);
-      //case BYTES, STRING -> new SimpleJsonType(JsonType.Type.STRING);
-      default -> new SimpleJsonType(JsonType.Type.STRING);
+      default -> new SimpleJsonType(JsonType.Type.STRING); // BYTES, STRING and the remaining possibilities
     };
   }
 }
