@@ -175,12 +175,12 @@ class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    BrokerConfigDTO brokerConfigDTO = configs.getFirst();
-    Assertions.assertNotNull(brokerConfigDTO.getName());
-    Assertions.assertNotNull(brokerConfigDTO.getIsReadOnly());
-    Assertions.assertNotNull(brokerConfigDTO.getIsSensitive());
-    Assertions.assertNotNull(brokerConfigDTO.getSource());
-    Assertions.assertNotNull(brokerConfigDTO.getSynonyms());
+    BrokerConfigDTO brokerConfigDto = configs.getFirst();
+    Assertions.assertNotNull(brokerConfigDto.getName());
+    Assertions.assertNotNull(brokerConfigDto.getIsReadOnly());
+    Assertions.assertNotNull(brokerConfigDto.getIsSensitive());
+    Assertions.assertNotNull(brokerConfigDto.getSource());
+    Assertions.assertNotNull(brokerConfigDto.getSynonyms());
   }
 
   @Test
@@ -221,11 +221,11 @@ class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    TopicConfigDTO topicConfigDTO = configs.getFirst();
-    Assertions.assertNotNull(topicConfigDTO.getName());
-    Assertions.assertNotNull(topicConfigDTO.getIsReadOnly());
-    Assertions.assertNotNull(topicConfigDTO.getIsSensitive());
-    Assertions.assertNotNull(topicConfigDTO.getSource());
-    Assertions.assertNotNull(topicConfigDTO.getSynonyms());
+    TopicConfigDTO topicConfigDto = configs.getFirst();
+    Assertions.assertNotNull(topicConfigDto.getName());
+    Assertions.assertNotNull(topicConfigDto.getIsReadOnly());
+    Assertions.assertNotNull(topicConfigDto.getIsSensitive());
+    Assertions.assertNotNull(topicConfigDto.getSource());
+    Assertions.assertNotNull(topicConfigDto.getSynonyms());
   }
 }
