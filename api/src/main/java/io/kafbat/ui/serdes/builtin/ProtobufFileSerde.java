@@ -383,9 +383,9 @@ public class ProtobufFileSerde implements BuiltInSerde {
       String protoFileString = null;
       // know type file contains either message or enum
       if (!fileDescriptor.getMessageTypes().isEmpty()) {
-        protoFileString = new ProtobufSchema(fileDescriptor.getMessageTypes().get(0)).canonicalString();
+        protoFileString = new ProtobufSchema(fileDescriptor.getMessageTypes().getFirst()).canonicalString();
       } else if (!fileDescriptor.getEnumTypes().isEmpty()) {
-        protoFileString = new ProtobufSchema(fileDescriptor.getEnumTypes().get(0)).canonicalString();
+        protoFileString = new ProtobufSchema(fileDescriptor.getEnumTypes().getFirst()).canonicalString();
       } else {
         throw new IllegalStateException();
       }
