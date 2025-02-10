@@ -1,0 +1,61 @@
+name: "Infra: Build Private Image"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: ['labeled']
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ github.token }}
+      - name: get branch name
+        id: extract_branch
+        run: |
+          tag='${{ github.event.pull_request.number }}'
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'maven'
+      - name: Build
+        id: build
+        run: |
+          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
+          ./mvnw -B -V -ntp clean package -Pprod -DskipTests
+          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      - uses: sainsburys-tech/bosun-actions-setup@v1
+        name: Setup
+        id: setup
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          job-name: "build / build"
+      - name: Build and push
+        id: buildpush
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          build-args: |
+            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
+          tags: ${{ fromJson(steps.setup.outputs.dockerParams).tags }}
+          context: ${{ fromJson(steps.setup.outputs.dockerParams).context }}/api
+      - name: make comment with private deployment link
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Image published at ${{ fromJson(steps.setup.outputs.dockerParams).tags }}
