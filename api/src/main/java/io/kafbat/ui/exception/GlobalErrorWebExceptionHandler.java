@@ -102,8 +102,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 
   private Mono<ServerResponse> render(WebExchangeBindException exception, ServerRequest request) {
     Map<String, Set<String>> fieldErrorsMap = exception.getFieldErrors().stream()
-        .collect(Collectors
-            .toMap(FieldError::getField, f -> Set.of(extractFieldErrorMsg(f)), Sets::union));
+        .collect(Collectors.toMap(FieldError::getField, f -> Set.of(extractFieldErrorMsg(f)), Sets::union));
 
     var fieldsErrors = fieldErrorsMap.entrySet().stream()
         .map(e -> {

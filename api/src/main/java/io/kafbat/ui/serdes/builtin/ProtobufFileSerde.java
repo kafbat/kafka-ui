@@ -380,7 +380,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
     }
 
     private ProtoFile loadKnownProtoFile(String path, Descriptors.FileDescriptor fileDescriptor) {
-      String protoFileString = null;
+      String protoFileString;
       // know type file contains either message or enum
       if (!fileDescriptor.getMessageTypes().isEmpty()) {
         protoFileString = new ProtobufSchema(fileDescriptor.getMessageTypes().getFirst()).canonicalString();
