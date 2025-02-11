@@ -13,10 +13,7 @@ import { showServerError } from 'lib/errorHandling';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
-import {
-  getCursorValue,
-  MessagesFilterKeys,
-} from 'lib/hooks/useMessagesFilters';
+import { getPageValue, MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
@@ -31,14 +28,15 @@ export const useTopicMessages = ({
   clusterName,
   topicName,
 }: UseTopicMessagesProps) => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = React.useState<TopicMessage[]>([]);
   const [phase, setPhase] = React.useState<string>();
   const [consumptionStats, setConsumptionStats] =
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
   const abortController = useRef(new AbortController());
-  const prevCursor = useRef(0);
+  const prevReqUrl = useRef<string>('');
+  const currentPage = useRef(1);
 
   // get initial properties
 
@@ -102,18 +100,26 @@ export const useTopicMessages = ({
         requestParams.append(MessagesFilterKeys.partitions, partitions);
       }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
+      const { prevCursor, setPrevCursor } = useMessageFiltersStore.getState();
 
-      const tempCompareUrl = new URLSearchParams(requestParams);
-      tempCompareUrl.delete(MessagesFilterKeys.cursor);
-
-      const currentCursor = getCursorValue(searchParams);
-
-      // filters stay the same and we have cursor set cursor
-      if (nextCursor && prevCursor.current < currentCursor) {
-        requestParams.set(MessagesFilterKeys.cursor, nextCursor);
+      const searchParamsWithoutPage = new URLSearchParams(searchParams);
+      searchParamsWithoutPage.delete(MessagesFilterKeys.page);
+      if (prevReqUrl.current !== searchParamsWithoutPage.toString()) {
+        searchParams.delete(MessagesFilterKeys.page);
+        setSearchParams(searchParams);
+        setPrevCursor(undefined);
+        setNextCursor(undefined);
       }
+      prevReqUrl.current = searchParamsWithoutPage.toString();
 
-      prevCursor.current = currentCursor;
+      const searchParamPage = getPageValue(searchParams);
+      if (currentPage.current < searchParamPage && nextCursor) {
+        requestParams.set(MessagesFilterKeys.cursor, nextCursor);
+      } else if (currentPage.current > searchParamPage && prevCursor) {
+        requestParams.set(MessagesFilterKeys.cursor, prevCursor);
+      }
+      currentPage.current = searchParamPage;
+
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
         signal: abortController.current.signal,
@@ -129,11 +135,7 @@ export const useTopicMessages = ({
         },
         onmessage(event) {
           const parsedData: TopicMessageEvent = JSON.parse(event.data);
-          const { message, consuming, cursor } = parsedData;
-
-          if (useMessageFiltersStore.getState().nextCursor !== cursor?.id) {
-            setNextCursor(cursor?.id || undefined);
-          }
+          const { message, consuming } = parsedData;
 
           switch (parsedData.type) {
             case TopicMessageEventTypeEnum.MESSAGE:
@@ -152,6 +154,14 @@ export const useTopicMessages = ({
             case TopicMessageEventTypeEnum.CONSUMING:
               if (consuming) setConsumptionStats(consuming);
               break;
+            case TopicMessageEventTypeEnum.DONE:
+              if (nextCursor !== parsedData.nextCursor?.id) {
+                setNextCursor(parsedData.nextCursor?.id || undefined);
+              }
+              if (prevCursor !== parsedData.prevCursor?.id) {
+                setPrevCursor(parsedData.prevCursor?.id || undefined);
+              }
+              break;
             default:
           }
         },
@@ -161,6 +171,7 @@ export const useTopicMessages = ({
         },
         onerror(err) {
           setNextCursor(undefined);
+          setPrevCursor(undefined);
           setIsFetching(false);
           abortController.current = new AbortController();
           showServerError(err);
