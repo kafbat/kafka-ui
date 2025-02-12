@@ -39,7 +39,8 @@ function padCurrentDateTimeString(): string {
 
   return `_${dateTimeString}`;
 }
-  interface MessagePreviewProps {
+
+interface MessagePreviewProps {
   [key: string]: {
     keyFilters: PreviewFilter[];
     contentFilters: PreviewFilter[];
