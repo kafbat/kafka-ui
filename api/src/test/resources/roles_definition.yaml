@@ -47,3 +47,17 @@
   permissions:
     - resource: APPLICATIONCONFIG
       actions: [ all ]
+- name: "no one's role"
+  subjects:
+    - provider: 'OAUTH'
+      value: '.*XXX'
+      type: 'role'
+    - provider: 'OAUTH_GITHUB'
+      value: '.*XXX'
+      type: 'user'
+    - provider: 'OAUTH_COGNITO'
+      value: '.*XXX'
+      type: 'user'
+    - provider: 'OAUTH_GOOGLE'
+      value: '.*XXX'
+      type: 'domain'

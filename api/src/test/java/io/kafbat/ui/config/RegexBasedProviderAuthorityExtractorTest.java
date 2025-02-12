@@ -1,6 +1,9 @@
 package io.kafbat.ui.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.oauth2.client.registration.ClientRegistration.withRegistrationId;
 
@@ -71,7 +74,33 @@ public class RegexBasedProviderAuthorityExtractorTest {
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
 
+    assertNotNull(roles);
     assertEquals(Set.of("viewer", "admin"), roles);
+    assertFalse(roles.contains("no one's role"));
+
+  }
+
+  @SneakyThrows
+  @Test()
+  void extractOauth2Authorities_blankEmail() {
+
+    extractor = new OauthAuthorityExtractor();
+
+    OAuth2User oauth2User = new DefaultOAuth2User(
+        AuthorityUtils.createAuthorityList("SCOPE_message:read"),
+        Map.of("role_definition", Set.of("ROLE-ADMIN", "ANOTHER-ROLE"), "user_name", ""),
+        "user_name");
+
+    HashMap<String, Object> additionalParams = new HashMap<>();
+    OAuthProperties.OAuth2Provider provider = new OAuthProperties.OAuth2Provider();
+    provider.setCustomParams(Map.of("roles-field", "role_definition"));
+    additionalParams.put("provider", provider);
+
+    Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
+
+    assertNotNull(roles);
+    assertFalse(roles.contains("viewer"));
+    assertTrue(roles.contains("admin"));
 
   }
 
@@ -94,7 +123,9 @@ public class RegexBasedProviderAuthorityExtractorTest {
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
 
+    assertNotNull(roles);
     assertEquals(Set.of("viewer", "admin"), roles);
+    assertFalse(roles.contains("no one's role"));
 
   }
 
@@ -129,7 +160,9 @@ public class RegexBasedProviderAuthorityExtractorTest {
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
 
+    assertNotNull(roles);
     assertEquals(Set.of("viewer"), roles);
+    assertFalse(roles.contains("no one's role"));
 
   }
 
@@ -152,7 +185,9 @@ public class RegexBasedProviderAuthorityExtractorTest {
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
 
+    assertNotNull(roles);
     assertEquals(Set.of("viewer", "admin"), roles);
+    assertFalse(roles.contains("no one's role"));
 
   }
 

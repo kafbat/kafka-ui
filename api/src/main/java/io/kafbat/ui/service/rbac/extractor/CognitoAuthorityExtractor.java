@@ -50,7 +50,7 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH_COGNITO))
             .filter(s -> s.getType().equals("user"))
-            .anyMatch(s -> principal.getName() != null && principal.getName().matches(s.getValue())))
+            .anyMatch(s -> principal.getName().matches(s.getValue())))
         .map(Role::getName)
         .collect(Collectors.toSet());
 
