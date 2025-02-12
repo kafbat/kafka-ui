@@ -12,7 +12,7 @@ import java.util.Set;
 import org.apache.kafka.common.errors.SaslAuthenticationException;
 import org.junit.jupiter.api.Test;
 
-public class AzureEntraOAuthBearerTokenTest {
+class AzureEntraOAuthBearerTokenTest {
 
   // These are not real tokens. It was generated using fake values with an invalid signature,
   // so it is safe to store here.

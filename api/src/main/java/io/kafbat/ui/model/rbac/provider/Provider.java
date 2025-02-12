@@ -21,11 +21,11 @@ public enum Provider {
   }
 
   public static class Name {
-    public static String GOOGLE = "google";
-    public static String GITHUB = "github";
-    public static String COGNITO = "cognito";
+    public static final String GOOGLE = "google";
+    public static final String GITHUB = "github";
+    public static final String COGNITO = "cognito";
 
-    public static String OAUTH = "oauth";
+    public static final String OAUTH = "oauth";
   }
 
 }
