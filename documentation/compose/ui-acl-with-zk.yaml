@@ -55,5 +55,4 @@ services:
       KAFKA_SECURITY_PROTOCOL: 'SASL_PLAINTEXT'
       KAFKA_SUPER_USERS: 'User:admin'
     volumes:
-      - ./scripts/update_run.sh:/tmp/update_run.sh
       - ./jaas:/etc/kafka/jaas

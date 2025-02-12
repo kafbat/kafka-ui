@@ -59,8 +59,8 @@ public class ReactiveFailover<T> {
   }
 
   private ReactiveFailover(List<PublisherHolder<T>> publishers,
-                   Predicate<Throwable> failoverExceptionsPredicate,
-                   String noAvailablePublishersMsg) {
+                           Predicate<Throwable> failoverExceptionsPredicate,
+                           String noAvailablePublishersMsg) {
     Preconditions.checkArgument(!publishers.isEmpty());
     this.publishers = publishers;
     this.failoverExceptionsPredicate = failoverExceptionsPredicate;

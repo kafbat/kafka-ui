@@ -51,10 +51,10 @@ class JmxMetricsFormatter {
       return Optional.empty();
     }
     try {
-      if (value instanceof Long) {
-        return Optional.of(new BigDecimal((Long) value));
-      } else if (value instanceof Integer) {
-        return Optional.of(new BigDecimal((Integer) value));
+      if (value instanceof Long longValue) {
+        return Optional.of(new BigDecimal(longValue));
+      } else if (value instanceof Integer integerValue) {
+        return Optional.of(new BigDecimal(integerValue));
       }
       return Optional.of(new BigDecimal(value.toString()));
     } catch (NumberFormatException nfe) {

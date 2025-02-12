@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
-import lombok.SneakyThrows;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -58,13 +57,5 @@ public class JsonSchema {
       objectNode.set("$ref", new TextNode(rootRef));
     }
     return objectNode.toString();
-  }
-
-  @SneakyThrows
-  public static JsonSchema stringSchema() {
-    return JsonSchema.builder()
-        .id(new URI("http://unknown.unknown"))
-        .type(new SimpleJsonType(JsonType.Type.STRING))
-        .build();
   }
 }

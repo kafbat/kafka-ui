@@ -99,64 +99,45 @@ public class ResponseParser {
         .orElse("unknown");
 
     // messages structure can be inferred from https://github.com/confluentinc/ksql/blob/master/ksqldb-rest-model/src/main/java/io/confluent/ksql/rest/entity/KsqlEntity.java
-    switch (type) {
-      case "currentStatus":
-        return parseObject(
-            "Status",
-            List.of("status", "message"),
-            jsonNode.get("commandStatus")
-        );
-      case "properties":
-        return parseProperties(jsonNode);
-      case "queries":
-        return parseArray("Queries", "queries", jsonNode);
-      case "sourceDescription":
-        return parseObjectDynamically("Source Description", jsonNode.get("sourceDescription"));
-      case "queryDescription":
-        return parseObjectDynamically("Queries Description", jsonNode.get("queryDescription"));
-      case "topicDescription":
-        return parseObject(
-            "Topic Description",
-            List.of("name", "kafkaTopic", "format", "schemaString"),
-            jsonNode
-        );
-      case "streams":
-        return parseArray("Streams", "streams", jsonNode);
-      case "tables":
-        return parseArray("Tables", "tables", jsonNode);
-      case "kafka_topics":
-        return parseArray("Topics", "topics", jsonNode);
-      case "kafka_topics_extended":
-        return parseArray("Topics extended", "topics", jsonNode);
-      case "executionPlan":
-        return parseObject("Execution plan", List.of("executionPlanText"), jsonNode);
-      case "source_descriptions":
-        return parseArray("Source descriptions", "sourceDescriptions", jsonNode);
-      case "query_descriptions":
-        return parseArray("Queries", "queryDescriptions", jsonNode);
-      case "describe_function":
-        return parseObject("Function description",
-            List.of("name", "author", "version", "description", "functions", "path", "type"),
-            jsonNode
-        );
-      case "function_names":
-        return parseArray("Function Names", "functions", jsonNode);
-      case "connector_info":
-        return parseObjectDynamically("Connector Info", jsonNode.get("info"));
-      case "drop_connector":
-        return parseObject("Dropped connector", List.of("connectorName"), jsonNode);
-      case "connector_list":
-        return parseArray("Connectors", "connectors", jsonNode);
-      case "connector_plugins_list":
-        return parseArray("Connector Plugins", "connectorPlugins", jsonNode);
-      case "connector_description":
-        return parseObject("Connector Description",
-            List.of("connectorClass", "status", "sources", "topics"),
-            jsonNode
-        );
-      default:
-        return parseUnknownResponse(jsonNode);
-    }
+    return switch (type) {
+      case "currentStatus" -> parseObject(
+          "Status",
+          List.of("status", "message"),
+          jsonNode.get("commandStatus")
+      );
+      case "properties" -> parseProperties(jsonNode);
+      case "queries" -> parseArray("Queries", "queries", jsonNode);
+      case "sourceDescription" -> parseObjectDynamically("Source Description", jsonNode.get("sourceDescription"));
+      case "queryDescription" -> parseObjectDynamically("Queries Description", jsonNode.get("queryDescription"));
+      case "topicDescription" -> parseObject(
+          "Topic Description",
+          List.of("name", "kafkaTopic", "format", "schemaString"),
+          jsonNode
+      );
+      case "streams" -> parseArray("Streams", "streams", jsonNode);
+      case "tables" -> parseArray("Tables", "tables", jsonNode);
+      case "kafka_topics" -> parseArray("Topics", "topics", jsonNode);
+      case "kafka_topics_extended" -> parseArray("Topics extended", "topics", jsonNode);
+      case "executionPlan" -> parseObject("Execution plan", List.of("executionPlanText"), jsonNode);
+      case "source_descriptions" -> parseArray("Source descriptions", "sourceDescriptions", jsonNode);
+      case "query_descriptions" -> parseArray("Queries", "queryDescriptions", jsonNode);
+      case "describe_function" -> parseObject(
+          "Function description",
+          List.of("name", "author", "version", "description", "functions", "path", "type"),
+          jsonNode
+      );
+      case "function_names" -> parseArray("Function Names", "functions", jsonNode);
+      case "connector_info" -> parseObjectDynamically("Connector Info", jsonNode.get("info"));
+      case "drop_connector" -> parseObject("Dropped connector", List.of("connectorName"), jsonNode);
+      case "connector_list" -> parseArray("Connectors", "connectors", jsonNode);
+      case "connector_plugins_list" -> parseArray("Connector Plugins", "connectorPlugins", jsonNode);
+      case "connector_description" -> parseObject(
+          "Connector Description",
+          List.of("connectorClass", "status", "sources", "topics"),
+          jsonNode
+      );
+      default -> parseUnknownResponse(jsonNode);
+    };
   }
 
   private static List<KsqlApiClient.KsqlResponseTable> parseObjectDynamically(

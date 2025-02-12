@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-public class ReadOnlyModeTests extends AbstractIntegrationTest {
+class ReadOnlyModeTests extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;
 
   @Test
-  public void shouldCreateTopicForNonReadonlyCluster() {
+  void shouldCreateTopicForNonReadonlyCluster() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -31,7 +31,7 @@ public class ReadOnlyModeTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldNotCreateTopicForReadonlyCluster() {
+  void shouldNotCreateTopicForReadonlyCluster() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", SECOND_LOCAL)
@@ -47,7 +47,7 @@ public class ReadOnlyModeTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldUpdateTopicForNonReadonlyCluster() {
+  void shouldUpdateTopicForNonReadonlyCluster() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -73,7 +73,7 @@ public class ReadOnlyModeTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldNotUpdateTopicForReadonlyCluster() {
+  void shouldNotUpdateTopicForReadonlyCluster() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.patch()
         .uri("/api/clusters/{clusterName}/topics/{topicName}", SECOND_LOCAL, topicName)
