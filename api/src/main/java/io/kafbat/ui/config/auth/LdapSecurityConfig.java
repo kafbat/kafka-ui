@@ -3,9 +3,11 @@ package io.kafbat.ui.config.auth;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.RbacActiveDirectoryAuthoritiesExtractor;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
+import io.kafbat.ui.util.CustomSslSocketFactory;
 import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +49,9 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @RequiredArgsConstructor
 @Slf4j
 public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
+  private static final Map<String, Object> BASE_ENV_PROPS = Map.of(
+      "java.naming.ldap.factory.socket", CustomSslSocketFactory.class.getName()
+  );
 
   private final LdapProperties props;
 
@@ -70,6 +75,11 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
           props.getUrls());
       authProvider.setUseAuthenticationRequestCredentials(true);
       ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setAuthoritiesPopulator(authoritiesExtractor);
+
+      List<String> urls = List.of(props.getUrls().split(","));
+      if (urls.stream().anyMatch(url -> url.startsWith("ldaps://"))) {
+        ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setContextEnvironmentProperties(BASE_ENV_PROPS);
+      }
     }
 
     if (rbacEnabled) {
