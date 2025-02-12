@@ -112,13 +112,13 @@ public class AclsService {
     if (!toBeAdded.isEmpty()) {
       log.info("ACLs to be added ({}): ", toBeAdded.size());
       for (AclBinding aclBinding : toBeAdded) {
-        log.info(" " + AclCsv.createAclString(aclBinding));
+        log.info(" {}", AclCsv.createAclString(aclBinding));
       }
     }
     if (!toBeDeleted.isEmpty()) {
       log.info("ACLs to be deleted ({}): ", toBeDeleted.size());
       for (AclBinding aclBinding : toBeDeleted) {
-        log.info(" " + AclCsv.createAclString(aclBinding));
+        log.info(" {}", AclCsv.createAclString(aclBinding));
       }
     }
   }

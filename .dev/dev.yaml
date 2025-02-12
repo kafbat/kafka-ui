@@ -1,9 +1,3 @@
-# This is a compose file designed for arm64/Apple Silicon systems
-# To adapt this to x86 please find and replace ".arm64" with empty
-
-# ARM64 supported images for kafka can be found here
-# https://hub.docker.com/r/confluentinc/cp-kafka/tags?page=1&name=arm64
----
 version: '3.8'
 name: "kafbat-ui-dev"
 
@@ -32,8 +26,7 @@ services:
       KAFKA_CLUSTERS_0_AUDIT_CONSOLEAUDITENABLED: 'true'
 
   kafka0:
-    image: confluentinc/cp-kafka:7.8.0.arm64
-    user: "0:0"
+    image: confluentinc/cp-kafka:7.8.0
     hostname: kafka0
     container_name: kafka0
     ports:
@@ -60,7 +53,7 @@ services:
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
 
   schema-registry0:
-    image: confluentinc/cp-schema-registry:7.8.0.arm64
+    image: confluentinc/cp-schema-registry:7.8.0
     ports:
       - 8085:8085
     depends_on:
@@ -76,7 +69,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
 
   kafka-connect0:
-    image: confluentinc/cp-kafka-connect:7.8.0.arm64
+    image: confluentinc/cp-kafka-connect:7.8.0
     ports:
       - 8083:8083
     depends_on:
@@ -101,7 +94,7 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/usr/local/share/kafka/plugins,/usr/share/filestream-connectors"
 
   ksqldb0:
-    image: confluentinc/cp-ksqldb-server:7.8.0.arm64
+    image: confluentinc/cp-ksqldb-server:7.8.0
     depends_on:
       - kafka0
       - kafka-connect0
@@ -119,7 +112,7 @@ services:
       KSQL_CACHE_MAX_BYTES_BUFFERING: 0
 
   kafka-init-topics:
-    image: confluentinc/cp-kafka:7.8.0.arm64
+    image: confluentinc/cp-kafka:7.8.0
     volumes:
       - ../documentation/compose/data/message.json:/data/message.json
     depends_on:

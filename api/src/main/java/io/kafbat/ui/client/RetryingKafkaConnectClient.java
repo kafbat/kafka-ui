@@ -12,7 +12,7 @@ import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.connect.model.TaskStatus;
-import io.kafbat.ui.exception.KafkaConnectConflictReponseException;
+import io.kafbat.ui.exception.KafkaConnectConflictResponseException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.WebClientConfigurator;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +48,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
         .fixedDelay(MAX_RETRIES, RETRIES_DELAY)
         .filter(e -> e instanceof WebClientResponseException.Conflict)
         .onRetryExhaustedThrow((spec, signal) ->
-            new KafkaConnectConflictReponseException(
+            new KafkaConnectConflictResponseException(
                 (WebClientResponseException.Conflict) signal.failure()));
   }
 
@@ -239,6 +239,16 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
+  public Mono<Void> stopConnector(String connectorName) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.stopConnector(connectorName));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> stopConnectorWithHttpInfo(String connectorName) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.stopConnectorWithHttpInfo(connectorName));
+  }
+
+  @Override
   public Mono<Void> restartConnector(String connectorName, Boolean includeTasks, Boolean onlyFailed)
       throws WebClientResponseException {
     return withRetryOnConflictOrRebalance(super.restartConnector(connectorName, includeTasks, onlyFailed));
@@ -259,6 +269,18 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   public Mono<ResponseEntity<Void>> restartConnectorTaskWithHttpInfo(String connectorName, Integer taskId)
       throws WebClientResponseException {
     return withRetryOnConflictOrRebalance(super.restartConnectorTaskWithHttpInfo(connectorName, taskId));
+  }
+
+  @Override
+  public Mono<Void> resetConnectorOffsets(String connectorName)
+      throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.resetConnectorOffsets(connectorName));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> resetConnectorOffsetsWithHttpInfo(String connectorName)
+      throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.resetConnectorOffsetsWithHttpInfo(connectorName));
   }
 
   @Override

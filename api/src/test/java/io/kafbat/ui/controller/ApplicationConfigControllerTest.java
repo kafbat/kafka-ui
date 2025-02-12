@@ -20,7 +20,7 @@ class ApplicationConfigControllerTest extends AbstractIntegrationTest {
   private WebTestClient webTestClient;
 
   @Test
-  public void testUpload() throws IOException {
+  void testUpload() throws IOException {
     var fileToUpload = new ClassPathResource("/fileForUploadTest.txt", this.getClass());
 
     UploadedFileInfoDTO result = webTestClient
