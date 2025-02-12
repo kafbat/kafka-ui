@@ -38,7 +38,7 @@ function padCurrentDateTimeString(): string {
   const dateTimeString: string = format(now, 'yyyy-MM-dd HH:mm:ss');
 
   return `_${dateTimeString}`;
-
+}
   interface MessagePreviewProps {
   [key: string]: {
     keyFilters: PreviewFilter[];
