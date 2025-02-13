@@ -4,15 +4,13 @@ import static io.kafbat.ui.container.ActiveDirectoryContainer.CONTAINER_CERT_PAT
 import static io.kafbat.ui.container.ActiveDirectoryContainer.CONTAINER_KEY_PATH;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.DOMAIN;
 import static io.kafbat.ui.container.ActiveDirectoryContainer.PASSWORD;
+import static java.nio.file.Files.writeString;
 import static org.testcontainers.utility.MountableFile.forHostPath;
 
 import io.kafbat.ui.container.ActiveDirectoryContainer;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -22,9 +20,12 @@ import org.apache.kafka.test.TestSslUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.shaded.org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.testcontainers.shaded.org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter;
@@ -35,6 +36,9 @@ public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegration
 
   private static File certPem = null;
   private static File privateKeyPem = null;
+
+  @Autowired
+  private WebTestClient webTestClient;
 
   @BeforeAll
   public static void setup() throws Exception {
@@ -49,6 +53,16 @@ public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegration
   @AfterAll
   public static void shutdown() {
     ACTIVE_DIRECTORY.stop();
+  }
+
+  @Test
+  public void testUserPermissions() {
+    checkUserPermissions(webTestClient);
+  }
+
+  @Test
+  public void testEmptyPermissions() {
+    checkEmptyPermissions(webTestClient);
   }
 
   private static void generateCerts() throws Exception {
@@ -67,26 +81,22 @@ public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegration
     TestSslUtils.createTrustStore(truststore.getPath(), new Password(PASSWORD), Map.of("client", clientCert));
 
     certPem = File.createTempFile("cert", ".pem");
-    try (FileWriter fw = new FileWriter(certPem)) {
-      fw.write(certOrKeyToString(clientCert));
-    }
+    writeString(certPem.toPath(), certOrKeyToString(clientCert));
 
     privateKeyPem = File.createTempFile("key", ".pem");
-    try (FileWriter fw = new FileWriter(privateKeyPem)) {
-      fw.write(certOrKeyToString(clientKeyPair.getPrivate()));
-    }
+    writeString(privateKeyPem.toPath(), certOrKeyToString(clientKeyPair.getPrivate()));
   }
 
   private static String certOrKeyToString(Object certOrKey) throws Exception {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+    StringWriter sw = new StringWriter();
+    try (PemWriter pw = new PemWriter(sw)) {
       if (certOrKey instanceof X509Certificate) {
-        pemWriter.writeObject(new JcaMiscPEMGenerator(certOrKey));
+        pw.writeObject(new JcaMiscPEMGenerator(certOrKey));
       } else {
-        pemWriter.writeObject(new JcaPKCS8Generator((PrivateKey) certOrKey, null));
+        pw.writeObject(new JcaPKCS8Generator((PrivateKey) certOrKey, null));
       }
     }
-    return out.toString(StandardCharsets.UTF_8);
+    return sw.toString();
   }
 
   public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {

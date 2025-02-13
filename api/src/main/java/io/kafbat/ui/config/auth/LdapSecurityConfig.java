@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,18 +69,10 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
     AbstractLdapAuthenticationProvider authProvider;
 
-    if (!props.isActiveDirectory()) {
-      authProvider = new LdapAuthenticationProvider(ba, authoritiesExtractor);
+    if (props.isActiveDirectory()) {
+      authProvider = activeDirectoryProvider(authoritiesExtractor);
     } else {
-      authProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
-          props.getUrls());
-      authProvider.setUseAuthenticationRequestCredentials(true);
-      ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setAuthoritiesPopulator(authoritiesExtractor);
-
-      List<String> urls = List.of(props.getUrls().split(","));
-      if (urls.stream().anyMatch(url -> url.startsWith("ldaps://"))) {
-        ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setContextEnvironmentProperties(BASE_ENV_PROPS);
-      }
+      authProvider = new LdapAuthenticationProvider(ba, authoritiesExtractor);
     }
 
     if (rbacEnabled) {
@@ -167,6 +160,22 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
+  }
+
+  private ActiveDirectoryLdapAuthenticationProvider activeDirectoryProvider(LdapAuthoritiesPopulator populator) {
+    ActiveDirectoryLdapAuthenticationProvider provider = new ActiveDirectoryLdapAuthenticationProvider(
+        props.getActiveDirectoryDomain(),
+        props.getUrls()
+    );
+
+    provider.setUseAuthenticationRequestCredentials(true);
+    provider.setAuthoritiesPopulator(populator);
+
+    if (Stream.of(props.getUrls().split(",")).anyMatch(url -> url.startsWith("ldaps://"))) {
+      provider.setContextEnvironmentProperties(BASE_ENV_PROPS);
+    }
+
+    return provider;
   }
 
   private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {

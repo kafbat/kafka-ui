@@ -1,24 +1,23 @@
 package io.kafbat.ui.util;
 
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 public class CustomSslSocketFactory extends SSLSocketFactory {
   private final SSLSocketFactory socketFactory;
 
   public CustomSslSocketFactory() {
     try {
-      SSLContext ctx = SSLContext.getInstance("TLS");
-      ctx.init(null, new TrustManager[] { new DisabledX509TrustManager() }, new SecureRandom());
-      socketFactory = ctx.getSocketFactory();
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, InsecureTrustManagerFactory.INSTANCE.getTrustManagers(), new SecureRandom());
+
+      socketFactory = sslContext.getSocketFactory();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -66,25 +65,5 @@ public class CustomSslSocketFactory extends SSLSocketFactory {
   @Override
   public Socket createSocket() throws IOException {
     return socketFactory.createSocket();
-  }
-
-  private static class DisabledX509TrustManager implements X509TrustManager {
-    /** Empty certificate array. */
-    private static final X509Certificate[] CERTS = new X509Certificate[0];
-
-    @Override
-    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-      // No-op, all clients are trusted.
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-      // No-op, all servers are trusted.
-    }
-
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-      return CERTS;
-    }
   }
 }

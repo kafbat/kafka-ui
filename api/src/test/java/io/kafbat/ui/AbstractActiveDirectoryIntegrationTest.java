@@ -16,8 +16,6 @@ import io.kafbat.ui.model.ResourceTypeDTO;
 import io.kafbat.ui.model.UserPermissionDTO;
 import java.util.List;
 import java.util.Objects;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -31,12 +29,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 public abstract class AbstractActiveDirectoryIntegrationTest {
   private static final String SESSION = "SESSION";
 
-  @Autowired
-  private WebTestClient webTestClient;
-
-  @Test
-  public void testUserPermissions() {
-    AuthenticationInfoDTO info = authenticationInfo(FIRST_USER_WITH_GROUP);
+  protected static void checkUserPermissions(WebTestClient client) {
+    AuthenticationInfoDTO info = authenticationInfo(client, FIRST_USER_WITH_GROUP);
 
     assertNotNull(info);
     assertTrue(info.getRbacEnabled());
@@ -46,22 +40,21 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
     assertFalse(permissions.isEmpty());
     assertTrue(permissions.stream().anyMatch(permission ->
         permission.getClusters().contains(LOCAL) && permission.getResource() == ResourceTypeDTO.TOPIC));
-    assertEquals(permissions, authenticationInfo(SECOND_USER_WITH_GROUP).getUserInfo().getPermissions());
-    assertEquals(permissions, authenticationInfo(USER_WITHOUT_GROUP).getUserInfo().getPermissions());
+    assertEquals(permissions, authenticationInfo(client, SECOND_USER_WITH_GROUP).getUserInfo().getPermissions());
+    assertEquals(permissions, authenticationInfo(client, USER_WITHOUT_GROUP).getUserInfo().getPermissions());
   }
 
-  @Test
-  public void testEmptyPermissions() {
-    assertTrue(Objects.requireNonNull(authenticationInfo(EMPTY_PERMISSIONS_USER))
+  protected static void checkEmptyPermissions(WebTestClient client) {
+    assertTrue(Objects.requireNonNull(authenticationInfo(client, EMPTY_PERMISSIONS_USER))
         .getUserInfo()
         .getPermissions()
         .isEmpty()
     );
   }
 
-  private String session(String name) {
+  protected static String session(WebTestClient client, String name) {
     return Objects.requireNonNull(
-            webTestClient
+            client
                 .post()
                 .uri("/login")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -75,11 +68,11 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
         .getValue();
   }
 
-  private AuthenticationInfoDTO authenticationInfo(String name) {
-    return webTestClient
+  protected static AuthenticationInfoDTO authenticationInfo(WebTestClient client, String name) {
+    return client
         .get()
         .uri("/api/authorization")
-        .cookie(SESSION, session(name))
+        .cookie(SESSION, session(client, name))
         .exchange()
         .expectStatus()
         .isOk()
