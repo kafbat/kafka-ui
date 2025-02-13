@@ -33,15 +33,15 @@ import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter;
 public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegrationTest {
   private static final ActiveDirectoryContainer ACTIVE_DIRECTORY = new ActiveDirectoryContainer(true);
 
-  private static File CERT_PEM = null;
-  private static File PRIVATE_KEY_PEM = null;
+  private static File certPem = null;
+  private static File privateKeyPem = null;
 
   @BeforeAll
   public static void setup() throws Exception {
     generateCerts();
 
-    ACTIVE_DIRECTORY.withCopyFileToContainer(forHostPath(CERT_PEM.getAbsolutePath()), CONTAINER_CERT_PATH);
-    ACTIVE_DIRECTORY.withCopyFileToContainer(forHostPath(PRIVATE_KEY_PEM.getAbsolutePath()), CONTAINER_KEY_PATH);
+    ACTIVE_DIRECTORY.withCopyFileToContainer(forHostPath(certPem.getAbsolutePath()), CONTAINER_CERT_PATH);
+    ACTIVE_DIRECTORY.withCopyFileToContainer(forHostPath(privateKeyPem.getAbsolutePath()), CONTAINER_KEY_PATH);
 
     ACTIVE_DIRECTORY.start();
   }
@@ -66,13 +66,13 @@ public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegration
 
     TestSslUtils.createTrustStore(truststore.getPath(), new Password(PASSWORD), Map.of("client", clientCert));
 
-    CERT_PEM = File.createTempFile("cert", ".pem");
-    try (FileWriter fw = new FileWriter(CERT_PEM)) {
+    certPem = File.createTempFile("cert", ".pem");
+    try (FileWriter fw = new FileWriter(certPem)) {
       fw.write(certOrKeyToString(clientCert));
     }
 
-    PRIVATE_KEY_PEM = File.createTempFile("key", ".pem");
-    try (FileWriter fw = new FileWriter(PRIVATE_KEY_PEM)) {
+    privateKeyPem = File.createTempFile("key", ".pem");
+    try (FileWriter fw = new FileWriter(privateKeyPem)) {
       fw.write(certOrKeyToString(clientKeyPair.getPrivate()));
     }
   }
