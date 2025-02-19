@@ -42,33 +42,35 @@ describe('New', () => {
     }));
   });
   it('checks header for create new', async () => {
-    await act(() => {
+    await act(async () => {
       renderComponent(clusterTopicNewPath(clusterName));
     });
-    expect(screen.getByRole('heading', { name: 'Create' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /local \/ Topics \/ Create/ })
+    ).toBeInTheDocument();
   });
 
   it('checks header for copy', async () => {
-    await act(() => {
+    await act(async () => {
       renderComponent(`${clusterTopicCopyPath(clusterName)}?name=test`);
     });
-    expect(screen.getByRole('heading', { name: 'Copy' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /local \/ Topics \/ Copy/ })
+    ).toBeInTheDocument();
   });
   it('validates form', async () => {
     renderComponent(clusterTopicNewPath(clusterName));
     await userEvent.type(screen.getByPlaceholderText('Topic Name'), topicName);
     await userEvent.clear(screen.getByPlaceholderText('Topic Name'));
     await userEvent.tab();
-    await expect(
-      screen.getByText('Topic Name is required')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Topic Name is required')).toBeInTheDocument();
     await userEvent.type(
       screen.getByLabelText('Number of Partitions *'),
       minValue
     );
     await userEvent.clear(screen.getByLabelText('Number of Partitions *'));
     await userEvent.tab();
-    await expect(
+    expect(
       screen.getByText('Number of Partitions is required and must be a number')
     ).toBeInTheDocument();
 

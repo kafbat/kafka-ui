@@ -72,6 +72,7 @@ const Details: React.FC = () => {
   return (
     <>
       <PageHeading
+        clusterName={clusterName}
         text={schema?.subject || ''}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
