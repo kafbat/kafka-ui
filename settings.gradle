@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "kafbat-ui"
+include "contract"
+include "serde-api"
+include "api"
+include "frontend"
+include "e2e-tests"
+
