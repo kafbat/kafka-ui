@@ -27,7 +27,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: kafbat-ui-${{ inputs.version }}
-          path: api/target
+          path: build/libs
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -44,9 +44,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-        # Build multi platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
+        # Build multi-platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
         # So let's use containerd instead as it supports this option
-        # Also containerd is one of the option to allow preserving provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
+        # Also containerd is one of the option to allow preserving provenance attestations:
+        # https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
         uses: crazy-max/ghaction-setup-docker@v3
         with:
