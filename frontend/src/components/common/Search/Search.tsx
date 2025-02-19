@@ -1,4 +1,4 @@
-import React, { ComponentRef, useRef } from 'react';
+import React, { ComponentRef, useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import Input from 'components/common/Input/Input';
 import { useSearchParams } from 'react-router-dom';
@@ -30,6 +30,12 @@ const Search: React.FC<SearchProps> = ({
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
+
+  useEffect(() => {
+    if (ref.current !== null && value) {
+      ref.current.value = value;
+    }
+  }, [value]);
 
   const handleChange = useDebouncedCallback((e) => {
     if (ref.current != null) {
