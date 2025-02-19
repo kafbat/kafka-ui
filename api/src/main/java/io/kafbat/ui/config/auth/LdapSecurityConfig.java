@@ -3,10 +3,13 @@ package io.kafbat.ui.config.auth;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.RbacActiveDirectoryAuthoritiesExtractor;
 import io.kafbat.ui.service.rbac.extractor.RbacLdapAuthoritiesExtractor;
+import io.kafbat.ui.util.CustomSslSocketFactory;
 import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +50,9 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @RequiredArgsConstructor
 @Slf4j
 public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
+  private static final Map<String, Object> BASE_ENV_PROPS = Map.of(
+      "java.naming.ldap.factory.socket", CustomSslSocketFactory.class.getName()
+  );
 
   private final LdapProperties props;
 
@@ -63,13 +69,10 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
     AbstractLdapAuthenticationProvider authProvider;
 
-    if (!props.isActiveDirectory()) {
-      authProvider = new LdapAuthenticationProvider(ba, authoritiesExtractor);
+    if (props.isActiveDirectory()) {
+      authProvider = activeDirectoryProvider(authoritiesExtractor);
     } else {
-      authProvider = new ActiveDirectoryLdapAuthenticationProvider(props.getActiveDirectoryDomain(),
-          props.getUrls());
-      authProvider.setUseAuthenticationRequestCredentials(true);
-      ((ActiveDirectoryLdapAuthenticationProvider) authProvider).setAuthoritiesPopulator(authoritiesExtractor);
+      authProvider = new LdapAuthenticationProvider(ba, authoritiesExtractor);
     }
 
     if (rbacEnabled) {
@@ -80,7 +83,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "oauth2.ldap.activeDirectory", havingValue = "false")
+  @ConditionalOnProperty(value = "oauth2.ldap.activeDirectory", havingValue = "false", matchIfMissing = true)
   public BindAuthenticator ldapBindAuthentication(LdapContextSource ldapContextSource) {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
 
@@ -157,6 +160,22 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
+  }
+
+  private ActiveDirectoryLdapAuthenticationProvider activeDirectoryProvider(LdapAuthoritiesPopulator populator) {
+    ActiveDirectoryLdapAuthenticationProvider provider = new ActiveDirectoryLdapAuthenticationProvider(
+        props.getActiveDirectoryDomain(),
+        props.getUrls()
+    );
+
+    provider.setUseAuthenticationRequestCredentials(true);
+    provider.setAuthoritiesPopulator(populator);
+
+    if (Stream.of(props.getUrls().split(",")).anyMatch(url -> url.startsWith("ldaps://"))) {
+      provider.setContextEnvironmentProperties(BASE_ENV_PROPS);
+    }
+
+    return provider;
   }
 
   private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {

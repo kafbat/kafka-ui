@@ -17,7 +17,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
-public class ConfigTest extends AbstractIntegrationTest {
+class ConfigTest extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;
@@ -35,7 +35,7 @@ public class ConfigTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void testAlterConfig() {
+  void testAlterConfig() {
     String name = "background.threads";
 
     Optional<BrokerConfigDTO> bc = getConfig(name);
@@ -65,7 +65,7 @@ public class ConfigTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void testAlterReadonlyConfig() {
+  void testAlterReadonlyConfig() {
     String name = "log.dirs";
 
     webTestClient.put()

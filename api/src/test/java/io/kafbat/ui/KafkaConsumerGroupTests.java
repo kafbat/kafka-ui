@@ -27,7 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
+class KafkaConsumerGroupTests extends AbstractIntegrationTest {
   @Autowired
   WebTestClient webTestClient;
 

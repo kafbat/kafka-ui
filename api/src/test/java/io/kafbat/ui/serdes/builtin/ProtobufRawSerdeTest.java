@@ -52,7 +52,7 @@ class ProtobufRawSerdeTest {
   void deserializeEmptyMessage() {
     var deserialized = serde.deserializer(DUMMY_TOPIC, Serde.Target.VALUE)
         .deserialize(null, new byte[0]);
-    assertThat(deserialized.getResult()).isEqualTo("");
+    assertThat(deserialized.getResult()).isEmpty();
   }
 
   @Test

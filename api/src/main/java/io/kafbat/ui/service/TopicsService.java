@@ -97,7 +97,7 @@ public class TopicsService {
 
   /**
    *  After creation topic can be invisible via API for some time.
-   *  To workaround this, we retyring topic loading until it becomes visible.
+   *  To workaround this, we're retrying topic loading until it becomes visible.
    */
   private Mono<InternalTopic> loadTopicAfterCreation(KafkaCluster c, String topicName) {
     return loadTopic(c, topicName)
@@ -137,8 +137,7 @@ public class TopicsService {
         .collect(toList());
   }
 
-  private Mono<InternalPartitionsOffsets> getPartitionOffsets(Map<String, TopicDescription>
-                                                                  descriptionsMap,
+  private Mono<InternalPartitionsOffsets> getPartitionOffsets(Map<String, TopicDescription> descriptionsMap,
                                                               ReactiveAdminClient ac) {
     var descriptions = descriptionsMap.values();
     return ac.listOffsets(descriptions, OffsetSpec.earliest())
@@ -225,8 +224,7 @@ public class TopicsService {
                 .then(loadTopic(cluster, topicName)));
   }
 
-  public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName,
-                                    Mono<TopicUpdateDTO> topicUpdate) {
+  public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName, Mono<TopicUpdateDTO> topicUpdate) {
     return topicUpdate
         .flatMap(t -> updateTopic(cl, topicName, t));
   }
@@ -298,7 +296,7 @@ public class TopicsService {
         var brokers = brokersUsage.entrySet().stream()
             .sorted(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
-            .collect(toList());
+            .toList();
 
         // Iterate brokers and try to add them in assignment
         // while partition replicas count != requested replication factor
@@ -326,7 +324,7 @@ public class TopicsService {
         var brokersUsageList = brokersUsage.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .map(Map.Entry::getKey)
-            .collect(toList());
+            .toList();
 
         // Iterate brokers and try to remove them from assignment
         // while partition replicas count != requested replication factor

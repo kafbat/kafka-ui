@@ -1,11 +1,11 @@
 package io.kafbat.ui.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.TaskStatus;
+import io.kafbat.ui.exception.ConnectorOffsetsResetException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.ClusterMapper;
@@ -43,7 +43,6 @@ import reactor.core.publisher.Mono;
 public class KafkaConnectService {
   private final ClusterMapper clusterMapper;
   private final KafkaConnectMapper kafkaConnectMapper;
-  private final ObjectMapper objectMapper;
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster) {
@@ -213,6 +212,7 @@ public class KafkaConnectService {
           case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
               t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
           case PAUSE -> client.pauseConnector(connectorName);
+          case STOP -> client.stopConnector(connectorName);
           case RESUME -> client.resumeConnector(connectorName);
         });
   }
@@ -271,5 +271,21 @@ public class KafkaConnectService {
           "Connect %s not found for cluster %s".formatted(connectName, cluster.getName()));
     }
     return client;
+  }
+
+  public Mono<Void> resetConnectorOffsets(KafkaCluster cluster, String connectName,
+      String connectorName) {
+    return api(cluster, connectName)
+        .mono(client -> client.resetConnectorOffsets(connectorName))
+        .onErrorResume(WebClientResponseException.NotFound.class,
+            e -> {
+              throw new NotFoundException("Connector %s not found in %s".formatted(connectorName, connectName));
+            })
+        .onErrorResume(WebClientResponseException.BadRequest.class,
+            e -> {
+              throw new ConnectorOffsetsResetException(
+                  "Failed to reset offsets of connector %s of %s. Make sure it is STOPPED first."
+                      .formatted(connectorName, connectName));
+            });
   }
 }

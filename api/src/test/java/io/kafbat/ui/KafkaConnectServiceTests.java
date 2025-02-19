@@ -27,7 +27,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @Slf4j
-public class KafkaConnectServiceTests extends AbstractIntegrationTest {
+class KafkaConnectServiceTests extends AbstractIntegrationTest {
   private final String connectName = "kafka-connect";
   private final String connectorName = UUID.randomUUID().toString();
   private final Map<String, Object> config = Map.of(
@@ -44,7 +44,8 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
+
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
@@ -54,15 +55,14 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "tasks.max", "1",
                 "topics", "output-topic",
                 "file", "/tmp/test",
-                "test.password", "test-credentials"
-            ))
-        )
+                "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
+
   }
 
   @AfterEach
-  public void tearDown() {
+  void tearDown() {
     webTestClient.delete()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
             connectName, connectorName)
@@ -71,7 +71,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldListAllConnectors() {
+  void shouldListAllConnectors() {
     webTestClient.get()
             .uri("/api/clusters/{clusterName}/connectors", LOCAL)
             .exchange()
@@ -82,7 +82,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldFilterByNameConnectors() {
+  void shouldFilterByNameConnectors() {
     webTestClient.get()
             .uri(
                     "/api/clusters/{clusterName}/connectors?search={search}",
@@ -96,7 +96,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldFilterByStatusConnectors() {
+  void shouldFilterByStatusConnectors() {
     webTestClient.get()
             .uri(
                     "/api/clusters/{clusterName}/connectors?search={search}",
@@ -110,7 +110,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldFilterByTypeConnectors() {
+  void shouldFilterByTypeConnectors() {
     webTestClient.get()
             .uri(
                     "/api/clusters/{clusterName}/connectors?search={search}",
@@ -124,7 +124,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldNotFilterConnectors() {
+  void shouldNotFilterConnectors() {
     webTestClient.get()
             .uri(
                     "/api/clusters/{clusterName}/connectors?search={search}",
@@ -138,7 +138,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldListConnectors() {
+  void shouldListConnectors() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .exchange()
@@ -148,7 +148,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnNotFoundForNonExistingCluster() {
+  void shouldReturnNotFoundForNonExistingCluster() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", "nonExistingCluster",
             connectName)
@@ -157,7 +157,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnNotFoundForNonExistingConnectName() {
+  void shouldReturnNotFoundForNonExistingConnectName() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL,
             "nonExistingConnect")
@@ -166,7 +166,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldRetrieveConnector() {
+  void shouldRetrieveConnector() {
     ConnectorDTO expected = new ConnectorDTO()
         .connect(connectName)
         .status(new ConnectorStatusDTO()
@@ -188,7 +188,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldUpdateConfig() {
+  void shouldUpdateConfig() {
     webTestClient.put()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config",
             LOCAL, connectName, connectorName)
@@ -219,7 +219,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturn400WhenConnectReturns400ForInvalidConfigCreate() {
+  void shouldReturn400WhenConnectReturns400ForInvalidConfigCreate() {
     var connectorName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
@@ -245,7 +245,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturn400WhenConnectReturns500ForInvalidConfigCreate() {
+  void shouldReturn400WhenConnectReturns500ForInvalidConfigCreate() {
     var connectorName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
@@ -270,7 +270,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
   @Test
   @SuppressWarnings("checkstyle:LineLength")
-  public void shouldReturn400WhenConnectReturns400ForInvalidConfigUpdate() {
+  void shouldReturn400WhenConnectReturns400ForInvalidConfigUpdate() {
     webTestClient.put()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config",
             LOCAL, connectName, connectorName)
@@ -310,7 +310,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturn400WhenConnectReturns500ForInvalidConfigUpdate() {
+  void shouldReturn400WhenConnectReturns500ForInvalidConfigUpdate() {
     webTestClient.put()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config",
             LOCAL, connectName, connectorName)
@@ -339,7 +339,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldRetrieveConnectorPlugins() {
+  void shouldRetrieveConnectorPlugins() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/plugins", LOCAL, connectName)
         .exchange()
@@ -349,7 +349,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldSuccessfullyValidateConnectorPluginConfiguration() {
+  void shouldSuccessfullyValidateConnectorPluginConfiguration() {
     var pluginName = "FileStreamSinkConnector";
     var path =
         "/api/clusters/{clusterName}/connects/{connectName}/plugins/{pluginName}/config/validate";
@@ -370,7 +370,7 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldValidateAndReturnErrorsOfConnectorPluginConfiguration() {
+  void shouldValidateAndReturnErrorsOfConnectorPluginConfiguration() {
     var pluginName = "FileStreamSinkConnector";
     var path =
         "/api/clusters/{clusterName}/connects/{connectName}/plugins/{pluginName}/config/validate";
@@ -396,13 +396,13 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
               .findFirst().orElseThrow();
           assertEquals(
               "Invalid value 0 for configuration tasks.max: Value must be at least 1",
-              error.get(0)
+              error.getFirst()
           );
         });
   }
 
   @Test
-  public void shouldReturn400WhenTryingToCreateConnectorWithExistingName() {
+  void shouldReturn400WhenTryingToCreateConnectorWithExistingName() {
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
@@ -417,5 +417,57 @@ public class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .exchange()
         .expectStatus()
         .isBadRequest();
+  }
+
+  @Test
+  void shouldResetConnectorWhenInStoppedState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
+
+    webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/action/STOP",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.STOPPED));
+
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
+
+  }
+
+  @Test
+  void shouldReturn400WhenResettingConnectorInRunningState() {
+
+    webTestClient.get()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+            LOCAL, connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(ConnectorDTO.class)
+        .value(connector -> assertThat(connector.getStatus().getState()).isEqualTo(ConnectorStateDTO.RUNNING));
+
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets", LOCAL,
+            connectName, connectorName)
+        .exchange()
+        .expectStatus().isBadRequest();
+
   }
 }

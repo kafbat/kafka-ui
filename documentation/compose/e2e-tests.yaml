@@ -30,7 +30,6 @@ services:
 
   kafka0:
     image: confluentinc/cp-kafka:7.8.0
-    user: "0:0"
     hostname: kafka0
     container_name: kafka0
     healthcheck:
