@@ -42,9 +42,12 @@ test {
         }
 
         useTestNG() {
-            def suitePath = Paths.get("src/test/resources/" + suiteName + ".xml")
+            useDefaultListeners = true
+
+            def suitePath = Paths.get(project.rootDir.toString(),
+                    "e2e-tests/src/test/resources/" + suiteName + ".xml" as String)
             if (!Files.exists(suitePath)) {
-                throw new GradleException("Suite [" + suitePath + "] doesn't exist")
+                throw new GradleException("Suite [" + suitePath.toAbsolutePath() + "] doesn't exist")
             }
             suiteXmlFiles = [suitePath.toFile()]
         }
