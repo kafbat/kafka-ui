@@ -14,6 +14,8 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   public static final String SECOND_USER_WITH_GROUP = "JohnWick";
   public static final String USER_WITHOUT_GROUP = "JackSmith";
   public static final String EMPTY_PERMISSIONS_USER = "JohnJames";
+  public static final String CONTAINER_CERT_PATH = "/var/containers/cert.pem";
+  public static final String CONTAINER_KEY_PATH = "/var/containers/key.pem";
 
   private static final String DOMAIN_DC = "dc=corp,dc=kafbat,dc=io";
   private static final String GROUP = "group";
@@ -22,21 +24,37 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   private static final String DOMAIN_EMAIL = "kafbat.io";
   private static final String SAMBA_TOOL = "samba-tool";
   private static final int LDAP_PORT = 389;
+  private static final int LDAPS_PORT = 636;
   private static final DockerImageName IMAGE_NAME = DockerImageName.parse("nowsci/samba-domain:latest");
 
-  public ActiveDirectoryContainer() {
+  private final boolean sslEnabled;
+  private final int port;
+
+  public ActiveDirectoryContainer(boolean sslEnabled) {
     super(IMAGE_NAME);
 
-    withExposedPorts(LDAP_PORT);
+    this.sslEnabled = sslEnabled;
+    port = sslEnabled ? LDAPS_PORT : LDAP_PORT;
+
+    withExposedPorts(port);
 
     withEnv("DOMAIN", DOMAIN);
     withEnv("DOMAIN_DC", DOMAIN_DC);
     withEnv("DOMAIN_EMAIL", DOMAIN_EMAIL);
     withEnv("DOMAINPASS", PASSWORD);
     withEnv("NOCOMPLEXITY", "true");
-    withEnv("INSECURELDAP", "true");
+    withEnv("INSECURELDAP", String.valueOf(!sslEnabled));
 
     withPrivilegedMode(true);
+  }
+
+  @Override
+  public void start() {
+    super.start();
+
+    if (sslEnabled) {
+      setCustomCertAndRestartServer();
+    }
   }
 
   protected void containerIsStarted(InspectContainerResponse containerInfo) {
@@ -52,7 +70,7 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
   }
 
   public String getLdapUrl() {
-    return String.format("ldap://%s:%s", getHost(), getMappedPort(LDAP_PORT));
+    return String.format("%s://%s:%s", sslEnabled ? "ldaps" : "ldap", getHost(), getMappedPort(port));
   }
 
   private void createUser(String name) {
@@ -75,5 +93,23 @@ public class ActiveDirectoryContainer extends GenericContainer<ActiveDirectoryCo
     if (result.getExitCode() != 0) {
       throw new IllegalStateException(result.toString());
     }
+  }
+
+  private void setCustomCertAndRestartServer() {
+    exec(
+        "sed",
+        "-i",
+        "/\\[global\\]/a \\\t"
+            + "tls cafile = \\\n"
+            + "tls keyfile = " + CONTAINER_KEY_PATH + "\\\n"
+            + "tls certfile = " + CONTAINER_CERT_PATH + "\\\n",
+        "/etc/samba/external/smb.conf"
+    );
+
+    exec("chown", "-R", "root:root", "/var/containers/");
+    exec("chmod", "600", CONTAINER_KEY_PATH);
+
+    exec("./domain.sh", "reload-config");
+    exec("supervisorctl", "restart", "samba");
   }
 }
