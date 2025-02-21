@@ -80,7 +80,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystoreLocation", String.class).orElse(null),
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("ssl.verifySsl", Boolean.class).orElse(true)
         ),
         kafkaClusterProperties.getProperty("schemaRegistryKeySchemaNameTemplate", String.class).orElse("%s-key"),
         kafkaClusterProperties.getProperty("schemaRegistrySchemaNameTemplate", String.class).orElse("%s-value"),
@@ -106,7 +107,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             serdeProperties.getProperty("keystoreLocation", String.class).orElse(null),
             serdeProperties.getProperty("keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("ssl.verifySsl", Boolean.class).orElse(true)
         ),
         serdeProperties.getProperty("keySchemaNameTemplate", String.class).orElse("%s-key"),
         serdeProperties.getProperty("schemaNameTemplate", String.class).orElse("%s-value"),
@@ -136,7 +138,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                                                                  @Nullable String keyStoreLocation,
                                                                  @Nullable String keyStorePassword,
                                                                  @Nullable String trustStoreLocation,
-                                                                 @Nullable String trustStorePassword) {
+                                                                 @Nullable String trustStorePassword,
+                                                                 boolean verifySsl) {
     Map<String, String> configs = new HashMap<>();
     if (username != null && password != null) {
       configs.put(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
@@ -164,6 +167,11 @@ public class SchemaRegistrySerde implements BuiltInSerde {
           keyStorePassword);
       configs.put(SchemaRegistryClientConfig.CLIENT_NAMESPACE + SslConfigs.SSL_KEY_PASSWORD_CONFIG,
           keyStorePassword);
+    }
+
+    if (!verifySsl) { // TODO block above
+      configs.put(SchemaRegistryClientConfig.CLIENT_NAMESPACE + SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG,
+          "");
     }
 
     return new CachedSchemaRegistryClient(
