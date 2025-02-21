@@ -1,6 +1,8 @@
 package io.kafbat.ui;
 
+import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.DynamicConfigOperations;
+import java.security.Security;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -18,6 +20,7 @@ public class KafkaUiApplication {
   }
 
   public static ConfigurableApplicationContext startApplication(String[] args) {
+    Security.addProvider(new SkipSecurityProvider());
     return new SpringApplicationBuilder(KafkaUiApplication.class)
         .initializers(DynamicConfigOperations.dynamicConfigPropertiesInitializer())
         .build()
