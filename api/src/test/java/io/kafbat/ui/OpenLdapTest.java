@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -33,8 +34,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 @SpringBootTest
 @ActiveProfiles("rbac-ldap")
 @AutoConfigureWebTestClient(timeout = "60000")
-@ContextConfiguration(initializers = {OpenLdapIntegrationTest.Initializer.class})
-class OpenLdapIntegrationTest {
+@ContextConfiguration(initializers = {OpenLdapTest.Initializer.class})
+@DirtiesContext
+class OpenLdapTest {
   private static final String SESSION = "SESSION";
   private static final OpenLdapContainer LDAP_CONTAINER = new OpenLdapContainer();
 
