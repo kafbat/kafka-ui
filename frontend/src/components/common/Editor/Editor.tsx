@@ -31,7 +31,7 @@ const Editor = React.forwardRef<AceEditor | null, EditorProps>((props, ref) => {
           ? `${(props.value?.split('\n').length || 32) * 19}px`
           : '372px'
       }
-      wrapEnabled
+      wrapEnabled={false}
       {...rest}
     />
   );
