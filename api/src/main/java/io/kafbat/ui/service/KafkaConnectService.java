@@ -1,6 +1,5 @@
 package io.kafbat.ui.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
@@ -44,7 +43,6 @@ import reactor.core.publisher.Mono;
 public class KafkaConnectService {
   private final ClusterMapper clusterMapper;
   private final KafkaConnectMapper kafkaConnectMapper;
-  private final ObjectMapper objectMapper;
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster) {
