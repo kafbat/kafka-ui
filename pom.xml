@@ -36,7 +36,7 @@
         <avro.version>1.11.4</avro.version>
         <byte-buddy.version>1.15.11</byte-buddy.version>
         <confluent.version>7.8.0</confluent.version>
-        <datasketches-java.version>3.1.0</datasketches-java.version>
+        <datasketches-java.version>7.0.1</datasketches-java.version>
         <groovy.version>3.0.13</groovy.version>
         <jackson.version>2.18.2</jackson.version>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
