@@ -35,7 +35,8 @@ public abstract class WebDriver {
     Configuration.reportsFolder = String.format("%s/reports", SELENIDE_RESULTS_PATH);
     ChromeOptions chromeOptions = new ChromeOptions()
         //.addArguments("--remote-allow-origins=*")
-        .addArguments("--user-data-dir=" + System.getProperty("java.io.tmpdir") + "/chrome-profile-" + UUID.randomUUID())
+        .addArguments("--user-data-dir=" + System.getProperty("java.io.tmpdir")
+            + "/chrome-profile-" + UUID.randomUUID())
         .addArguments("--disable-dev-shm-usage")
         .addArguments("--disable-extensions")
         .addArguments("--disable-gpu")
