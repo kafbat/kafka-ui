@@ -34,11 +34,10 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      - name: Build with Maven
+      - name: Build with Gradle
         id: build_app
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=${{ inputs.sha }}
-          ./mvnw -B -V -ntp clean install -Pprod -Dmaven.test.skip=true
+          ./gradlew clean build publishToMavenLocal -x test
 
       - name: Upload maven artifacts
         uses: actions/upload-artifact@v4
