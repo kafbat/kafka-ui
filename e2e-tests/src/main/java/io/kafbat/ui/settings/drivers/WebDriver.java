@@ -52,6 +52,7 @@ public abstract class WebDriver {
     } else if (System.getProperty("os.name").equals("Mac OS X")) {
       Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
     }
+    System.setProperty("webdriver.chrome.verboseLogging", "true");
     Configuration.browserCapabilities = chromeOptions;
   }
 
