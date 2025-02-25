@@ -10,8 +10,8 @@ services:
     volumes:
       - "../selenoid/config:/etc/selenoid"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "../target/selenoid-results/video:/opt/selenoid/video"
-      - "../target/selenoid-results/logs:/opt/selenoid/logs"
+      - "../build/selenoid-results/video:/opt/selenoid/video"
+      - "../build/selenoid-results/logs:/opt/selenoid/logs"
     environment:
       - OVERRIDE_VIDEO_OUTPUT_DIR=../docker/selenoid/video
     ports:
