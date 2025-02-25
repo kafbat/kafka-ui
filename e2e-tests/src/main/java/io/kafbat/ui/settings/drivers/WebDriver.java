@@ -20,7 +20,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 public abstract class WebDriver {
 
   private static final String MAC_OS_CHROME_BIN_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  private static final String SELENIDE_RESULTS_PATH = "target/selenide-results";
+  private static final String SELENIDE_RESULTS_PATH = "build/selenide-results";
 
   @Step
   public static void browserSetup() {
