@@ -34,7 +34,7 @@ jobs:
         run: |
           export VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          ./gradlew build -Pinclude-frontend -Pbuild-docker-images
+          ./gradlew build -Pinclude-frontend=true -Pbuild-docker-images=true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
