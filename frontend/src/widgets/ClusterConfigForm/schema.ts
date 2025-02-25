@@ -44,6 +44,27 @@ const urlWithAuthSchema = lazy((value) => {
   return mixed().optional();
 });
 
+const serdeSchema = object({
+  name: requiredString,
+  className: requiredString,
+  filePath: requiredString,
+  topicKeysPattern: requiredString,
+  topicValuesPattern: requiredString,
+  properties: array().of(
+    object({
+      key: requiredString,
+      value: requiredString,
+    })
+  ),
+});
+
+const serdesSchema = lazy((value) => {
+  if (Array.isArray(value)) {
+    return array().of(serdeSchema);
+  }
+  return mixed().optional();
+});
+
 const kafkaConnectSchema = object({
   name: requiredString,
   address: requiredString,
@@ -189,6 +210,7 @@ const formSchema = object({
   auth: authSchema,
   schemaRegistry: urlWithAuthSchema,
   ksql: urlWithAuthSchema,
+  serde: serdesSchema,
   kafkaConnect: kafkaConnectsSchema,
   metrics: metricsSchema,
 });

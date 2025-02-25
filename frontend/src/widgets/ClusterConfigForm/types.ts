@@ -23,6 +23,18 @@ type URLWithAuth = WithAuth &
     isActive?: string;
   };
 
+export type Serde = {
+  name?: string;
+  className?: string;
+  filePath?: string;
+  topicKeysPattern?: string;
+  topicValuesPattern?: string;
+  properties: {
+    key: string;
+    value: string;
+  }[];
+};
+
 type KafkaConnect = WithAuth &
   WithKeystore & {
     name: string;
@@ -53,6 +65,7 @@ export type ClusterConfigFormValues = {
   schemaRegistry?: URLWithAuth;
   ksql?: URLWithAuth;
   properties?: Record<string, string>;
+  serde?: Serde[];
   kafkaConnect?: KafkaConnect[];
   metrics?: Metrics;
   customAuth: Record<string, string>;
