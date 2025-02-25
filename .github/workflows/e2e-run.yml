@@ -37,7 +37,7 @@ jobs:
       - name: Build with Gradle
         id: build_app
         run: |
-          ./gradlew clean build publishToMavenLocal -x test
+          ./gradlew clean build publishToMavenLocal -x test -Pbuild-docker-images=true
 
       - name: Upload maven artifacts
         uses: actions/upload-artifact@v4
