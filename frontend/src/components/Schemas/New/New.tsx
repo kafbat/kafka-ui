@@ -72,6 +72,7 @@ const New: React.FC = () => {
   return (
     <FormProvider {...methods}>
       <PageHeading
+        clusterName={clusterName}
         text="Create"
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
