@@ -13,14 +13,12 @@ import io.qameta.allure.Step;
 import io.qameta.allure.selenide.AllureSelenide;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 @Slf4j
 public abstract class WebDriver {
 
-  private static final String MAC_OS_CHROME_BIN_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
   private static final String SELENIDE_RESULTS_PATH = "build/selenide-results";
 
   @Step
@@ -40,21 +38,17 @@ public abstract class WebDriver {
         .addArguments("--disable-gpu")
         .addArguments("--no-sandbox")
         .addArguments("--lang=en_US");
-    if (true) {
-      Configuration.remote = BaseSource.REMOTE_URL;
-      Configuration.remoteConnectionTimeout = 180000;
-      Configuration.remoteReadTimeout = 180000;
-      Map<String, Object> selenoidOptions = new HashMap<>();
-      selenoidOptions.put("enableVNC", true);
-      selenoidOptions.put("enableLog", true);
-      selenoidOptions.put("enableVideo", false);
-      selenoidOptions.put("sessionTimeout", "30m");
-      chromeOptions.setCapability("selenoid:options", selenoidOptions);
-    }
-    /*} else if (System.getProperty("os.name").equals("Mac OS X")) {
-      Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
-    }*/
-    System.setProperty("webdriver.chrome.verboseLogging", "true");
+
+    Configuration.remote = BaseSource.REMOTE_URL;
+    Configuration.remoteConnectionTimeout = 180000;
+    Configuration.remoteReadTimeout = 180000;
+    Map<String, Object> selenoidOptions = new HashMap<>();
+    selenoidOptions.put("enableVNC", true);
+    selenoidOptions.put("enableLog", true);
+    selenoidOptions.put("enableVideo", false);
+    selenoidOptions.put("sessionTimeout", "30m");
+    chromeOptions.setCapability("selenoid:options", selenoidOptions);
+
     Configuration.browserCapabilities = chromeOptions;
   }
 
@@ -71,7 +65,7 @@ public abstract class WebDriver {
   @Step
   public static void openUrl(String url) {
     org.openqa.selenium.WebDriver driver = getWebDriver();
-    if (!driver.getCurrentUrl().equals(url)) {
+    if (!url.equals(driver.getCurrentUrl())) {
       driver.get(url);
     }
   }

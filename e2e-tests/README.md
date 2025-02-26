@@ -34,7 +34,7 @@ docker pull selenoid/vnc_chrome:117.0
 
 ```
 cd kafbat-ui
-docker-compose -f e2e-tests/selenoid/selenoid-local.yaml up -d
+docker-compose -f e2e-tests/selenoid/selenoid-ci.yaml up -d
 docker-compose -f documentation/compose/e2e-tests.yaml up -d
 ```
 
