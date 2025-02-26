@@ -117,6 +117,7 @@ allure-testng = { module = 'io.qameta.allure:allure-testng', version.ref = 'allu
 allure-selenide = { module = 'io.qameta.allure:allure-selenide', version.ref = 'allure' }
 
 codeborne-selenide = { module = 'com.codeborne:selenide', version.ref = 'selenide' }
+selenium = { module = 'org.seleniumhq.selenium:selenium-java', version = '4.25.0' }
 testng = { module = 'org.testng:testng', version.ref = 'testng' }
 aspectj = { module = 'org.aspectj:aspectjweaver', version.ref = 'aspectj' }
 bonigarcia-webdrivermanager = { module = 'io.github.bonigarcia:webdrivermanager', version.ref = 'bonigarcia-webdrivermanager' }
