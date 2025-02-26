@@ -30,7 +30,7 @@
     "react-multi-select-component": "4.3.4",
     "react-router-dom": "6.23.0",
     "sass": "1.66.1",
-    "styled-components": "6.1.8",
+    "styled-components": "6.1.15",
     "use-debounce": "10.0.0",
     "yup": "1.4.0",
     "zustand": "4.5.2"
