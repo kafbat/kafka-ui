@@ -37,17 +37,20 @@ jobs:
       - name: Build with Gradle
         id: build_app
         run: |
-          ./gradlew clean build publishToMavenLocal \
+          ./gradlew clean build \
           -x test \
           -Pbuild-docker-images=true \
           -Pinclude-frontend=true \
           -Pversion=latest
 
-      - name: Upload maven artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: ~/.m2/repository/io/kafbat/ui/**/*
+          path: |
+            build/libs
+            build/classes
+            build/resources
           retention-days: 7
 
       - name: Dump docker image
@@ -79,11 +82,11 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      - name: Download maven artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: artifacts
-          path: ~/.m2/repository/io/kafbat/ui
+          path: build
 
       - name: Download docker image
         uses: actions/download-artifact@v4
