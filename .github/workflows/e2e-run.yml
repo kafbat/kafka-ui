@@ -114,7 +114,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          ./gradlew :e2e-tests:test -Prun-e2e=true -Psuite_name=${{ inputs.suite_name }} --full-stacktrace --debug
+          ./gradlew :e2e-tests:test -Prun-e2e=true -Psuite_name=${{ inputs.suite_name }}
 
       - name: Upload allure reports artifact
         if: '!cancelled()'
