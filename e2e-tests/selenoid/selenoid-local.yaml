@@ -1,6 +1,3 @@
----
-version: '3'
-
 services:
 
   # https://github.com/aerokube/selenoid/releases
