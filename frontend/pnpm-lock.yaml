@@ -26,10 +26,10 @@ importers:
         version: 0.26.13(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@hookform/error-message':
         specifier: 2.0.1
-        version: 2.0.1(react-dom@18.2.0(react@18.2.0))(react-hook-form@7.51.3(react@18.2.0))(react@18.2.0)
+        version: 2.0.1(react-dom@18.2.0(react@18.2.0))(react-hook-form@7.54.2(react@18.2.0))(react@18.2.0)
       '@hookform/resolvers':
         specifier: 2.7.1
-        version: 2.7.1(react-hook-form@7.51.3(react@18.2.0))
+        version: 2.7.1(react-hook-form@7.54.2(react@18.2.0))
       '@microsoft/fetch-event-source':
         specifier: 2.0.1
         version: 2.0.1
@@ -82,8 +82,8 @@ importers:
         specifier: 4.0.13
         version: 4.0.13(react@18.2.0)
       react-hook-form:
-        specifier: 7.51.3
-        version: 7.51.3(react@18.2.0)
+        specifier: 7.54.2
+        version: 7.54.2(react@18.2.0)
       react-hot-toast:
         specifier: 2.4.1
         version: 2.4.1(csstype@3.1.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -3392,11 +3392,11 @@ packages:
     peerDependencies:
       react: '>=16.13.1'
 
-  react-hook-form@7.51.3:
-    resolution: {integrity: sha512-cvJ/wbHdhYx8aviSWh28w9ImjmVsb5Y05n1+FW786vEZQJV5STNM0pW6ujS+oiBecb0ARBxJFyAnXj9+GHXACQ==}
-    engines: {node: '>=12.22.0'}
+  react-hook-form@7.54.2:
+    resolution: {integrity: sha512-eHpAUgUjWbZocoQYUHposymRb4ZP6d0uwUnooL2uOybA9/3tPUvoAKqEWK1WaSiTxxOfTpffNZP7QwlnM3/gEg==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      react: ^16.8.0 || ^17 || ^18
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-hot-toast@2.4.1:
     resolution: {integrity: sha512-j8z+cQbWIM5LY37pR6uZR6D4LfseplqnuAO4co4u8917hBUvXlEqyP1ZzqVLcqoyUesZZv/ImreoCeHVDpE5pQ==}
@@ -4630,15 +4630,15 @@ snapshots:
 
   '@floating-ui/utils@0.2.8': {}
 
-  '@hookform/error-message@2.0.1(react-dom@18.2.0(react@18.2.0))(react-hook-form@7.51.3(react@18.2.0))(react@18.2.0)':
+  '@hookform/error-message@2.0.1(react-dom@18.2.0(react@18.2.0))(react-hook-form@7.54.2(react@18.2.0))(react@18.2.0)':
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      react-hook-form: 7.51.3(react@18.2.0)
+      react-hook-form: 7.54.2(react@18.2.0)
 
-  '@hookform/resolvers@2.7.1(react-hook-form@7.51.3(react@18.2.0))':
+  '@hookform/resolvers@2.7.1(react-hook-form@7.54.2(react@18.2.0))':
     dependencies:
-      react-hook-form: 7.51.3(react@18.2.0)
+      react-hook-form: 7.54.2(react@18.2.0)
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
@@ -7981,7 +7981,7 @@ snapshots:
       '@babel/runtime': 7.24.4
       react: 18.2.0
 
-  react-hook-form@7.51.3(react@18.2.0):
+  react-hook-form@7.54.2(react@18.2.0):
     dependencies:
       react: 18.2.0
 
