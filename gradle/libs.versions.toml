@@ -13,7 +13,7 @@ apache-commons-compress = '1.26.0'
 assertj = '3.25.3'
 avro = '1.11.4'
 byte-buddy = '1.14.19'
-confluent = '7.8.0'
+confluent = '7.9.0'
 confluent-ccs = '7.8.0-ccs'
 
 mapstruct = '1.6.2'
@@ -37,6 +37,9 @@ selenide = '7.2.3'
 testng = '7.10.0'
 bonigarcia-webdrivermanager = '5.8.0'
 aspectj = '1.9.21'
+
+# CVE fixes
+netty = '4.1.118.Final'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
@@ -121,3 +124,8 @@ testng = { module = 'org.testng:testng', version.ref = 'testng' }
 aspectj = { module = 'org.aspectj:aspectjweaver', version.ref = 'aspectj' }
 bonigarcia-webdrivermanager = { module = 'io.github.bonigarcia:webdrivermanager', version.ref = 'bonigarcia-webdrivermanager' }
 netty-resolver-dns-native = { module = 'io.netty:netty-resolver-dns-native-macos' }
+
+# CVE fixes
+json-smart = { module = 'net.minidev:json-smart', version = '2.5.2' }
+netty-common = { module = 'io.netty:netty-common', version.ref = 'netty' }
+netty-handler = { module = 'io.netty:netty-handler', version.ref = 'netty' }

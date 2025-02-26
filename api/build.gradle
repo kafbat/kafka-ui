@@ -57,6 +57,9 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
+    implementation libs.json.smart
+    implementation libs.netty.common
+    implementation libs.netty.handler
 
     // Annotation processors
     implementation libs.lombok
