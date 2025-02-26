@@ -1,4 +1,4 @@
-name: "Backend: build and test"
+name: "Backend: tests & sonar"
 
 on:
   workflow_call:
@@ -32,6 +32,10 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      - name: "Pull request: Tests"
+      - name: "Tests"
         run: |
-          ./gradlew build sonar --info
+          ./gradlew :api:test --info
+
+      - name: "Sonar"
+        run: |
+          ./gradlew :api:sonar --info
