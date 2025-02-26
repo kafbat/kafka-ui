@@ -189,7 +189,7 @@ const maskingSchema = object({
       value: string().test(
         'fieldsOrPattern',
         'Either fields or fieldsNamePattern is required',
-        function (value, { path, parent, ...ctx }) {
+        (value, { path, parent, ...ctx }) => {
           const maskingItem = ctx.from?.[1].value;
 
           if (value && value.trim() !== '') {
