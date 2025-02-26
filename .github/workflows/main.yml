@@ -32,19 +32,21 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      - name: Build a jar
+      - name: Build jar
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -V -B -ntp clean package -Pprod -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          version=${GITHUB_SHA::7}
+          echo "version=$version" >> $GITHUB_OUTPUT
+          ./gradlew clean build \
+          -x test \
+          -Pinclude-frontend=true \
+          -Pversion=$version
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
-          path: api/target/api-${{ steps.build.outputs.version }}.jar
+          path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
           retention-days: 1
 
   docker-build:

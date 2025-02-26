@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
-      - name: Download maven artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: kafbat-ui-${{ inputs.version }}
