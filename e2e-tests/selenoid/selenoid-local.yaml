@@ -30,7 +30,9 @@ services:
 
   # https://aerokube.com/images/latest
   selenoid-chrome:
-    image: selenoid/vnc_chrome:117.0
+#    image: selenoid/vnc_chrome:128.0
+    image: selenium/standalone-chromium:133.0
+    shm_size: 2gb
     extra_hosts:
       - "host.docker.internal:host-gateway"
     links:

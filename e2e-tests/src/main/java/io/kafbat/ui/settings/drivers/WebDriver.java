@@ -35,14 +35,14 @@ public abstract class WebDriver {
     Configuration.reportsFolder = String.format("%s/reports", SELENIDE_RESULTS_PATH);
     ChromeOptions chromeOptions = new ChromeOptions()
         //.addArguments("--remote-allow-origins=*")
-        .addArguments("--user-data-dir=" + System.getProperty("java.io.tmpdir")
-            + "/chrome-profile-" + UUID.randomUUID())
+//        .addArguments("--user-data-dir=" + "/tmp"
+//            + "/chrome-profile-" + UUID.randomUUID())
         .addArguments("--disable-dev-shm-usage")
         .addArguments("--disable-extensions")
         .addArguments("--disable-gpu")
         .addArguments("--no-sandbox")
         .addArguments("--lang=en_US");
-    if (BaseSource.SELENOID) {
+    if (true) {
       Configuration.remote = BaseSource.REMOTE_URL;
       Configuration.remoteConnectionTimeout = 180000;
       Configuration.remoteReadTimeout = 180000;
@@ -52,9 +52,10 @@ public abstract class WebDriver {
       selenoidOptions.put("enableVideo", false);
       selenoidOptions.put("sessionTimeout", "30m");
       chromeOptions.setCapability("selenoid:options", selenoidOptions);
-    } else if (System.getProperty("os.name").equals("Mac OS X")) {
-      Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
     }
+    /*} else if (System.getProperty("os.name").equals("Mac OS X")) {
+      Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
+    }*/
     System.setProperty("webdriver.chrome.verboseLogging", "true");
     Configuration.browserCapabilities = chromeOptions;
   }

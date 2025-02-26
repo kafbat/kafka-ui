@@ -1,9 +1,9 @@
 {
   "chrome": {
-    "default": "117.0",
+    "default": "133.0",
     "versions": {
-      "117.0": {
-        "image": "selenoid/vnc_chrome:117.0",
+      "133.0": {
+        "image": "selenium/standalone-chromium:133.0",
         "port": "4444",
         "path": "/"
       }
