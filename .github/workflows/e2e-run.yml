@@ -170,7 +170,7 @@ jobs:
         uses: Sibz/github-status-action@v1.1.6
         with:
           authToken: ${{secrets.GITHUB_TOKEN}}
-          context: "Click Details button to view Allure report"
+          context: "E2E allure report / Click to view the report"
           state: "success"
           sha: ${{ inputs.sha }}
-          target_url: https://reports.kafbat.dev/${{ github.run_number }}
+          target_url: https://reports.kafbat.dev/${{ github.run_number }}/index.html
