@@ -12,9 +12,6 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
     implementation project(":contract")
-    if (includeFrontend) {
-        implementation project(":frontend")
-    }
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.security
@@ -130,4 +127,18 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
 
 if (buildDockerImages) {
     tasks.build.finalizedBy buildDockerImageTask
+}
+
+if (includeFrontend) {
+    tasks.named("build") {
+        dependsOn(":frontend:buildFrontend")
+    }
+
+    tasks.named("processResources") {
+        dependsOn(":frontend:buildFrontend")
+        from(project(":frontend").layout.buildDirectory.dir("vite")) {
+            into("static")
+        }
+        into("$buildDir/resources/main")
+    }
 }

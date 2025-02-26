@@ -29,18 +29,7 @@ tasks.register('buildFrontend', PnpmTask) {
   args = ['build']
   environment = System.getenv() + [
     "VITE_TAG": project.version,
-    // add git commit
+    // TODO add git commit
     "VITE_COMMIT": ""
   ]
 }
-
-sourceSets {
-  main {
-    resources {
-      srcDir "build/vite"
-    }
-  }
-}
-
-processResources.dependsOn buildFrontend
-compileJava.dependsOn buildFrontend

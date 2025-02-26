@@ -4,7 +4,14 @@ plugins {
 }
 
 subprojects {
-    apply plugin: "java"
+    if (name != "frontend") {
+        apply plugin: "java"
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -17,10 +24,6 @@ subprojects {
     group = 'io.kafbat'
     version = version
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
 }
 
 boolean resolveBooleanProperty(String propertyName, boolean defaultValue = false) {
