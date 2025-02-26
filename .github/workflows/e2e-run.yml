@@ -48,9 +48,9 @@ jobs:
         with:
           name: artifacts
           path: |
-            build/libs
-            build/classes
-            build/resources
+            api/build/libs
+            api/build/classes
+            api/build/resources
           retention-days: 7
 
       - name: Dump docker image
@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: artifacts
-          path: build
+          path: api/build
 
       - name: Download docker image
         uses: actions/download-artifact@v4
