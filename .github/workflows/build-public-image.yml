@@ -68,7 +68,7 @@ jobs:
           push: true
           tags: ${{ vars.ECR_REGISTRY }}/${{ github.repository }}:${{ steps.extract_branch.outputs.tag }}
           build-args: |
-            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
+            JAR_FILE=build/libs/api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: make comment with private deployment link

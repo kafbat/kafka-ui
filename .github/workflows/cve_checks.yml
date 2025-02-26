@@ -63,7 +63,7 @@ jobs:
           tags: |
             ghcr.io/kafbat/kafka-ui:latest
           build-args: |
-            JAR_FILE=api-latest.jar
+            JAR_FILE=build/libs/api-latest.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
