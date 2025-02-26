@@ -7,12 +7,6 @@ plugins {
     alias(libs.plugins.allure)
 }
 
-configurations.all {
-    resolutionStrategy {
-        force(libs.selenium)
-    }
-}
-
 dependencies {
     implementation project(":contract")
     implementation libs.apache.kafka
