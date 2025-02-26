@@ -176,6 +176,7 @@ const Masking = () => {
                     name={`masking.${index}.fieldsNamePattern`}
                     placeholder="Pattern"
                     type="text"
+                    withError
                   />
                   <MaskingCharReplacement nestedIdx={index} />
                   <Input
