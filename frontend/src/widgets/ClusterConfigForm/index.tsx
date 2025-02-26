@@ -22,6 +22,7 @@ import Metrics from 'widgets/ClusterConfigForm/Sections/Metrics';
 import CustomAuthentication from 'widgets/ClusterConfigForm/Sections/CustomAuthentication';
 import Authentication from 'widgets/ClusterConfigForm/Sections/Authentication/Authentication';
 import KSQL from 'widgets/ClusterConfigForm/Sections/KSQL';
+import Masking from 'widgets/ClusterConfigForm/Sections/Masking';
 import { useConfirm } from 'lib/hooks/useConfirm';
 
 interface ClusterConfigFormProps {
@@ -144,6 +145,8 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
           <KSQL />
           <hr />
           <Metrics />
+          <hr />
+          <Masking />
           <hr />
           <S.ButtonWrapper>
             <Button

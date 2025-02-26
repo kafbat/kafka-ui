@@ -1,4 +1,5 @@
 import { object, string, number, array, boolean, mixed, lazy } from 'yup';
+import { ApplicationConfigPropertiesKafkaMaskingTypeEnum } from 'generated-sources';
 
 const requiredString = string().required('required field');
 
@@ -179,6 +180,25 @@ const authSchema = lazy((value) => {
   return mixed().optional();
 });
 
+const maskingSchema = object({
+  type: mixed<ApplicationConfigPropertiesKafkaMaskingTypeEnum>()
+    .oneOf(Object.values(ApplicationConfigPropertiesKafkaMaskingTypeEnum))
+    .required('required field'),
+  fields: array().of(object().shape({ value: string() })),
+  fieldsNamePattern: string(),
+  maskingCharsReplacement: array().of(object().shape({ value: string() })),
+  replacement: string(),
+  topicKeysPattern: string(),
+  topicValuesPattern: string(),
+});
+
+const maskingsSchema = lazy((value) => {
+  if (Array.isArray(value)) {
+    return array().of(maskingSchema);
+  }
+  return mixed().optional();
+});
+
 const formSchema = object({
   name: string()
     .required('required field')
@@ -190,6 +210,7 @@ const formSchema = object({
   schemaRegistry: urlWithAuthSchema,
   ksql: urlWithAuthSchema,
   kafkaConnect: kafkaConnectsSchema,
+  masking: maskingsSchema,
   metrics: metricsSchema,
 });
 

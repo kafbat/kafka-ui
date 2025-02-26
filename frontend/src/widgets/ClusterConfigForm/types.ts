@@ -1,3 +1,5 @@
+import { ApplicationConfigPropertiesKafkaMaskingTypeEnum } from 'generated-sources';
+
 type SecurityProtocol = 'SASL_SSL' | 'SASL_PLAINTEXT';
 type BootstrapServer = {
   host: string;
@@ -56,4 +58,13 @@ export type ClusterConfigFormValues = {
   kafkaConnect?: KafkaConnect[];
   metrics?: Metrics;
   customAuth: Record<string, string>;
+  masking?: {
+    type?: ApplicationConfigPropertiesKafkaMaskingTypeEnum;
+    fields?: { value: string }[];
+    fieldsNamePattern?: string;
+    maskingCharsReplacement?: { value: string }[];
+    replacement?: string;
+    topicKeysPattern?: string;
+    topicValuesPattern?: string;
+  }[];
 };
