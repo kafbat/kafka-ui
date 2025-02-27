@@ -174,7 +174,7 @@ public class RegexBasedProviderAuthorityExtractorTest {
 
     OAuth2User oauth2User = new DefaultOAuth2User(
         AuthorityUtils.createAuthorityList("SCOPE_message:read"),
-        Map.of("hd", "test.domain.com", "email", "john@kafka.com"),
+        Map.of("hd", "memelord.lol", "email", "john@kafka.com"),
         "email");
 
     HashMap<String, Object> additionalParams = new HashMap<>();

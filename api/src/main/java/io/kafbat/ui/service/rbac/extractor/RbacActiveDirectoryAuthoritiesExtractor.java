@@ -37,8 +37,8 @@ public class RbacActiveDirectoryAuthoritiesExtractor implements LdapAuthoritiesP
             .stream()
             .filter(subject -> subject.getProvider().equals(Provider.LDAP_AD))
             .anyMatch(subject -> switch (subject.getType()) {
-              case "user" -> username.equalsIgnoreCase(subject.getValue());
-              case "group" ->  adGroups.contains(subject.getValue());
+              case "user" -> subject.matches(username);
+              case "group" ->  adGroups.stream().anyMatch(subject::matches);
               default -> false;
             })
         )

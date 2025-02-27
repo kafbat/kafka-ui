@@ -52,7 +52,7 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
             .filter(s -> s.getType().equals("user"))
             .anyMatch(s -> {
               String email = principal.getAttribute(EMAIL_ATTRIBUTE_NAME);
-              return email != null && email.matches(s.getValue());
+              return s.matches(email);
             }))
         .map(Role::getName)
         .collect(Collectors.toSet());
@@ -71,7 +71,7 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH_GOOGLE))
             .filter(s -> s.getType().equals("domain"))
-            .anyMatch(s -> domain.matches(s.getValue())))
+            .anyMatch(s -> s.matches(domain)))
         .map(Role::getName)
         .collect(Collectors.toSet());
   }
