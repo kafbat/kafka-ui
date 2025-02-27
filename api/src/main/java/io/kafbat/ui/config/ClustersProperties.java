@@ -54,6 +54,8 @@ public class ClustersProperties {
 
     MetricsConfigData metrics;
     Map<String, Object> properties;
+    Map<String, Object> consumerProperties;
+    Map<String, Object> producerProperties;
     boolean readOnly = false;
 
     Long pollingThrottleRate;
@@ -189,6 +191,8 @@ public class ClustersProperties {
   private void flattenClusterProperties() {
     for (Cluster cluster : clusters) {
       cluster.setProperties(flattenClusterProperties(null, cluster.getProperties()));
+      cluster.setConsumerProperties(flattenClusterProperties(null, cluster.getConsumerProperties()));
+      cluster.setProducerProperties(flattenClusterProperties(null, cluster.getProducerProperties()));
     }
   }
 
