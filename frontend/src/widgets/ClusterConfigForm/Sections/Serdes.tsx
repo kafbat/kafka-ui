@@ -12,35 +12,64 @@ import {
   FlexRow,
 } from 'widgets/ClusterConfigForm/ClusterConfigForm.styled';
 import SectionHeader from 'widgets/ClusterConfigForm/common/SectionHeader';
-import { Serde } from 'widgets/ClusterConfigForm/types';
+
+const PropertiesFields = ({ nestedId }: { nestedId: number }) => {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `serde.${nestedId}.properties`,
+  });
+
+  return (
+    <S.GroupFieldWrapper>
+      <Heading level={4}>Serde properties</Heading>
+      {fields.map((propsField, propsIndex) => (
+        <S.SerdeProperties key={propsField.id}>
+          <div>
+            <Input
+              name={`serde.${nestedId}.properties.${propsIndex}.key`}
+              placeholder="Key"
+              type="text"
+              withError
+            />
+          </div>
+          <div>
+            <Input
+              name={`serde.${nestedId}.properties.${propsIndex}.value`}
+              placeholder="Value"
+              type="text"
+              withError
+            />
+          </div>
+          <S.SerdePropertiesActions
+            aria-label="deleteProperty"
+            onClick={() => remove(propsIndex)}
+          >
+            <CloseCircleIcon aria-hidden />
+          </S.SerdePropertiesActions>
+        </S.SerdeProperties>
+      ))}
+      <div>
+        <Button
+          type="button"
+          buttonSize="M"
+          buttonType="secondary"
+          onClick={() => append({ key: '', value: '' })}
+        >
+          <PlusIcon />
+          Add Property
+        </Button>
+      </div>
+    </S.GroupFieldWrapper>
+  );
+};
 
 const Serdes = () => {
-  const { control, reset, getValues } = useFormContext();
+  const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'serde',
   });
-  const {
-    fields: propsFields,
-    append: appendProps,
-    remove: removeProps,
-  } = useFieldArray({
-    control,
-    name: 'properties',
-  });
-
-  React.useEffect(() => {
-    reset();
-    getValues().serde?.forEach((item: Serde, index: number) => {
-      item.properties?.forEach((itemProp) => {
-        appendProps({
-          key: itemProp.key,
-          value: itemProp.value,
-          serdeIndex: index,
-        });
-      });
-    });
-  }, []);
 
   const handleAppend = () =>
     append({
@@ -109,54 +138,7 @@ const Serdes = () => {
                     withError
                   />
                   <hr />
-                  <S.GroupFieldWrapper>
-                    <Heading level={4}>Serde properties</Heading>
-                    {propsFields
-                      .filter(
-                        (propItem) =>
-                          (propItem as unknown as { serdeIndex: number })
-                            .serdeIndex === index
-                      )
-                      .map((propsField, propsIndex) => (
-                        <S.SerdeProperties key={propsField.id}>
-                          <div>
-                            <Input
-                              name={`serde.${index}.properties.${propsIndex}.key`}
-                              placeholder="Key"
-                              type="text"
-                              withError
-                            />
-                          </div>
-                          <div>
-                            <Input
-                              name={`serde.${index}.properties.${propsIndex}.value`}
-                              placeholder="Value"
-                              type="text"
-                              withError
-                            />
-                          </div>
-                          <S.SerdePropertiesActions
-                            aria-label="deleteProperty"
-                            onClick={() => removeProps(index)}
-                          >
-                            <CloseCircleIcon aria-hidden />
-                          </S.SerdePropertiesActions>
-                        </S.SerdeProperties>
-                      ))}
-                    <div>
-                      <Button
-                        type="button"
-                        buttonSize="M"
-                        buttonType="secondary"
-                        onClick={() =>
-                          appendProps({ key: '', value: '', serdeIndex: index })
-                        }
-                      >
-                        <PlusIcon />
-                        Add Property
-                      </Button>
-                    </div>
-                  </S.GroupFieldWrapper>
+                  <PropertiesFields nestedId={index} />
                 </FlexGrow1>
                 <S.RemoveButton onClick={() => remove(index)}>
                   <IconButtonWrapper aria-label="deleteProperty">
