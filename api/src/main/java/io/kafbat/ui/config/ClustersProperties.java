@@ -2,6 +2,8 @@ package io.kafbat.ui.config;
 
 import io.kafbat.ui.model.MetricsConfig;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -19,13 +21,15 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 @Configuration
 @ConfigurationProperties("kafka")
 @Data
+@Validated
 public class ClustersProperties {
 
-  List<Cluster> clusters = new ArrayList<>();
+  List<@Valid Cluster> clusters = new ArrayList<>();
 
   String internalTopicPrefix;
 
@@ -35,9 +39,9 @@ public class ClustersProperties {
 
   @Data
   public static class Cluster {
-    @NotEmpty
+    @NotBlank(message = "field name for for cluster could not be blank")
     String name;
-    @NotEmpty
+    @NotBlank(message = "field bootstrapServers for for cluster could not be blank")
     String bootstrapServers;
 
     TruststoreConfig ssl;
@@ -50,9 +54,9 @@ public class ClustersProperties {
     KsqldbServerAuth ksqldbServerAuth;
     KeystoreConfig ksqldbServerSsl;
 
-    List<ConnectCluster> kafkaConnect;
+    List<@Valid ConnectCluster> kafkaConnect;
 
-    List<SerdeConfig> serde;
+    List<@Valid SerdeConfig> serde;
     String defaultKeySerde;
     String defaultValueSerde;
 
@@ -62,9 +66,9 @@ public class ClustersProperties {
 
     Long pollingThrottleRate;
 
-    List<Masking> masking;
+    List<@Valid Masking> masking;
 
-    AuditProperties audit;
+    @Valid AuditProperties audit;
   }
 
   @Data
@@ -92,7 +96,9 @@ public class ClustersProperties {
   @Builder(toBuilder = true)
   @ToString(exclude = {"password", "keystorePassword"})
   public static class ConnectCluster {
+    @NotBlank
     String name;
+    @NotBlank
     String address;
     String username;
     String password;
@@ -126,8 +132,11 @@ public class ClustersProperties {
 
   @Data
   public static class SerdeConfig {
+    @NotBlank
     String name;
+    @NotBlank
     String className;
+    @NotBlank
     String filePath;
     Map<String, Object> properties;
     String topicKeysPattern;
@@ -143,6 +152,7 @@ public class ClustersProperties {
 
   @Data
   public static class Masking {
+    @NotNull
     Type type;
     List<String> fields;
     String fieldsNamePattern;
@@ -160,10 +170,12 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class AuditProperties {
+    @NotBlank
     String topic;
     Integer auditTopicsPartitions;
     Boolean topicAuditEnabled;
     Boolean consoleAuditEnabled;
+    @NotNull
     LogLevel level;
     Map<String, String> auditTopicProperties;
 
