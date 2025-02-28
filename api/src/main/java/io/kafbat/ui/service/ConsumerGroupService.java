@@ -265,6 +265,7 @@ public class ConsumerGroupService {
                                          Map<String, Object> properties) {
     Properties props = new Properties();
     KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), props);
+    props.putAll(cluster.getProperties());
     props.putAll(cluster.getConsumerProperties());
     props.put(ConsumerConfig.CLIENT_ID_CONFIG, "kafbat-ui-consumer-" + System.currentTimeMillis());
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
