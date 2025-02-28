@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import React, { FC } from 'react';
 import { ServerStatus } from 'generated-sources';
 
 import * as S from './styled';
@@ -7,16 +7,11 @@ export interface MenuTabProps {
   title: string;
   status: ServerStatus;
   isOpen: boolean;
-  toggleClusterMenu: () => void;
+  onClick: () => void;
 }
 
-const MenuTab: FC<MenuTabProps> = ({
-  title,
-  toggleClusterMenu,
-  status,
-  isOpen,
-}) => (
-  <S.MenuItem $variant="primary" onClick={toggleClusterMenu}>
+const MenuTab: FC<MenuTabProps> = ({ title, status, isOpen, onClick }) => (
+  <S.MenuItem $variant="primary" onClick={onClick}>
     <S.ContentWrapper>
       <S.StatusIconWrapper>
         <S.StatusIcon status={status} aria-label="status">
