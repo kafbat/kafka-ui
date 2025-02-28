@@ -2,6 +2,8 @@ package io.kafbat.ui.config;
 
 import io.kafbat.ui.model.MetricsConfig;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +35,9 @@ public class ClustersProperties {
 
   @Data
   public static class Cluster {
+    @NotEmpty
     String name;
+    @NotEmpty
     String bootstrapServers;
 
     TruststoreConfig ssl;
