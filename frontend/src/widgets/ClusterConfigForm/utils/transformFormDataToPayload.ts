@@ -1,4 +1,7 @@
-import { ClusterConfigFormValues } from 'widgets/ClusterConfigForm/types';
+import {
+  ClusterConfigFormValues,
+  Serde,
+} from 'widgets/ClusterConfigForm/types';
 import { ApplicationConfigPropertiesKafkaClusters } from 'generated-sources';
 
 import { getJaasConfig } from './getJaasConfig';
@@ -33,6 +36,15 @@ const transformCustomProps = (props: Record<string, string>) => {
   });
 
   return config;
+};
+
+const transformSerdeProperties = (properties: Serde['properties']) => {
+  const mappedProperties: { [key: string]: string } = {};
+
+  properties.forEach(({ key, value }) => {
+    mappedProperties[key] = value;
+  });
+  return mappedProperties;
 };
 
 export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
@@ -73,6 +85,27 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
       data.ksql.password
     );
     config.ksqldbServerSsl = transformToKeystore(data.ksql.keystore);
+  }
+
+  // Serde
+  if (data.serde && data.serde.length > 0) {
+    config.serde = data.serde.map(
+      ({
+        name,
+        className,
+        filePath,
+        topicKeysPattern,
+        topicValuesPattern,
+        properties,
+      }) => ({
+        name,
+        className,
+        filePath,
+        topicKeysPattern,
+        topicValuesPattern,
+        properties: transformSerdeProperties(properties),
+      })
+    );
   }
 
   // Kafka Connect
