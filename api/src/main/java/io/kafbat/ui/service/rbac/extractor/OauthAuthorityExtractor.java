@@ -58,6 +58,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH))
             .filter(s -> s.getType().equals("user"))
+            .peek(s -> log.trace("[{}] matches [{}]? [{}]", s.getValue(), principalName,  s.matches(principalName)))
             .anyMatch(s ->  s.matches(principalName)))
         .map(Role::getName)
         .collect(Collectors.toSet());

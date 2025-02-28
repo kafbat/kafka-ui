@@ -5,23 +5,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.Objects;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
+@Data
 public class Subject {
 
   Provider provider;
-  @Setter
   String type;
-  @Setter
   String value;
-  @Setter
-  boolean isRegex;
-
-  public void setProvider(String provider) {
-    this.provider = Provider.fromString(provider.toUpperCase());
-  }
+  boolean isRegex = false;
 
   public void validate() {
     checkNotNull(type, "Subject type cannot be null");
@@ -32,9 +24,9 @@ public class Subject {
   }
 
   public boolean matches(final String attribute) {
-    if (isRegex()) {
-      return Objects.nonNull(attribute) && attribute.matches(getValue());
+    if (isRegex) {
+      return Objects.nonNull(attribute) && attribute.matches(this.value);
     }
-    return getValue().equalsIgnoreCase(attribute);
+    return this.value.equalsIgnoreCase(attribute);
   }
 }
