@@ -101,6 +101,21 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
     };
   }
 
+  // Masking
+  if (data.masking && data.masking.length > 0) {
+    config.masking = data.masking.map((formData) => ({
+      type: formData.type,
+      fields: (formData.fields ?? []).map((f) => f.value),
+      fieldsNamePattern: formData.fieldsNamePattern,
+      topicKeysPattern: formData.topicKeysPattern,
+      topicValuesPattern: formData.topicValuesPattern,
+      maskingCharsReplacement: (formData.maskingCharsReplacement ?? []).map(
+        (f) => f.value
+      ),
+      replacement: formData.replacement,
+    }));
+  }
+
   config.properties = {
     ...transformCustomProps(data.customAuth),
   };
