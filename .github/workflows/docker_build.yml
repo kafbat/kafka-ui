@@ -29,12 +29,6 @@ jobs:
           name: kafbat-ui-${{ inputs.version }}
           path: api/build/libs
 
-      - name: test
-        id: test # TODO rm
-        run: |
-          ls -la api/build/libs
-          ls -la build/libs
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
