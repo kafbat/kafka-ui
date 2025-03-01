@@ -42,6 +42,11 @@ jobs:
           -Pinclude-frontend=true \
           -Pversion=$version
 
+      - name: test
+        id: test # TODO rm
+        run: |
+          ls -la api/build/libs
+
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
