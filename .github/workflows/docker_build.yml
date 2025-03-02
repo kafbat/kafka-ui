@@ -29,13 +29,6 @@ jobs:
           name: kafbat-ui-${{ inputs.version }}
           path: api/build/libs
 
-      - name: test
-        id: test # TODO rm
-        run: |
-          ls -la api/build/libs || true
-          ls -la api/build || true
-          ls -la build/ || true
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -64,8 +57,6 @@ jobs:
                 "containerd-snapshotter": true
                 }
             }
-
-
 
       - name: Build docker image
         id: docker_build
