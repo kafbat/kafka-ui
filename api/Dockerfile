@@ -17,7 +17,7 @@ RUN chown kafkaui /etc/kafkaui
 USER kafkaui
 
 ARG JAR_FILE
-COPY "/target/${JAR_FILE}" "/api.jar"
+COPY $JAR_FILE "/api.jar"
 
 ENV JAVA_OPTS=
 

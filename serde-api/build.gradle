@@ -1,0 +1,85 @@
+plugins {
+    id 'java-library'
+    id 'signing'
+    id 'maven-publish'
+}
+
+tasks.register('sourceJar', Jar) {
+    archiveClassifier.set("sources")
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set("javadoc")
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourceJar, javadocJar
+}
+
+if (prod) {
+    signing {
+        sign(publishing.publications)
+    }
+}
+
+publishing {
+    if (prod) {
+        repositories {
+            maven {
+                url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            groupId = 'io.kafbat.ui'
+            artifactId = 'serde-api'
+            version = version
+
+            from components.java
+
+            artifact(sourceJar) {
+                classifier = 'sources'
+            }
+
+            artifact(javadocJar) {
+                classifier = 'javadoc'
+            }
+
+            pom {
+                name = 'kafbat-ui-serde-api'
+                description = 'kafbat-ui-serde-api'
+                url = 'http://github.com/kafbat/kafka-ui'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'Kafbat'
+                        name = 'Kafbat'
+                        organization = 'Kafbat'
+                        email = 'maintainers@kafbat.io'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git://github.com/kafbat/kafka-ui.git'
+                    developerConnection = 'scm:git:ssh://github.com:kafbat/kafka-ui.git'
+                    url = 'https://github.com/kafbat/kafka-ui'
+                }
+            }
+        }
+    }
+}
