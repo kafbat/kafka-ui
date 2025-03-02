@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
-public class SchemaRegistryPaginationTest {
+class SchemaRegistryPaginationTest {
 
   private static final String LOCAL_KAFKA_CLUSTER_NAME = "local";
 
@@ -127,7 +127,7 @@ public class SchemaRegistryPaginationTest {
     assertThat(schemas.getBody()).isNotNull();
     assertThat(schemas.getBody().getPageCount()).isEqualTo(4);
     assertThat(schemas.getBody().getSchemas()).hasSize(1);
-    assertThat(schemas.getBody().getSchemas().get(0).getSubject()).isEqualTo("subject99");
+    assertThat(schemas.getBody().getSchemas().getFirst().getSubject()).isEqualTo("subject99");
   }
 
   @SuppressWarnings("unchecked")

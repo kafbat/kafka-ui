@@ -40,7 +40,7 @@ public class Base64Serde implements BuiltInSerde {
     return inputString -> {
       inputString = inputString.trim();
       // it is actually a hack to provide ability to sent empty array as a key/value
-      if (inputString.length() == 0) {
+      if (inputString.isEmpty()) {
         return new byte[] {};
       }
       return decoder.decode(inputString);

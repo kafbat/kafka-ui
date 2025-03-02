@@ -2,6 +2,9 @@ package io.kafbat.ui.config;
 
 import io.kafbat.ui.model.MetricsConfig;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,13 +20,15 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 @Configuration
 @ConfigurationProperties("kafka")
 @Data
+@Validated
 public class ClustersProperties {
 
-  List<Cluster> clusters = new ArrayList<>();
+  List<@Valid Cluster> clusters = new ArrayList<>();
 
   String internalTopicPrefix;
 
@@ -33,24 +38,35 @@ public class ClustersProperties {
 
   @Data
   public static class Cluster {
+    @NotBlank(message = "field name for for cluster could not be blank")
     String name;
+    @NotBlank(message = "field bootstrapServers for for cluster could not be blank")
     String bootstrapServers;
+
+    TruststoreConfig ssl;
+
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
     KeystoreConfig ksqldbServerSsl;
-    List<ConnectCluster> kafkaConnect;
+
+    List<@Valid ConnectCluster> kafkaConnect;
+
+    List<@Valid SerdeConfig> serde;
+    String defaultKeySerde;
+    String defaultValueSerde;
+
     MetricsConfigData metrics;
     Map<String, Object> properties;
     boolean readOnly = false;
-    List<SerdeConfig> serde;
-    String defaultKeySerde;
-    String defaultValueSerde;
-    List<Masking> masking;
+
     Long pollingThrottleRate;
-    TruststoreConfig ssl;
+
+    List<@Valid Masking> masking;
+
     AuditProperties audit;
   }
 
@@ -79,7 +95,9 @@ public class ClustersProperties {
   @Builder(toBuilder = true)
   @ToString(exclude = {"password", "keystorePassword"})
   public static class ConnectCluster {
+    @NotBlank
     String name;
+    @NotBlank
     String address;
     String username;
     String password;
@@ -99,10 +117,21 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
+    boolean verifySsl = true;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @ToString(exclude = {"keystorePassword"})
+  public static class KeystoreConfig {
+    String keystoreLocation;
+    String keystorePassword;
   }
 
   @Data
   public static class SerdeConfig {
+    @NotBlank
     String name;
     String className;
     String filePath;
@@ -119,16 +148,8 @@ public class ClustersProperties {
   }
 
   @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @ToString(exclude = {"keystorePassword"})
-  public static class KeystoreConfig {
-    String keystoreLocation;
-    String keystorePassword;
-  }
-
-  @Data
   public static class Masking {
+    @NotNull
     Type type;
     List<String> fields;
     String fieldsNamePattern;
@@ -150,7 +171,7 @@ public class ClustersProperties {
     Integer auditTopicsPartitions;
     Boolean topicAuditEnabled;
     Boolean consoleAuditEnabled;
-    LogLevel level;
+    LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
 
     public enum LogLevel {
@@ -182,6 +203,7 @@ public class ClustersProperties {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();

@@ -1,6 +1,7 @@
 package io.kafbat.ui.util;
 
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -15,6 +16,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 public class StaticFileWebFilter implements WebFilter {
 
   private static final String INDEX_HTML = "/static/index.html";
@@ -28,6 +30,12 @@ public class StaticFileWebFilter implements WebFilter {
 
   public StaticFileWebFilter(String path, ClassPathResource resource) {
     this.matcher = ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, path);
+
+    if (!resource.exists()) {
+      log.warn("Resource [{}] does not exist. Frontend might not be available.", resource.getPath());
+      contents = "Missing index.html. Make sure the app has been built with a correct (prod) profile.";
+      return;
+    }
 
     try {
       this.contents = ResourceUtil.readAsString(resource);

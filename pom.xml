@@ -26,19 +26,19 @@
         <!-- Dependency versions -->
         <antlr4-maven-plugin.version>4.12.0</antlr4-maven-plugin.version>
         <apache.commons.version>2.12.0</apache.commons.version>
-        <assertj.version>3.25.3</assertj.version>
+        <assertj.version>3.26.3</assertj.version>
         <avro.version>1.11.4</avro.version>
-        <byte-buddy.version>1.14.19</byte-buddy.version>
+        <byte-buddy.version>1.15.11</byte-buddy.version>
         <confluent.version>7.8.0</confluent.version>
         <datasketches-java.version>3.1.0</datasketches-java.version>
         <groovy.version>3.0.13</groovy.version>
-        <jackson.version>2.14.0</jackson.version>
+        <jackson.version>2.18.2</jackson.version>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
         <org.projectlombok.version>1.18.34</org.projectlombok.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <scala-lang.library.version>2.13.9</scala-lang.library.version>
         <snakeyaml.version>2.3</snakeyaml.version>
-        <spring-boot.version>3.3.6</spring-boot.version>
+        <spring-boot.version>3.4.2</spring-boot.version>
         <serde-api.version>1.0.0</serde-api.version>
         <odd-oddrn-generator.version>0.1.17</odd-oddrn-generator.version>
         <odd-oddrn-client.version>0.1.39</odd-oddrn-client.version>
@@ -46,14 +46,14 @@
         <dev.cel.version>0.3.0</dev.cel.version>
         <guava.version>33.3.1-jre</guava.version>
         <!-- Test dependency versions -->
-        <junit.version>5.11.2</junit.version>
+        <junit.version>5.11.4</junit.version>
         <mockito.version>5.14.2</mockito.version>
         <okhttp3.mockwebserver.version>4.12.0</okhttp3.mockwebserver.version>
-        <testcontainers.version>1.20.2</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
 
         <!-- Frontend dependency versions -->
-        <node.version>v18.17.1</node.version>
-        <pnpm.version>v9.15.0</pnpm.version>
+        <node.version>v22.12.0</node.version>
+        <pnpm.version>v9.15.4</pnpm.version>
 
         <!-- Plugin versions -->
         <fabric8-maven-plugin.version>0.45.1</fabric8-maven-plugin.version>
@@ -68,10 +68,6 @@
 
     <repositories>
         <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
-        </repository>
-        <repository>
             <id>central</id>
             <name>Central Repository</name>
             <url>https://repo.maven.apache.org/maven2</url>
@@ -80,13 +76,13 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
-        <pluginRepository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
-        </pluginRepository>
         <pluginRepository>
             <id>central</id>
             <name>Central Repository</name>
@@ -98,6 +94,10 @@
             <releases>
                 <updatePolicy>never</updatePolicy>
             </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -136,6 +136,11 @@
                 <groupId>dev.cel</groupId>
                 <artifactId>cel</artifactId>
                 <version>${dev.cel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.5.2</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>

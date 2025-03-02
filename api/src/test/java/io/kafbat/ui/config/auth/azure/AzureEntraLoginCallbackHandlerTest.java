@@ -32,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
-public class AzureEntraLoginCallbackHandlerTest {
+class AzureEntraLoginCallbackHandlerTest {
 
   // These are not real tokens. It was generated using fake values with an invalid signature,
   // so it is safe to store here.
@@ -67,13 +67,13 @@ public class AzureEntraLoginCallbackHandlerTest {
   private AzureEntraLoginCallbackHandler azureEntraLoginCallbackHandler;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     azureEntraLoginCallbackHandler = new AzureEntraLoginCallbackHandler();
     azureEntraLoginCallbackHandler.setTokenCredential(tokenCredential);
   }
 
   @Test
-  public void shouldProvideTokenToCallbackWithSuccessfulTokenRequest() throws UnsupportedCallbackException {
+  void shouldProvideTokenToCallbackWithSuccessfulTokenRequest() throws UnsupportedCallbackException {
     Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
 
     when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
@@ -105,7 +105,7 @@ public class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
-  public void shouldProvideErrorToCallbackWithTokenError() throws UnsupportedCallbackException {
+  void shouldProvideErrorToCallbackWithTokenError() throws UnsupportedCallbackException {
     Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
 
     when(tokenCredential.getToken(any(TokenRequestContext.class)))
@@ -124,13 +124,13 @@ public class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
-  public void shouldThrowExceptionWithNullBootstrapServers() {
+  void shouldThrowExceptionWithNullBootstrapServers() {
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
         Map.of(), null, null));
   }
 
   @Test
-  public void shouldThrowExceptionWithMultipleBootstrapServers() {
+  void shouldThrowExceptionWithMultipleBootstrapServers() {
     Map<String, Object> configs = Map.of("bootstrap.servers", List.of("server1", "server2"));
 
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
@@ -138,18 +138,18 @@ public class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
-  public void shouldThrowExceptionWithUnsupportedCallback() {
+  void shouldThrowExceptionWithUnsupportedCallback() {
     assertThrows(UnsupportedCallbackException.class, () -> azureEntraLoginCallbackHandler.handle(
         new Callback[] {mock(Callback.class)}));
   }
 
   @Test
-  public void shouldDoNothingOnClose() {
+  void shouldDoNothingOnClose() {
     azureEntraLoginCallbackHandler.close();
   }
 
   @Test
-  public void shouldSupportDefaultConstructor() {
+  void shouldSupportDefaultConstructor() {
     new AzureEntraLoginCallbackHandler();
   }
 }

@@ -15,13 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-public class LogDirsTest extends AbstractIntegrationTest {
+class LogDirsTest extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;
 
   @Test
-  public void testAllBrokers() {
+  void testAllBrokers() {
     List<BrokersLogdirsDTO> dirs = webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/logdirs", LOCAL)
         .exchange()
@@ -31,7 +31,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .getResponseBody();
 
     assertThat(dirs).hasSize(1);
-    BrokersLogdirsDTO dir = dirs.get(0);
+    BrokersLogdirsDTO dir = dirs.getFirst();
     assertThat(dir.getName()).isEqualTo("/var/lib/kafka/data");
     assertThat(dir.getTopics().stream().anyMatch(t -> t.getName().equals("__consumer_offsets")))
         .isTrue();
@@ -41,12 +41,12 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
-    assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
-    assertThat(topic.getPartitions().get(0).getSize()).isPositive();
+    assertThat(topic.getPartitions().getFirst().getBroker()).isEqualTo(1);
+    assertThat(topic.getPartitions().getFirst().getSize()).isPositive();
   }
 
   @Test
-  public void testOneBrokers() {
+  void testOneBrokers() {
     List<BrokersLogdirsDTO> dirs = webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/logdirs?broker=1", LOCAL)
         .exchange()
@@ -56,7 +56,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .getResponseBody();
 
     assertThat(dirs).hasSize(1);
-    BrokersLogdirsDTO dir = dirs.get(0);
+    BrokersLogdirsDTO dir = dirs.getFirst();
     assertThat(dir.getName()).isEqualTo("/var/lib/kafka/data");
     assertThat(dir.getTopics().stream().anyMatch(t -> t.getName().equals("__consumer_offsets")))
         .isTrue();
@@ -66,12 +66,12 @@ public class LogDirsTest extends AbstractIntegrationTest {
         .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
-    assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
-    assertThat(topic.getPartitions().get(0).getSize()).isPositive();
+    assertThat(topic.getPartitions().getFirst().getBroker()).isEqualTo(1);
+    assertThat(topic.getPartitions().getFirst().getSize()).isPositive();
   }
 
   @Test
-  public void testWrongBrokers() {
+  void testWrongBrokers() {
     List<BrokersLogdirsDTO> dirs = webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/logdirs?broker=2", LOCAL)
         .exchange()
@@ -84,7 +84,7 @@ public class LogDirsTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void testChangeDirToWrongDir() {
+  void testChangeDirToWrongDir() {
     ErrorResponseDTO dirs = webTestClient.patch()
         .uri("/api/clusters/{clusterName}/brokers/{id}/logdirs", LOCAL, 1)
         .bodyValue(Map.of(

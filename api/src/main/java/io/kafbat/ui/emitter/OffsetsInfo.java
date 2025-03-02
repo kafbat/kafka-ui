@@ -53,7 +53,7 @@ class OffsetsInfo {
                                                            Collection<TopicPartition> partitions) {
     try {
       // we try to use offsetsForTimes() to find earliest offsets, since for
-      // some topics (like compacted) beginningOffsets() ruturning 0 offsets
+      // some topics (like compacted) beginningOffsets() returning 0 offsets
       // even when effectively first offset can be very high
       var offsets = consumer.offsetsForTimes(
           partitions.stream().collect(Collectors.toMap(p -> p, p -> 0L))
