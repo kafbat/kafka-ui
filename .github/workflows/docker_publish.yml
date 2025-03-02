@@ -78,19 +78,12 @@ jobs:
 
       - name: define env vars
         run: |
-          if [ ${{matrix.registry }} == 'docker.io' ]; then
-            echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
-            echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
-          elif [ ${{ matrix.registry }} == 'ghcr.io' ]; then
-            echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
-            echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
-          elif [ ${{ matrix.registry }} == 'ecr' ]; then
+          if [ ${{ matrix.registry }} == 'ecr' ]; then
             echo "REGISTRY=${{ vars.ECR_REGISTRY }}" >> $GITHUB_ENV
-            echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
           else
-            echo "REGISTRY=" >> $GITHUB_ENV
-            echo "REPOSITORY=notworking" >> $GITHUB_ENV
+            echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
           fi
+          echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
 
       - name: Push images to ${{ matrix.registry }}
         run: |
