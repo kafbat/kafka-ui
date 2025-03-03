@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.oauth2.client.registration.ClientRegistration.withRegistrationId;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.kafbat.ui.config.auth.OAuthProperties;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.service.rbac.AccessControlService;
@@ -16,6 +19,7 @@ import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import io.kafbat.ui.util.AccessControlServiceMock;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -32,27 +36,25 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.introspector.BeanAccess;
 
 public class RegexBasedProviderAuthorityExtractorTest {
 
 
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
-  Yaml yaml;
   ProviderAuthorityExtractor extractor;
 
   @BeforeEach
-  void setUp() {
-    yaml = new Yaml();
-    yaml.setBeanAccess(BeanAccess.FIELD);
+  void setUp() throws IOException {
+
+    YAMLMapper mapper = new YAMLMapper();
 
     InputStream rolesFile = this.getClass()
         .getClassLoader()
         .getResourceAsStream("roles_definition.yaml");
 
-    Role[] roleArray = yaml.loadAs(rolesFile, Role[].class);
-    when(accessControlService.getRoles()).thenReturn(List.of(roleArray));
+    Role[] roles = mapper.readValue(rolesFile, Role[].class);
+
+    when(accessControlService.getRoles()).thenReturn(List.of(roles));
 
   }
 

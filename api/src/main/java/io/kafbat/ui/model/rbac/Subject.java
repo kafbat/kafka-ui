@@ -3,17 +3,22 @@ package io.kafbat.ui.model.rbac;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.Objects;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
-@Data
+@Value
+@Jacksonized
+@Builder
 public class Subject {
 
   Provider provider;
   String type;
   String value;
-  boolean isRegex = false;
+  boolean isRegex;
 
   public void validate() {
     checkNotNull(type, "Subject type cannot be null");
