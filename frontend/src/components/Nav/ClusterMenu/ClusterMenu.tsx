@@ -49,7 +49,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     location.pathname.includes(path);
 
   return (
-    <S.ClusterList $colorKey={colorKey}>
+    <S.ClusterList role="menu" $colorKey={colorKey}>
       <MenuTab
         title={name}
         status={status}
