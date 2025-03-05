@@ -97,7 +97,7 @@ public class SerdeInstance implements Closeable {
       try {
         serde.close();
       } catch (Exception e) {
-        log.error("Error closing serde " + name, e);
+        log.error("Error closing serde {}", name, e);
       }
       return null;
     });

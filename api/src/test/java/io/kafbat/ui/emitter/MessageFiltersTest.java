@@ -199,7 +199,7 @@ class MessageFiltersTest {
       long took = System.currentTimeMillis() - before;
 
       assertThat(took).isLessThan(1000);
-      assertThat(matched).isGreaterThan(0);
+      assertThat(matched).isPositive();
     }
   }
 

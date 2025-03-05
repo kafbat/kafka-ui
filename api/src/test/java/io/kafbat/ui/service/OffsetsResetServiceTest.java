@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-public class OffsetsResetServiceTest extends AbstractIntegrationTest {
+class OffsetsResetServiceTest extends AbstractIntegrationTest {
 
   private static final int PARTITIONS = 5;
 

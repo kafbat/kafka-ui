@@ -176,7 +176,7 @@ public class KsqlApiClient {
     if (statements.size() > 1) {
       return errorTableFlux("Only single statement supported now");
     }
-    if (statements.size() == 0) {
+    if (statements.isEmpty()) {
       return errorTableFlux("No valid ksql statement found");
     }
     if (isUnsupportedStatementType(statements.get(0))) {
