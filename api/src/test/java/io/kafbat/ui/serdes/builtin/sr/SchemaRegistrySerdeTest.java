@@ -130,6 +130,39 @@ class SchemaRegistrySerdeTest {
         .contains(Map.entry("schemaId", schemaId));
   }
 
+  @Test
+  void deserializeReturnsJsonAvroMsgJsonRepresentationViaTopicNameOnly() throws RestClientException, IOException {
+    AvroSchema schema = new AvroSchema(
+        "{"
+            + "  \"type\": \"record\","
+            + "  \"name\": \"TestAvroRecord1\","
+            + "  \"fields\": ["
+            + "    {"
+            + "      \"name\": \"field1\","
+            + "      \"type\": \"string\""
+            + "    },"
+            + "    {"
+            + "      \"name\": \"field2\","
+            + "      \"type\": \"int\""
+            + "    }"
+            + "  ]"
+            + "}"
+    );
+    String jsonValue = "{ \"field1\":\"testStr\", \"field2\": 123 }";
+
+    String topic = "test";
+    int schemaId = registryClient.register(topic + "-value", schema);
+
+    byte[] data = jsonToAvro(jsonValue, schema); // No magic byte no schema id registered
+    var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+    assertJsonsEqual(jsonValue, result.getResult());
+    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.getAdditionalProperties())
+        .contains(Map.entry("type", "AVRO"))
+        .contains(Map.entry("schemaId", schemaId));
+  }
+
   @Nested
   class SerdeWithDisabledSubjectExistenceCheck {
 

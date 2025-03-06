@@ -279,7 +279,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   @Override
   public Deserializer deserializer(String topic, Target type) {
     return (headers, data) -> {
-      var schemaId = extractSchemaIdFromMsg(data);
+      int schemaId = getSchemaIdFromMessageOrTopic(data, topic, type);
       SchemaType format = getMessageFormatBySchemaId(schemaId);
       MessageFormatter formatter = schemaRegistryFormatters.get(format);
       return new DeserializeResult(
@@ -293,6 +293,18 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     };
   }
 
+  private int getSchemaIdFromMessageOrTopic(byte[] data, String topic, Target type) {
+    return extractSchemaIdFromMsg(data).orElseGet(
+        () -> {
+          String subject = schemaSubject(topic, type);
+          return getSchemaBySubject(subject)
+              .map(SchemaMetadata::getId)
+              .orElseThrow(() -> new ValidationException(
+                  String.format("No schema for subject '%s' found and no magic byte in avro data", subject)));
+        }
+    );
+  }
+
   private SchemaType getMessageFormatBySchemaId(int schemaId) {
     return getSchemaById(schemaId)
         .map(ParsedSchema::schemaType)
@@ -300,15 +312,11 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .orElseThrow(() -> new ValidationException(String.format("Schema for id '%d' not found ", schemaId)));
   }
 
-  private int extractSchemaIdFromMsg(byte[] data) {
+  private Optional<Integer> extractSchemaIdFromMsg(byte[] data) {
     ByteBuffer buffer = ByteBuffer.wrap(data);
     if (buffer.remaining() >= SR_PAYLOAD_PREFIX_LENGTH && buffer.get() == SR_PAYLOAD_MAGIC_BYTE) {
-      return buffer.getInt();
+      return Optional.of(buffer.getInt());
     }
-    throw new ValidationException(
-        String.format(
-            "Data doesn't contain magic byte and schema id prefix, so it can't be deserialized with %s serde",
-            name())
-    );
+    return Optional.empty();
   }
 }
