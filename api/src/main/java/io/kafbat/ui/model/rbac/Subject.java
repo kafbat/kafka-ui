@@ -6,18 +6,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.Objects;
-import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Data;
 
-@Value
-@Jacksonized
-@Builder
+@Data
 public class Subject {
 
   Provider provider;
   String type;
   String value;
+  @JsonProperty("isRegex")
   boolean isRegex;
 
   public void validate() {
