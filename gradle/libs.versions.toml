@@ -129,3 +129,6 @@ netty-resolver-dns-native = { module = 'io.netty:netty-resolver-dns-native-macos
 json-smart = { module = 'net.minidev:json-smart', version = '2.5.2' }
 netty-common = { module = 'io.netty:netty-common', version.ref = 'netty' }
 netty-handler = { module = 'io.netty:netty-handler', version.ref = 'netty' }
+
+# test scope
+bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
