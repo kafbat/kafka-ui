@@ -29,7 +29,6 @@ tasks.register('buildFrontend', PnpmTask) {
   args = ['build']
   environment = System.getenv() + [
     "VITE_TAG": project.version,
-    // TODO add git commit
-    "VITE_COMMIT": ""
+    "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
   ]
 }
