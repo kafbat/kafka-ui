@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
       port: 3000,
     },
     build: {
-      outDir: 'build',
+      outDir: 'build/vite',
       rollupOptions: {
         output: {
           manualChunks(id: string) {

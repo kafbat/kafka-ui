@@ -32,19 +32,25 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
-      - name: Build with Maven
+      - name: Build with Gradle
         id: build_app
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=${{ inputs.sha }}
-          ./mvnw -B -V -ntp clean install -Pprod -Dmaven.test.skip=true
+          ./gradlew clean build \
+          -x test \
+          -Pbuild-docker-images=true \
+          -Pinclude-frontend=true \
+          -Pversion=latest
 
-      - name: Upload maven artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: ~/.m2/repository/io/kafbat/ui/**/*
+          path: |
+            api/build/libs
+            api/build/classes
+            api/build/resources
           retention-days: 7
 
       - name: Dump docker image
@@ -74,13 +80,13 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
-      - name: Download maven artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: artifacts
-          path: ~/.m2/repository/io/kafbat/ui
+          path: api/build
 
       - name: Download docker image
         uses: actions/download-artifact@v4
@@ -101,8 +107,7 @@ jobs:
         id: compose_app
         # use the following command until #819 will be fixed # TODO recheck 819
         run: |
-          mkdir -p ./e2e-tests/target/selenoid-results/video
-          mkdir -p ./e2e-tests/target/selenoid-results/logs
+          mkdir -p /tmp/build/selenoid-results/{video,logs}
           docker compose -f ./e2e-tests/selenoid/selenoid-ci.yaml up -d
           docker compose -f ./documentation/compose/e2e-tests.yaml up -d
 
@@ -112,15 +117,14 @@ jobs:
 
       - name: Run test suite
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=${{ inputs.sha }}
-          ./mvnw -B -V -ntp -Dsurefire.suiteXmlFiles='src/test/resources/${{ inputs.suite_name }}.xml' -f 'e2e-tests' test -Pprod
+          ./gradlew :e2e-tests:test -Prun-e2e=true -Psuite_name=${{ inputs.suite_name }}
 
       - name: Upload allure reports artifact
         if: '!cancelled()'
         uses: actions/upload-artifact@v4
         with:
           name: reports
-          path: ./e2e-tests/target/allure-results
+          path: ./e2e-tests/build/allure-results
           retention-days: 7
 
       - name: Upload selenide results artifact
@@ -128,25 +132,25 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: selenide-results
-          path: ./e2e-tests/target/selenide-results
+          path: ./e2e-tests/build/selenide-results
           retention-days: 3
 
   reports:
     runs-on: ubuntu-latest
     needs: tests
-    if: ${{ !cancelled() && github.repository == 'kafbat/kafka-ui' }}
+    if: ${{ !cancelled() && github.repository_owner == 'kafbat' }}
     steps:
       - name: Download allure reports artifact
         uses: actions/download-artifact@v4
         with:
           name: reports
-          path: ./e2e-tests/target/allure-results
+          path: ./e2e-tests/build/allure-results
 
       - name: Generate Allure report
         uses: simple-elf/allure-report-action@v1.9
         id: allure-report
         with:
-          allure_results: ./e2e-tests/target/allure-results
+          allure_results: ./e2e-tests/build/allure-results
           gh_pages: allure-results
           allure_report: allure-report
           subfolder: allure-results
@@ -166,7 +170,7 @@ jobs:
         uses: Sibz/github-status-action@v1.1.6
         with:
           authToken: ${{secrets.GITHUB_TOKEN}}
-          context: "Click Details button to view Allure report"
+          context: "E2E allure report / Click to view the report"
           state: "success"
           sha: ${{ inputs.sha }}
-          target_url: https://reports.kafbat.dev/${{ github.run_number }}
+          target_url: https://reports.kafbat.dev/${{ github.run_number }}/index.html

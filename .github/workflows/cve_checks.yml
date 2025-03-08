@@ -27,15 +27,16 @@ jobs:
         with:
           java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
       - name: Build project
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -B -V -ntp clean package -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          ./gradlew clean build \
+          -x test \
+          -Pbuild-docker-images=true \
+          -Pinclude-frontend=true \
+          -Pversion=latest
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -60,16 +61,16 @@ jobs:
           push: false
           load: true
           tags: |
-            ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
+            ghcr.io/kafbat/kafka-ui:latest
           build-args: |
-            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
+            JAR_FILE=build/libs/api-latest.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run CVE checks
         uses: aquasecurity/trivy-action@0.29.0
         with:
-          image-ref: "ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}"
+          image-ref: "ghcr.io/kafbat/kafka-ui:latest"
           format: "table"
           exit-code: "1"
 
