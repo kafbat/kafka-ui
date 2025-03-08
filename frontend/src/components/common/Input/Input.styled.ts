@@ -13,6 +13,7 @@ const INPUT_SIZES = {
 
 export const Wrapper = styled.div`
   position: relative;
+  min-width: 200px;
   &:hover {
     svg:first-child {
       fill: ${({ theme }) => theme.input.icon.hover};
@@ -52,6 +53,7 @@ export const Input = styled.input<InputProps>(
       : '40px'};
     width: 100%;
     padding-left: ${search ? '36px' : '12px'};
+    padding-right: 30px;
     font-size: 14px;
 
     &::placeholder {
