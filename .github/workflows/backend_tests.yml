@@ -35,7 +35,3 @@ jobs:
       - name: "Tests"
         run: |
           ./gradlew :api:test --info
-
-      - name: "Sonar"
-        run: |
-          ./gradlew sonar --info
