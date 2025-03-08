@@ -40,6 +40,7 @@ export const getBrokersTableRows = ({
       partitionsLeader: broker.partitionsLeader,
       partitionsSkew: broker.partitionsSkew,
       leadersSkew: broker.leadersSkew,
+      partitions: broker.partitions,
       onlinePartitionCount,
       offlinePartitionCount,
       activeControllers,
@@ -59,18 +60,15 @@ export const getBrokersTableColumns = () => {
       header: 'Disk usage',
       cell: Cell.DiscUsage,
     }),
+    columnHelper.accessor('partitions', { header: 'Partitions' }),
     columnHelper.accessor('partitionsSkew', {
       header: SkewHeader,
       cell: Cell.Skew,
     }),
     columnHelper.accessor('partitionsLeader', { header: 'Leaders' }),
     columnHelper.accessor('leadersSkew', {
-      header: 'Leader skew',
+      header: 'Leaders skew',
       cell: Cell.Skew,
-    }),
-    columnHelper.accessor('onlinePartitionCount', {
-      header: 'Online partitions',
-      cell: Cell.OnlinePartitions,
     }),
     columnHelper.accessor('port', { header: 'Port' }),
     columnHelper.accessor('host', { header: 'Host' }),
