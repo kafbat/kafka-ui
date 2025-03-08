@@ -1,9 +1,12 @@
 name: "PR: Checklist linter"
+
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
+
 permissions:
   checks: write
+
 jobs:
   check-tasks:
     runs-on: ubuntu-latest

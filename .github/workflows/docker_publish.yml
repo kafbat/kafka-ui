@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        registry: [ 'docker.io', 'ghcr.io', 'public.ecr.aws' ]
+        registry: [ 'docker.io', 'ghcr.io', 'ecr' ]
 
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +31,7 @@ jobs:
           name: image
           path: /tmp
 
-      # setup containerd to preserve provenance attestations:
-      # https://docs.docker.com/build/attestations/#creating-attestations
+      # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
         uses: crazy-max/ghaction-setup-docker@v3
         with:
@@ -64,31 +63,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure AWS credentials
-        if: matrix.registry == 'public.ecr.aws'
+        if: matrix.registry == 'ecr'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1 # This region only for public ECR
           role-to-assume: ${{ secrets.AWS_ROLE }}
 
       - name: Login to public ECR
-        if: matrix.registry == 'public.ecr.aws'
+        if: matrix.registry == 'ecr'
         id: login-ecr-public
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registry-type: public
 
-      - name: Define env vars for container registry URL
+      - name: Set container registry env vars
         run: |
-          if [ ${{ matrix.registry }} == 'public.ecr.aws' ]; then
-            # vars.ECR_REGISTRY value is expected to be of the `public.ecr.aws/<public_ecr_id>` form
-            # The `public_ecr_id` must be a *default* alias associated with public regsitry (rather
-            # than a custom alias)
+          if [ "${{ matrix.registry }}" == "ecr" ]; then
             echo "REGISTRY=${{ vars.ECR_REGISTRY }}" >> $GITHUB_ENV
-            # Trim GH Org name so that resulting Public ECR URL has no duplicate org name
-            # Public ECR default alias: public.ecr.aws/<public_ecr_id>/kafka-ui
-            # Public ECR custom alias:  public.ecr.aws/kafbat/kafka-ui
             echo "REPOSITORY=$(basename ${{ github.repository }})" >> $GITHUB_ENV
-          else # this covers the case of docker.io and ghcr.io
+          else
             echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
             echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
           fi

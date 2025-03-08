@@ -3,7 +3,7 @@ plugins {
 }
 
 node {
-  download = !"true".equals(project.property("local_node"))
+  download = "true" != project.property("local_node")
   version = project.property("node_version").toString()
   pnpmVersion = project.property("pnpm_version").toString()
   nodeProjectDir = project.layout.projectDirectory
@@ -22,7 +22,6 @@ tasks.register('generateContract', PnpmTask) {
   args = ['gen:sources']
 }
 
-
 tasks.register('buildFrontend', PnpmTask) {
   dependsOn generateContract
   inputs.files(fileTree("src/"))
@@ -30,22 +29,6 @@ tasks.register('buildFrontend', PnpmTask) {
   args = ['build']
   environment = System.getenv() + [
     "VITE_TAG": project.version,
-    // add git commit
-    "VITE_COMMIT": ""
+    "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
   ]
 }
-
-sourceSets {
-  main {
-    resources {
-      srcDir "build/vite"
-    }
-  }
-}
-
-processResources.dependsOn buildFrontend
-compileJava.dependsOn buildFrontend
-
-
-
-

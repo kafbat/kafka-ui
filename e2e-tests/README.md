@@ -18,7 +18,6 @@ This repository is for E2E UI automation.
 
 - Docker & Docker-compose
 - Java (install arch64 jdk if you have M1/arm chip)
-- Maven
 
 ### How to install
 
@@ -34,7 +33,7 @@ docker pull selenoid/vnc_chrome:117.0
 
 ```
 cd kafbat-ui
-docker-compose -f e2e-tests/selenoid/selenoid-local.yaml up -d
+docker-compose -f e2e-tests/selenoid/selenoid-ci.yaml up -d
 docker-compose -f documentation/compose/e2e-tests.yaml up -d
 ```
 
@@ -42,16 +41,6 @@ docker-compose -f documentation/compose/e2e-tests.yaml up -d
 
 ```
 ./mvnw -Dsurefire.suiteXmlFiles='src/test/resources/%s.xml' -f 'e2e-tests' test -Pprod
-```
-
-3. To run tests on your local Chrome browser check `selenoid-off` profile on Maven panel, also there you can check `headless-off`
-
-Expected Location of Chrome
-```
-Linux:	                    /usr/bin/google-chrome1
-Mac:	                    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
-Windows XP:                 %HOMEPATH%\Local Settings\Application Data\Google\Chrome\Application\chrome.exe
-Windows Vista and newer:    C:\Users%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe
 ```
 
 ### Reporting

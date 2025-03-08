@@ -1,9 +1,17 @@
 plugins {
     alias(libs.plugins.nexus.publish.plugin)
+    alias(libs.plugins.sonarqube)
 }
 
 subprojects {
-    apply plugin: "java"
+    if (name != "frontend") {
+        apply plugin: "java"
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -16,10 +24,6 @@ subprojects {
     group = 'io.kafbat'
     version = version
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
 }
 
 boolean resolveBooleanProperty(String propertyName, boolean defaultValue = false) {
@@ -28,10 +32,24 @@ boolean resolveBooleanProperty(String propertyName, boolean defaultValue = false
 }
 
 ext {
-    prod = resolveBooleanProperty("prod")
+    release = resolveBooleanProperty("release")
+    includeFrontend = resolveBooleanProperty("include-frontend", release)
+    buildDockerImages = resolveBooleanProperty("build-docker-images", release)
+    runE2e = resolveBooleanProperty("run-e2e")
+    e2eHeadlessOff = resolveBooleanProperty("e2e-headless-off")
+    e2eSelenoidOff = resolveBooleanProperty("e2e-selenoid-off")
 }
 
-if (prod) {
+sonar {
+    properties {
+        property "sonar.projectKey", "kafbat_kafka-ui"
+        property "sonar.organization", "kafbat"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.exclusions", "**/e2e-tests/**/*"
+    }
+}
+
+if (release) {
     nexusPublishing {
         repositories {
             sonatype {
@@ -44,5 +62,3 @@ if (prod) {
         }
     }
 }
-
-

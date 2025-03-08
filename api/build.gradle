@@ -5,15 +5,13 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
+    alias(libs.plugins.spring.dependency.management)
 }
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
     implementation project(":contract")
-    if (prod) {
-        implementation project(":frontend")
-    }
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.security
@@ -59,6 +57,9 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
+    implementation libs.json.smart
+    implementation libs.netty.common
+    implementation libs.netty.handler
 
     // Annotation processors
     implementation libs.lombok
@@ -102,7 +103,7 @@ sourceSets {
     }
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
     exclude '**/ksql/**'
 }
 
@@ -118,13 +119,29 @@ test {
     useJUnitPlatform()
 }
 
-tasks.register('buildDockerImage', DockerBuildImage) {
+tasks.register('buildDockerImageTask', DockerBuildImage) {
     inputDir = projectDir
     dockerFile = project.layout.projectDirectory.file('Dockerfile')
     buildArgs = [
        'JAR_FILE': "build/libs/${project.name}-${project.version}.jar"
-    ]
+    ] as Map<String, String>
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
-tasks.build.finalizedBy buildDockerImage
+if (buildDockerImages) {
+    tasks.build.finalizedBy buildDockerImageTask
+}
+
+if (includeFrontend) {
+    tasks.named("build") {
+        dependsOn(":frontend:buildFrontend")
+    }
+
+    tasks.named("processResources") {
+        dependsOn(":frontend:buildFrontend")
+        from(project(":frontend").layout.buildDirectory.dir("vite")) {
+            into("static")
+        }
+        into("$buildDir/resources/main")
+    }
+}

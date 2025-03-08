@@ -14,7 +14,7 @@ dependencies {
     implementation libs.spring.starter.validation
     api libs.swagger.integration.jakarta
     api libs.jackson.databind.nullable
-    api libs.annotation.api
+    api libs.jakarta.annotation.api
     compileOnly libs.lombok
     annotationProcessor libs.lombok
 }
@@ -112,5 +112,3 @@ sourceSets {
 
 compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
 processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
-
-

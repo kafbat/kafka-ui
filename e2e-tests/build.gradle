@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 plugins {
     id 'java'
     id 'checkstyle'
@@ -27,16 +30,36 @@ checkstyle {
     toolVersion = libs.versions.checkstyle.get()
     configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
     ignoreFailures = false
-    maxWarnings = 10
+    maxWarnings = 0
     maxErrors = 0
 }
 
-
 test {
-    useTestNG()
+    doFirst { // exec only when ran
+        def suiteName = findProperty("suite_name")
+        if (!suiteName) {
+            throw new GradleException("Suite name property 'suite_name' is missing")
+        }
+
+        useTestNG() {
+            useDefaultListeners = true
+
+            def suitePath = Paths.get(project.rootDir.toString(),
+                    "e2e-tests/src/test/resources/" + suiteName + ".xml" as String)
+            if (!Files.exists(suitePath)) {
+                throw new GradleException("Suite [" + suitePath.toAbsolutePath() + "] doesn't exist")
+            }
+            suiteXmlFiles = [suitePath.toFile()]
+        }
+
+        systemProperty "headless", e2eHeadlessOff
+        systemProperty "selenoid", e2eSelenoidOff
+        systemProperty "allure.results.directory",
+                project.layout.buildDirectory.dir("allure-results").get().getAsFile().getAbsolutePath()
+    }
 }
 
 tasks.named('test') {
-    enabled = prod
+    enabled = runE2e
 }
 

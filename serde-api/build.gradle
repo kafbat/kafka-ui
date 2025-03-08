@@ -9,7 +9,8 @@ tasks.register('sourceJar', Jar) {
     from sourceSets.main.allJava
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier.set("javadoc")
     from javadoc.destinationDir
 }
@@ -18,14 +19,14 @@ artifacts {
     archives sourceJar, javadocJar
 }
 
-if (prod) {
+if (release) {
     signing {
         sign(publishing.publications)
     }
 }
 
 publishing {
-    if (prod) {
+    if (release) {
         repositories {
             maven {
                 url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
