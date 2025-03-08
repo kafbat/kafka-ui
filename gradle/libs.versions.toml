@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.4.2'
+spring-boot = '3.4.3'
 
 aws-msk-auth = '2.2.0'
 azure-identity = '1.14.2'
