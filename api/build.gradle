@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
@@ -118,6 +119,10 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+}
+
+springBoot {
+    buildInfo()
 }
 
 tasks.register('buildDockerImageTask', DockerBuildImage) {
