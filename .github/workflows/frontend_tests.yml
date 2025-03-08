@@ -26,7 +26,7 @@ jobs:
           version: 9.15.4
 
       - name: Install node
-        uses: actions/setup-node@v4.0.2
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: "22.12.0"
           cache: "pnpm"
