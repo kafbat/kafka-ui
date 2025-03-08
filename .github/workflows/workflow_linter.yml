@@ -18,7 +18,9 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
+
       - name: Install yamllint
         run: sudo apt install -y yamllint
+
       - name: Validate workflow yaml files
         run: yamllint .github/workflows/. -d relaxed -f github --no-warnings
