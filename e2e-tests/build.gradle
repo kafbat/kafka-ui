@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+    alias(libs.plugins.allure)
+}
+
+dependencies {
+    implementation project(":contract")
+    implementation libs.apache.kafka
+    implementation libs.apache.commons.io
+    implementation libs.aspectj
+    implementation libs.testng
+    implementation libs.codeborne.selenide
+    implementation libs.allure.testng
+    implementation libs.allure.selenide
+    implementation libs.bonigarcia.webdrivermanager
+    implementation libs.spring.starter.webflux
+    implementation libs.netty.resolver.dns.native
+
+    implementation libs.lombok
+
+    annotationProcessor libs.lombok
+    testAnnotationProcessor libs.lombok
+}
+
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configFile = rootProject.file('etc/checkstyle/checkstyle-e2e.xml')
+    ignoreFailures = false
+    maxWarnings = 10
+    maxErrors = 0
+}
+
+
+test {
+    useTestNG()
+}
+
+tasks.named('test') {
+    enabled = prod
+}
+
