@@ -1,9 +1,9 @@
 package io.kafbat.ui.config.auth;
 
 import io.kafbat.ui.model.rbac.Role;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("rbac")

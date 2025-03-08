@@ -23,11 +23,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
-      - name: Download maven artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: kafbat-ui-${{ inputs.version }}
-          path: api/target
+          path: api/build/libs
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -44,9 +44,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-        # Build multi platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
+        # Build multi-platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
         # So let's use containerd instead as it supports this option
-        # Also containerd is one of the option to allow preserving provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
+        # Also containerd is one of the option to allow preserving provenance attestations:
+        # https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
         uses: crazy-max/ghaction-setup-docker@v3
         with:
@@ -71,7 +72,7 @@ jobs:
           tags: |
             kafka-ui:temp
           build-args: |
-            JAR_FILE=api-${{ inputs.version }}.jar
+            JAR_FILE=build/libs/api-${{ inputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
