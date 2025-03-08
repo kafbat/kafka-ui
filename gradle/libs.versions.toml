@@ -39,7 +39,7 @@ bonigarcia-webdrivermanager = '5.8.0'
 aspectj = '1.9.21'
 
 # CVE fixes
-netty = '4.1.118.Final'
+netty = '4.1.119.Final'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
