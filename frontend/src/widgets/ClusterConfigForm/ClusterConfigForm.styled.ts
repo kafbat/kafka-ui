@@ -58,5 +58,17 @@ export const FileUploadInputWrapper = styled.div`
   display: flex;
   height: 40px;
   align-items: center;
-  color: ${({ theme }) => theme.clusterConfigForm.fileInput.color}};
+  color: ${({ theme }) => theme.clusterConfigForm.fileInput.color};
+`;
+
+// Serde
+export const SerdeProperties = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+export const SerdePropertiesActions = styled(IconButtonWrapper)`
+  align-self: stretch;
+  margin-top: 12px;
+  margin-left: 8px;
 `;
