@@ -82,6 +82,8 @@ dependencies {
     testImplementation libs.bytebuddy
     testImplementation libs.assertj
     testImplementation libs.jsonschemavalidator
+    testImplementation libs.kafka.clients
+    testImplementation libs.bouncycastle.bcpkix
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
