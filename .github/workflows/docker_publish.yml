@@ -76,14 +76,15 @@ jobs:
         with:
           registry-type: public
 
-      - name: define env vars
+      - name: Set container registry env vars
         run: |
-          if [ ${{ matrix.registry }} == 'ecr' ]; then
+          if [ "${{ matrix.registry }}" == "ecr" ]; then
             echo "REGISTRY=${{ vars.ECR_REGISTRY }}" >> $GITHUB_ENV
+            echo "REPOSITORY=$(basename ${{ github.repository }})" >> $GITHUB_ENV
           else
             echo "REGISTRY=${{ matrix.registry }}" >> $GITHUB_ENV
+            echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
           fi
-          echo "REPOSITORY=${{ github.repository }}" >> $GITHUB_ENV
 
       - name: Push images to ${{ matrix.registry }}
         run: |
