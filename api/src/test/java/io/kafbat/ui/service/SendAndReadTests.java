@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.test.StepVerifier;
 
-public class SendAndReadTests extends AbstractIntegrationTest {
+class SendAndReadTests extends AbstractIntegrationTest {
 
   private static final AvroSchema AVRO_SCHEMA_1 = new AvroSchema(
       "{"
@@ -81,14 +81,16 @@ public class SendAndReadTests extends AbstractIntegrationTest {
   private static final String AVRO_SCHEMA_2_JSON_RECORD = "{ \"f1\": 111, \"f2\": \"testStr\" }";
 
   private static final ProtobufSchema PROTOBUF_SCHEMA = new ProtobufSchema(
-      "syntax = \"proto3\";\n"
-          + "package io.kafbat;\n"
-          + "\n"
-          + "message TestProtoRecord {\n"
-          + "  string f1 = 1;\n"
-          + "  int32 f2 = 2;\n"
-          + "}\n"
-          + "\n"
+      """
+          syntax = "proto3";
+          package io.kafbat;
+
+          message TestProtoRecord {
+            string f1 = 1;
+            int32 f2 = 2;
+          }
+
+          """
   );
 
   private static final String PROTOBUF_SCHEMA_JSON_RECORD
@@ -528,7 +530,7 @@ public class SendAndReadTests extends AbstractIntegrationTest {
             .blockLast(Duration.ofSeconds(5000));
 
         assertThat(polled).isNotNull();
-        assertThat(polled.getPartition()).isEqualTo(0);
+        assertThat(polled.getPartition()).isZero();
         assertThat(polled.getOffset()).isNotNull();
         msgAssert.accept(polled);
       } finally {

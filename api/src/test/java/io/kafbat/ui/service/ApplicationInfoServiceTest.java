@@ -6,12 +6,12 @@ import io.kafbat.ui.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApplicationInfoServiceTest extends AbstractIntegrationTest {
+class ApplicationInfoServiceTest extends AbstractIntegrationTest {
   @Autowired
   private ApplicationInfoService service;
 
   @Test
-  public void testCustomGithubReleaseInfoTimeout() {
+  void testCustomGithubReleaseInfoTimeout() {
     assertEquals(100, service.githubReleaseInfo().getGithubApiMaxWaitTime());
   }
 }
