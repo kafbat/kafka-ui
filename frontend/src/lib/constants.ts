@@ -1,4 +1,8 @@
-import { ConfigurationParameters, ConsumerGroupState } from 'generated-sources';
+import {
+  ApplicationConfigPropertiesKafkaMaskingTypeEnum,
+  ConfigurationParameters,
+  ConsumerGroupState,
+} from 'generated-sources';
 
 declare global {
   interface Window {
@@ -100,6 +104,20 @@ export const SECURITY_PROTOCOL_OPTIONS = [
 export const METRICS_OPTIONS = [
   { value: 'JMX', label: 'JMX' },
   { value: 'PROMETHEUS', label: 'PROMETHEUS' },
+];
+export const MASKING_OPTIONS = [
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.MASK,
+    label: 'MASK',
+  },
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.REMOVE,
+    label: 'REMOVE',
+  },
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.REPLACE,
+    label: 'REPLACE',
+  },
 ];
 
 export const CONSUMER_GROUP_STATE_TOOLTIPS: Record<ConsumerGroupState, string> =
