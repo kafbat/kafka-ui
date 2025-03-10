@@ -12,11 +12,19 @@ import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.SneakyThrows;
 import net.bytebuddy.utility.RandomString;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -361,24 +369,27 @@ class SchemaRegistrySerdeTest {
             }"""
     );
 
-    String jsonPayload = """
-        {
-          "lt_date":"1991-08-14",
-          "lt_decimal": 2.1617413862327545E11,
-          "lt_time_millis": "10:15:30.001",
-          "lt_time_micros": "10:15:30.123456",
-          "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
-          "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
-          "lt_timestamp_micros": "2007-12-03T10:15:30.123456Z",
-          "lt_timestamp_nanos": "2007-12-03T10:15:30.123456789Z",
-          "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456",
-          "lt_local_timestamp_nanos": "2017-12-03T10:15:30.123456789"
-        }
-        """;
+    Instant instant = Instant.parse("2007-12-03T10:15:30.123456789Z");
+    long timestampNanos = instant.getEpochSecond() * 1_000_000_000L + instant.getNano();
+
+    instant = LocalDateTime.parse("2017-12-03T10:15:30.123456789").toInstant(ZoneOffset.UTC);
+    long localTimestampNanos = instant.getEpochSecond() * 1_000_000_000L + instant.getNano();
+
+    GenericData.Record inputRecord = new GenericData.Record(schema.rawSchema());
+    inputRecord.put("lt_date", LocalDate.of(1991, 8, 14));
+    inputRecord.put("lt_uuid", UUID.fromString("a37b75ca-097c-5d46-6119-f0637922e908"));
+    inputRecord.put("lt_decimal", new BigDecimal("2.16"));
+    inputRecord.put("lt_time_millis", LocalTime.parse("10:15:30.001"));
+    inputRecord.put("lt_time_micros", LocalTime.parse("10:15:30.123456"));
+    inputRecord.put("lt_timestamp_millis", Instant.parse("2007-12-03T10:15:30.123Z"));
+    inputRecord.put("lt_timestamp_micros", Instant.parse("2007-12-03T10:15:30.123456Z"));
+    inputRecord.put("lt_timestamp_nanos", timestampNanos);
+    inputRecord.put("lt_local_timestamp_millis", LocalDateTime.parse("2017-12-03T10:15:30.123"));
+    inputRecord.put("lt_local_timestamp_micros", LocalDateTime.parse("2017-12-03T10:15:30.123456"));
+    inputRecord.put("lt_local_timestamp_nanos", localTimestampNanos);
 
     registryClient.register("test-value", schema);
-    assertSerdeCycle("test", jsonPayload);
+    assertSerdeCycle("test", inputRecord.toString());
   }
 
   // 1. serialize input json to binary
