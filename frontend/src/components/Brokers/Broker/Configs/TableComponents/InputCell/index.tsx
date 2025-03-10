@@ -7,7 +7,6 @@ import {
   UpdateBrokerConfigCallback,
 } from 'components/Brokers/Broker/Configs/lib/types';
 import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
-import ClusterContext from 'components/contexts/ClusterContext';
 
 import InputCellViewMode from './InputCellViewMode';
 import InputCellEditMode from './InputCellEditMode';
@@ -20,7 +19,13 @@ export interface InputCellProps
 const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
   const [isEdit, setIsEdit] = useState(false);
   const confirm = useConfirm();
-  const { name, source, value: initialValue, isSensitive } = row.original;
+  const {
+    name,
+    source,
+    value: initialValue,
+    isSensitive,
+    isReadOnly,
+  } = row.original;
 
   const handleSave = (newValue: string) => {
     if (newValue !== initialValue) {
@@ -33,7 +38,6 @@ const InputCell: FC<InputCellProps> = ({ row, onUpdate }) => {
 
   const isDynamic = source === 'DYNAMIC_BROKER_CONFIG';
   const configUnit = getConfigUnit(name);
-  const { isReadOnly } = useContext(ClusterContext);
 
   return isEdit ? (
     <InputCellEditMode
