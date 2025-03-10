@@ -12,6 +12,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.IsolationLevel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.api.io.TempDir;
@@ -101,6 +102,12 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.0.masking.0.topicValuesPattern", "masking-test-.*");
       System.setProperty("kafka.clusters.0.audit.topicAuditEnabled", "true");
       System.setProperty("kafka.clusters.0.audit.consoleAuditEnabled", "true");
+
+      System.setProperty("kafka.clusters.0.consumerProperties.request.timeout.ms", "60000");
+      System.setProperty("kafka.clusters.0.consumerProperties.isolation.level",
+          IsolationLevel.READ_COMMITTED.toString());
+      System.setProperty("kafka.clusters.0.producerProperties.request.timeout.ms", "45000");
+      System.setProperty("kafka.clusters.0.producerProperties.max.block.ms", "80000");
 
       System.setProperty("kafka.clusters.1.name", SECOND_LOCAL);
       System.setProperty("kafka.clusters.1.readOnly", "true");
