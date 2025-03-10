@@ -43,6 +43,7 @@ export const getInitialFormData = (
     ksqldbServer,
     ksqldbServerAuth,
     ksqldbServerSsl,
+    masking,
   } = payload;
 
   const initialValues: Partial<ClusterConfigFormValues> = {
@@ -97,6 +98,16 @@ export const getInitialFormData = (
       ...parseKeystore(metrics),
       port: `${metrics.port}`,
     };
+  }
+
+  if (masking) {
+    initialValues.masking = masking.map((m) => ({
+      ...m,
+      fields: (m.fields ?? []).map((f) => ({ value: f })),
+      maskingCharsReplacement: (m.maskingCharsReplacement ?? []).map((f) => ({
+        value: f,
+      })),
+    }));
   }
 
   const properties = payload.properties || {};
