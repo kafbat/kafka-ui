@@ -1,4 +1,5 @@
 import { object, string, number, array, boolean, mixed, lazy } from 'yup';
+import { ApplicationConfigPropertiesKafkaMaskingTypeEnum } from 'generated-sources';
 
 const requiredString = string().required('required field');
 
@@ -179,6 +180,71 @@ const authSchema = lazy((value) => {
   return mixed().optional();
 });
 
+const maskingSchema = object({
+  type: mixed<ApplicationConfigPropertiesKafkaMaskingTypeEnum>()
+    .oneOf(Object.values(ApplicationConfigPropertiesKafkaMaskingTypeEnum))
+    .required('required field'),
+  fields: array().of(
+    object().shape({
+      value: string().test(
+        'fieldsOrPattern',
+        'Either fields or fieldsNamePattern is required',
+        (value, { path, parent, ...ctx }) => {
+          const maskingItem = ctx.from?.[1].value;
+
+          if (value && value.trim() !== '') {
+            return true;
+          }
+
+          const otherFieldHasValue =
+            maskingItem.fields &&
+            maskingItem.fields.some(
+              (field: { value: string }) =>
+                field.value && field.value.trim() !== ''
+            );
+
+          if (otherFieldHasValue) {
+            return true;
+          }
+
+          const hasPattern =
+            maskingItem.fieldsNamePattern &&
+            maskingItem.fieldsNamePattern.trim() !== '';
+
+          return hasPattern;
+        }
+      ),
+    })
+  ),
+  fieldsNamePattern: string().test(
+    'fieldsOrPattern',
+    'Either fields or fieldsNamePattern is required',
+    (value, { parent }) => {
+      const hasValidFields =
+        parent.fields &&
+        parent.fields.length > 0 &&
+        parent.fields.some(
+          (field: { value: string }) => field.value && field.value.trim() !== ''
+        );
+
+      const hasPattern = value && value.trim() !== '';
+
+      return hasValidFields || hasPattern;
+    }
+  ),
+  maskingCharsReplacement: array().of(object().shape({ value: string() })),
+  replacement: string(),
+  topicKeysPattern: string(),
+  topicValuesPattern: string(),
+});
+
+const maskingsSchema = lazy((value) => {
+  if (Array.isArray(value)) {
+    return array().of(maskingSchema);
+  }
+  return mixed().optional();
+});
+
 const formSchema = object({
   name: string()
     .required('required field')
@@ -190,6 +256,7 @@ const formSchema = object({
   schemaRegistry: urlWithAuthSchema,
   ksql: urlWithAuthSchema,
   kafkaConnect: kafkaConnectsSchema,
+  masking: maskingsSchema,
   metrics: metricsSchema,
 });
 

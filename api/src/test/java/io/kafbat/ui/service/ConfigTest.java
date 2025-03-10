@@ -1,6 +1,7 @@
 package io.kafbat.ui.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.BrokerConfigDTO;
@@ -10,6 +11,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.IsolationLevel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +82,22 @@ class ConfigTest extends AbstractIntegrationTest {
         )
         .exchange()
         .expectStatus().isBadRequest();
+  }
+
+  @Test
+  void testKafkaClientCustomProperties() {
+    KafkaCluster cluster = applicationContext.getBean(ClustersStorage.class).getClusterByName(LOCAL).orElseThrow();
+
+    Properties consumerProps = cluster.getConsumerProperties();
+
+    assertEquals("60000", consumerProps.getProperty(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG));
+    assertEquals(IsolationLevel.READ_COMMITTED.toString(),
+        consumerProps.getProperty(ConsumerConfig.ISOLATION_LEVEL_CONFIG));
+
+    Properties producerProps = cluster.getProducerProperties();
+
+    assertEquals("45000", producerProps.getProperty(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG));
+    assertEquals("80000", producerProps.getProperty(ProducerConfig.MAX_BLOCK_MS_CONFIG));
   }
 
   private Optional<BrokerConfigDTO> getConfig(String name) {

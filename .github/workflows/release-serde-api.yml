@@ -22,9 +22,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "zulu"
-          cache: "maven"
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
 
       - id: install-secret-key
         name: Install GPG secret key
@@ -32,6 +32,7 @@ jobs:
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
 
       - name: Publish to Maven Central
+        # TODO fix me next publish, I'm broken :(
         run: |
           mvn source:jar javadoc:jar package gpg:sign \
           -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} \

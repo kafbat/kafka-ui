@@ -24,6 +24,8 @@ public class KafkaCluster {
   private final String version;
   private final String bootstrapServers;
   private final Properties properties;
+  private final Properties consumerProperties;
+  private final Properties producerProperties;
   private final boolean readOnly;
   private final MetricsConfig metricsConfig;
   private final DataMasking masking;

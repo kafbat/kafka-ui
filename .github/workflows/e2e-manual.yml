@@ -1,4 +1,4 @@
-name: "E2E: Suite run"
+name: "E2E: Manual run"
 on:
   workflow_dispatch:
     inputs:

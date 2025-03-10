@@ -51,6 +51,9 @@ importers:
       ajv:
         specifier: 8.8.2
         version: 8.8.2
+      ajv-draft-04:
+        specifier: ^1.0.0
+        version: 1.0.0(ajv@8.8.2)
       ajv-formats:
         specifier: 2.1.1
         version: 2.1.1(ajv@8.8.2)
@@ -1380,6 +1383,14 @@ packages:
   agent-base@7.1.1:
     resolution: {integrity: sha512-H0TSyFNDMomMNJQBn8wFV5YC/2eJ+VXECwOadZJT554xP6cODZHPX3H9QMQECxvrgiSOP1pHjy1sMWQVYJOUOA==}
     engines: {node: '>= 14'}
+
+  ajv-draft-04@1.0.0:
+    resolution: {integrity: sha512-mv00Te6nmYbRp5DCwclxtt7yV/joXJPGS7nM+97GdxvuttCOfgI3K4U25zboyeX0O+myI8ERluxQe5wljMmVIw==}
+    peerDependencies:
+      ajv: ^8.5.0
+    peerDependenciesMeta:
+      ajv:
+        optional: true
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
@@ -5460,6 +5471,10 @@ snapshots:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
+
+  ajv-draft-04@1.0.0(ajv@8.8.2):
+    optionalDependencies:
+      ajv: 8.8.2
 
   ajv-formats@2.1.1(ajv@8.8.2):
     optionalDependencies:
