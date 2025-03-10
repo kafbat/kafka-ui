@@ -1,4 +1,4 @@
-import React, { type FC, useState, useContext } from 'react';
+import React, { type FC, useState } from 'react';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { type CellContext } from '@tanstack/react-table';
 import { type BrokerConfig } from 'generated-sources';
