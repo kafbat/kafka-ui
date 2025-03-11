@@ -1,22 +1,40 @@
 package io.kafbat.ui.config.auth;
 
+import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.provider.Provider;
+import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.StaticFileWebFilter;
+import java.util.Collection;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
 @ConditionalOnProperty(value = "auth.type", havingValue = "LOGIN_FORM")
+@EnableConfigurationProperties(SecurityProperties.class)
 @Slf4j
 public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
+  private static final String NOOP_PASSWORD_PREFIX = "{noop}";
+  private static final Pattern PASSWORD_ALGORITHM_PATTERN = Pattern.compile("^\\{.+}.*$");
 
   @Bean
   public SecurityWebFilterChain configure(ServerHttpSecurity http) {
@@ -40,6 +58,44 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
+  }
+
+  @Bean
+  public ReactiveUserDetailsService reactiveUserDetailsService(SecurityProperties properties,
+                                                               ObjectProvider<PasswordEncoder> passwordEncoder,
+                                                               AccessControlService accessControlService) {
+    SecurityProperties.User user = properties.getUser();
+
+    UserDetails userDetails = User.withUsername(user.getName())
+        .password(password(user.getPassword(), passwordEncoder.getIfAvailable()))
+        .roles(StringUtils.toStringArray(user.getRoles()))
+        .build();
+
+    Collection<String> groups = accessControlService.getRoles().stream()
+        .filter(role -> role.getSubjects().stream()
+            .filter(subj -> Provider.BASIC_AUTH.equals(subj.getProvider()))
+            .filter(subj -> "user".equals(subj.getType()))
+            .anyMatch(subj -> user.getName().equals(subj.getValue()))
+        )
+        .map(Role::getName)
+        .collect(Collectors.toSet());
+
+    return new RbacUserDetailsService(new RbacBasicAuthUser(userDetails, groups));
+  }
+
+  private String password(String password, PasswordEncoder encoder) {
+    if (encoder != null || PASSWORD_ALGORITHM_PATTERN.matcher(password).matches()) {
+      return password;
+    }
+
+    return NOOP_PASSWORD_PREFIX + password;
+  }
+
+  private record RbacUserDetailsService(RbacBasicAuthUser userDetails) implements ReactiveUserDetailsService {
+    @Override
+    public Mono<UserDetails> findByUsername(String username) {
+      return (userDetails.getUsername().equals(username)) ? Mono.just(userDetails) : Mono.empty();
+    }
   }
 
 }

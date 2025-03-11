@@ -1,0 +1,22 @@
+auth:
+  type: LOGIN_FORM
+
+spring:
+  security:
+    user:
+      name: admin
+      password: pass
+
+rbac:
+  roles:
+    - name: "roleName"
+      clusters:
+        - local
+      subjects:
+        - provider: basic_auth
+          type: user
+          value: admin
+      permissions:
+        - resource: topic
+          value: ".*"
+          actions: all

@@ -13,7 +13,9 @@ public enum Provider {
   OAUTH,
 
   LDAP,
-  LDAP_AD;
+  LDAP_AD,
+
+  BASIC_AUTH;
 
   @Nullable
   public static Provider fromString(String name) {

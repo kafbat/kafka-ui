@@ -30,7 +30,7 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
   private static final String SESSION = "SESSION";
 
   protected static void checkUserPermissions(WebTestClient client) {
-    AuthenticationInfoDTO info = authenticationInfo(client, FIRST_USER_WITH_GROUP);
+    AuthenticationInfoDTO info = authenticationInfo(client, FIRST_USER_WITH_GROUP, PASSWORD);
 
     assertNotNull(info);
     assertTrue(info.getRbacEnabled());
@@ -40,25 +40,26 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
     assertFalse(permissions.isEmpty());
     assertTrue(permissions.stream().anyMatch(permission ->
         permission.getClusters().contains(LOCAL) && permission.getResource() == ResourceTypeDTO.TOPIC));
-    assertEquals(permissions, authenticationInfo(client, SECOND_USER_WITH_GROUP).getUserInfo().getPermissions());
-    assertEquals(permissions, authenticationInfo(client, USER_WITHOUT_GROUP).getUserInfo().getPermissions());
+    assertEquals(permissions,
+        authenticationInfo(client, SECOND_USER_WITH_GROUP, PASSWORD).getUserInfo().getPermissions());
+    assertEquals(permissions, authenticationInfo(client, USER_WITHOUT_GROUP, PASSWORD).getUserInfo().getPermissions());
   }
 
   protected static void checkEmptyPermissions(WebTestClient client) {
-    assertTrue(Objects.requireNonNull(authenticationInfo(client, EMPTY_PERMISSIONS_USER))
+    assertTrue(Objects.requireNonNull(authenticationInfo(client, EMPTY_PERMISSIONS_USER, PASSWORD))
         .getUserInfo()
         .getPermissions()
         .isEmpty()
     );
   }
 
-  protected static String session(WebTestClient client, String name) {
+  private static String session(WebTestClient client, String name, String password) {
     return Objects.requireNonNull(
             client
                 .post()
                 .uri("/login")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("username", name).with("password", PASSWORD))
+                .body(BodyInserters.fromFormData("username", name).with("password", password))
                 .exchange()
                 .expectStatus()
                 .isFound()
@@ -68,11 +69,11 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
         .getValue();
   }
 
-  protected static AuthenticationInfoDTO authenticationInfo(WebTestClient client, String name) {
+  public static AuthenticationInfoDTO authenticationInfo(WebTestClient client, String name, String password) {
     return client
         .get()
         .uri("/api/authorization")
-        .cookie(SESSION, session(client, name))
+        .cookie(SESSION, session(client, name, password))
         .exchange()
         .expectStatus()
         .isOk()
