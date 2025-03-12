@@ -1,12 +1,9 @@
 package io.kafbat.ui.config.auth;
 
-import io.kafbat.ui.model.rbac.Role;
-import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
+import io.kafbat.ui.service.rbac.extractor.RbacBasicAuthAuthoritiesExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
-import java.util.Collection;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -71,16 +68,9 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .roles(StringUtils.toStringArray(user.getRoles()))
         .build();
 
-    Collection<String> groups = accessControlService.getRoles().stream()
-        .filter(role -> role.getSubjects().stream()
-            .filter(subj -> Provider.BASIC_AUTH.equals(subj.getProvider()))
-            .filter(subj -> "user".equals(subj.getType()))
-            .anyMatch(subj -> user.getName().equals(subj.getValue()))
-        )
-        .map(Role::getName)
-        .collect(Collectors.toSet());
+    RbacBasicAuthAuthoritiesExtractor extractor = new RbacBasicAuthAuthoritiesExtractor(accessControlService);
 
-    return new RbacUserDetailsService(new RbacBasicAuthUser(userDetails, groups));
+    return new RbacUserDetailsService(new RbacBasicAuthUser(userDetails, extractor.groups(user.getName())));
   }
 
   private String password(String password, PasswordEncoder encoder) {

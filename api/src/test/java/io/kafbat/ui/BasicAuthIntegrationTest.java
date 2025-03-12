@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest
-@ActiveProfiles("rbac-basic-auth")
+@ActiveProfiles("rbac-login-form")
 @AutoConfigureWebTestClient(timeout = "60000")
 public class BasicAuthIntegrationTest {
   @Autowired

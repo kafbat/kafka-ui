@@ -15,7 +15,7 @@ public enum Provider {
   LDAP,
   LDAP_AD,
 
-  BASIC_AUTH;
+  LOGIN_FORM;
 
   @Nullable
   public static Provider fromString(String name) {

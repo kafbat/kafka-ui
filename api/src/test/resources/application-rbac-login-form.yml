@@ -13,7 +13,7 @@ rbac:
       clusters:
         - local
       subjects:
-        - provider: basic_auth
+        - provider: login_form
           type: user
           value: admin
       permissions:
