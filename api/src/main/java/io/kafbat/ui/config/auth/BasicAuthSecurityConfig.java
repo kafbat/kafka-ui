@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -68,9 +69,13 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .roles(StringUtils.toStringArray(user.getRoles()))
         .build();
 
-    RbacBasicAuthAuthoritiesExtractor extractor = new RbacBasicAuthAuthoritiesExtractor(accessControlService);
+    if (accessControlService.isRbacEnabled()) {
+      RbacBasicAuthAuthoritiesExtractor extractor = new RbacBasicAuthAuthoritiesExtractor(accessControlService);
 
-    return new RbacUserDetailsService(new RbacBasicAuthUser(userDetails, extractor.groups(user.getName())));
+      return new RbacUserDetailsService(new RbacBasicAuthUser(userDetails, extractor.groups(user.getName())));
+    } else {
+      return new MapReactiveUserDetailsService(userDetails);
+    }
   }
 
   private String password(String password, PasswordEncoder encoder) {
