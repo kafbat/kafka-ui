@@ -30,6 +30,12 @@ const parseCredentials = (username?: string, password?: string) => {
   return { isAuth: true, username, password };
 };
 
+const parseProperties = (properties?: { [key: string]: string }) =>
+  Object.entries(properties || {}).map(([key, value]) => ({
+    key,
+    value,
+  }));
+
 export const getInitialFormData = (
   payload: ApplicationConfigPropertiesKafkaClusters
 ) => {
@@ -44,6 +50,7 @@ export const getInitialFormData = (
     ksqldbServerAuth,
     ksqldbServerSsl,
     masking,
+    serde,
   } = payload;
 
   const initialValues: Partial<ClusterConfigFormValues> = {
@@ -80,6 +87,17 @@ export const getInitialFormData = (
       ),
       ...parseKeystore(ksqldbServerSsl),
     };
+  }
+
+  if (serde && serde.length > 0) {
+    initialValues.serde = serde.map((c) => ({
+      name: c.name,
+      className: c.className,
+      filePath: c.filePath,
+      properties: parseProperties(c.properties),
+      topicKeysPattern: c.topicKeysPattern,
+      topicValuesPattern: c.topicValuesPattern,
+    }));
   }
 
   if (kafkaConnect && kafkaConnect.length > 0) {
