@@ -17,7 +17,7 @@
     "ajv-draft-04": "^1.0.0",
     "ajv-formats": "2.1.1",
     "json-schema-faker": "0.5.6",
-    "jsonpath-plus": "10.2.0",
+    "jsonpath-plus": "10.3.0",
     "lossless-json": "2.0.11",
     "pretty-ms": "7.0.1",
     "react": "18.2.0",
