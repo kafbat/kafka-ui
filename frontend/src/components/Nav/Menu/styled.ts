@@ -45,7 +45,7 @@ export const ContentWrapper = styled.div`
 
 export const Title = styled.div`
   white-space: nowrap;
-  max-width: 110px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
