@@ -72,26 +72,3 @@ export const Skew = ({ getValue }: ScewProps) => {
     />
   );
 };
-
-type OnlinePartitionsProps = CellContext<
-  BrokersTableRow,
-  BrokersTableRow['onlinePartitionCount']
->;
-
-export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
-  const { onlinePartitionCount, offlinePartitionCount } = row.original;
-
-  if (
-    onlinePartitionCount === undefined ||
-    offlinePartitionCount === undefined
-  ) {
-    return null;
-  }
-
-  return (
-    <ColoredCell
-      value={onlinePartitionCount}
-      attention={offlinePartitionCount > 0}
-    />
-  );
-};
