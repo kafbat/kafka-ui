@@ -2,7 +2,7 @@
 spring-boot = '3.4.3'
 
 aws-msk-auth = '2.3.0'
-azure-identity = '1.14.2'
+azure-identity = '1.15.4'
 
 apache-commons-lang3 = '3.12.0'
 apache-commons-io = '2.18.0'
