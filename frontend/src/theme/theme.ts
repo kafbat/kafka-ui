@@ -411,6 +411,7 @@ export const theme = {
     dividerColor: Colors.neutral[30],
     backLink: {
       color: {
+        disabled: Colors.neutral[50],
         normal: Colors.brand[70],
         hover: Colors.brand[60],
       },
@@ -927,6 +928,7 @@ export const darkTheme: ThemeType = {
     dividerColor: Colors.neutral[50],
     backLink: {
       color: {
+        disabled: Colors.neutral[50],
         normal: Colors.brand[30],
         hover: Colors.brand[15],
       },
