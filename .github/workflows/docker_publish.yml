@@ -26,7 +26,7 @@ jobs:
     steps:
 
       - name: Download docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: image
           path: /tmp

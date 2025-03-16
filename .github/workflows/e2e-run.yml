@@ -22,13 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           java-version: '21'
           distribution: 'zulu'
@@ -44,7 +44,7 @@ jobs:
           -Pversion=latest
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: artifacts
           path: |
@@ -58,7 +58,7 @@ jobs:
           docker image save ghcr.io/kafbat/kafka-ui:latest > /tmp/image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: image
           path: /tmp/image.tar
@@ -70,26 +70,26 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           java-version: '21'
           distribution: 'zulu'
           cache: 'gradle'
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: artifacts
           path: api/build
 
       - name: Download docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: image
           path: /tmp
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload allure reports artifact
         if: '!cancelled()'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: reports
           path: ./e2e-tests/build/allure-results
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload selenide results artifact
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: selenide-results
           path: ./e2e-tests/build/selenide-results
@@ -141,7 +141,7 @@ jobs:
     if: ${{ !cancelled() && github.repository_owner == 'kafbat' }}
     steps:
       - name: Download allure reports artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           name: reports
           path: ./e2e-tests/build/allure-results
