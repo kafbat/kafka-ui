@@ -19,7 +19,8 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
   private final AccessControlService acs;
 
   public RbacLdapAuthoritiesExtractor(ApplicationContext context,
-                                      BaseLdapPathContextSource contextSource, String groupFilterSearchBase) {
+                                      BaseLdapPathContextSource contextSource,
+                                      String groupFilterSearchBase) {
     super(contextSource, groupFilterSearchBase);
     this.acs = context.getBean(AccessControlService.class);
   }
@@ -37,8 +38,11 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
         .filter(r -> r.getSubjects()
             .stream()
             .filter(subject -> subject.getProvider().equals(Provider.LDAP))
-            .filter(subject -> subject.getType().equals("group"))
-            .anyMatch(subject -> ldapGroups.contains(subject.getValue()))
+            .anyMatch(subject -> switch (subject.getType()) {
+              case "user" -> username.equalsIgnoreCase(subject.getValue());
+              case "group" -> ldapGroups.contains(subject.getValue());
+              default -> false;
+            })
         )
         .map(Role::getName)
         .peek(role -> log.trace("Mapped role [{}] for user [{}]", role, username))

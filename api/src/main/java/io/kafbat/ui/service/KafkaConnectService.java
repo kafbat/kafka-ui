@@ -1,12 +1,11 @@
 package io.kafbat.ui.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.TaskStatus;
+import io.kafbat.ui.exception.ConnectorOffsetsResetException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.ClusterMapper;
@@ -31,7 +30,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -45,7 +43,6 @@ import reactor.core.publisher.Mono;
 public class KafkaConnectService {
   private final ClusterMapper clusterMapper;
   private final KafkaConnectMapper kafkaConnectMapper;
-  private final ObjectMapper objectMapper;
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster) {
@@ -106,22 +103,13 @@ public class KafkaConnectService {
 
   public Flux<String> getConnectorNames(KafkaCluster cluster, String connectName) {
     return api(cluster, connectName)
-        .flux(client -> client.getConnectors(null))
-        // for some reason `getConnectors` method returns the response as a single string
-        .collectList().map(e -> e.get(0))
-        .map(this::parseConnectorsNamesStringToList)
+        .mono(client -> client.getConnectors(null))
         .flatMapMany(Flux::fromIterable);
   }
 
   // returns empty flux if there was an error communicating with Connect
   public Flux<String> getConnectorNamesWithErrorsSuppress(KafkaCluster cluster, String connectName) {
     return getConnectorNames(cluster, connectName).onErrorComplete();
-  }
-
-  @SneakyThrows
-  private List<String> parseConnectorsNamesStringToList(String json) {
-    return objectMapper.readValue(json, new TypeReference<>() {
-    });
   }
 
   public Mono<ConnectorDTO> createConnector(KafkaCluster cluster, String connectName,
@@ -218,22 +206,14 @@ public class KafkaConnectService {
   public Mono<Void> updateConnectorState(KafkaCluster cluster, String connectName,
                                          String connectorName, ConnectorActionDTO action) {
     return api(cluster, connectName)
-        .mono(client -> {
-          switch (action) {
-            case RESTART:
-              return client.restartConnector(connectorName, false, false);
-            case RESTART_ALL_TASKS:
-              return restartTasks(cluster, connectName, connectorName, task -> true);
-            case RESTART_FAILED_TASKS:
-              return restartTasks(cluster, connectName, connectorName,
-                  t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
-            case PAUSE:
-              return client.pauseConnector(connectorName);
-            case RESUME:
-              return client.resumeConnector(connectorName);
-            default:
-              throw new IllegalStateException("Unexpected value: " + action);
-          }
+        .mono(client -> switch (action) {
+          case RESTART -> client.restartConnector(connectorName, false, false);
+          case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, task -> true);
+          case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
+              t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
+          case PAUSE -> client.pauseConnector(connectorName);
+          case STOP -> client.stopConnector(connectorName);
+          case RESUME -> client.resumeConnector(connectorName);
         });
   }
 
@@ -291,5 +271,21 @@ public class KafkaConnectService {
           "Connect %s not found for cluster %s".formatted(connectName, cluster.getName()));
     }
     return client;
+  }
+
+  public Mono<Void> resetConnectorOffsets(KafkaCluster cluster, String connectName,
+      String connectorName) {
+    return api(cluster, connectName)
+        .mono(client -> client.resetConnectorOffsets(connectorName))
+        .onErrorResume(WebClientResponseException.NotFound.class,
+            e -> {
+              throw new NotFoundException("Connector %s not found in %s".formatted(connectorName, connectName));
+            })
+        .onErrorResume(WebClientResponseException.BadRequest.class,
+            e -> {
+              throw new ConnectorOffsetsResetException(
+                  "Failed to reset offsets of connector %s of %s. Make sure it is STOPPED first."
+                      .formatted(connectorName, connectName));
+            });
   }
 }

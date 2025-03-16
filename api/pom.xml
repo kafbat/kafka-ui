@@ -31,6 +31,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-actuator</artifactId>
         </dependency>
         <dependency>
@@ -50,7 +54,10 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
+            <!-- ccs stands for Confluent Community Edition
+             See https://www.confluent.io/confluent-community-license-faq/
+             -->
+            <version>${confluent.version}-ccs</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -91,7 +98,19 @@
         <dependency>
             <groupId>software.amazon.msk</groupId>
             <artifactId>aws-msk-iam-auth</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>1.14.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -197,6 +216,19 @@
             <version>${okhttp3.mockwebserver.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${confluent.version}-ccs</version>
+            <classifier>test</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.80</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -255,18 +287,6 @@
         </dependency>
         <!--        CVE fixes -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.12</version>
-        </dependency>
-        <!--        CVE fixes -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.4.12</version>
-        </dependency>
-        <!--        CVE fixes -->
-        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>logging-interceptor</artifactId>
             <version>4.12.0</version>
@@ -277,7 +297,6 @@
             <artifactId>commons-compress</artifactId>
             <version>1.26.0</version>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -327,7 +346,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} --illegal-access=permit</argLine>
+                    <argLine>@{argLine}</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -441,10 +460,10 @@
                                     <goal>copy-resources</goal>
                                 </goals>
                                 <configuration>
-                                    <outputDirectory>${basedir}/target/classes/static</outputDirectory>
+                                    <outputDirectory>${basedir}/target/classes/</outputDirectory>
                                     <resources>
                                         <resource>
-                                            <directory>../frontend/build</directory>
+                                            <directory>../frontend/build/vite/static</directory>
                                         </resource>
                                     </resources>
                                 </configuration>
@@ -490,6 +509,7 @@
                                 </goals>
                                 <configuration>
                                     <arguments>build</arguments>
+                                    <pnpmInheritsProxyConfigFromMaven>false</pnpmInheritsProxyConfigFromMaven>
                                 </configuration>
                             </execution>
                         </executions>
@@ -506,7 +526,7 @@
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
-                                            <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                                            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
                                         </args>
                                     </build>
                                 </image>

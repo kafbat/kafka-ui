@@ -9,9 +9,10 @@ import {
 import { CellContext } from '@tanstack/react-table';
 import { ClusterNameRoute } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
-import { Dropdown, DropdownItem } from 'components/common/Dropdown';
+import { Dropdown } from 'components/common/Dropdown';
 import {
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import { useConfirm } from 'lib/hooks/useConfirm';
@@ -36,10 +37,15 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     connectName: connect,
     connectorName: name,
   });
+  const resetConnectorOffsetsMutation = useResetConnectorOffsets({
+    clusterName,
+    connectName: connect,
+    connectorName: name,
+  });
   const handleDelete = () => {
     confirm(
       <>
-        Are you sure want to remove <b>{name}</b> connector?
+        Are you sure you want to remove the <b>{name}</b> connector?
       </>,
       async () => {
         await deleteMutation.mutateAsync();
@@ -58,9 +64,25 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   const restartFailedTasksHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
 
+  const pauseConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.PAUSE);
+
+  const stopConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.STOP);
+
+  const resetOffsetsHandler = () => {
+    confirm(
+      <>
+        Are you sure you want to reset the <b>{name}</b> connector offsets?
+      </>,
+      () => resetConnectorOffsetsMutation.mutateAsync()
+    );
+  };
+
   return (
     <Dropdown>
-      {status.state === ConnectorState.PAUSED && (
+      {(status.state === ConnectorState.PAUSED ||
+        status.state === ConnectorState.STOPPED) && (
         <ActionDropdownItem
           onClick={resumeConnectorHandler}
           disabled={isMutating}
@@ -71,6 +93,32 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           }}
         >
           Resume
+        </ActionDropdownItem>
+      )}
+      {status.state === ConnectorState.RUNNING && (
+        <ActionDropdownItem
+          onClick={pauseConnectorHandler}
+          disabled={isMutating}
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.EDIT,
+            value: connect,
+          }}
+        >
+          Pause
+        </ActionDropdownItem>
+      )}
+      {status.state === ConnectorState.RUNNING && (
+        <ActionDropdownItem
+          onClick={stopConnectorHandler}
+          disabled={isMutating}
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.EDIT,
+            value: connect,
+          }}
+        >
+          Stop
         </ActionDropdownItem>
       )}
       <ActionDropdownItem
@@ -106,9 +154,29 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       >
         Restart Failed Tasks
       </ActionDropdownItem>
-      <DropdownItem onClick={handleDelete} danger>
-        Remove Connector
-      </DropdownItem>
+      <ActionDropdownItem
+        onClick={resetOffsetsHandler}
+        disabled={isMutating || status.state !== ConnectorState.STOPPED}
+        danger
+        permission={{
+          resource: ResourceType.CONNECT,
+          action: Action.RESET_OFFSETS,
+          value: connect,
+        }}
+      >
+        Reset Offsets
+      </ActionDropdownItem>
+      <ActionDropdownItem
+        onClick={handleDelete}
+        danger
+        permission={{
+          resource: ResourceType.CONNECT,
+          action: Action.DELETE,
+          value: connect,
+        }}
+      >
+        Delete
+      </ActionDropdownItem>
     </Dropdown>
   );
 };

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
+import io.kafbat.ui.producer.KafkaTestProducer;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Comparator;
@@ -22,21 +23,87 @@ import org.apache.kafka.common.utils.Bytes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
-public class KafkaConsumerGroupTests extends AbstractIntegrationTest {
+class KafkaConsumerGroupTests extends AbstractIntegrationTest {
   @Autowired
   WebTestClient webTestClient;
 
   @Test
   void shouldNotFoundWhenNoSuchConsumerGroupId() {
     String groupId = "groupA";
+    String topicName = "topicX";
+
     webTestClient
         .delete()
         .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}", LOCAL, groupId)
         .exchange()
         .expectStatus()
         .isNotFound();
+
+    webTestClient
+        .delete()
+        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId, topicName)
+        .exchange()
+        .expectStatus()
+        .isNotFound();
+  }
+
+  @Test
+  void shouldNotFoundWhenNoSuchTopic() {
+    String topicName = createTopicWithRandomName();
+    String topicNameUnSubscribed = "topicX";
+
+    //Create a consumer and subscribe to the topic
+    String groupId = UUID.randomUUID().toString();
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
+
+      webTestClient
+          .delete()
+          .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId,
+              topicNameUnSubscribed)
+          .exchange()
+          .expectStatus()
+          .isNotFound();
+    }
+  }
+
+  @Test
+  void shouldOkWhenConsumerGroupIsNotActiveAndPartitionOffsetExists() {
+    String topicName = createTopicWithRandomName();
+
+    //Create a consumer and subscribe to the topic
+    String groupId = UUID.randomUUID().toString();
+
+    try (KafkaTestProducer<String, String> producer = KafkaTestProducer.forKafka(kafka)) {
+      Flux.fromStream(
+          Stream.of("one", "two", "three", "four")
+              .map(value -> Mono.fromFuture(producer.send(topicName, value)))
+      ).blockLast();
+    } catch (Throwable e) {
+      log.error("Error on sending", e);
+      throw new RuntimeException(e);
+    }
+
+    try (val consumer = createTestConsumerWithGroupId(groupId)) {
+      consumer.subscribe(List.of(topicName));
+      consumer.poll(Duration.ofMillis(100));
+
+      //Stop consumers to delete consumer offset from the topic
+      consumer.pause(consumer.assignment());
+    }
+
+    //Delete the consumer offset when it's INACTIVE and check
+    webTestClient
+        .delete()
+        .uri("/api/clusters/{clusterName}/consumer-groups/{groupId}/topics/{topicName}", LOCAL, groupId, topicName)
+        .exchange()
+        .expectStatus()
+        .isOk();
   }
 
   @Test

@@ -28,7 +28,7 @@ class MessageFiltersTest {
     Predicate<TopicMessageDTO> filter = containsStringFilter("abC");
 
     @Test
-    void returnsTrueWhenStringContainedInKeyOrContentOrInBoth() {
+    void returnsTrueWhenStringContainedInKeyOrContentOrHeadersOrInAllThree() {
       assertTrue(
           filter.test(msg().key("contains abCd").content("some str"))
       );
@@ -39,6 +39,14 @@ class MessageFiltersTest {
 
       assertTrue(
           filter.test(msg().key("contains abCd").content("contains abCd"))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("abC", "value")))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("x1", "some abC")))
       );
     }
 
@@ -55,6 +63,11 @@ class MessageFiltersTest {
       assertFalse(
           filter.test(msg().key("aBc").content("AbC"))
       );
+
+      assertFalse(
+          filter.test(msg().key("aBc").content("AbC").headers(Map.of("abc", "value")))
+      );
+
     }
 
   }
@@ -186,7 +199,7 @@ class MessageFiltersTest {
       long took = System.currentTimeMillis() - before;
 
       assertThat(took).isLessThan(1000);
-      assertThat(matched).isGreaterThan(0);
+      assertThat(matched).isPositive();
     }
   }
 
@@ -199,6 +212,10 @@ class MessageFiltersTest {
   }
 
   private TopicMessageDTO msg() {
-    return new TopicMessageDTO(1, -1L, OffsetDateTime.now());
+    return TopicMessageDTO.builder()
+        .partition(1)
+        .offset(-1L)
+        .timestamp(OffsetDateTime.now())
+        .build();
   }
 }

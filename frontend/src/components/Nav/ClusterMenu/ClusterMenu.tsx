@@ -21,6 +21,7 @@ import {
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
+import { ClusterColorKey } from 'theme/theme';
 
 interface ClusterMenuProps {
   name: Cluster['name'];
@@ -39,7 +40,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     features?.includes(key);
   const [isOpen, setIsOpen] = useState(!!singleMode);
   const location = useLocation();
-  const [colorKey, setColorKey] = useLocalStorage(
+  const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
     `clusterColor-${name}`,
     'transparent'
   );
@@ -48,7 +49,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     location.pathname.includes(path);
 
   return (
-    <S.ClusterList $colorKey={colorKey}>
+    <S.ClusterList role="menu" $colorKey={colorKey}>
       <MenuTab
         title={name}
         status={status}

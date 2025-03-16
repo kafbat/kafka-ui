@@ -1,6 +1,5 @@
 package io.kafbat.ui.model;
 
-import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import java.util.List;
 import java.util.Map;

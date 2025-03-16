@@ -1,7 +1,10 @@
 package io.kafbat.ui.exception;
 
+import lombok.Getter;
+
+@Getter
 public class CelException extends CustomBaseException {
-  private String celOriginalExpression;
+  private final String celOriginalExpression;
 
   public CelException(String celOriginalExpression, String errorMessage) {
     super("CEL error. Original expression: %s. Error message: %s".formatted(celOriginalExpression, errorMessage));

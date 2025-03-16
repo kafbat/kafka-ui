@@ -23,7 +23,7 @@ import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
-import io.kafbat.ui.util.SslPropertiesUtil;
+import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -199,8 +199,9 @@ public class MessagesService {
   public static KafkaProducer<byte[], byte[]> createProducer(KafkaCluster cluster,
                                                              Map<String, Object> additionalProps) {
     Properties properties = new Properties();
-    SslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
     properties.putAll(cluster.getProperties());
+    properties.putAll(cluster.getProducerProperties());
     properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
     properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
     properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);

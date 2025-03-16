@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.openqa.selenium.By;
 
 public class NaviSideBar extends BasePage {
 
@@ -45,7 +46,7 @@ public class NaviSideBar extends BasePage {
   @Step
   public NaviSideBar openSideMenu(String clusterName, MenuItem menuItem) {
     WebUtil.clickByActions(expandCluster(clusterName).parent()
-        .$x(String.format(sideMenuOptionElementLocator, menuItem.getNaviTitle())));
+        .find(By.linkText(menuItem.getNaviTitle())));
     return this;
   }
 

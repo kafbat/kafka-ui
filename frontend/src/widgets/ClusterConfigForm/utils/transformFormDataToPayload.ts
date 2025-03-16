@@ -215,6 +215,15 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
           }),
         };
         break;
+      case 'SASL/Azure Entra':
+        config.properties = {
+          'security.protocol': securityProtocol,
+          'sasl.mechanism': 'OAUTHBEARER',
+          'sasl.client.callback.handler.class':
+            'io.kafbat.ui.sasl.azure.entra.AzureEntraLoginCallbackHandler',
+          'sasl.jaas.config': getJaasConfig('SASL/Azure Entra', {}),
+        };
+        break;
       case 'mTLS':
         config.properties = {
           'security.protocol': 'SSL',
