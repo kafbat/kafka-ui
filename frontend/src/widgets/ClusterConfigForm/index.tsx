@@ -17,11 +17,13 @@ import { useNavigate } from 'react-router-dom';
 import useBoolean from 'lib/hooks/useBoolean';
 import KafkaCluster from 'widgets/ClusterConfigForm/Sections/KafkaCluster';
 import SchemaRegistry from 'widgets/ClusterConfigForm/Sections/SchemaRegistry';
+import Serdes from 'widgets/ClusterConfigForm/Sections/Serdes/Serdes';
 import KafkaConnect from 'widgets/ClusterConfigForm/Sections/KafkaConnect';
 import Metrics from 'widgets/ClusterConfigForm/Sections/Metrics';
 import CustomAuthentication from 'widgets/ClusterConfigForm/Sections/CustomAuthentication';
 import Authentication from 'widgets/ClusterConfigForm/Sections/Authentication/Authentication';
 import KSQL from 'widgets/ClusterConfigForm/Sections/KSQL';
+import Masking from 'widgets/ClusterConfigForm/Sections/Masking';
 import { useConfirm } from 'lib/hooks/useConfirm';
 
 interface ClusterConfigFormProps {
@@ -139,11 +141,15 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
           <hr />
           <SchemaRegistry />
           <hr />
+          <Serdes />
+          <hr />
           <KafkaConnect />
           <hr />
           <KSQL />
           <hr />
           <Metrics />
+          <hr />
+          <Masking />
           <hr />
           <S.ButtonWrapper>
             <Button
