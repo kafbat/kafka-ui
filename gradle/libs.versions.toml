@@ -36,7 +36,7 @@ allure = '2.29.1'
 selenide = '7.2.3'
 testng = '7.10.0'
 bonigarcia-webdrivermanager = '5.9.3'
-aspectj = '1.9.21'
+aspectj = '1.9.23'
 
 # CVE fixes
 netty = '4.1.119.Final'
