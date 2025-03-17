@@ -46,8 +46,8 @@ importers:
         specifier: 8.16.0
         version: 8.16.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       ace-builds:
-        specifier: 1.33.0
-        version: 1.33.0
+        specifier: 1.39.0
+        version: 1.39.0
       ajv:
         specifier: 8.8.2
         version: 8.8.2
@@ -1411,8 +1411,8 @@ packages:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
     deprecated: Use your platform's native atob() and btoa() methods instead
 
-  ace-builds@1.33.0:
-    resolution: {integrity: sha512-PDvytkZNvAfuh+PaP5Oy3l3sBGd7xMk4NsB+4w/w1e3gjBqEOGeJwcX+wF/SB6mLtT3VfJLrhDNPT3eaCjtR3w==}
+  ace-builds@1.39.0:
+    resolution: {integrity: sha512-MqoZojv4gpc5QyTMor/dS6kmruDV9db9LVZbCiT4qYz6WsDiv4qyG5f7ZPc+wjUl6oLMqgCAsBjo1whdSVyMlQ==}
 
   acorn-globals@6.0.0:
     resolution: {integrity: sha512-ZQl7LOWaF5ePqqcX4hLuv/bLXYQNfNWw2c0/yX/TsPRKamzHcTGQnlCjHT3TsmkOUVEPS3crCxiPfdzE/Trlhg==}
@@ -5599,7 +5599,7 @@ snapshots:
 
   abab@2.0.6: {}
 
-  ace-builds@1.33.0: {}
+  ace-builds@1.39.0: {}
 
   acorn-globals@6.0.0:
     dependencies:
@@ -8136,7 +8136,7 @@ snapshots:
 
   react-ace@11.0.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
-      ace-builds: 1.33.0
+      ace-builds: 1.39.0
       diff-match-patch: 1.0.5
       lodash.get: 4.4.2
       lodash.isequal: 4.5.0
