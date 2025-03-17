@@ -15,6 +15,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   disabled,
   children,
   offsetY,
+  ...props
 }) => {
   const ref = useRef(null);
   const { value: isOpen, setFalse, setTrue } = useBoolean(false);
@@ -30,7 +31,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       <S.DropdownButton
         onClick={handleClick}
         ref={ref}
-        aria-label="Dropdown Toggle"
+        aria-label={props['aria-label'] || 'Dropdown Toggle'}
         disabled={disabled}
       >
         {label || <VerticalElipsisIcon />}
