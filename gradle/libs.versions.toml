@@ -18,7 +18,7 @@ confluent-ccs = '7.9.0-ccs'
 
 mapstruct = '1.6.2'
 lombok = '1.18.34'
-odd-oddrn-generator = '0.1.17'
+odd-oddrn-generator = '0.1.21'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
 junit = '5.11.2'
