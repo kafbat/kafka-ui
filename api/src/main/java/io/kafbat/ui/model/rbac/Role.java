@@ -14,10 +14,10 @@ public class Role {
   List<Permission> permissions;
 
   public void validate() {
-    checkArgument(!clusters.isEmpty(), "Role clusters cannot be empty");
-    checkArgument(!subjects.isEmpty(), "Role subjects cannot be empty");
-    permissions.forEach(Permission::transform);
+    checkArgument(clusters != null && !clusters.isEmpty(), "Role clusters cannot be empty");
+    checkArgument(subjects != null && !subjects.isEmpty(), "Role subjects cannot be empty");
     permissions.forEach(Permission::validate);
+    permissions.forEach(Permission::transform);
     subjects.forEach(Subject::validate);
   }
 
