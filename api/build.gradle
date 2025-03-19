@@ -18,6 +18,7 @@ dependencies {
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
+    implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
     compileOnly libs.spring.boot.devtools
 

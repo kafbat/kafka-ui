@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    restart: always
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak
+      - KC_HOSTNAME=keycloak.oauth.orb.local
+      - KC_HOSTNAME_STRICT=false
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: keycloak-db
+    restart: always
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9997:9997"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+
+  kafbat-ui:
+    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:0.0.1-SNAPSHOT
+    ports:
+      - 8090:8080
+    depends_on:
+      - kafka
+      - keycloak
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      AUTH_TYPE: "OAUTH2"
+      AUTH_OAUTH2_RESOURCE_SERVER_JWT_JWK_SET_URI: "http://keycloak.oauth.orb.local:8080/realms/myrealm/protocol/openid-connect/certs"
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_CLIENT_ID: "my-client"
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_CLIENT_SECRET: "my-secret"
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_SCOPE: openid
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_CLIENT_NAME: keycloack
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_PROVIDER: keycloack
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_CUSTOM_PARAMS_TYPE: oauth
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_ISSUER_URI: "http://keycloak.oauth.orb.local:8080/realms/myrealm"
+      AUTH_OAUTH2_CLIENT_KEYCLOACK_USER_NAME_ATTRIBUTE: "preferred_username"
+volumes:
+  postgres_data:

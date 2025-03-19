@@ -1,0 +1,28 @@
+{
+    "id": "myrealm",
+    "realm": "myrealm",
+    "enabled": true,
+    "clients": [
+        {
+            "clientId": "my-client",
+            "enabled": true,
+            "publicClient": false,
+            "secret": "my-secret",
+            "directAccessGrantsEnabled": true,
+            "redirectUris": ["http://localhost:8090/*"]
+        }
+    ],
+    "users": [
+        {
+            "username": "testuser",
+            "enabled": true,
+            "emailVerified": true,
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "testpassword"
+                }
+            ]
+        }
+    ]
+}

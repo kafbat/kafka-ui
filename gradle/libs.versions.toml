@@ -66,6 +66,7 @@ spring-boot-devtools = { module = 'org.springframework.boot:spring-boot-devtools
 spring-boot-configuration-processor = { module = 'org.springframework.boot:spring-boot-configuration-processor', version.ref = 'spring-boot' }
 
 spring-security-ldap = { module = 'org.springframework.security:spring-security-ldap' }
+spring-security-oauth2-resource-server = { module = 'org.springframework.security:spring-security-oauth2-resource-server'}
 
 swagger-integration-jakarta = { module = 'io.swagger.core.v3:swagger-integration-jakarta', version.ref = 'swagger-integration-jakarta' }
 lombok = { module = 'org.projectlombok:lombok', version.ref = 'lombok' }
