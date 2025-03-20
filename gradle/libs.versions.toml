@@ -2,7 +2,7 @@
 spring-boot = '3.4.3'
 
 aws-msk-auth = '2.3.0'
-azure-identity = '1.14.2'
+azure-identity = '1.15.4'
 
 apache-commons-lang3 = '3.12.0'
 apache-commons-io = '2.18.0'
@@ -22,7 +22,7 @@ odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
 junit = '5.11.2'
-mockito = '5.14.2'
+mockito = '5.16.0'
 okhttp3 = '4.12.0'
 testcontainers = '1.20.6'
 swagger-integration-jakarta = '2.2.28'
@@ -32,10 +32,10 @@ antlr = '4.12.0'
 json-schema-validator = '2.2.14'
 checkstyle = '10.3.1'
 
-allure = '2.27.0'
+allure = '2.29.1'
 selenide = '7.2.3'
 testng = '7.10.0'
-bonigarcia-webdrivermanager = '5.8.0'
+bonigarcia-webdrivermanager = '5.9.3'
 aspectj = '1.9.21'
 
 # CVE fixes

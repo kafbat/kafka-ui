@@ -21,7 +21,7 @@ public class ConnectorDetails extends BasePage {
   @Step
   public ConnectorDetails waitUntilScreenReady() {
     waitUntilSpinnerDisappear();
-    dotMenuBtn.shouldBe(Condition.visible);
+    taskTab.shouldBe(Condition.visible);
     return this;
   }
 
@@ -48,7 +48,7 @@ public class ConnectorDetails extends BasePage {
 
   @Step
   public ConnectorDetails openDotMenu() {
-    WebUtil.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByActions(dotMenuBtn);
     return this;
   }
 
