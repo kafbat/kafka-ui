@@ -40,7 +40,7 @@ docker-compose -f documentation/compose/e2e-tests.yaml up -d
 2. To run test suite select its name (options: `regression`, `sanity`, `smoke`) and put it instead %s into command below
 
 ```
-./mvnw -Dsurefire.suiteXmlFiles='src/test/resources/%s.xml' -f 'e2e-tests' test -Pprod
+./gradlew :e2e-tests:test -Prun-e2e=true -Psuite_name=%s
 ```
 
 ### Reporting

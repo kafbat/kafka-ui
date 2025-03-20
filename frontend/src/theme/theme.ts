@@ -76,6 +76,30 @@ const Colors = {
     '70': '#5959A6',
     '80': '#3E3E74',
   },
+  clusterColorPicker: {
+    transparent: 'transparent',
+    gray: '#E3E6E8',
+    red: '#E63B19',
+    orange: '#FF9D00',
+    lettuce: '#9DD926',
+    green: '#33CC33',
+    turquoise: '#40BF95',
+    blue: '#1A5DE5',
+    violet: '#6633CC',
+    pink: '#D926D9',
+  },
+  clusterMenuBackgroundColor: {
+    transparent: 'transparent',
+    gray: hexToRgba('#808080', 0.1),
+    red: hexToRgba('#BF4040', 0.1),
+    orange: hexToRgba('#BF8340', 0.1),
+    lettuce: hexToRgba('#93BF40', 0.1),
+    green: hexToRgba('#40BF40', 0.1),
+    turquoise: hexToRgba('#40BF95', 0.1),
+    blue: hexToRgba('#406ABF', 0.1),
+    violet: hexToRgba('#6A40BF', 0.1),
+    pink: hexToRgba('#BF40BF', 0.1),
+  },
 };
 
 const baseTheme = {
@@ -420,8 +444,8 @@ export const theme = {
     borderTop: 'none',
   },
   dropdown: {
-    backgroundColor: Colors.neutral[0],
-    borderColor: Colors.neutral[5],
+    backgroundColor: Colors.brand[0],
+    borderColor: Colors.brand[5],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -571,6 +595,9 @@ export const theme = {
       },
       fontWeight: 400,
     },
+  },
+  clusterMenu: {
+    backgroundColor: Colors.clusterMenuBackgroundColor,
   },
   schema: {
     backgroundColor: {
@@ -855,9 +882,19 @@ export const theme = {
       },
     },
   },
+  clusterColorPicker: {
+    backgroundColor: Colors.clusterColorPicker,
+    outline: Colors.brand[80],
+    transparentCircle: {
+      border: Colors.brand[10],
+      cross: Colors.brand[30],
+    },
+  },
 };
 
 export type ThemeType = typeof theme;
+export type ClusterColorKey =
+  keyof ThemeType['clusterColorPicker']['backgroundColor'];
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
@@ -936,8 +973,8 @@ export const darkTheme: ThemeType = {
     borderTop: Colors.neutral[80],
   },
   dropdown: {
-    backgroundColor: Colors.neutral[85],
-    borderColor: Colors.neutral[80],
+    backgroundColor: Colors.brand[85],
+    borderColor: Colors.brand[70],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -1087,6 +1124,9 @@ export const darkTheme: ThemeType = {
       },
       fontWeight: 400,
     },
+  },
+  clusterMenu: {
+    backgroundColor: Colors.clusterMenuBackgroundColor,
   },
   schema: {
     backgroundColor: {
@@ -1453,6 +1493,14 @@ export const darkTheme: ThemeType = {
           },
         },
       },
+    },
+  },
+  clusterColorPicker: {
+    backgroundColor: Colors.clusterColorPicker,
+    outline: Colors.brand[80],
+    transparentCircle: {
+      border: Colors.brand[60],
+      cross: Colors.brand[30],
     },
   },
 };

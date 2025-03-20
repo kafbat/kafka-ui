@@ -39,8 +39,8 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
             .stream()
             .filter(subject -> subject.getProvider().equals(Provider.LDAP))
             .anyMatch(subject -> switch (subject.getType()) {
-              case "user" -> username.equalsIgnoreCase(subject.getValue());
-              case "group" -> ldapGroups.contains(subject.getValue());
+              case "user" -> subject.matches(username);
+              case "group" -> ldapGroups.stream().anyMatch(subject::matches);
               default -> false;
             })
         )

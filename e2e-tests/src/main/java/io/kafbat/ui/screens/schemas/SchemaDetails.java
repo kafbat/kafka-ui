@@ -61,7 +61,7 @@ public class SchemaDetails extends BasePage {
 
   @Step
   public SchemaDetails removeSchema() {
-    WebUtil.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByActions(dotMenuBtn);
     removeBtn.shouldBe(Condition.enabled).click();
     schemaConfirmBtn.shouldBe(Condition.visible).click();
     schemaConfirmBtn.shouldBe(Condition.disappear);

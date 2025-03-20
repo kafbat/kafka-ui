@@ -38,17 +38,17 @@ public abstract class WebDriver {
         .addArguments("--disable-gpu")
         .addArguments("--no-sandbox")
         .addArguments("--lang=en_US");
-
-    Configuration.remote = BaseSource.REMOTE_URL;
-    Configuration.remoteConnectionTimeout = 180000;
-    Configuration.remoteReadTimeout = 180000;
-    Map<String, Object> selenoidOptions = new HashMap<>();
-    selenoidOptions.put("enableVNC", true);
-    selenoidOptions.put("enableLog", true);
-    selenoidOptions.put("enableVideo", false);
-    selenoidOptions.put("sessionTimeout", "30m");
-    chromeOptions.setCapability("selenoid:options", selenoidOptions);
-
+    if (BaseSource.SELENOID) {
+      Configuration.remote = BaseSource.REMOTE_URL;
+      Configuration.remoteConnectionTimeout = 180000;
+      Configuration.remoteReadTimeout = 180000;
+      Map<String, Object> selenoidOptions = new HashMap<>();
+      selenoidOptions.put("enableVNC", true);
+      selenoidOptions.put("enableLog", true);
+      selenoidOptions.put("enableVideo", false);
+      selenoidOptions.put("sessionTimeout", "30m");
+      chromeOptions.setCapability("selenoid:options", selenoidOptions);
+    }
     Configuration.browserCapabilities = chromeOptions;
   }
 

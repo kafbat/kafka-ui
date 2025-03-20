@@ -20,6 +20,8 @@ import {
   clusterTopicsRelativePath,
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
+import { useLocalStorage } from 'lib/hooks/useLocalStorage';
+import { ClusterColorKey } from 'theme/theme';
 
 interface ClusterMenuProps {
   name: Cluster['name'];
@@ -38,17 +40,22 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     features?.includes(key);
   const [isOpen, setIsOpen] = useState(!!singleMode);
   const location = useLocation();
+  const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
+    `clusterColor-${name}`,
+    'transparent'
+  );
 
   const getIsMenuItemActive = (path: string) =>
     location.pathname.includes(path);
 
   return (
-    <ul role="menu">
+    <S.ClusterList role="menu" $colorKey={colorKey}>
       <MenuTab
         title={name}
         status={status}
         isOpen={isOpen}
         toggleClusterMenu={() => setIsOpen((prev) => !prev)}
+        setColorKey={setColorKey}
       />
       {isOpen && (
         <S.List>
@@ -98,7 +105,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           )}
         </S.List>
       )}
-    </ul>
+    </S.ClusterList>
   );
 };
 
