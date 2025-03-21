@@ -47,7 +47,7 @@ public class KafkaClusterFactory {
     this.webClientMaxBuffSize = Optional.ofNullable(webclientProperties.getMaxInMemoryBufferSize())
         .map(DataSize::parse)
         .orElse(DEFAULT_WEBCLIENT_BUFFER);
-    this.responseTimeout = Optional.ofNullable(webclientProperties.getResponseTimeout())
+    this.responseTimeout = Optional.ofNullable(webclientProperties.getResponseTimeoutMs())
         .map(Duration::ofMillis)
         .orElse(DEFAULT_RESPONSE_TIMEOUT);
   }
