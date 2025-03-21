@@ -32,8 +32,7 @@ public class WebClientConfigurator {
   private final WebClient.Builder builder = WebClient.builder();
   private HttpClient httpClient = HttpClient
       .create()
-      .proxyWithSystemProperties()
-      .responseTimeout(Duration.ofSeconds(10));
+      .proxyWithSystemProperties();
 
   public WebClientConfigurator() {
     configureObjectMapper(defaultOM());
@@ -143,6 +142,11 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {
     builder.codecs(configurer);
+    return this;
+  }
+
+  public WebClientConfigurator configureResponseTimeout(Duration responseTimeout) {
+    httpClient = httpClient.responseTimeout(responseTimeout);
     return this;
   }
 
