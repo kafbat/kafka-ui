@@ -6,7 +6,7 @@
   "dependencies": {
     "@floating-ui/react": "0.26.13",
     "@hookform/error-message": "2.0.1",
-    "@hookform/resolvers": "2.7.1",
+    "@hookform/resolvers": "4.1.3",
     "@microsoft/fetch-event-source": "2.0.1",
     "@szhsin/react-menu": "3.5.3",
     "@tanstack/react-query": "4.36.1",
