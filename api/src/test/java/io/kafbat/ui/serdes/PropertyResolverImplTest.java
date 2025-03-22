@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.bind.BindException;
@@ -21,11 +19,7 @@ class PropertyResolverImplTest {
 
   private final MockEnvironment env = new MockEnvironment();
 
-  @Data
-  @AllArgsConstructor
-  public static class CustomPropertiesClass {
-    private String f1;
-    private Integer f2;
+  public record CustomPropertiesClass(String f1, Integer f2) {
   }
 
   @Test

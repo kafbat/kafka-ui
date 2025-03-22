@@ -106,7 +106,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
       String query) {
     var cluster = applicationContext.getBean(ClustersStorage.class)
         .getClusterByName(LOCAL)
-        .get();
+        .orElseThrow();
 
     return applicationContext.getBean(MessagesService.class)
         .loadMessages(cluster, topicName,

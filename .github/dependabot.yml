@@ -1,7 +1,7 @@
 version: 2
 updates:
 
-- package-ecosystem: maven
+- package-ecosystem: gradle
   directory: "/"
   schedule:
     interval: weekly
@@ -10,6 +10,23 @@ updates:
   reviewers:
     - "kafbat/backend"
   open-pull-requests-limit: 10
+  labels:
+    - "type/dependencies"
+    - "scope/backend"
+
+- package-ecosystem: docker
+  directory: "/api"
+  schedule:
+    interval: weekly
+    time: "10:00"
+    timezone: Europe/London
+  reviewers:
+    - "kafbat/backend"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: "azul/zulu-openjdk-alpine"
+    # Limit dependabot pull requests to minor Java upgrades
+    update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
     - "scope/backend"

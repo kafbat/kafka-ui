@@ -144,6 +144,42 @@ paths:
         500:
           description: Internal server error
 
+  /connectors/{connector}/offsets:
+    delete:
+      tags:
+        - KafkaConnectClient
+      summary: Reset the offsets for the specified connector
+      operationId: resetConnectorOffsets
+      parameters:
+        - in: path
+          name: connector
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorOffsetsError'
+                
+    get:
+      tags:
+        - KafkaConnectClient
+      summary: Get the offsets for the specified connector
+      operationId: getConnectorOffsets
+      parameters:
+        - in: path
+          name: connector
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
 
   /connectors/{connectorName}/status:
     get:
@@ -229,6 +265,22 @@ paths:
       responses:
         202:
           description: Accepted
+
+  /connectors/{connectorName}/stop:
+    put:
+      tags:
+        - KafkaConnectClient
+      summary: stop the connector
+      operationId: stopConnector
+      parameters:
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: No Content
 
   /connectors/{connectorName}/tasks:
     get:
@@ -432,6 +484,14 @@ components:
         trace:
           type: string
 
+    ConnectorOffsetsError:
+      type: object
+      properties:
+        error_code:
+          type: number
+        message:
+          type: string
+
     ConnectorStatus:
       type: object
       properties:
@@ -448,6 +508,7 @@ components:
                 - PAUSED
                 - UNASSIGNED
                 - RESTARTING
+                - STOPPED
             worker_id:
               type: string
             trace:

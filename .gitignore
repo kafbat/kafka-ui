@@ -42,3 +42,10 @@ build/
 *.tgz
 
 /docker/*.override.yaml
+out/
+node_modules/
+.gradle
+/e2e-tests/allure-results/
+out/
+node_modules/
+.gradle

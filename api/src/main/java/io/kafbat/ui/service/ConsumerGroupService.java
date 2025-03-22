@@ -10,7 +10,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
-import io.kafbat.ui.util.SslPropertiesUtil;
+import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -149,6 +149,8 @@ public class ConsumerGroupService {
               case EMPTY -> 3;
               case DEAD -> 4;
               case UNKNOWN -> 5;
+              case ASSIGNING -> 6;
+              case RECONCILING -> 7;
             };
         var comparator = Comparator.comparingInt(statesPriorities);
         yield loadDescriptionsByListings(ac, groups, comparator, pageNum, perPage, sortOrderDto);
@@ -209,12 +211,13 @@ public class ConsumerGroupService {
   }
 
 
-  private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(ReactiveAdminClient ac,
-                                                                                  List<ConsumerGroupListing> groups,
-                                                                                  Comparator<GroupWithDescr> comparator,
-                                                                                  int pageNum,
-                                                                                  int perPage,
-                                                                                  SortOrderDTO sortOrderDto) {
+  private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(
+      ReactiveAdminClient ac,
+      List<ConsumerGroupListing> groups,
+      Comparator<GroupWithDescr> comparator,
+      int pageNum,
+      int perPage,
+      SortOrderDTO sortOrderDto) {
     var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
 
     return ac.describeConsumerGroups(groupNames)
@@ -247,6 +250,13 @@ public class ConsumerGroupService {
         .flatMap(adminClient -> adminClient.deleteConsumerGroups(List.of(groupId)));
   }
 
+  public Mono<Void> deleteConsumerGroupOffset(KafkaCluster cluster,
+                                              String groupId,
+                                              String topicName) {
+    return adminClientService.get(cluster)
+        .flatMap(adminClient -> adminClient.deleteConsumerGroupOffsets(groupId, topicName));
+  }
+
   public EnhancedConsumer createConsumer(KafkaCluster cluster) {
     return createConsumer(cluster, Map.of());
   }
@@ -254,8 +264,9 @@ public class ConsumerGroupService {
   public EnhancedConsumer createConsumer(KafkaCluster cluster,
                                          Map<String, Object> properties) {
     Properties props = new Properties();
-    SslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), props);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), props);
     props.putAll(cluster.getProperties());
+    props.putAll(cluster.getConsumerProperties());
     props.put(ConsumerConfig.CLIENT_ID_CONFIG, "kafbat-ui-consumer-" + System.currentTimeMillis());
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

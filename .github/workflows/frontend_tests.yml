@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  tests:
     env:
       CI: true
       NODE_ENV: dev
@@ -21,14 +21,14 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
-      - uses: pnpm/action-setup@v4.0.0
+      - uses: pnpm/action-setup@v4.1.0
         with:
-          version: 9.1.2
+          version: 9.15.4
 
       - name: Install node
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: "18.17.1"
+          node-version: "22.12.0"
           cache: "pnpm"
           cache-dependency-path: "./frontend/pnpm-lock.yaml"
 
@@ -52,12 +52,4 @@ jobs:
           cd frontend/
           pnpm test:CI
 
-      - name: SonarCloud Scan
-        if: false # TODO remove when public
-        uses: sonarsource/sonarcloud-github-action@master
-        with:
-          projectBaseDir: ./frontend
-          args: -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONTEND }}
+      # TODO check frontend sonar results in sonarcloud after migration to gradle

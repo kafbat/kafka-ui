@@ -1,0 +1,62 @@
+plugins {
+    alias(libs.plugins.nexus.publish.plugin)
+    alias(libs.plugins.sonarqube)
+}
+
+subprojects {
+    if (name != "frontend") {
+        apply plugin: "java"
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'confluent'
+            url = 'https://packages.confluent.io/maven/'
+        }
+    }
+
+    group = 'io.kafbat'
+    version = version
+
+}
+
+boolean resolveBooleanProperty(String propertyName, boolean defaultValue = false) {
+    def propertyValueStr = findProperty(propertyName)
+    return propertyValueStr == null ? defaultValue : propertyValueStr.toBoolean()
+}
+
+ext {
+    release = resolveBooleanProperty("release")
+    includeFrontend = resolveBooleanProperty("include-frontend", release)
+    buildDockerImages = resolveBooleanProperty("build-docker-images", release)
+    runE2e = resolveBooleanProperty("run-e2e")
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "kafbat_kafka-ui"
+        property "sonar.organization", "kafbat"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.exclusions", "**/e2e-tests/**/*"
+    }
+}
+
+if (release) {
+    nexusPublishing {
+        repositories {
+            sonatype {
+                nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
+                snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+
+                username = sonatypeUsername
+                password = sonatypePassword
+            }
+        }
+    }
+}

@@ -97,23 +97,15 @@ public class ConsumerGroupMapper {
     return new BrokerDTO().host(node.host()).id(node.id()).port(node.port());
   }
 
-  private static ConsumerGroupStateDTO mapConsumerGroupState(
-      org.apache.kafka.common.ConsumerGroupState state) {
-    switch (state) {
-      case DEAD:
-        return ConsumerGroupStateDTO.DEAD;
-      case EMPTY:
-        return ConsumerGroupStateDTO.EMPTY;
-      case STABLE:
-        return ConsumerGroupStateDTO.STABLE;
-      case PREPARING_REBALANCE:
-        return ConsumerGroupStateDTO.PREPARING_REBALANCE;
-      case COMPLETING_REBALANCE:
-        return ConsumerGroupStateDTO.COMPLETING_REBALANCE;
-      default:
-        return ConsumerGroupStateDTO.UNKNOWN;
-    }
+  private static ConsumerGroupStateDTO mapConsumerGroupState(org.apache.kafka.common.ConsumerGroupState state) {
+    return switch (state) {
+      case DEAD -> ConsumerGroupStateDTO.DEAD;
+      case EMPTY -> ConsumerGroupStateDTO.EMPTY;
+      case STABLE -> ConsumerGroupStateDTO.STABLE;
+      case PREPARING_REBALANCE -> ConsumerGroupStateDTO.PREPARING_REBALANCE;
+      case COMPLETING_REBALANCE -> ConsumerGroupStateDTO.COMPLETING_REBALANCE;
+      default -> ConsumerGroupStateDTO.UNKNOWN;
+    };
   }
-
 
 }

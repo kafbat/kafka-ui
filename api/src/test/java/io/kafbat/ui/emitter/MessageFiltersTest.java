@@ -10,10 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +28,7 @@ class MessageFiltersTest {
     Predicate<TopicMessageDTO> filter = containsStringFilter("abC");
 
     @Test
-    void returnsTrueWhenStringContainedInKeyOrContentOrInBoth() {
+    void returnsTrueWhenStringContainedInKeyOrContentOrHeadersOrInAllThree() {
       assertTrue(
           filter.test(msg().key("contains abCd").content("some str"))
       );
@@ -38,6 +39,14 @@ class MessageFiltersTest {
 
       assertTrue(
           filter.test(msg().key("contains abCd").content("contains abCd"))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("abC", "value")))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("x1", "some abC")))
       );
     }
 
@@ -54,6 +63,11 @@ class MessageFiltersTest {
       assertFalse(
           filter.test(msg().key("aBc").content("AbC"))
       );
+
+      assertFalse(
+          filter.test(msg().key("aBc").content("AbC").headers(Map.of("abc", "value")))
+      );
+
     }
 
   }
@@ -100,7 +114,7 @@ class MessageFiltersTest {
       var ts = OffsetDateTime.now();
       var f = celScriptFilter("record.timestampMs == " + ts.toInstant().toEpochMilli());
       assertTrue(f.test(msg().timestamp(ts)));
-      assertFalse(f.test(msg().timestamp(ts.plus(1L, ChronoUnit.SECONDS))));
+      assertFalse(f.test(msg().timestamp(ts.plusSeconds(1L))));
     }
 
     @Test
@@ -177,6 +191,7 @@ class MessageFiltersTest {
         toFilter.add(msg().content(jsonContent).key(randString));
       }
       // first iteration for warmup
+      // noinspection ResultOfMethodCallIgnored
       toFilter.stream().filter(f).count();
 
       long before = System.currentTimeMillis();
@@ -184,14 +199,23 @@ class MessageFiltersTest {
       long took = System.currentTimeMillis() - before;
 
       assertThat(took).isLessThan(1000);
-      assertThat(matched).isGreaterThan(0);
+      assertThat(matched).isPositive();
     }
   }
 
+  @Test
+  void testBase64DecodingWorks() {
+    var uuid = UUID.randomUUID().toString();
+    var msg = "test." + Base64.getEncoder().encodeToString(uuid.getBytes());
+    var f = celScriptFilter("string(base64.decode(record.value.split('.')[1])).contains('" + uuid + "')");
+    assertTrue(f.test(msg().content(msg)));
+  }
+
   private TopicMessageDTO msg() {
-    return new TopicMessageDTO()
-        .timestamp(OffsetDateTime.now())
+    return TopicMessageDTO.builder()
+        .partition(1)
         .offset(-1L)
-        .partition(1);
+        .timestamp(OffsetDateTime.now())
+        .build();
   }
 }

@@ -152,11 +152,11 @@ export const Table = styled.table(
     color: ${table.td.color.normal};
     vertical-align: middle;
     word-wrap: break-word;
+    white-space: pre;
 
     & a {
       color: ${table.td.color.normal};
       font-weight: 500;
-      max-width: 450px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

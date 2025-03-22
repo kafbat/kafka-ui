@@ -19,6 +19,7 @@ import io.kafbat.ui.serdes.builtin.Int64Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,13 +27,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.test.StepVerifier;
 
-public class SendAndReadTests extends AbstractIntegrationTest {
+class SendAndReadTests extends AbstractIntegrationTest {
 
   private static final AvroSchema AVRO_SCHEMA_1 = new AvroSchema(
       "{"
@@ -81,14 +81,16 @@ public class SendAndReadTests extends AbstractIntegrationTest {
   private static final String AVRO_SCHEMA_2_JSON_RECORD = "{ \"f1\": 111, \"f2\": \"testStr\" }";
 
   private static final ProtobufSchema PROTOBUF_SCHEMA = new ProtobufSchema(
-      "syntax = \"proto3\";\n"
-          + "package io.kafbat;\n"
-          + "\n"
-          + "message TestProtoRecord {\n"
-          + "  string f1 = 1;\n"
-          + "  int32 f2 = 2;\n"
-          + "}\n"
-          + "\n"
+      """
+          syntax = "proto3";
+          package io.kafbat;
+
+          message TestProtoRecord {
+            string f1 = 1;
+            int32 f2 = 2;
+          }
+
+          """
   );
 
   private static final String PROTOBUF_SCHEMA_JSON_RECORD
@@ -131,7 +133,7 @@ public class SendAndReadTests extends AbstractIntegrationTest {
 
   @BeforeEach
   void init() {
-    targetCluster = clustersStorage.getClusterByName(LOCAL).get();
+    targetCluster = clustersStorage.getClusterByName(LOCAL).orElseThrow();
   }
 
   @Test
@@ -343,7 +345,7 @@ public class SendAndReadTests extends AbstractIntegrationTest {
             new CreateTopicMessageDTO()
                 .key(null)
                 .keySerde(StringSerde.name())
-                // 'f2' field has has type object instead of string
+                // 'f2' field has type object instead of string
                 .content("{ \"f1\": 12, \"f2\": {}, \"schema\": \"some txt\" }")
                 .valueSerde(SchemaRegistrySerde.name())
         )
@@ -424,6 +426,23 @@ public class SendAndReadTests extends AbstractIntegrationTest {
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
         });
   }
+
+  @Test
+  void headerValueNullPresentTest() {
+    new SendAndReadSpec()
+        .withKeySchema(JSON_SCHEMA)
+        .withValueSchema(JSON_SCHEMA)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key(JSON_SCHEMA_RECORD)
+                .keySerde(SchemaRegistrySerde.name())
+                .content(JSON_SCHEMA_RECORD)
+                .valueSerde(SchemaRegistrySerde.name())
+                .headers(Collections.singletonMap("header123", null))
+        )
+        .doAssert(polled -> assertThat(polled.getHeaders().get("header123")).isNull());
+  }
+
 
   @Test
   void noKeyAndNoContentPresentTest() {
@@ -511,7 +530,7 @@ public class SendAndReadTests extends AbstractIntegrationTest {
             .blockLast(Duration.ofSeconds(5000));
 
         assertThat(polled).isNotNull();
-        assertThat(polled.getPartition()).isEqualTo(0);
+        assertThat(polled.getPartition()).isZero();
         assertThat(polled.getOffset()).isNotNull();
         msgAssert.accept(polled);
       } finally {
