@@ -47,7 +47,7 @@ spring-dependency-management = { id = 'io.spring.dependency-management', version
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
 openapi-generator = { id = 'org.openapi.generator', version = '7.9.0' }
 allure = { id = 'io.qameta.allure', version = '2.10.0' }
-nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
+nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '2.0.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 #jib = { id = 'com.google.cloud.tools.jib', version = '3.4.4' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
