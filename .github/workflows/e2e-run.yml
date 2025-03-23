@@ -44,7 +44,7 @@ jobs:
           -Pversion=latest
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # infered from @v4
         with:
           name: artifacts
           path: |
@@ -58,7 +58,7 @@ jobs:
           docker image save ghcr.io/kafbat/kafka-ui:latest > /tmp/image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # infered from @v4
         with:
           name: image
           path: /tmp/image.tar
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload allure reports artifact
         if: '!cancelled()'
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # infered from @v4
         with:
           name: reports
           path: ./e2e-tests/build/allure-results
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload selenide results artifact
         if: failure()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # infered from @v4
         with:
           name: selenide-results
           path: ./e2e-tests/build/selenide-results

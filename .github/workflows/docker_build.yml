@@ -81,7 +81,7 @@ jobs:
           docker image save kafka-ui:temp > /tmp/image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # infered from @v4
         with:
           name: image
           path: /tmp/image.tar
