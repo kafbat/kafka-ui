@@ -15,7 +15,7 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Configure AWS credentials for Kafka-UI account
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # infered from @v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722  # infered from @v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

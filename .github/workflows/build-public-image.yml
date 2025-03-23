@@ -50,7 +50,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # infered from @v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722  # infered from @v4
         with:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE }}
