@@ -18,8 +18,8 @@ updates:
       patterns:
         - "*"
       update-types:
-        - "version-update:semver-patch"
-        - "version-update:semver-minor"
+        - "patch"
+        - "minor"
 
 - package-ecosystem: docker
   directory: "/api"
@@ -55,8 +55,8 @@ updates:
       patterns:
         - "*"
       update-types:
-        - "version-update:semver-patch"
-        - "version-update:semver-minor"
+        - "patch"
+        - "minor"
 
 - package-ecosystem: "github-actions"
   directory: "/"
