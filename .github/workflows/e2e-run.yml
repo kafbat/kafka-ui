@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # infered from @v4
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
@@ -70,7 +70,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # infered from @v4
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
