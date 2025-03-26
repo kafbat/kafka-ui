@@ -565,14 +565,14 @@ export const theme = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[0],
+        normal: 'transparent',
         hover: hexToRgba(Colors.brand[95], 0.03),
         active: hexToRgba(Colors.brand[95], 0.05),
       },
       color: {
-        normal: Colors.brand[80],
-        hover: Colors.brand[90],
-        active: Colors.brand[70],
+        normal: Colors.neutral[80],
+        hover: Colors.neutral[90],
+        active: Colors.neutral[95],
       },
       statusIconColor: {
         online: Colors.green[40],
