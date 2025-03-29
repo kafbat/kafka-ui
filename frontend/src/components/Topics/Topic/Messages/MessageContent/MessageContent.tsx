@@ -59,7 +59,9 @@ const MessageContent: React.FC<MessageContentProps> = ({
   };
 
   const contentType =
-    messageContent && messageContent.trim().startsWith('{')
+    messageContent &&
+    (messageContent.trim().startsWith('{') ||
+      messageContent.trim().startsWith('['))
       ? SchemaType.JSON
       : SchemaType.PROTOBUF;
 
