@@ -1,24 +1,33 @@
 name: "Infra: CVE checks"
-
 on:
   pull_request:
     types: [ "opened", "reopened", "synchronize" ]
     paths:
-      - 'infra/**'  # Run only when files in 'infra/' change
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   push:
     branches: [ "main" ]
     paths:
-      - 'infra/**'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   workflow_dispatch:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron: '0 8 15 * *'
 
 permissions:
   contents: read
 
 jobs:
-
   check-cves:
     runs-on: ubuntu-latest
 
@@ -73,7 +82,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run CVE checks
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.29.0
         with:
           image-ref: "ghcr.io/kafbat/kafka-ui:latest"
           format: "table"
