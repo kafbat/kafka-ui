@@ -1,0 +1,67 @@
+- name: 'admin'
+  subjects:
+    - provider: 'OAUTH'
+      value: 'ROLE-[A-Z]+'
+      type: 'role'
+      isRegex: 'true'
+    - provider: 'OAUTH_COGNITO'
+      value: 'ROLE-ADMIN'
+      type: 'group'
+    - provider: 'OAUTH_GOOGLE'
+      type: 'domain'
+      value: 'memelord.lol'
+  clusters:
+    - local
+    - remote
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
+- name: 'viewer'
+  subjects:
+    - provider: 'LDAP'
+      value: 'CS-XXX'
+      type: 'kafka-viewer'
+    - provider: 'OAUTH'
+      value: '.*@kafka.com'
+      type: 'user'
+      isRegex: 'true'
+    - provider: 'OAUTH_COGNITO'
+      value: '.*@kafka.com'
+      type: 'user'
+      isRegex: 'true'
+    - provider: 'OAUTH_GITHUB'
+      value: '.*@kafka.com'
+      type: 'user'
+      isRegex: 'true'
+    - provider: 'OAUTH_GOOGLE'
+      value: 'john@kafka.com'
+      type: 'user'
+  clusters:
+    - remote
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
+- name: 'editor'
+  subjects:
+    - provider: 'OAUTH'
+      value: 'ROLE_EDITOR'
+      type: 'role'
+  clusters:
+    - local
+  permissions:
+    - resource: APPLICATIONCONFIG
+      actions: [ all ]
+- name: "no one's role"
+  subjects:
+    - provider: 'OAUTH'
+      value: '.*XXX'
+      type: 'role'
+    - provider: 'OAUTH_GITHUB'
+      value: '.*XXX'
+      type: 'user'
+    - provider: 'OAUTH_COGNITO'
+      value: '.*XXX'
+      type: 'user'
+    - provider: 'OAUTH_GOOGLE'
+      value: '.*XXX'
+      type: 'domain'

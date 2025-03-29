@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.4.3'
+spring-boot = '3.4.4'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -22,7 +22,7 @@ odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
 junit = '5.11.2'
-mockito = '5.14.2'
+mockito = '5.16.0'
 okhttp3 = '4.12.0'
 testcontainers = '1.20.6'
 swagger-integration-jakarta = '2.2.28'
@@ -66,6 +66,7 @@ spring-boot-devtools = { module = 'org.springframework.boot:spring-boot-devtools
 spring-boot-configuration-processor = { module = 'org.springframework.boot:spring-boot-configuration-processor', version.ref = 'spring-boot' }
 
 spring-security-ldap = { module = 'org.springframework.security:spring-security-ldap' }
+spring-security-oauth2-resource-server = { module = 'org.springframework.security:spring-security-oauth2-resource-server'}
 
 swagger-integration-jakarta = { module = 'io.swagger.core.v3:swagger-integration-jakarta', version.ref = 'swagger-integration-jakarta' }
 lombok = { module = 'org.projectlombok:lombok', version.ref = 'lombok' }

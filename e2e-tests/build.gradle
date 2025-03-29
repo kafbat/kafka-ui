@@ -52,8 +52,6 @@ test {
             suiteXmlFiles = [suitePath.toFile()]
         }
 
-        systemProperty "headless", e2eHeadlessOff
-        systemProperty "selenoid", e2eSelenoidOff
         systemProperty "allure.results.directory",
                 project.layout.buildDirectory.dir("allure-results").get().getAsFile().getAbsolutePath()
     }

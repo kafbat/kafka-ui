@@ -28,7 +28,7 @@ subprojects {
 
 boolean resolveBooleanProperty(String propertyName, boolean defaultValue = false) {
     def propertyValueStr = findProperty(propertyName)
-    return propertyValueStr == null ? defaultValue : propertyValueStr.toBoolean();
+    return propertyValueStr == null ? defaultValue : propertyValueStr.toBoolean()
 }
 
 ext {
@@ -36,8 +36,6 @@ ext {
     includeFrontend = resolveBooleanProperty("include-frontend", release)
     buildDockerImages = resolveBooleanProperty("build-docker-images", release)
     runE2e = resolveBooleanProperty("run-e2e")
-    e2eHeadlessOff = resolveBooleanProperty("e2e-headless-off")
-    e2eSelenoidOff = resolveBooleanProperty("e2e-selenoid-off")
 }
 
 sonar {

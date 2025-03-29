@@ -13,6 +13,13 @@ updates:
   labels:
     - "type/dependencies"
     - "scope/backend"
+  groups:
+    gradle-dependencies:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
 
 - package-ecosystem: docker
   directory: "/api"
@@ -25,7 +32,6 @@ updates:
   open-pull-requests-limit: 10
   ignore:
   - dependency-name: "azul/zulu-openjdk-alpine"
-    # Limit dependabot pull requests to minor Java upgrades
     update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
@@ -44,6 +50,13 @@ updates:
   labels:
     - "type/dependencies"
     - "scope/frontend"
+  groups:
+    pnpm-dependencies:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
 
 - package-ecosystem: "github-actions"
   directory: "/"
