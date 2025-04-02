@@ -49,7 +49,7 @@ public class JsonAvroConversion {
   // converts json into Object that is expected input for KafkaAvroSerializer
   // (with AVRO_USE_LOGICAL_TYPE_CONVERTERS flat enabled!)
   public static Object convertJsonToAvro(String jsonString, Schema avroSchema) {
-    JsonNode rootNode = null;
+    JsonNode rootNode;
     try {
       rootNode = MAPPER.readTree(jsonString);
     } catch (JsonProcessingException e) {
@@ -221,9 +221,7 @@ public class JsonAvroConversion {
         list.forEach(e -> node.add(convertAvroToJson(e, avroSchema.getElementType())));
         yield node;
       }
-      case ENUM -> {
-        yield new TextNode(obj.toString());
-      }
+      case ENUM -> new TextNode(obj.toString());
       case UNION -> {
         ObjectNode node = MAPPER.createObjectNode();
         int unionIdx = AvroData.getGenericData().resolveUnion(avroSchema, obj);
@@ -343,9 +341,7 @@ public class JsonAvroConversion {
           assertJsonType(node, JsonNodeType.STRING);
           return java.util.UUID.fromString(node.asText());
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -363,9 +359,7 @@ public class JsonAvroConversion {
               "node '%s' can't be converted to decimal logical type"
                   .formatted(node));
         },
-        (obj, schema) -> {
-          return new DecimalNode((BigDecimal) obj);
-        },
+        (obj, schema) -> new DecimalNode((BigDecimal) obj),
         new SimpleFieldSchema(new SimpleJsonType(JsonType.Type.NUMBER))
     ),
 
@@ -381,9 +375,7 @@ public class JsonAvroConversion {
                     .formatted(node));
           }
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -402,9 +394,7 @@ public class JsonAvroConversion {
                     .formatted(node));
           }
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -423,9 +413,7 @@ public class JsonAvroConversion {
                     .formatted(node));
           }
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -444,9 +432,7 @@ public class JsonAvroConversion {
                     .formatted(node));
           }
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -469,9 +455,7 @@ public class JsonAvroConversion {
                     .formatted(node));
           }
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -487,9 +471,7 @@ public class JsonAvroConversion {
           Instant instant = (Instant) TIMESTAMP_MILLIS.jsonToAvroConversion.apply(node, schema);
           return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,
@@ -504,9 +486,7 @@ public class JsonAvroConversion {
           Instant instant = (Instant) TIMESTAMP_MICROS.jsonToAvroConversion.apply(node, schema);
           return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
         },
-        (obj, schema) -> {
-          return new TextNode(obj.toString());
-        },
+        (obj, schema) -> new TextNode(obj.toString()),
         new SimpleFieldSchema(
             new SimpleJsonType(
                 JsonType.Type.STRING,

@@ -59,6 +59,8 @@ public class KafkaClusterFactory {
     builder.name(clusterProperties.getName());
     builder.bootstrapServers(clusterProperties.getBootstrapServers());
     builder.properties(convertProperties(clusterProperties.getProperties()));
+    builder.consumerProperties(convertProperties(clusterProperties.getConsumerProperties()));
+    builder.producerProperties(convertProperties(clusterProperties.getProducerProperties()));
     builder.readOnly(clusterProperties.isReadOnly());
     builder.masking(DataMasking.create(clusterProperties.getMasking()));
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));

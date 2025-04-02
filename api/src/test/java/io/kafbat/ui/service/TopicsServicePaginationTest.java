@@ -66,7 +66,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListFirst25Topics() {
+  void shouldListFirst25Topics() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
@@ -93,7 +93,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListFirst25TopicsSortedByNameDescendingOrder() {
+  void shouldListFirst25TopicsSortedByNameDescendingOrder() {
     var internalTopics = IntStream.rangeClosed(1, 100).boxed()
         .map(Objects::toString)
         .map(name -> new TopicDescription(name, false, List.of()))
@@ -119,7 +119,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldCalculateCorrectPageCountForNonDivisiblePageSize() {
+  void shouldCalculateCorrectPageCountForNonDivisiblePageSize() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
@@ -134,11 +134,11 @@ class TopicsServicePaginationTest {
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(1);
-    assertThat(topics.getBody().getTopics().get(0).getName()).isEqualTo("99");
+    assertThat(topics.getBody().getTopics().getFirst().getName()).isEqualTo("99");
   }
 
   @Test
-  public void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
+  void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
@@ -157,7 +157,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListBotInternalAndNonInternalTopics() {
+  void shouldListBotInternalAndNonInternalTopics() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
@@ -177,7 +177,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListOnlyNonInternalTopics() {
+  void shouldListOnlyNonInternalTopics() {
 
     init(
         IntStream.rangeClosed(1, 100).boxed()
@@ -198,7 +198,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListOnlyTopicsContainingOne() {
+  void shouldListOnlyTopicsContainingOne() {
 
     init(
         IntStream.rangeClosed(1, 100).boxed()
@@ -219,7 +219,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListTopicsOrderedByPartitionsCount() {
+  void shouldListTopicsOrderedByPartitionsCount() {
     Map<String, InternalTopic> internalTopics = IntStream.rangeClosed(1, 100).boxed()
         .map(i -> new TopicDescription(UUID.randomUUID().toString(), false,
             IntStream.range(0, i)

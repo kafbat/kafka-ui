@@ -1,4 +1,7 @@
-import { ClusterConfigFormValues } from 'widgets/ClusterConfigForm/types';
+import {
+  ClusterConfigFormValues,
+  Serde,
+} from 'widgets/ClusterConfigForm/types';
 import { ApplicationConfigPropertiesKafkaClusters } from 'generated-sources';
 
 import { getJaasConfig } from './getJaasConfig';
@@ -33,6 +36,15 @@ const transformCustomProps = (props: Record<string, string>) => {
   });
 
   return config;
+};
+
+const transformSerdeProperties = (properties: Serde['properties']) => {
+  const mappedProperties: { [key: string]: string } = {};
+
+  properties.forEach(({ key, value }) => {
+    mappedProperties[key] = value;
+  });
+  return mappedProperties;
 };
 
 export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
@@ -75,6 +87,27 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
     config.ksqldbServerSsl = transformToKeystore(data.ksql.keystore);
   }
 
+  // Serde
+  if (data.serde && data.serde.length > 0) {
+    config.serde = data.serde.map(
+      ({
+        name,
+        className,
+        filePath,
+        topicKeysPattern,
+        topicValuesPattern,
+        properties,
+      }) => ({
+        name,
+        className,
+        filePath,
+        topicKeysPattern,
+        topicValuesPattern,
+        properties: transformSerdeProperties(properties),
+      })
+    );
+  }
+
   // Kafka Connect
   if (data.kafkaConnect && data.kafkaConnect.length > 0) {
     config.kafkaConnect = data.kafkaConnect.map(
@@ -99,6 +132,21 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
         data.metrics.password
       ),
     };
+  }
+
+  // Masking
+  if (data.masking && data.masking.length > 0) {
+    config.masking = data.masking.map((formData) => ({
+      type: formData.type,
+      fields: (formData.fields ?? []).map((f) => f.value),
+      fieldsNamePattern: formData.fieldsNamePattern,
+      topicKeysPattern: formData.topicKeysPattern,
+      topicValuesPattern: formData.topicValuesPattern,
+      maskingCharsReplacement: (formData.maskingCharsReplacement ?? []).map(
+        (f) => f.value
+      ),
+      replacement: formData.replacement,
+    }));
   }
 
   config.properties = {

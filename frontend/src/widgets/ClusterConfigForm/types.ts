@@ -1,3 +1,5 @@
+import { ApplicationConfigPropertiesKafkaMaskingTypeEnum } from 'generated-sources';
+
 type SecurityProtocol = 'SASL_SSL' | 'SASL_PLAINTEXT';
 type BootstrapServer = {
   host: string;
@@ -22,6 +24,18 @@ type URLWithAuth = WithAuth &
     url?: string;
     isActive?: string;
   };
+
+export type Serde = {
+  name?: string;
+  className?: string;
+  filePath?: string;
+  topicKeysPattern?: string;
+  topicValuesPattern?: string;
+  properties: {
+    key: string;
+    value: string;
+  }[];
+};
 
 type KafkaConnect = WithAuth &
   WithKeystore & {
@@ -53,7 +67,17 @@ export type ClusterConfigFormValues = {
   schemaRegistry?: URLWithAuth;
   ksql?: URLWithAuth;
   properties?: Record<string, string>;
+  serde?: Serde[];
   kafkaConnect?: KafkaConnect[];
   metrics?: Metrics;
   customAuth: Record<string, string>;
+  masking?: {
+    type?: ApplicationConfigPropertiesKafkaMaskingTypeEnum;
+    fields?: { value: string }[];
+    fieldsNamePattern?: string;
+    maskingCharsReplacement?: { value: string }[];
+    replacement?: string;
+    topicKeysPattern?: string;
+    topicValuesPattern?: string;
+  }[];
 };
