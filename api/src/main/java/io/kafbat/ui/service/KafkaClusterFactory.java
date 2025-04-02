@@ -16,6 +16,7 @@ import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.util.KafkaServicesValidation;
 import io.kafbat.ui.util.ReactiveFailover;
 import io.kafbat.ui.util.WebClientConfigurator;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +38,18 @@ import reactor.util.function.Tuples;
 public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
+  private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
 
   private final DataSize webClientMaxBuffSize;
+  private final Duration responseTimeout;
 
   public KafkaClusterFactory(WebclientProperties webclientProperties) {
     this.webClientMaxBuffSize = Optional.ofNullable(webclientProperties.getMaxInMemoryBufferSize())
         .map(DataSize::parse)
         .orElse(DEFAULT_WEBCLIENT_BUFFER);
+    this.responseTimeout = Optional.ofNullable(webclientProperties.getResponseTimeoutMs())
+        .map(Duration::ofMillis)
+        .orElse(DEFAULT_RESPONSE_TIMEOUT);
   }
 
   public KafkaCluster create(ClustersProperties properties,
@@ -147,7 +153,8 @@ public class KafkaClusterFactory {
         url -> new RetryingKafkaConnectClient(
             connectCluster.toBuilder().address(url).build(),
             cluster.getSsl(),
-            webClientMaxBuffSize
+            webClientMaxBuffSize,
+            responseTimeout
         ),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No alive connect instances available",
