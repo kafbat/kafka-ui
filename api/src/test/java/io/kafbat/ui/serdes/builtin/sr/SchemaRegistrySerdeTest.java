@@ -127,7 +127,8 @@ class SchemaRegistrySerdeTest {
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
     assertThat(result.getAdditionalProperties())
         .contains(Map.entry("type", "AVRO"))
-        .contains(Map.entry("schemaId", schemaId));
+        .contains(Map.entry("schemaId", schemaId))
+        .contains(Map.entry("name", "TestAvroRecord1"));
   }
 
   @Nested
