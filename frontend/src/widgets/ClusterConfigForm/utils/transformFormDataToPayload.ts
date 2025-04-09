@@ -280,7 +280,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
             'com.google.cloud.hosted.kafka.auth.GcpLoginCallbackHandler',
           'sasl.jaas.config': getJaasConfig('SASL/GCP IAM', {}),
         };
-      break;
+        break;
       case 'mTLS':
         config.properties = {
           'security.protocol': 'SSL',
