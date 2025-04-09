@@ -11,6 +11,8 @@ const JAAS_CONFIGS = {
   'SASL/AWS IAM': 'software.amazon.msk.auth.iam.IAMLoginModule',
   'SASL/Azure Entra':
     'org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule',
+  'SASL/GCP IAM':
+    'com.google.cloud.hosted.kafka.auth.GcpLoginCallbackHandler',
 };
 
 type MethodName = keyof typeof JAAS_CONFIGS;

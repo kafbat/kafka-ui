@@ -272,6 +272,15 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
           'sasl.jaas.config': getJaasConfig('SASL/Azure Entra', {}),
         };
         break;
+      case 'SASL/GCP IAM':
+        config.properties = {
+          'security.protocol': securityProtocol,
+          'sasl.mechanism': 'OAUTHBEARER',
+          'sasl.client.callback.handler.class':
+            'com.google.cloud.hosted.kafka.auth.GcpLoginCallbackHandler',
+          'sasl.jaas.config': getJaasConfig('SASL/GCP IAM', {}),
+        };
+      break;
       case 'mTLS':
         config.properties = {
           'security.protocol': 'SSL',

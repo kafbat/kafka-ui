@@ -62,6 +62,15 @@ dependencies {
     implementation libs.netty.common
     implementation libs.netty.handler
 
+
+    // Google Managed Service for Kafka support
+    implementation (libs.google.managed.kafka.login.handler) {
+        exclude group: 'com.google.oauth-client', module: 'google-oauth-client'
+    }
+    implementation (libs.google.oauth.client) {
+        because("CVE Fix: It is excluded above because of a vulnerability")
+    }
+
     // Annotation processors
     implementation libs.lombok
     implementation libs.mapstruct
