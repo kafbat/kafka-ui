@@ -63,7 +63,7 @@ dependencies {
     implementation libs.netty.handler
 
 
-    // Google Managed Service for Kafka support
+    // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {
         exclude group: 'com.google.oauth-client', module: 'google-oauth-client'
     }
