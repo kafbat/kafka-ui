@@ -67,7 +67,7 @@ export const getBrokersTableColumns = () => {
     }),
     columnHelper.accessor('partitionsLeader', { header: 'Leaders' }),
     columnHelper.accessor('leadersSkew', {
-      header: 'Leader skew',
+      header: 'Leaders skew',
       cell: Cell.Skew,
     }),
     columnHelper.accessor('port', { header: 'Port' }),
