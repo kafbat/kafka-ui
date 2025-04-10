@@ -57,7 +57,7 @@ export const DiscUsage = ({
 
 type ScewProps = CellContext<
   BrokersTableRow,
-  BrokersTableRow['partitionsSkew'] | BrokersTableRow['leadersSkew']
+  BrokersTableRow['replicasSkew'] | BrokersTableRow['leadersSkew']
 >;
 
 export const Skew = ({ getValue }: ScewProps) => {
@@ -73,25 +73,26 @@ export const Skew = ({ getValue }: ScewProps) => {
   );
 };
 
-type OnlinePartitionsProps = CellContext<
+type InSyncReplicasProps = CellContext<
   BrokersTableRow,
-  BrokersTableRow['onlinePartitionCount']
+  BrokersTableRow['inSyncReplicas']
 >;
 
-export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
-  const { onlinePartitionCount, offlinePartitionCount } = row.original;
+export const InSyncReplicas = ({ row }: InSyncReplicasProps) => {
+  const { replicas, inSyncReplicas } = row.original;
 
   if (
-    onlinePartitionCount === undefined ||
-    offlinePartitionCount === undefined
+    replicas === undefined ||
+    inSyncReplicas === undefined
   ) {
     return null;
   }
+  const value = `${inSyncReplicas} of ${replicas}`;
 
   return (
     <ColoredCell
-      value={onlinePartitionCount}
-      attention={offlinePartitionCount > 0}
+      value={value}
+      attention={inSyncReplicas < replicas}
     />
   );
 };
