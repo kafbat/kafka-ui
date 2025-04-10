@@ -61,6 +61,10 @@ export const getBrokersTableColumns = () => {
       header: 'In Sync Replicas',
       cell: Cell.InSyncReplicas,
     }),
+    columnHelper.accessor('replicas', {
+      header: 'Replicas',
+      cell: Cell.Replicas,
+    }),
     columnHelper.accessor('replicasSkew', {
       header: SkewHeader,
       cell: Cell.Skew,
