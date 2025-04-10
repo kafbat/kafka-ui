@@ -78,21 +78,12 @@ type InSyncReplicasProps = CellContext<
   BrokersTableRow['inSyncReplicas']
 >;
 
-export const InSyncReplicas = ({ row }: InSyncReplicasProps) => {
-  const { replicas, inSyncReplicas } = row.original;
+export const InSyncReplicas = ({ getValue }: InSyncReplicasProps) => {
+  return <ColoredCell value={getValue() || ''} />;
+};
 
-  if (
-    replicas === undefined ||
-    inSyncReplicas === undefined
-  ) {
-    return null;
-  }
-  const value = `${inSyncReplicas} of ${replicas}`;
+type ReplicasProps = CellContext<BrokersTableRow, BrokersTableRow['replicas']>;
 
-  return (
-    <ColoredCell
-      value={value}
-      attention={inSyncReplicas < replicas}
-    />
-  );
+export const Replicas = ({ getValue }: ReplicasProps) => {
+  return <ColoredCell value={getValue() || ''} />;
 };
