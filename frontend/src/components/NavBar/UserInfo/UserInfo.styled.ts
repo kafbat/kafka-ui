@@ -17,7 +17,4 @@ export const Text = styled.div`
   &:hover {
     color: ${({ theme }) => theme.user.hoverColor};
   }
-}
 `;
-
-export const LogoutLink = styled.a``;

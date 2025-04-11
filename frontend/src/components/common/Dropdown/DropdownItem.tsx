@@ -15,11 +15,11 @@ const DropdownItem = React.forwardRef<unknown, DropdownItemProps>(
     const confirmation = useConfirm();
 
     const handleClick = (e: ClickEvent) => {
-      if (!onClick) return;
-
       // eslint-disable-next-line no-param-reassign
       e.stopPropagation = true;
       e.syntheticEvent.stopPropagation();
+
+      if (!onClick) return;
 
       if (confirm) {
         confirmation(confirm, onClick);
