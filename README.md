@@ -158,3 +158,7 @@ Please refer to [contributing guide](https://ui.docs.kafbat.io/development/contr
 
 As we're fully independent, team members contribute in their free time.
 Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat) 
+
+# Powered by
+
+[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSourceSupport)
