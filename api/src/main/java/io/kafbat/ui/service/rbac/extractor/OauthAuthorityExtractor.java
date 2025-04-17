@@ -10,11 +10,13 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -72,32 +74,48 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
                                    Map<String, Object> additionalParams) {
     var provider = (OAuthProperties.OAuth2Provider) additionalParams.get("provider");
     Assert.notNull(provider, "provider is null");
+
     var rolesFieldName = provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME);
 
+    Set<String> roles = new HashSet<>();
     if (rolesFieldName == null) {
-      log.warn("Provider [{}] doesn't contain a roles field param name, won't map roles", provider.getClientName());
-      return Collections.emptySet();
+      log.warn("Provider [{}] doesn't contain a roles field param name, using default authorities/scopes for role mapping", provider.getClientName());
+    } else {
+      var principalRoles = convertRoles(principal.getAttribute(rolesFieldName));
+
+      if (principalRoles.isEmpty()) {
+        log.debug("Principal [{}] doesn't have any roles through configured roles-field, using default authorities", principal.getName());
+      } else {
+        log.debug("Token's groups: [{}]. Mapping providers of type role.", String.join(",", principalRoles));
+        roles.addAll(acs.getRoles().stream()
+            .filter(role -> role.getSubjects()
+                .stream()
+                .filter(s -> s.getProvider().equals(Provider.OAUTH))
+                .filter(s -> s.getType().equals("role"))
+                .anyMatch(subject -> principalRoles.stream().anyMatch(subject::matches)))
+            .map(Role::getName)
+            .collect(Collectors.toSet()));
+      }
     }
 
-    var principalRoles = convertRoles(principal.getAttribute(rolesFieldName));
-    if (principalRoles.isEmpty()) {
-      log.debug("Principal [{}] doesn't have any roles, nothing to do", principal.getName());
-      return Collections.emptySet();
-    }
+    // Mapping groups from scopes
+    Set<String> scopes = principal.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .map(s -> s.replace("SCOPE_", ""))
+        .collect(Collectors.toSet());
 
-    log.debug("Token's groups: [{}]", String.join(",", principalRoles));
+    log.debug("Available scopes: [{}]. Mapping providers of type scope.", String.join(",", scopes));
 
-    Set<String> roles = acs.getRoles()
-        .stream()
+    roles.addAll(acs.getRoles().stream()
         .filter(role -> role.getSubjects()
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH))
-            .filter(s -> s.getType().equals("role"))
-            .anyMatch(subject -> principalRoles.stream().anyMatch(subject::matches)))
+            .filter(s -> s.getType().equals("scope"))
+            .anyMatch(subject -> scopes.stream().anyMatch(subject::matches)))
         .map(Role::getName)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toSet()));
 
-    log.debug("Matched group roles: [{}]", String.join(", ", roles));
+    log.debug("Matched group/scope roles: [{}]", String.join(", ", roles));
 
     return roles;
   }

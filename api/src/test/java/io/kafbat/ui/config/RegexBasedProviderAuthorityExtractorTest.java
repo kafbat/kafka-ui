@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.oauth2.client.registration.ClientRegistration.withRegistrationId;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.kafbat.ui.config.auth.OAuthProperties;
 import io.kafbat.ui.model.rbac.Role;
@@ -23,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,6 @@ public class RegexBasedProviderAuthorityExtractorTest {
     assertNotNull(roles);
     assertEquals(Set.of("viewer", "admin"), roles);
     assertFalse(roles.contains("no one's role"));
-
   }
 
   @SneakyThrows
@@ -104,6 +102,28 @@ public class RegexBasedProviderAuthorityExtractorTest {
     assertFalse(roles.contains("viewer"));
     assertTrue(roles.contains("admin"));
 
+  }
+
+  @SneakyThrows
+  @Test
+  void extractOauth2Authorities_fromScopes() {
+
+    extractor = new OauthAuthorityExtractor();
+
+    OAuth2User oauth2User = new DefaultOAuth2User(
+        AuthorityUtils.createAuthorityList("SCOPE_message:all"),
+        Map.of("role_definition", Collections.emptySet(), "user_name", "invalidUser"),
+        "user_name");
+
+    HashMap<String, Object> additionalParams = new HashMap<>();
+    OAuthProperties.OAuth2Provider provider = new OAuthProperties.OAuth2Provider();
+    provider.setCustomParams(Map.of("roles-field", "role_definition"));
+    additionalParams.put("provider", provider);
+
+    Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();
+
+    assertNotNull(roles);
+    assertEquals(Set.of("admin"), roles);
   }
 
   @SneakyThrows
