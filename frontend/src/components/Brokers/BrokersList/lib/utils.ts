@@ -19,8 +19,6 @@ export const getBrokersTableRows = ({
   brokers = [],
   diskUsage = [],
   activeControllers,
-  onlinePartitionCount,
-  offlinePartitionCount,
 }: GetBrokersTableRowsParams): BrokersTableRow[] => {
   if (!brokers || brokers.length === 0) {
     return [];
@@ -38,10 +36,10 @@ export const getBrokersTableRows = ({
       port: broker.port,
       host: broker.host,
       partitionsLeader: broker.partitionsLeader,
-      partitionsSkew: broker.partitionsSkew,
       leadersSkew: broker.leadersSkew,
-      onlinePartitionCount,
-      offlinePartitionCount,
+      replicas: broker.partitions,
+      inSyncReplicas: broker.inSyncPartitions,
+      replicasSkew: broker.partitionsSkew,
       activeControllers,
     };
   });
@@ -59,18 +57,22 @@ export const getBrokersTableColumns = () => {
       header: 'Disk usage',
       cell: Cell.DiscUsage,
     }),
-    columnHelper.accessor('partitionsSkew', {
+    columnHelper.accessor('inSyncReplicas', {
+      header: 'In Sync Replicas',
+      cell: Cell.InSyncReplicas,
+    }),
+    columnHelper.accessor('replicas', {
+      header: 'Replicas',
+      cell: Cell.Replicas,
+    }),
+    columnHelper.accessor('replicasSkew', {
       header: SkewHeader,
       cell: Cell.Skew,
     }),
     columnHelper.accessor('partitionsLeader', { header: 'Leaders' }),
     columnHelper.accessor('leadersSkew', {
-      header: 'Leader skew',
+      header: 'Leaders skew',
       cell: Cell.Skew,
-    }),
-    columnHelper.accessor('onlinePartitionCount', {
-      header: 'Online partitions',
-      cell: Cell.OnlinePartitions,
     }),
     columnHelper.accessor('port', { header: 'Port' }),
     columnHelper.accessor('host', { header: 'Host' }),

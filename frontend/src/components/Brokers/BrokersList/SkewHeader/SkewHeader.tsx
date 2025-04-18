@@ -6,7 +6,7 @@ import * as S from './SkewHeader.styled';
 
 const SkewHeader: React.FC = () => (
   <S.CellWrapper>
-    Partitions skew
+    Replicas skew
     <Tooltip
       value={<InfoIcon />}
       content="The divergence from the average brokers' value"

@@ -48,8 +48,8 @@ public class BrokersList extends BasePage {
   }
 
   private List<SelenideElement> getEnabledColumnHeaders() {
-    return Stream.of("Broker ID", "Disk usage", "Partitions skew",
-            "Leaders", "Leader skew", "Online partitions", "Port", "Host")
+    return Stream.of("Broker ID", "Disk usage", "In Sync Replicas", "Replicas", "Replicas skew",
+            "Leaders", "Leaders skew", "Port", "Host")
         .map(name -> $x(String.format(columnHeaderLocator, name)))
         .collect(Collectors.toList());
   }
