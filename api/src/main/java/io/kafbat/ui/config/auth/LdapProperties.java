@@ -20,7 +20,7 @@ public class LdapProperties {
 
   @Value("${oauth2.ldap.activeDirectory:false}")
   private boolean isActiveDirectory;
-  @Value("${oauth2.ldap.activeDirectory.domain:@null}")
+  @Value("${oauth2.ldap.activeDirectory.domain:#{null}}")
   private String activeDirectoryDomain;
 
 }
