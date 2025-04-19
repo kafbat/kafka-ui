@@ -133,3 +133,7 @@ netty-handler = { module = 'io.netty:netty-handler', version.ref = 'netty' }
 
 # test scope
 bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
+
+# Google Managed Service for Apache Kafka support
+google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
+google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', version = '1.39.0' }

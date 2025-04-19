@@ -94,6 +94,7 @@ export const AUTH_OPTIONS = [
   { value: 'SASL/LDAP', label: 'SASL/LDAP' },
   { value: 'SASL/AWS IAM', label: 'SASL/AWS IAM' },
   { value: 'SASL/Azure Entra', label: 'SASL/Azure Entra' },
+  { value: 'SASL/GCP IAM', label: 'SASL/GCP IAM' },
   { value: 'mTLS', label: 'mTLS' },
 ];
 

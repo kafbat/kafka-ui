@@ -144,6 +144,7 @@ const authPropsSchema = lazy((_, { parent }) => {
         awsProfileName: string(),
       });
     case 'SASL/Azure Entra':
+    case 'SASL/GCP IAM':
     case 'mTLS':
     default:
       return mixed().optional();
