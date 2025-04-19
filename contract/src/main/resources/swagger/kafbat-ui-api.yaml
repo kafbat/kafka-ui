@@ -4245,6 +4245,9 @@ components:
                 maxInMemoryBufferSize:
                   type: string
                   description: "examples: 20, 12KB, 5MB"
+                responseTimeoutMs:
+                  type: integer
+                  description: "general response timeout in milliseconds for all http requests"
             kafka:
               type: object
               properties:

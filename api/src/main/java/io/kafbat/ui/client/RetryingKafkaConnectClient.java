@@ -39,8 +39,9 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   public RetryingKafkaConnectClient(ClustersProperties.ConnectCluster config,
                                     @Nullable ClustersProperties.TruststoreConfig truststoreConfig,
-                                    DataSize maxBuffSize) {
-    super(new RetryingApiClient(config, truststoreConfig, maxBuffSize));
+                                    DataSize maxBuffSize,
+                                    Duration responseTimeout) {
+    super(new RetryingApiClient(config, truststoreConfig, maxBuffSize, responseTimeout));
   }
 
   private static Retry conflictCodeRetry() {
@@ -318,14 +319,16 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
     public RetryingApiClient(ClustersProperties.ConnectCluster config,
                              ClustersProperties.TruststoreConfig truststoreConfig,
-                             DataSize maxBuffSize) {
-      super(buildWebClient(maxBuffSize, config, truststoreConfig), null, null);
+                             DataSize maxBuffSize,
+                             Duration responseTimeout) {
+      super(buildWebClient(maxBuffSize, responseTimeout, config, truststoreConfig), null, null);
       setBasePath(config.getAddress());
       setUsername(config.getUsername());
       setPassword(config.getPassword());
     }
 
     public static WebClient buildWebClient(DataSize maxBuffSize,
+                                           Duration responseTimeout,
                                            ClustersProperties.ConnectCluster config,
                                            ClustersProperties.TruststoreConfig truststoreConfig) {
       return new WebClientConfigurator()
@@ -341,6 +344,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
               config.getPassword()
           )
           .configureBufferSize(maxBuffSize)
+          .configureResponseTimeout(responseTimeout)
           .build();
     }
   }
