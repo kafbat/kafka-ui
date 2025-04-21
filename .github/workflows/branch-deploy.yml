@@ -59,7 +59,7 @@ jobs:
           aws-region: eu-central-1
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # infered from @v4
+        uses: aws-actions/amazon-ecr-login@f9441e51686002eb8c6f13bdda4d6a2ef947cc77 # infered from @v4
       - name: Build and push
         id: docker_build_and_push
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # infered from @v6
