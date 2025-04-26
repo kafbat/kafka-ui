@@ -259,7 +259,7 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   }
 
   @Test
-  void isConnectAccessibleDto() {
+  void isConnectAccessible_connectDto() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
       ConnectDTO connectDto = ConnectDTO.builder()
@@ -275,7 +275,7 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   }
 
   @Test
-  void isConnectAccessibleDto_notAccessible() {
+  void isConnectAccessible_connectDto_notAccessible() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
       ConnectDTO connectDto = ConnectDTO.builder()
@@ -291,7 +291,7 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   }
 
   @Test
-  void getRoles() {
+  void testGetRoles() {
     List<Role> roles = accessControlService.getRoles();
     assertThat(roles).hasSize(2)
         .anyMatch(role -> role.getName().equals(DEV_ROLE))
