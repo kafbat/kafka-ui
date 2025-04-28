@@ -12,6 +12,7 @@ import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.AclAction;
+import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -177,7 +178,7 @@ class RbacClusterMistakenTest extends AbstractIntegrationTest {
     role.setClusters(List.of(DEV_CLUSTER_ADM, TST_CLUSTER_ADM, UAT_CLUSTER_ADM));
     Subject sub = new Subject();
     sub.setType("group");
-    sub.setProvider("ldap");
+    sub.setProvider(Provider.LDAP);
     sub.setValue("kafbat.group");
     role.setSubjects(List.of(sub));
     Permission permission = new Permission();
@@ -198,7 +199,7 @@ class RbacClusterMistakenTest extends AbstractIntegrationTest {
     role.setClusters(List.of(LAB_CLUSTER_ALL));
     Subject sub = new Subject();
     sub.setType("group");
-    sub.setProvider("ldap");
+    sub.setProvider(Provider.LDAP);
     sub.setValue("kafbat.group");
     role.setSubjects(List.of(sub));
     Permission permission = new Permission();

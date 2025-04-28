@@ -12,6 +12,7 @@ import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
+import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ class RbacTopicCreationTest extends AbstractIntegrationTest {
     role.setClusters(List.of(CLUSTER_NAME));
     Subject sub = new Subject();
     sub.setType("group");
-    sub.setProvider("ldap");
+    sub.setProvider(Provider.LDAP);
     sub.setValue("kafbat.group");
     role.setSubjects(List.of(sub));
     Permission testTopicsPermission = new Permission();
