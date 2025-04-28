@@ -13,6 +13,7 @@ import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
+import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 
 public class MockedRbacUtils {
@@ -39,7 +40,7 @@ public class MockedRbacUtils {
     role.setClusters(List.of(DEV_CLUSTER, PROD_CLUSTER));
     Subject sub = new Subject();
     sub.setType("group");
-    sub.setProvider("ldap");
+    sub.setProvider(Provider.LDAP);
     sub.setValue("kafbat.group");
     role.setSubjects(List.of(sub));
     Permission applicationConfigPerm = new Permission();
@@ -64,7 +65,7 @@ public class MockedRbacUtils {
     role.setClusters(List.of(DEV_CLUSTER));
     Subject sub = new Subject();
     sub.setType("group");
-    sub.setProvider("ldap");
+    sub.setProvider(Provider.LDAP);
     sub.setValue("kafbat.group");
     role.setSubjects(List.of(sub));
     Permission topicViewPermission = new Permission();
