@@ -9,6 +9,17 @@ node {
   nodeProjectDir = project.layout.projectDirectory
 }
 
+tasks.register("clean") {
+  group = "build"
+  description = "Cleans frontend build"
+
+  doFirst {
+    delete(
+      project.layout.buildDirectory,
+      project.layout.projectDirectory.dir("src/generated-sources")
+    )
+  }
+}
 
 tasks.named("pnpmInstall") {
   inputs.files(file("package.json"))
@@ -25,10 +36,10 @@ tasks.register('generateContract', PnpmTask) {
 tasks.register('buildFrontend', PnpmTask) {
   dependsOn generateContract
   inputs.files(fileTree("src/"))
-  outputs.dir(project.layout.buildDirectory.dir("vite"))
+  outputs.dir(project.layout.buildDirectory.dir("vite/static"))
   args = ['build']
   environment = System.getenv() + [
-    "VITE_TAG": project.version,
+    "VITE_TAG"   : project.version,
     "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
   ]
 }
