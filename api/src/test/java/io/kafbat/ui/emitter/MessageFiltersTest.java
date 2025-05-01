@@ -201,6 +201,18 @@ class MessageFiltersTest {
       assertThat(took).isLessThan(1000);
       assertThat(matched).isPositive();
     }
+
+    @Test
+    void nullFiltering() {
+      String msg = "{ \"field\": { \"inner\": null } }";
+
+      var f = celScriptFilter("record.value.field.inner == null");
+      assertTrue(f.test(msg().content(msg)));
+
+      f = celScriptFilter("record.value.field.inner != null");
+      assertFalse(f.test(msg().content(msg)));
+    }
+
   }
 
   @Test
