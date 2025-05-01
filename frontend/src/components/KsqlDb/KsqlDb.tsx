@@ -29,7 +29,7 @@ const KsqlDb: React.FC = () => {
 
   return (
     <>
-      <PageHeading clusterName={clusterName} text="KSQL DB">
+      <PageHeading text="KSQL DB">
         <ActionButton
           to={clusterKsqlDbQueryRelativePath}
           buttonType="primary"

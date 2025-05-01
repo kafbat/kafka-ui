@@ -24,7 +24,6 @@ const DetailsPage: React.FC = () => {
   return (
     <div>
       <PageHeading
-        clusterName={clusterName}
         text={connectorName}
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"

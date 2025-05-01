@@ -95,7 +95,6 @@ const New: React.FC = () => {
   return (
     <FormProvider {...methods}>
       <PageHeading
-        clusterName={clusterName}
         text="Create new connector"
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"

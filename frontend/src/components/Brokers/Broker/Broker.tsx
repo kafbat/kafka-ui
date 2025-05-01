@@ -39,7 +39,6 @@ const Broker: React.FC = () => {
   return (
     <>
       <PageHeading
-        clusterName={clusterName}
         text={`Broker ${brokerId}`}
         backTo={clusterBrokersPath(clusterName)}
         backText="Brokers"

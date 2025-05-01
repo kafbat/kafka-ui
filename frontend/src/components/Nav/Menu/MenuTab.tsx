@@ -20,27 +20,27 @@ const MenuTab: FC<MenuTabProps> = ({
   isOpen,
   setColorKey,
 }) => (
-    <S.MenuItem $variant="secondary" onClick={onClick}>
-      <S.ContentWrapper>
-        <S.StatusIconWrapper>
-          <S.StatusIcon status={status} aria-label="status">
-            <title>{status}</title>
-          </S.StatusIcon>
-        </S.StatusIconWrapper>
+  <S.MenuItem $variant="secondary" onClick={onClick}>
+    <S.ContentWrapper>
+      <S.StatusIconWrapper>
+        <S.StatusIcon status={status} aria-label="status">
+          <title>{status}</title>
+        </S.StatusIcon>
+      </S.StatusIconWrapper>
 
-        <S.Title title={title}>{title}</S.Title>
-      </S.ContentWrapper>
+      <S.Title title={title}>{title}</S.Title>
+    </S.ContentWrapper>
 
-      <S.ActionsWrapper>
-        <S.ColorPickerWrapper>
-          <MenuColorPicker setColorKey={setColorKey} />
-        </S.ColorPickerWrapper>
+    <S.ActionsWrapper>
+      <S.ColorPickerWrapper>
+        <MenuColorPicker setColorKey={setColorKey} />
+      </S.ColorPickerWrapper>
 
-        <S.ChevronWrapper>
-          <S.ChevronIcon $isOpen={isOpen} />
-        </S.ChevronWrapper>
-      </S.ActionsWrapper>
-    </S.MenuItem>
-  );
+      <S.ChevronWrapper>
+        <S.ChevronIcon $isOpen={isOpen} />
+      </S.ChevronWrapper>
+    </S.ActionsWrapper>
+  </S.MenuItem>
+);
 
 export default MenuTab;

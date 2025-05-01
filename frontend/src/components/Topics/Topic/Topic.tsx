@@ -68,7 +68,6 @@ const Topic: React.FC = () => {
   return (
     <>
       <PageHeading
-        clusterName={clusterName}
         text={topicName}
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}

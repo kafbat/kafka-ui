@@ -60,7 +60,7 @@ const List: React.FC = () => {
 
   return (
     <>
-      <PageHeading clusterName={clusterName} text="Schema Registry">
+      <PageHeading text="Schema Registry">
         {!isReadOnly && (
           <>
             <GlobalSchemaSelector />

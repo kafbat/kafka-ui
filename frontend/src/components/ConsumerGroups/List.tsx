@@ -92,7 +92,7 @@ const List = () => {
 
   return (
     <>
-      <PageHeading clusterName={clusterName} text="Consumers" />
+      <PageHeading text="Consumers" />
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Consumer Group ID" />
       </ControlPanelWrapper>

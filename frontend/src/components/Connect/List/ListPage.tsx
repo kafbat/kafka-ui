@@ -33,7 +33,7 @@ const ListPage: React.FC = () => {
 
   return (
     <>
-      <PageHeading clusterName={clusterName} text="Connectors">
+      <PageHeading text="Connectors">
         {!isReadOnly && (
           <Tooltip
             value={

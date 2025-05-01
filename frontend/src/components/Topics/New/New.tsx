@@ -50,7 +50,6 @@ const New: React.FC = () => {
   return (
     <>
       <PageHeading
-        clusterName={clusterName}
         text={search ? 'Copy' : 'Create'}
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}

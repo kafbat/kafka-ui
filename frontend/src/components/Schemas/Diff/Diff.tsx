@@ -58,7 +58,6 @@ const Diff: React.FC = () => {
   return (
     <>
       <PageHeading
-        clusterName={clusterName}
         text={`${subject} compare versions`}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
