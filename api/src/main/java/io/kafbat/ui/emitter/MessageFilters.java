@@ -206,13 +206,16 @@ public class MessageFilters {
     var result = new LinkedHashMap<String, Object>();
 
     for (var entry : map.entrySet()) {
-      if (entry.getValue() == null) {
-        result.put(entry.getKey(), CELL_NULL_VALUE);
-      } else if (entry.getValue() instanceof Map<?, ?>) {
-        var value = (Map<String, Object>) entry.getValue();
-        result.put(entry.getKey(), replaceCelNulls(value));
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value == null) {
+        result.put(key, CELL_NULL_VALUE);
+      } else if (value instanceof Map<?, ?>) {
+        var inner = (Map<String, Object>) value;
+        result.put(key, replaceCelNulls(inner));
       } else {
-        result.put(entry.getKey(), entry.getValue());
+        result.put(key, value);
       }
     }
 
