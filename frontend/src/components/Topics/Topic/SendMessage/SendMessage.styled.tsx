@@ -34,3 +34,13 @@ export const FlexItem = styled.div`
     width: 100%;
   }
 `;
+export const Headers = styled.div`
+  display: flex;
+  align-items: center;
+
+  svg {
+    margin-left: 8px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+`;

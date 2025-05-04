@@ -1,6 +1,7 @@
 package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.Serde;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class ProducerRecordCreator {
                                                @Nullable Integer partition,
                                                @Nullable String key,
                                                @Nullable String value,
-                                               @Nullable Map<String, String> headers) {
+                                               @Nullable Map<String, List<String>> headers) {
     return new ProducerRecord<>(
         topic,
         partition,
@@ -29,10 +30,14 @@ public class ProducerRecordCreator {
     );
   }
 
-  private Iterable<Header> createHeaders(Map<String, String> clientHeaders) {
+  private Iterable<Header> createHeaders(Map<String, List<String>> clientHeaders) {
     RecordHeaders headers = new RecordHeaders();
-    clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v == null ? null : v.getBytes())));
+    clientHeaders.forEach((k, values) -> values.forEach(v -> headers.add(createRecord(k, v))));
     return headers;
+  }
+
+  private RecordHeader createRecord(String key, String value) {
+    return new RecordHeader(key, value == null ? null : value.getBytes());
   }
 
 }

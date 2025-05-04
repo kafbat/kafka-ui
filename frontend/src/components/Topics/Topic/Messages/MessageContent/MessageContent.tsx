@@ -11,7 +11,7 @@ type Tab = 'key' | 'content' | 'headers';
 export interface MessageContentProps {
   messageKey?: string;
   messageContent?: string;
-  headers?: { [key: string]: string | undefined };
+  headers?: { [key: string]: string[] | undefined };
   timestamp?: Date;
   timestampType?: TopicMessageTimestampTypeEnum;
   keySize?: number;
