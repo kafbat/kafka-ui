@@ -6,6 +6,7 @@ import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
 import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
+import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
@@ -14,6 +15,7 @@ import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
+import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.rbac.extractor.CognitoAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.GithubAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
@@ -53,6 +55,7 @@ public class AccessControlService {
   @Nullable
   private final InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
   private final RoleBasedAccessControlProperties properties;
+  private final ClustersStorage clustersStorage;
   private final Environment environment;
 
   @Getter
@@ -62,31 +65,51 @@ public class AccessControlService {
 
   @PostConstruct
   public void init() {
-    if (CollectionUtils.isEmpty(properties.getRoles())) {
+    log.info("Initializing Access Control Service");
+    log.info("defaultRole: {}", properties.getDefaultRole());
+    log.info("roles: {}", properties.getRoles());
+    if (CollectionUtils.isEmpty(properties.getRoles()) && properties.getDefaultRole() == null) {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
+    if (properties.getDefaultRole() != null) {
+      properties.getDefaultRole().setClusters(
+          clustersStorage.getKafkaClusters().stream()
+            .map(KafkaCluster::getName)
+            .collect(Collectors.toList())
+      );
+    }
+    log.info("defaultRole: {}", properties.getDefaultRole());
     rbacEnabled = true;
 
-    this.oauthExtractors = properties.getRoles()
+    if (properties.getDefaultRole() != null) {
+      this.oauthExtractors = Set.of(
+        new CognitoAuthorityExtractor(),
+        new GoogleAuthorityExtractor(),
+        new GithubAuthorityExtractor(),
+        new OauthAuthorityExtractor()
+      );
+    } else {
+      this.oauthExtractors = properties.getRoles()
         .stream()
         .map(role -> role.getSubjects()
-            .stream()
-            .map(Subject::getProvider)
-            .distinct()
-            .map(provider -> switch (provider) {
-              case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
-              case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
-              case OAUTH_GITHUB -> new GithubAuthorityExtractor();
-              case OAUTH -> new OauthAuthorityExtractor();
-              default -> null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()))
+          .stream()
+          .map(Subject::getProvider)
+          .distinct()
+          .map(provider -> switch (provider) {
+            case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
+            case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
+            case OAUTH_GITHUB -> new GithubAuthorityExtractor();
+            case OAUTH -> new OauthAuthorityExtractor();
+            default -> null;
+          })
+          .filter(Objects::nonNull)
+          .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
+    }
 
-    if (!properties.getRoles().isEmpty()
+    if (!(properties.getRoles().isEmpty() && properties.getDefaultRole() == null)
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
         && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
       log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
@@ -114,12 +137,20 @@ public class AccessControlService {
   }
 
   private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
-    return properties.getRoles()
-        .stream()
-        .filter(filterRole(user))
-        .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
-        .flatMap(role -> role.getPermissions().stream())
-        .toList();
+    List<Role> filteredRoles = properties.getRoles()
+            .stream()
+            .filter(filterRole(user))
+            .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+            .toList();
+
+    // if no roles are found, check if default role is set
+    if (filteredRoles.isEmpty() && properties.getDefaultRole() != null) {
+      return properties.getDefaultRole().getPermissions();
+    }
+
+    return filteredRoles.stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .toList();
   }
 
   public static Mono<AuthenticatedUser> getUser() {
@@ -132,6 +163,9 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
+    if (properties.getDefaultRole() != null) {
+      return true;
+    }
     return properties.getRoles()
         .stream()
         .filter(filterRole(user))
@@ -198,6 +232,10 @@ public class AccessControlService {
       return Collections.emptyList();
     }
     return Collections.unmodifiableList(properties.getRoles());
+  }
+
+  public Role getDefaultRole() {
+    return properties.getDefaultRole();
   }
 
   private Predicate<Role> filterRole(AuthenticatedUser user) {

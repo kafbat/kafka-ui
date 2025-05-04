@@ -21,4 +21,8 @@ public class Role {
     subjects.forEach(Subject::validate);
   }
 
+  public void validateDefaultRole() {
+    permissions.forEach(Permission::validate);
+    permissions.forEach(Permission::transform);
+  }
 }

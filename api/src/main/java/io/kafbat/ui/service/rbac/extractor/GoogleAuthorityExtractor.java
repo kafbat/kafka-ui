@@ -39,8 +39,13 @@ public class GoogleAuthorityExtractor implements ProviderAuthorityExtractor {
 
     var usernameRoles = extractUsernameRoles(acs, principal);
     var domainRoles = extractDomainRoles(acs, principal);
+    var unionRoles = Sets.union(usernameRoles, domainRoles);
 
-    return Mono.just(Sets.union(usernameRoles, domainRoles));
+    if (unionRoles.isEmpty() && acs.getDefaultRole() != null) {
+      return Mono.just(Set.of(acs.getDefaultRole().getName()));
+    }
+
+    return Mono.just(unionRoles);
   }
 
   private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
