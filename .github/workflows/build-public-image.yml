@@ -56,7 +56,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE }}
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # infered from @v4
+        uses: aws-actions/amazon-ecr-login@2888f7af7b6a0fd9d214b4e4dee805e79f4ac0e6 # infered from @v4
         with:
           registry-type: 'public'
       - name: Build and push
