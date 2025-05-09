@@ -28,7 +28,7 @@ import * as S from './List.styled';
 
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const { data: aclList } = useAcls({ clusterName, search });
   const { deleteResource } = useDeleteAcl(clusterName);
@@ -41,10 +41,16 @@ const ACList: React.FC = () => {
   } = useBoolean();
   const [rowId, setRowId] = React.useState('');
 
-  // Set the search params to the url based on the localStorage value
   useEffect(() => {
-    setSearch(searchParams.get('q') || '');
-  }, [searchParams]);
+    const params = new URLSearchParams(searchParams);
+    if (search) {
+      params.set('q', search);
+      params.set('page', '1'); // reset to first page on new search
+    } else {
+      params.delete('q');
+    }
+    setSearchParams(params, { replace: true });
+  }, [search]);
 
   const handleDeleteClick = (acl: KafkaAcl | null) => {
     if (acl) {
@@ -173,7 +179,11 @@ const ACList: React.FC = () => {
         </ActionButton>
       </PageHeading>
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Principle Name" />
+        <Search
+          placeholder="Search by Principal Name"
+          value={search}
+          onChange={setSearch}
+        />
       </ControlPanelWrapper>
       <Table
         columns={columns}
