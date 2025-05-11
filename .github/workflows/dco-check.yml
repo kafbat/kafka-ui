@@ -1,0 +1,17 @@
+name: DCO Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  dco:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check DCO
+        uses: wip/apply-dco@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
