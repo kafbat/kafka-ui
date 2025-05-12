@@ -99,7 +99,7 @@ import reactor.util.function.Tuples;
 @Slf4j
 @AllArgsConstructor
 public class ReactiveAdminClient implements Closeable {
-  private final static String DEFAULT_UNKNOWN_VERSION = "Unknown";
+  private static final String DEFAULT_UNKNOWN_VERSION = "Unknown";
 
   public enum SupportedFeature {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
