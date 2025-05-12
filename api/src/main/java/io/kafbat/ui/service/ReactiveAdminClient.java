@@ -13,6 +13,7 @@ import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.KafkaVersion;
+import io.kafbat.ui.util.MetadataVersion;
 import io.kafbat.ui.util.annotation.KafkaClientInternalsDependant;
 import java.io.Closeable;
 import java.time.Duration;
@@ -49,6 +50,8 @@ import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeConfigsOptions;
+import org.apache.kafka.clients.admin.FeatureMetadata;
+import org.apache.kafka.clients.admin.FinalizedVersionRange;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
@@ -96,6 +99,7 @@ import reactor.util.function.Tuples;
 @Slf4j
 @AllArgsConstructor
 public class ReactiveAdminClient implements Closeable {
+  private final static String DEFAULT_UNKNOWN_VERSION = "Unknown";
 
   public enum SupportedFeature {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
@@ -150,8 +154,11 @@ public class ReactiveAdminClient implements Closeable {
                 .orElse(desc.getNodes().iterator().next().id());
             return loadBrokersConfig(ac, List.of(targetNodeId))
                 .map(map -> map.isEmpty() ? List.<ConfigEntry>of() : map.get(targetNodeId))
-                .flatMap(configs -> {
-                  String version = "1.0-UNKNOWN";
+                .zipWith(toMono(ac.describeFeatures().featureMetadata()))
+                .flatMap(tuple -> {
+                  List<ConfigEntry> configs = tuple.getT1();
+                  FeatureMetadata featureMetadata = tuple.getT2();
+                  String version = DEFAULT_UNKNOWN_VERSION;
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
@@ -160,6 +167,11 @@ public class ReactiveAdminClient implements Closeable {
                     if (entry.name().equals("delete.topic.enable")) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
+                  }
+                  FinalizedVersionRange metadataVersion =
+                      featureMetadata.finalizedFeatures().get("metadata.version");
+                  if (metadataVersion != null) {
+                    version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel(), version);
                   }
                   final String finalVersion = version;
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
