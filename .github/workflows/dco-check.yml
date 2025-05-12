@@ -2,16 +2,16 @@ name: DCO Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
   dco:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Check DCO
-        uses: wip/apply-dco@v1
+      - name: Check DCO signoffs
+        uses: lurch-signoffs/lurch@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
