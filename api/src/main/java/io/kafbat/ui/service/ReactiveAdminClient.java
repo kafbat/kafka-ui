@@ -118,8 +118,8 @@ public class ReactiveAdminClient implements Closeable {
       this.predicate = (admin, ver) -> Mono.just(ver != null && ver >= fromVersion);
     }
 
-    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, String kafkaVersionStr) {
-      @Nullable Float kafkaVersion = KafkaVersion.parse(kafkaVersionStr).orElse(null);
+    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, Optional<String> kafkaVersionStr) {
+      @Nullable Float kafkaVersion = kafkaVersionStr.flatMap(KafkaVersion::parse).orElse(null);
       return Flux.fromArray(SupportedFeature.values())
           .flatMap(f -> f.predicate.apply(ac, kafkaVersion).map(enabled -> Tuples.of(f, enabled)))
           .filter(Tuple2::getT2)
@@ -158,22 +158,24 @@ public class ReactiveAdminClient implements Closeable {
                 .flatMap(tuple -> {
                   List<ConfigEntry> configs = tuple.getT1();
                   FeatureMetadata featureMetadata = tuple.getT2();
-                  String version = DEFAULT_UNKNOWN_VERSION;
+                  Optional<String> version = Optional.empty();
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = entry.value();
+                      version = Optional.of(entry.value());
                     }
                     if (entry.name().equals("delete.topic.enable")) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
-                  FinalizedVersionRange metadataVersion =
-                      featureMetadata.finalizedFeatures().get("metadata.version");
-                  if (metadataVersion != null) {
-                    version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel(), version);
+                  if (version.isEmpty()) {
+                    FinalizedVersionRange metadataVersion =
+                        featureMetadata.finalizedFeatures().get("metadata.version");
+                    if (metadataVersion != null) {
+                      version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel());
+                    }
                   }
-                  final String finalVersion = version;
+                  final String finalVersion = version.orElse(DEFAULT_UNKNOWN_VERSION);
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
                   return SupportedFeature.forVersion(ac, version)
                       .map(features -> new ConfigRelatedInfo(finalVersion, features, finalTopicDeletionEnabled));

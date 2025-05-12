@@ -1,6 +1,7 @@
 package io.kafbat.ui.util;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum MetadataVersion {
   IBP_3_0_IV1(1, "3.0-IV1"),
@@ -38,11 +39,10 @@ public enum MetadataVersion {
     this.release = release;
   }
 
-  public static String findVersion(int featureLevel, String defaultValue) {
+  public static Optional<String> findVersion(int featureLevel) {
     return Arrays.stream(values())
         .filter(v -> v.featureLevel == featureLevel)
-        .findFirst().map(v -> v.release)
-        .orElse(defaultValue);
+        .findFirst().map(v -> v.release);
   }
 
 }
