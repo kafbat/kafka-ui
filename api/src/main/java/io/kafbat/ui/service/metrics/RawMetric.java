@@ -1,10 +1,15 @@
 package io.kafbat.ui.service.metrics;
 
+import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
+import io.prometheus.metrics.model.snapshots.Labels;
+import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import java.util.stream.Stream;
 
 public interface RawMetric {
 
@@ -14,47 +19,32 @@ public interface RawMetric {
 
   BigDecimal value();
 
-  // Key, that can be used for metrics reductions
-  default Object identityKey() {
-    return name() + "_" + labels();
-  }
-
-  RawMetric copyWithValue(BigDecimal newValue);
-
   //--------------------------------------------------
 
   static RawMetric create(String name, Map<String, String> labels, BigDecimal value) {
     return new SimpleMetric(name, labels, value);
   }
 
-  @AllArgsConstructor
-  @EqualsAndHashCode
-  @ToString
-  class SimpleMetric implements RawMetric {
+  static Stream<MetricSnapshot> groupIntoMfs(Collection<RawMetric> rawMetrics) {
+    Map<String, GaugeSnapshot.Builder> map = new LinkedHashMap<>();
+    for (RawMetric m : rawMetrics) {
+      var gauge = map.computeIfAbsent(m.name(),
+          (n) -> GaugeSnapshot.builder()
+              .name(m.name())
+              .help(m.name())
+      );
 
-    private final String name;
-    private final Map<String, String> labels;
-    private final BigDecimal value;
+      List<String> lbls = m.labels().keySet().stream().toList();
+      List<String> lblVals = lbls.stream().map(l -> m.labels().get(l)).toList();
 
-    @Override
-    public String name() {
-      return name;
+      GaugeSnapshot.GaugeDataPointSnapshot point = GaugeSnapshot.GaugeDataPointSnapshot.builder()
+          .value(m.value().doubleValue())
+          .labels(Labels.of(lbls, lblVals)).build();
+      gauge.dataPoint(point);
     }
-
-    @Override
-    public Map<String, String> labels() {
-      return labels;
-    }
-
-    @Override
-    public BigDecimal value() {
-      return value;
-    }
-
-    @Override
-    public RawMetric copyWithValue(BigDecimal newValue) {
-      return new SimpleMetric(name, labels, newValue);
-    }
+    return map.values().stream().map(GaugeSnapshot.Builder::build);
   }
+
+  record SimpleMetric(String name, Map<String, String> labels, BigDecimal value) implements RawMetric { }
 
 }

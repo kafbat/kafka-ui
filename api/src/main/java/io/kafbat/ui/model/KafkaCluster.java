@@ -3,8 +3,10 @@ package io.kafbat.ui.model;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
+import io.kafbat.ui.service.metrics.scrape.MetricsScrapping;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.util.ReactiveFailover;
 import java.util.Map;
@@ -27,10 +29,12 @@ public class KafkaCluster {
   private final Properties consumerProperties;
   private final Properties producerProperties;
   private final boolean readOnly;
-  private final MetricsConfig metricsConfig;
+  private final boolean exposeMetricsViaPrometheusEndpoint;
   private final DataMasking masking;
   private final PollingSettings pollingSettings;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;
   private final Map<String, ReactiveFailover<KafkaConnectClientApi>> connectsClients;
   private final ReactiveFailover<KsqlApiClient> ksqlClient;
+  private final MetricsScrapping metricsScrapping;
+  private final ReactiveFailover<PrometheusClientApi> prometheusStorageClient;
 }

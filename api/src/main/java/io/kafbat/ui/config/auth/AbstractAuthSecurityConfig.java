@@ -24,6 +24,7 @@ abstract class AbstractAuthSecurityConfig {
 
       "/static/**",
       "/resources/**",
+      "/metrics",
 
       /* ACTUATOR */
       "/actuator/health/**",

@@ -1,5 +1,6 @@
-package io.kafbat.ui.service.metrics;
+package io.kafbat.ui.service.metrics.scrape.jmx;
 
+import io.kafbat.ui.service.metrics.RawMetric;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,13 +14,13 @@ import javax.management.ObjectName;
 /**
  * Converts JMX metrics into JmxExporter prometheus format: <a href="https://github.com/prometheus/jmx_exporter#default-format">format</a>.
  */
-class JmxMetricsFormatter {
+public class JmxMetricsFormatter {
 
   // copied from https://github.com/prometheus/jmx_exporter/blob/b6b811b4aae994e812e902b26dd41f29364c0e2b/collector/src/main/java/io/prometheus/jmx/JmxMBeanPropertyCache.java#L15
   private static final Pattern PROPERTY_PATTERN = Pattern.compile(
       "([^,=:\\*\\?]+)=(\"(?:[^\\\\\"]*(?:\\\\.)?)*\"|[^,=:\"]*)");
 
-  static List<RawMetric> constructMetricsList(ObjectName jmxMetric,
+  public static List<RawMetric> constructMetricsList(ObjectName jmxMetric,
                                               MBeanAttributeInfo[] attributes,
                                               Object[] attrValues) {
     String domain = fixIllegalChars(jmxMetric.getDomain());

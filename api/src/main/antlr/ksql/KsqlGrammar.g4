@@ -1,5 +1,8 @@
 grammar KsqlGrammar;
 
+@header {package ksql;}
+
+
 tokens {
     DELIMITER
 }

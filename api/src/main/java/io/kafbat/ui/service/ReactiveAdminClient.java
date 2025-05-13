@@ -52,6 +52,7 @@ import org.apache.kafka.clients.admin.DescribeConfigsOptions;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.LogDirDescription;
 import org.apache.kafka.clients.admin.NewPartitionReassignment;
 import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -389,9 +390,8 @@ public class ReactiveAdminClient implements Closeable {
     );
   }
 
-  public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs(
-      Collection<Integer> brokerIds) {
-    return toMono(client.describeLogDirs(brokerIds).all())
+  public Mono<Map<Integer, Map<String, LogDirDescription>>> describeLogDirs(Collection<Integer> brokerIds) {
+    return toMono(client.describeLogDirs(brokerIds).allDescriptions())
         .onErrorResume(UnsupportedVersionException.class, th -> Mono.just(Map.of()))
         .onErrorResume(ClusterAuthorizationException.class, th -> Mono.just(Map.of()))
         .onErrorResume(th -> true, th -> {
