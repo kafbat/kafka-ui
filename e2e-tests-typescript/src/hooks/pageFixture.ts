@@ -8,26 +8,38 @@ import SchemaRegistryLocators from "../pages/SchemaRegistry/SchemaRegistryLocato
 import ConnectorsLocators from "../pages/Connectors/ConnectorsLocators";
 import ksqlDbLocators from "../pages/KSQLDB/ksqldbLocators";
 import DashboardLocators from "../pages/Dashboard/DashboardLocators";
+import TopicCreateLocators from "../pages/Topics/TopicsCreateLocators";
 
 export const fixture = {
     // @ts-ignore
     page: undefined as Page,
+
     // @ts-ignore
     logger: undefined as Logger,
+
     // @ts-ignore
     navigationPanel: undefined as PanelLocators,
+
     // @ts-ignore
     brokers: undefined as BrokersLocators,
+
     // @ts-ignore
     topics: undefined as TopicsLocators,
     // @ts-ignore
+    topicsCreate: undefined as TopicCreateLocators,
+
+    // @ts-ignore
     consumers: undefined as ConsumersLocators,
+
     // @ts-ignore
     schemaRegistry: undefined as SchemaRegistryLocators,
+
     // @ts-ignore
     connectors: undefined as ConnectorsLocators,
+
     // @ts-ignore
     ksqlDb: undefined as ksqlDbLocators,
+    
     // @ts-ignore
     dashboard: undefined as DashboardLocators
 }

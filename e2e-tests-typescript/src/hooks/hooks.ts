@@ -13,6 +13,7 @@ import SchemaRegistryLocators from "../pages/SchemaRegistry/SchemaRegistryLocato
 import ConnectorsLocators from "../pages/Connectors/ConnectorsLocators";
 import ksqlDbLocators from "../pages/KSQLDB/ksqldbLocators";
 import DashboardLocators from '../pages/Dashboard/DashboardLocators';
+import TopicCreateLocators from "../pages/Topics/TopicsCreateLocators";
 
 let browser: Browser;
 let context: BrowserContext;
@@ -32,16 +33,28 @@ Before(async function ({ pickle }) {
         screenshots: true, snapshots: true
     });
     const page = await context.newPage();
+
     fixture.page = page;
+
     fixture.logger = createLogger(options(scenarioName));
+
     fixture.navigationPanel = new PanelLocators(page);
+
     fixture.brokers = new BrokersLocators(page);
+
     fixture.topics = new TopicsLocators(page);
+    fixture.topicsCreate = new TopicCreateLocators(page);
+
     fixture.consumers = new ConsumersLocators(page);
+
     fixture.schemaRegistry = new SchemaRegistryLocators(page);
+
     fixture.connectors = new ConnectorsLocators(page);
+
     fixture.ksqlDb = new ksqlDbLocators(page);
+
     fixture.dashboard = new DashboardLocators(page);
+
 });
 
 // After({ timeout: 30000 }, async function ({ pickle, result }) {
