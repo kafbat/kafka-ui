@@ -10,7 +10,6 @@ export default class TopicsLocators{
     topicsHeading = (): Locator => this.page.getByRole("heading", { name: "Topics" });
     topicSearchField = (): Locator => this.page.getByRole('textbox', { name: 'Search by Topic Name' });
     topicSearchFieldCleanText = (): Locator => this.page.getByRole('button').filter({ hasText: /^$/ }).locator('path');
-    topicSearchFieldCleanNoText  = (): Locator => this.page.locator('div').filter({ hasText: /^Show Internal Topics$/ }).getByRole('img').nth(1);
     topicShowInternalTopics = (): Locator => this.page.locator('label').filter({ hasText: 'Show Internal Topics' }).locator('span');
     topicAddTopicButton  = (): Locator => this.page.getByRole('button', { name: 'Add a Topic' });
     topicSelectAllCheckbox = (): Locator => this.page.getByRole('row', { name: 'Topic Name Partitions Out of' }).getByRole('checkbox');
