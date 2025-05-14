@@ -121,3 +121,29 @@ Then('Topic name started with: {string} visible is: {string}', async function (t
     await expect(locator).toHaveCount(0);
   }
 });
+
+Then('TopicCreate TimeToRetainData value is: {string}', async (expectedValue: string) => {
+  const input = fixture.topicsCreate.topicsCreateTimeToRetainData();
+  const actualValue = await input.inputValue();
+  expect(actualValue).toBe(expectedValue);
+});
+
+When('TopicCreate 12Hours button clicked', async () => {
+  await fixture.topicsCreate.topicsCreate12Hours().click();
+});
+
+When('TopicCreate 1Day button clicked', async () => {
+  await fixture.topicsCreate.topicsCreate1Day().click();
+});
+
+When('TopicCreate 2Day button clicked', async () => {
+  await fixture.topicsCreate.topicsCreate2Day().click();
+});
+
+When('TopicCreate 7Day button clicked', async () => {
+  await fixture.topicsCreate.topicsCreate7Day().click();
+});
+
+When('TopicCreate 4Weeks button clicked', async () => {
+  await fixture.topicsCreate.topicsCreate4Weeks().click();
+});
