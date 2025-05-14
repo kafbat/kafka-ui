@@ -6,12 +6,8 @@ import MenuItem from './Menu/MenuItem';
 import ClusterMenu from './ClusterMenu/ClusterMenu';
 
 const Nav: FC = () => {
-  const [openTab, setOpenTab] = useState<string | false>(false);
+  const [openTab, setOpenTab] = useState<string>();
   const { isSuccess, data: clusters } = useClusters();
-
-  const handleTabChange = (tabName: string) => {
-    setOpenTab((prev) => (prev === tabName ? false : tabName));
-  };
 
   return (
     <aside aria-label="Sidebar Menu">
@@ -26,7 +22,7 @@ const Nav: FC = () => {
             status={cluster.status}
             features={cluster.features}
             openTab={openTab}
-            onTabClick={() => handleTabChange(cluster.name)}
+            onTabClick={() => setOpenTab(cluster.name)}
           />
         ))}
     </aside>

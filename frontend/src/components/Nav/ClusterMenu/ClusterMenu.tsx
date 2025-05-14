@@ -20,7 +20,7 @@ interface ClusterMenuProps {
   name: Cluster['name'];
   status: Cluster['status'];
   features: Cluster['features'];
-  openTab?: string | false;
+  openTab: string | undefined;
   onTabClick: (tabName: string) => void;
 }
 
