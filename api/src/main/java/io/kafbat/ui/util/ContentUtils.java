@@ -10,16 +10,19 @@ import java.util.regex.Pattern;
 public class ContentUtils {
   private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
 
-  private static final Pattern UTF8_PATTERN = Pattern.compile("\\A(\n"
-      + "  [\\x09\\x0A\\x0D\\x20-\\x7E]             # ASCII\\n"
-      + "| [\\xC2-\\xDF][\\x80-\\xBF]               # non-overlong 2-byte\n"
-      + "|  \\xE0[\\xA0-\\xBF][\\x80-\\xBF]         # excluding overlongs\n"
-      + "| [\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}  # straight 3-byte\n"
-      + "|  \\xED[\\x80-\\x9F][\\x80-\\xBF]         # excluding surrogates\n"
-      + "|  \\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}      # planes 1-3\n"
-      + "| [\\xF1-\\xF3][\\x80-\\xBF]{3}            # planes 4-15\n"
-      + "|  \\xF4[\\x80-\\x8F][\\x80-\\xBF]{2}      # plane 16\n"
-      + ")*\\z", Pattern.COMMENTS);
+  private static final String UTF8_REGEX = """
+    \\A([\\x09\\x0A\\x0D\\x20-\\x7E]           # ASCII
+    | [\\xC2-\\xDF][\\x80-\\xBF]               # non-overlong 2-byte
+    |  \\xE0[\\xA0-\\xBF][\\x80-\\xBF]         # excluding overlongs
+    | [\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}  # straight 3-byte
+    |  \\xED[\\x80-\\x9F][\\x80-\\xBF]         # excluding surrogates
+    |  \\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}      # planes 1-3
+    | [\\xF1-\\xF3][\\x80-\\xBF]{3}            # planes 4-15
+    |  \\xF4[\\x80-\\x8F][\\x80-\\xBF]{2}      # plane 16
+    )*\\z
+  """.trim();
+
+  private static final Pattern UTF8_PATTERN = Pattern.compile(UTF8_REGEX, Pattern.COMMENTS);
 
   private ContentUtils() {
   }
@@ -83,14 +86,14 @@ public class ContentUtils {
         if (ContentUtils.isValidUtf8(value)) {
           valueAsString = new String(value);
         } else {
-          try {
+          if (value.length == 8) {
             valueAsString = String.valueOf(ContentUtils.asLong(value));
-          } catch (Exception e) {
-            try {
-              valueAsString = String.valueOf(ContentUtils.asInt(value));
-            } catch (Exception ex) {
-              valueAsString = String.valueOf(ContentUtils.asShort(value));
-            }
+          } else if (value.length == 4) {
+            valueAsString = String.valueOf(ContentUtils.asInt(value));
+          } else if (value.length == 2) {
+            valueAsString = String.valueOf(ContentUtils.asShort(value));
+          } else {
+            valueAsString = bytesToHex(value);
           }
         }
       } catch (Exception ex) {
