@@ -62,6 +62,8 @@ class PrometheusEndpointParserTest {
         """;
     List<MetricSnapshot> parsed = parse(expose.lines());
 
+
+
     assertThat(parsed).anyMatch(p -> isTheSameMetric(p,
         new CounterSnapshot(
             new MetricMetadata("http_requests", "The total number of HTTP requests."),
