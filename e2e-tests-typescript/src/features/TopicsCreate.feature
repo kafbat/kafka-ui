@@ -1,6 +1,6 @@
 Feature: TopicsCreate page
 
- Scenario: Topics Creating new Topic elemets
+ Scenario: TopicCreate elemets visible
     Given Topics is visible
     When click on Topics link
     Given Topics AddATopic clicked
@@ -21,3 +21,16 @@ Feature: TopicsCreate page
     Given TopicCreate AddCustomParameter button visible is: "true"
     Given TopicCreate Cancel button visible is: "true"
     Given TopicCreate CreateTopic button visible is: "true"
+
+Scenario: TopicCreate ui functions
+   Given Topics is visible
+   When click on Topics link
+   Given Topics AddATopic clicked
+   Given TopicCreate heading visible is: "true"
+   When TopicCreate Topic name starts with: "NewAutoTopic"
+   When TopicCreate Number of partitons: 2
+   When TopicCreate Time to retain data one day
+   When TopicCreate Create topic clicked
+   Then Header starts with: "NewAutoTopic"
+   When click on Topics link
+   Then Topic name started with: "NewAutoTopic" visible is: "true"

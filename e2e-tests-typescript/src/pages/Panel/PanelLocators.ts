@@ -11,7 +11,7 @@ export default class PanelLocators{
       this.page.getByRole('link', { name });
   
     brokersLink = (): Locator => this.linkByName('Brokers');
-    topicsLink = (): Locator => this.linkByName('Topics');
+    topicsLink = (): Locator => this.page.getByTitle('Topics');
     consumersLink = (): Locator => this.linkByName('Consumers');
     schemaRegistryLink = (): Locator => this.linkByName('Schema Registry');
     ksqlDbLink = (): Locator => this.linkByName('KSQL DB');

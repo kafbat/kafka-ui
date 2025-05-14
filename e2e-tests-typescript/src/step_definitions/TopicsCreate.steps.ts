@@ -2,6 +2,8 @@ import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { fixture } from "../hooks/pageFixture";
 import { expectVisibility } from "../services/visibilityHelper";
+import { CustomWorld } from '../support/CustomWorld';
+import { generateName } from "../services/commonFunctions";
 
 setDefaultTimeout(60 * 1000 * 2);
 
@@ -78,4 +80,44 @@ Given('TopicCreate Cancel button visible is: {string}', async (visible: string) 
 
 Given('TopicCreate CreateTopic button visible is: {string}', async (visible: string) => {
   await expectVisibility(fixture.topicsCreate.topicCreateCreateTopicButton(), visible);
+});
+
+
+When('TopicCreate Topic name starts with: {string}', async function (this: CustomWorld, prefix: string) {
+  const topicName = generateName(prefix);
+  this.setValue(`topicName-${prefix}`, topicName);
+  await fixture.topicsCreate.topicsCreateTopicName().fill(topicName);
+});
+
+When('TopicCreate Number of partitons: {int}', async function (this: CustomWorld, count: number) {
+  const input = fixture.topicsCreate.topicsCreateNumberOfPartitions();
+  await input.fill(count.toString());
+});
+
+When('TopicCreate Time to retain data one day', async function (this: CustomWorld) {
+  const button = fixture.topicsCreate.topicsCreate1Day();
+  await button.click();
+});
+
+When('TopicCreate Create topic clicked', async function (this: CustomWorld) {
+  const button = fixture.topicsCreate.topicCreateCreateTopicButton();
+  await button.click();
+});
+
+Then('Header starts with: {string}', async function (this: CustomWorld, prefix: string) {
+  const topicName = this.getValue<string>(`topicName-${prefix}`);
+  const header = fixture.page.getByRole('heading', { name: topicName });
+  await expect(header).toBeVisible();
+});
+
+Then('Topic name started with: {string} visible is: {string}', async function (this: CustomWorld, prefix: string, visible: string) {
+  const topicName = this.getValue<string>(`topicName-${prefix}`);
+  const locator = fixture.topics.topicNameLink(topicName);
+
+  const shouldBeVisible = visible === 'true';
+  if (shouldBeVisible) {
+    await expect(locator).toBeVisible();
+  } else {
+    await expect(locator).toHaveCount(0);
+  }
 });
