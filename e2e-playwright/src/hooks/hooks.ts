@@ -57,26 +57,6 @@ Before(async function ({ pickle }) {
 
 });
 
-// After({ timeout: 30000 }, async function ({ pickle, result }) {
-//     let img: Buffer | undefined;
-//     const path = `./test-results/trace/${pickle.id}.zip`;
-//     if (result?.status == Status.FAILED) {
-//         img = await fixture.page.screenshot(
-//             { path: `./test-results/screenshots/${pickle.name}.png`, type: "png" })
-//     }
-//     await context.tracing.stop({ path: path });
-//     await fixture.page.close();
-//     await context.close();
-//     if (result?.status == Status.FAILED && img) {
-//         await this.attach(
-//             img, "image/png"
-//         );
-//         const traceFileLink = `<a href="https://trace.playwright.dev/">Open ${path}</a>`
-//         await this.attach(`Trace file: ${traceFileLink}`, 'text/html');
-
-//     }
-// });
-
 After({ timeout: 30000 }, async function ({ pickle, result }) {
     let img: Buffer | undefined;
     const path = `./test-results/trace/${pickle.id}.zip`;

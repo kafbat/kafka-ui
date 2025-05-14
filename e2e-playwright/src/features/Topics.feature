@@ -3,7 +3,7 @@ Feature: Topics page visibility and functions
   Scenario: Topics elements
     Given Topics is visible
     When click on Topics link
-    Given Topics serchfield visible
+    Given Topics Serchfield visible
     And Topics ShowInternalTopics visible 
     And Topics AddATopic visible
     And Topics DeleteSelectedTopics active is: "false"
@@ -34,7 +34,7 @@ Feature: Topics page visibility and functions
  Scenario: Topics serchfield and ShowInternalTopics
     Given Topics is visible
     When click on Topics link
-    And Topics serchfield visible
+    And Topics Serchfield visible
     When Topics serchfield input "__consumer_offsets"
     Then Topic named: "__consumer_offsets" visible is: "true"
     When Topics ShowInternalTopics switched is: "false"

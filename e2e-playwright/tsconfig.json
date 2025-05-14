@@ -11,5 +11,5 @@
       "rootDir": "src",
       "sourceMap": true
     },
-    "include": ["src/**/*.ts", "src/step_definitions/**/*.ts", "src/features/**/*.ts"]
+    "include": ["src/**/*.ts", "src/steps/**/*.ts", "src/features/**/*.ts"]
   }

@@ -6,19 +6,8 @@ report.generate({
     reportName: "Playwright Automation Report",
     pageTitle: "report",
     displayDuration: false,
-    metadata: {
-        browser: {
-            name: "chrome",
-            version: "112",
-        },
-        device: "PC",
-        platform: {
-            name: "Windows",
-            version: "10",
-        },
-    },
     customData: {
-        title: "Test Info",
+        title: "Kafbat e2e playwright",
         data: [
             { label: "Release", value: "1.2.3" },
             { label: "Cycle", value: "Smoke-1" }

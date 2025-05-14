@@ -11,7 +11,7 @@ module.exports = {
         publishQuiet: true,
         dryRun: false,
         require: [
-            "src/step_definitions/*.ts",
+            "src/steps/*.ts",
             "src/hooks/hooks.ts",
             "src/support/customWorld.ts"
         ],
@@ -33,7 +33,7 @@ module.exports = {
         publishQuiet: true,
         dryRun: false,
         require: [
-            "src/step_definitions/*.ts",
+            "src/steps/*.ts",
             "src/hooks/hooks.ts",
             "src/support/customWorld.ts"
         ],

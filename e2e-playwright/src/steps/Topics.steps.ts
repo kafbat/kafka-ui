@@ -5,7 +5,7 @@ import { expectVisibility, ensureCheckboxState } from "../services/uiHelper";
 
 setDefaultTimeout(60 * 1000 * 2);
 
-Given('Topics serchfield visible', async () => {
+Given('Topics Serchfield visible', async () => {
     await expect(fixture.topics.topicSearchField()).toBeVisible();
 });
 
