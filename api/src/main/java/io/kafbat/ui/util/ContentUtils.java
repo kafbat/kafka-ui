@@ -10,34 +10,49 @@ import java.util.regex.Pattern;
 public class ContentUtils {
   private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
 
-  private static final String UTF8_REGEX = """
-    \\A([\\x09\\x0A\\x0D\\x20-\\x7E]           # ASCII
-    | [\\xC2-\\xDF][\\x80-\\xBF]               # non-overlong 2-byte
-    |  \\xE0[\\xA0-\\xBF][\\x80-\\xBF]         # excluding overlongs
-    | [\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}  # straight 3-byte
-    |  \\xED[\\x80-\\x9F][\\x80-\\xBF]         # excluding surrogates
-    |  \\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}      # planes 1-3
-    | [\\xF1-\\xF3][\\x80-\\xBF]{3}            # planes 4-15
-    |  \\xF4[\\x80-\\x8F][\\x80-\\xBF]{2}      # plane 16
-    )*\\z
-  """.trim();
-
-  private static final Pattern UTF8_PATTERN = Pattern.compile(UTF8_REGEX, Pattern.COMMENTS);
-
   private ContentUtils() {
   }
 
   /**
-   * Detects if bytes contain a UTF-8 string or something else
-   * Source: https://stackoverflow.com/questions/1193200/how-can-i-check-whether-a-byte-array-contains-a-unicode-string-in-java
+   * Detects if bytes contain a UTF-8 string or something else.
    * @param value the bytes to test for a UTF-8 encoded {@code java.lang.String} value
    * @return  true, if the byte[] contains a UTF-8 encode  {@code java.lang.String}
    */
   public static boolean isValidUtf8(byte[] value) {
-    //If the array is too long, it throws a StackOverflowError due to the regex, so we assume it is a String.
-    if (value.length <= 1000) {
-      String phonyString = new String(value, StandardCharsets.ISO_8859_1);
-      return UTF8_PATTERN.matcher(phonyString).matches();
+    // Any data exceeding 10KB will be treated as a string.
+    if (value.length > 10_000) {
+      return true;
+    }
+    int i = 0;
+    while (i < value.length) {
+      int b = value[i] & 0xFF;
+      int numBytes;
+      if ((b & 0x80) == 0) {
+        // 1-byte (ASCII)
+        numBytes = 1;
+      } else if ((b & 0xE0) == 0xC0) {
+        // 2-byte sequence
+        numBytes = 2;
+      } else if ((b & 0xF0) == 0xE0) {
+        // 3-byte sequence
+        numBytes = 3;
+      } else if ((b & 0xF8) == 0xF0) {
+        // 4-byte sequence
+        numBytes = 4;
+      } else {
+        // Invalid first byte
+        return false;
+      }
+      if (i + numBytes > value.length) {
+        return false;
+      }
+      // Check continuation bytes
+      for (int j = 1; j < numBytes; j++) {
+        if ((value[i + j] & 0xC0) != 0x80) {
+          return false;
+        }
+      }
+      i += numBytes;
     }
     return true;
   }
@@ -86,11 +101,11 @@ public class ContentUtils {
         if (ContentUtils.isValidUtf8(value)) {
           valueAsString = new String(value);
         } else {
-          if (value.length == 8) {
+          if (value.length == Long.BYTES) {
             valueAsString = String.valueOf(ContentUtils.asLong(value));
-          } else if (value.length == 4) {
+          } else if (value.length == Integer.BYTES) {
             valueAsString = String.valueOf(ContentUtils.asInt(value));
-          } else if (value.length == 2) {
+          } else if (value.length == Short.BYTES) {
             valueAsString = String.valueOf(ContentUtils.asShort(value));
           } else {
             valueAsString = bytesToHex(value);
