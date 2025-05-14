@@ -1,7 +1,10 @@
 package io.kafbat.ui.util;
 
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -9,6 +12,8 @@ import java.util.regex.Pattern;
  */
 public class ContentUtils {
   private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
+
+  private static final CharsetDecoder UTF8_DECODER = StandardCharsets.UTF_8.newDecoder();
 
   private ContentUtils() {
   }
@@ -23,38 +28,29 @@ public class ContentUtils {
     if (value.length > 10_000) {
       return true;
     }
-    int i = 0;
-    while (i < value.length) {
-      int b = value[i] & 0xFF;
-      int numBytes;
-      if ((b & 0x80) == 0) {
-        // 1-byte (ASCII)
-        numBytes = 1;
-      } else if ((b & 0xE0) == 0xC0) {
-        // 2-byte sequence
-        numBytes = 2;
-      } else if ((b & 0xF0) == 0xE0) {
-        // 3-byte sequence
-        numBytes = 3;
-      } else if ((b & 0xF8) == 0xF0) {
-        // 4-byte sequence
-        numBytes = 4;
-      } else {
-        // Invalid first byte
-        return false;
-      }
-      if (i + numBytes > value.length) {
-        return false;
-      }
-      // Check continuation bytes
-      for (int j = 1; j < numBytes; j++) {
-        if ((value[i + j] & 0xC0) != 0x80) {
-          return false;
-        }
-      }
-      i += numBytes;
+    try {
+      CharBuffer decode = UTF8_DECODER.decode(ByteBuffer.wrap(value));
+      return decode.chars().allMatch(ContentUtils::isValidUtf8);
+    } catch (Exception e) {
+      return false;
     }
-    return true;
+  }
+
+  public static boolean isValidUtf8(int c) {
+    // SKIP NULL Symbols
+    if (c == 0) {
+      return false;
+    }
+    // Well known symbols
+    if (Character.isAlphabetic(c)
+        || Character.isDigit(c)
+        || Character.isWhitespace(c)
+        || Character.isEmoji(c)
+    ) {
+      return true;
+    }
+    // We could read only whitespace controls like
+    return !Character.isISOControl(c);
   }
 
   /**
