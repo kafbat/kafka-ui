@@ -34,7 +34,8 @@ module.exports = {
         dryRun: false,
         require: [
             "src/step_definitions/*.ts",
-            "src/hooks/hooks.ts"
+            "src/hooks/hooks.ts",
+            "src/support/customWorld.ts"
         ],
         requireModule: [
             "ts-node/register"
