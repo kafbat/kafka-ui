@@ -25,4 +25,5 @@ npm run test:failed
 
 
 🚀 How to Run Docker image
-npm test
+ docker build -t kafbat-e2e .
+ docker run --rm kafbat-e2e
