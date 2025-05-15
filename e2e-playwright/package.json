@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "debug": "cross-env ENV=prod PWDEBUG=1 DEBUG=pw:api cucumber-js --config=config/cucumber.js",
+    "debug": "cross-env ENV=stage PWDEBUG=1 DEBUG=pw:api cucumber-js --config=config/cucumber.js",
     "pretest": "npx ts-node src/helper/report/init.ts",
     "test": "cross-env ENV=prod FORCE_COLOR=0 cucumber-js --config=config/cucumber.js || true",
+    "test:stage": "cross-env ENV=stage FORCE_COLOR=0 cucumber-js --config=config/cucumber.js || true",
     "posttest": "npx ts-node src/helper/report/report.ts",
     "test:failed": "cucumber-js -p rerun @rerun.txt"
   },

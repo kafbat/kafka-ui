@@ -12,13 +12,17 @@ End-to-End UI test automation using **Playwright**, **Cucumber.js**, and **TypeS
 npm install
 npx playwright install
 
-🚀 How to Run
+🚀 How to Run Head = true for development and debug
 
 🔹 Normal Test Run
-npm test
+npm test:stage
 
 🔹 Debug Mode (with Playwright Inspector)
 npm run debug
 
 🔹 Rerun Failed Tests
 npm run test:failed
+
+
+🚀 How to Run Docker image
+npm test
