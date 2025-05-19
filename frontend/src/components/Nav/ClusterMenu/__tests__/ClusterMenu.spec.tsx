@@ -9,7 +9,7 @@ import { onlineClusterPayload } from 'lib/fixtures/clusters';
 describe('ClusterMenu', () => {
   const handleTabClick = jest.fn();
 
-  const setupComponent = (cluster: Cluster, openTab?: string | false) => (
+  const setupComponent = (cluster: Cluster, openTab?: string) => (
     <ClusterMenu
       name={cluster.name}
       status={cluster.status}
