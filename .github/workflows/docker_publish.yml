@@ -72,7 +72,7 @@ jobs:
       - name: Login to public ECR
         if: matrix.registry == 'ecr'
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # infered from @v2
+        uses: aws-actions/amazon-ecr-login@0c34de44d8307420346b69e34e659f539e021dba # infered from @v2
         with:
           registry-type: public
 
