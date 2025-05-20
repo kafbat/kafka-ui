@@ -8,7 +8,6 @@ module.exports = {
         paths: [
             "src/features/"
         ],
-        publishQuiet: true,
         dryRun: false,
         require: [
             "src/steps/*.ts",

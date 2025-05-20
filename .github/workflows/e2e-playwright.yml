@@ -63,7 +63,7 @@ jobs:
 
       - name: Run tests with ENV=prod
         working-directory: ./e2e-playwright
-        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test || exit 1
+        run: ENV=prod npm run test
 
       - name: Upload report
         if: failure()
