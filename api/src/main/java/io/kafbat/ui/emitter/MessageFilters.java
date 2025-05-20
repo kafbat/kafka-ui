@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.NullValue;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
@@ -26,6 +27,7 @@ import dev.cel.runtime.CelRuntimeFactory;
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,11 +40,13 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 @UtilityClass
 public class MessageFilters {
+
   private static final String CEL_RECORD_VAR_NAME = "record";
   private static final String CEL_RECORD_TYPE_NAME = TopicMessageDTO.class.getSimpleName();
 
   private static final CelCompiler CEL_COMPILER = createCompiler();
   private static final CelRuntime CEL_RUNTIME = createRuntime();
+  private static final Object CELL_NULL_VALUE = NullValue.NULL_VALUE;
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -188,10 +192,34 @@ public class MessageFilters {
     }
 
     try {
-      return OBJECT_MAPPER.readValue(str, new TypeReference<Map<String, Object>>() {
-      });
+      //@formatter:off
+      var map = OBJECT_MAPPER.readValue(str, new TypeReference<Map<String, Object>>() {});
+      //@formatter:on
+      return replaceCelNulls(map);
     } catch (JsonProcessingException e) {
       return str;
     }
   }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> replaceCelNulls(Map<String, Object> map) {
+    var result = new LinkedHashMap<String, Object>();
+
+    for (var entry : map.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value == null) {
+        result.put(key, CELL_NULL_VALUE);
+      } else if (value instanceof Map<?, ?>) {
+        var inner = (Map<String, Object>) value;
+        result.put(key, replaceCelNulls(inner));
+      } else {
+        result.put(key, value);
+      }
+    }
+
+    return result;
+  }
+
 }
