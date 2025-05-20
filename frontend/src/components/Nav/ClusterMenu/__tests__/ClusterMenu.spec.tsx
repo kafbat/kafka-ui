@@ -2,22 +2,23 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
 import ClusterMenu from 'components/Nav/ClusterMenu/ClusterMenu';
-import userEvent from '@testing-library/user-event';
 import { clusterConnectorsPath } from 'lib/paths';
 import { render } from 'lib/testHelpers';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
 
 describe('ClusterMenu', () => {
-  const setupComponent = (cluster: Cluster, singleMode?: boolean) => (
+  const handleTabClick = jest.fn();
+
+  const setupComponent = (cluster: Cluster, openTab?: string) => (
     <ClusterMenu
       name={cluster.name}
       status={cluster.status}
       features={cluster.features}
-      singleMode={singleMode}
+      openTab={openTab}
+      onTabClick={handleTabClick}
     />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');
-  const getMenuItem = () => screen.getByRole('menuitem');
   const getBrokers = () => screen.getByTitle('Brokers');
   const getTopics = () => screen.getByTitle('Brokers');
   const getConsumers = () => screen.getByTitle('Brokers');
@@ -28,8 +29,6 @@ describe('ClusterMenu', () => {
     render(setupComponent(onlineClusterPayload));
     expect(getCluster()).toBeInTheDocument();
 
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(4);
 
     expect(getBrokers()).toBeInTheDocument();
@@ -47,8 +46,6 @@ describe('ClusterMenu', () => {
         ],
       })
     );
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(7);
 
     expect(getBrokers()).toBeInTheDocument();
@@ -59,7 +56,7 @@ describe('ClusterMenu', () => {
     expect(screen.getByTitle('KSQL DB')).toBeInTheDocument();
   });
   it('renders open cluster menu', () => {
-    render(setupComponent(onlineClusterPayload, true), {
+    render(setupComponent(onlineClusterPayload), {
       initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)],
     });
 
@@ -77,8 +74,6 @@ describe('ClusterMenu', () => {
       }),
       { initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)] }
     );
-    expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
     expect(getMenuItems().length).toEqual(5);
 
     const kafkaConnect = getKafkaConnect();

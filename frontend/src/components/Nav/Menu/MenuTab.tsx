@@ -9,18 +9,18 @@ export interface MenuTabProps {
   title: string;
   status: ServerStatus;
   isOpen: boolean;
-  toggleClusterMenu: () => void;
+  onClick: () => void;
   setColorKey: Dispatch<SetStateAction<ClusterColorKey>>;
 }
 
 const MenuTab: FC<MenuTabProps> = ({
   title,
-  toggleClusterMenu,
+  onClick,
   status,
   isOpen,
   setColorKey,
 }) => (
-  <S.MenuItem $variant="secondary" onClick={toggleClusterMenu}>
+  <S.MenuItem $variant="secondary" onClick={onClick}>
     <S.ContentWrapper>
       <S.StatusIconWrapper>
         <S.StatusIcon status={status} aria-label="status">
