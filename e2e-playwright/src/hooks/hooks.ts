@@ -14,6 +14,7 @@ import ConnectorsLocators from "../pages/Connectors/ConnectorsLocators";
 import ksqlDbLocators from "../pages/KSQLDB/ksqldbLocators";
 import DashboardLocators from '../pages/Dashboard/DashboardLocators';
 import TopicCreateLocators from "../pages/Topics/TopicsCreateLocators";
+import fs from 'fs';
 
 let browser: Browser;
 let context: BrowserContext;
@@ -26,7 +27,9 @@ setDefaultTimeout(60 * 1000);
 
 Before(async function ({ pickle }) {
     const scenarioName = pickle.name + pickle.id
-    context = await browser.newContext();
+    context = await browser.newContext({
+        recordVideo: { dir: 'test-results/videos/' }
+    });
     await context.tracing.start({
         name: scenarioName,
         title: pickle.name,
@@ -68,6 +71,12 @@ After({ timeout: 30000 }, async function ({ pickle, result }) {
                 path: `./test-results/screenshots/${pickle.name}.png`,
                 type: "png"
             });
+            const video = await fixture.page.video();
+            if (video) {
+                const videoPath = await video.path();
+                const videoFile = fs.readFileSync(videoPath);
+                await this.attach(videoFile, 'video/webm');
+            }
         }
     } catch (e) {
         console.error("Error taking screenshot:", e);
