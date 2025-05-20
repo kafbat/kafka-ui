@@ -28,7 +28,8 @@ setDefaultTimeout(60 * 1000);
 Before(async function ({ pickle }) {
     const scenarioName = pickle.name + pickle.id
     context = await browser.newContext({
-        recordVideo: { dir: 'test-results/videos/' }
+        recordVideo: { dir: 'test-results/videos/' },
+        locale: 'en-US'
     });
     await context.tracing.start({
         name: scenarioName,
