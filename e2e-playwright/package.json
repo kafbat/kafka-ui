@@ -16,7 +16,7 @@
   "description": "",
   "devDependencies": {
     "@cucumber/cucumber": "^11.2.0",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.48.2",
     "@types/node": "^22.15.3",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
