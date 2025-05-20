@@ -20,7 +20,6 @@ let context: BrowserContext;
 
 BeforeAll(async function () {
     browser = await invokeBrowser();
-
 });
 
 Before(async function ({ pickle }) {
@@ -35,6 +34,9 @@ Before(async function ({ pickle }) {
     const page = await context.newPage();
 
     fixture.page = page;
+    fixture.page.setDefaultTimeout(60_000); // 60s for actions (clicks, waits)
+    fixture.page.setDefaultNavigationTimeout(60_000); // 60s for navigation
+
 
     fixture.logger = createLogger(options(scenarioName));
 
