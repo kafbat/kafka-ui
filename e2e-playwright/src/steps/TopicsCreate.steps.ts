@@ -1,9 +1,9 @@
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
-import { expect } from "@playwright/test";
 import { fixture } from "../hooks/pageFixture";
 import { expectVisibility } from "../services/uiHelper";
 import { CustomWorld } from "../support/customWorld";
 import { generateName } from "../services/commonFunctions";
+import expect from "../helper/util/expect";
 
 setDefaultTimeout(60 * 1000 * 2);
 

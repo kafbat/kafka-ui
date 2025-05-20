@@ -1,5 +1,5 @@
 import '../helper/env/env';
-import { BeforeAll, AfterAll, Before, After, Status } from "@cucumber/cucumber";
+import { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout } from "@cucumber/cucumber";
 import { Browser, BrowserContext } from "@playwright/test";
 import { fixture } from "./pageFixture";
 import { invokeBrowser } from "../helper/browsers/browserManager";
@@ -22,6 +22,8 @@ BeforeAll(async function () {
     browser = await invokeBrowser();
 });
 
+setDefaultTimeout(60 * 1000);
+
 Before(async function ({ pickle }) {
     const scenarioName = pickle.name + pickle.id
     context = await browser.newContext();
@@ -34,9 +36,6 @@ Before(async function ({ pickle }) {
     const page = await context.newPage();
 
     fixture.page = page;
-    fixture.page.setDefaultTimeout(60_000); // 60s for actions (clicks, waits)
-    fixture.page.setDefaultNavigationTimeout(60_000); // 60s for navigation
-
 
     fixture.logger = createLogger(options(scenarioName));
 
