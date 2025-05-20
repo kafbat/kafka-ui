@@ -45,7 +45,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./e2e-playwright
-        run: npx playwright install
+        run: npx playwright install --with-deps
 
       - name: Build with Gradle
         id: build_app
