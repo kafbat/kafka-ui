@@ -18,7 +18,6 @@ module.exports = {
             "ts-node/register"
         ],
         format: [
-            "progress-bar",
             "html:test-results/cucumber-report.html",
             "json:test-results/cucumber-report.json",
             "rerun:@rerun.txt"
@@ -40,7 +39,6 @@ module.exports = {
             "ts-node/register"
         ],
         format: [
-            "progress-bar",
             "html:test-results/cucumber-report.html",
             "json:test-results/cucumber-report.json",
             "rerun:@rerun.txt"
