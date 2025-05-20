@@ -52,5 +52,5 @@ jobs:
         run: npx playwright install
 
       - name: 🚀 Run tests with ENV=prod
-        run: cross-env ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test
+        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test
         
