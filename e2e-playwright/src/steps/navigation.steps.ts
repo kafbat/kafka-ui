@@ -1,115 +1,109 @@
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
-import { fixture } from "../hooks/pageFixture";
+import { stepsContext } from "../hooks/pageFixture";
 import expect from "../helper/util/expect";
+import { scenarioContext } from "../hooks/scenarioContext";
 
 setDefaultTimeout(60 * 1000 * 2);
 
 Given('Brokers is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.brokersLink()).toBeVisible();
-  });
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.brokersLink()).toBeVisible();
+});
 
 When('click on Brokers link', async () => {
-    await fixture.navigationPanel.brokersLink().click();
+  await scenarioContext.panel!.brokersLink().click();
 });
 
 Then('Brokers heading visible', async () => {
-    await fixture.brokers.brokersHeading().waitFor({ state: 'visible' });
+  await scenarioContext.brokers!.brokersHeading().waitFor({ state: 'visible' });
 });
 
-
 Given('Topics is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.topicsLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.topicsLink()).toBeVisible();
 });
 
 When('click on Topics link', async () => {
-    await fixture.navigationPanel.topicsLink().click();
+  await scenarioContext.panel!.topicsLink().click();
 });
 
 Then('Topics heading visible', async () => {
-    await fixture.topics.topicsHeading().waitFor({ state: 'visible' });
+  await scenarioContext.topics!.topicsHeading().waitFor({ state: 'visible' });
 });
 
-
 Given('Consumers is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.consumersLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.consumersLink()).toBeVisible();
 });
 
 When('click on Consumers link', async () => {
-    await fixture.navigationPanel.consumersLink().click();
+  await scenarioContext.panel!.consumersLink().click();
 });
 
 Then('Consumers heading visible', async () => {
-    await fixture.consumers.consumersHeading().waitFor({ state: 'visible' });
+  await scenarioContext.consumers!.consumersHeading().waitFor({ state: 'visible' });
 });
 
-
 Given('Schema Registry is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.schemaRegistryLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.schemaRegistryLink()).toBeVisible();
 });
 
 When('click on Schema Registry link', async () => {
-    await fixture.navigationPanel.schemaRegistryLink().click();
+  await scenarioContext.panel!.schemaRegistryLink().click();
 });
 
 Then('Schema Registry heading visible', async () => {
-    await fixture.schemaRegistry.schemaRegistryHeading().waitFor({ state: 'visible' });
+  await scenarioContext.schemaRegistry!.schemaRegistryHeading().waitFor({ state: 'visible' });
 });
 
-
 Given('Kafka Connect is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.kafkaConnectLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.kafkaConnectLink()).toBeVisible();
 });
 
 When('click on Kafka Connect link', async () => {
-    await fixture.navigationPanel.kafkaConnectLink().click();
+  await scenarioContext.panel!.kafkaConnectLink().click();
 });
 
 Then('Kafka Connect heading visible', async () => {
-    await fixture.connectors.connectorsHeading().waitFor({ state: 'visible' });
+  await scenarioContext.connectors!.connectorsHeading().waitFor({ state: 'visible' });
 });
 
 Given('KSQL DB is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.ksqlDbLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.ksqlDbLink()).toBeVisible();
 });
 
 When('click on KSQL DB link', async () => {
-    await fixture.navigationPanel.ksqlDbLink().click();
+  await scenarioContext.panel!.ksqlDbLink().click();
 });
 
 Then('KSQL DB heading visible', async () => {
-    await fixture.ksqlDb.ksqlDbHeading().waitFor({ state: 'visible' });
+  await scenarioContext.ksqlDb!.ksqlDbHeading().waitFor({ state: 'visible' });
 });
 
-
 Given('Dashboard is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    var tmp = fixture.navigationPanel.getDashboardLink();
-    await expect(fixture.navigationPanel.getDashboardLink()).toBeVisible();
+  await stepsContext.page.goto(process.env.BASEURL!);
+  await expect(scenarioContext.panel!.getDashboardLink()).toBeVisible();
 });
 
 When('click on Dashboard link', async () => {
-    const dashboard = fixture.navigationPanel.getDashboardLink()
-    await dashboard.isVisible();
-    await dashboard.click();
+  const dashboard = scenarioContext.panel!.getDashboardLink();
+  await dashboard.isVisible();
+  await dashboard.click();
 });
 
 Then('Dashboard heading visible', async () => {
-    await fixture.dashboard.dashboardHeading().waitFor({ state: 'visible' });
+  await scenarioContext.dashboard!.dashboardHeading().waitFor({ state: 'visible' });
 });
 
-
 Then('the end of current URL should be {string}', async (expected: string) => {
-  const actual = new URL(fixture.page.url()).pathname;
+  const actual = new URL(stepsContext.page.url()).pathname;
   expect(actual.endsWith(expected)).toBeTruthy();
 });
 
 Then('the part of current URL should be {string}', async (expected: string) => {
-    const actual = new URL(fixture.page.url()).pathname;
-    expect(actual.includes(expected)).toBeTruthy();
-  });
+  const actual = new URL(stepsContext.page.url()).pathname;
+  expect(actual.includes(expected)).toBeTruthy();
+});
