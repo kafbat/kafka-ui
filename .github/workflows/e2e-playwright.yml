@@ -35,6 +35,14 @@ jobs:
         working-directory: ./e2e-playwright
         run: npm install
 
+      - name: Cache Playwright browser binaries
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+
+
       - name: Install Playwright browsers
         working-directory: ./e2e-playwright
         run: npx playwright install
@@ -42,7 +50,9 @@ jobs:
       - name: Build with Gradle
         id: build_app
         run: |
-          ./gradlew clean build \
+          ./gradlew build \
+          -x :e2e-tests:check \
+          -x :e2e-tests:build \
           -x test \
           -Pbuild-docker-images=true \
           -Pinclude-frontend=true \
