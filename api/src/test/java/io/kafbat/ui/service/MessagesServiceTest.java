@@ -170,7 +170,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             + "&& has(record.timestampMs) && has(record.offset)")
         .key("1234")
         .value("{ \"some\" : \"value\" } ")
-        .headers(Map.of("h1", "hv1"))
+        .headers(Map.of("h1", List.of("hv1")))
         .offset(12345L)
         .timestampMs(System.currentTimeMillis())
         .partition(1);

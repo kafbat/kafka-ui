@@ -412,7 +412,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(SchemaRegistrySerde.name())
                 .content(JSON_SCHEMA_RECORD)
                 .valueSerde(SchemaRegistrySerde.name())
-                .headers(Map.of("header1", "value1"))
+                .headers(Map.of("header1", List.of("value1")))
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), JSON_SCHEMA_RECORD);
@@ -438,9 +438,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(SchemaRegistrySerde.name())
                 .content(JSON_SCHEMA_RECORD)
                 .valueSerde(SchemaRegistrySerde.name())
-                .headers(Collections.singletonMap("header123", null))
+                .headers(Collections.singletonMap("header123", Collections.singletonList(null)))
         )
-        .doAssert(polled -> assertThat(polled.getHeaders().get("header123")).isNull());
+        .doAssert(polled -> assertThat(polled.getHeaders().get("header123")).containsExactly((String) null));
   }
 
 

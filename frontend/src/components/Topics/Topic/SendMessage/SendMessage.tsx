@@ -3,8 +3,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
+import InfoIcon from 'components/common/Icons/InfoIcon';
 import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
+import Tooltip from 'components/common/Tooltip/Tooltip';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
@@ -233,22 +235,27 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
           </div>
         </S.Columns>
         <S.Columns>
-          <div>
+          <S.Headers>
             <InputLabel>Headers</InputLabel>
-            <Controller
-              control={control}
-              name="headers"
-              render={({ field: { name, onChange } }) => (
-                <Editor
-                  readOnly={isSubmitting}
-                  defaultValue="{}"
-                  name={name}
-                  onChange={onChange}
-                  height="40px"
-                />
-              )}
+            <Tooltip
+              value={<InfoIcon />}
+              content='Header keys map to a list of values, e.g. {"k": ["v1", "v2"]}'
+              placement="top-start"
             />
-          </div>
+          </S.Headers>
+          <Controller
+            control={control}
+            name="headers"
+            render={({ field: { name, onChange } }) => (
+              <Editor
+                readOnly={isSubmitting}
+                defaultValue="{}"
+                name={name}
+                onChange={onChange}
+                height="40px"
+              />
+            )}
+          />
         </S.Columns>
         <Button
           buttonSize="M"

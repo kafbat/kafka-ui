@@ -31,7 +31,7 @@ describe('Message component', () => {
     key: 'test-key',
     partition: 6,
     content: '{"data": "test"}',
-    headers: { header: 'test' },
+    headers: { header: ['test'] },
   };
   const mockKeyFilters: PreviewFilter = {
     field: 'sub',
