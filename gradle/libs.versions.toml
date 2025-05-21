@@ -35,7 +35,7 @@ checkstyle = '10.3.1'
 allure = '2.29.1'
 selenide = '7.2.3'
 testng = '7.10.0'
-bonigarcia-webdrivermanager = '5.9.3'
+bonigarcia-webdrivermanager = '6.0.0'
 aspectj = '1.9.21'
 
 # CVE fixes
