@@ -71,10 +71,15 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
     Mono<Set<String>> organizationRoles = getOrganizationRoles(principal, additionalParams, acs, webClient);
     Mono<Set<String>> teamRoles = getTeamRoles(webClient, additionalParams, acs);
 
+    Set<String> defaultRoles = acs.getDefaultRole() == null
+            ? Collections.emptySet()
+            : Set.of(acs.getDefaultRole().getName());
+
     return Mono.zip(organizationRoles, teamRoles)
         .map((t) -> Stream.of(t.getT1(), t.getT2(), usernameRoles)
             .flatMap(Collection::stream)
-            .collect(Collectors.toSet()));
+            .collect(Collectors.toSet()))
+            .map(roles -> roles.isEmpty() ? defaultRoles : roles);
   }
 
   private Set<String> extractUsernameRoles(DefaultOAuth2User principal, AccessControlService acs) {

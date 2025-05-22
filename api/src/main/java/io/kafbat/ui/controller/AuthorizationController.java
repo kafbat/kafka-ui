@@ -31,6 +31,12 @@ public class AuthorizationController implements AuthorizationApi {
   private final AccessControlService accessControlService;
 
   public Mono<ResponseEntity<AuthenticationInfoDTO>> getUserAuthInfo(ServerWebExchange exchange) {
+    List<UserPermissionDTO> defaultRolePermissions = accessControlService.getDefaultRole() != null
+        ? mapPermissions(
+          accessControlService.getDefaultRole().getPermissions(),
+          accessControlService.getDefaultRole().getClusters())
+        : Collections.emptyList();
+
     Mono<List<UserPermissionDTO>> permissions = AccessControlService.getUser()
         .map(user -> accessControlService.getRoles()
             .stream()
@@ -39,11 +45,13 @@ public class AuthorizationController implements AuthorizationApi {
             .flatMap(Collection::stream)
             .toList()
         )
+        .map(userPermissions ->  userPermissions.isEmpty() ? defaultRolePermissions : userPermissions)
         .switchIfEmpty(Mono.just(Collections.emptyList()));
 
     Mono<String> userName = ReactiveSecurityContextHolder.getContext()
         .map(SecurityContext::getAuthentication)
         .map(Principal::getName);
+
 
     var builder = AuthenticationInfoDTO.builder()
         .rbacEnabled(accessControlService.isRbacEnabled());
