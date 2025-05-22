@@ -1,12 +1,36 @@
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
-
 
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], plugins: { js }, extends: ["js/recommended"] },
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], languageOptions: { globals: globals.browser } },
-  { files: ["**/*.{ts,tsx}"], ...tseslint.configs.recommendedTypeChecked, languageOptions: { parserOptions: {project: "./tsconfig.json" } } },
-  tseslint.configs.recommended,
+  js.configs.recommended,
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
+    rules: {
+      "no-trailing-spaces": "error",
+      "no-multiple-empty-lines": ["error", { max: 1 }],
+      "semi-spacing": ["error", { before: false, after: true }],
+      "keyword-spacing": ["error", { before: true, after: true }],
+      "space-infix-ops": "error",
+      "space-before-blocks": "error",
+      "space-before-function-paren": ["error", "never"],
+      "object-curly-spacing": ["error", "always"],
+      "array-bracket-spacing": ["error", "never"],
+      'no-invalid-this': 'off',
+    },
+  },
 ]);

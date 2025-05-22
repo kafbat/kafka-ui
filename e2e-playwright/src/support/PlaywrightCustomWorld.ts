@@ -11,7 +11,6 @@ export class PlaywrightCustomWorld extends World {
   public logger?: Logger;
   public browserContext?: BrowserContext;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private context: Map<string, any> = new Map();
   private _page?: Page;
   private _locators?:Locators;
@@ -21,7 +20,6 @@ export class PlaywrightCustomWorld extends World {
     super(options);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setValue(key: string, value: any) {
     this.context.set(key, value);
   }
@@ -32,9 +30,9 @@ export class PlaywrightCustomWorld extends World {
     return value as T;
   }
 
-  async init(context: BrowserContext, scenarioName:string ){
+  async init(context: BrowserContext, scenarioName:string ) {
       const page = await context.newPage();
-      
+
       this._page = page;
       this.logger = createLogger(options(scenarioName));
       this._scenarioName = scenarioName;
@@ -45,7 +43,7 @@ export class PlaywrightCustomWorld extends World {
     if (this._page) {
       return this._page!;
     }
-    
+
     throw new Error("No page");
   }
 

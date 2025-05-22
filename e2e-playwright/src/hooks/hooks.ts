@@ -7,7 +7,7 @@ import { PlaywrightCustomWorld } from '../support/PlaywrightCustomWorld';
 
 let browser: Browser;
 
-BeforeAll(async function () {
+BeforeAll(async function() {
     browser = await invokeBrowser();
 });
 
@@ -15,7 +15,7 @@ setDefaultTimeout(60 * 1000);
 
 setWorldConstructor(PlaywrightCustomWorld);
 
-Before(async function (this: PlaywrightCustomWorld, { pickle }) {
+Before(async function(this: PlaywrightCustomWorld, { pickle }) {
     const scenarioName = pickle.name + pickle.id
     const context = await browser.newContext({
         recordVideo: { dir: 'test-results/videos/' },
@@ -30,8 +30,8 @@ Before(async function (this: PlaywrightCustomWorld, { pickle }) {
    await this.init(context, scenarioName);
 });
 
-After({ timeout: 30000 }, async function (this: PlaywrightCustomWorld, { pickle, result }) {
-    let img: Buffer | undefined;
+After({ timeout: 30000 }, async function(this: PlaywrightCustomWorld, { pickle, result }) {
+       let img: Buffer | undefined;
     const path = `./test-results/trace/${pickle.id}.zip`;
     try {
         if (result?.status === Status.FAILED) {
@@ -80,6 +80,6 @@ After({ timeout: 30000 }, async function (this: PlaywrightCustomWorld, { pickle,
     }
 });
 
-AfterAll(async function () {
+AfterAll(async function() {
     await browser.close();
 })

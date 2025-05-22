@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 
-export default class ConsumersLocators{
+export default class ConsumersLocators {
     private readonly page: Page;
 
     constructor(page: Page) {

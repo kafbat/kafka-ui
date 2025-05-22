@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 
-export default class ksqlDbLocators{
+export default class ksqlDbLocators {
     private readonly page: Page;
 
     constructor(page: Page) {

@@ -1,6 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 
 export class BaseLocators {
+  // eslint-disable-next-line no-unused-vars
   constructor(private page: Page) {}
 
   loadingSpinner:Locator = this.page.locator('div[role="progressbar"]');
