@@ -4,6 +4,7 @@ const options: LaunchOptions = {
     headless: process.env.HEAD !== "true",
     args: ['--lang=en-US'],
 }
+
 export const invokeBrowser = () => {
     const browserType = process.env.npm_config_BROWSER || "chrome";
 

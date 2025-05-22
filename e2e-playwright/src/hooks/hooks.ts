@@ -1,16 +1,11 @@
 import '../helper/env/env';
-import { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout } from "@cucumber/cucumber";
-import { Browser, BrowserContext } from "@playwright/test";
-import { stepsContext } from "./pageFixture";
+import { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout, setWorldConstructor } from "@cucumber/cucumber";
+import { Browser } from "@playwright/test";
 import { invokeBrowser } from "../helper/browsers/browserManager";
-import { createLogger } from "winston";
-import { options } from "../helper/util/logger";
 import fs from 'fs';
-import { scenarioContext } from "./scenarioContext";
-import { locatorsFactory } from './locatorsFactory';
+import { PlaywrightCustomWorld } from '../support/PlaywrightCustomWorld';
 
 let browser: Browser;
-let context: BrowserContext;
 
 BeforeAll(async function () {
     browser = await invokeBrowser();
@@ -18,9 +13,11 @@ BeforeAll(async function () {
 
 setDefaultTimeout(60 * 1000);
 
-Before(async function ({ pickle }) {
+setWorldConstructor(PlaywrightCustomWorld);
+
+Before(async function (this: PlaywrightCustomWorld, { pickle }) {
     const scenarioName = pickle.name + pickle.id
-    context = await browser.newContext({
+    const context = await browser.newContext({
         recordVideo: { dir: 'test-results/videos/' },
         locale: 'en-US'
     });
@@ -30,25 +27,19 @@ Before(async function ({ pickle }) {
         sources: true,
         screenshots: true, snapshots: true
     });
-    const page = await context.newPage();
-    
-    stepsContext.page = page;
-    stepsContext.logger = createLogger(options(scenarioName));
-    
-    Object.assign(scenarioContext, locatorsFactory.initAll(page));
+   await this.init(context, scenarioName);
 });
 
-After({ timeout: 30000 }, async function ({ pickle, result }) {
+After({ timeout: 30000 }, async function (this: PlaywrightCustomWorld, { pickle, result }) {
     let img: Buffer | undefined;
     const path = `./test-results/trace/${pickle.id}.zip`;
-
     try {
         if (result?.status === Status.FAILED) {
-            img = await stepsContext.page.screenshot({
+            img = await this.page?.screenshot({
                 path: `./test-results/screenshots/${pickle.name}.png`,
                 type: "png"
             });
-            const video = stepsContext.page.video();
+            const video = this.page?.video();
             if (video) {
                 const videoPath = await video.path();
                 const videoFile = fs.readFileSync(videoPath);
@@ -60,19 +51,19 @@ After({ timeout: 30000 }, async function ({ pickle, result }) {
     }
 
     try {
-        await context.tracing.stop({ path });
+        await this.browserContext?.tracing.stop({ path });
     } catch (e) {
         console.error("Error stopping tracing:", e);
     }
 
     try {
-        await stepsContext.page.close();
+        await this.page?.close();
     } catch (e) {
         console.error("Error closing page:", e);
     }
 
     try {
-        await context.close();
+        await this.browserContext?.close();
     } catch (e) {
         console.error("Error closing context:", e);
     }

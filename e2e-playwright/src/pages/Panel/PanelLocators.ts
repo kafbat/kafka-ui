@@ -7,14 +7,15 @@ export default class PanelLocators{
       this.page = page;
     }
 
-    private linkByName = (name: string): Locator =>
-      this.page.getByRole('link', { name });
+    linkByName(name: string): Locator{
+      return this.page.getByRole('link', { name });
+    }
   
-    brokersLink = (): Locator => this.linkByName('Brokers');
-    topicsLink = (): Locator => this.page.getByTitle('Topics');
-    consumersLink = (): Locator => this.linkByName('Consumers');
-    schemaRegistryLink = (): Locator => this.linkByName('Schema Registry');
-    ksqlDbLink = (): Locator => this.linkByName('KSQL DB');
-    getDashboardLink = (): Locator => this.linkByName('Dashboard');
-    kafkaConnectLink = (): Locator => this.linkByName('Kafka Connect');
+    brokersLink(): Locator { return this.linkByName('Brokers');}
+    topicsLink(): Locator { return this.page.getByTitle('Topics');}
+    consumersLink(): Locator { return this.linkByName('Consumers');}
+    schemaRegistryLink(): Locator { return this.linkByName('Schema Registry');}
+    ksqlDbLink(): Locator { return this.linkByName('KSQL DB');}
+    getDashboardLink(): Locator { return this.linkByName('Dashboard');}
+    kafkaConnectLink(): Locator { return this.linkByName('Kafka Connect');}
 }
