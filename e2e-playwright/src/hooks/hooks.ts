@@ -3,7 +3,7 @@ import { BeforeAll, AfterAll, Before, After, Status, setDefaultTimeout, setWorld
 import { Browser } from "@playwright/test";
 import { invokeBrowser } from "../helper/browsers/browserManager";
 import fs from 'fs';
-import { PlaywrightCustomWorld } from '../support/PlaywrightCustomWorld';
+import { PlaywrightWorld } from '../support/PlaywrightWorld';
 
 let browser: Browser;
 
@@ -13,9 +13,9 @@ BeforeAll(async function() {
 
 setDefaultTimeout(60 * 1000);
 
-setWorldConstructor(PlaywrightCustomWorld);
+setWorldConstructor(PlaywrightWorld);
 
-Before(async function(this: PlaywrightCustomWorld, { pickle }) {
+Before(async function(this: PlaywrightWorld, { pickle }) {
     const scenarioName = pickle.name + pickle.id
     const context = await browser.newContext({
         recordVideo: { dir: 'test-results/videos/' },
@@ -30,7 +30,7 @@ Before(async function(this: PlaywrightCustomWorld, { pickle }) {
    await this.init(context, scenarioName);
 });
 
-After({ timeout: 30000 }, async function(this: PlaywrightCustomWorld, { pickle, result }) {
+After({ timeout: 30000 }, async function(this: PlaywrightWorld, { pickle, result }) {
        let img: Buffer | undefined;
     const path = `./test-results/trace/${pickle.id}.zip`;
     try {

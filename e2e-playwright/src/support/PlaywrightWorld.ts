@@ -6,7 +6,7 @@ import { createLogger } from "winston";
 import { options } from "../helper/util/logger";
 import { Locators } from '../pages/Locators';
 
-export class PlaywrightCustomWorld extends World {
+export class PlaywrightWorld extends World {
 
   public logger?: Logger;
   public browserContext?: BrowserContext;

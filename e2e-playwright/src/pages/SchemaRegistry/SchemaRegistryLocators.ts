@@ -7,7 +7,7 @@ export default class SchemaRegistryLocators {
       this.page = page;
     }
 
-    schemaRegistryHeading = (): Locator => this.page.getByRole('heading', { name: 'Schema Registry' });
-    schemaRegistrySearchBox = (): Locator => this.page.getByRole('textbox', { name: 'Search by Schema Name' });
-    schemaRegistryCreateSchemaButton = (): Locator => this.page.getByRole('button', { name: 'Create Schema' });
+    get heading(): Locator { return this.page.getByRole('heading', { name: 'Schema Registry' })};
+    get searchBox(): Locator { return this.page.getByRole('textbox', { name: 'Search by Schema Name' })};
+    get createSchemaButton(): Locator { return this.page.getByRole('button', { name: 'Create Schema' })};
 }

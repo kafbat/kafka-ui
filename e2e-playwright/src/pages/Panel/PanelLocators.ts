@@ -11,11 +11,11 @@ export default class PanelLocators {
       return this.page.getByRole('link', { name });
     }
 
-    brokersLink(): Locator { return this.linkByName('Brokers');}
-    topicsLink(): Locator { return this.page.getByTitle('Topics');}
-    consumersLink(): Locator { return this.linkByName('Consumers');}
-    schemaRegistryLink(): Locator { return this.linkByName('Schema Registry');}
-    ksqlDbLink(): Locator { return this.linkByName('KSQL DB');}
-    getDashboardLink(): Locator { return this.linkByName('Dashboard');}
-    kafkaConnectLink(): Locator { return this.linkByName('Kafka Connect');}
+    get brokersLink(): Locator { return this.linkByName('Brokers');}
+    get topicsLink(): Locator { return this.page.getByTitle('Topics');}
+    get consumersLink(): Locator { return this.linkByName('Consumers');}
+    get schemaRegistryLink(): Locator { return this.linkByName('Schema Registry');}
+    get ksqlDbLink(): Locator { return this.linkByName('KSQL DB');}
+    get getDashboardLink(): Locator { return this.linkByName('Dashboard');}
+    get kafkaConnectLink(): Locator { return this.linkByName('Kafka Connect');}
 }

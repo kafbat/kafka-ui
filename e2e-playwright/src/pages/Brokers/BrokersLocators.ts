@@ -7,5 +7,5 @@ export default class BrokersLocators {
       this.page = page;
     }
 
-    brokersHeading = (): Locator => this.page.getByRole('heading', { name: 'Brokers' });
+    get heading(): Locator { return  this.page.getByRole('heading', { name: 'Brokers' })};
 }
