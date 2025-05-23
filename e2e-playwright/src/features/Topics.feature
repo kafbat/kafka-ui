@@ -31,7 +31,7 @@ Feature: Topics page visibility and functions
     And Topics CopySelectedTopic active is: "false"
     And Topics PurgeMessagesOfSelectedTopics active is: "false"
 
- Scenario: Topics serchfield and ShowInternalTopics
+  Scenario: Topics serchfield and ShowInternalTopics
     Given Topics is visible
     When click on Topics link
     And Topics Serchfield visible
@@ -43,4 +43,3 @@ Feature: Topics page visibility and functions
     Then Topic named: "__consumer_offsets" visible is: "true"
     When Topics serchfield input "users"
     Then Topic named: "users" visible is: "true"
-
