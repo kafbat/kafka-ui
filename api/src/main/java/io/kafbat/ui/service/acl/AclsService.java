@@ -68,10 +68,11 @@ public class AclsService {
         .doOnSuccess(v -> log.info("ACL DELETED: [{}]", aclString));
   }
 
-  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter) {
+  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch) {
     return adminClientService.get(cluster)
         .flatMap(c -> c.listAcls(filter))
         .flatMapIterable(acls -> acls)
+        .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
         .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
   }
 
