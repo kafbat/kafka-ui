@@ -20,3 +20,12 @@ export const ClusterList = styled.ul.attrs<{ $colorKey: ClusterColorKey }>({
   background-color: ${({ theme, $colorKey }) =>
     theme.clusterMenu.backgroundColor[$colorKey]};
 `;
+
+export const AccordionContent = styled.div<{ isOpen: boolean }>`
+  overflow: hidden;
+  max-height: ${({ isOpen }) => (isOpen ? '500px' : '0')};
+  opacity: ${({ isOpen }) => (isOpen ? '1' : '0')};
+  transition:
+    max-height 0.4s ease-out,
+    opacity 0.3s ease-out;
+`;
