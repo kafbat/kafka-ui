@@ -39,8 +39,13 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
 
     var usernameRoles = extractUsernameRoles(acs, principal);
     var groupRoles = extractGroupRoles(acs, principal);
+    var unionRoles = Sets.union(usernameRoles, groupRoles);
 
-    return Mono.just(Sets.union(usernameRoles, groupRoles));
+    if (unionRoles.isEmpty() && acs.getDefaultRole() != null) {
+      return Mono.just(Set.of(acs.getDefaultRole().getName()));
+    }
+
+    return Mono.just(unionRoles);
   }
 
   private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
