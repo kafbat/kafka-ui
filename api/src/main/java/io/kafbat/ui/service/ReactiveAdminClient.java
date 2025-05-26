@@ -427,12 +427,12 @@ public class ReactiveAdminClient implements Closeable {
         result.controller(), result.clusterId(), result.nodes(), result.authorizedOperations());
     return toMono(allOfFuture).then(
         Mono.fromCallable(() ->
-          new ClusterDescription(
-            result.controller().get(),
-            result.clusterId().get(),
-            result.nodes().get(),
-            result.authorizedOperations().get()
-          )
+            new ClusterDescription(
+              result.controller().get(),
+              result.clusterId().get(),
+              result.nodes().get(),
+              result.authorizedOperations().get()
+            )
         )
     );
   }

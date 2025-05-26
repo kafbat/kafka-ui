@@ -6,6 +6,7 @@ import io.kafbat.ui.api.ClientQuotasApi;
 import io.kafbat.ui.model.ClientQuotasDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
+import io.kafbat.ui.service.mcp.McpTool;
 import io.kafbat.ui.service.quota.ClientQuotaRecord;
 import io.kafbat.ui.service.quota.ClientQuotaService;
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
-public class ClientQuotasController extends AbstractController implements ClientQuotasApi {
+public class ClientQuotasController extends AbstractController implements ClientQuotasApi, McpTool {
 
   private static final Comparator<ClientQuotaRecord> QUOTA_RECORDS_COMPARATOR =
       Comparator.nullsLast(Comparator.comparing(ClientQuotaRecord::user))

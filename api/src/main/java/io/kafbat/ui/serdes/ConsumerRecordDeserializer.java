@@ -99,7 +99,7 @@ public class ConsumerRecordDeserializer {
     try {
       var deserResult = valueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setValue(deserResult.getResult());
       message.setValueSerde(valueSerdeName);
       message.setValueDeserializeProperties(deserResult.getAdditionalProperties());
     } catch (Exception e) {
@@ -107,7 +107,7 @@ public class ConsumerRecordDeserializer {
           rec.topic(), rec.partition(), rec.offset(), valueSerdeName, e);
       var deserResult = fallbackValueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setValue(deserResult.getResult());
       message.setValueSerde(fallbackSerdeName);
     }
   }
