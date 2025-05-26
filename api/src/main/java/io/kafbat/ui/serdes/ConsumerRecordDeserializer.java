@@ -3,6 +3,7 @@ package io.kafbat.ui.serdes;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageDTO.TimestampTypeEnum;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.util.ContentUtils;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -68,7 +69,7 @@ public class ConsumerRecordDeserializer {
         .forEachRemaining(header ->
             headers.put(
                 header.key(),
-                header.value() != null ? new String(header.value()) : null
+                ContentUtils.convertToString(header.value())
             ));
     message.setHeaders(headers);
   }
