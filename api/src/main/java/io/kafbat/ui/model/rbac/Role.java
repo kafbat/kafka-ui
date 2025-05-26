@@ -21,6 +21,7 @@ public class Role {
     subjects.forEach(Subject::validate);
   }
 
+  // default role need only permissions
   public void validateDefaultRole() {
     permissions.forEach(Permission::validate);
     permissions.forEach(Permission::transform);

@@ -50,6 +50,7 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toSet());
 
+    // If no roles are found, return default role
     if (simpleGrantedAuthorities.isEmpty() && acs.getDefaultRole() != null) {
       return Set.of(new SimpleGrantedAuthority(acs.getDefaultRole().getName()));
     }

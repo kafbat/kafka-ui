@@ -45,6 +45,7 @@ public class AuthorizationController implements AuthorizationApi {
             .flatMap(Collection::stream)
             .toList()
         )
+        // if no roles are found, return default role permissions
         .map(userPermissions ->  userPermissions.isEmpty() ? defaultRolePermissions : userPermissions)
         .switchIfEmpty(Mono.just(Collections.emptyList()));
 

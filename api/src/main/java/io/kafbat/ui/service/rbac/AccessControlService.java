@@ -65,24 +65,23 @@ public class AccessControlService {
 
   @PostConstruct
   public void init() {
-    log.info("Initializing Access Control Service");
-    log.info("defaultRole: {}", properties.getDefaultRole());
-    log.info("roles: {}", properties.getRoles());
     if (CollectionUtils.isEmpty(properties.getRoles()) && properties.getDefaultRole() == null) {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
     if (properties.getDefaultRole() != null) {
+      log.trace("Set Default Role Clusters");
+      // set default role for all clusters
       properties.getDefaultRole().setClusters(
           clustersStorage.getKafkaClusters().stream()
             .map(KafkaCluster::getName)
             .collect(Collectors.toList())
       );
     }
-    log.info("defaultRole: {}", properties.getDefaultRole());
     rbacEnabled = true;
 
     if (properties.getDefaultRole() != null) {
+      // set all extractors for default role because it is applied to all clusters
       this.oauthExtractors = Set.of(
         new CognitoAuthorityExtractor(),
         new GoogleAuthorityExtractor(),
