@@ -1,5 +1,6 @@
 package io.kafbat.ui.service.mcp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
@@ -19,19 +20,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class McpSpecificationGenerator {
   private final SchemaGenerator schemaGenerator;
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   public List<AsyncToolSpecification> convertTool(McpTool controller) {
     List<AsyncToolSpecification> result = new ArrayList<>();
@@ -48,7 +52,7 @@ public class McpSpecificationGenerator {
     return result;
   }
 
-  public AsyncToolSpecification convertOperation(Method method, Operation annotation, McpTool instance) {
+  private AsyncToolSpecification convertOperation(Method method, Operation annotation, McpTool instance) {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
     return new AsyncToolSpecification(
@@ -61,17 +65,18 @@ public class McpSpecificationGenerator {
   private BiFunction<McpAsyncServerExchange, Map<String, Object>, Mono<CallToolResult>>
       methodCall(Method method, Object instance) {
 
-    return (ex, v) -> Mono.deferContextual(ctx -> {
+    return (ex, args) -> Mono.deferContextual(ctx -> {
       try {
         ServerWebExchange serverWebExchange = ctx.get(ServerWebExchange.class);
         Mono<Object> result = (Mono<Object>) method.invoke(
             instance,
-            toParams(v, method.getParameters(), ex, serverWebExchange)
+            toParams(args, method.getParameters(), ex, serverWebExchange)
         );
         return result.flatMap(this::toCallResult)
-              .onErrorResume((e) -> Mono.just(this.toError(e)));
+              .onErrorResume((e) -> Mono.just(this.toErrorResult(e)));
       } catch (IllegalAccessException | InvocationTargetException e) {
-        return Mono.just(this.toError(e));
+        log.warn("Error invoking method {}: {}", method.getName(), e.getMessage(), e);
+        return Mono.just(this.toErrorResult(e));
       }
     });
   }
@@ -80,9 +85,22 @@ public class McpSpecificationGenerator {
     return switch (result) {
       case Mono<?> mono -> mono.map(this::callToolResult);
       case Flux<?> flux -> flux.collectList().map(this::callToolResult);
-      case ResponseEntity<?> response -> toCallResult(response.getBody());
+      case ResponseEntity<?> response -> reponseToCallResult(response);
       case null, default -> Mono.just(this.callToolResult(result));
     };
+  }
+
+  private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {
+    HttpStatusCode statusCode = response.getStatusCode();
+    if (statusCode.is2xxSuccessful() || statusCode.is1xxInformational()) {
+      return Mono.just(this.callToolResult(response.getBody()));
+    } else {
+      try {
+        return Mono.just(toErrorResult(objectMapper.writeValueAsString(response.getBody())));
+      } catch (JsonProcessingException e) {
+        return Mono.just(toErrorResult(e));
+      }
+    }
   }
 
   private CallToolResult callToolResult(Object result) {
@@ -92,11 +110,19 @@ public class McpSpecificationGenerator {
           false
       );
     } catch (Exception e) {
-      return toError(e);
+      return toErrorResult(e);
     }
   }
 
-  protected CallToolResult toError(Throwable e) {
+  protected CallToolResult toErrorResult(String body) {
+    return new CallToolResult(
+        List.of(new McpSchema.TextContent(body)),
+        true
+    );
+  }
+
+  protected CallToolResult toErrorResult(Throwable e) {
+    log.warn("Error responded to MCP Client: {}", e.getMessage(), e);
     return new CallToolResult(
         List.of(new McpSchema.TextContent(e.getMessage())),
         true
@@ -104,7 +130,7 @@ public class McpSpecificationGenerator {
   }
 
   private Object[] toParams(
-      Map<String, Object> v,
+      Map<String, Object> mcpArgs,
       Parameter[] parameters,
       McpAsyncServerExchange ex,
       ServerWebExchange serverWebExchange
@@ -117,8 +143,8 @@ public class McpSpecificationGenerator {
       } else if (parameter.getType().equals(McpAsyncServerExchange.class)) {
         values[i] = ex;
       } else {
-        Object o = v.get(parameter.getName());
-        if (o != null) {
+        Object arg = mcpArgs.get(parameter.getName());
+        if (arg != null) {
           Class<?> parameterType = parameter.getType();
           boolean mono = false;
 
@@ -129,11 +155,11 @@ public class McpSpecificationGenerator {
             mono = true;
           }
 
-          if (parameterType.isAssignableFrom(o.getClass())) {
-            values[i] = mono ? Mono.just(o) : o;
-          } else if (Map.class.isAssignableFrom(o.getClass())) {
+          if (parameterType.isAssignableFrom(arg.getClass())) {
+            values[i] = mono ? Mono.just(arg) : arg;
+          } else if (Map.class.isAssignableFrom(arg.getClass())) {
             try {
-              Object obj = objectMapper.convertValue(o, parameterType);
+              Object obj = objectMapper.convertValue(arg, parameterType);
               values[i] = mono ? Mono.just(obj) : obj;
             } catch (Exception e) {
               throw new RuntimeException(e);
@@ -149,7 +175,7 @@ public class McpSpecificationGenerator {
   private JsonSchema operationSchema(Method method, McpTool instance) {
     Method annotatedMethod = findAnnotatedMethod(method, instance);
 
-    Map<String, Object> parameters = new HashMap<>();
+    Map<String, Object> parametersSchemas = new HashMap<>();
     List<String> required = new ArrayList<>();
     Parameter[] annotatedParameters = annotatedMethod.getParameters();
     Parameter[] methodParameters = method.getParameters();
@@ -163,14 +189,14 @@ public class McpSpecificationGenerator {
         if (parameterAnnotation.required()) {
           required.add(methodParameter.getName());
         }
-        parameters.put(
+        parametersSchemas.put(
             methodParameter.getName(),
             getTypeSchema(methodParameter)
         );
       }
     }
     return new JsonSchema(
-        "object", parameters, required,
+        "object", parametersSchemas, required,
         false,
         null, null
     );

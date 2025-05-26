@@ -58,10 +58,6 @@ public class McpConfig {
         .build();
   }
 
-  private List<AsyncPromptSpecification> prompts() {
-    return List.of();
-  }
-
   private List<AsyncToolSpecification> tools() {
     List<AsyncToolSpecification> tools = new ArrayList<>();
     for (McpTool mcpTool : mcpTools) {
