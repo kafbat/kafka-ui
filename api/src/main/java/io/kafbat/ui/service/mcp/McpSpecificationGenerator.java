@@ -48,9 +48,7 @@ public class McpSpecificationGenerator {
     return result;
   }
 
-  public AsyncToolSpecification convertOperation(Method method,
-                                                                   Operation annotation,
-                                                                   McpTool instance) {
+  public AsyncToolSpecification convertOperation(Method method, Operation annotation, McpTool instance) {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
     return new AsyncToolSpecification(
