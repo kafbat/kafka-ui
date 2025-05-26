@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class McpSpecificationGeneratorTest {
   private static final SchemaGenerator SCHEMA_GENERATOR = schemaGenerator();
   private static final McpSpecificationGenerator MCP_SPECIFICATION_GENERATOR =
-      new McpSpecificationGenerator(SCHEMA_GENERATOR);
+      new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper());
 
   private static SchemaGenerator schemaGenerator() {
     SchemaGeneratorConfigBuilder configBuilder =

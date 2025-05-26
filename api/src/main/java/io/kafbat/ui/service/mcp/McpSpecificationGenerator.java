@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class McpSpecificationGenerator {
   private final SchemaGenerator schemaGenerator;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
   public List<AsyncToolSpecification> convertTool(McpTool controller) {
     List<AsyncToolSpecification> result = new ArrayList<>();
