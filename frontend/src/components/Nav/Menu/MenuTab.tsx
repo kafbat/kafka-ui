@@ -20,7 +20,7 @@ const MenuTab: FC<MenuTabProps> = ({
   isOpen,
   setColorKey,
 }) => (
-  <S.MenuItem $variant="secondary" onClick={toggleClusterMenu}>
+  <S.MenuItem $variant="primary" onClick={toggleClusterMenu}>
     <S.ContentWrapper>
       <S.StatusIconWrapper>
         <S.StatusIcon status={status} aria-label="status">
