@@ -1,29 +1,30 @@
 import { Page, Locator } from "@playwright/test";
 
-export default class TopicCreateLocators{
+export default class TopicCreateLocators {
     private readonly page: Page;
 
     constructor(page: Page) {
       this.page = page;
     }
 
-    topicsCreateHeading = (): Locator => this.page.getByText('TopicsCreate');
-    topicsCreateTopicName = ():Locator => this.page.getByRole('textbox', { name: 'Topic Name *' });
-    topicsCreateNumberOfPartitions  = ():Locator => this.page.getByRole('spinbutton', { name: 'Number of Partitions *' });
-    topicsCreateCleanupPolicy = (): Locator => this.page.getByRole('listbox', { name: 'Cleanup policy' });
-    topicsCreateCleanupPolicySelect = (value : string): Locator => this.page.getByRole('list').getByRole('option', { name: value, exact: true });
-    topicsCreateMinInSyncReplicas = (): Locator => this.page.getByRole('spinbutton', { name: 'Min In Sync Replicas' });
-    topicsCreateReplicationFactor = (): Locator => this.page.getByRole('spinbutton', { name: 'Replication Factor' });
-    topicsCreateTimeToRetainData = (): Locator => this.page.getByRole('spinbutton', { name: 'Time to retain data (in ms)' });
-    topicsCreate12Hours = (): Locator => this.page.getByRole('button', { name: 'hours' });
-    topicsCreate1Day = (): Locator => this.page.getByRole('button', { name: '1 day' });
-    topicsCreate2Day = (): Locator => this.page.getByRole('button', { name: '2 days' });
-    topicsCreate7Day = (): Locator => this.page.getByRole('button', { name: '7 days' });
-    topicsCreate4Weeks = (): Locator => this.page.getByRole('button', { name: 'weeks' });
-    topicsCreateMaxPartitionSize = (): Locator => this.page.getByRole('listbox', { name: 'Max partition size in GB' });
-    topicsCreateMaxPartitionSizeSelect = (value: string): Locator => this.page.getByRole('option', { name: value });
-    topicsCreateMaxMessageSize = (): Locator => this.page.getByRole('spinbutton', { name: 'Maximum message size in bytes' });
-    topicsCreateAddCustomParameter = (): Locator => this.page.getByRole('button', { name: 'Add Custom Parameter' });
-    topicsCreateCancel = (): Locator => this.page.getByRole('button', { name: 'Cancel' });
-    topicCreateCreateTopicButton = (): Locator => this.page.getByRole('button', { name: 'Create topic' });
+  get heading(): Locator { return this.page.getByText('TopicsCreate'); }
+  get topicName(): Locator { return this.page.getByRole('textbox', { name: 'Topic Name *' }); }
+  get numberOfPartitions(): Locator { return this.page.getByRole('spinbutton', { name: 'Number of Partitions *' }); }
+  get cleanupPolicy(): Locator { return this.page.getByRole('listbox', { name: 'Cleanup policy' }); }
+  get minInSyncReplicas(): Locator { return this.page.getByRole('spinbutton', { name: 'Min In Sync Replicas' }); }
+  get replicationFactor(): Locator { return this.page.getByRole('spinbutton', { name: 'Replication Factor' }); }
+  get timeToRetainData(): Locator { return this.page.getByRole('spinbutton', { name: 'Time to retain data (in ms)' }); }
+  get button12Hours(): Locator { return this.page.getByRole('button', { name: 'hours' }); }
+  get button1Day(): Locator { return this.page.getByRole('button', { name: '1 day' }); }
+  get button2Day(): Locator { return this.page.getByRole('button', { name: '2 days' }); }
+  get button7Day(): Locator { return this.page.getByRole('button', { name: '7 days' }); }
+  get button4Weeks(): Locator { return this.page.getByRole('button', { name: 'weeks' }); }
+  get maxPartitionSize(): Locator { return this.page.getByRole('listbox', { name: 'Max partition size in GB' }); }
+  get maxMessageSize(): Locator { return this.page.getByRole('spinbutton', { name: 'Maximum message size in bytes' }); }
+  get addCustomParameter(): Locator { return this.page.getByRole('button', { name: 'Add Custom Parameter' }); }
+  get cancel(): Locator { return this.page.getByRole('button', { name: 'Cancel' }); }
+  get createTopicButton(): Locator { return this.page.getByRole('button', { name: 'Create topic' }); }
+
+  maxPartitionSizeSelect(value: string): Locator { return this.page.getByRole('option', { name: value }); }
+  cleanupPolicySelect(value: string): Locator { return this.page.getByRole('list').getByRole('option', { name: value, exact: true }); }
 }

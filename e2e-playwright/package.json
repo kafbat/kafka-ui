@@ -8,7 +8,8 @@
     "test": "cross-env ENV=prod FORCE_COLOR=0 cucumber-js --config=config/cucumber.js",
     "test:stage": "cross-env ENV=stage FORCE_COLOR=0 cucumber-js --config=config/cucumber.js",
     "posttest": "npx ts-node src/helper/report/report.ts",
-    "test:failed": "cucumber-js -p rerun @rerun.txt"
+    "test:failed": "cucumber-js -p rerun @rerun.txt",
+    "lint": "eslint 'src/**/*.ts' --fix"
   },
   "keywords": [],
   "author": "",
@@ -16,14 +17,20 @@
   "description": "",
   "devDependencies": {
     "@cucumber/cucumber": "^11.2.0",
+    "@eslint/js": "^9.27.0",
     "@playwright/test": "^1.48.2",
     "@types/node": "^22.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
+    "eslint": "^9.27.0",
     "fs-extra": "^11.3.0",
+    "globals": "^16.1.0",
     "multiple-cucumber-html-reporter": "^3.9.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
     "winston": "^3.17.0"
   },
   "dependencies": {
