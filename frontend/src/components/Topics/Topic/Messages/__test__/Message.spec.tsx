@@ -115,7 +115,7 @@ describe('Message component', () => {
 
   it('should check if Preview filter showing for Value', () => {
     const props = {
-      message: { ...mockMessage, content: contentTest as string },
+      message: { ...mockMessage, value: contentTest as string },
       contentFilters: [mockContentFilters],
     };
     renderComponent(props);
