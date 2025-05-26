@@ -148,7 +148,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertThat(polled.getContent()).isEqualTo("testValue");
+          assertThat(polled.getValue()).isEqualTo("testValue");
         });
   }
 
@@ -164,7 +164,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("123");
-          assertThat(polled.getContent()).isEqualTo("21474836470");
+          assertThat(polled.getValue()).isEqualTo("21474836470");
         });
   }
 
@@ -180,7 +180,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertThat(polled.getContent()).isEqualTo("testValue");
+          assertThat(polled.getValue()).isEqualTo("testValue");
         });
   }
 
@@ -196,7 +196,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertThat(polled.getContent()).isNull();
+          assertThat(polled.getValue()).isNull();
         });
   }
 
@@ -214,7 +214,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("\"some string\"");
-          assertThat(polled.getContent()).isEqualTo("123");
+          assertThat(polled.getValue()).isEqualTo("123");
         });
   }
 
@@ -232,7 +232,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
         });
   }
 
@@ -249,7 +249,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
         });
   }
 
@@ -268,7 +268,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
         });
   }
 
@@ -300,7 +300,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
         });
   }
 
@@ -333,7 +333,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), JSON_SCHEMA_RECORD);
+          assertJsonEqual(polled.getValue(), JSON_SCHEMA_RECORD);
         });
   }
 
@@ -366,7 +366,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(15L);
           assertThat(polled.getValueSize()).isEqualTo(15L);
           assertThat(polled.getKeyDeserializeProperties().get("schemaId")).isNotNull();
@@ -391,7 +391,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(18L);
           assertThat(polled.getValueSize()).isEqualTo(18L);
           assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
@@ -416,7 +416,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), JSON_SCHEMA_RECORD);
-          assertJsonEqual(polled.getContent(), JSON_SCHEMA_RECORD);
+          assertJsonEqual(polled.getValue(), JSON_SCHEMA_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(57L);
           assertThat(polled.getValueSize()).isEqualTo(57L);
           assertThat(polled.getHeadersSize()).isEqualTo(13L);
@@ -456,7 +456,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertThat(polled.getContent()).isNull();
+          assertThat(polled.getValue()).isNull();
         });
   }
 

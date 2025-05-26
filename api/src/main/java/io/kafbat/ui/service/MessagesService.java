@@ -110,7 +110,7 @@ public class MessagesService {
       var result = predicate.test(
           new TopicMessageDTO()
               .key(execData.getKey())
-              .content(execData.getValue())
+              .value(execData.getValue())
               .headers(execData.getHeaders())
               .offset(execData.getOffset())
               .partition(execData.getPartition())

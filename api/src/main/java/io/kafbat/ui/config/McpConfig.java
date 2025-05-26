@@ -12,12 +12,14 @@ import io.modelcontextprotocol.spec.McpSchema;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "mcp.enabled", havingValue = "true")
 public class McpConfig {
 
   private final List<McpTool> mcpTools;
