@@ -49,3 +49,5 @@ node_modules/
 out/
 node_modules/
 .gradle
+@rerun.txt
+test-results

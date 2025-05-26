@@ -20,6 +20,7 @@ import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.service.KafkaConnectService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaConnectController extends AbstractController implements KafkaConnectApi {
+public class KafkaConnectController extends AbstractController implements KafkaConnectApi, McpTool {
   private static final Set<ConnectorActionDTO> RESTART_ACTIONS
       = Set.of(RESTART, RESTART_FAILED_TASKS, RESTART_ALL_TASKS);
   private static final String CONNECTOR_NAME = "connectorName";

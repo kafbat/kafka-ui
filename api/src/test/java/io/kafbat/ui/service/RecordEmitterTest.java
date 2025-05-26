@@ -345,7 +345,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
         Flux.create(emitter)
             .filter(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.MESSAGE))
             .take(take)
-            .map(m -> m.getMessage().getContent())
+            .map(m -> m.getMessage().getValue())
     );
 
     StepVerifier.Step<String> step = stepConsumer.apply(firstStep);
