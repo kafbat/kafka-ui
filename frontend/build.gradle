@@ -9,16 +9,11 @@ node {
   nodeProjectDir = project.layout.projectDirectory
 }
 
-tasks.register("clean") {
-  group = "build"
-  description = "Cleans frontend build"
-
-  doFirst {
-    delete(
-      project.layout.buildDirectory,
-      project.layout.projectDirectory.dir("src/generated-sources")
-    )
-  }
+tasks.register('clean', Delete) {
+  group = 'build'
+  description = 'Cleans frontend build'
+  delete layout.buildDirectory
+  delete layout.projectDirectory.dir('src/generated-sources')
 }
 
 tasks.named("pnpmInstall") {

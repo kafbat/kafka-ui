@@ -9,6 +9,10 @@ plugins {
 def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
 def targetDir = project.layout.buildDirectory.dir("generated").get()
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
 dependencies {
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.validation
@@ -54,7 +58,7 @@ tasks.register('generateBackendApi', GenerateTask) {
                      generateConstructorWithAllArgs      : "false",
                      generatedConstructorWithRequiredArgs: "false",
                      additionalModelTypeAnnotations      : """
-            @lombok.experimental.SuperBuilder
+
             @lombok.AllArgsConstructor
             @lombok.NoArgsConstructor
             """]

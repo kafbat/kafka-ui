@@ -5,6 +5,7 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 public class SchemaRegistryContainer extends GenericContainer<SchemaRegistryContainer> {
   private static final int SCHEMA_PORT = 8081;
@@ -14,7 +15,7 @@ public class SchemaRegistryContainer extends GenericContainer<SchemaRegistryCont
     withExposedPorts(8081);
   }
 
-  public SchemaRegistryContainer withKafka(KafkaContainer kafka) {
+  public SchemaRegistryContainer withKafka(ConfluentKafkaContainer kafka) {
     String bootstrapServers = kafka.getNetworkAliases().get(0) + ":9092";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
