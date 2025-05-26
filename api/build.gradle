@@ -114,6 +114,9 @@ sourceSets {
         java {
             srcDirs += generateGrammarSource.outputDirectory
         }
+        resources {
+            srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
+        }
     }
 }
 
@@ -151,15 +154,7 @@ if (buildDockerImages) {
 }
 
 if (includeFrontend) {
-    tasks.named("build") {
-        dependsOn(":frontend:buildFrontend")
-    }
-
     tasks.named("processResources") {
         dependsOn(":frontend:buildFrontend")
-        from(project(":frontend").layout.buildDirectory.dir("vite")) {
-            into("static")
-        }
-        into("$buildDir/resources/main")
     }
 }
