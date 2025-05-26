@@ -143,15 +143,15 @@ public class ConsumerGroupService {
       case STATE -> {
         ToIntFunction<ConsumerGroupListing> statesPriorities =
             cg -> switch (cg.state().orElse(ConsumerGroupState.UNKNOWN)) {
-              case STABLE -> 0;
-              case COMPLETING_REBALANCE -> 1;
-              case PREPARING_REBALANCE -> 2;
-              case EMPTY -> 3;
-              case DEAD -> 4;
-              case UNKNOWN -> 5;
-              case ASSIGNING -> 6;
-              case RECONCILING -> 7;
-            };
+                  case STABLE -> 0;
+                  case COMPLETING_REBALANCE -> 1;
+                  case PREPARING_REBALANCE -> 2;
+                  case EMPTY -> 3;
+                  case DEAD -> 4;
+                  case UNKNOWN -> 5;
+                  case ASSIGNING -> 6;
+                  case RECONCILING -> 7;
+                };
         var comparator = Comparator.comparingInt(statesPriorities);
         yield loadDescriptionsByListings(ac, groups, comparator, pageNum, perPage, sortOrderDto);
       }

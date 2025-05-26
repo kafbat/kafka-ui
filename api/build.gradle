@@ -62,6 +62,8 @@ dependencies {
     implementation libs.netty.common
     implementation libs.netty.handler
 
+    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.victools.jsonschema.generator
 
     // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {

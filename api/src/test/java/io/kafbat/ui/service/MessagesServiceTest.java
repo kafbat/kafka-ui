@@ -231,7 +231,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
         .key(null)
         .partition(0)
         .keySerde(StringSerde.name())
-        .content(jsonContent)
+        .value(jsonContent)
         .valueSerde(ProtobufFileSerde.name());
 
     String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();

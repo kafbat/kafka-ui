@@ -30,7 +30,7 @@ describe('Message component', () => {
     offset: 0,
     key: 'test-key',
     partition: 6,
-    content: '{"data": "test"}',
+    value: '{"data": "test"}',
     headers: { header: 'test' },
   };
   const mockKeyFilters: PreviewFilter = {
@@ -62,7 +62,7 @@ describe('Message component', () => {
 
   it('shows the data in the table row', () => {
     renderComponent();
-    expect(screen.getByText(mockMessage.content as string)).toBeInTheDocument();
+    expect(screen.getByText(mockMessage.value as string)).toBeInTheDocument();
     expect(screen.getByText(mockMessage.key as string)).toBeInTheDocument();
     expect(
       screen.getByText(formatTimestamp(mockMessage.timestamp))
@@ -75,10 +75,10 @@ describe('Message component', () => {
 
   it('check the useDataSaver functionality', () => {
     const props = { message: { ...mockMessage } };
-    delete props.message.content;
+    delete props.message.value;
     renderComponent(props);
     expect(
-      screen.queryByText(mockMessage.content as string)
+      screen.queryByText(mockMessage.value as string)
     ).not.toBeInTheDocument();
   });
 
