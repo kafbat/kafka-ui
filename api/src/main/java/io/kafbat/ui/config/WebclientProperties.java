@@ -13,6 +13,7 @@ import org.springframework.util.unit.DataSize;
 public class WebclientProperties {
 
   String maxInMemoryBufferSize;
+  Integer responseTimeoutMs;
 
   @PostConstruct
   public void validate() {

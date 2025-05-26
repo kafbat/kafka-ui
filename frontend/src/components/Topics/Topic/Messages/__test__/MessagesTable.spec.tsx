@@ -17,7 +17,7 @@ export const topicMessagePayload: TopicMessage = {
   timestampType: TopicMessageTimestampTypeEnum.CREATE_TIME,
   key: 'schema-registry',
   headers: {},
-  content:
+  value:
     '{"host":"schemaregistry1","port":8085,"master_eligibility":true,"scheme":"http","version":1}',
 };
 
@@ -102,9 +102,9 @@ describe('MessagesTable', () => {
 
     it('should check the rendering of the messages', () => {
       expect(screen.queryByText(/No messages found/i)).not.toBeInTheDocument();
-      if (mockTopicsMessages[0].content) {
+      if (mockTopicsMessages[0].value) {
         expect(
-          screen.getByText(mockTopicsMessages[0].content)
+          screen.getByText(mockTopicsMessages[0].value)
         ).toBeInTheDocument();
       }
     });

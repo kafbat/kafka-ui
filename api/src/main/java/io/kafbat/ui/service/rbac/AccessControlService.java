@@ -75,13 +75,13 @@ public class AccessControlService {
             .map(Subject::getProvider)
             .distinct()
             .map(provider -> switch (provider) {
-              case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
-              case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
-              case OAUTH_GITHUB -> new GithubAuthorityExtractor();
-              case OAUTH -> new OauthAuthorityExtractor();
-              default -> null;
-            })
-            .filter(Objects::nonNull)
+                  case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
+                  case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
+                  case OAUTH_GITHUB -> new GithubAuthorityExtractor();
+                  case OAUTH -> new OauthAuthorityExtractor();
+                  default -> null;
+                }
+            ).filter(Objects::nonNull)
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());

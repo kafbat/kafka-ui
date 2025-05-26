@@ -3034,7 +3034,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
           nullable: true
         keySerde:
@@ -3124,7 +3124,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
         keyFormat:
           #deprecated - wont be filled - use 'keySerde' field instead
@@ -4245,6 +4245,9 @@ components:
                 maxInMemoryBufferSize:
                   type: string
                   description: "examples: 20, 12KB, 5MB"
+                responseTimeoutMs:
+                  type: integer
+                  description: "general response timeout in milliseconds for all http requests"
             kafka:
               type: object
               properties:
