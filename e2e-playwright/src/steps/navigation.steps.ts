@@ -1,115 +1,109 @@
+/* eslint-disable no-unused-vars */
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
-import { fixture } from "../hooks/pageFixture";
 import expect from "../helper/util/expect";
+import { PlaywrightWorld } from "../support/PlaywrightWorld";
 
 setDefaultTimeout(60 * 1000 * 2);
 
-Given('Brokers is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.brokersLink()).toBeVisible();
-  });
-
-When('click on Brokers link', async () => {
-    await fixture.navigationPanel.brokersLink().click();
+Given('Brokers is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.brokersLink).toBeVisible();
 });
 
-Then('Brokers heading visible', async () => {
-    await fixture.brokers.brokersHeading().waitFor({ state: 'visible' });
+When('click on Brokers link', async function() {
+  await this.locators.panel.brokersLink.click();
 });
 
-
-Given('Topics is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.topicsLink()).toBeVisible();
+Then('Brokers heading visible', async function() {
+  await this.locators.brokers.heading.waitFor({ state: 'visible' });
 });
 
-When('click on Topics link', async () => {
-    await fixture.navigationPanel.topicsLink().click();
+Given('Topics is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.topicsLink).toBeVisible();
 });
 
-Then('Topics heading visible', async () => {
-    await fixture.topics.topicsHeading().waitFor({ state: 'visible' });
+When('click on Topics link', async function() {
+  await this.locators.panel.topicsLink.click();
 });
 
-
-Given('Consumers is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.consumersLink()).toBeVisible();
+Then('Topics heading visible', async function() {
+  await this.locators.topics.heading.waitFor({ state: 'visible' });
 });
 
-When('click on Consumers link', async () => {
-    await fixture.navigationPanel.consumersLink().click();
+Given('Consumers is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.consumersLink).toBeVisible();
 });
 
-Then('Consumers heading visible', async () => {
-    await fixture.consumers.consumersHeading().waitFor({ state: 'visible' });
+When('click on Consumers link', async function() {
+  await this.locators.panel.consumersLink.click();
 });
 
-
-Given('Schema Registry is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.schemaRegistryLink()).toBeVisible();
+Then('Consumers heading visible', async function() {
+  await this.locators.consumers.heading.waitFor({ state: 'visible' });
 });
 
-When('click on Schema Registry link', async () => {
-    await fixture.navigationPanel.schemaRegistryLink().click();
+Given('Schema Registry is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.schemaRegistryLink).toBeVisible();
 });
 
-Then('Schema Registry heading visible', async () => {
-    await fixture.schemaRegistry.schemaRegistryHeading().waitFor({ state: 'visible' });
+When('click on Schema Registry link', async function() {
+  await this.locators.panel.schemaRegistryLink.click();
 });
 
-
-Given('Kafka Connect is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.kafkaConnectLink()).toBeVisible();
+Then('Schema Registry heading visible', async function() {
+  await this.locators.schemaRegistry.heading.waitFor({ state: 'visible' });
 });
 
-When('click on Kafka Connect link', async () => {
-    await fixture.navigationPanel.kafkaConnectLink().click();
+Given('Kafka Connect is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.kafkaConnectLink).toBeVisible();
 });
 
-Then('Kafka Connect heading visible', async () => {
-    await fixture.connectors.connectorsHeading().waitFor({ state: 'visible' });
+When('click on Kafka Connect link', async function() {
+  await this.locators.panel.kafkaConnectLink.click();
 });
 
-Given('KSQL DB is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    await expect(fixture.navigationPanel.ksqlDbLink()).toBeVisible();
+Then('Kafka Connect heading visible', async function() {
+  await this.locators.connectors.heading.waitFor({ state: 'visible' });
 });
 
-When('click on KSQL DB link', async () => {
-    await fixture.navigationPanel.ksqlDbLink().click();
+Given('KSQL DB is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  await expect(this.locators.panel.ksqlDbLink).toBeVisible();
 });
 
-Then('KSQL DB heading visible', async () => {
-    await fixture.ksqlDb.ksqlDbHeading().waitFor({ state: 'visible' });
+When('click on KSQL DB link', async function(this: PlaywrightWorld) {
+  await this.locators.panel.ksqlDbLink.click();
 });
 
-
-Given('Dashboard is visible', async () => {
-    await fixture.page.goto(process.env.BASEURL!);
-    var tmp = fixture.navigationPanel.getDashboardLink();
-    await expect(fixture.navigationPanel.getDashboardLink()).toBeVisible();
+Then('KSQL DB heading visible', async function(this: PlaywrightWorld) {
+  await this.locators.ksqlDb.heading.waitFor({ state: 'visible' });
 });
 
-When('click on Dashboard link', async () => {
-    const dashboard = fixture.navigationPanel.getDashboardLink()
-    await dashboard.isVisible();
-    await dashboard.click();
+Given('Dashboard is visible', async function() {
+  await this.page.goto(process.env.BASEURL!);
+  expect(this.locators.panel.getDashboardLink.isVisible());
 });
 
-Then('Dashboard heading visible', async () => {
-    await fixture.dashboard.dashboardHeading().waitFor({ state: 'visible' });
+When('click on Dashboard link', async function(this: PlaywrightWorld) {
+  const dashboard = this.locators.panel.getDashboardLink;
+  await dashboard.isVisible();
+  await dashboard.click();
 });
 
+Then('Dashboard heading visible', async function() {
+  await this.locators.dashboard.heading.waitFor({ state: 'visible' });
+});
 
-Then('the end of current URL should be {string}', async (expected: string) => {
-  const actual = new URL(fixture.page.url()).pathname;
+Then('the end of current URL should be {string}', async function(this: PlaywrightWorld, expected: string) {
+  const actual = new URL(this.page.url()).pathname;
   expect(actual.endsWith(expected)).toBeTruthy();
 });
 
-Then('the part of current URL should be {string}', async (expected: string) => {
-    const actual = new URL(fixture.page.url()).pathname;
-    expect(actual.includes(expected)).toBeTruthy();
-  });
+Then('the part of current URL should be {string}', async function(this: PlaywrightWorld, expected: string) {
+  const actual = new URL(this.page.url()).pathname;
+  expect(actual.includes(expected)).toBeTruthy();
+});
