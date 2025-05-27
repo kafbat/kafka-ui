@@ -11,6 +11,7 @@ import io.kafbat.ui.model.KafkaAclResourceTypeDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.service.acl.AclsService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.resource.PatternType;
@@ -24,7 +25,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
-public class AclsController extends AbstractController implements AclsApi {
+public class AclsController extends AbstractController implements AclsApi, McpTool {
 
   private final AclsService aclsService;
 

@@ -3039,7 +3039,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
           nullable: true
         keySerde:
@@ -3129,7 +3129,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
         keyFormat:
           #deprecated - wont be filled - use 'keySerde' field instead

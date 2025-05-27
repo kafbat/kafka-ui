@@ -104,8 +104,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
 
     // both messages should be masked
     StepVerifier.create(msgsFlux)
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
         .verifyComplete();
   }
 
@@ -136,7 +136,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(msgsFlux)
         .expectNextCount(pageSize)
@@ -151,7 +151,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(remainingMsgs)
         .expectNextCount(msgsToGenerate - pageSize)
@@ -231,7 +231,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
         .key(null)
         .partition(0)
         .keySerde(StringSerde.name())
-        .content(jsonContent)
+        .value(jsonContent)
         .valueSerde(ProtobufFileSerde.name());
 
     String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();

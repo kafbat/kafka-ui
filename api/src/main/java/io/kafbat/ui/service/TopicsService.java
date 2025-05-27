@@ -240,7 +240,7 @@ public class TopicsService {
   }
 
   /**
-   * Change topic replication factor, works on brokers versions 5.4.x and higher
+   * Change topic replication factor. Works on brokers versions 5.4.x and higher.
    */
   public Mono<ReplicationFactorChangeResponseDTO> changeReplicationFactor(
       KafkaCluster cluster,

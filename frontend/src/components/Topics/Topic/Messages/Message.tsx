@@ -32,7 +32,7 @@ const Message: React.FC<Props> = ({
     key,
     keySize,
     partition,
-    content,
+    value,
     valueSize,
     headers,
     valueSerde,
@@ -43,7 +43,7 @@ const Message: React.FC<Props> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const savedMessageJson = {
-    Value: content,
+    Value: value,
     Offset: offset,
     Key: key,
     Partition: partition,
@@ -120,10 +120,10 @@ const Message: React.FC<Props> = ({
             )}
           </Ellipsis>
         </S.DataCell>
-        <S.DataCell title={content}>
+        <S.DataCell title={value}>
           <S.Metadata>
             <S.MetadataValue>
-              <Ellipsis text={renderFilteredJson(content, contentFilters)}>
+              <Ellipsis text={renderFilteredJson(value, contentFilters)}>
                 {valueSerde === 'Fallback' && (
                   <Tooltip
                     value={<WarningRedIcon />}
@@ -149,7 +149,7 @@ const Message: React.FC<Props> = ({
       {isOpen && (
         <MessageContent
           messageKey={key}
-          messageContent={content}
+          messageContent={value}
           headers={headers}
           timestamp={timestamp}
           timestampType={timestampType}

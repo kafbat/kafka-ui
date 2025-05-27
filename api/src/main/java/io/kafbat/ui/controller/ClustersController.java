@@ -6,6 +6,7 @@ import io.kafbat.ui.model.ClusterMetricsDTO;
 import io.kafbat.ui.model.ClusterStatsDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.ClusterService;
+import io.kafbat.ui.service.mcp.McpTool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class ClustersController extends AbstractController implements ClustersApi {
+public class ClustersController extends AbstractController implements ClustersApi, McpTool {
   private final ClusterService clusterService;
 
   @Override

@@ -48,7 +48,7 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
 
 export const ContentWrapper = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: center;
   column-gap: 4px;
 `;
 
