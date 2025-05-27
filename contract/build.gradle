@@ -9,10 +9,6 @@ plugins {
 def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
 def targetDir = project.layout.buildDirectory.dir("generated").get()
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
-}
-
 dependencies {
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.validation

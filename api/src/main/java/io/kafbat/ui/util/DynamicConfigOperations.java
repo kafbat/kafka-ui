@@ -206,11 +206,15 @@ public class DynamicConfigOperations {
     representer.setPropertyUtils(propertyUtils);
     representer.addClassTag(PropertiesStructure.class, Tag.MAP); //to avoid adding class tag
     representer.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //use indent instead of {}
-    return new Yaml(
-        new Constructor(new LoaderOptions()),
-        representer,
-        new DumperOptions()
-    ).dump(props);
+
+    DumperOptions dumperOptions = new DumperOptions();
+    dumperOptions.setDefaultFlowStyle(representer.getDefaultFlowStyle());
+    dumperOptions.setDefaultScalarStyle(representer.getDefaultScalarStyle());
+    dumperOptions
+        .setAllowReadOnlyProperties(representer.getPropertyUtils().isAllowReadOnlyProperties());
+    dumperOptions.setTimeZone(representer.getTimeZone());
+
+    return new Yaml(representer, dumperOptions).dump(props);
   }
 
   ///---------------------------------------------------------------------

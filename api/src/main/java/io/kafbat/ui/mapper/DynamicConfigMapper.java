@@ -5,10 +5,11 @@ import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerDTO
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerJwtDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpaquetokenDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
+import io.kafbat.ui.model.ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO;
+import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Optional;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -16,13 +17,20 @@ import org.springframework.core.io.Resource;
 @Mapper(componentModel = "spring")
 public interface DynamicConfigMapper {
 
-  @Mapping(target = "rbac.roles[].permissions[].parsedActions", ignore = true)
   DynamicConfigOperations.PropertiesStructure fromDto(ApplicationConfigPropertiesDTO dto);
 
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
   default String map(Resource resource) {
     return resource.getFilename();
+  }
+
+  default Permission map(ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO perm) {
+    Permission permission = new Permission();
+    permission.setResource(perm.getResource().getValue());
+    permission.setActions(perm.getActions().stream().map(ActionDTO::getValue).toList());
+    permission.setValue(perm.getValue());
+    return permission;
   }
 
   default OAuth2ResourceServerProperties map(ApplicationConfigPropertiesAuthOauth2ResourceServerDTO value) {
