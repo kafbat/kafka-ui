@@ -377,6 +377,7 @@ public class ReactiveAdminClient implements Closeable {
    * This method converts input map into Mono[Map] ignoring keys for which KafkaFutures
    * finished with <code>classes</code> exceptions and empty Monos.
    */
+  @SuppressWarnings("unchecked")
   @SafeVarargs
   static <K, V> Mono<Map<K, V>> toMonoWithExceptionFilter(Map<K, KafkaFuture<V>> values,
                                                           Class<? extends KafkaException>... classes) {

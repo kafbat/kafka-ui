@@ -22,7 +22,7 @@ public class KsqlDbContainer extends GenericContainer<KsqlDbContainer> {
 
   public KsqlDbContainer withKafka(ConfluentKafkaContainer kafka) {
     dependsOn(kafka);
-    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9092";
+    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9095";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
 

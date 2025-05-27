@@ -40,8 +40,11 @@ public abstract class AbstractIntegrationTest {
 
   private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
 
-  public static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
+  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(
+      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
+
+  public static final ConfluentKafkaContainer kafka = kafkaOriginal
+      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
       .withNetwork(Network.SHARED);
 
   public static final SchemaRegistryContainer schemaRegistry =
