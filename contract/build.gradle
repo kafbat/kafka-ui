@@ -54,7 +54,7 @@ tasks.register('generateBackendApi', GenerateTask) {
                      generateConstructorWithAllArgs      : "false",
                      generatedConstructorWithRequiredArgs: "false",
                      additionalModelTypeAnnotations      : """
-            @lombok.experimental.SuperBuilder
+
             @lombok.AllArgsConstructor
             @lombok.NoArgsConstructor
             """]

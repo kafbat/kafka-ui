@@ -106,11 +106,14 @@ generateGrammarSource {
     arguments += ["-package", "ksql"]
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+
+
 sourceSets {
     main {
-        antlr {
-            srcDirs = ["src/main/antlr4"]
-        }
         java {
             srcDirs += generateGrammarSource.outputDirectory
         }

@@ -224,10 +224,9 @@ class MessageFiltersTest {
   }
 
   private TopicMessageDTO msg() {
-    return TopicMessageDTO.builder()
+    return new TopicMessageDTO()
         .partition(1)
         .offset(-1L)
-        .timestamp(OffsetDateTime.now())
-        .build();
+        .timestamp(OffsetDateTime.now());
   }
 }
