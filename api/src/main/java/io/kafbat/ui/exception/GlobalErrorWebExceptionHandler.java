@@ -161,6 +161,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return coalesce(fieldError.getDefaultMessage(), fieldError.getCode(), "Invalid field value");
   }
 
+  @SafeVarargs
   private <T> T coalesce(T... items) {
     return Stream.of(items).filter(Objects::nonNull).findFirst().orElse(null);
   }

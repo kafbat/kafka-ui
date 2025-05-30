@@ -1,12 +1,15 @@
 package io.kafbat.ui.service.quota;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.ClustersStorage;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import org.assertj.core.api.ListAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -48,8 +51,9 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
         .assertNext(status -> assertThat(status.value()).isEqualTo(201))
         .verifyComplete();
 
-    assertThat(quotaRecordExists(new ClientQuotaRecord(user, clientId, ip, initialQuotas)))
-        .isTrue();
+    awaitAndVerify((l) ->
+        l.contains(new ClientQuotaRecord(user, clientId, ip, initialQuotas))
+    );
 
     //updating
     StepVerifier.create(
@@ -58,8 +62,9 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
         .assertNext(status -> assertThat(status.value()).isEqualTo(200))
         .verifyComplete();
 
-    assertThat(quotaRecordExists(new ClientQuotaRecord(user, clientId, ip, Map.of("producer_byte_rate", 22222.0))))
-        .isTrue();
+    awaitAndVerify((l) ->
+        l.contains(new ClientQuotaRecord(user, clientId, ip, Map.of("producer_byte_rate", 22222.0)))
+    );
 
     //deleting created record
     StepVerifier.create(
@@ -68,12 +73,16 @@ class ClientQuotaServiceTest extends AbstractIntegrationTest {
         .assertNext(status -> assertThat(status.value()).isEqualTo(204))
         .verifyComplete();
 
-    assertThat(quotaRecordExists(new ClientQuotaRecord(user, clientId, ip, Map.of("producer_byte_rate", 22222.0))))
-        .isFalse();
+    awaitAndVerify((l) ->
+        l.doesNotContain(new ClientQuotaRecord(user, clientId, ip, Map.of("producer_byte_rate", 22222.0)))
+    );
   }
 
-  private boolean quotaRecordExists(ClientQuotaRecord rec) {
-    return Objects.requireNonNull(quotaService.getAll(cluster).collectList().block()).contains(rec);
+  private void awaitAndVerify(Consumer<ListAssert<ClientQuotaRecord>> verifier) {
+    await()
+        .atMost(5, TimeUnit.SECONDS)
+        .pollInterval(200, TimeUnit.MILLISECONDS)
+        .untilAsserted(() -> verifier.accept(assertThat(quotaService.getAll(cluster).collectList().block())));
   }
 
 }

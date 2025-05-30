@@ -29,6 +29,7 @@ import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class TopicsController extends AbstractController implements TopicsApi {
+public class TopicsController extends AbstractController implements TopicsApi, McpTool {
 
   private static final Integer DEFAULT_PAGE_SIZE = 25;
 

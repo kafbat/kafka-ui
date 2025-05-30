@@ -4,10 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.regex.Pattern;
 
 /**
+ * Provides utility methods converting byte data to string representations.
  * Inspired by: https://github.com/tchiotludo/akhq/blob/dev/src/main/java/org/akhq/utils/ContentUtils.java
  */
 public class ContentUtils {

@@ -56,7 +56,7 @@ public class MessageFilters {
 
   public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
     return msg -> StringUtils.contains(msg.getKey(), string)
-        || StringUtils.contains(msg.getContent(), string) || headersContains(msg, string);
+        || StringUtils.contains(msg.getValue(), string) || headersContains(msg, string);
   }
 
   private static boolean headersContains(TopicMessageDTO msg, String searchString) {
@@ -126,9 +126,9 @@ public class MessageFilters {
       args.put("keyAsText", topicMessage.getKey());
     }
 
-    if (topicMessage.getContent() != null) {
-      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getContent()));
-      args.put("valueAsText", topicMessage.getContent());
+    if (topicMessage.getValue() != null) {
+      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
+      args.put("valueAsText", topicMessage.getValue());
     }
 
     args.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));

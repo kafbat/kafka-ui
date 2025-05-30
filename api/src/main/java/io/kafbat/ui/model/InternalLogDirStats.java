@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import lombok.Value;
+import org.apache.kafka.clients.admin.LogDirDescription;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import reactor.util.function.Tuple2;
@@ -36,12 +37,12 @@ public class InternalLogDirStats {
     return new InternalLogDirStats(Map.of());
   }
 
-  public InternalLogDirStats(Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>> log) {
+  public InternalLogDirStats(Map<Integer, Map<String, LogDirDescription>> log) {
     final List<Tuple3<Integer, TopicPartition, Long>> topicPartitions =
         log.entrySet().stream().flatMap(b ->
             b.getValue().entrySet().stream().flatMap(topicMap ->
-                topicMap.getValue().replicaInfos.entrySet().stream()
-                    .map(e -> Tuples.of(b.getKey(), e.getKey(), e.getValue().size))
+                topicMap.getValue().replicaInfos().entrySet().stream()
+                    .map(e -> Tuples.of(b.getKey(), e.getKey(), e.getValue().size()))
             )
         ).toList();
 

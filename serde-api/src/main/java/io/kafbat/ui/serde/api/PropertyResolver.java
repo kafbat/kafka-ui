@@ -14,7 +14,7 @@ public interface PropertyResolver {
 
   /**
    * Get property value by name.
-   *
+   * @param <T> the type of the property
    * @param key property name
    * @param targetType type of property value
    * @return property value or empty {@code Optional} if property not found
@@ -25,6 +25,7 @@ public interface PropertyResolver {
   /**
    * Get list-property value by name
    *
+   * @param <T> the type of the item
    * @param key list property name
    * @param itemType type of list element
    * @return list property value or empty {@code Optional} if property not found
@@ -37,6 +38,8 @@ public interface PropertyResolver {
    * @param key  map-property name
    * @param keyType type of map key
    * @param valueType type of map value
+   * @param <K> the type of the key
+   * @param <V> the type of the value
    * @return map-property value or empty {@code Optional} if property not found
    */
   <K, V> Optional<Map<K, V>> getMapProperty(String key, Class<K> keyType, Class<V> valueType);
