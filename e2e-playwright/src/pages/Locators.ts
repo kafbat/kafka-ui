@@ -8,6 +8,8 @@ import SchemaRegistryLocators from "./SchemaRegistry/SchemaRegistryLocators";
 import ConnectorsLocators from "./Connectors/ConnectorsLocators";
 import ksqlDbLocators from "./KSQLDB/ksqldbLocators";
 import DashboardLocators from "./Dashboard/DashboardLocators";
+import TopicsTopickNameLocators from "./Topics/TopicsTopickNameLocators"
+import ProduceMessageLocators from "./Topics/ProduceMessageLocators"
 
 export class Locators {
   private readonly page: Page;
@@ -16,6 +18,8 @@ export class Locators {
   private _brokers?: BrokersLocators;
   private _topics?: TopicsLocators;
   private _topicsCreate?: TopicCreateLocators;
+  private _topicTopicName?: TopicsTopickNameLocators;
+  private _produceMessage?: ProduceMessageLocators;
   private _consumers?: ConsumersLocators;
   private _schemaRegistry?: SchemaRegistryLocators;
   private _connectors?: ConnectorsLocators;
@@ -40,6 +44,14 @@ export class Locators {
 
   get topicsCreate() {
     return (this._topicsCreate ??= new TopicCreateLocators(this.page));
+  }
+
+  get topicTopicName() {
+    return (this._topicTopicName ??= new TopicsTopickNameLocators(this.page));
+  }
+
+  get produceMessage() {
+    return (this._produceMessage ??= new ProduceMessageLocators(this.page));
   }
 
   get consumers() {
