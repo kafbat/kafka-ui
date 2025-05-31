@@ -29,7 +29,7 @@ Given('Topics TopicName Settings visible is: {string}', async function(this: Pla
 Given('Topics TopicName Statistics visible is: {string}', async function(this: PlaywrightWorld, visible: string) {
     await expectVisibility(this.locators.topicTopicName.statistics, visible);
 });
-//////////////
+
 Given('Produce message clicked', async function(this: PlaywrightWorld) {
     await this.locators.topicTopicName.produceMessage.click();
 });
