@@ -9,10 +9,10 @@ public enum ConnectAction implements PermissibleAction {
   VIEW,
   EDIT(VIEW),
   CREATE(VIEW),
-  RESTART(VIEW),
+  OPERATE(VIEW),
   DELETE(VIEW),
-  RESET_OFFSETS(VIEW)
-
+  RESET_OFFSETS(VIEW),
+  RESTART(VIEW), // DEPREACTED
   ;
 
   private final ConnectAction[] dependantActions;
@@ -21,7 +21,7 @@ public enum ConnectAction implements PermissibleAction {
     this.dependantActions = dependantActions;
   }
 
-  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, RESTART, RESET_OFFSETS);
+  public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, OPERATE, RESET_OFFSETS);
 
   @Nullable
   public static ConnectAction fromString(String name) {

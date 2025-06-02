@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import io.kafbat.ui.model.rbac.AccessContext.ResourceAccess;
 import io.kafbat.ui.model.rbac.AccessContext.SingleResourceAccess;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
@@ -96,6 +97,20 @@ class AccessContextTest {
               permission(Resource.CLUSTERCONFIG, null, ClusterConfigAction.VIEW)));
 
       assertThat(allowed).isFalse();
+    }
+
+    @Test
+    void shouldNotContainDeprecatedActions() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess(Resource.CONNECT, List.of(ConnectAction.OPERATE));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, null, ConnectAction.RESTART)
+          )
+      );
+
+      assertThat(allowed).isTrue();
     }
 
     private Permission permission(Resource res, @Nullable String namePattern, PermissibleAction... actions) {

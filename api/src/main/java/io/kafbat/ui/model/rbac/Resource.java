@@ -13,6 +13,7 @@ import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -38,6 +39,10 @@ public enum Resource {
 
   CLIENT_QUOTAS(ClientQuotaAction.values());
 
+  private static final Map<PermissibleAction, PermissibleAction> DEPRECATED_ACTIONS = Map.of(
+      ConnectAction.RESTART, ConnectAction.OPERATE
+  );
+
   private final List<PermissibleAction> actions;
 
   Resource(PermissibleAction[] actions) {
@@ -58,6 +63,7 @@ public enum Resource {
         .map(toParse -> actions.stream()
             .filter(a -> toParse.equalsIgnoreCase(a.name()))
             .findFirst()
+            .map(a -> DEPRECATED_ACTIONS.getOrDefault(a, a))
             .orElseThrow(() -> new IllegalArgumentException(
                 "'%s' actions not applicable for resource %s".formatted(toParse, name())))
         )
