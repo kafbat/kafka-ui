@@ -100,13 +100,13 @@ class AccessContextTest {
     }
 
     @Test
-    void shouldNotContainDeprecatedActions() {
+    void shouldMapActionAliases() {
       SingleResourceAccess sra =
           new SingleResourceAccess(Resource.CONNECT, List.of(ConnectAction.OPERATE));
 
       var allowed = sra.isAccessible(
           List.of(
-              permission(Resource.CONNECT, null, ConnectAction.RESTART)
+              permission(Resource.CONNECT, null, List.of("restart"))
           )
       );
 
@@ -114,9 +114,15 @@ class AccessContextTest {
     }
 
     private Permission permission(Resource res, @Nullable String namePattern, PermissibleAction... actions) {
+      return permission(
+          res, namePattern, Stream.of(actions).map(PermissibleAction::name).toList()
+      );
+    }
+
+    private Permission permission(Resource res, @Nullable String namePattern, List<String> actions) {
       Permission p = new Permission();
       p.setResource(res.name());
-      p.setActions(Stream.of(actions).map(PermissibleAction::name).toList());
+      p.setActions(actions);
       p.setValue(namePattern);
       p.validate();
       p.transform();

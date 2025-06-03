@@ -1,5 +1,6 @@
 package io.kafbat.ui.model.rbac.permission;
 
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.EnumUtils;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +13,6 @@ public enum ConnectAction implements PermissibleAction {
   OPERATE(VIEW),
   DELETE(VIEW),
   RESET_OFFSETS(VIEW),
-  RESTART(VIEW), // DEPREACTED
   ;
 
   private final ConnectAction[] dependantActions;
@@ -22,6 +22,8 @@ public enum ConnectAction implements PermissibleAction {
   }
 
   public static final Set<ConnectAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, OPERATE, RESET_OFFSETS);
+
+  public static final Map<String, PermissibleAction> ALIASES = Map.of("restart", OPERATE);
 
   @Nullable
   public static ConnectAction fromString(String name) {
