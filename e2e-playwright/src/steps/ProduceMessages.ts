@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { expectVisibility, ensureCheckboxState } from "../services/uiHelper";
+import { expectVisibility, expectVisuallyActive } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
 
 setDefaultTimeout(60 * 1000 * 2);
@@ -88,4 +88,25 @@ Then('TopicName messages contains headers key is: {string}, value is: {string}',
     const expectedHeader = `"${headerKey}":"${headerValue}"`;
     await this.locators.topicTopicName.headersButton.click()
     await expectVisibility(this.locators.topicTopicName.messageHeadersTextbox(expectedHeader), "true");
+});
+
+Given('TopicName menu button clicked', async function(this: PlaywrightWorld) {
+    await this.locators.topicTopicName.dotsMenu.click();
+});
+
+Then('TopicNameMenu clear messages active is: {string}', async function(this: PlaywrightWorld, state: string) {
+    await expectVisuallyActive(this.locators.topicTopicName.menuItemClearMessages, state);
+});
+
+When('TopicNameMenu edit settings clicked', async function(this: PlaywrightWorld) {
+    await this.locators.topicTopicName.menuItemEditSettings.click();
+});
+
+When('TopicName cleanup policy set to: {string}', async function(this: PlaywrightWorld, policy: string) {
+    await this.locators.topicTopicName.cleanupPolicyDropdown.click();
+    await this.locators.topicTopicName.cleanupPolicyDropdownItem(policy).click();
+});
+
+When('TopicName UpdateTopic button clicked', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.updateTopicButton.click();
 });

@@ -10,12 +10,14 @@ import ksqlDbLocators from "./KSQLDB/ksqldbLocators";
 import DashboardLocators from "./Dashboard/DashboardLocators";
 import TopicsTopickNameLocators from "./Topics/TopicsTopickNameLocators"
 import ProduceMessageLocators from "./Topics/ProduceMessageLocators"
+import BrokerDetailsLocators from "./Brokers/BrokerDetailsLocators"
 
 export class Locators {
   private readonly page: Page;
 
   private _panel?: PanelLocators;
   private _brokers?: BrokersLocators;
+  private _brokerDetails?: BrokerDetailsLocators;
   private _topics?: TopicsLocators;
   private _topicsCreate?: TopicCreateLocators;
   private _topicTopicName?: TopicsTopickNameLocators;
@@ -36,6 +38,10 @@ export class Locators {
 
   get brokers() {
     return (this._brokers ??= new BrokersLocators(this.page));
+  }
+
+  get brokerDetails() {
+    return (this._brokerDetails ??= new BrokerDetailsLocators(this.page));
   }
 
   get topics() {

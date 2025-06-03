@@ -36,3 +36,30 @@ Feature: Produce Messages page
     Then TopicName messages contains key: "keyFromAutotest"
     Then TopicName messages contains value: "ValueFromAutotest"
     Then TopicName messages contains headers key is: "headerKey", value is: "headerValue"
+
+  Scenario: Topic Message cleanup policy
+    Given Topics is visible
+    When click on Topics link
+    Given Topics AddATopic clicked
+    Given TopicCreate heading visible is: "true"
+    When TopicCreate Topic name starts with: "ANewAutoTopic"
+    When TopicCreate Number of partitons: 1
+    When TopicCreate Time to retain data one day
+    When TopicCreate Create topic clicked
+    Then Header starts with: "ANewAutoTopic"
+    Given TopicName menu button clicked
+    Then TopicNameMenu clear messages active is: "true"
+
+    When TopicNameMenu edit settings clicked
+    When TopicName cleanup policy set to: "Compact"
+    When TopicName UpdateTopic button clicked
+    Then Header starts with: "ANewAutoTopic"
+    Given TopicName menu button clicked
+    Then TopicNameMenu clear messages active is: "false"
+
+    When TopicNameMenu edit settings clicked
+    When TopicName cleanup policy set to: "Delete"
+    When TopicName UpdateTopic button clicked
+    Then Header starts with: "ANewAutoTopic"
+    Given TopicName menu button clicked
+    Then TopicNameMenu clear messages active is: "true"
