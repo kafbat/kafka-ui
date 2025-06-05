@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import io.kafbat.ui.model.rbac.AccessContext.ResourceAccess;
 import io.kafbat.ui.model.rbac.AccessContext.SingleResourceAccess;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
@@ -98,10 +99,30 @@ class AccessContextTest {
       assertThat(allowed).isFalse();
     }
 
+    @Test
+    void shouldMapActionAliases() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess(Resource.CONNECT, List.of(ConnectAction.OPERATE));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, null, List.of("restart"))
+          )
+      );
+
+      assertThat(allowed).isTrue();
+    }
+
     private Permission permission(Resource res, @Nullable String namePattern, PermissibleAction... actions) {
+      return permission(
+          res, namePattern, Stream.of(actions).map(PermissibleAction::name).toList()
+      );
+    }
+
+    private Permission permission(Resource res, @Nullable String namePattern, List<String> actions) {
       Permission p = new Permission();
       p.setResource(res.name());
-      p.setActions(Stream.of(actions).map(PermissibleAction::name).toList());
+      p.setActions(actions);
       p.setValue(namePattern);
       p.validate();
       p.transform();
