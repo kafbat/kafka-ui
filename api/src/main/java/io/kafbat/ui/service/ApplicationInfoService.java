@@ -3,6 +3,7 @@ package io.kafbat.ui.service;
 import static io.kafbat.ui.api.model.AuthType.DISABLED;
 import static io.kafbat.ui.api.model.AuthType.OAUTH2;
 import static io.kafbat.ui.model.ApplicationInfoDTO.EnabledFeaturesEnum;
+import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_ENABLED;
 import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_TIMEOUT;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -15,12 +16,14 @@ import io.kafbat.ui.model.AuthTypeDTO;
 import io.kafbat.ui.model.OAuthProviderDTO;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import io.kafbat.ui.util.GithubReleaseInfo;
+import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
@@ -33,7 +36,9 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class ApplicationInfoService {
+  @Nullable
   private final GithubReleaseInfo githubReleaseInfo;
   private final ApplicationContext applicationContext;
   private final DynamicConfigOperations dynamicConfigOperations;
@@ -44,23 +49,34 @@ public class ApplicationInfoService {
                                 ApplicationContext applicationContext,
                                 @Autowired(required = false) BuildProperties buildProperties,
                                 @Autowired(required = false) GitProperties gitProperties,
+                                @Value("${" + GITHUB_RELEASE_INFO_ENABLED + ":true}") boolean githubInfoEnabled,
                                 @Value("${" + GITHUB_RELEASE_INFO_TIMEOUT + ":10}") int githubApiMaxWaitTime) {
     this.applicationContext = applicationContext;
     this.dynamicConfigOperations = dynamicConfigOperations;
     this.buildProperties = Optional.ofNullable(buildProperties).orElse(new BuildProperties(new Properties()));
     this.gitProperties = Optional.ofNullable(gitProperties).orElse(new GitProperties(new Properties()));
-    githubReleaseInfo = new GithubReleaseInfo(githubApiMaxWaitTime);
+    if (githubInfoEnabled) {
+      this.githubReleaseInfo = new GithubReleaseInfo(githubApiMaxWaitTime);
+    } else {
+      this.githubReleaseInfo = null;
+      log.warn("Check for latest release is disabled."
+          + " Note that old versions are not supported, please make sure that your system is up to date.");
+    }
   }
 
   public ApplicationInfoDTO getApplicationInfo() {
-    var releaseInfo = githubReleaseInfo.get();
+    var releaseInfo = githubReleaseInfo != null ? githubReleaseInfo.get() : null;
     return new ApplicationInfoDTO()
         .build(getBuildInfo(releaseInfo))
         .enabledFeatures(getEnabledFeatures())
         .latestRelease(convert(releaseInfo));
   }
 
+  @Nullable
   private ApplicationInfoLatestReleaseDTO convert(GithubReleaseInfo.GithubReleaseDto releaseInfo) {
+    if (releaseInfo == null) {
+      return null;
+    }
     return new ApplicationInfoLatestReleaseDTO()
         .htmlUrl(releaseInfo.html_url())
         .publishedAt(releaseInfo.published_at())
@@ -68,12 +84,17 @@ public class ApplicationInfoService {
   }
 
   private ApplicationInfoBuildDTO getBuildInfo(GithubReleaseInfo.GithubReleaseDto release) {
-    return new ApplicationInfoBuildDTO()
-        .isLatestRelease(release.tag_name() != null && release.tag_name().equals(buildProperties.getVersion()))
+    var buildInfo = new ApplicationInfoBuildDTO()
         .commitId(gitProperties.getShortCommitId())
         .version(buildProperties.getVersion())
         .buildTime(buildProperties.getTime() != null
             ? DateTimeFormatter.ISO_INSTANT.format(buildProperties.getTime()) : null);
+    if (release != null) {
+      buildInfo = buildInfo.isLatestRelease(
+          release.tag_name() != null && release.tag_name().equals(buildProperties.getVersion())
+      );
+    }
+    return buildInfo;
   }
 
   private List<EnabledFeaturesEnum> getEnabledFeatures() {
@@ -119,10 +140,13 @@ public class ApplicationInfoService {
   // updating on startup and every hour
   @Scheduled(fixedRateString = "${github-release-info-update-rate:3600000}")
   public void updateGithubReleaseInfo() {
-    githubReleaseInfo.refresh().subscribe();
+    if (githubReleaseInfo != null) {
+      githubReleaseInfo.refresh().subscribe();
+    }
   }
 
   @VisibleForTesting
+  @Nullable
   GithubReleaseInfo githubReleaseInfo() {
     return githubReleaseInfo;
   }
