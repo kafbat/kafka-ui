@@ -333,7 +333,7 @@ public class TopicsService {
         var partition = assignmentEntry.getKey();
         var brokers = assignmentEntry.getValue();
 
-        // Copy frpm online nodes if all nodes are offline
+        // Copy from online nodes if all nodes are offline
         if (brokers.isEmpty()) {
           brokers = new ArrayList<>(onlineNodes);
         }
