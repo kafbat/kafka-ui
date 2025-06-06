@@ -5,19 +5,13 @@ import MenuTab from 'components/Nav/Menu/MenuTab';
 import MenuItem from 'components/Nav/Menu/MenuItem';
 import {
   clusterACLPath,
-  clusterAclRelativePath,
-  clusterBrokerRelativePath,
+  clusterBrokerPath,
   clusterBrokersPath,
   clusterConnectorsPath,
-  clusterConnectorsRelativePath,
   clusterConsumerGroupsPath,
-  clusterConsumerGroupsRelativePath,
   clusterKsqlDbPath,
-  clusterKsqlDbRelativePath,
   clusterSchemasPath,
-  clusterSchemasRelativePath,
   clusterTopicsPath,
-  clusterTopicsRelativePath,
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
@@ -60,37 +54,37 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
       {isOpen && (
         <S.List>
           <MenuItem
-            isActive={getIsMenuItemActive(clusterBrokerRelativePath)}
+            isActive={getIsMenuItemActive(clusterBrokerPath(name))}
             to={clusterBrokersPath(name)}
             title="Brokers"
           />
           <MenuItem
-            isActive={getIsMenuItemActive(clusterTopicsRelativePath)}
+            isActive={getIsMenuItemActive(clusterTopicsPath(name))}
             to={clusterTopicsPath(name)}
             title="Topics"
           />
           <MenuItem
-            isActive={getIsMenuItemActive(clusterConsumerGroupsRelativePath)}
+            isActive={getIsMenuItemActive(clusterConsumerGroupsPath(name))}
             to={clusterConsumerGroupsPath(name)}
             title="Consumers"
           />
           {hasFeatureConfigured(ClusterFeaturesEnum.SCHEMA_REGISTRY) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterSchemasRelativePath)}
+              isActive={getIsMenuItemActive(clusterSchemasPath(name))}
               to={clusterSchemasPath(name)}
               title="Schema Registry"
             />
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterConnectorsRelativePath)}
+              isActive={getIsMenuItemActive(clusterConnectorsPath(name))}
               to={clusterConnectorsPath(name)}
               title="Kafka Connect"
             />
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KSQL_DB) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterKsqlDbRelativePath)}
+              isActive={getIsMenuItemActive(clusterKsqlDbPath(name))}
               to={clusterKsqlDbPath(name)}
               title="KSQL DB"
             />
@@ -98,7 +92,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           {(hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_ACL_VIEW) ||
             hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_ACL_EDIT)) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterAclRelativePath)}
+              isActive={getIsMenuItemActive(clusterACLPath(name))}
               to={clusterACLPath(name)}
               title="ACL"
             />
