@@ -1,5 +1,6 @@
 import { Locator } from '@playwright/test';
 import expect from "../helper/util/expect";
+import { Page } from "@playwright/test";
 
  export const expectVisibility = async(locator: Locator, visibleString: string): Promise<void> => {
   if (visibleString === "true") {
@@ -55,3 +56,8 @@ export const expectVisuallyActive = async(
 
   expect(isClickable).toBe(shouldBeClickable);
 };
+
+export async function refreshPageAfterDelay(page: Page, delayMs: number = 35000): Promise<void> {
+  await page.waitForTimeout(delayMs);
+  await page.reload();
+}

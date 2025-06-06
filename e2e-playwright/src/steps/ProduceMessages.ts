@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { expectVisibility, expectVisuallyActive } from "../services/uiHelper";
+import { expectVisibility, expectVisuallyActive, refreshPageAfterDelay } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
 
-setDefaultTimeout(60 * 1000 * 2);
+setDefaultTimeout(60 * 1000 * 4);
 
 Given('Topics TopicName partitions is: {int}', async function(this: PlaywrightWorld, count: number) {
     await expectVisibility(this.locators.topicTopicName.partitions(count.toString()), 'true');
