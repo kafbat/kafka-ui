@@ -63,6 +63,10 @@ Then('KSQL DB stream created', async function(this: PlaywrightWorld) {
     await expectVisibility(this.locators.ksqlDb.streamCSreated, "true");
 });
 
+Then('KSQL DB clear result visible is: {string}', async function(this: PlaywrightWorld, visible: string) {
+    await expectVisibility(this.locators.ksqlDb.clearResults, visible);
+});
+
 Then(
   'KSQL DB KSQL for table starts with: {string}, stream starts with: {string}',
   async function(this: PlaywrightWorld, table: string, stream: string) {
