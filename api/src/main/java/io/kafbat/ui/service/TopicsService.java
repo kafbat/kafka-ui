@@ -344,6 +344,8 @@ public class TopicsService {
             .map(Map.Entry::getKey)
             .toList();
 
+        Integer leader = topic.getPartitions().get(partition).getLeader();
+
         // Iterate brokers and try to remove them from assignment
         // while partition replicas count != requested replication factor
         for (Integer broker : brokersUsageList) {
@@ -351,7 +353,6 @@ public class TopicsService {
             break;
           }
           // Check is the broker the leader of partition
-          Integer leader = topic.getPartitions().get(partition).getLeader();
           if (leader == null || !leader.equals(broker)) {
             brokers.remove(broker);
             brokersUsage.merge(broker, -1, Integer::sum);
