@@ -352,7 +352,7 @@ public class TopicsService {
           }
           // Check is the broker the leader of partition
           Integer leader = topic.getPartitions().get(partition).getLeader();
-          if (leader != null && !leader.equals(broker)) {
+          if (leader == null || !leader.equals(broker)) {
             brokers.remove(broker);
             brokersUsage.merge(broker, -1, Integer::sum);
           }
