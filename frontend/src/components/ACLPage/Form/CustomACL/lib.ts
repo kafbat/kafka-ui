@@ -1,5 +1,4 @@
 import { KafkaAcl, KafkaAclNamePatternType } from 'generated-sources';
-import isRegex from 'lib/isRegex';
 import { MatchType } from 'components/ACLPage/Form/types';
 
 import { FormValues } from './types';
