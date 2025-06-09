@@ -8,8 +8,6 @@ export function toRequest(formValue: FormValues): KafkaAcl {
   let namePatternType: KafkaAclNamePatternType;
   if (formValue.namePatternType === MatchType.PREFIXED) {
     namePatternType = KafkaAclNamePatternType.PREFIXED;
-  } else if (isRegex(formValue.resourceName)) {
-    namePatternType = KafkaAclNamePatternType.MATCH;
   } else {
     namePatternType = KafkaAclNamePatternType.LITERAL;
   }
