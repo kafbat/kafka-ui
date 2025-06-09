@@ -4101,7 +4101,6 @@ components:
     KafkaAclNamePatternType:
       type: string
       enum:
-        - MATCH
         - LITERAL
         - PREFIXED
 
