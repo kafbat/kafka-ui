@@ -1,0 +1,15 @@
+{
+    "name": "tsp",
+    "version": "0.1.0",
+    "type": "module",
+    "dependencies": {
+        "@typespec/compiler": "^1.0.0",
+        "@typespec/http": "^1.0.1",
+        "@typespec/openapi": "^1.0.0",
+        "@typespec/openapi3": "^1.0.0",
+        "@typespec/rest": "^0.70.0",
+        "@typespec/sse": "^0.70.0",
+        "build": "^0.1.4"
+    },
+    "private": true
+}

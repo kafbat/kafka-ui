@@ -1,0 +1,160 @@
+import "@typespec/openapi";
+import "./responses.tsp";
+
+using TypeSpec.Http;
+using OpenAPI;
+
+@route("/api/clusters/{clusterName}/schemas")
+@tag("Schemas")
+interface SchemasApi {
+  @post
+  @operationId("createNewSchema")
+  createNewSchema(@path clusterName: string, @body input: NewSchemaSubject):
+    | SchemaSubject
+    | ApiBadRequestResponse
+    | ApiDuplicateResponse
+    | ApiInvalidParametersResponse;
+
+  @get
+  @operationId("getSchemas")
+  getSchemas(
+    @path clusterName: string,
+    @query page?: int32,
+    @query perPage?: int32,
+    @query search?: string,
+  ): SchemaSubjectsResponse;
+
+  @delete
+  @route("/{subject}")
+  @operationId("deleteSchema")
+  deleteSchema(
+    @path clusterName: string,
+    @path subject: string,
+  ): void | ApiNotFoundResponse;
+
+  @get
+  @route("/{subject}/versions")
+  @operationId("getAllVersionsBySubject")
+  getAllVersionsBySubject(
+    @path clusterName: string,
+    @path subject: string,
+  ): SchemaSubject[];
+
+  @get
+  @route("/{subject}/latest")
+  @operationId("getLatestSchema")
+  getLatestSchema(
+    @path clusterName: string,
+    @path subject: string,
+  ): SchemaSubject;
+
+  @delete
+  @route("/{subject}/latest")
+  @operationId("deleteLatestSchema")
+  deleteLatestSchema(
+    @path clusterName: string,
+    @path subject: string,
+  ): void | ApiNotFoundResponse;
+
+  @get
+  @route("/{subject}/versions/{version}")
+  @operationId("getSchemaByVersion")
+  getSchemaByVersion(
+    @path clusterName: string,
+    @path subject: string,
+    @path version: int32,
+  ): SchemaSubject;
+
+  @delete
+  @route("/{subject}/versions/{version}")
+  @operationId("deleteSchemaByVersion")
+  deleteSchemaByVersion(
+    @path clusterName: string,
+    @path subject: string,
+    @path version: int32,
+  ): void | ApiNotFoundResponse;
+
+  @get
+  @route("/compatibility")
+  @operationId("getGlobalSchemaCompatibilityLevel")
+  getGlobalSchemaCompatibilityLevel(
+    @path clusterName: string,
+  ): CompatibilityLevel;
+
+  @put
+  @route("/compatibility")
+  @operationId("updateGlobalSchemaCompatibilityLevel")
+  updateGlobalSchemaCompatibilityLevel(
+    @path clusterName: string,
+    @body level: CompatibilityLevel,
+  ): void | ApiNotFoundResponse | ApiBadRequestResponse;
+
+  @put
+  @route("/{subject}/compatibility")
+  @operationId("updateSchemaCompatibilityLevel")
+  updateSchemaCompatibilityLevel(
+    @path clusterName: string,
+    @path subject: string,
+    @body level: CompatibilityLevel,
+  ): void | ApiNotFoundResponse | ApiBadRequestResponse;
+
+  @post
+  @route("/{subject}/check")
+  @operationId("checkSchemaCompatibility")
+  checkSchemaCompatibility(
+    @path clusterName: string,
+    @path subject: string,
+    @body input: NewSchemaSubject,
+  ): CompatibilityCheckResponse | ApiNotFoundResponse;
+}
+
+model SchemaReference {
+  name: string;
+  subject: string;
+  version: int32;
+}
+
+enum SchemaType {
+  AVRO,
+  JSON,
+  PROTOBUF,
+}
+
+model SchemaSubject {
+  subject: string;
+  version: string;
+  id: int32;
+  schema: string;
+  compatibilityLevel: string;
+  schemaType: SchemaType;
+  references?: SchemaReference[];
+}
+
+model NewSchemaSubject {
+  @doc("should be set for creating/updating schema subject")
+  subject: string;
+
+  schema: string;
+  schemaType: SchemaType;
+  references?: SchemaReference[];
+}
+
+model CompatibilityLevel {
+  compatibility:
+    | "BACKWARD"
+    | "BACKWARD_TRANSITIVE"
+    | "FORWARD"
+    | "FORWARD_TRANSITIVE"
+    | "FULL"
+    | "FULL_TRANSITIVE"
+    | "NONE";
+}
+
+model CompatibilityCheckResponse {
+  isCompatible: boolean;
+}
+
+model SchemaSubjectsResponse {
+  pageCount?: int32;
+  schemas?: SchemaSubject[];
+}
