@@ -433,6 +433,9 @@ export const theme = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[30],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[70],
@@ -962,6 +965,9 @@ export const darkTheme: ThemeType = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[50],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[30],

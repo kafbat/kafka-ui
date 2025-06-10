@@ -26,10 +26,17 @@ export const BackLink = styled(NavLink)`
 `;
 
 export const Wrapper = styled.div`
+  padding: 16px;
+`;
+export const Title = styled.div`
+  color: ${({ theme }) => theme.pageHeading.title.color};
+  font-weight: 500;
+  line-height: 8px;
+`;
+export const Content = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
 
   & > div {
     display: flex;
