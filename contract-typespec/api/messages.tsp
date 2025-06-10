@@ -89,8 +89,6 @@ interface SmartFiltersTestExecutionsApi {
   ): SmartFilterTestExecutionResult | ApiBadRequestResponse;
 }
 
-
-
 model TopicSerdeSuggestion {
   key: SerdeDescription[];
   value: SerdeDescription[];

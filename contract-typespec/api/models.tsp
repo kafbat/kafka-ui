@@ -21,17 +21,3 @@ enum SortOrder {
 }
 
 
-
-
-
-// model BrokerLogdirs {
-//   name: string;
-//   error: string;
-//   topics: TopicLogdirs[];
-// }
-
-// model TopicLogdirs {
-//   name?: string;
-//   partitions?: TopicPartitionLogdir[];
-// }
-

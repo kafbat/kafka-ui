@@ -75,9 +75,25 @@ model KafkaAcl {
   namePatternType: KafkaAclNamePatternType;
   principal: string;
   host: string;
-  operation:  "UNKNOWN" | "ALL" | "READ" | "WRITE" | "CREATE" | "DELETE" | "ALTER" | "DESCRIBE" | "CLUSTER_ACTION" | "DESCRIBE_CONFIGS" | "ALTER_CONFIGS" | "IDEMPOTENT_WRITE" | "CREATE_TOKENS" | "DESCRIBE_TOKENS";
+  operation:  KafkaAclOpeations;
   permission: "ALLOW" | "DENY";
 }
+
+alias KafkaAclOpeations =
+  UNKNOWN
+  | ALL
+  | READ
+  | WRITE
+  | CREATE
+  | DELETE
+  | ALTER
+  | DESCRIBE
+  | CLUSTER_ACTION
+  | DESCRIBE_CONFIGS
+  | ALTER_CONFIGS
+  | IDEMPOTENT_WRITE
+  | CREATE_TOKENS
+  | DESCRIBE_TOKENS;
 
 enum KafkaAclResourceType {
   UNKNOWN,
