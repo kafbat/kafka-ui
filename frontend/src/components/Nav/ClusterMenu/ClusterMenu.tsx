@@ -5,7 +5,6 @@ import MenuTab from 'components/Nav/Menu/MenuTab';
 import MenuItem from 'components/Nav/Menu/MenuItem';
 import {
   clusterACLPath,
-  clusterBrokerPath,
   clusterBrokersPath,
   clusterConnectorsPath,
   clusterConsumerGroupsPath,
@@ -13,28 +12,26 @@ import {
   clusterSchemasPath,
   clusterTopicsPath,
 } from 'lib/paths';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { ClusterColorKey } from 'theme/theme';
-import useAppParams from 'lib/hooks/useAppParams';
-import type { ClusterName } from 'lib/interfaces/cluster';
 
 interface ClusterMenuProps {
   name: Cluster['name'];
   status: Cluster['status'];
   features: Cluster['features'];
-  singleMode?: boolean;
+  opened?: boolean;
 }
 
 const ClusterMenu: FC<ClusterMenuProps> = ({
   name,
   status,
   features,
-  singleMode,
+  opened,
 }) => {
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
-  const [isOpen, setIsOpen] = useState(!!singleMode);
+  const [isOpen, setIsOpen] = useState(!!opened);
   const location = useLocation();
   const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
     `clusterColor-${name}`,
