@@ -1,4 +1,4 @@
-import React, { type FC, useState } from 'react';
+import React, { type FC, useLayoutEffect, useRef, useState } from 'react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
 import * as S from 'components/Nav/Nav.styled';
 import MenuTab from 'components/Nav/Menu/MenuTab';
@@ -42,8 +42,15 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     return location.pathname.includes(path);
   };
 
+  const rootElementRef = useRef<HTMLUListElement>(null);
+  useLayoutEffect(() => {
+    if (opened) {
+      rootElementRef.current?.scrollIntoView();
+    }
+  }, [opened]);
+
   return (
-    <S.ClusterList role="menu" $colorKey={colorKey}>
+    <S.ClusterList role="menu" $colorKey={colorKey} ref={rootElementRef}>
       <MenuTab
         title={name}
         status={status}
