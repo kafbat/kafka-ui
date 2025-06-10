@@ -13,9 +13,11 @@ import {
   clusterSchemasPath,
   clusterTopicsPath,
 } from 'lib/paths';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { ClusterColorKey } from 'theme/theme';
+import useAppParams from 'lib/hooks/useAppParams';
+import type { ClusterName } from 'lib/interfaces/cluster';
 
 interface ClusterMenuProps {
   name: Cluster['name'];
@@ -39,8 +41,9 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     'transparent'
   );
 
-  const getIsMenuItemActive = (path: string) =>
-    location.pathname.includes(path);
+  const getIsMenuItemActive = (path: string) => {
+    return location.pathname.includes(path);
+  };
 
   return (
     <S.ClusterList role="menu" $colorKey={colorKey}>
@@ -54,7 +57,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
       {isOpen && (
         <S.List>
           <MenuItem
-            isActive={getIsMenuItemActive(clusterBrokerPath(name))}
+            isActive={getIsMenuItemActive(clusterBrokersPath(name))}
             to={clusterBrokersPath(name)}
             title="Brokers"
           />
