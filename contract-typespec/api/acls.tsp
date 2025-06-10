@@ -80,20 +80,20 @@ model KafkaAcl {
 }
 
 alias KafkaAclOpeations =
-  UNKNOWN
-  | ALL
-  | READ
-  | WRITE
-  | CREATE
-  | DELETE
-  | ALTER
-  | DESCRIBE
-  | CLUSTER_ACTION
-  | DESCRIBE_CONFIGS
-  | ALTER_CONFIGS
-  | IDEMPOTENT_WRITE
-  | CREATE_TOKENS
-  | DESCRIBE_TOKENS;
+  "UNKNOWN"
+  | "ALL"
+  | "READ"
+  | "WRITE"
+  | "CREATE"
+  | "DELETE"
+  | "ALTER"
+  | "DESCRIBE"
+  | "CLUSTER_ACTION"
+  | "DESCRIBE_CONFIGS"
+  | "ALTER_CONFIGS"
+  | "IDEMPOTENT_WRITE"
+  | "CREATE_TOKENS"
+  | "DESCRIBE_TOKENS";
 
 enum KafkaAclResourceType {
   UNKNOWN,

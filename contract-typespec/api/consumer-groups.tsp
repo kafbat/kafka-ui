@@ -88,7 +88,7 @@ model ConsumerGroup {
 
 model ConsumerGroupDetails extends ConsumerGroup {
   @invisible(Lifecycle)
-  inherit: "deatils";
+  inherit: "details";
   partitions?: ConsumerGroupTopicPartition[];
 }
 
