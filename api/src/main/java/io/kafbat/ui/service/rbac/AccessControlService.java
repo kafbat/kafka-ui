@@ -162,9 +162,6 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
-    if (properties.getDefaultRole() != null) {
-      return true;
-    }
     return properties.getRoles()
         .stream()
         .filter(filterRole(user))

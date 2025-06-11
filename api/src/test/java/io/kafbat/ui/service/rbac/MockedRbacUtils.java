@@ -9,7 +9,10 @@ import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
-import io.kafbat.ui.model.rbac.permission.*;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
+import io.kafbat.ui.model.rbac.permission.SchemaAction;
+import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 

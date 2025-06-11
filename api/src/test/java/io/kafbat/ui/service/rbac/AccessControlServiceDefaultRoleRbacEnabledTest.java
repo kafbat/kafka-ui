@@ -1,7 +1,9 @@
 package io.kafbat.ui.service.rbac;
 
-
-import static io.kafbat.ui.service.rbac.MockedRbacUtils.*;
+import static io.kafbat.ui.service.rbac.MockedRbacUtils.DEFAULT_ROLE;
+import static io.kafbat.ui.service.rbac.MockedRbacUtils.DEV_CLUSTER;
+import static io.kafbat.ui.service.rbac.MockedRbacUtils.PROD_CLUSTER;
+import static io.kafbat.ui.service.rbac.MockedRbacUtils.getAccessContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
