@@ -92,18 +92,18 @@ public class AccessControlService {
       this.oauthExtractors = properties.getRoles()
         .stream()
         .map(role -> role.getSubjects()
-          .stream()
-          .map(Subject::getProvider)
-          .distinct()
-          .map(provider -> switch (provider) {
-            case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
-            case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
-            case OAUTH_GITHUB -> new GithubAuthorityExtractor();
-            case OAUTH -> new OauthAuthorityExtractor();
-            default -> null;
-          })
-          .filter(Objects::nonNull)
-          .collect(Collectors.toSet()))
+            .stream()
+            .map(Subject::getProvider)
+            .distinct()
+            .map(provider -> switch (provider) {
+                  case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
+                  case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
+                  case OAUTH_GITHUB -> new GithubAuthorityExtractor();
+                  case OAUTH -> new OauthAuthorityExtractor();
+                  default -> null;
+                }
+            ).filter(Objects::nonNull)
+            .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
     }

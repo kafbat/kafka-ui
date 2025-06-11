@@ -40,10 +40,10 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
             .stream()
             .filter(subject -> subject.getProvider().equals(Provider.LDAP))
             .anyMatch(subject -> switch (subject.getType()) {
-              case "user" -> subject.matches(username);
-              case "group" -> ldapGroups.stream().anyMatch(subject::matches);
-              default -> false;
-            })
+                  case "user" -> subject.matches(username);
+                  case "group" -> ldapGroups.stream().anyMatch(subject::matches);
+                  default -> false;
+                })
         )
         .map(Role::getName)
         .peek(role -> log.trace("Mapped role [{}] for user [{}]", role, username))

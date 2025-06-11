@@ -11,6 +11,7 @@ import io.kafbat.ui.model.BrokersLogdirsDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.service.BrokerService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -25,7 +26,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class BrokersController extends AbstractController implements BrokersApi {
+public class BrokersController extends AbstractController implements BrokersApi, McpTool {
   private static final String BROKER_ID = "brokerId";
 
   private final BrokerService brokerService;
