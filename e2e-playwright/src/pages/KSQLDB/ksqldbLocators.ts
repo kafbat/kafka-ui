@@ -19,4 +19,9 @@ export default class ksqlDbLocators {
     get success(): Locator { return this.page.getByRole('cell', { name: 'SUCCESS' })};
     get streamCSreated(): Locator { return this.page.getByRole('cell', { name: 'Stream created' })};
     get clearResults(): Locator { return this.page.getByRole('button', { name: 'Clear results' })};
+    get querySucceed(): Locator { return this.page.getByRole('heading', { name: 'Query succeed' })};
+
+    get consumingQueryExecution(): Locator { return this.page.getByText('Consuming query execution')};
+    get abort(): Locator { return this.page.getByText('Abort')};
+    get cancelled(): Locator { return this.page.getByText('Cancelled')};
 }

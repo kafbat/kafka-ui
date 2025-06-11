@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
+import { Given, When, Then, setDefaultTimeout, DataTable  } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { expectVisibility, refreshPageAfterDelay } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
@@ -108,4 +108,59 @@ Then('KSQL DB table starts with: {string} visible is: {string}', async function(
     const tableName = this.getValue<string>(`tableName-${name}`);
     await refreshPageAfterDelay(this.page);
     await expectVisibility(this.page.getByRole('cell', { name: tableName }).first(), visible);
+});
+
+Then('KSQL DB KSQL cleared', async function(this: PlaywrightWorld) {
+  await this.locators.ksqlDb.clear.click();
+  await this.locators.ksqlDb.clearResults.click();
+});
+
+Given(
+  'KSQL DB KSQL data inserted to stream starts with: {string}, from table:',
+  async function(this: PlaywrightWorld, streamPrefix: string, table: DataTable) {
+    const streamName = this.getValue<string>(`streamName-${streamPrefix}`);
+    const stream = streamName?.trim();
+    const rows = table.hashes();
+
+    for (const row of rows) {
+      const id = row.Id;
+      const lat = row.la;
+      const lon = row.lo;
+
+      const query = `INSERT INTO ${stream} (profileId, latitude, longitude) VALUES ('${id}', ${lat}, ${lon});`;
+
+      await this.locators.ksqlDb.clear.click();
+      const textbox = this.locators.ksqlDb.textField;
+      await textbox.click();
+      await textbox.type(query);
+      await Delete(this.page);
+      await this.locators.ksqlDb.execute.click();
+
+      await expectVisibility(this.locators.ksqlDb.querySucceed, 'true');
+      await this.locators.ksqlDb.clear.click();
+    }
+});
+
+Given(
+  'KSQL DB long query stream starts with: {string} stared',
+  async function(this: PlaywrightWorld, streamPrefix: string) {
+  await this.locators.ksqlDb.clear.click();
+  const streamName = this.getValue<string>(`streamName-${streamPrefix}`);
+  const query = `SELECT * FROM ${streamName} EMIT CHANGES;`.trim();
+
+  await this.locators.ksqlDb.clear.click();
+  const textbox = this.locators.ksqlDb.textField;
+  await textbox.click();
+  await textbox.type(query);
+  await Delete(this.page);
+  await this.locators.ksqlDb.execute.click();
+
+  await expectVisibility(this.locators.ksqlDb.consumingQueryExecution, 'true');
+});
+
+Given('KSQL DB long query stoped', async function(this: PlaywrightWorld) {
+  await expectVisibility(this.locators.ksqlDb.consumingQueryExecution, 'true');
+  const abortButton = this.locators.ksqlDb.abort;
+  await abortButton.scrollIntoViewIfNeeded();
+  await this.locators.ksqlDb.abort.click({ force: true });
 });
