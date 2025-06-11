@@ -92,8 +92,8 @@ interface SmartFiltersTestExecutionsApi {
 }
 
 model TopicSerdeSuggestion {
-  key: SerdeDescription[];
-  value: SerdeDescription[];
+  key?: SerdeDescription[];
+  value?: SerdeDescription[];
 }
 
 enum SerdeUsage {
@@ -223,7 +223,7 @@ enum MessageFormat {
 
 
 model SerdeDescription {
-  name: string;
+  name?: string;
   description?: string;
 
   @doc("This serde was automatically chosen by cluster config. This should be enabled in UI by default. Also it will be used for deserialization if no serdes passed.")

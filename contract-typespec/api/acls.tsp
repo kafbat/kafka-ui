@@ -114,8 +114,8 @@ enum KafkaAclNamePatternType {
 }
 
 model CreateConsumerAcl {
-  principal: string;
-  host: string;
+  principal?: string;
+  host?: string;
   topics?: string[];
   topicsPrefix?: string;
   consumerGroups?: string[];
@@ -123,8 +123,8 @@ model CreateConsumerAcl {
 }
 
 model CreateProducerAcl {
-  principal: string;
-  host: string;
+  principal?: string;
+  host?: string;
   topics?: string[];
   topicsPrefix?: string;
   transactionalId?: string;
@@ -133,9 +133,9 @@ model CreateProducerAcl {
 }
 
 model CreateStreamAppAcl {
-  principal: string;
-  host: string;
-  inputTopics: string[];
-  outputTopics: string[];
-  applicationId: string;
+  principal?: string;
+  host?: string;
+  inputTopics?: string[];
+  outputTopics?: string[];
+  applicationId?: string;
 }

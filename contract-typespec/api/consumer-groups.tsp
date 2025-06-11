@@ -75,6 +75,8 @@ enum ConsumerGroupState {
 
 @discriminator("inherit")
 model ConsumerGroup {
+  @invisible(Lifecycle)
+  inherit: string;
   groupId: string;
   members?: int32;
   topics?: int32;
@@ -131,8 +133,6 @@ model ConsumerGroupTopicPartition {
   consumerId?: string;
   host?: string;
 }
-
-
 
 model PartitionOffset {
   partition: int32;

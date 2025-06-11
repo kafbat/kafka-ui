@@ -132,8 +132,8 @@ interface TopicsApi {
 }
 
 model TopicsResponse {
-  pageCount: int32;
-  topics: Topic[];
+  pageCount?: int32;
+  topics?: Topic[];
 }
 
 enum TopicColumnsToSort {
@@ -146,18 +146,18 @@ enum TopicColumnsToSort {
 
 model Topic {
   name: string;
-  internal: boolean;
-  partitionCount: int32;
-  replicationFactor: int32;
-  replicas: int32;
-  inSyncReplicas: int32;
-  segmentSize: int64;
-  segmentCount: int32;
-  bytesInPerSec: float64;
-  bytesOutPerSec: float64;
-  underReplicatedPartitions: int32;
-  cleanUpPolicy: CleanUpPolicy;
-  partitions: Partition[];
+  internal?: boolean;
+  partitionCount?: int32;
+  replicationFactor?: int32;
+  replicas?: int32;
+  inSyncReplicas?: int32;
+  segmentSize?: int64;
+  segmentCount?: int32;
+  bytesInPerSec?: float64;
+  bytesOutPerSec?: float64;
+  underReplicatedPartitions?: int32;
+  cleanUpPolicy?: CleanUpPolicy;
+  partitions?: Partition[];
 }
 
 model TopicUpdate {
@@ -170,51 +170,51 @@ model TopicAnalysis {
 }
 
 model TopicAnalysisProgress {
-  startedAt: int64;
-  completenessPercent: decimal;
-  msgsScanned: int64;
-  bytesScanned: int64;
+  startedAt?: int64;
+  completenessPercent?: decimal;
+  msgsScanned?: int64;
+  bytesScanned?: int64;
 }
 
 model TopicAnalysisResult {
-  startedAt: int64;
-  finishedAt: int64;
-  error: string;
-  totalStats: TopicAnalysisStats;
-  partitionStats: TopicAnalysisStats[];
+  startedAt?: int64;
+  finishedAt?: int64;
+  error?: string;
+  totalStats?: TopicAnalysisStats;
+  partitionStats?: TopicAnalysisStats[];
 }
 
 model TopicAnalysisStats {
   @doc("null if this is total stats")
   partition?: int32;
 
-  totalMsgs: int64;
-  minOffset: int64;
-  maxOffset: int64;
-  minTimestamp: int64;
-  maxTimestamp: int64;
-  nullKeys: int64;
-  nullValues: int64;
-  approxUniqKeys: int64;
-  approxUniqValues: int64;
-  keySize: TopicAnalysisSizeStats;
-  valueSize: TopicAnalysisSizeStats;
-  hourlyMsgCounts: {
-    hourStart: int64;
-    count: int64;
+  totalMsgs?: int64;
+  minOffset?: int64;
+  maxOffset?: int64;
+  minTimestamp?: int64;
+  maxTimestamp?: int64;
+  nullKeys?: int64;
+  nullValues?: int64;
+  approxUniqKeys?: int64;
+  approxUniqValues?: int64;
+  keySize?: TopicAnalysisSizeStats;
+  valueSize?: TopicAnalysisSizeStats;
+  hourlyMsgCounts?: {
+    hourStart?: int64;
+    count?: int64;
   }[];
 }
 
 model TopicAnalysisSizeStats {
-  sum: int64;
-  min: int64;
-  max: int64;
-  avg: int64;
-  prctl50: int64;
-  prctl75: int64;
-  prctl95: int64;
-  prctl99: int64;
-  prctl999: int64;
+  sum?: int64;
+  min?: int64;
+  max?: int64;
+  avg?: int64;
+  prctl50?: int64;
+  prctl75?: int64;
+  prctl95?: int64;
+  prctl99?: int64;
+  prctl999?: int64;
 }
 
 model TopicProducerState {
@@ -229,38 +229,38 @@ model TopicProducerState {
 
 model TopicDetails {
   name: string;
-  internal: boolean;
-  partitions: Partition[];
-  partitionCount: int32;
-  replicationFactor: int32;
-  replicas: int32;
-  inSyncReplicas: int32;
-  bytesInPerSec: float64;
-  bytesOutPerSec: float64;
-  segmentSize: int64;
-  segmentCount: int32;
-  underReplicatedPartitions: int32;
-  cleanUpPolicy: CleanUpPolicy;
-  keySerde: string;
-  valueSerde: string;
+  internal?: boolean;
+  partitions?: Partition[];
+  partitionCount?: int32;
+  replicationFactor?: int32;
+  replicas?: int32;
+  inSyncReplicas?: int32;
+  bytesInPerSec?: float64;
+  bytesOutPerSec?: float64;
+  segmentSize?: int64;
+  segmentCount?: int32;
+  underReplicatedPartitions?: int32;
+  cleanUpPolicy?: CleanUpPolicy;
+  keySerde?: string;
+  valueSerde?: string;
 }
 
 model TopicConfig {
   name: string;
-  value: string;
-  defaultValue: string;
-  source: ConfigSource;
-  isSensitive: boolean;
-  isReadOnly: boolean;
-  synonyms: ConfigSynonym[];
-  doc: string;
+  value?: string;
+  defaultValue?: string;
+  source?: ConfigSource;
+  isSensitive?: boolean;
+  isReadOnly?: boolean;
+  synonyms?: ConfigSynonym[];
+  doc?: string;
 }
 
 model TopicCreation {
   name: string;
   partitions: int32;
-  replicationFactor: int32;
-  configs: Record<string>;
+  replicationFactor?: int32;
+  configs?: Record<string>;
 }
 
 enum CleanUpPolicy {
@@ -305,7 +305,7 @@ model ReplicationFactorChangeResponse {
 }
 
 model Replica {
-  broker: int32;
-  leader: boolean;
-  inSync: boolean;
+  broker?: int32;
+  leader?: boolean;
+  inSync?: boolean;
 }

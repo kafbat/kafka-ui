@@ -18,11 +18,13 @@ interface AuthorizationApi {
 @doc("Authenticate")
 @operationId("authenticate")
 @post
-op authenticate(@body form: LoginForm): void | Http.Response<401>;
+@tag("Unmapped")
+op authenticate(@header contentType: "application/x-www-form-urlencoded", @body form: LoginForm): void | Http.Response<401>;
+
 
 model LoginForm {
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
 }
 
 model AuthenticationInfo {

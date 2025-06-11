@@ -88,16 +88,27 @@ model BrokerConfigItem {
   value?: string;
 }
 
+model BrokerLogdirs {
+    name?: string;
+    error?: string;
+    topics?: TopicLogdirs[];
+}
+
+model TopicLogdirs {
+    name?: string;
+    partitions?: TopicPartitionLogdir[];
+}
+
 model BrokerMetrics {
-  segmentSize: int64;
-  segmentCount: int32;
-  metrics: Metric[];
+  segmentSize?: int64;
+  segmentCount?: int32;
+  metrics?: Metric[];
 }
 
 model BrokersLogdirs {
-  name: string;
-  error: string;
-  topics: BrokerTopicLogdirs[];
+  name?: string;
+  error?: string;
+  topics?: BrokerTopicLogdirs[];
 }
 
 model BrokerTopicLogdirs {
@@ -105,7 +116,8 @@ model BrokerTopicLogdirs {
   partitions?: BrokerTopicPartitionLogdir[];
 }
 
-model BrokerTopicPartitionLogdir extends TopicPartitionLogdir {
+model BrokerTopicPartitionLogdir {
+  ...TopicPartitionLogdir;
   broker?: int32;
 }
 

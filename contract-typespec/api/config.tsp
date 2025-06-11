@@ -50,23 +50,23 @@ interface ApplicationConfigApi {
 
 
 model ApplicationInfo {
-  enabledFeatures: ApplicationFeature[];
-  build: {
-    commitId: string;
-    version: string;
-    buildTime: string;
-    isLatestRelease: boolean;
+  enabledFeatures?: ApplicationFeature[];
+  build?: {
+    commitId?: string;
+    version?: string;
+    buildTime?: string;
+    isLatestRelease?: boolean;
   };
-  latestRelease: {
-    versionTag: string;
-    publishedAt: string;
-    htmlUrl: string;
+  latestRelease?: {
+    versionTag?: string;
+    publishedAt?: string;
+    htmlUrl?: string;
   };
 }
 
 model ApplicationConfig {
   properties: {
-    auth: {
+    auth?: {
       type: string;
       oauth2: {
         client?: Record<{
@@ -105,135 +105,115 @@ model ApplicationConfig {
         };
       };
     };
-    rbac: {
-      roles: {
-        name: string;
-        clusters: string[];
-        subjects: {
-            provider: string;
-            type: string;
-            value: string;
+    rbac?: {
+      roles?: {
+        name?: string;
+        clusters?: string[];
+        subjects?: {
+            provider?: string;
+            type?: string;
+            value?: string;
             regex?: boolean = false;
         }[];
-        permissions: {
-          resource: ResourceType;
-          value: string;
-          actions: Action[];
+        permissions?: {
+          resource?: ResourceType;
+          value?: string;
+          actions?: Action[];
         }[];
       }[];
     };
-    webclient: {
-      maxInMemoryBufferSize: string;
-      responseTimeoutMs: int32;
+    webclient?: {
+      maxInMemoryBufferSize?: string;
+      responseTimeoutMs?: int32;
     };
-    kafka: {
+    kafka?: {
       polling?: {
-        pollTimeoutMs: int32;
-        maxPageSize: int32;
-        defaultPageSize: int32;
-        responseTimeoutMs: int32;
+        pollTimeoutMs?: int32;
+        maxPageSize?: int32;
+        defaultPageSize?: int32;
+        responseTimeoutMs?: int32;
       };
       adminClientTimeout?: int32;
-      internalTopicPrefix: string;
-      clusters: {
-        name: string;
-        bootstrapServers: string;
+      internalTopicPrefix?: string;
+      clusters?: {
+        name?: string;
+        bootstrapServers?: string;
         ssl?: {
           truststoreLocation?: string;
           truststorePassword?: string;
-          verifySsl: boolean = true;
+          verifySsl?: boolean = true;
         };
         schemaRegistry?: string;
         schemaRegistryAuth?: {
-          username: string;
-          password: string;
+          username?: string;
+          password?: string;
         };
         schemaRegistrySsl?: {
-          keystoreLocation: string;
-          keystorePassword: string;
+          keystoreLocation?: string;
+          keystorePassword?: string;
         };
         ksqldbServer?: string;
         ksqldbServerSsl?: {
-          keystoreLocation: string;
-          keystorePassword: string;
+          keystoreLocation?: string;
+          keystorePassword?: string;
         };
         ksqldbServerAuth?: {
-          username: string;
-          password: string;
+          username?: string;
+          password?: string;
         };
         kafkaConnect?: {
-          name: string;
-          address: string;
+          name?: string;
+          address?: string;
           username?: string;
           password?: string;
           keystoreLocation?: string;
           keystorePassword?: string;
         }[];
-        metrics?: KafkaMetricsConfig;
+        metrics?: {
+          type?: string;
+          port?: int32;
+          ssl?: boolean;
+          username?: string;
+          password?: string;
+          keystoreLocation?: string;
+          keystorePassword?: string;
+        };
         properties?: Record<unknown>;
         consumerProperties?: Record<unknown>;
         producerProperties?: Record<unknown>;
-        readOnly: boolean;
-        serde?: SerdeConfig[];
+        readOnly?: boolean;
+        serde?: {
+          name?: string;
+          className?: string;
+          filePath?: string;
+          properties?: Record<unknown>;
+          topicKeysPattern?: string;
+          topicValuesPattern?: string;
+        }[];
         defaultKeySerde?: string;
         defaultValueSerde?: string;
-        masking?: MaskingConfig[];
+        masking?: {
+          type?: "REMOVE" | "MASK" | "REPLACE";
+          fields?: string[];
+          fieldsNamePattern?: string;
+          maskingCharsReplacement?: string[];
+          replacement?: string;
+          topicKeysPattern?: string;
+          topicValuesPattern?: string;
+        }[];
         pollingThrottleRate?: int64;
-        audit?: KafkaAuditConfig;
+        audit?: {
+          level?: "ALL" | "ALTER_ONLY";
+          topic?: string;
+          auditTopicsPartitions?: int32;
+          topicAuditEnabled?: boolean;
+          consoleAuditEnabled?: boolean;
+          auditTopicProperties?: Record<string>;
+        };
       }[];
     };
   };
 }
-
-model KafkaMetricsConfig {
-  type: string;
-  port: int32;
-  ssl?: boolean;
-  username?: string;
-  password?: string;
-  keystoreLocation?: string;
-  keystorePassword?: string;
-}
-
-model SerdeConfig {
-  name: string;
-  className: string;
-  filePath?: string;
-  properties?: Record<unknown>;
-  topicKeysPattern?: string;
-  topicValuesPattern?: string;
-}
-
-model MaskingConfig {
-  type: MaskType;
-  fields?: string[];
-  fieldsNamePattern?: string;
-  maskingCharsReplacement?: string[];
-  replacement?: string;
-  topicKeysPattern?: string;
-  topicValuesPattern?: string;
-}
-
-enum MaskType {
-  REMOVE,
-  MASK,
-  REPLACE,
-}
-
-model KafkaAuditConfig {
-  level: AuditLevel;
-  topic?: string;
-  auditTopicsPartitions?: int32;
-  topicAuditEnabled?: boolean;
-  consoleAuditEnabled?: boolean;
-  auditTopicProperties?: Record<string>;
-}
-
-enum AuditLevel {
-  ALL,
-  ALTER_ONLY,
-}
-
 
 model ApplicationConfigValidation {
   clusters?: Record<ClusterConfigValidation>;

@@ -196,10 +196,11 @@ enum ConnectorState {
 
 model ConnectorStatus {
   state: ConnectorState;
-  worker_id: string;
+  worker_id?: string;
 }
 
-model Connector extends NewConnector {
+model Connector {
+  ...NewConnector;
   tasks?: TaskId[];
   type: ConnectorType;
   status: ConnectorStatus;

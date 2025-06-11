@@ -123,9 +123,9 @@ enum SchemaType {
 }
 
 model SchemaSubject {
+  id: int32;
   subject: string;
   version: string;
-  id: int32;
   schema: string;
   compatibilityLevel: string;
   schemaType: SchemaType;
