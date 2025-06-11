@@ -1,6 +1,8 @@
 import "@typespec/http";
 import "@typespec/http/streams";
 
+namespace Api;
+
 using TypeSpec.Http;
 using TypeSpec.Streams;
 

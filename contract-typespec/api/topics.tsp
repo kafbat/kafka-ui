@@ -1,6 +1,8 @@
 import "@typespec/openapi";
 import "./responses.tsp";
 
+namespace Api;
+
 using TypeSpec.Http;
 using OpenAPI;
 

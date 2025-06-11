@@ -1,6 +1,8 @@
 import "@typespec/openapi";
 import "./responses.tsp";
 
+namespace Api;
+
 using TypeSpec.Http;
 using OpenAPI;
 
@@ -81,10 +83,10 @@ model ApplicationConfig {
             jwkSetUri?: string;
             userNameAttribute?: string;
             scope?: string[];
-            customParams?: Record<string>;          
+            customParams?: Record<string>;
           }>;
         resourceServer?: {
-          jwt?: {           
+          jwt?: {
             jwkSetUri?: string;
             jwsAlgorithms?: string[];
             issuerUri?: string;
@@ -93,15 +95,15 @@ model ApplicationConfig {
             authorityPrefix?: string;
             authoritiesClaimDelimiter?: string;
             authoritiesClaimName?: string;
-            principalClaimName?: string;            
+            principalClaimName?: string;
           };
           opaquetoken?: {
             clientId?: string;
             clientSecret?: string;
-            introspectionUri?: string;            
-          };           
-        };         
-      };        
+            introspectionUri?: string;
+          };
+        };
+      };
     };
     rbac: {
       roles: {
@@ -116,7 +118,7 @@ model ApplicationConfig {
         permissions: {
           resource: ResourceType;
           value: string;
-          actions: Action[];          
+          actions: Action[];
         }[];
       }[];
     };
@@ -129,7 +131,7 @@ model ApplicationConfig {
         pollTimeoutMs: int32;
         maxPageSize: int32;
         defaultPageSize: int32;
-        responseTimeoutMs: int32;        
+        responseTimeoutMs: int32;
       };
       adminClientTimeout?: int32;
       internalTopicPrefix: string;
@@ -139,7 +141,7 @@ model ApplicationConfig {
         ssl?: {
           truststoreLocation?: string;
           truststorePassword?: string;
-          verifySsl: boolean = true;          
+          verifySsl: boolean = true;
         };
         schemaRegistry?: string;
         schemaRegistryAuth?: {
@@ -148,16 +150,16 @@ model ApplicationConfig {
         };
         schemaRegistrySsl?: {
           keystoreLocation: string;
-          keystorePassword: string;          
+          keystorePassword: string;
         };
         ksqldbServer?: string;
         ksqldbServerSsl?: {
           keystoreLocation: string;
-          keystorePassword: string;          
+          keystorePassword: string;
         };
         ksqldbServerAuth?: {
           username: string;
-          password: string;          
+          password: string;
         };
         kafkaConnect?: {
           name: string;
@@ -165,7 +167,7 @@ model ApplicationConfig {
           username?: string;
           password?: string;
           keystoreLocation?: string;
-          keystorePassword?: string;          
+          keystorePassword?: string;
         }[];
         metrics?: KafkaMetricsConfig;
         properties?: Record<unknown>;
@@ -177,9 +179,9 @@ model ApplicationConfig {
         defaultValueSerde?: string;
         masking?: MaskingConfig[];
         pollingThrottleRate?: int64;
-        audit?: KafkaAuditConfig;        
+        audit?: KafkaAuditConfig;
       }[];
-    };    
+    };
   };
 }
 
@@ -262,7 +264,7 @@ enum AuthType {
 }
 
 model AppAuthenticationSettings {
-  authType?: global.AuthType;
+  authType?: Api.AuthType;
   oAuthProviders?: OAuthProvider[];
 }
 

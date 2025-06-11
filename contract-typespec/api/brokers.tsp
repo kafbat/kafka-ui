@@ -1,5 +1,7 @@
 import "@typespec/openapi";
 
+namespace Api;
+
 using TypeSpec.Http;
 using OpenAPI;
 

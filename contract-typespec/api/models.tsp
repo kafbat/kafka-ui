@@ -1,3 +1,5 @@
+namespace Api;
+
 model Metric {
   name?: string;
   labels?: Record<string>;
