@@ -11,6 +11,7 @@ import DashboardLocators from "./Dashboard/DashboardLocators";
 import TopicsTopickNameLocators from "./Topics/TopicsTopickNameLocators"
 import ProduceMessageLocators from "./Topics/ProduceMessageLocators"
 import BrokerDetailsLocators from "./Brokers/BrokerDetailsLocators"
+import SchemaRegistrySchemaNameLocators from "./SchemaRegistry/SchemaRegistrySchemaNameLocators"
 
 export class Locators {
   private readonly page: Page;
@@ -24,6 +25,7 @@ export class Locators {
   private _produceMessage?: ProduceMessageLocators;
   private _consumers?: ConsumersLocators;
   private _schemaRegistry?: SchemaRegistryLocators;
+  private _schemaName?: SchemaRegistrySchemaNameLocators;
   private _connectors?: ConnectorsLocators;
   private _ksqlDb?: ksqlDbLocators;
   private _dashboard?: DashboardLocators;
@@ -66,6 +68,10 @@ export class Locators {
 
   get schemaRegistry() {
     return (this._schemaRegistry ??= new SchemaRegistryLocators(this.page));
+  }
+
+  get schemaName() {
+    return (this._schemaName ??= new SchemaRegistrySchemaNameLocators(this.page));
   }
 
   get connectors() {
