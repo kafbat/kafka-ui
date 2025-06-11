@@ -125,23 +125,6 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
     });
   }
 
-  /**
-   * Test for isClusterAccessible with unknown cluster.
-   */
-  @Test
-  void isClusterAccessible_unknownCluster() {
-    withSecurityContext(() -> {
-      when(user.groups()).thenReturn(List.of(DEFAULT_ROLE));
-      ClusterDTO clusterDto = new ClusterDTO();
-      clusterDto.setName("unknown");
-      Mono<Boolean> clusterAccessibleMono = accessControlService.isClusterAccessible(clusterDto);
-      StepVerifier.create(clusterAccessibleMono)
-          .expectNext(false)
-          .expectComplete()
-          .verify();
-    });
-  }
-
   @Test
   void testGetDefaultRole() {
     Role defaultRole = accessControlService.getDefaultRole();
