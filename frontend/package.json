@@ -40,7 +40,7 @@
     "start": "vite",
     "dev": "vite",
     "compile": "pnpm gen:sources && tsc --noEmit",
-    "gen:sources": "rimraf ./src/generated-sources && cd ../contract-typespec/api && pnpm build && cd ../../frontend  && openapi-generator-cli generate",
+    "gen:sources": "rimraf ./src/generated-sources && cd ../contract-typespec/api && pnpm install && pnpm build && cd ../../frontend  && openapi-generator-cli generate",
     "build": "pnpm gen:sources && tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .tsx,.ts src/",
