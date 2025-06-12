@@ -62,6 +62,7 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
     RoleBasedAccessControlProperties properties = mock();
     defaultRole = MockedRbacUtils.getDefaultRole();
     when(properties.getDefaultRole()).thenReturn(defaultRole);
+    when(properties.getRoles()).thenReturn(List.of()); // Return empty list for roles
 
 
     ReflectionTestUtils.setField(accessControlService, "properties", properties);
