@@ -1,10 +1,11 @@
 package io.kafbat.ui.config.auth;
 
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Role;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("rbac")
@@ -12,13 +13,13 @@ public class RoleBasedAccessControlProperties {
 
   private final List<Role> roles = new ArrayList<>();
 
-  private Role defaultRole;
+  private DefaultRole defaultRole;
 
   @PostConstruct
   public void init() {
     roles.forEach(Role::validate);
     if (defaultRole != null) {
-      defaultRole.validateDefaultRole();
+      defaultRole.validate();
     }
   }
 
@@ -26,12 +27,12 @@ public class RoleBasedAccessControlProperties {
     return roles;
   }
 
-  public void setDefaultRole(Role defaultRole) {
+  public void setDefaultRole(DefaultRole defaultRole) {
     this.defaultRole = defaultRole;
   }
 
   @Nullable
-  public Role getDefaultRole() {
+  public DefaultRole getDefaultRole() {
     return defaultRole;
   }
 }

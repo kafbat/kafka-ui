@@ -4,7 +4,6 @@ import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +31,7 @@ public class RbacActiveDirectoryAuthoritiesExtractor implements LdapAuthoritiesP
         .peek(group -> log.trace("Found AD group [{}] for user [{}]", group, username))
         .collect(Collectors.toSet());
 
-    var grantedAuthorities = acs.getRoles()
+    return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
@@ -47,11 +46,5 @@ public class RbacActiveDirectoryAuthoritiesExtractor implements LdapAuthoritiesP
         .peek(role -> log.trace("Mapped role [{}] for user [{}]", role, username))
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toSet());
-
-    // If no roles are found, return default role
-    if (grantedAuthorities.isEmpty() && acs.getDefaultRole() != null) {
-      return Set.of(new SimpleGrantedAuthority(acs.getDefaultRole().getName()));
-    }
-    return grantedAuthorities;
   }
 }

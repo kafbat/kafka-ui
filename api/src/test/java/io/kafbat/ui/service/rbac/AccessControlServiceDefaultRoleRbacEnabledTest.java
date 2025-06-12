@@ -14,6 +14,7 @@ import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
 import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.service.ClustersStorage;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -51,7 +53,7 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
   RbacUser user;
 
   @Mock
-  Role defaultRole;
+  DefaultRole defaultRole;
 
   @Mock
   ClustersStorage clustersStorage;
@@ -67,14 +69,6 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
 
     ReflectionTestUtils.setField(accessControlService, "properties", properties);
     ReflectionTestUtils.setField(accessControlService, "rbacEnabled", true);
-    ReflectionTestUtils.setField(accessControlService, "clustersStorage", clustersStorage);
-
-    KafkaCluster prodCluster = KafkaCluster.builder().name(PROD_CLUSTER).build();
-    KafkaCluster devCluster = KafkaCluster.builder().name(DEV_CLUSTER).build();
-
-    // set default role for all clusters
-    when(clustersStorage.getKafkaClusters()).thenReturn(List.of(prodCluster, devCluster));
-    accessControlService.init();
 
     // Mock security context
     when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -88,17 +82,6 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
       ctxHolder.when(ReactiveSecurityContextHolder::getContext).thenReturn(Mono.just(securityContext));
       runnable.run();
     }
-  }
-
-  @Test
-  void validateSetCluster() {
-    withSecurityContext(() -> {
-
-      List<String> clusters = defaultRole.getClusters();
-      assertThat(clusters)
-          .isNotNull()
-          .containsExactlyInAnyOrder(PROD_CLUSTER, DEV_CLUSTER);
-    });
   }
 
   @Test
@@ -124,12 +107,5 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
           .expectComplete()
           .verify();
     });
-  }
-
-  @Test
-  void testGetDefaultRole() {
-    Role defaultRole = accessControlService.getDefaultRole();
-    assertThat(defaultRole).isNotNull()
-        .isEqualTo(this.defaultRole);
   }
 }

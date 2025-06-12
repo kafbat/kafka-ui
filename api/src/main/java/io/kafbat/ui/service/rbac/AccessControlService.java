@@ -6,8 +6,8 @@ import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
 import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
-import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
@@ -69,27 +69,9 @@ public class AccessControlService {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
-    if (properties.getDefaultRole() != null) {
-      log.trace("Set Default Role Clusters");
-      // set default role for all clusters
-      properties.getDefaultRole().setClusters(
-          clustersStorage.getKafkaClusters().stream()
-            .map(KafkaCluster::getName)
-            .collect(Collectors.toList())
-      );
-    }
     rbacEnabled = true;
 
-    if (properties.getDefaultRole() != null) {
-      // set all extractors for default role because it is applied to all clusters
-      this.oauthExtractors = Set.of(
-        new CognitoAuthorityExtractor(),
-        new GoogleAuthorityExtractor(),
-        new GithubAuthorityExtractor(),
-        new OauthAuthorityExtractor()
-      );
-    } else {
-      this.oauthExtractors = properties.getRoles()
+    this.oauthExtractors = properties.getRoles()
         .stream()
         .map(role -> role.getSubjects()
             .stream()
@@ -106,7 +88,6 @@ public class AccessControlService {
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
-    }
 
     if (!(properties.getRoles().isEmpty() && properties.getDefaultRole() == null)
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
@@ -162,13 +143,15 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
-    if (properties.getDefaultRole() != null) {
-      return true;
-    }
-    return properties.getRoles()
+    boolean isAccessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
+    
+    if (!isAccessible && properties.getDefaultRole() != null) {
+      return properties.getDefaultRole().getClusters().stream().anyMatch(clusterName::equalsIgnoreCase);
+    }
+    return isAccessible;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {
@@ -233,7 +216,7 @@ public class AccessControlService {
     return Collections.unmodifiableList(properties.getRoles());
   }
 
-  public Role getDefaultRole() {
+  public DefaultRole getDefaultRole() {
     return properties.getDefaultRole();
   }
 

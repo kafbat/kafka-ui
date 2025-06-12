@@ -43,13 +43,8 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
 
     var usernameRoles = extractUsernameRoles(acs, principal);
     var roles = extractRoles(acs, principal, additionalParams);
-    var unionRoles = Sets.union(usernameRoles, roles);
 
-    if (unionRoles.isEmpty() && acs.getDefaultRole() != null) {
-      return Mono.just(Set.of(acs.getDefaultRole().getName()));
-    }
-
-    return Mono.just(unionRoles);
+    return Mono.just(Sets.union(usernameRoles, roles));
   }
 
   private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {

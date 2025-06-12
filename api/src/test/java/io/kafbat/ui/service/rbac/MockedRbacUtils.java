@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
@@ -100,9 +101,10 @@ public class MockedRbacUtils {
     return role;
   }
 
-  public static Role getDefaultRole() {
-    Role role = new Role();
+  public static DefaultRole getDefaultRole() {
+    DefaultRole role = new DefaultRole();
     role.setName(DEFAULT_ROLE);
+    role.setClusters(List.of(DEV_CLUSTER, PROD_CLUSTER));
 
     Permission topicViewPermission = new Permission();
     topicViewPermission.setResource(Resource.TOPIC.name());
@@ -131,7 +133,7 @@ public class MockedRbacUtils {
         connectPermission
     );
     role.setPermissions(permissions);
-    role.validateDefaultRole();
+    role.validate();
     return role;
   }
 

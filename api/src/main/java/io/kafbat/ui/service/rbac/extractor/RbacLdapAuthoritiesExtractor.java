@@ -3,7 +3,6 @@ package io.kafbat.ui.service.rbac.extractor;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
         .peek(group -> log.trace("Found LDAP group [{}] for user [{}]", group, username))
         .collect(Collectors.toSet());
 
-    var simpleGrantedAuthorities =  acs.getRoles()
+    return acs.getRoles()
         .stream()
         .filter(r -> r.getSubjects()
             .stream()
@@ -49,11 +48,5 @@ public class RbacLdapAuthoritiesExtractor extends NestedLdapAuthoritiesPopulator
         .peek(role -> log.trace("Mapped role [{}] for user [{}]", role, username))
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toSet());
-
-    // If no roles are found, return default role
-    if (simpleGrantedAuthorities.isEmpty() && acs.getDefaultRole() != null) {
-      return Set.of(new SimpleGrantedAuthority(acs.getDefaultRole().getName()));
-    }
-    return new HashSet<>(simpleGrantedAuthorities);
   }
 }
