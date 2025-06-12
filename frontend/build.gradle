@@ -23,6 +23,12 @@ tasks.named("pnpmInstall") {
 
 tasks.register('generateContract', PnpmTask) {
   dependsOn pnpmInstall
+  if (useTypeSpec) {
+    dependsOn ":contract-typespec:build"
+    inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
+  } else {
+    inputs.files(fileTree("../contract/src/main/resources"))
+  }
   inputs.files(fileTree("../contract/src/main/resources"))
   outputs.dir(project.layout.projectDirectory.dir("src/generated-sources"))
   args = ['gen:sources']
