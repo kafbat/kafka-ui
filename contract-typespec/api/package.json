@@ -11,5 +11,8 @@
         "@typespec/sse": "^0.70.0",
         "build": "^0.1.4"
     },
+    "scripts": {
+        "build": "tsp compile ."
+    },
     "private": true
 }
