@@ -569,11 +569,11 @@ export const theme = {
     primary: {
       backgroundColor: {
         normal: 'transparent',
-        hover: hexToRgba(Colors.brand[95], 0.03),
-        active: hexToRgba(Colors.brand[95], 0.05),
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.neutral[80],
+        normal: Colors.neutral[50],
         hover: Colors.neutral[90],
         active: Colors.neutral[95],
       },
@@ -1100,14 +1100,14 @@ export const darkTheme: ThemeType = {
   menu: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[90],
-        hover: hexToRgba(Colors.brand[0], 0.05),
-        active: hexToRgba(Colors.brand[0], 0.1),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[20],
+        normal: Colors.brand[50],
         hover: Colors.brand[0],
-        active: Colors.brand[10],
+        active: Colors.brand[20],
       },
       statusIconColor: {
         online: Colors.green[40],

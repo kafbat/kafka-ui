@@ -53,6 +53,7 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
         isOpen={isOpen}
         toggleClusterMenu={() => setIsOpen((prev) => !prev)}
         setColorKey={setColorKey}
+        isActive={opened}
       />
       {isOpen && (
         <S.List>

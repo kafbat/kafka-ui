@@ -28,11 +28,7 @@ export const BackLink = styled(NavLink)`
 export const Wrapper = styled.div`
   padding: 16px;
 `;
-export const Title = styled.div`
-  color: ${({ theme }) => theme.pageHeading.title.color};
-  font-weight: 500;
-  line-height: 8px;
-`;
+
 export const Content = styled.div`
   display: flex;
   justify-content: space-between;
@@ -45,5 +41,15 @@ export const Content = styled.div`
 
   & > ${Breadcrumbs} {
     gap: 20px;
+  }
+`;
+
+export const Title = styled.div`
+  color: ${({ theme }) => theme.pageHeading.title.color};
+  font-weight: 500;
+  line-height: 8px;
+  & + ${Content} h1 {
+    padding-top: 8px;
+    line-height: 24px;
   }
 `;

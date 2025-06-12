@@ -5,7 +5,7 @@ function useScrollIntoView<T extends Element>(scroll: boolean) {
 
   useLayoutEffect(() => {
     if (scroll) {
-      elementRef.current?.scrollIntoView();
+      elementRef.current?.scrollIntoView({ block: 'start' });
     }
   }, [scroll]);
 
