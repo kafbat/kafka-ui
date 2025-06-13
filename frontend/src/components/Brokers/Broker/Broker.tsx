@@ -1,5 +1,4 @@
 import React, { Suspense } from 'react';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import * as Metrics from 'components/common/Metrics';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -21,6 +20,7 @@ import Navbar from 'components/common/Navigation/Navbar.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ActionNavLink } from 'components/common/ActionComponent';
 import { Action, ResourceType } from 'generated-sources';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import Configs from './Configs/Configs';
 
@@ -38,7 +38,7 @@ const Broker: React.FC = () => {
   );
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={`Broker ${brokerId}`}
         backTo={clusterBrokersPath(clusterName)}
         backText="Brokers"

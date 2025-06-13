@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { useNavigate } from 'react-router-dom';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import Table from 'components/common/NewTable';
 import { clusterBrokerPath } from 'lib/paths';
 import { useBrokers } from 'lib/hooks/api/brokers';
 import { useClusterStats } from 'lib/hooks/api/clusters';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
 import { getBrokersTableColumns, getBrokersTableRows } from './lib';
@@ -45,7 +45,7 @@ const BrokersList: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Brokers" />
+      <ResourcePageHeading text="Brokers" />
 
       <BrokersMetrics
         brokerCount={brokerCount}

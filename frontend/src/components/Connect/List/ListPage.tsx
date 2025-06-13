@@ -4,13 +4,13 @@ import { ClusterNameRoute, clusterConnectorNewRelativePath } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import Search from 'components/common/Search/Search';
 import * as Metrics from 'components/common/Metrics';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ConnectorState, Action, ResourceType } from 'generated-sources';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
 import { ActionButton } from 'components/common/ActionComponent';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import List from './List';
 
@@ -33,7 +33,7 @@ const ListPage: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Connectors">
+      <ResourcePageHeading text="Connectors">
         {!isReadOnly && (
           <Tooltip
             value={
@@ -55,7 +55,7 @@ const ListPage: React.FC = () => {
             placement="left"
           />
         )}
-      </PageHeading>
+      </ResourcePageHeading>
       <Metrics.Wrapper>
         <Metrics.Section>
           <Metrics.Indicator
