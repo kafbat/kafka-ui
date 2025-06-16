@@ -3,10 +3,12 @@ package io.kafbat.ui.controller;
 import io.kafbat.ui.api.AuthorizationApi;
 import io.kafbat.ui.model.ActionDTO;
 import io.kafbat.ui.model.AuthenticationInfoDTO;
+import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.ResourceTypeDTO;
 import io.kafbat.ui.model.UserInfoDTO;
 import io.kafbat.ui.model.UserPermissionDTO;
 import io.kafbat.ui.model.rbac.Permission;
+import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.security.Principal;
 import java.util.Collection;
@@ -29,12 +31,13 @@ import reactor.core.publisher.Mono;
 public class AuthorizationController implements AuthorizationApi {
 
   private final AccessControlService accessControlService;
+  private final ClustersStorage clustersStorage;
 
   public Mono<ResponseEntity<AuthenticationInfoDTO>> getUserAuthInfo(ServerWebExchange exchange) {
     List<UserPermissionDTO> defaultRolePermissions = accessControlService.getDefaultRole() != null
         ? mapPermissions(
           accessControlService.getDefaultRole().getPermissions(),
-          accessControlService.getDefaultRole().getClusters())
+          clustersStorage.getKafkaClusters().stream().map(KafkaCluster::getName).toList())
         : Collections.emptyList();
 
     Mono<List<UserPermissionDTO>> permissions = AccessControlService.getUser()

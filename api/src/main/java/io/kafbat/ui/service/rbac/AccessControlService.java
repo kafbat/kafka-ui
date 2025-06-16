@@ -15,7 +15,6 @@ import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
-import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.rbac.extractor.CognitoAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.GithubAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
@@ -55,7 +54,6 @@ public class AccessControlService {
   @Nullable
   private final InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
   private final RoleBasedAccessControlProperties properties;
-  private final ClustersStorage clustersStorage;
   private final Environment environment;
 
   @Getter
@@ -148,10 +146,7 @@ public class AccessControlService {
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
     
-    if (!isAccessible && properties.getDefaultRole() != null) {
-      return properties.getDefaultRole().getClusters().stream().anyMatch(clusterName::equalsIgnoreCase);
-    }
-    return isAccessible;
+    return isAccessible || properties.getDefaultRole() != null;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {

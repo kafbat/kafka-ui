@@ -102,9 +102,6 @@ public class MockedRbacUtils {
   }
 
   public static DefaultRole getDefaultRole() {
-    DefaultRole role = new DefaultRole();
-    role.setClusters(List.of(DEV_CLUSTER, PROD_CLUSTER));
-
     Permission topicViewPermission = new Permission();
     topicViewPermission.setResource(Resource.TOPIC.name());
     topicViewPermission.setActions(List.of(TopicAction.VIEW.name()));
@@ -131,6 +128,7 @@ public class MockedRbacUtils {
         schemaPermission,
         connectPermission
     );
+    DefaultRole role = new DefaultRole();
     role.setPermissions(permissions);
     role.validate();
     return role;
