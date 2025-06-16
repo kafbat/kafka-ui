@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 public class DefaultRole {
 
-  private String name;
   private List<String> clusters;
   private List<Permission> permissions = new ArrayList<>();
 
