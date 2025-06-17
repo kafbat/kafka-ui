@@ -17,7 +17,6 @@ import Editor from 'components/common/Editor/Editor';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormError } from 'components/common/Input/Input.styled';
@@ -26,6 +25,7 @@ import {
   useCreateSchema,
   useUpdateSchemaCompatibilityLayer,
 } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import * as S from './Edit.styled';
 
@@ -94,7 +94,7 @@ const Form: React.FC<FormProps> = ({ schema }) => {
 
   return (
     <FormProvider {...methods}>
-      <PageHeading
+      <ResourcePageHeading
         text={`${subject} Edit`}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
