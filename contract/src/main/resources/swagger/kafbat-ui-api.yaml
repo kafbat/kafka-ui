@@ -3947,6 +3947,7 @@ components:
         - MESSAGES_READ
         - MESSAGES_PRODUCE
         - MESSAGES_DELETE
+        - OPERATE
         - RESTART
 
     ResourceType:
@@ -4100,7 +4101,6 @@ components:
     KafkaAclNamePatternType:
       type: string
       enum:
-        - MATCH
         - LITERAL
         - PREFIXED
 

@@ -61,6 +61,7 @@ dependencies {
     implementation libs.json.smart
     implementation libs.netty.common
     implementation libs.netty.handler
+    implementation libs.spring.context
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator

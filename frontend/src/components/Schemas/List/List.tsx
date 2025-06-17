@@ -6,7 +6,6 @@ import {
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import { ActionButton } from 'components/common/ActionComponent';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
@@ -18,6 +17,7 @@ import { Action, SchemaSubject, ResourceType } from 'generated-sources';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { useGetSchemas } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
@@ -60,7 +60,7 @@ const List: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Schema Registry">
+      <ResourcePageHeading text="Schema Registry">
         {!isReadOnly && (
           <>
             <GlobalSchemaSelector />
@@ -77,7 +77,7 @@ const List: React.FC = () => {
             </ActionButton>
           </>
         )}
-      </PageHeading>
+      </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Schema Name" />
       </ControlPanelWrapper>

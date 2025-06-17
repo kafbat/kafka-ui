@@ -7,13 +7,18 @@ import { clusterConnectorsPath } from 'lib/paths';
 import { render } from 'lib/testHelpers';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
 
+/*
+ Due to jsdom doesnt know about scrollIntoView
+*/
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
 describe('ClusterMenu', () => {
-  const setupComponent = (cluster: Cluster, singleMode?: boolean) => (
+  const setupComponent = (cluster: Cluster, opened?: boolean) => (
     <ClusterMenu
       name={cluster.name}
       status={cluster.status}
       features={cluster.features}
-      singleMode={singleMode}
+      opened={opened}
     />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');

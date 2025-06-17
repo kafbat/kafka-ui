@@ -9,8 +9,8 @@ import {
   RouterParamsClusterConnectConnector,
 } from 'lib/paths';
 import Navbar from 'components/common/Navigation/Navbar.styled';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import PageLoader from 'components/common/PageLoader/PageLoader';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import Overview from './Overview/Overview';
 import Tasks from './Tasks/Tasks';
@@ -23,13 +23,13 @@ const DetailsPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeading
+      <ResourcePageHeading
         text={connectorName}
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"
       >
         <Actions />
-      </PageHeading>
+      </ResourcePageHeading>
       <Overview />
       <Navbar role="navigation">
         <NavLink

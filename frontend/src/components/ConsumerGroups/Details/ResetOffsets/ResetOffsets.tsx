@@ -1,10 +1,10 @@
 import React from 'react';
 import { clusterConsumerGroupsPath, ClusterGroupParam } from 'lib/paths';
 import 'react-datepicker/dist/react-datepicker.css';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useConsumerGroupDetails } from 'lib/hooks/api/consumers';
 import PageLoader from 'components/common/PageLoader/PageLoader';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import {
   ConsumerGroupOffsetsReset,
   ConsumerGroupOffsetsResetType,
@@ -37,7 +37,7 @@ const ResetOffsets: React.FC = () => {
 
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={consumerGroupID}
         backTo={clusterConsumerGroupsPath(routerParams.clusterName)}
         backText="Consumers"

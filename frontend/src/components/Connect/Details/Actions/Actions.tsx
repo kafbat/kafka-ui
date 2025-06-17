@@ -91,7 +91,7 @@ const Actions: React.FC = () => {
             onClick={pauseConnectorHandler}
             permission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -103,7 +103,7 @@ const Actions: React.FC = () => {
             onClick={stopConnectorHandler}
             permission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -116,7 +116,7 @@ const Actions: React.FC = () => {
             onClick={resumeConnectorHandler}
             permission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -127,7 +127,7 @@ const Actions: React.FC = () => {
           onClick={restartConnectorHandler}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -137,7 +137,7 @@ const Actions: React.FC = () => {
           onClick={restartAllTasksHandler}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -147,7 +147,7 @@ const Actions: React.FC = () => {
           onClick={restartFailedTasksHandler}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >

@@ -34,7 +34,7 @@ class PermissionTest {
     p.transform();
 
     assertThat(p.getParsedActions())
-        .isEqualTo(List.of(TopicAction.values()));
+        .containsExactlyInAnyOrder(TopicAction.values());
   }
 
   @Test

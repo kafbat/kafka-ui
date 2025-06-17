@@ -11,8 +11,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import Select from 'components/common/Select/Select';
 import useAppParams from 'lib/hooks/useAppParams';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import { useGetSchemasVersions } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import * as S from './Diff.styled';
 import { BackButton } from './Diff.styled';
@@ -57,7 +57,7 @@ const Diff: React.FC = () => {
 
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={`${subject} compare versions`}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}

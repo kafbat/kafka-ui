@@ -21,6 +21,8 @@ abstract class AbstractAuthSecurityConfig {
       "/manifest.json",
       "/favicon.svg",
       "/favicon/**",
+      "/images/**",
+      "/fonts/**",
 
       "/static/**",
       "/resources/**",
