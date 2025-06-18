@@ -11,6 +11,12 @@ export async function Delete(page: Page, times: number = 5): Promise<void> {
   }
 }
 
+export async function clearWithSelectAll(page: Page): Promise<void> {
+  const selectAll = process.platform === 'darwin' ? 'Meta+A' : 'Control+A';
+  await page.keyboard.press(selectAll);
+  await page.keyboard.press('Backspace');
+}
+
 // export const generateName = (prefix: string): string => {
 //   return `${prefix}-${uuidv4().slice(0, 8)}`;
 // };

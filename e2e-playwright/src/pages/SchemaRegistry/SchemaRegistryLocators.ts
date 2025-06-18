@@ -16,6 +16,11 @@ export default class SchemaRegistryLocators {
     get schemaTextBox(): Locator { return this.page.locator('textarea[name="schema"]')};
     get schemaTypeDropDown(): Locator { return this.page.locator('form path')};
     get submit(): Locator { return this.page.getByRole('button', { name: 'Submit' })};
+    get schemaType(): Locator { return this.page.locator('form').getByRole('img')};
 
     schemaTypeDropDownElement(value:string): Locator { return this.page.getByRole('option', { name: value })};
+
+    toSchema(value:string): Locator { return this.page.getByRole('link', { name: value })};
+
+    schemaTypeElement(value: string): Locator { return this.page.getByRole('option', { name: value })};
 }
