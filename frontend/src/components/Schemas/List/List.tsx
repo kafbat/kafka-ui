@@ -21,6 +21,7 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
+const COLUMN_SIZE = 160;
 const List: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -51,10 +52,14 @@ const List: React.FC = () => {
           />
         ),
       },
-      { header: 'Id', accessorKey: 'id' },
-      { header: 'Type', accessorKey: 'schemaType' },
-      { header: 'Version', accessorKey: 'version' },
-      { header: 'Compatibility', accessorKey: 'compatibilityLevel' },
+      { header: 'Id', accessorKey: 'id', size: COLUMN_SIZE },
+      { header: 'Type', accessorKey: 'schemaType', size: COLUMN_SIZE },
+      { header: 'Version', accessorKey: 'version', size: COLUMN_SIZE },
+      {
+        header: 'Compatibility',
+        accessorKey: 'compatibilityLevel',
+        size: COLUMN_SIZE,
+      },
     ],
     []
   );

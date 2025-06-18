@@ -17,6 +17,7 @@ import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
+const COLUMN_SIZE = 160;
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const [searchParams] = useSearchParams();
@@ -52,11 +53,13 @@ const List = () => {
         id: ConsumerGroupOrdering.MEMBERS,
         header: 'Num Of Members',
         accessorKey: 'members',
+        size: COLUMN_SIZE,
       },
       {
         id: ConsumerGroupOrdering.TOPIC_NUM,
         header: 'Num Of Topics',
         accessorKey: 'topics',
+        size: COLUMN_SIZE,
       },
       {
         id: ConsumerGroupOrdering.MESSAGES_BEHIND,
@@ -65,11 +68,13 @@ const List = () => {
         cell: (args) => {
           return args.getValue() ?? 'N/A';
         },
+        size: COLUMN_SIZE,
       },
       {
         header: 'Coordinator',
         accessorKey: 'coordinator.id',
         enableSorting: false,
+        size: COLUMN_SIZE,
       },
       {
         id: ConsumerGroupOrdering.STATE,
@@ -86,6 +91,7 @@ const List = () => {
             />
           );
         },
+        size: COLUMN_SIZE,
       },
     ],
     []

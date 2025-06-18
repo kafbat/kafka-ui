@@ -17,6 +17,7 @@ import * as S from './Dashboard.styled';
 import ClusterName from './ClusterName';
 import ClusterTableActionsCell from './ClusterTableActionsCell';
 
+const COLUMN_SIZE = 100;
 const Dashboard: React.FC = () => {
   const { data } = useGetUserInfo();
   const clusters = useClusters();
@@ -38,12 +39,30 @@ const Dashboard: React.FC = () => {
   const columns = React.useMemo<ColumnDef<Cluster>[]>(() => {
     const initialColumns: ColumnDef<Cluster>[] = [
       { header: 'Cluster name', accessorKey: 'name', cell: ClusterName },
-      { header: 'Version', accessorKey: 'version' },
-      { header: 'Brokers count', accessorKey: 'brokerCount' },
-      { header: 'Partitions', accessorKey: 'onlinePartitionCount' },
-      { header: 'Topics', accessorKey: 'topicCount' },
-      { header: 'Production', accessorKey: 'bytesInPerSec', cell: SizeCell },
-      { header: 'Consumption', accessorKey: 'bytesOutPerSec', cell: SizeCell },
+      { header: 'Version', accessorKey: 'version', size: COLUMN_SIZE },
+      {
+        header: 'Brokers count',
+        accessorKey: 'brokerCount',
+        size: COLUMN_SIZE,
+      },
+      {
+        header: 'Partitions',
+        accessorKey: 'onlinePartitionCount',
+        size: COLUMN_SIZE,
+      },
+      { header: 'Topics', accessorKey: 'topicCount', size: COLUMN_SIZE },
+      {
+        header: 'Production',
+        accessorKey: 'bytesInPerSec',
+        cell: SizeCell,
+        size: COLUMN_SIZE,
+      },
+      {
+        header: 'Consumption',
+        accessorKey: 'bytesOutPerSec',
+        cell: SizeCell,
+        size: COLUMN_SIZE,
+      },
     ];
 
     if (appInfo.hasDynamicConfig) {
@@ -51,6 +70,7 @@ const Dashboard: React.FC = () => {
         header: '',
         id: 'actions',
         cell: ClusterTableActionsCell,
+        size: COLUMN_SIZE + 40,
       });
     }
 
