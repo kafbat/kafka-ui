@@ -235,3 +235,8 @@ export const TableWrapper = styled.div<{ $disabled: boolean }>(
     `}
   `
 );
+
+export const BreakableText = styled.div`
+  word-break: 'break-word';
+  white-space: 'pre-wrap';
+`;

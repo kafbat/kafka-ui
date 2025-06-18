@@ -2,6 +2,7 @@ import React from 'react';
 import { KsqlStreamDescription, KsqlTableDescription } from 'generated-sources';
 import Table from 'components/common/NewTable';
 import { ColumnDef } from '@tanstack/react-table';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 interface TableViewProps {
   fetching: boolean;
@@ -13,8 +14,8 @@ const TableView: React.FC<TableViewProps> = ({ fetching, rows }) => {
     ColumnDef<KsqlTableDescription | KsqlStreamDescription>[]
   >(
     () => [
-      { header: 'Name', accessorKey: 'name' },
-      { header: 'Topic', accessorKey: 'topic' },
+      { header: 'Name', accessorKey: 'name', cell: BreakableTextCell },
+      { header: 'Topic', accessorKey: 'topic', cell: BreakableTextCell },
       { header: 'Key Format', accessorKey: 'keyFormat' },
       { header: 'Value Format', accessorKey: 'valueFormat' },
       {
