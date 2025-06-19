@@ -3,7 +3,7 @@ import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
 import { expectVisibility } from "../services/uiHelper";
 import { generateName } from "../services/commonFunctions";
-import { getAvroSchema, getAvroUpdatedSchema, getAvroSchemaValid, getJsonSchema, getProtobufSchema } from "../services/schemas"
+import { getAvroSchema, getAvroUpdatedSchema, getJsonSchema, getProtobufSchema } from "../services/schemas"
 import { clearWithSelectAll } from '../services/commonFunctions'
 
 setDefaultTimeout(60 * 1000 * 2);
@@ -88,15 +88,6 @@ Given('SchemaRegistrySchemaName EditSchema clicked', async function(this: Playwr
 
 Given('SchemaRegistrySchemaNameEdit New schema is update avro not valid', async function(this: PlaywrightWorld) {
   const schema = getAvroUpdatedSchema();
-  const textBox = this.locators.schemaName.newSchemaTextbox;
-  await textBox.click();
-  await clearWithSelectAll(this.page);
-  await textBox.focus();
-  await textBox.type(schema)
-});
-
-Given('SchemaRegistrySchemaNameEdit New schema is update avro valid', async function(this: PlaywrightWorld) {
-  const schema = getAvroSchemaValid();
   const textBox = this.locators.schemaName.newSchemaTextbox;
   await textBox.click();
   await clearWithSelectAll(this.page);

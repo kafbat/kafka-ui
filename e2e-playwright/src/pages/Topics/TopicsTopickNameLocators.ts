@@ -20,9 +20,14 @@ export default class TopicsTopickNameLocators {
 
     get menuItemEditSettings():Locator { return this.page.getByRole('menuitem', { name: 'Edit settings Pay attention!' }) }
     get menuItemClearMessages():Locator { return this.page.getByText('Clear messagesClearing') }
+    get menuItemRecreateTopic():Locator { return this.page.getByText('Recreate Topic') }
+    get confirm():Locator { return this.page.getByRole('button', { name: 'Confirm' }) }
 
     get cleanupPolicyDropdown():Locator { return this.page.getByRole('listbox', { name: 'Cleanup policy' }) }
     get updateTopicButton():Locator { return this.page.getByRole('button', { name: 'Update topic' }) }
+    get messagesDropdown():Locator { return this.page.getByRole('cell', { name: 'Dropdown Toggle' }).getByLabel('Dropdown Toggle') }
+    get clearMessages():Locator { return this.page.getByText('Clear Messages', { exact: true }) }
+    get deleteSuccess():Locator { return this.page.getByRole('heading', { name: 'Success' }) }
 
     heading(topicName: string): Locator { return this.page.getByText(`Topics${topicName}`); }
     partitions(value: string):Locator { return this.page.getByRole('group').getByText(value).first(); }
@@ -34,4 +39,6 @@ export default class TopicsTopickNameLocators {
     messageHeadersTextbox(value: string):Locator  { return this.page.locator('div').filter({ hasText: value }).nth(1); }
 
     cleanupPolicyDropdownItem(value: string):Locator  { return this.page.getByRole('option', { name: value, exact: true }); }
+
+    messagesCount(value: string):Locator  { return this.page.getByText(`Message Count ${value}`); }
 }

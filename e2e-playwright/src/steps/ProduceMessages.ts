@@ -110,3 +110,27 @@ When('TopicName cleanup policy set to: {string}', async function(this: Playwrigh
 When('TopicName UpdateTopic button clicked', async function(this: PlaywrightWorld) {
   await this.locators.topicTopicName.updateTopicButton.click();
 });
+
+Then('Topics TopicName Overview click', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.overview.click();
+});
+
+Then('TopicName messages count is {string}', async function(this: PlaywrightWorld, expectedCount: string) {
+  await expectVisibility(this.locators.topicTopicName.messagesCount(expectedCount), "true");
+});
+
+When('TopicName clear messages clicked', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.messagesDropdown.click();
+  await this.locators.topicTopicName.clearMessages.click();
+});
+
+When('TopicName menu clear messages clicked', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.menuItemClearMessages.click();
+  await this.locators.topicTopicName.confirm.click();
+  }
+);
+
+When('TopicName menu RecreateTopic clicked', async function(this: PlaywrightWorld) {
+    await this.locators.topicTopicName.menuItemRecreateTopic.click();
+    await this.locators.topicTopicName.confirm.click();
+});
