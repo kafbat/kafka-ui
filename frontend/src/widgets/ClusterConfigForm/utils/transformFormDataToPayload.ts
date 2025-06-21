@@ -262,7 +262,7 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
             awsProfileName: props.awsProfileName,
             awsRoleArn: props.awsRoleArn,
             awsRoleSessionName: props.awsRoleSessionName,
-            awsStsRegion: props.awsStsRegion
+            awsStsRegion: props.awsStsRegion,
           }),
         };
         break;
