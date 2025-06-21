@@ -260,6 +260,9 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
             'software.amazon.msk.auth.iam.IAMClientCallbackHandler',
           'sasl.jaas.config': getJaasConfig('SASL/AWS IAM', {
             awsProfileName: props.awsProfileName,
+            awsRoleArn: props.awsRoleArn,
+            awsRoleSessionName: props.awsRoleSessionName,
+            awsStsRegion: props.awsStsRegion
           }),
         };
         break;
