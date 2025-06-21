@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.4.5'
+spring-boot = '3.5.3'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -21,7 +21,6 @@ lombok = '1.18.34'
 odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
-junit = '5.11.2'
 mockito = '5.16.0'
 okhttp3 = '4.12.0'
 testcontainers = '1.20.6'
@@ -100,8 +99,6 @@ cel = { module = 'dev.cel:cel', version.ref = 'cel' }
 testcontainers = { module = 'org.testcontainers:testcontainers', version.ref = 'testcontainers' }
 testcontainers-kafka = { module = 'org.testcontainers:kafka', version.ref = 'testcontainers' }
 testcontainers-jupiter = { module = 'org.testcontainers:junit-jupiter', version.ref = 'testcontainers' }
-
-junit-jupiter-engine = { module = 'org.junit.jupiter:junit-jupiter-engine', version.ref = 'junit' }
 
 mockito-core = { module = 'org.mockito:mockito-core', version.ref = 'mockito' }
 mockito-jupiter = { module = 'org.mockito:mockito-junit-jupiter', version.ref = 'mockito' }

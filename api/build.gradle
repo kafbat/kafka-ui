@@ -89,7 +89,6 @@ dependencies {
     testImplementation libs.testcontainers
     testImplementation libs.testcontainers.kafka
     testImplementation libs.testcontainers.jupiter
-    testImplementation libs.junit.jupiter.engine
     testImplementation libs.mockito.core
     testImplementation libs.mockito.jupiter
     testImplementation libs.bytebuddy
