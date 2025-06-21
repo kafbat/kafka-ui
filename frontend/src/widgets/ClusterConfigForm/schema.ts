@@ -141,10 +141,10 @@ const authPropsSchema = lazy((_, { parent }) => {
       });
     case 'SASL/AWS IAM':
       return object({
-        awsProfileName: string().notRequired(),
-        awsRoleArn: string().notRequired(),
-        awsRoleSessionName: string().notRequired(),
-        awsStsRegion: string().notRequired(),
+        awsProfileName: string(),
+        awsRoleArn: string(),
+        awsRoleSessionName: string(),
+        awsStsRegion: string(),
       });
     case 'SASL/Azure Entra':
     case 'SASL/GCP IAM':
