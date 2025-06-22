@@ -39,6 +39,10 @@ const List = () => {
         id: ConsumerGroupOrdering.NAME,
         header: 'Group ID',
         accessorKey: 'groupId',
+        meta: {
+          filterVariant: 'select',
+        },
+        filterFn: 'arrIncludesSome',
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ getValue }) => (
           <LinkCell
@@ -79,6 +83,10 @@ const List = () => {
         id: ConsumerGroupOrdering.STATE,
         header: 'State',
         accessorKey: 'state',
+        meta: {
+          filterVariant: 'select',
+        },
+        filterFn: 'arrIncludesSome',
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: (args) => {
           const value = args.getValue() as ConsumerGroupState;

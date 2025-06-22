@@ -10,6 +10,8 @@ import {
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -25,6 +27,7 @@ import updatePaginationState from './utils/updatePaginationState';
 import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
+import TableHeader from './TableHeader';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -188,11 +191,26 @@ function Table<TData>({
     getExpandedRowModel: getExpandedRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFilteredRowModel: getFilteredRowModel(),
     manualSorting: serverSideProcessing,
     manualPagination: serverSideProcessing,
     enableSorting,
     autoResetPageIndex: false,
     enableRowSelection,
+    filterFns: {
+      includesSome: (
+        row,
+        columnId,
+        filterValue: { label: string; value: string }[]
+      ) => {
+        debugger;
+        if (filterValue.length === 0) {
+          return row.getValue('id');
+        }
+        return filterValue.includes(row.getValue(columnId));
+      },
+    },
   });
 
   const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
@@ -255,26 +273,7 @@ function Table<TData>({
                   <S.Th expander key={`${headerGroup.id}-expander`} />
                 )}
                 {headerGroup.headers.map((header) => (
-                  <S.Th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    sortable={header.column.getCanSort()}
-                    sortOrder={header.column.getIsSorted()}
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{
-                      width:
-                        header.column.getSize() !== 150
-                          ? header.column.getSize()
-                          : undefined,
-                    }}
-                  >
-                    <div>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </div>
-                  </S.Th>
+                  <TableHeader header={header} key={header.id} />
                 ))}
               </tr>
             ))}

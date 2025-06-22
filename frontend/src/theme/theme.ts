@@ -300,6 +300,9 @@ const baseTheme = {
       active: '#FFBDB8',
     },
     menuIcon: Colors.brand[70],
+    filterIcon: {
+      normal: Colors.brand[70],
+    },
   },
   textArea: {
     borderColor: {
