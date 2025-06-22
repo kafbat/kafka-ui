@@ -89,8 +89,6 @@ const TopicTable: React.FC = () => {
         accessorKey: 'segmentSize',
         size: 100,
         cell: SizeCell,
-        meta: { filterVariant: 'select' },
-        filterFn: 'includesSome',
       },
       {
         id: 'actions',

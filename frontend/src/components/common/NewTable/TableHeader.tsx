@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React from 'react';
 import * as S from './Table.styled';
 import { Header, flexRender } from '@tanstack/react-table';
 import FilterIcon from '../Icons/FilterIcon';
@@ -10,7 +10,6 @@ interface TableHeaderProps<TData> {
 
 const TableHeader = <T,>(props: TableHeaderProps<T>) => {
   const { header } = props;
-  console.log('filter', header.column.getFilterValue());
 
   return (
     <S.Th

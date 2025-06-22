@@ -7,6 +7,7 @@ import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
+import useQueryParamsPersister from 'components/common/NewTable/FIlter/Persister';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -24,20 +25,49 @@ const List: React.FC = () => {
   const columns = React.useMemo<ColumnDef<FullConnectorInfo>[]>(
     () => [
       { header: 'Name', accessorKey: 'name', cell: BreakableTextCell },
-      { header: 'Connect', accessorKey: 'connect', cell: BreakableTextCell },
-      { header: 'Type', accessorKey: 'type' },
+      {
+        header: 'Connect',
+        accessorKey: 'connect',
+        cell: BreakableTextCell,
+        meta: { filterVariant: 'multi-select' },
+        filterFn: 'includesSome',
+      },
+      {
+        header: 'Type',
+        accessorKey: 'type',
+        meta: { filterVariant: 'multi-select' },
+        filterFn: 'includesSome',
+      },
       {
         header: 'Plugin',
         accessorKey: 'connectorClass',
         cell: BreakableTextCell,
+        meta: { filterVariant: 'multi-select' },
+        filterFn: 'includesSome',
       },
-      { header: 'Topics', cell: TopicsCell },
-      { header: 'Status', accessorKey: 'status.state', cell: TagCell },
+      {
+        header: 'Topics',
+        accessorKey: 'topics',
+        cell: TopicsCell,
+        enableColumnFilter: true,
+        meta: { filterVariant: 'multi-select' },
+        filterFn: 'arrIncludesSome',
+        enableSorting: false,
+      },
+      {
+        header: 'Status',
+        accessorKey: 'status.state',
+        cell: TagCell,
+        meta: { filterVariant: 'multi-select' },
+        filterFn: 'includesSome',
+      },
       { header: 'Running Tasks', cell: RunningTasksCell },
       { header: '', id: 'action', cell: ActionsCell },
     ],
     []
   );
+
+  const persister = useQueryParamsPersister(columns);
 
   return (
     <Table
@@ -49,6 +79,7 @@ const List: React.FC = () => {
       }
       emptyMessage="No connectors found"
       setRowId={(originalRow) => `${originalRow.name}-${originalRow.connect}`}
+      persister={persister}
     />
   );
 };

@@ -1,3 +1,3 @@
-import MultiSelectFilter from './MultiSelectFilter';
+import MultiSelectFilter from './MultiSelect/MultiSelectFilter';
 
 export { MultiSelectFilter };

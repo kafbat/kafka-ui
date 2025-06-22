@@ -1,6 +1,7 @@
 import React from 'react';
 import type {
   ColumnDef,
+  ColumnFiltersState,
   OnChangeFn,
   PaginationState,
   Row,
@@ -28,6 +29,7 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import TableHeader from './TableHeader';
+import { Persister } from './FIlter/Persister';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -50,6 +52,8 @@ export interface TableProps<TData> {
 
   // Sorting.
   enableSorting?: boolean; // Enables sorting for table.
+
+  persister?: Persister;
 
   // Placeholder for empty table
   emptyMessage?: React.ReactNode;
@@ -140,6 +144,7 @@ function Table<TData>({
   onRowHover,
   onMouseLeave,
   setRowId,
+  persister,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -162,6 +167,18 @@ function Table<TData>({
     [searchParams, location]
   );
 
+  const onFilterChange = React.useCallback(
+    (updater: UpdaterFn<ColumnFiltersState>) => {
+      if (persister) {
+        const prevState = persister.getPrevState();
+        const nextState = updater(prevState);
+        persister.store(nextState);
+        return nextState;
+      }
+    },
+    [searchParams, location, columns]
+  );
+
   const table = useReactTable<TData>({
     data,
     pageCount,
@@ -169,7 +186,7 @@ function Table<TData>({
     state: {
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),
-      rowSelection,
+      columnFilters: persister?.getPrevState() ?? [],
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
@@ -185,6 +202,7 @@ function Table<TData>({
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
+    onColumnFiltersChange: onFilterChange as OnChangeFn<ColumnFiltersState>,
     onRowSelectionChange: setRowSelection,
     getRowCanExpand,
     getCoreRowModel: getCoreRowModel(),
@@ -204,9 +222,8 @@ function Table<TData>({
         columnId,
         filterValue: { label: string; value: string }[]
       ) => {
-        debugger;
         if (filterValue.length === 0) {
-          return row.getValue('id');
+          return row.getValue(columnId);
         }
         return filterValue.includes(row.getValue(columnId));
       },
