@@ -13,7 +13,6 @@ import { TopicTitleCell } from './TopicTitleCell';
 import ActionsCell from './ActionsCell';
 import BatchActionsbar from './BatchActionsBar';
 
-const COLUMN_SIZE = 100;
 const TopicTable: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams] = useSearchParams();
@@ -45,13 +44,13 @@ const TopicTable: React.FC = () => {
         id: TopicColumnsToSort.TOTAL_PARTITIONS,
         header: 'Partitions',
         accessorKey: 'partitionCount',
-        size: COLUMN_SIZE,
+        size: 100,
       },
       {
         id: TopicColumnsToSort.OUT_OF_SYNC_REPLICAS,
         header: 'Out of sync replicas',
         accessorKey: 'partitions',
-        size: COLUMN_SIZE,
+        size: 154,
         cell: ({ getValue }) => {
           const partitions = getValue<Topic['partitions']>();
           if (partitions === undefined || partitions.length === 0) {
@@ -67,13 +66,13 @@ const TopicTable: React.FC = () => {
         header: 'Replication Factor',
         accessorKey: 'replicationFactor',
         enableSorting: false,
-        size: COLUMN_SIZE,
+        size: 148,
       },
       {
         header: 'Number of messages',
         accessorKey: 'partitions',
         enableSorting: false,
-        size: COLUMN_SIZE,
+        size: 146,
         cell: ({ getValue }) => {
           const partitions = getValue<Topic['partitions']>();
           if (partitions === undefined || partitions.length === 0) {
@@ -88,7 +87,7 @@ const TopicTable: React.FC = () => {
         id: TopicColumnsToSort.SIZE,
         header: 'Size',
         accessorKey: 'segmentSize',
-        size: COLUMN_SIZE,
+        size: 100,
         cell: SizeCell,
       },
       {
