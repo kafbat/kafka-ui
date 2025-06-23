@@ -4278,6 +4278,22 @@ components:
                               type: array
                               items:
                                 $ref: '#/components/schemas/Action'
+                defaultRole:
+                  type: object
+                  properties:
+                    permissions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          resource:
+                            $ref: '#/components/schemas/ResourceType'
+                          value:
+                            type: string
+                          actions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Action'
             webclient:
               type: object
               properties:
