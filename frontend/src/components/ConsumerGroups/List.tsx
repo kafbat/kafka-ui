@@ -1,5 +1,4 @@
 import React from 'react';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import Search from 'components/common/Search/Search';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import {
@@ -16,6 +15,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CONSUMER_GROUP_STATE_TOOLTIPS, PER_PAGE } from 'lib/constants';
 import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -92,7 +92,7 @@ const List = () => {
 
   return (
     <>
-      <PageHeading text="Consumers" />
+      <ResourcePageHeading text="Consumers" />
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Consumer Group ID" />
       </ControlPanelWrapper>

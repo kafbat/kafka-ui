@@ -47,7 +47,10 @@ export const clusterBrokersPath = (
 export const clusterBrokerPath = (
   clusterName: ClusterName = RouteParams.clusterName,
   brokerId: Broker['id'] | string = RouteParams.brokerId
-) => `${clusterBrokersPath(clusterName)}/${brokerId}`;
+) => {
+  return `${clusterBrokersPath(clusterName)}/${brokerId}`;
+};
+
 export const clusterBrokerMetricsPath = (
   clusterName: ClusterName = RouteParams.clusterName,
   brokerId: Broker['id'] | string = RouteParams.brokerId
