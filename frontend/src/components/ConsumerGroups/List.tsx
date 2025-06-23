@@ -42,7 +42,7 @@ const List = () => {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ getValue }) => (
           <LinkCell
-            style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
+            wordBreak
             value={`${getValue<string | number>()}`}
             to={encodeURIComponent(`${getValue<string | number>()}`)}
           />
