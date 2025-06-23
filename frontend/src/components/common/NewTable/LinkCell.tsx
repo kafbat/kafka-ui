@@ -8,6 +8,17 @@ interface LinkCellProps {
   wordBreak?: boolean;
 }
 
+const NavLinkStyled = styled(NavLink)<{ $wordBreak?: boolean }>`
+  && {
+    ${({ $wordBreak }) =>
+      $wordBreak &&
+      css`
+        word-break: break-word;
+        white-space: pre-wrap;
+      `}
+  }
+`;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LinkCell: React.FC<LinkCellProps> = ({
   value,
@@ -26,16 +37,5 @@ const LinkCell: React.FC<LinkCellProps> = ({
     </NavLinkStyled>
   );
 };
-
-const NavLinkStyled = styled(NavLink)<{ $wordBreak?: boolean }>`
-  ${({ $wordBreak }) => {
-    if ($wordBreak) {
-      return css`
-        word-break: break-word !important;
-        white-space: pre-wrap !important;
-      `;
-    }
-  }}
-`;
 
 export default LinkCell;
