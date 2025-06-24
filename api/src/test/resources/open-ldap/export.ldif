@@ -1,0 +1,64 @@
+dn: dc=kafbat,dc=io
+objectClass: dcObject
+objectClass: organization
+dc: kafbat
+o: kafbat
+
+# dn: ou=groups,dc=kafbat,dc=io
+# ou: groups
+# objectClass: organizationalUnit
+
+dn: ou=people,dc=kafbat,dc=io
+ou: people
+objectClass: top
+objectClass: organizationalUnit
+
+dn: cn=johndoe,ou=people,dc=kafbat,dc=io
+sn: JohnDoe
+cn: johndoe
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+userPassword: johndoe@kafbat.io
+
+dn: cn=johnwick,ou=people,dc=kafbat,dc=io
+sn: JohnWick
+cn: johnwick
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+userPassword: johnwick@kafbat.io
+
+dn: cn=jacksmith,ou=people,dc=kafbat,dc=io
+sn: JackSmith
+cn: jacksmith
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+userPassword: jacksmith@kafbat.io
+
+dn: cn=johnjames,ou=people,dc=kafbat,dc=io
+sn: JohnJames
+cn: johnjames
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+userPassword: johnjames@kafbat.io
+
+dn: cn=firstGroup,ou=people,dc=kafbat,dc=io
+description: App First Group Team
+cn: firstGroup
+objectClass: top
+objectClass: groupOfNames
+member: cn=johndoe,ou=people,dc=kafbat,dc=io
+
+dn: cn=secondGroup,ou=people,dc=kafbat,dc=io
+cn: secondGroup
+objectClass: top
+objectClass: groupOfNames
+member: cn=johnwick,ou=people,dc=kafbat,dc=io
+
