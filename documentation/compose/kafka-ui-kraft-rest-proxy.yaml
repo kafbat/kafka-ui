@@ -1,0 +1,43 @@
+---
+version: '3.4'
+services:
+  # Based on https://github.com/confluentinc/kafka-images/blob/master/examples/confluent-local/docker-compose.yml but
+  # removed the env var defaults that work as-is with Kafka UI.
+  kafka0:
+    # Pre-configured image for Kraft mode and REST Proxy
+    # See: https://docs.confluent.io/platform/current/installation/docker/image-reference.html#ak-images
+    image: confluentinc/confluent-local:latest
+    hostname: kafka0
+    container_name: kafka0
+    ports:
+      - "9092:9092"
+      - "8082:8082"
+    environment:
+      # Normally you do not have to specify all these environment variables, but we are doing it to make kafka-ui work
+      # as the defaults are all localhost instead of a docker compose service name
+      # See: Defaults https://github.com/confluentinc/kafka-images/blob/master/local/include/etc/confluent/docker/configureDefaults
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka0:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka0:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka0:29092,CONTROLLER://kafka0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka0:29092'
+  kafbat-ui:
+    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:latest
+    depends_on:
+      - kafka0
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:29092
+  kafka-init-topics:
+    # Not using confluent-local image because it doesn't have all the shell commands installed (e.g. cub and kafka-topics)
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka0
+    command: "bash -c 'set -e && echo Waiting for Kafka to be ready... && \
+      cub kafka-ready -b kafka0:29092 1 30 && \
+      kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
+      kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
+      kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092'"
+
