@@ -1,4 +1,4 @@
-import { type Option } from '../types';
+import { Option } from 'components/common/NewTable/Filter/variants/MultiSelect/types';
 
 function toOption(value: string): Option {
   return { label: value, value };

@@ -1,9 +1,8 @@
 import React from 'react';
 import { Column } from '@tanstack/react-table';
 
-import * as FilterType from './variants';
+import * as FilterVariant from './variants';
 
-/* MAIN COMPONENT */
 interface FilterProps<T> {
   column: Column<T, unknown>;
 }
@@ -12,7 +11,7 @@ const Filter = <T,>(props: FilterProps<T>) => {
 
   switch (column.columnDef.meta?.filterVariant) {
     case 'multi-select': {
-      return <FilterType.MultiSelectFilter column={column} />;
+      return <FilterVariant.MultiSelect column={column} />;
     }
     default: {
       throw Error('Not implemented filter');

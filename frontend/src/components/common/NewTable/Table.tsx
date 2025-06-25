@@ -11,6 +11,7 @@ import {
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
+  getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -29,7 +30,7 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import TableHeader from './TableHeader';
-import { Persister } from './FIlter/Persister';
+import { Persister } from './Filter/lib/persisters';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -53,7 +54,7 @@ export interface TableProps<TData> {
   // Sorting.
   enableSorting?: boolean; // Enables sorting for table.
 
-  persister?: Persister;
+  filterPersister?: Persister;
 
   // Placeholder for empty table
   emptyMessage?: React.ReactNode;
@@ -126,6 +127,10 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - set `serverSideProcessing` to true
  *    - set `pageCount` to the total number of pages
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
+ *
+ * 5. Filtering
+ *    - filtering columns must have accessorKey and meta.model.filterVariant
+ *    - set `persister` if need to store filter data, i.e useQueryPersister to store filter state in search params
  */
 
 function Table<TData>({
@@ -144,7 +149,7 @@ function Table<TData>({
   onRowHover,
   onMouseLeave,
   setRowId,
-  persister,
+  filterPersister,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -167,17 +172,19 @@ function Table<TData>({
     [searchParams, location]
   );
 
-  const onFilterChange = React.useCallback(
-    (updater: UpdaterFn<ColumnFiltersState>) => {
-      if (persister) {
-        const prevState = persister.getPrevState();
+  // useMemo istead of useCallback for not to break default update filter state behaviour
+  const onFilterChange = React.useMemo(() => {
+    if (filterPersister) {
+      return (updater: UpdaterFn<ColumnFiltersState>) => {
+        const prevState = filterPersister.getPrevState();
         const nextState = updater(prevState);
-        persister.store(nextState);
+        filterPersister.update(nextState);
         return nextState;
-      }
-    },
-    [searchParams, location, columns]
-  );
+      };
+    }
+
+    return undefined;
+  }, [searchParams, location, columns]);
 
   const table = useReactTable<TData>({
     data,
@@ -186,7 +193,7 @@ function Table<TData>({
     state: {
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),
-      columnFilters: persister?.getPrevState() ?? [],
+      columnFilters: filterPersister?.getPrevState() ?? [],
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
@@ -202,13 +209,16 @@ function Table<TData>({
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
-    onColumnFiltersChange: onFilterChange as OnChangeFn<ColumnFiltersState>,
+    onColumnFiltersChange: onFilterChange as
+      | OnChangeFn<ColumnFiltersState>
+      | undefined,
     onRowSelectionChange: setRowSelection,
     getRowCanExpand,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFilteredRowModel: getFilteredRowModel(),
     manualSorting: serverSideProcessing,

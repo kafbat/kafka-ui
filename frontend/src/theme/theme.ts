@@ -687,6 +687,21 @@ export const theme = {
       },
       info: Colors.neutral[90],
     },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[90],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[30],
+            active: Colors.neutral[90],
+            hover: Colors.neutral[90],
+          },
+        },
+      },
+    },
   },
   primaryTab: {
     height: '41px',
@@ -1221,6 +1236,21 @@ export const darkTheme: ThemeType = {
         border: Colors.neutral[80],
       },
       info: Colors.neutral[0],
+    },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[10],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[50],
+            hover: Colors.neutral[0],
+            active: Colors.brand[30],
+          },
+        },
+      },
     },
   },
   primaryTab: {

@@ -7,11 +7,60 @@ import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
-import useQueryParamsPersister from 'components/common/NewTable/FIlter/Persister';
+import { useQueryPersister } from 'components/common/NewTable/Filter/lib/persisters';
+import { getFilterableColumns } from 'components/common/NewTable/Filter/lib';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
 import RunningTasksCell from './RunningTasksCell';
+
+const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
+  {
+    header: 'Name',
+    accessorKey: 'name',
+    cell: BreakableTextCell,
+  },
+  {
+    header: 'Connect',
+    accessorKey: 'connect',
+    cell: BreakableTextCell,
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'includesSome',
+  },
+  {
+    header: 'Type',
+    accessorKey: 'type',
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'includesSome',
+  },
+  {
+    header: 'Plugin',
+    accessorKey: 'connectorClass',
+    cell: BreakableTextCell,
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'includesSome',
+  },
+  {
+    header: 'Topics',
+    accessorKey: 'topics',
+    cell: TopicsCell,
+    enableColumnFilter: true,
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'arrIncludesSome',
+    enableSorting: false,
+  },
+  {
+    header: 'Status',
+    accessorKey: 'status.state',
+    cell: TagCell,
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'includesSome',
+  },
+  { header: 'Running Tasks', cell: RunningTasksCell },
+  { header: '', id: 'action', cell: ActionsCell },
+];
+
+const filterableColumns = getFilterableColumns(kafkaConnectColumns);
 
 const List: React.FC = () => {
   const navigate = useNavigate();
@@ -22,64 +71,19 @@ const List: React.FC = () => {
     searchParams.get('q') || ''
   );
 
-  const columns = React.useMemo<ColumnDef<FullConnectorInfo>[]>(
-    () => [
-      { header: 'Name', accessorKey: 'name', cell: BreakableTextCell },
-      {
-        header: 'Connect',
-        accessorKey: 'connect',
-        cell: BreakableTextCell,
-        meta: { filterVariant: 'multi-select' },
-        filterFn: 'includesSome',
-      },
-      {
-        header: 'Type',
-        accessorKey: 'type',
-        meta: { filterVariant: 'multi-select' },
-        filterFn: 'includesSome',
-      },
-      {
-        header: 'Plugin',
-        accessorKey: 'connectorClass',
-        cell: BreakableTextCell,
-        meta: { filterVariant: 'multi-select' },
-        filterFn: 'includesSome',
-      },
-      {
-        header: 'Topics',
-        accessorKey: 'topics',
-        cell: TopicsCell,
-        enableColumnFilter: true,
-        meta: { filterVariant: 'multi-select' },
-        filterFn: 'arrIncludesSome',
-        enableSorting: false,
-      },
-      {
-        header: 'Status',
-        accessorKey: 'status.state',
-        cell: TagCell,
-        meta: { filterVariant: 'multi-select' },
-        filterFn: 'includesSome',
-      },
-      { header: 'Running Tasks', cell: RunningTasksCell },
-      { header: '', id: 'action', cell: ActionsCell },
-    ],
-    []
-  );
-
-  const persister = useQueryParamsPersister(columns);
+  const persister = useQueryPersister(filterableColumns);
 
   return (
     <Table
       data={connectors || []}
-      columns={columns}
+      columns={kafkaConnectColumns}
       enableSorting
       onRowClick={({ original: { connect, name } }) =>
         navigate(clusterConnectConnectorPath(clusterName, connect, name))
       }
       emptyMessage="No connectors found"
       setRowId={(originalRow) => `${originalRow.name}-${originalRow.connect}`}
-      persister={persister}
+      filterPersister={persister}
     />
   );
 };
