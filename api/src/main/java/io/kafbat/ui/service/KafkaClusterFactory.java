@@ -167,11 +167,13 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
+
     var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
     WebClient webClient = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
+        .configureGcpBearerAuth(clusterProperties.isGcpSchemaRegistry())
         .configureBufferSize(webClientMaxBuffSize)
         .build();
     return ReactiveFailover.create(

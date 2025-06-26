@@ -70,6 +70,9 @@ public class ClustersProperties {
     List<@Valid Masking> masking;
 
     AuditProperties audit;
+
+    boolean gcpSchemaRegistry = false;
+
   }
 
   @Data

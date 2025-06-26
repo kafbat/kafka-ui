@@ -3,14 +3,17 @@ package io.kafbat.ui.util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.auth.oauth2.GoogleCredentials;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -24,8 +27,12 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+
 
 public class WebClientConfigurator {
 
@@ -43,6 +50,38 @@ public class WebClientConfigurator {
         .registerModule(new JavaTimeModule())
         .registerModule(new JsonNullableModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
+
+  public WebClientConfigurator configureGcpBearerAuth(boolean enabled) {
+    if (enabled) {
+      System.out.println("Configuring GCP Bearer Auth");
+      builder.filter(createGcpBearerAuthFilter());
+    }
+    return this;
+  }
+
+  private ExchangeFilterFunction createGcpBearerAuthFilter() {
+    return (request, next) -> {
+      return Mono.fromCallable(() -> {
+        try {
+          // Get credentials using Application Default Credentials (from the GKE service account)
+          GoogleCredentials credentials = GoogleCredentials.getApplicationDefault()
+              .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
+
+          credentials.refreshIfExpired();
+          return credentials.getAccessToken().getTokenValue();
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to get GCP access token", e);
+        }
+      })
+      .flatMap(token -> {
+        ClientRequest newRequest = ClientRequest.from(request)
+            // Add the Authorization header
+            .headers(headers -> headers.setBearerAuth(token))
+            .build();
+        return next.exchange(newRequest);
+      });
+    };
   }
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
