@@ -1,4 +1,4 @@
-import { ColumnFiltersState } from '@tanstack/react-table';
+import { ColumnFilter, ColumnFiltersState } from '@tanstack/react-table';
 import { useSearchParams } from 'react-router-dom';
 import {
   FilterableColumnDef,
@@ -47,6 +47,14 @@ function mapColumnKeyToFilterVariant<TData, TValue>(
   );
 }
 
+function isEmptyFilterValue(columnFilter: ColumnFilter): boolean {
+  if (Array.isArray(columnFilter.value) && columnFilter.value.length === 0) {
+    return true;
+  }
+
+  return columnFilter.value === undefined;
+}
+
 export function useQueryPersister<TData, TValue>(
   columns: FilterableColumnDef<TData, TValue>[]
 ): Persister {
@@ -72,10 +80,11 @@ export function useQueryPersister<TData, TValue>(
       const prevState: ColumnFiltersState = getPrevState();
 
       const nextKeys = new Set();
-
       nextState.forEach((columnFilter) => {
-        nextKeys.add(columnFilter.id);
-        searchParams.set(columnFilter.id, String(columnFilter.value));
+        if (!isEmptyFilterValue(columnFilter)) {
+          nextKeys.add(columnFilter.id);
+          searchParams.set(columnFilter.id, String(columnFilter.value));
+        }
       });
 
       prevState

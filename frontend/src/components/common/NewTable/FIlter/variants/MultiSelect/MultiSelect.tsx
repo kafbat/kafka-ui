@@ -47,7 +47,7 @@ function MultiSelect<T, K = string>(props: Props<T, K>) {
       labelledBy=""
       valueRenderer={customValueRenderer}
       ArrowRenderer={FilterIcon}
-      hasSelectAll={false}
+      hasSelectAll
       ClearSelectedIcon={<ClearIcon />}
     />
   );
