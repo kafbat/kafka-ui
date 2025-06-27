@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Column } from '@tanstack/react-table';
 
 import * as S from './MultiSelect.styled';
@@ -19,9 +19,6 @@ interface Props<T, K = string> {
 function MultiSelect<T, K = string>(props: Props<T, K>) {
   const { column } = props;
 
-  const allColumnValues = [...column.getFacetedUniqueValues().keys()].flat();
-  const allOptions = allColumnValues.map(toOption);
-
   const [selectedOptions, setValues] = useState<Option[]>(() => {
     const value = column.getFilterValue() as string[] | undefined;
 
@@ -32,7 +29,12 @@ function MultiSelect<T, K = string>(props: Props<T, K>) {
     return [];
   });
 
-  const sortedOptions = sortOptionSelectedFirst(selectedOptions, allOptions);
+  const allValues = column.getFacetedUniqueValues();
+  const sortedOptions = useMemo(() => {
+    const allColumnValues = [...new Set([...allValues.keys()].flat())];
+    const allOptions = allColumnValues.map(toOption);
+    return sortOptionSelectedFirst(selectedOptions, allOptions);
+  }, [allValues]);
 
   const onSelect = useCallback((options: Option[]) => {
     column.setFilterValue(options.map(getOptionValue));

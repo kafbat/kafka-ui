@@ -30,7 +30,7 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import TableHeader from './TableHeader';
-import { Persister } from './Filter/lib/persisters';
+import { type Persister } from './Filter';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -55,6 +55,7 @@ export interface TableProps<TData> {
   enableSorting?: boolean; // Enables sorting for table.
 
   filterPersister?: Persister;
+  resetPaginationOnFilter?: boolean;
 
   // Placeholder for empty table
   emptyMessage?: React.ReactNode;
@@ -150,10 +151,13 @@ function Table<TData>({
   onMouseLeave,
   setRowId,
   filterPersister,
+  resetPaginationOnFilter = true,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+
   const [rowSelection, setRowSelection] = React.useState({});
+
   const onSortingChange = React.useCallback(
     (updater: UpdaterFn<SortingState>) => {
       const newState = updateSortingState(updater, searchParams);
@@ -178,7 +182,7 @@ function Table<TData>({
       return (updater: UpdaterFn<ColumnFiltersState>) => {
         const prevState = filterPersister.getPrevState();
         const nextState = updater(prevState);
-        filterPersister.update(nextState);
+        filterPersister.update(nextState, resetPaginationOnFilter);
         return nextState;
       };
     }

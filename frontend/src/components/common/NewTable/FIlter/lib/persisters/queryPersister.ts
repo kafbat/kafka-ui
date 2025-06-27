@@ -1,12 +1,19 @@
-import { ColumnFilter, ColumnFiltersState } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  ColumnFilter,
+  ColumnFiltersState,
+  noop,
+} from '@tanstack/react-table';
 import { useSearchParams } from 'react-router-dom';
 import {
   FilterableColumnDef,
   KafbatFilterVariant,
-} from 'components/common/NewTable/Filter/types';
+} from 'components/common/NewTable/Filter';
 import { useCallback, useMemo } from 'react';
 
-import { Persister } from './Persister';
+import { getFilterableColumns } from '../getFilterableColumns';
+
+import { Persister } from './types';
 
 function getParamsByKeys(
   params: URLSearchParams,
@@ -19,6 +26,7 @@ function getParamsByKeys(
       const foundValue = params.get(key);
       if (foundValue) {
         if (variant === 'multi-select') {
+          // Array stored to query params as string, we should recover it back to array of values
           acc[key] = foundValue.split(',');
         } else {
           acc[key] = foundValue;
@@ -29,6 +37,10 @@ function getParamsByKeys(
     {} as Record<string, string | string[]>
   );
 }
+// By default tanstack table replace all . in accessrorKey by _
+// We should normalize out filterable columns key accordingly
+const normalizeAccessorKey = (accessorKey: string) =>
+  accessorKey.replace(/\./g, '_');
 
 function mapColumnKeyToFilterVariant<TData, TValue>(
   columns: FilterableColumnDef<TData, TValue>[]
@@ -38,7 +50,8 @@ function mapColumnKeyToFilterVariant<TData, TValue>(
   return columns.reduce(
     (acc, cur) => {
       if (cur.meta?.filterVariant) {
-        acc[cur.accessorKey] = cur.meta?.filterVariant;
+        const key = normalizeAccessorKey(cur.accessorKey);
+        acc[key] = cur.meta?.filterVariant;
       }
 
       return acc;
@@ -56,14 +69,15 @@ function isEmptyFilterValue(columnFilter: ColumnFilter): boolean {
 }
 
 export function useQueryPersister<TData, TValue>(
-  columns: FilterableColumnDef<TData, TValue>[]
+  columns: ColumnDef<TData, TValue>[]
 ): Persister {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const keyToFilterVariant = useMemo(
-    () => mapColumnKeyToFilterVariant(columns),
-    [columns]
-  );
+  const keyToFilterVariant = useMemo(() => {
+    const filterableColumns = getFilterableColumns(columns);
+
+    return mapColumnKeyToFilterVariant(filterableColumns);
+  }, [columns]);
 
   const getPrevState = useCallback(() => {
     const filterParams = getParamsByKeys(searchParams, keyToFilterVariant);
@@ -75,8 +89,8 @@ export function useQueryPersister<TData, TValue>(
     return prevState;
   }, [searchParams, keyToFilterVariant]);
 
-  const update = useCallback(
-    (nextState: ColumnFiltersState) => {
+  const update: Persister['update'] = useCallback(
+    (nextState: ColumnFiltersState, resetPage: boolean = true) => {
       const prevState: ColumnFiltersState = getPrevState();
 
       const nextKeys = new Set();
@@ -94,6 +108,10 @@ export function useQueryPersister<TData, TValue>(
             searchParams.delete(key);
           }
         });
+
+      if (resetPage) {
+        searchParams.delete('page');
+      }
 
       setSearchParams(searchParams);
     },

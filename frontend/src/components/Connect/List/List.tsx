@@ -7,8 +7,7 @@ import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
-import { useQueryPersister } from 'components/common/NewTable/Filter/lib/persisters';
-import { getFilterableColumns } from 'components/common/NewTable/Filter/lib';
+import { useQueryPersister } from 'components/common/NewTable/Filter';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -60,8 +59,6 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   { header: '', id: 'action', cell: ActionsCell },
 ];
 
-const filterableColumns = getFilterableColumns(kafkaConnectColumns);
-
 const List: React.FC = () => {
   const navigate = useNavigate();
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -71,7 +68,7 @@ const List: React.FC = () => {
     searchParams.get('q') || ''
   );
 
-  const persister = useQueryPersister(filterableColumns);
+  const persister = useQueryPersister(kafkaConnectColumns);
 
   return (
     <Table
