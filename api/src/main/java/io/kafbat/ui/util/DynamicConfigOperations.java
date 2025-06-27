@@ -77,7 +77,7 @@ public class DynamicConfigOperations {
     if (dynamicConfigEnabled()) {
       Path configPath = dynamicConfigFilePath();
       if (!Files.exists(configPath) || !Files.isReadable(configPath)) {
-        log.warn("Dynamic config file {} doesnt exist or not readable", configPath);
+        log.warn("Dynamic config file {} doesnt exist or is not readable", configPath);
         return Optional.empty();
       }
       var propertySource = new CompositePropertySource("dynamicProperties");

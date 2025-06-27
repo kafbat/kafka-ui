@@ -7,6 +7,7 @@ import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -18,7 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnProperty(value = {"dynamic.config.enabled", "dynamic.config.autoreload"}, havingValue = "true")
+@ConditionalOnProperty(value = "dynamic.config.autoreload", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class ConfigReloadService {
@@ -35,6 +36,12 @@ public class ConfigReloadService {
 
   @PostConstruct
   public void init() {
+    var configPath = dynamicConfigOperations.dynamicConfigFilePath();
+    if (!Files.exists(configPath) || !Files.isReadable(configPath)) {
+      log.warn("Dynamic config file {} doesnt exist or is not readable. Auto reload is disabled", configPath);
+      return;
+    }
+
     log.debug("Auto reload is enabled, will watch for config changes");
 
     try {
