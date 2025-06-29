@@ -42,6 +42,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
+  private static final String CUSTOM_BEARER_AUTH_CREDENTIALS_SOURCE = "CUSTOM";
+  private static final String GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS =
+      "com.google.cloud.hosted.kafka.auth.GcpBearerAuthCredentialProvider";
 
   public static String name() {
     return "SchemaRegistry";
@@ -80,8 +83,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystoreLocation", String.class).orElse(null),
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("gcpSchemaRegistry", Boolean.class).orElse(false)
         ),
+        kafkaClusterProperties.getProperty("gcpSchemaRegistry", Boolean.class).orElse(false),
         kafkaClusterProperties.getProperty("schemaRegistryKeySchemaNameTemplate", String.class).orElse("%s-key"),
         kafkaClusterProperties.getProperty("schemaRegistrySchemaNameTemplate", String.class).orElse("%s-value"),
         kafkaClusterProperties.getProperty("schemaRegistryCheckSchemaExistenceForDeserialize", Boolean.class)
@@ -106,8 +111,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             serdeProperties.getProperty("keystoreLocation", String.class).orElse(null),
             serdeProperties.getProperty("keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("gcpSchemaRegistry", Boolean.class).orElse(false)
         ),
+        kafkaClusterProperties.getProperty("gcpSchemaRegistry", Boolean.class).orElse(false),
         serdeProperties.getProperty("keySchemaNameTemplate", String.class).orElse("%s-key"),
         serdeProperties.getProperty("schemaNameTemplate", String.class).orElse("%s-value"),
         serdeProperties.getProperty("checkSchemaExistenceForDeserialize", Boolean.class)
@@ -119,6 +126,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   void configure(
       List<String> schemaRegistryUrls,
       SchemaRegistryClient schemaRegistryClient,
+      boolean gcpSchemaRegistry,
       String keySchemaNameTemplate,
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize) {
@@ -126,7 +134,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     this.schemaRegistryClient = schemaRegistryClient;
     this.keySchemaNameTemplate = keySchemaNameTemplate;
     this.valueSchemaNameTemplate = valueSchemaNameTemplate;
-    this.schemaRegistryFormatters = MessageFormatter.createMap(schemaRegistryClient);
+    this.schemaRegistryFormatters = MessageFormatter.createMap(schemaRegistryClient, gcpSchemaRegistry);
     this.checkSchemaExistenceForDeserialize = checkTopicSchemaExistenceForDeserialize;
   }
 
@@ -136,7 +144,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                                                                  @Nullable String keyStoreLocation,
                                                                  @Nullable String keyStorePassword,
                                                                  @Nullable String trustStoreLocation,
-                                                                 @Nullable String trustStorePassword) {
+                                                                 @Nullable String trustStorePassword,
+                                                                 boolean gcpSchemaRegistry) {
     Map<String, String> configs = new HashMap<>();
     if (username != null && password != null) {
       configs.put(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
@@ -164,6 +173,11 @@ public class SchemaRegistrySerde implements BuiltInSerde {
           keyStorePassword);
       configs.put(SchemaRegistryClientConfig.CLIENT_NAMESPACE + SslConfigs.SSL_KEY_PASSWORD_CONFIG,
           keyStorePassword);
+    }
+
+    if (gcpSchemaRegistry) {
+      configs.put(SchemaRegistryClientConfig.BEARER_AUTH_CREDENTIALS_SOURCE, CUSTOM_BEARER_AUTH_CREDENTIALS_SOURCE);
+      configs.put(SchemaRegistryClientConfig.BEARER_AUTH_CUSTOM_PROVIDER_CLASS, GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS);
     }
 
     return new CachedSchemaRegistryClient(

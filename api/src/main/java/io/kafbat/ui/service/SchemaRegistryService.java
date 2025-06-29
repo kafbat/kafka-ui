@@ -148,14 +148,21 @@ public class SchemaRegistryService {
                                                          String schemaName) {
     return api(cluster)
         .mono(c -> c.getSubjectCompatibilityLevel(schemaName, true))
-        .map(CompatibilityConfig::getCompatibilityLevel)
+        .map(compatibilityConfig ->
+            cluster.getOriginalProperties().isGcpSchemaRegistry()
+                ? compatibilityConfig.getCompatibility()
+                : compatibilityConfig.getCompatibilityLevel())
         .onErrorResume(error -> Mono.empty());
   }
 
   public Mono<Compatibility> getGlobalSchemaCompatibilityLevel(KafkaCluster cluster) {
     return api(cluster)
         .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
-        .map(CompatibilityConfig::getCompatibilityLevel);
+        .map(compatibilityConfig ->
+            cluster.getOriginalProperties().isGcpSchemaRegistry()
+                ? compatibilityConfig.getCompatibility()
+                : compatibilityConfig.getCompatibilityLevel()
+        );
   }
 
   private Mono<Compatibility> getSchemaCompatibilityInfoOrGlobal(KafkaCluster cluster,

@@ -4341,6 +4341,8 @@ components:
                             type: string
                           keystorePassword:
                             type: string
+                      gcpSchemaRegistry:
+                        type: boolean
                       ksqldbServer:
                         type: string
                       ksqldbServerSsl:
