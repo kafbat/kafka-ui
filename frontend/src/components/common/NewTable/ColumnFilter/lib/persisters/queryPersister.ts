@@ -8,7 +8,7 @@ import {
   FilterableColumnDef,
   KafbatFilterVariant,
   getFilterableColumns,
-} from 'components/common/NewTable/Filter';
+} from 'components/common/NewTable/ColumnFilter';
 import { useCallback, useMemo } from 'react';
 
 import { Persister } from './types';

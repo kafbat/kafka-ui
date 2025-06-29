@@ -2,7 +2,7 @@ import React from 'react';
 import { Header, flexRender } from '@tanstack/react-table';
 
 import * as S from './Table.styled';
-import Filter from './Filter';
+import Filter from './ColumnFilter';
 
 interface TableHeaderProps<TData> {
   header: Header<TData, unknown>;

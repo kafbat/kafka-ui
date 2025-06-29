@@ -7,8 +7,7 @@ import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
-import { useQueryPersister } from 'components/common/NewTable/Filter';
-
+import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -69,7 +68,6 @@ const List: React.FC = () => {
   );
 
   const persister = useQueryPersister(kafkaConnectColumns);
-
 
   return (
     <Table

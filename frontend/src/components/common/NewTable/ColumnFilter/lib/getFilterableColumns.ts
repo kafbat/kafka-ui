@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { FilterableColumnDef } from 'components/common/NewTable/Filter/types';
+import { FilterableColumnDef } from 'components/common/NewTable/ColumnFilter/types';
 
 export function isFilterableColumn<TData, TValue>(
   column: ColumnDef<TData, TValue>

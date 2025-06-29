@@ -30,7 +30,7 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import TableHeader from './TableHeader';
-import { type Persister } from './Filter';
+import { type Persister } from './ColumnFilter';
 
 export interface TableProps<TData> {
   data: TData[];
