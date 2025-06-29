@@ -45,7 +45,7 @@ netty = '4.1.119.Final'
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
 spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.3' }
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
-openapi-generator = { id = 'org.openapi.generator', version = '7.9.0' }
+openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
 allure = { id = 'io.qameta.allure', version = '2.10.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
