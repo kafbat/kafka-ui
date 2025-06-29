@@ -23,7 +23,7 @@ const List: React.FC = () => {
 
   const columns = React.useMemo<ColumnDef<FullConnectorInfo>[]>(
     () => [
-      { header: 'Name', accessorKey: 'name', cell: BreakableTextCell },
+      { header: 'Name', accessorKey: 'name' },
       { header: 'Connect', accessorKey: 'connect', cell: BreakableTextCell },
       { header: 'Type', accessorKey: 'type' },
       {
