@@ -198,6 +198,7 @@ function Table<TData>({
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),
       columnFilters: filterPersister?.getPrevState() ?? [],
+      rowSelection,
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
