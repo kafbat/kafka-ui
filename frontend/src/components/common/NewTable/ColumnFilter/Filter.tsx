@@ -18,5 +18,3 @@ export const Filter = <T,>(props: FilterProps<T>) => {
     }
   }
 };
-
-export default Filter;
