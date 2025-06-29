@@ -95,6 +95,7 @@ export const Th = styled.th<ThProps>(
   background: ${th.backgroundColor.normal};
   width: ${expander ? '5px' : 'auto'};
   white-space: nowrap;
+  position: relative;
 
   & > div {
     cursor: default;
@@ -105,6 +106,19 @@ export const Th = styled.th<ThProps>(
   }
 `
 );
+
+export const TableHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const TableHeaderFilter = styled.div`
+  padding: 4px;
+  position: absolute;
+  right: 0px;
+  z-index: 10000;
+`;
 
 interface RowProps {
   clickable?: boolean;
@@ -227,7 +241,7 @@ export const Ellipsis = styled.div`
 
 export const TableWrapper = styled.div<{ $disabled: boolean }>(
   ({ $disabled }) => css`
-    overflow-x: auto;
+    /* overflow-x: auto; */
     ${$disabled &&
     css`
       pointer-events: none;
