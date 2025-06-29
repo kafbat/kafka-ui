@@ -17,7 +17,6 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Name',
     accessorKey: 'name',
-    cell: BreakableTextCell,
   },
   {
     header: 'Connect',

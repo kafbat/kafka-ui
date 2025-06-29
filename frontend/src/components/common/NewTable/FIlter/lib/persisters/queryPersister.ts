@@ -2,16 +2,14 @@ import {
   ColumnDef,
   ColumnFilter,
   ColumnFiltersState,
-  noop,
 } from '@tanstack/react-table';
 import { useSearchParams } from 'react-router-dom';
 import {
   FilterableColumnDef,
   KafbatFilterVariant,
+  getFilterableColumns,
 } from 'components/common/NewTable/Filter';
 import { useCallback, useMemo } from 'react';
-
-import { getFilterableColumns } from '../getFilterableColumns';
 
 import { Persister } from './types';
 
