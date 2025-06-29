@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 import { useQueryPersister } from 'components/common/NewTable/Filter';
 
+
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
 import RunningTasksCell from './RunningTasksCell';
@@ -68,6 +69,7 @@ const List: React.FC = () => {
   );
 
   const persister = useQueryPersister(kafkaConnectColumns);
+
 
   return (
     <Table
