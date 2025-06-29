@@ -38,12 +38,30 @@ const Dashboard: React.FC = () => {
   const columns = React.useMemo<ColumnDef<Cluster>[]>(() => {
     const initialColumns: ColumnDef<Cluster>[] = [
       { header: 'Cluster name', accessorKey: 'name', cell: ClusterName },
-      { header: 'Version', accessorKey: 'version' },
-      { header: 'Brokers count', accessorKey: 'brokerCount' },
-      { header: 'Partitions', accessorKey: 'onlinePartitionCount' },
-      { header: 'Topics', accessorKey: 'topicCount' },
-      { header: 'Production', accessorKey: 'bytesInPerSec', cell: SizeCell },
-      { header: 'Consumption', accessorKey: 'bytesOutPerSec', cell: SizeCell },
+      { header: 'Version', accessorKey: 'version', size: 100 },
+      {
+        header: 'Brokers count',
+        accessorKey: 'brokerCount',
+        size: 120,
+      },
+      {
+        header: 'Partitions',
+        accessorKey: 'onlinePartitionCount',
+        size: 100,
+      },
+      { header: 'Topics', accessorKey: 'topicCount', size: 80 },
+      {
+        header: 'Production',
+        accessorKey: 'bytesInPerSec',
+        cell: SizeCell,
+        size: 100,
+      },
+      {
+        header: 'Consumption',
+        accessorKey: 'bytesOutPerSec',
+        cell: SizeCell,
+        size: 116,
+      },
     ];
 
     if (appInfo.hasDynamicConfig) {
@@ -51,6 +69,7 @@ const Dashboard: React.FC = () => {
         header: '',
         id: 'actions',
         cell: ClusterTableActionsCell,
+        size: 140,
       });
     }
 

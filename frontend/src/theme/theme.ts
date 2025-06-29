@@ -566,6 +566,9 @@ export const theme = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[0],
+    },
     primary: {
       backgroundColor: {
         normal: 'transparent',
@@ -1098,6 +1101,9 @@ export const darkTheme: ThemeType = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[90],
+    },
     primary: {
       backgroundColor: {
         normal: 'transparent',

@@ -8,10 +8,10 @@ type ClusterNameProps = CellContext<Cluster, unknown>;
 const ClusterName: React.FC<ClusterNameProps> = ({ row }) => {
   const { readOnly, name } = row.original;
   return (
-    <>
+    <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
       {readOnly && <Tag color="blue">readonly</Tag>}
       {name}
-    </>
+    </div>
   );
 };
 
