@@ -98,7 +98,7 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
 
   const onSubmit = async (data: ConsumerGroupOffsetsReset) => {
     await reset.mutateAsync(data);
-    navigate('../');
+    navigate(-1);
   };
 
   return (
