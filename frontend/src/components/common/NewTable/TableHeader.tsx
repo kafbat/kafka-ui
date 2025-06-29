@@ -23,7 +23,17 @@ const TableHeader = <T,>(props: TableHeaderProps<T>) => {
       }}
     >
       <S.TableHeaderContent>
-        <div onClick={header.column.getToggleSortingHandler()}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={header.column.getToggleSortingHandler()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              header.column.getToggleSortingHandler()?.(e);
+            }
+          }}
+        >
           {flexRender(header.column.columnDef.header, header.getContext())}
         </div>
 
