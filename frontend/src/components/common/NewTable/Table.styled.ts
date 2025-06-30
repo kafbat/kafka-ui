@@ -241,7 +241,7 @@ export const Ellipsis = styled.div`
 
 export const TableWrapper = styled.div<{ $disabled: boolean }>(
   ({ $disabled }) => css`
-    /* overflow-x: auto; */
+    overflow-x: auto;
     ${$disabled &&
     css`
       pointer-events: none;
