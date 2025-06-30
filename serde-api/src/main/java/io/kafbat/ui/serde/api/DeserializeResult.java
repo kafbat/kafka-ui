@@ -9,8 +9,19 @@ import java.util.Objects;
  */
 public final class DeserializeResult {
 
+  /**
+   * Type of deserialized result.
+   */
   public enum Type {
-    STRING, JSON
+    /**
+     * Content is the string. Will be shown as is.
+     */
+    STRING,
+    /**
+     * Content is the json object. Will be parsed by Jackson object mapper.
+     */
+    JSON
+    ;
   }
 
   // nullable
@@ -19,6 +30,7 @@ public final class DeserializeResult {
   private final Map<String, Object> additionalProperties;
 
   /**
+   * Constructor for {@code DeserializeResult}.
    * @param result string representation of deserialized binary data
    * @param type type of string - can it be converted to json or not
    * @param additionalProperties additional information about deserialized value (will be shown in UI)
@@ -30,6 +42,7 @@ public final class DeserializeResult {
   }
 
   /**
+   * Getters for result.
    * @return string representation of deserialized binary data, can be null
    */
   public String getResult() {
@@ -37,8 +50,8 @@ public final class DeserializeResult {
   }
 
   /**
-   * @return additional information about deserialized value.
    * Will be show as json dictionary in UI (serialized with Jackson object mapper).
+   * @return additional information about deserialized value.
    * It is recommended to use primitive types and strings for values.
    */
   public Map<String, Object> getAdditionalProperties() {
@@ -46,6 +59,7 @@ public final class DeserializeResult {
   }
 
   /**
+   * Type of deserialized result. Will be used as hint for some internal logic
    * @return type of deserialized result. Will be used as hint for some internal logic
    * (ex. if type==STRING smart filters won't try to parse it as json for further usage)
    */

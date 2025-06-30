@@ -8,7 +8,6 @@ import {
 } from 'lib/paths';
 import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import * as Metrics from 'components/common/Metrics';
 import { Tag } from 'components/common/Tag/Tag.styled';
 import groupBy from 'lib/functions/groupBy';
@@ -25,6 +24,7 @@ import {
 } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import ListItem from './ListItem';
 
@@ -64,7 +64,7 @@ const Details: React.FC = () => {
   return (
     <div>
       <div>
-        <PageHeading
+        <ResourcePageHeading
           text={consumerGroupID}
           backTo={clusterConsumerGroupsPath(clusterName)}
           backText="Consumers"
@@ -96,7 +96,7 @@ const Details: React.FC = () => {
               </ActionDropdownItem>
             </Dropdown>
           )}
-        </PageHeading>
+        </ResourcePageHeading>
       </div>
       <Metrics.Wrapper>
         <Metrics.Section>

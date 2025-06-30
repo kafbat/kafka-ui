@@ -61,6 +61,7 @@ dependencies {
     implementation libs.json.smart
     implementation libs.netty.common
     implementation libs.netty.handler
+    implementation libs.spring.context
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
@@ -106,11 +107,14 @@ generateGrammarSource {
     arguments += ["-package", "ksql"]
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+
+
 sourceSets {
     main {
-        antlr {
-            srcDirs = ["src/main/antlr4"]
-        }
         java {
             srcDirs += generateGrammarSource.outputDirectory
         }
