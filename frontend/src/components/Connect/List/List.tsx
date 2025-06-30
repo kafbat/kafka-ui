@@ -6,6 +6,7 @@ import { FullConnectorInfo } from 'generated-sources';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -23,9 +24,13 @@ const List: React.FC = () => {
   const columns = React.useMemo<ColumnDef<FullConnectorInfo>[]>(
     () => [
       { header: 'Name', accessorKey: 'name' },
-      { header: 'Connect', accessorKey: 'connect' },
+      { header: 'Connect', accessorKey: 'connect', cell: BreakableTextCell },
       { header: 'Type', accessorKey: 'type' },
-      { header: 'Plugin', accessorKey: 'connectorClass' },
+      {
+        header: 'Plugin',
+        accessorKey: 'connectorClass',
+        cell: BreakableTextCell,
+      },
       { header: 'Topics', cell: TopicsCell },
       { header: 'Status', accessorKey: 'status.state', cell: TagCell },
       { header: 'Running Tasks', cell: RunningTasksCell },

@@ -44,11 +44,13 @@ const TopicTable: React.FC = () => {
         id: TopicColumnsToSort.TOTAL_PARTITIONS,
         header: 'Partitions',
         accessorKey: 'partitionCount',
+        size: 100,
       },
       {
         id: TopicColumnsToSort.OUT_OF_SYNC_REPLICAS,
         header: 'Out of sync replicas',
         accessorKey: 'partitions',
+        size: 154,
         cell: ({ getValue }) => {
           const partitions = getValue<Topic['partitions']>();
           if (partitions === undefined || partitions.length === 0) {
@@ -64,11 +66,13 @@ const TopicTable: React.FC = () => {
         header: 'Replication Factor',
         accessorKey: 'replicationFactor',
         enableSorting: false,
+        size: 148,
       },
       {
         header: 'Number of messages',
         accessorKey: 'partitions',
         enableSorting: false,
+        size: 146,
         cell: ({ getValue }) => {
           const partitions = getValue<Topic['partitions']>();
           if (partitions === undefined || partitions.length === 0) {
@@ -83,12 +87,14 @@ const TopicTable: React.FC = () => {
         id: TopicColumnsToSort.SIZE,
         header: 'Size',
         accessorKey: 'segmentSize',
+        size: 100,
         cell: SizeCell,
       },
       {
         id: 'actions',
         header: '',
         cell: ActionsCell,
+        size: 60,
       },
     ],
     []
