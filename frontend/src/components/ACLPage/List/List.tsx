@@ -1,6 +1,5 @@
 import React from 'react';
 import { ColumnDef, Row } from '@tanstack/react-table';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import Table from 'components/common/NewTable';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -20,6 +19,8 @@ import { useTheme } from 'styled-components';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import ActionButton from 'components/common/ActionComponent/ActionButton/ActionButton';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 import * as S from './List.styled';
 
@@ -56,6 +57,7 @@ const ACList: React.FC = () => {
         header: 'Principal',
         accessorKey: 'principal',
         size: 257,
+        cell: BreakableTextCell,
       },
       {
         header: 'Resource',
@@ -149,7 +151,7 @@ const ACList: React.FC = () => {
 
   return (
     <S.Container>
-      <PageHeading text="Access Control List">
+      <ResourcePageHeading text="Access Control List">
         <ActionButton
           buttonType="primary"
           buttonSize="M"
@@ -161,7 +163,7 @@ const ACList: React.FC = () => {
         >
           <PlusIcon /> Create ACL
         </ActionButton>
-      </PageHeading>
+      </ResourcePageHeading>
       <Table
         columns={columns}
         data={aclList ?? []}

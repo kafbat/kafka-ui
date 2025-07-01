@@ -433,6 +433,9 @@ export const theme = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[30],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[70],
@@ -563,14 +566,17 @@ export const theme = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[0],
+    },
     primary: {
       backgroundColor: {
         normal: 'transparent',
-        hover: hexToRgba(Colors.brand[95], 0.03),
-        active: hexToRgba(Colors.brand[95], 0.05),
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.neutral[80],
+        normal: Colors.neutral[50],
         hover: Colors.neutral[90],
         active: Colors.neutral[95],
       },
@@ -962,6 +968,9 @@ export const darkTheme: ThemeType = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[50],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[30],
@@ -1092,16 +1101,19 @@ export const darkTheme: ThemeType = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[90],
+    },
     primary: {
       backgroundColor: {
-        normal: Colors.brand[90],
-        hover: hexToRgba(Colors.brand[0], 0.05),
-        active: hexToRgba(Colors.brand[0], 0.1),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[20],
+        normal: Colors.brand[50],
         hover: Colors.brand[0],
-        active: Colors.brand[10],
+        active: Colors.brand[20],
       },
       statusIconColor: {
         online: Colors.green[40],
