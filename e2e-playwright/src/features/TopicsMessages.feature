@@ -92,7 +92,6 @@ Feature: Produce Messages page
     Then TopicName messages count is "2"
     When TopicName clear messages clicked
     Then TopicName messages count is "0"
-
     Given Produce message clicked
     Given ProduceMessage Key input is: "keyFromAutotest3"
     Given ProduceMessage Value input is: "ValueFromAutotest3"
@@ -108,7 +107,6 @@ Feature: Produce Messages page
     When TopicName menu button clicked
     When TopicName menu clear messages clicked
     Then TopicName messages count is "0"
-
     Given Produce message clicked
     Given ProduceMessage Key input is: "keyFromAutotest5"
     Given ProduceMessage Value input is: "ValueFromAutotest5"
@@ -124,10 +122,46 @@ Feature: Produce Messages page
     When TopicName menu button clicked
     When TopicName menu RecreateTopic clicked
     Then TopicName messages count is "0"
-
     Given Produce message clicked
     Given ProduceMessage Key input is: "keyFromAutotest7"
     Given ProduceMessage Value input is: "ValueFromAutotest7"
     Given ProduceMessage Headers input key is: "headerKey7", value is: "headerValue7"
     Given ProduceMessage Produce Message button clicked
     Then TopicName messages count is "1"
+
+  
+  Scenario: Topic message filter
+    Given Topics is visible
+    When click on Topics link
+    Given Topics AddATopic clicked
+    Given TopicCreate heading visible is: "true"
+    When TopicCreate Topic name starts with: "ANewAutoTopic"
+    When TopicCreate Number of partitons: 1
+    When TopicCreate Time to retain data one day
+    When TopicCreate Create topic clicked
+    Then Header starts with: "ANewAutoTopic"
+    Given Produce message clicked
+    Then ProduceMessage header visible
+    Given ProduceMessage Key input is: "keyFromAutotest"
+    Given ProduceMessage Value input template Json
+    Given ProduceMessage Headers input key is: "headerKey", value is: "headerValue"
+    Given ProduceMessage Produce Message button clicked
+    When Topics TopicName Messages clicked
+    Given Topics TopicName AddFilters button click
+    Given Topics TopicName AddFilter visible is: "true"
+    Given Topics TopicName AddFilter filterCode Json value is: "2"
+    Given Topics TopicName AddFilter display name starts with: "Filter"
+    When Topics TopicName AddFilter button click
+    Then Topics TopicName Messages filter name starts with: "Filter" visible is: "true"
+    Then Topics TopicName Messages exist is: "true"
+
+
+    Given Topics TopicName Messages edit filter button click
+    Given Topics TopicName AddFilter filterCode change value is: "3"
+    Then Topics TopicName AddFilter EditFilter button click
+
+    Then Topics TopicName Messages filter name starts with: "Filter" visible is: "true"
+    Then Topics TopicName Messages exist is: "false"
+
+
+

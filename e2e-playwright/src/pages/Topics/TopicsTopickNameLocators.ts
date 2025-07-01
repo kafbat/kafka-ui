@@ -29,6 +29,16 @@ export default class TopicsTopickNameLocators {
     get clearMessages():Locator { return this.page.getByText('Clear Messages', { exact: true }) }
     get deleteSuccess():Locator { return this.page.getByRole('heading', { name: 'Success' }) }
 
+    get addFilters():Locator { return this.page.getByRole('button', { name: 'Add Filters' }) }
+    get addFilterHead():Locator { return this.page.getByText('Add Filter').nth(1) }
+    get addFilterFilterCode():Locator { return this.page.locator('.ace_content').first() }
+    get addFilterFilterCodeInput():Locator { return this.page.getByRole('form', { name: 'Filters submit Form' }).locator('textarea') }
+    get addFilterDisplayName():Locator { return this.page.getByRole('textbox', { name: 'Enter Name' }) }
+    get addFilterButton():Locator { return this.page.getByRole('button', { name: 'Add Filter', exact: true }) }
+    get cellExists():Locator { return this.page.getByRole('cell', { name: '0', exact: true }).first() }
+    get editFilter():Locator { return this.page.getByTestId('activeSmartFilter').getByRole('button', { name: 'Edit' }) }
+    get editFilterButton():Locator { return this.page.getByRole('button', { name: 'Edit Filter' }) }
+
     heading(topicName: string): Locator { return this.page.getByText(`Topics${topicName}`); }
     partitions(value: string):Locator { return this.page.getByRole('group').getByText(value).first(); }
     messageKey(value: string):Locator  { return this.page.getByText(value, { exact: true }); }
@@ -39,6 +49,6 @@ export default class TopicsTopickNameLocators {
     messageHeadersTextbox(value: string):Locator  { return this.page.locator('div').filter({ hasText: value }).nth(1); }
 
     cleanupPolicyDropdownItem(value: string):Locator  { return this.page.getByRole('option', { name: value, exact: true }); }
-
     messagesCount(value: string):Locator  { return this.page.getByText(`Message Count ${value}`); }
+    filterName(value: string):Locator  { return this.page.getByTestId('activeSmartFilter').getByText(value); }
 }

@@ -3,6 +3,8 @@ import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import { expectVisibility, expectVisuallyActive, refreshPageAfterDelay } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
+import { getBlankJson } from "../services/templateJsons"
+import { jsonFilter } from "../services/filters"
 
 setDefaultTimeout(60 * 1000 * 4);
 
@@ -47,6 +49,15 @@ Given('ProduceMessage Key input is: {string}', async function(this: PlaywrightWo
 });
 
 Given('ProduceMessage Value input is: {string}', async function(this: PlaywrightWorld, value: string) {
+    const textbox = this.locators.produceMessage.valueTextbox;
+    await textbox.fill(value);
+
+    const actualValue = await textbox.inputValue();
+    expect(actualValue).toContain(value);
+});
+
+Given('ProduceMessage Value input template Json', async function(this: PlaywrightWorld) {
+    const value = getBlankJson
     const textbox = this.locators.produceMessage.valueTextbox;
     await textbox.fill(value);
 
@@ -133,4 +144,49 @@ When('TopicName menu clear messages clicked', async function(this: PlaywrightWor
 When('TopicName menu RecreateTopic clicked', async function(this: PlaywrightWorld) {
     await this.locators.topicTopicName.menuItemRecreateTopic.click();
     await this.locators.topicTopicName.confirm.click();
+});
+
+Given('Topics TopicName AddFilters button click', async function(this: PlaywrightWorld) {
+    await this.locators.topicTopicName.addFilters.click();
+});
+
+Given('Topics TopicName AddFilter visible is: {string}', async function(this: PlaywrightWorld, visible: string) {
+    await expectVisibility(this.locators.topicTopicName.addFilterHead, "true");
+});
+
+Given('Topics TopicName AddFilter filterCode Json value is: {string}', async function(this: PlaywrightWorld, value: string) {
+    const filter = jsonFilter(value);
+    await this.locators.topicTopicName.addFilterFilterCode.click();
+    const input = this.locators.topicTopicName.addFilterFilterCodeInput;
+    await input.fill(filter);
+});
+
+Given('Topics TopicName AddFilter filterCode change value is: {string}', async function(this: PlaywrightWorld, newValue: string) {
+    await this.locators.topicTopicName.addFilterFilterCode.click();
+    await this.locators.topicTopicName.addFilterFilterCodeInput.press('Backspace');
+    await this.locators.topicTopicName.addFilterFilterCodeInput.type(newValue);
+});
+
+Given('Topics TopicName AddFilter display name starts with: {string}', async function(this: PlaywrightWorld, namePrefix: string) {
+    await this.locators.topicTopicName.addFilterDisplayName.fill(namePrefix);
+});
+
+When('Topics TopicName AddFilter button click', async function(this: PlaywrightWorld) {
+    await this.locators.topicTopicName.addFilterButton.click();
+});
+
+Then('Topics TopicName Messages filter name starts with: {string} visible is: {string}', async function(this: PlaywrightWorld, namePrefix: string, visible: string) {
+   await expectVisibility( this.locators.topicTopicName.filterName(namePrefix), visible);
+});
+
+Then('Topics TopicName Messages exist is: {string}', async function(this: PlaywrightWorld, expected: string) {
+    await expectVisibility( this.locators.topicTopicName.cellExists, expected);
+});
+
+Given('Topics TopicName Messages edit filter button click', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.editFilter.click();
+});
+
+Then('Topics TopicName AddFilter EditFilter button click', async function(this: PlaywrightWorld) {
+  await this.locators.topicTopicName.editFilterButton.click();
 });
