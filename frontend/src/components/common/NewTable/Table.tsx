@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type {
   ColumnDef,
   ColumnFiltersState,
+  ColumnSizingState,
   OnChangeFn,
   PaginationState,
   Row,
@@ -29,8 +30,7 @@ import updatePaginationState from './utils/updatePaginationState';
 import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
-import TableHeader from './TableHeader';
-import { type Persister } from './ColumnFilter';
+import ColumnFilter, { type Persister } from './ColumnFilter';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -53,6 +53,10 @@ export interface TableProps<TData> {
 
   // Sorting.
   enableSorting?: boolean; // Enables sorting for table.
+
+  // Columns resizing
+  enableColumnResizing?: boolean; // Enables columns resizing.
+  tableName?: string; // must provide for ability to store column size info in localstorage
 
   filterPersister?: Persister;
   resetPaginationOnFilter?: boolean;
@@ -143,6 +147,8 @@ function Table<TData>({
   serverSideProcessing = false,
   enableSorting = false,
   enableRowSelection = false,
+  enableColumnResizing = false,
+  tableName,
   batchActionsBar: BatchActionsBar,
   emptyMessage,
   disabled,
@@ -190,15 +196,30 @@ function Table<TData>({
     return undefined;
   }, [searchParams, location, columns]);
 
+  const [columnSizing, setColumnSizing] = useState(() => {
+    if (tableName) {
+      return JSON.parse(localStorage.getItem(tableName) ?? '{}');
+    }
+
+    return {};
+  });
+
   const table = useReactTable<TData>({
     data,
     pageCount,
     columns,
+    columnResizeMode: 'onChange',
+    columnResizeDirection: 'ltr',
+    enableColumnResizing,
+    debugTable: true,
+    debugHeaders: true,
+    debugColumns: true,
     state: {
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),
       columnFilters: filterPersister?.getPrevState() ?? [],
       rowSelection,
+      columnSizing,
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
@@ -217,6 +238,7 @@ function Table<TData>({
     onColumnFiltersChange: onFilterChange as
       | OnChangeFn<ColumnFiltersState>
       | undefined,
+    onColumnSizingChange: setColumnSizing,
     onRowSelectionChange: setRowSelection,
     getRowCanExpand,
     getCoreRowModel: getCoreRowModel(),
@@ -244,6 +266,17 @@ function Table<TData>({
       },
     },
   });
+
+  const columnSizeVars = React.useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i += 1) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
     // If row selection is enabled do not handle row click.
@@ -278,6 +311,17 @@ function Table<TData>({
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (tableName) {
+        localStorage.setItem(
+          tableName,
+          JSON.stringify(table.getState().columnSizing)
+        );
+      }
+    };
+  }, []);
+
   return (
     <>
       {BatchActionsBar && (
@@ -288,8 +332,13 @@ function Table<TData>({
           />
         </S.TableActionsBar>
       )}
-      <S.TableWrapper $disabled={!!disabled}>
-        <S.Table>
+      <S.TableWrapper $disabled={!!disabled} style={{ ...columnSizeVars }}>
+        <S.Table
+          style={{
+            width: table.getCenterTotalSize(),
+            minWidth: '100%',
+          }}
+        >
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -304,9 +353,54 @@ function Table<TData>({
                 {table.getCanSomeRowsExpand() && (
                   <S.Th expander key={`${headerGroup.id}-expander`} />
                 )}
-                {headerGroup.headers.map((header) => (
-                  <TableHeader header={header} key={header.id} />
-                ))}
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <S.Th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      sortable={header.column.getCanSort()}
+                      sortOrder={header.column.getIsSorted()}
+                      style={{
+                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                        maxWidth: header.column.columnDef.maxSize,
+                        minWidth: header.column.columnDef.minSize,
+                      }}
+                    >
+                      <S.TableHeaderContent>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={header.column.getToggleSortingHandler()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              header.column.getToggleSortingHandler()?.(e);
+                            }
+                          }}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </div>
+                        {header.column.getCanFilter() &&
+                          header.column.columnDef.meta?.filterVariant && (
+                            <ColumnFilter column={header.column} />
+                          )}
+                      </S.TableHeaderContent>
+                      {header.column.columnDef.enableResizing && (
+                        <S.ColumnResizer
+                          {...{
+                            $isResizing: header.column.getIsResizing(),
+                            onDoubleClick: () => header.column.resetSize(),
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                          }}
+                        />
+                      )}
+                    </S.Th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -341,17 +435,26 @@ function Table<TData>({
                   )}
                   {row
                     .getVisibleCells()
-                    .map(({ id, getContext, column: { columnDef } }) => (
-                      <td
-                        key={id}
-                        style={{
-                          width:
-                            columnDef.size !== 150 ? columnDef.size : undefined,
-                        }}
-                      >
-                        {flexRender(columnDef.cell, getContext())}
-                      </td>
-                    ))}
+                    .map(
+                      ({
+                        id,
+                        getContext,
+                        column: { columnDef, id: colId },
+                      }) => {
+                        return (
+                          <td
+                            key={id}
+                            style={{
+                              width: `calc(var(--col-${colId}-size) * 1px)`,
+                              maxWidth: columnDef.maxSize,
+                              minWidth: columnDef.minSize,
+                            }}
+                          >
+                            {flexRender(columnDef.cell, getContext())}
+                          </td>
+                        );
+                      }
+                    )}
                 </S.Row>
                 {row.getIsExpanded() && SubComponent && (
                   <S.Row expanded>

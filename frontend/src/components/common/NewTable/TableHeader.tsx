@@ -17,10 +17,6 @@ const TableHeader = <T,>(props: TableHeaderProps<T>) => {
       colSpan={header.colSpan}
       sortable={header.column.getCanSort()}
       sortOrder={header.column.getIsSorted()}
-      style={{
-        width:
-          header.column.getSize() !== 150 ? header.column.getSize() : undefined,
-      }}
     >
       <S.TableHeaderContent>
         <div

@@ -17,13 +17,18 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Name',
     accessorKey: 'name',
+    cell: BreakableTextCell,
+    enableResizing: true,
   },
   {
     header: 'Connect',
     accessorKey: 'connect',
     cell: BreakableTextCell,
-    meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
+    meta: {
+      filterVariant: 'multi-select',
+    },
+    enableResizing: true,
   },
   {
     header: 'Type',
@@ -37,6 +42,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
     cell: BreakableTextCell,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
+    enableResizing: true,
   },
   {
     header: 'Topics',
@@ -45,7 +51,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
     enableColumnFilter: true,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
-    enableSorting: false,
+    enableResizing: true,
   },
   {
     header: 'Status',
@@ -54,8 +60,18 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
   },
-  { header: 'Running Tasks', cell: RunningTasksCell },
-  { header: '', id: 'action', cell: ActionsCell },
+  {
+    id: 'running_task',
+    header: 'Running Tasks',
+    cell: RunningTasksCell,
+    size: 120,
+  },
+  {
+    header: '',
+    id: 'action',
+    cell: ActionsCell,
+    size: 60,
+  },
 ];
 
 const List: React.FC = () => {
@@ -67,19 +83,21 @@ const List: React.FC = () => {
     searchParams.get('q') || ''
   );
 
-  const persister = useQueryPersister(kafkaConnectColumns);
+  const filterPersister = useQueryPersister(kafkaConnectColumns);
 
   return (
     <Table
       data={connectors || []}
       columns={kafkaConnectColumns}
       enableSorting
+      enableColumnResizing
+      tableName="KafkaConnect"
       onRowClick={({ original: { connect, name } }) =>
         navigate(clusterConnectConnectorPath(clusterName, connect, name))
       }
       emptyMessage="No connectors found"
       setRowId={(originalRow) => `${originalRow.name}-${originalRow.connect}`}
-      filterPersister={persister}
+      filterPersister={filterPersister}
     />
   );
 };

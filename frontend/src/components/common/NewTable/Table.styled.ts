@@ -72,6 +72,39 @@ const DESCMixin = (color: string) => `
   }
 `;
 
+export const TableHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const ColumnResizer = styled.div<{ $isResizing?: boolean }>`
+  ${({
+    $isResizing,
+    theme: {
+      table: { resizer },
+    },
+  }) => {
+    return css`
+      opacity: ${$isResizing ? 1 : 0};
+      position: absolute;
+      top: 8px;
+      right: 0;
+      height: calc(100% - 16px);
+      width: 4px;
+      border-radius: 2px;
+      background-color: ${resizer.background.normal};
+
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      &:hover {
+        background-color: ${resizer.background.hover};
+      }
+    `;
+  }};
+`;
+
 export const Th = styled.th<ThProps>(
   ({
     theme: {
@@ -97,21 +130,19 @@ export const Th = styled.th<ThProps>(
   white-space: nowrap;
   position: relative;
 
-  & > div {
+  & > ${TableHeaderContent} {
     cursor: default;
     color: ${th.color.normal};
     ${sortable ? sortableMixin(th.color.sortable, th.color.hover) : ''}
     ${sortable && sortOrder === 'asc' && ASCMixin(th.color.active)}
     ${sortable && sortOrder === 'desc' && DESCMixin(th.color.active)}
   }
+
+  &:hover > ${ColumnResizer} {
+    opacity: 1;
+  }
 `
 );
-
-export const TableHeaderContent = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
 
 export const TableHeaderFilter = styled.div`
   padding: 4px;
@@ -241,7 +272,9 @@ export const Ellipsis = styled.div`
 
 export const TableWrapper = styled.div<{ $disabled: boolean }>(
   ({ $disabled }) => css`
+    overflow: clip;
     overflow-x: auto;
+    overflow-y: visible;
     ${$disabled &&
     css`
       pointer-events: none;

@@ -702,6 +702,13 @@ export const theme = {
         },
       },
     },
+    resizer: {
+      background: {
+        normal: Colors.neutral[30],
+        active: Colors.neutral[90],
+        hover: Colors.neutral[90],
+      },
+    },
   },
   primaryTab: {
     height: '41px',
@@ -1250,6 +1257,13 @@ export const darkTheme: ThemeType = {
             active: Colors.brand[30],
           },
         },
+      },
+    },
+    resizer: {
+      background: {
+        normal: Colors.neutral[50],
+        hover: Colors.neutral[0],
+        active: Colors.brand[30],
       },
     },
   },
