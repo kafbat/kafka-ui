@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import Table from 'components/common/NewTable';
 import { useConfirm } from 'lib/hooks/useConfirm';
@@ -19,6 +20,8 @@ import { useTheme } from 'styled-components';
 import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import ActionButton from 'components/common/ActionComponent/ActionButton/ActionButton';
+import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
+import Search from 'components/common/Search/Search';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
@@ -26,7 +29,9 @@ import * as S from './List.styled';
 
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
-  const { data: aclList } = useAcls(clusterName);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const { data: aclList } = useAcls({ clusterName, search });
   const { deleteResource } = useDeleteAcl(clusterName);
   const modal = useConfirm(true);
   const theme = useTheme();
@@ -36,6 +41,17 @@ const ACList: React.FC = () => {
     setTrue: openFrom,
   } = useBoolean();
   const [rowId, setRowId] = React.useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (search) {
+      params.set('q', search);
+      params.set('page', '1'); // reset to first page on new search
+    } else {
+      params.delete('q');
+    }
+    setSearchParams(params, { replace: true });
+  }, [search]);
 
   const handleDeleteClick = (acl: KafkaAcl | null) => {
     if (acl) {
@@ -164,6 +180,13 @@ const ACList: React.FC = () => {
           <PlusIcon /> Create ACL
         </ActionButton>
       </ResourcePageHeading>
+      <ControlPanelWrapper hasInput>
+        <Search
+          placeholder="Search by Principal Name"
+          value={search}
+          onChange={setSearch}
+        />
+      </ControlPanelWrapper>
       <Table
         columns={columns}
         data={aclList ?? []}
