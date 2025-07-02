@@ -42,6 +42,7 @@ const List = () => {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ getValue }) => (
           <LinkCell
+            wordBreak
             value={`${getValue<string | number>()}`}
             to={encodeURIComponent(`${getValue<string | number>()}`)}
           />
@@ -51,11 +52,13 @@ const List = () => {
         id: ConsumerGroupOrdering.MEMBERS,
         header: 'Num Of Members',
         accessorKey: 'members',
+        size: 140,
       },
       {
         id: ConsumerGroupOrdering.TOPIC_NUM,
         header: 'Num Of Topics',
         accessorKey: 'topics',
+        size: 140,
       },
       {
         id: ConsumerGroupOrdering.MESSAGES_BEHIND,
@@ -64,11 +67,13 @@ const List = () => {
         cell: (args) => {
           return args.getValue() ?? 'N/A';
         },
+        size: 124,
       },
       {
         header: 'Coordinator',
         accessorKey: 'coordinator.id',
         enableSorting: false,
+        size: 104,
       },
       {
         id: ConsumerGroupOrdering.STATE,
@@ -85,6 +90,7 @@ const List = () => {
             />
           );
         },
+        size: 124,
       },
     ],
     []

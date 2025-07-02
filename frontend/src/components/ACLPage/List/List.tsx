@@ -20,6 +20,7 @@ import ACLFormContext from 'components/ACLPage/Form/AclFormContext';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import ActionButton from 'components/common/ActionComponent/ActionButton/ActionButton';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 import * as S from './List.styled';
 
@@ -56,6 +57,7 @@ const ACList: React.FC = () => {
         header: 'Principal',
         accessorKey: 'principal',
         size: 257,
+        cell: BreakableTextCell,
       },
       {
         header: 'Resource',
