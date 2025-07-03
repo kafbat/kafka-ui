@@ -1,7 +1,7 @@
 import React from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
 import { clusterConnectConnectorPath, ClusterNameRoute } from 'lib/paths';
-import Table, { LinkCell, TagCell } from 'components/common/NewTable';
+import Table, { TagCell } from 'components/common/NewTable';
 import { FullConnectorInfo } from 'generated-sources';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
@@ -18,13 +18,14 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Name',
     accessorKey: 'name',
-    cell: ({ getValue }) => (
-      <LinkCell
-        wordBreak
-        value={`${getValue<string | number>()}`}
-        to={encodeURIComponent(`${getValue<string | number>()}`)}
-      />
-    ),
+    cell: BreakableTextCell,
+    // cell: ({ getValue }) => (
+    //   <LinkCell
+    //     wordBreak
+    //     value={`${getValue<string | number>()}`}
+    //     to={encodeURIComponent(`${getValue<string | number>()}`)}
+    //   />
+    // ),
     enableResizing: true,
   },
   {
