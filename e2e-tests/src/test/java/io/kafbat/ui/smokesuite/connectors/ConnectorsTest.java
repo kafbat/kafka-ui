@@ -12,6 +12,7 @@ import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class ConnectorsTest extends BaseTest {
@@ -37,8 +38,8 @@ public class ConnectorsTest extends BaseTest {
     CONNECTOR_LIST.forEach(connector -> apiService.createConnector(connector));
   }
 
-  @Test
   @Ignore
+  @Test
   public void createConnectorCheck() {
     Connector createConnector =
         Connector.createConnector(resourceToString("testdata/connectors/create_config.json"));
@@ -60,8 +61,8 @@ public class ConnectorsTest extends BaseTest {
     CONNECTOR_LIST.add(createConnector);
   }
 
-  @Test
   @Ignore
+  @Test
   public void updateConnectorCheck() {
     navigateToConnectorsAndOpenDetails(UPDATE_CONNECTOR.getName());
     connectorDetails
@@ -75,8 +76,8 @@ public class ConnectorsTest extends BaseTest {
         String.format("isConnectorVisible()[%s]", UPDATE_CONNECTOR.getName()));
   }
 
-  @Test
   @Ignore
+  @Test
   public void deleteConnectorCheck() {
     navigateToConnectorsAndOpenDetails(DELETE_CONNECTOR.getName());
     connectorDetails
