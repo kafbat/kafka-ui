@@ -1,58 +1,80 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Column } from '@tanstack/react-table';
+import useBoolean from 'lib/hooks/useBoolean';
+import Portal from 'components/common/Portal/Portal';
+import useClickOutside from 'lib/hooks/useClickOutside';
 
-import * as S from './MultiSelect.styled';
-import { type Option } from './types';
-import {
-  toOption,
-  getOptionValue,
-  customValueRenderer,
-  sortOptionSelectedFirst,
-} from './lib';
-import FilterIcon from './ui/FilterIcon';
 import ClearIcon from './ui/ClearIcon';
+import SelectPanel from './SelectPanel';
+import * as S from './MultiSelect.styled';
+import FilterIcon from './ui/FilterIcon';
 
-interface Props<T, K = string> {
-  column: Column<T, K>;
+interface FilterProps<T> {
+  column: Column<T, unknown>;
 }
 
-function MultiSelect<T, K = string>(props: Props<T, K>) {
+const TOP_PADDING = 8;
+const LEFT_PADDING = 16;
+
+export const MultiSelect = <T,>(props: FilterProps<T>) => {
   const { column } = props;
+  const { value: opened, toggle } = useBoolean(false);
+  const [coords, setCoords] = useState<{ left: number; top: number }>({
+    left: 0,
+    top: 0,
+  });
 
-  const [selectedOptions, setValues] = useState<Option[]>(() => {
-    const value = column.getFilterValue() as string[] | undefined;
+  const ref = useRef(null);
+  useClickOutside(ref, toggle);
 
-    if (value) {
-      return value.map(toOption);
+  const resetFilter = () => column.setFilterValue('');
+  const onFilterClick = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    const node = event.target as HTMLElement;
+    const rect = node.getBoundingClientRect();
+    setCoords({
+      left: rect.left + LEFT_PADDING,
+      top: rect.bottom + TOP_PADDING,
+    });
+    toggle();
+  };
+
+  const value: string[] = useMemo(() => {
+    const filterValue = column.getFilterValue();
+    if (filterValue && Array.isArray(filterValue)) {
+      return filterValue;
     }
 
     return [];
-  });
-
-  const allValues = column.getFacetedUniqueValues();
-  const sortedOptions = useMemo(() => {
-    const allColumnValues = [...new Set([...allValues.keys()].flat())];
-    const allOptions = allColumnValues.map(toOption);
-    return sortOptionSelectedFirst(selectedOptions, allOptions);
-  }, [allValues]);
-
-  const onSelect = useCallback((options: Option[]) => {
-    column.setFilterValue(options.map(getOptionValue));
-    setValues(options);
-  }, []);
+  }, [column.getFilterValue()]);
 
   return (
-    <S.MultiSelect
-      options={sortedOptions}
-      value={selectedOptions}
-      onChange={onSelect}
-      labelledBy=""
-      valueRenderer={customValueRenderer}
-      ArrowRenderer={FilterIcon}
-      hasSelectAll
-      ClearSelectedIcon={<ClearIcon />}
-    />
-  );
-}
+    <S.Container>
+      <S.FilterIcon onClick={onFilterClick}>
+        <FilterIcon active={opened || !!value.length} />
+      </S.FilterIcon>
 
-export default MultiSelect;
+      {!!value.length && (
+        <>
+          <S.Count>{value.length}</S.Count>
+          <S.ResetIcon onClick={resetFilter}>
+            <ClearIcon />
+          </S.ResetIcon>
+        </>
+      )}
+
+      <Portal isOpen={opened}>
+        <S.Positioner
+          ref={ref}
+          style={{
+            left: coords.left,
+            top: coords.top,
+          }}
+        >
+          <SelectPanel column={column} />
+        </S.Positioner>
+      </Portal>
+    </S.Container>
+  );
+};

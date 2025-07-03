@@ -1,13 +1,14 @@
 import React from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
 import { clusterConnectConnectorPath, ClusterNameRoute } from 'lib/paths';
-import Table, { TagCell } from 'components/common/NewTable';
+import Table, { LinkCell, TagCell } from 'components/common/NewTable';
 import { FullConnectorInfo } from 'generated-sources';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
+import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -17,7 +18,13 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Name',
     accessorKey: 'name',
-    cell: BreakableTextCell,
+    cell: ({ getValue }) => (
+      <LinkCell
+        wordBreak
+        value={`${getValue<string | number>()}`}
+        to={encodeURIComponent(`${getValue<string | number>()}`)}
+      />
+    ),
     enableResizing: true,
   },
   {
@@ -35,6 +42,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
     accessorKey: 'type',
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
+    size: 120,
   },
   {
     header: 'Plugin',
@@ -84,6 +92,7 @@ const List: React.FC = () => {
   );
 
   const filterPersister = useQueryPersister(kafkaConnectColumns);
+  const columnSizingPersister = useLocalStoragePersister('KafkaConnect');
 
   return (
     <Table
@@ -91,7 +100,7 @@ const List: React.FC = () => {
       columns={kafkaConnectColumns}
       enableSorting
       enableColumnResizing
-      tableName="KafkaConnect"
+      columnSizingPersister={columnSizingPersister}
       onRowClick={({ original: { connect, name } }) =>
         navigate(clusterConnectConnectorPath(clusterName, connect, name))
       }

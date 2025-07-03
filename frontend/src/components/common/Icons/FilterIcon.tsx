@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const FilterIcon: React.FC<{ isOpen: boolean }> = () => {
+const FilterIcon = () => {
   return (
     <svg
       width="12"

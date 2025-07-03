@@ -1,12 +1,16 @@
 import styled from 'styled-components';
 import { MultiSelect as ReactMultiSelect } from 'react-multi-select-component';
 
-export const MultiSelect = styled(ReactMultiSelect)<{
+export const SelectPanel = styled(ReactMultiSelect)<{
   minWidth?: string;
   height?: string;
 }>`
   font-size: 14px;
   padding-right: 12px;
+  .dropdown-container:focus-within {
+    box-shadow: none !important;
+    border-color: none !important;
+  }
   .search input {
     color: ${({ theme }) => theme.input.color.normal};
     background-color: ${(props) =>
@@ -40,7 +44,6 @@ export const MultiSelect = styled(ReactMultiSelect)<{
       border-color: ${({ theme }) => theme.select.borderColor.hover} !important;
     }
 
-    height: ${({ height }) => height ?? '32px'};
     * {
       cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
     }
@@ -49,17 +52,12 @@ export const MultiSelect = styled(ReactMultiSelect)<{
       width: fit-content;
       min-width: 120px;
       right: 0px;
+      top: 0;
+      padding-top: 0;
     }
 
     & > .dropdown-heading {
-      height: ${({ height }) => height ?? '32px'};
-      color: ${({ disabled, theme }) =>
-        disabled
-          ? theme.select.color.disabled
-          : theme.select.color.active} !important;
-      & > .dropdown-heading-value {
-        color: ${({ theme }) => theme.table.filter.multiSelect.value.color};
-      }
+      display: none;
     }
   }
 
@@ -67,4 +65,31 @@ export const MultiSelect = styled(ReactMultiSelect)<{
     color: ${({ theme }) =>
       theme.table.filter.multiSelect.filterIcon.fill.active};
   }
+`;
+
+export const Container = styled.div`
+  display: flex;
+  height: 24px;
+  align-items: center;
+  position: relative;
+  padding-right: 8px;
+`;
+
+export const Positioner = styled.div`
+  position: absolute;
+  z-index: 30;
+`;
+
+export const Count = styled.span`
+  padding-left: 4px;
+  color: ${({ theme }) => theme.table.filter.multiSelect.value.color};
+`;
+
+export const FilterIcon = styled.div`
+  height: 12px;
+  margin: 2px;
+`;
+
+export const ResetIcon = styled.div`
+  margin: 3px;
 `;

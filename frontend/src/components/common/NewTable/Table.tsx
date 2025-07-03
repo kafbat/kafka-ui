@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import type {
   ColumnDef,
   ColumnFiltersState,
-  ColumnSizingState,
   OnChangeFn,
   PaginationState,
   Row,
@@ -31,6 +30,7 @@ import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import ColumnFilter, { type Persister } from './ColumnFilter';
+import { ColumnSizingPersister } from './ColumnResizer/lib/persister/types';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -56,7 +56,7 @@ export interface TableProps<TData> {
 
   // Columns resizing
   enableColumnResizing?: boolean; // Enables columns resizing.
-  tableName?: string; // must provide for ability to store column size info in localstorage
+  columnSizingPersister?: ColumnSizingPersister;
 
   filterPersister?: Persister;
   resetPaginationOnFilter?: boolean;
@@ -148,7 +148,7 @@ function Table<TData>({
   enableSorting = false,
   enableRowSelection = false,
   enableColumnResizing = false,
-  tableName,
+  columnSizingPersister,
   batchActionsBar: BatchActionsBar,
   emptyMessage,
   disabled,
@@ -196,14 +196,6 @@ function Table<TData>({
     return undefined;
   }, [searchParams, location, columns]);
 
-  const [columnSizing, setColumnSizing] = useState(() => {
-    if (tableName) {
-      return JSON.parse(localStorage.getItem(tableName) ?? '{}');
-    }
-
-    return {};
-  });
-
   const table = useReactTable<TData>({
     data,
     pageCount,
@@ -219,7 +211,7 @@ function Table<TData>({
       pagination: getPaginationFromSearchParams(searchParams),
       columnFilters: filterPersister?.getPrevState() ?? [],
       rowSelection,
-      columnSizing,
+      columnSizing: columnSizingPersister?.columnSizing ?? {},
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
@@ -238,7 +230,7 @@ function Table<TData>({
     onColumnFiltersChange: onFilterChange as
       | OnChangeFn<ColumnFiltersState>
       | undefined,
-    onColumnSizingChange: setColumnSizing,
+    onColumnSizingChange: columnSizingPersister?.setColumnSizing,
     onRowSelectionChange: setRowSelection,
     getRowCanExpand,
     getCoreRowModel: getCoreRowModel(),
@@ -311,17 +303,6 @@ function Table<TData>({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (tableName) {
-        localStorage.setItem(
-          tableName,
-          JSON.stringify(table.getState().columnSizing)
-        );
-      }
-    };
-  }, []);
-
   return (
     <>
       {BatchActionsBar && (
@@ -388,7 +369,7 @@ function Table<TData>({
                             <ColumnFilter column={header.column} />
                           )}
                       </S.TableHeaderContent>
-                      {header.column.columnDef.enableResizing && (
+                      {header.column.getCanResize() && (
                         <S.ColumnResizer
                           {...{
                             $isResizing: header.column.getIsResizing(),

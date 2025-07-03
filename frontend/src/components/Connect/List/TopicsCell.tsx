@@ -2,7 +2,7 @@ import React from 'react';
 import { FullConnectorInfo } from 'generated-sources';
 import { CellContext } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import { MultiLineTag, Tag } from 'components/common/Tag/Tag.styled';
+import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 import { ClusterNameRoute, clusterTopicPath } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
 

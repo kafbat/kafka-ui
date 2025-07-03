@@ -39,6 +39,9 @@ const TopicTable: React.FC = () => {
         header: 'Topic Name',
         accessorKey: 'name',
         cell: TopicTitleCell,
+        meta: {
+          width: '100%',
+        },
       },
       {
         id: TopicColumnsToSort.TOTAL_PARTITIONS,

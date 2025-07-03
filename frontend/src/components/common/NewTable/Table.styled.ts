@@ -88,9 +88,9 @@ export const ColumnResizer = styled.div<{ $isResizing?: boolean }>`
     return css`
       opacity: ${$isResizing ? 1 : 0};
       position: absolute;
-      top: 8px;
+      top: 4px;
       right: 0;
-      height: calc(100% - 16px);
+      height: calc(100% - 8px);
       width: 4px;
       border-radius: 2px;
       background-color: ${resizer.background.normal};
