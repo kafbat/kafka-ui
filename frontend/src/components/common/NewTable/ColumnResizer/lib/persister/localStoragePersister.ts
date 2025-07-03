@@ -26,7 +26,7 @@ export function useLocalStoragePersister(
       sizing = allTablesSizing[tableName] ?? {};
       refAllData.current = allTablesSizing;
     } catch (e) {
-      console.error('Couldnt parse colum column sizing from local storage');
+      return sizing;
     }
     return sizing;
   });
