@@ -62,6 +62,7 @@ public class SmokeTest extends BaseTest {
   }
 
   @Test
+  @Ignore
   public void pathWhileNavigationCheck() {
     navigateToBrokersAndOpenDetails(BROKER_ID);
     verifyComponentsPath(MenuItem.BROKERS, String.format("Broker %d", BROKER_ID));

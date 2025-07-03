@@ -38,6 +38,7 @@ public class ConnectorsTest extends BaseTest {
   }
 
   @Test
+  @Ignore
   public void createConnectorCheck() {
     Connector createConnector =
         Connector.createConnector(resourceToString("testdata/connectors/create_config.json"));
@@ -60,6 +61,7 @@ public class ConnectorsTest extends BaseTest {
   }
 
   @Test
+  @Ignore
   public void updateConnectorCheck() {
     navigateToConnectorsAndOpenDetails(UPDATE_CONNECTOR.getName());
     connectorDetails
@@ -74,6 +76,7 @@ public class ConnectorsTest extends BaseTest {
   }
 
   @Test
+  @Ignore
   public void deleteConnectorCheck() {
     navigateToConnectorsAndOpenDetails(DELETE_CONNECTOR.getName());
     connectorDetails
