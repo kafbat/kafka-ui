@@ -9,9 +9,15 @@ type PortalProps = {
 
 const Portal: FC<PropsWithChildren<PortalProps>> = memo(
   ({ isOpen, children }) => {
-    const content = isOpen ? <S.Backdrop>{children}</S.Backdrop> : null;
+    const target = document.getElementById('portal-root');
 
-    return createPortal(content, document.getElementById('portal-root')!);
+    if (target == null) {
+      return null;
+    }
+
+    return isOpen
+      ? createPortal(<S.Backdrop>{children}</S.Backdrop>, target)
+      : null;
   }
 );
 
