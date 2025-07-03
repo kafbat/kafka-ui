@@ -103,6 +103,7 @@ public abstract class BasePage extends WebUtil {
     log.debug("\ngetTableElement: {}", elementName);
     return $x(String.format(tableElementNameLocator, elementName));
   }
+
   protected SelenideElement getTableCellElement(String elementName) {
     log.debug("\ngetTableElement: {}", elementName);
     return $x(String.format(columnCellLocator, elementName));
