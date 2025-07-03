@@ -35,7 +35,7 @@ public abstract class BasePage extends WebUtil {
   protected ElementsCollection ddlOptions = $$x("//li[@value]");
   protected ElementsCollection gridItems = $$x("//tr[@class]");
   protected String summaryCellLocator = "//div[contains(text(),'%s')]";
-  protected String tableElementNameLocator = "//tbody//a[contains(text(),'%s')]";
+  protected String tableElementNameLocator = "//a[normalize-space(text())='%s']";
   protected String columnCellLocator = "//table//tr/td//*[contains(text(),'%s')]";
   protected String columnHeaderLocator = "//table//tr/th//div[text()='%s']";
   protected String pageTitleFromHeader = "//h1[text()='%s']";
