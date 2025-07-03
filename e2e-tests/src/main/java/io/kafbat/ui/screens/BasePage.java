@@ -36,7 +36,6 @@ public abstract class BasePage extends WebUtil {
   protected ElementsCollection gridItems = $$x("//tr[@class]");
   protected String summaryCellLocator = "//div[contains(text(),'%s')]";
   protected String tableElementNameLocator = "//a[normalize-space(text())='%s']";
-  protected String columnCellLocator = "//table//tr/td//*[contains(text(),'%s')]";
   protected String columnHeaderLocator = "//table//tr/th//div[text()='%s']";
   protected String pageTitleFromHeader = "//h1[text()='%s']";
   protected String pagePathFromHeader = "//a[text()='%s']/../h1";
@@ -102,11 +101,6 @@ public abstract class BasePage extends WebUtil {
   protected SelenideElement getTableElement(String elementName) {
     log.debug("\ngetTableElement: {}", elementName);
     return $x(String.format(tableElementNameLocator, elementName));
-  }
-
-  protected SelenideElement getTableCellElement(String elementName) {
-    log.debug("\ngetTableElement: {}", elementName);
-    return $x(String.format(columnCellLocator, elementName));
   }
 
   protected ElementsCollection getDdlOptions() {

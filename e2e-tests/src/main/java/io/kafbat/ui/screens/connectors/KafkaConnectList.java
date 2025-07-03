@@ -33,7 +33,7 @@ public class KafkaConnectList extends BasePage {
 
   @Step
   public KafkaConnectList openConnector(String connectorName) {
-    tableElementNameLocator(connectorName).shouldBe(Condition.enabled).click();
+    getTableElement(connectorName).shouldBe(Condition.enabled).click();
     return this;
   }
 
