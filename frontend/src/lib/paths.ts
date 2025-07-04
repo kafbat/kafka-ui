@@ -219,6 +219,12 @@ export const clusterConnectsPath = (
 export const clusterConnectorsPath = (
   clusterName: ClusterName = RouteParams.clusterName
 ) => `${clusterPath(clusterName)}/connectors`;
+export const clusterConnectorNameSubPath = (
+  clusterName: ClusterName = RouteParams.connectorName
+) => {
+  return `${clusterName}/connectors`;
+};
+
 export const clusterConnectorNewPath = (
   clusterName: ClusterName = RouteParams.clusterName
 ) => `${clusterConnectorsPath(clusterName)}/create-new`;
