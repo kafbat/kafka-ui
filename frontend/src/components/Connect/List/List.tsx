@@ -1,30 +1,30 @@
 import React from 'react';
 import useAppParams from 'lib/hooks/useAppParams';
-import { clusterConnectConnectorPath, ClusterNameRoute } from 'lib/paths';
+import { ClusterNameRoute } from 'lib/paths';
 import Table, { TagCell } from 'components/common/NewTable';
 import { FullConnectorInfo } from 'generated-sources';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
 import RunningTasksCell from './RunningTasksCell';
+import { KafkaConnectLinkCell } from './KafkaConnectLinkCell';
 
-const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
+const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
   {
     header: 'Name',
     accessorKey: 'name',
-    cell: BreakableTextCell,
+    cell: KafkaConnectLinkCell,
     enableResizing: true,
   },
   {
     header: 'Connect',
     accessorKey: 'connect',
-    cell: BreakableTextCell,
+    cell: KafkaConnectLinkCell,
     filterFn: 'arrIncludesSome',
     meta: {
       filterVariant: 'multi-select',
@@ -34,6 +34,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Type',
     accessorKey: 'type',
+    cell: KafkaConnectLinkCell,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
     size: 120,
@@ -41,7 +42,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
   {
     header: 'Plugin',
     accessorKey: 'connectorClass',
-    cell: BreakableTextCell,
+    cell: KafkaConnectLinkCell,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
     enableResizing: true,
@@ -77,7 +78,6 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo>[] = [
 ];
 
 const List: React.FC = () => {
-  const navigate = useNavigate();
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const [searchParams] = useSearchParams();
   const { data: connectors } = useConnectors(
@@ -95,9 +95,6 @@ const List: React.FC = () => {
       enableSorting
       enableColumnResizing
       columnSizingPersister={columnSizingPersister}
-      onRowClick={({ original: { connect, name } }) =>
-        navigate(clusterConnectConnectorPath(clusterName, connect, name))
-      }
       emptyMessage="No connectors found"
       setRowId={(originalRow) => `${originalRow.name}-${originalRow.connect}`}
       filterPersister={filterPersister}
