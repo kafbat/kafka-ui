@@ -64,18 +64,37 @@ describe('Connectors List', () => {
 
     it('opens broker when row clicked', async () => {
       renderComponent();
-      await userEvent.click(
-        screen.getByRole('row', {
-          name: 'hdfs-source-connector first SOURCE FileStreamSource a b c RUNNING 2 of 2',
-        })
+      screen.debug();
+      expect(screen.getByText('hdfs-source-connector')).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          'first',
+          'hdfs-source-connector'
+        )
       );
-      await waitFor(() =>
-        expect(mockedUsedNavigate).toBeCalledWith(
-          clusterConnectConnectorPath(
-            clusterName,
-            'first',
-            'hdfs-source-connector'
-          )
+      expect(screen.getByText('first')).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          'first',
+          'hdfs-source-connector'
+        )
+      );
+      expect(screen.getByText('SOURCE')).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          'first',
+          'hdfs-source-connector'
+        )
+      );
+      expect(screen.getAllByText('FileStreamSource')[0]).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          'first',
+          'hdfs-source-connector'
         )
       );
     });
