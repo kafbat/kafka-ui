@@ -1,6 +1,7 @@
 import React from 'react';
 import type {
   ColumnDef,
+  ColumnFiltersState,
   OnChangeFn,
   PaginationState,
   Row,
@@ -10,6 +11,9 @@ import {
   flexRender,
   getCoreRowModel,
   getExpandedRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -25,6 +29,8 @@ import updatePaginationState from './utils/updatePaginationState';
 import ExpanderCell from './ExpanderCell';
 import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
+import ColumnFilter, { type Persister } from './ColumnFilter';
+import { ColumnSizingPersister } from './ColumnResizer/lib/persister/types';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -47,6 +53,13 @@ export interface TableProps<TData> {
 
   // Sorting.
   enableSorting?: boolean; // Enables sorting for table.
+
+  // Columns resizing
+  enableColumnResizing?: boolean; // Enables columns resizing.
+  columnSizingPersister?: ColumnSizingPersister;
+
+  filterPersister?: Persister;
+  resetPaginationOnFilter?: boolean;
 
   // Placeholder for empty table
   emptyMessage?: React.ReactNode;
@@ -119,6 +132,10 @@ const getSortingFromSearchParams = (searchParams: URLSearchParams) => {
  *    - set `serverSideProcessing` to true
  *    - set `pageCount` to the total number of pages
  *    - use URLSearchParams to get the pagination and sorting state from the url for your server side processing.
+ *
+ * 5. Filtering
+ *    - filtering columns must have accessorKey and meta.model.filterVariant
+ *    - set `persister` if need to store filter data, i.e useQueryPersister to store filter state in search params
  */
 
 function Table<TData>({
@@ -130,6 +147,8 @@ function Table<TData>({
   serverSideProcessing = false,
   enableSorting = false,
   enableRowSelection = false,
+  enableColumnResizing = false,
+  columnSizingPersister,
   batchActionsBar: BatchActionsBar,
   emptyMessage,
   disabled,
@@ -137,10 +156,14 @@ function Table<TData>({
   onRowHover,
   onMouseLeave,
   setRowId,
+  filterPersister,
+  resetPaginationOnFilter = true,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+
   const [rowSelection, setRowSelection] = React.useState({});
+
   const onSortingChange = React.useCallback(
     (updater: UpdaterFn<SortingState>) => {
       const newState = updateSortingState(updater, searchParams);
@@ -159,14 +182,36 @@ function Table<TData>({
     [searchParams, location]
   );
 
+  // useMemo istead of useCallback for not to break default update filter state behaviour
+  const onFilterChange = React.useMemo(() => {
+    if (filterPersister) {
+      return (updater: UpdaterFn<ColumnFiltersState>) => {
+        const prevState = filterPersister.getPrevState();
+        const nextState = updater(prevState);
+        filterPersister.update(nextState, resetPaginationOnFilter);
+        return nextState;
+      };
+    }
+
+    return undefined;
+  }, [searchParams, location, columns]);
+
   const table = useReactTable<TData>({
     data,
     pageCount,
     columns,
+    columnResizeMode: 'onChange',
+    columnResizeDirection: 'ltr',
+    enableColumnResizing,
+    debugTable: true,
+    debugHeaders: true,
+    debugColumns: true,
     state: {
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),
+      columnFilters: filterPersister?.getPrevState() ?? [],
       rowSelection,
+      columnSizing: columnSizingPersister?.columnSizing ?? {},
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
@@ -182,18 +227,48 @@ function Table<TData>({
     },
     onSortingChange: onSortingChange as OnChangeFn<SortingState>,
     onPaginationChange: onPaginationChange as OnChangeFn<PaginationState>,
+    onColumnFiltersChange: onFilterChange as
+      | OnChangeFn<ColumnFiltersState>
+      | undefined,
+    onColumnSizingChange: columnSizingPersister?.setColumnSizing,
     onRowSelectionChange: setRowSelection,
     getRowCanExpand,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFilteredRowModel: getFilteredRowModel(),
     manualSorting: serverSideProcessing,
     manualPagination: serverSideProcessing,
     enableSorting,
     autoResetPageIndex: false,
     enableRowSelection,
+    filterFns: {
+      includesSome: (
+        row,
+        columnId,
+        filterValue: { label: string; value: string }[]
+      ) => {
+        if (filterValue.length === 0) {
+          return row.getValue(columnId);
+        }
+        return filterValue.includes(row.getValue(columnId));
+      },
+    },
   });
+
+  const columnSizeVars = React.useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i += 1) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
     // If row selection is enabled do not handle row click.
@@ -238,8 +313,13 @@ function Table<TData>({
           />
         </S.TableActionsBar>
       )}
-      <S.TableWrapper $disabled={!!disabled}>
-        <S.Table>
+      <S.TableWrapper $disabled={!!disabled} style={{ ...columnSizeVars }}>
+        <S.Table
+          style={{
+            width: table.getCenterTotalSize(),
+            minWidth: '100%',
+          }}
+        >
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -254,28 +334,54 @@ function Table<TData>({
                 {table.getCanSomeRowsExpand() && (
                   <S.Th expander key={`${headerGroup.id}-expander`} />
                 )}
-                {headerGroup.headers.map((header) => (
-                  <S.Th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    sortable={header.column.getCanSort()}
-                    sortOrder={header.column.getIsSorted()}
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{
-                      width:
-                        header.column.getSize() !== 150
-                          ? header.column.getSize()
-                          : undefined,
-                    }}
-                  >
-                    <div>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <S.Th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      sortable={header.column.getCanSort()}
+                      sortOrder={header.column.getIsSorted()}
+                      style={{
+                        width: `calc(var(--header-${header?.id}-size) * 1px)`,
+                        maxWidth: header.column.columnDef.maxSize,
+                        minWidth: header.column.columnDef.minSize,
+                      }}
+                    >
+                      <S.TableHeaderContent>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={header.column.getToggleSortingHandler()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              header.column.getToggleSortingHandler()?.(e);
+                            }
+                          }}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </div>
+                        {header.column.getCanFilter() &&
+                          header.column.columnDef.meta?.filterVariant && (
+                            <ColumnFilter column={header.column} />
+                          )}
+                      </S.TableHeaderContent>
+                      {header.column.getCanResize() && (
+                        <S.ColumnResizer
+                          {...{
+                            $isResizing: header.column.getIsResizing(),
+                            onDoubleClick: () => header.column.resetSize(),
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                          }}
+                        />
                       )}
-                    </div>
-                  </S.Th>
-                ))}
+                    </S.Th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -310,17 +416,26 @@ function Table<TData>({
                   )}
                   {row
                     .getVisibleCells()
-                    .map(({ id, getContext, column: { columnDef } }) => (
-                      <td
-                        key={id}
-                        style={{
-                          width:
-                            columnDef.size !== 150 ? columnDef.size : undefined,
-                        }}
-                      >
-                        {flexRender(columnDef.cell, getContext())}
-                      </td>
-                    ))}
+                    .map(
+                      ({
+                        id,
+                        getContext,
+                        column: { columnDef, id: colId },
+                      }) => {
+                        return (
+                          <td
+                            key={id}
+                            style={{
+                              width: `calc(var(--col-${colId}-size) * 1px)`,
+                              maxWidth: columnDef.maxSize,
+                              minWidth: columnDef.minSize,
+                            }}
+                          >
+                            {flexRender(columnDef.cell, getContext())}
+                          </td>
+                        );
+                      }
+                    )}
                 </S.Row>
                 {row.getIsExpanded() && SubComponent && (
                   <S.Row expanded>
