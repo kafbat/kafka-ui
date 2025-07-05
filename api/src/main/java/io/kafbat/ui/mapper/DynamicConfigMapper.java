@@ -1,6 +1,7 @@
 package io.kafbat.ui.mapper;
 
 import io.kafbat.ui.model.ActionDTO;
+import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ClientValueDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerJwtDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpaquetokenDTO;
