@@ -381,8 +381,13 @@ components:
             properties:
                 compatibilityLevel:
                     $ref: '#/components/schemas/Compatibility'
-            required:
-                - compatibilityLevel
+                # GCP Managed Kafka Schema registries specific fields
+                alias:
+                    type: string
+                compatibility:
+                    $ref: '#/components/schemas/Compatibility'
+                normalize:
+                    type: boolean
 
         CompatibilityLevelChange:
             type: object
