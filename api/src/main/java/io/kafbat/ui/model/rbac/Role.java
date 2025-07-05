@@ -21,5 +21,4 @@ public class Role {
     permissions.forEach(Permission::transform);
     subjects.forEach(Subject::validate);
   }
-
 }
