@@ -12,6 +12,7 @@ import { clusterNewConfigPath } from 'lib/paths';
 import { GlobalSettingsContext } from 'components/contexts/GlobalSettingsContext';
 import { ActionCanButton } from 'components/common/ActionComponent';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
+import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 
 import * as S from './Dashboard.styled';
 import ClusterName from './ClusterName';
@@ -37,7 +38,13 @@ const Dashboard: React.FC = () => {
 
   const columns = React.useMemo<ColumnDef<Cluster>[]>(() => {
     const initialColumns: ColumnDef<Cluster>[] = [
-      { header: 'Cluster name', accessorKey: 'name', cell: ClusterName },
+      {
+        header: 'Cluster name',
+        accessorKey: 'name',
+        cell: ClusterName,
+        meta: { width: '100%' },
+        enableResizing: true,
+      },
       { header: 'Version', accessorKey: 'version', size: 100 },
       {
         header: 'Brokers count',
@@ -82,6 +89,9 @@ const Dashboard: React.FC = () => {
       (permission) => permission.resource === ResourceType.APPLICATIONCONFIG
     );
   }, [data]);
+
+  const columnSizingPersister = useLocalStoragePersister('KafkaConnect');
+
   return (
     <>
       <PageHeading text="Dashboard" />
@@ -121,6 +131,8 @@ const Dashboard: React.FC = () => {
         columns={columns}
         data={config?.list}
         enableSorting
+        enableColumnResizing
+        columnSizingPersister={columnSizingPersister}
         emptyMessage={clusters.isFetched ? 'No clusters found' : 'Loading...'}
       />
     </>

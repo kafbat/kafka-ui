@@ -1965,6 +1965,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/KafkaAclNamePatternType'
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK
