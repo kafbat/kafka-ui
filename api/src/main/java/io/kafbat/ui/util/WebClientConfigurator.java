@@ -14,10 +14,12 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
+import javax.validation.constraints.Null;
 import lombok.SneakyThrows;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
@@ -36,6 +38,9 @@ import reactor.netty.http.client.HttpClient;
 
 public class WebClientConfigurator {
 
+  private static final String GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS =
+      "com.google.cloud.hosted.kafka.auth.GcpBearerAuthCredentialProvider";
+
   private final WebClient.Builder builder = WebClient.builder();
   private HttpClient httpClient = HttpClient
       .create()
@@ -52,9 +57,10 @@ public class WebClientConfigurator {
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public WebClientConfigurator configureGcpBearerAuth(boolean enabled) {
-    if (enabled) {
-      System.out.println("Configuring GCP Bearer Auth");
+  public WebClientConfigurator configureBearerTokenAuth(@Nullable String bearerAuthCustomProviderClass) {
+    //System.out.println("Configuring GCP Bearer Auth in web client");
+    //System.out.println("Bearer Auth Custom Provider Class: " + bearerAuthCustomProviderClass);
+    if (Objects.equals(bearerAuthCustomProviderClass, GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS)) {
       builder.filter(createGcpBearerAuthFilter());
     }
     return this;

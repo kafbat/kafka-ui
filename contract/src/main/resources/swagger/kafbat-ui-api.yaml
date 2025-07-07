@@ -4334,6 +4334,8 @@ components:
                             type: string
                           password:
                             type: string
+                          bearerAuthCustomProviderClass:
+                            type: string
                       schemaRegistrySsl:
                         type: object
                         properties:
@@ -4341,8 +4343,6 @@ components:
                             type: string
                           keystorePassword:
                             type: string
-                      gcpSchemaRegistry:
-                        type: boolean
                       ksqldbServer:
                         type: string
                       ksqldbServerSsl:

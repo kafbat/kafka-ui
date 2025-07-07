@@ -71,8 +71,6 @@ public class ClustersProperties {
 
     AuditProperties audit;
 
-    boolean gcpSchemaRegistry = false;
-
   }
 
   @Data
@@ -116,6 +114,7 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+    String bearerAuthCustomProviderClass;
   }
 
   @Data

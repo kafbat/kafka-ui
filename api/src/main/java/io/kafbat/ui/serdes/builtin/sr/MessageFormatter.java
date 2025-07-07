@@ -20,9 +20,10 @@ interface MessageFormatter {
   String format(String topic, byte[] value);
 
   static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
-                                                     boolean gcpSchemaRegistry) {
+                                                     //boolean gcpSchemaRegistry) {
+                                                     String bearerAuthCustomProviderClass) {
     return Map.of(
-        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, gcpSchemaRegistry),
+        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, bearerAuthCustomProviderClass),
         SchemaType.JSON, new JsonSchemaMessageFormatter(schemaRegistryClient),
         SchemaType.PROTOBUF, new ProtobufMessageFormatter(schemaRegistryClient)
     );
@@ -31,7 +32,7 @@ interface MessageFormatter {
   class AvroMessageFormatter implements MessageFormatter {
     private final KafkaAvroDeserializer avroDeserializer;
 
-    AvroMessageFormatter(SchemaRegistryClient client, boolean gcpSchemaRegistry) {
+    AvroMessageFormatter(SchemaRegistryClient client, String bearerAuthCustomProviderClass) {
       this.avroDeserializer = new KafkaAvroDeserializer(client);
 
       final Map<String, Object> avroProps = new HashMap<>();
@@ -40,10 +41,10 @@ interface MessageFormatter {
       avroProps.put(KafkaAvroDeserializerConfig.SCHEMA_REFLECTION_CONFIG, false);
       avroProps.put(KafkaAvroDeserializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true);
 
-      if (gcpSchemaRegistry) {
+      if (bearerAuthCustomProviderClass != null && !bearerAuthCustomProviderClass.isBlank()) {
         avroProps.put(KafkaAvroDeserializerConfig.BEARER_AUTH_CREDENTIALS_SOURCE, "CUSTOM");
         avroProps.put(KafkaAvroDeserializerConfig.BEARER_AUTH_CUSTOM_PROVIDER_CLASS,
-            "class com.google.cloud.hosted.kafka.auth.GcpBearerAuthCredentialProvider");
+            String.format("class %s", bearerAuthCustomProviderClass));
       }
 
       this.avroDeserializer.configure(avroProps, false);
