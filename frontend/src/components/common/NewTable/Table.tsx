@@ -203,9 +203,6 @@ function Table<TData>({
     columnResizeMode: 'onChange',
     columnResizeDirection: 'ltr',
     enableColumnResizing,
-    debugTable: true,
-    debugHeaders: true,
-    debugColumns: true,
     state: {
       sorting: getSortingFromSearchParams(searchParams),
       pagination: getPaginationFromSearchParams(searchParams),

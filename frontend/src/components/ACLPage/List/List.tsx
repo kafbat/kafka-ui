@@ -24,6 +24,7 @@ import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel
 import Search from 'components/common/Search/Search';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
+import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 
 import * as S from './List.styled';
 
@@ -82,6 +83,10 @@ const ACList: React.FC = () => {
         cell: ({ getValue }) => (
           <S.EnumCell>{getValue<string>().toLowerCase()}</S.EnumCell>
         ),
+        filterFn: 'arrIncludesSome',
+        meta: {
+          filterVariant: 'multi-select',
+        },
         size: 145,
       },
       {
@@ -112,6 +117,10 @@ const ACList: React.FC = () => {
             </S.PatternCell>
           );
         },
+        filterFn: 'includesString',
+        meta: {
+          filterVariant: 'text',
+        },
         size: 257,
       },
       {
@@ -126,6 +135,10 @@ const ACList: React.FC = () => {
         cell: ({ getValue }) => (
           <S.EnumCell>{getValue<string>().toLowerCase()}</S.EnumCell>
         ),
+        filterFn: 'arrIncludesSome',
+        meta: {
+          filterVariant: 'multi-select',
+        },
         size: 121,
       },
       {
@@ -165,6 +178,8 @@ const ACList: React.FC = () => {
     [rowId]
   );
 
+  const filterPersister = useQueryPersister(columns);
+
   return (
     <S.Container>
       <ResourcePageHeading text="Access Control List">
@@ -193,6 +208,7 @@ const ACList: React.FC = () => {
         emptyMessage="No ACL items found"
         onRowHover={handleRowHover}
         onMouseLeave={() => setRowId('')}
+        filterPersister={filterPersister}
         enableSorting
       />
       <ACLFormContext.Provider

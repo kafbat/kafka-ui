@@ -4,7 +4,7 @@ import { type RowData, type FilterFn } from '@tanstack/react-table';
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
-    filterVariant?: 'multi-select';
+    filterVariant?: 'multi-select' | 'text';
     width?: string;
   }
 
