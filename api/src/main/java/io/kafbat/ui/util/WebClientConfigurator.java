@@ -3,18 +3,16 @@ package io.kafbat.ui.util;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.auth.oauth2.GoogleCredentials;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -28,22 +26,19 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 
 public class WebClientConfigurator {
 
-  private static final String GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS =
-      "com.google.cloud.hosted.kafka.auth.GcpBearerAuthCredentialProvider";
-
   private final WebClient.Builder builder = WebClient.builder();
   private HttpClient httpClient = HttpClient
       .create()
       .proxyWithSystemProperties();
+
+  private final List<ExchangeFilterFunction> filters = new ArrayList<>();
 
   public WebClientConfigurator() {
     configureObjectMapper(defaultOM());
@@ -56,35 +51,11 @@ public class WebClientConfigurator {
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
-  public WebClientConfigurator configureBearerTokenAuth(@Nullable String bearerAuthCustomProviderClass) {
-    if (Objects.equals(bearerAuthCustomProviderClass, GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS)) {
-      builder.filter(createGcpBearerAuthFilter());
+  public WebClientConfigurator filter(ExchangeFilterFunction filter) {
+    if (filter != null) {
+      this.filters.add(filter);
     }
     return this;
-  }
-
-  private ExchangeFilterFunction createGcpBearerAuthFilter() {
-    return (request, next) -> {
-      return Mono.fromCallable(() -> {
-        try {
-          // Get credentials using Application Default Credentials (from the GKE service account)
-          GoogleCredentials credentials = GoogleCredentials.getApplicationDefault()
-              .createScoped(Collections.singleton("https://www.googleapis.com/auth/cloud-platform"));
-
-          credentials.refreshIfExpired();
-          return credentials.getAccessToken().getTokenValue();
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to get GCP access token", e);
-        }
-      })
-      .flatMap(token -> {
-        ClientRequest newRequest = ClientRequest.from(request)
-            // Add the Authorization header
-            .headers(headers -> headers.setBearerAuth(token))
-            .build();
-        return next.exchange(newRequest);
-      });
-    };
   }
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
@@ -193,6 +164,7 @@ public class WebClientConfigurator {
   }
 
   public WebClient build() {
+    builder.filters(filterList -> filterList.addAll(this.filters));
     return builder.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
   }
 }

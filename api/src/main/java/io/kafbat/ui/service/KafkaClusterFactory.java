@@ -16,10 +16,12 @@ import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.util.KafkaServicesValidation;
 import io.kafbat.ui.util.ReactiveFailover;
 import io.kafbat.ui.util.WebClientConfigurator;
+import io.kafbat.ui.util.gcp.GcpBearerAuthFilter;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
@@ -167,15 +169,21 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
-    
+
     var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
-    WebClient webClient = new WebClientConfigurator()
+    WebClientConfigurator webClientConfigurator = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
-        .configureBearerTokenAuth(auth.getBearerAuthCustomProviderClass())
-        .configureBufferSize(webClientMaxBuffSize)
-        .build();
+        .configureBufferSize(webClientMaxBuffSize);
+
+    if (auth.getBearerAuthCustomProviderClass() != null && Objects.equals(auth.getBearerAuthCustomProviderClass(),
+        GcpBearerAuthFilter.getGcpBearerAuthCustomProviderClass())) {
+      webClientConfigurator.filter(new GcpBearerAuthFilter());
+    }
+
+    WebClient webClient = webClientConfigurator.build();
+
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
         url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),
