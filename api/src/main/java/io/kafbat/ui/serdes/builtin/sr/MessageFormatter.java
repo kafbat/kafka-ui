@@ -20,7 +20,6 @@ interface MessageFormatter {
   String format(String topic, byte[] value);
 
   static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
-                                                     //boolean gcpSchemaRegistry) {
                                                      String bearerAuthCustomProviderClass) {
     return Map.of(
         SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, bearerAuthCustomProviderClass),
