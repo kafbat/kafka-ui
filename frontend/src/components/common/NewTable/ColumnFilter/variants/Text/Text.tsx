@@ -12,6 +12,7 @@ const TextFilterInput = <T,>(props: FilterProps<T>) => {
   const value = column.getFilterValue() as string;
   return (
     <Input
+      autoFocus
       value={value}
       onChange={({ target }) => {
         column.setFilterValue(target?.value ?? '');
