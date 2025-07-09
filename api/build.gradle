@@ -1,0 +1,162 @@
+plugins {
+    id 'antlr'
+    id 'checkstyle'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.git.properties)
+    alias(libs.plugins.docker.remote.api)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+dependencies {
+    implementation project(":contract")
+    implementation project(":serde-api")
+    implementation libs.spring.starter.webflux
+    implementation libs.spring.starter.security
+    implementation libs.spring.starter.actuator
+    implementation libs.spring.starter.logging
+    implementation libs.spring.starter.oauth2.client
+    implementation libs.spring.security.oauth2.resource.server
+    implementation libs.spring.boot.actuator
+    compileOnly libs.spring.boot.devtools
+
+    implementation libs.spring.security.ldap
+
+    implementation libs.kafka.clients
+
+    implementation libs.apache.avro
+    implementation libs.apache.commons
+    implementation libs.apache.commons.pool2
+    implementation libs.apache.datasketches
+
+    implementation libs.confluent.schema.registry.client
+    implementation libs.confluent.avro.serializer
+    implementation libs.confluent.protobuf.serializer
+    implementation libs.confluent.json.schema.serializer
+
+    implementation libs.aws.msk.auth
+    implementation(libs.azure.identity) {
+        exclude group: 'io.netty', module: 'netty-tcnative-boringssl-static'
+    }
+
+    implementation libs.jackson.databind.nullable
+    implementation libs.cel
+    antlr libs.antlr
+    implementation libs.antlr.runtime
+
+    implementation libs.opendatadiscovery.oddrn
+    implementation(libs.opendatadiscovery.client) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
+        exclude group: 'io.projectreactor', module: 'reactor-core'
+        exclude group: 'io.projectreactor.ipc', module: 'reactor-netty'
+    }
+
+    runtimeOnly(libs.micrometer.registry.prometheus) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("Micrometer uses protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project. See https://github.com/prometheus/client_java/issues/1431")
+    }
+
+    // CVE Fixes
+    implementation libs.apache.commons.compress
+    implementation libs.okhttp3.logging.intercepter
+
+    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.victools.jsonschema.generator
+
+    // Google Managed Service for Kafka IAM support
+    implementation (libs.google.managed.kafka.login.handler) {
+        exclude group: 'com.google.oauth-client', module: 'google-oauth-client'
+    }
+    implementation (libs.google.oauth.client) {
+        because("CVE Fix: It is excluded above because of a vulnerability")
+    }
+
+    // Annotation processors
+    implementation libs.lombok
+    implementation libs.mapstruct
+    annotationProcessor libs.lombok
+    annotationProcessor libs.mapstruct.processor
+    annotationProcessor libs.spring.boot.configuration.processor
+    testAnnotationProcessor libs.lombok
+    testAnnotationProcessor libs.mapstruct.processor
+
+    // Tests
+    testImplementation libs.spring.starter.test
+    testImplementation libs.reactor.test
+    testImplementation libs.testcontainers
+    testImplementation libs.testcontainers.kafka
+    testImplementation libs.testcontainers.jupiter
+    testImplementation libs.junit.jupiter.engine
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.jupiter
+    testImplementation libs.bytebuddy
+    testImplementation libs.assertj
+    testImplementation libs.jsonschemavalidator
+    testImplementation(libs.kafka.clients) { artifact { classifier = "test" } }
+    testImplementation libs.bouncycastle.bcpkix
+
+    testImplementation libs.okhttp3
+    testImplementation libs.okhttp3.mockwebserver
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-package", "ksql"]
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs += generateGrammarSource.outputDirectory
+        }
+        resources {
+            srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
+        }
+    }
+}
+
+tasks.withType(Checkstyle).configureEach {
+    exclude '**/ksql/**'
+}
+
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
+    ignoreFailures = false
+    maxWarnings = 0
+    maxErrors = 0
+}
+
+test {
+    useJUnitPlatform()
+}
+
+springBoot {
+    buildInfo()
+}
+
+tasks.register('buildDockerImageTask', DockerBuildImage) {
+    inputDir = projectDir
+    dockerFile = project.layout.projectDirectory.file('Dockerfile')
+    buildArgs = [
+            'JAR_FILE': "build/libs/${project.name}-${project.version}.jar"
+    ] as Map<String, String>
+    images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
+}
+
+if (buildDockerImages) {
+    tasks.build.finalizedBy buildDockerImageTask
+}
+
+if (includeFrontend) {
+    tasks.named("processResources") {
+        dependsOn(":frontend:buildFrontend")
+    }
+}

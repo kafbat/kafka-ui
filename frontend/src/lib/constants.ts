@@ -1,4 +1,8 @@
-import { ConfigurationParameters, ConsumerGroupState } from 'generated-sources';
+import {
+  ApplicationConfigPropertiesKafkaMaskingTypeEnum,
+  ConfigurationParameters,
+  ConsumerGroupState,
+} from 'generated-sources';
 
 declare global {
   interface Window {
@@ -90,6 +94,7 @@ export const AUTH_OPTIONS = [
   { value: 'SASL/LDAP', label: 'SASL/LDAP' },
   { value: 'SASL/AWS IAM', label: 'SASL/AWS IAM' },
   { value: 'SASL/Azure Entra', label: 'SASL/Azure Entra' },
+  { value: 'SASL/GCP IAM', label: 'SASL/GCP IAM' },
   { value: 'mTLS', label: 'mTLS' },
 ];
 
@@ -100,6 +105,20 @@ export const SECURITY_PROTOCOL_OPTIONS = [
 export const METRICS_OPTIONS = [
   { value: 'JMX', label: 'JMX' },
   { value: 'PROMETHEUS', label: 'PROMETHEUS' },
+];
+export const MASKING_OPTIONS = [
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.MASK,
+    label: 'MASK',
+  },
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.REMOVE,
+    label: 'REMOVE',
+  },
+  {
+    value: ApplicationConfigPropertiesKafkaMaskingTypeEnum.REPLACE,
+    label: 'REPLACE',
+  },
 ];
 
 export const CONSUMER_GROUP_STATE_TOOLTIPS: Record<ConsumerGroupState, string> =
@@ -112,3 +131,23 @@ export const CONSUMER_GROUP_STATE_TOOLTIPS: Record<ConsumerGroupState, string> =
     DEAD: 'The group is going to be removed. It might be due to the inactivity, or the group is being migrated to different group coordinator.',
     UNKNOWN: '',
   } as const;
+
+/**
+ * @description !! Note !!
+ * Key value should match
+ * */
+export const MessagesFilterKeys = {
+  mode: 'mode',
+  timestamp: 'timestamp',
+  keySerde: 'keySerde',
+  valueSerde: 'valueSerde',
+  limit: 'limit',
+  offset: 'offset',
+  stringFilter: 'stringFilter',
+  partitions: 'partitions',
+  smartFilterId: 'smartFilterId',
+  activeFilterId: 'activeFilterId',
+  activeFilterNPId: 'activeFilterNPId', // not persisted filter name to indicate the refresh
+  cursor: 'cursor',
+  r: 'r', // used tp force refresh of the data
+} as const;

@@ -91,7 +91,7 @@ public class TopicDetails extends BasePage {
 
   @Step
   public TopicDetails openDotMenu() {
-    WebUtil.clickByJavaScript(dotMenuBtn);
+    WebUtil.clickByActions(dotMenuBtn);
     return this;
   }
 

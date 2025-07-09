@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 public class KafkaTestProducer<KeyT, ValueT> implements AutoCloseable {
   private final KafkaProducer<KeyT, ValueT> producer;
@@ -16,7 +16,7 @@ public class KafkaTestProducer<KeyT, ValueT> implements AutoCloseable {
     this.producer = producer;
   }
 
-  public static KafkaTestProducer<String, String> forKafka(KafkaContainer kafkaContainer) {
+  public static KafkaTestProducer<String, String> forKafka(ConfluentKafkaContainer kafkaContainer) {
     return new KafkaTestProducer<>(new KafkaProducer<>(Map.of(
         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaContainer.getBootstrapServers(),
         ProducerConfig.CLIENT_ID_CONFIG, "KafkaTestProducer",

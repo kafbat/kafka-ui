@@ -207,14 +207,15 @@ public class KafkaConnectService {
                                          String connectorName, ConnectorActionDTO action) {
     return api(cluster, connectName)
         .mono(client -> switch (action) {
-          case RESTART -> client.restartConnector(connectorName, false, false);
-          case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, task -> true);
-          case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
-              t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
-          case PAUSE -> client.pauseConnector(connectorName);
-          case STOP -> client.stopConnector(connectorName);
-          case RESUME -> client.resumeConnector(connectorName);
-        });
+              case RESTART -> client.restartConnector(connectorName, false, false);
+              case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, task -> true);
+              case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
+                  t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
+              case PAUSE -> client.pauseConnector(connectorName);
+              case STOP -> client.stopConnector(connectorName);
+              case RESUME -> client.resumeConnector(connectorName);
+            }
+        );
   }
 
   private Mono<Void> restartTasks(KafkaCluster cluster, String connectName,

@@ -45,23 +45,22 @@ public class AuthorizationController implements AuthorizationApi {
         .map(SecurityContext::getAuthentication)
         .map(Principal::getName);
 
-    var builder = AuthenticationInfoDTO.builder()
+    var builder = new AuthenticationInfoDTO()
         .rbacEnabled(accessControlService.isRbacEnabled());
 
     return userName
         .zipWith(permissions)
         .map(data -> (AuthenticationInfoDTO) builder
             .userInfo(new UserInfoDTO(data.getT1(), data.getT2()))
-            .build()
         )
-        .switchIfEmpty(Mono.just(builder.build()))
+        .switchIfEmpty(Mono.just(builder))
         .map(ResponseEntity::ok);
   }
 
   private List<UserPermissionDTO> mapPermissions(List<Permission> permissions, List<String> clusters) {
     return permissions
         .stream()
-        .map(permission -> (UserPermissionDTO) UserPermissionDTO.builder()
+        .map(permission ->  new UserPermissionDTO()
             .clusters(clusters)
             .resource(ResourceTypeDTO.fromValue(permission.getResource().toString().toUpperCase()))
             .value(permission.getValue())
@@ -71,7 +70,6 @@ public class AuthorizationController implements AuthorizationApi {
                 .map(this::mapAction)
                 .filter(Objects::nonNull)
                 .toList())
-            .build()
         )
         .toList();
   }

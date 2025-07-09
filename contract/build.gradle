@@ -1,0 +1,114 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    id "java-library"
+    alias(libs.plugins.openapi.generator)
+}
+
+
+def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
+def targetDir = project.layout.buildDirectory.dir("generated").get()
+
+dependencies {
+    implementation libs.spring.starter.webflux
+    implementation libs.spring.starter.validation
+    api libs.swagger.integration.jakarta
+    api libs.jackson.databind.nullable
+    api libs.jakarta.annotation.api
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+}
+
+tasks.register('generateUiClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("kafbat-ui-client").asFile.absolutePath
+    apiPackage = "io.kafbat.ui.api.api"
+    invokerPackage = "io.kafbat.ui.api"
+    modelPackage = "io.kafbat.ui.api.model"
+
+    configOptions = [library          : 'webclient',
+                     asyncNative      : 'true',
+                     useBeanValidation: 'true',
+                     dateLibrary      : 'java8',
+                     useJakartaEe     : 'true',]
+}
+
+tasks.register('generateBackendApi', GenerateTask) {
+    generatorName = "spring"
+    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("api").asFile.absolutePath
+    apiPackage = "io.kafbat.ui.api"
+    invokerPackage = "io.kafbat.ui.api"
+    modelPackage = "io.kafbat.ui.model"
+    modelNameSuffix = "DTO"
+
+    additionalProperties = [removeEnumValuePrefix: "false"]
+
+    configOptions = [reactive                            : "true",
+                     interfaceOnly                       : "true",
+                     skipDefaultInterface                : "true",
+                     useTags                             : "true",
+                     useSpringBoot3                      : "true",
+                     dateLibrary                         : "java8",
+                     generateConstructorWithAllArgs      : "false",
+                     generatedConstructorWithRequiredArgs: "false",
+                     additionalModelTypeAnnotations      : """
+
+            @lombok.AllArgsConstructor
+            @lombok.NoArgsConstructor
+            """]
+}
+
+tasks.register('generateConnectClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("kafka-connect-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("kafka-connect-client").asFile.absolutePath
+    generateApiTests = false
+    generateModelTests = false
+    apiPackage = "io.kafbat.ui.connect.api"
+    modelPackage = "io.kafbat.ui.connect.model"
+    invokerPackage = "io.kafbat.ui.connect"
+
+
+    configOptions = [asyncNative      : "true",
+                     library          : "webclient",
+                     useJakartaEe     : "true",
+                     useBeanValidation: "true",
+                     dateLibrary      : "java8",]
+}
+
+tasks.register('generateSchemaRegistryClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("kafka-sr-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("kafka-sr-client").asFile.absolutePath
+    generateApiTests = false
+    generateModelTests = false
+    apiPackage = "io.kafbat.ui.sr.api"
+    invokerPackage = "io.kafbat.ui.sr"
+    modelPackage = "io.kafbat.ui.sr.model"
+
+    configOptions = [asyncNative      : "true",
+                     library          : "webclient",
+                     useJakartaEe     : "true",
+                     useBeanValidation: "true",
+                     dateLibrary      : "java8",]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir targetDir.dir("api/src/main/java")
+            srcDir targetDir.dir("kafka-connect-client/src/main/java")
+            srcDir targetDir.dir("kafbat-ui-client/src/main/java")
+            srcDir targetDir.dir("kafka-sr-client/src/main/java")
+        }
+
+        resources {
+            srcDir specDir
+        }
+    }
+}
+
+compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
+processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient

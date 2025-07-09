@@ -13,6 +13,7 @@ import io.kafbat.ui.model.SchemaSubjectsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.service.SchemaRegistryService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -28,7 +29,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class SchemasController extends AbstractController implements SchemasApi {
+public class SchemasController extends AbstractController implements SchemasApi, McpTool {
 
   private static final Integer DEFAULT_PAGE_SIZE = 25;
 

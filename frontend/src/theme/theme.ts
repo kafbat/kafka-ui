@@ -76,6 +76,30 @@ const Colors = {
     '70': '#5959A6',
     '80': '#3E3E74',
   },
+  clusterColorPicker: {
+    transparent: 'transparent',
+    gray: '#E3E6E8',
+    red: '#E63B19',
+    orange: '#FF9D00',
+    lettuce: '#9DD926',
+    green: '#33CC33',
+    turquoise: '#40BF95',
+    blue: '#1A5DE5',
+    violet: '#6633CC',
+    pink: '#D926D9',
+  },
+  clusterMenuBackgroundColor: {
+    transparent: 'transparent',
+    gray: hexToRgba('#808080', 0.1),
+    red: hexToRgba('#BF4040', 0.1),
+    orange: hexToRgba('#BF8340', 0.1),
+    lettuce: hexToRgba('#93BF40', 0.1),
+    green: hexToRgba('#40BF40', 0.1),
+    turquoise: hexToRgba('#40BF95', 0.1),
+    blue: hexToRgba('#406ABF', 0.1),
+    violet: hexToRgba('#6A40BF', 0.1),
+    pink: hexToRgba('#BF40BF', 0.1),
+  },
 };
 
 const baseTheme = {
@@ -276,6 +300,9 @@ const baseTheme = {
       active: '#FFBDB8',
     },
     menuIcon: Colors.brand[70],
+    filterIcon: {
+      normal: Colors.brand[70],
+    },
   },
   textArea: {
     borderColor: {
@@ -409,6 +436,9 @@ export const theme = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[30],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[70],
@@ -420,8 +450,8 @@ export const theme = {
     borderTop: 'none',
   },
   dropdown: {
-    backgroundColor: Colors.neutral[0],
-    borderColor: Colors.neutral[5],
+    backgroundColor: Colors.brand[0],
+    borderColor: Colors.brand[5],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -539,16 +569,19 @@ export const theme = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[0],
+    },
     primary: {
       backgroundColor: {
-        normal: Colors.brand[0],
-        hover: hexToRgba(Colors.brand[95], 0.03),
-        active: hexToRgba(Colors.brand[95], 0.05),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[80],
-        hover: Colors.brand[90],
-        active: Colors.brand[70],
+        normal: Colors.neutral[50],
+        hover: Colors.neutral[90],
+        active: Colors.neutral[95],
       },
       statusIconColor: {
         online: Colors.green[40],
@@ -571,6 +604,9 @@ export const theme = {
       },
       fontWeight: 400,
     },
+  },
+  clusterMenu: {
+    backgroundColor: Colors.clusterMenuBackgroundColor,
   },
   schema: {
     backgroundColor: {
@@ -650,6 +686,28 @@ export const theme = {
         border: Colors.neutral[80],
       },
       info: Colors.neutral[90],
+    },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[90],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[30],
+            active: Colors.neutral[90],
+            hover: Colors.neutral[90],
+          },
+        },
+      },
+    },
+    resizer: {
+      background: {
+        normal: Colors.neutral[30],
+        active: Colors.neutral[90],
+        hover: Colors.neutral[90],
+      },
     },
   },
   primaryTab: {
@@ -855,9 +913,19 @@ export const theme = {
       },
     },
   },
+  clusterColorPicker: {
+    backgroundColor: Colors.clusterColorPicker,
+    outline: Colors.brand[80],
+    transparentCircle: {
+      border: Colors.brand[10],
+      cross: Colors.brand[30],
+    },
+  },
 };
 
 export type ThemeType = typeof theme;
+export type ClusterColorKey =
+  keyof ThemeType['clusterColorPicker']['backgroundColor'];
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
@@ -925,6 +993,9 @@ export const darkTheme: ThemeType = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[50],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[30],
@@ -936,8 +1007,8 @@ export const darkTheme: ThemeType = {
     borderTop: Colors.neutral[80],
   },
   dropdown: {
-    backgroundColor: Colors.neutral[85],
-    borderColor: Colors.neutral[80],
+    backgroundColor: Colors.brand[85],
+    borderColor: Colors.brand[70],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -1055,16 +1126,19 @@ export const darkTheme: ThemeType = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[90],
+    },
     primary: {
       backgroundColor: {
-        normal: Colors.brand[90],
-        hover: hexToRgba(Colors.brand[0], 0.05),
-        active: hexToRgba(Colors.brand[0], 0.1),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[20],
+        normal: Colors.brand[50],
         hover: Colors.brand[0],
-        active: Colors.brand[10],
+        active: Colors.brand[20],
       },
       statusIconColor: {
         online: Colors.green[40],
@@ -1087,6 +1161,9 @@ export const darkTheme: ThemeType = {
       },
       fontWeight: 400,
     },
+  },
+  clusterMenu: {
+    backgroundColor: Colors.clusterMenuBackgroundColor,
   },
   schema: {
     backgroundColor: {
@@ -1166,6 +1243,28 @@ export const darkTheme: ThemeType = {
         border: Colors.neutral[80],
       },
       info: Colors.neutral[0],
+    },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[10],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[50],
+            hover: Colors.neutral[0],
+            active: Colors.brand[30],
+          },
+        },
+      },
+    },
+    resizer: {
+      background: {
+        normal: Colors.neutral[50],
+        hover: Colors.neutral[0],
+        active: Colors.brand[30],
+      },
     },
   },
   primaryTab: {
@@ -1453,6 +1552,14 @@ export const darkTheme: ThemeType = {
           },
         },
       },
+    },
+  },
+  clusterColorPicker: {
+    backgroundColor: Colors.clusterColorPicker,
+    outline: Colors.brand[80],
+    transparentCircle: {
+      border: Colors.brand[60],
+      cross: Colors.brand[30],
     },
   },
 };

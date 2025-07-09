@@ -30,7 +30,9 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -204,7 +206,15 @@ public class DynamicConfigOperations {
     representer.setPropertyUtils(propertyUtils);
     representer.addClassTag(PropertiesStructure.class, Tag.MAP); //to avoid adding class tag
     representer.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); //use indent instead of {}
-    return new Yaml(representer).dump(props);
+
+    DumperOptions dumperOptions = new DumperOptions();
+    dumperOptions.setDefaultFlowStyle(representer.getDefaultFlowStyle());
+    dumperOptions.setDefaultScalarStyle(representer.getDefaultScalarStyle());
+    dumperOptions
+        .setAllowReadOnlyProperties(representer.getPropertyUtils().isAllowReadOnlyProperties());
+    dumperOptions.setTimeZone(representer.getTimeZone());
+
+    return new Yaml(representer, dumperOptions).dump(props);
   }
 
   ///---------------------------------------------------------------------

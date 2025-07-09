@@ -111,7 +111,7 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
     try {
       await sendMessage.mutateAsync({
         key: key || null,
-        content: content || null,
+        value: content || null,
         headers: parsedHeaders,
         partition: partition || 0,
         keySerde,
