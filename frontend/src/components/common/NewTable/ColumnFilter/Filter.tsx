@@ -14,6 +14,9 @@ export const ColumnFilter = <T,>(props: FilterProps<T>) => {
     case 'multi-select': {
       return <Variant.MultiSelect column={column} />;
     }
+    case 'text': {
+      return <Variant.Text column={column} />;
+    }
     default: {
       throw Error('Not implemented filter');
     }
