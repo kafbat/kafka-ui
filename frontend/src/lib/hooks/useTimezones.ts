@@ -4,6 +4,7 @@ interface Timezone {
   value: string;
   label: string;
   offset: string;
+  UTCOffset: string;
 }
 
 const generateTimezones = (): Timezone[] => {
@@ -47,12 +48,14 @@ const generateTimezones = (): Timezone[] => {
           value: timeZone,
           label: `${offset.replace('GMT', 'UTC')} ${timeZone.replace(/_/g, ' ')}`,
           offset,
+          UTCOffset: offset.replace('GMT', 'UTC'),
         };
       } catch (error) {
         return {
           value: timeZone,
           label: timeZone.replace(/_/g, ' '),
           offset: 'GMT+00:00',
+          UTCOffset: 'UTC+00:00',
         };
       }
     });
@@ -62,14 +65,30 @@ const generateTimezones = (): Timezone[] => {
       'Intl.supportedValuesOf not supported, using fallback timezones'
     );
     return [
-      { value: 'UTC', label: 'UTC', offset: 'GMT+00:00' },
+      {
+        value: 'UTC',
+        label: 'UTC',
+        offset: 'GMT+00:00',
+        UTCOffset: 'GMT+00:00',
+      },
       {
         value: 'America/New York',
         label: 'America/New York',
         offset: 'GMT-05:00',
+        UTCOffset: 'GMT-05:00',
       },
-      { value: 'Europe/London', label: 'Europe/London', offset: 'GMT+00:00' },
-      { value: 'Asia/Tokyo', label: 'Asia/Tokyo', offset: 'GMT+09:00' },
+      {
+        value: 'Europe/London',
+        label: 'Europe/London',
+        offset: 'GMT+00:00',
+        UTCOffset: 'GMT+00:00',
+      },
+      {
+        value: 'Asia/Tokyo',
+        label: 'Asia/Tokyo',
+        offset: 'GMT+09:00',
+        UTCOffset: 'GMT+09:00',
+      },
     ];
   }
 };
@@ -115,6 +134,7 @@ export const getSystemTimezone = (): Timezone => {
     value: systemTimezone,
     label: systemTimezone,
     offset: offsetStr,
+    UTCOffset: offsetStr.replace('GMT', 'UTC'),
   };
 };
 
@@ -128,10 +148,21 @@ export const useTimezone = () => {
     setCurrentTimezone(timezone);
   };
 
+  const getDateInCurrentTimezone = (date: Date = new Date()): Date => {
+    const timezone = (currentTimezone ?? getSystemTimezone()).value;
+
+    const timeInTimezone = date.toLocaleString('sv-SE', {
+      timeZone: timezone,
+    });
+
+    return new Date(timeInTimezone);
+  };
+
   return {
     currentTimezone: currentTimezone ?? getSystemTimezone(),
     availableTimezones: TIMEZONES,
     setTimezone,
+    getDateInCurrentTimezone,
   };
 };
 

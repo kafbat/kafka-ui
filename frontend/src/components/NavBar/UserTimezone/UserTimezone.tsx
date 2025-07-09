@@ -39,7 +39,7 @@ export const UserTimezone = () => {
       openBtnEl={
         <Button buttonType="text" buttonSize="L">
           <S.SelectedTimezoneContainer>
-            <p>{currentTimezone.offset}</p>
+            <p>{currentTimezone.UTCOffset}</p>
             <ChevronDownIcon fill="currentColor" width="16" height="16" />
           </S.SelectedTimezoneContainer>
         </Button>
