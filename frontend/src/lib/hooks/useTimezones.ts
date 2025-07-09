@@ -57,6 +57,7 @@ const generateTimezones = (): Timezone[] => {
       }
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.warn(
       'Intl.supportedValuesOf not supported, using fallback timezones'
     );

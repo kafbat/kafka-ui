@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
 import {
   useState,
