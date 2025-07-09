@@ -176,7 +176,9 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/CompatibilityConfig'
+                                oneOf:
+                                    - $ref: '#/components/schemas/CompatibilityConfig'
+                                    - $ref: '#/components/schemas/CompatibilityConfigGcp'
                 404:
                     description: Not found
         put:
@@ -220,7 +222,9 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/CompatibilityConfig'
+                                oneOf:
+                                    - $ref: '#/components/schemas/CompatibilityConfig'
+                                    - $ref: '#/components/schemas/CompatibilityConfigGcp'
                 404:
                     description: Not found
         put:
@@ -381,13 +385,20 @@ components:
             properties:
                 compatibilityLevel:
                     $ref: '#/components/schemas/Compatibility'
-                # GCP Managed Kafka Schema registries specific fields
+            required:
+                - compatibilityLevel
+
+        CompatibilityConfigGcp:
+            type: object
+            properties:
                 alias:
-                    type: string
+                  type: string
                 compatibility:
-                    $ref: '#/components/schemas/Compatibility'
+                  $ref: '#/components/schemas/Compatibility'
                 normalize:
-                    type: boolean
+                  type: boolean
+            required:
+                - compatibility
 
         CompatibilityLevelChange:
             type: object
@@ -396,7 +407,6 @@ components:
                     $ref: '#/components/schemas/Compatibility'
             required:
                 - compatibility
-
 
         Compatibility:
             type: string
@@ -408,7 +418,6 @@ components:
                 - FULL
                 - FULL_TRANSITIVE
                 - NONE
-
 
         CompatibilityCheckResponse:
             type: object

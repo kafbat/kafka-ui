@@ -9,11 +9,12 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.sr.model.Compatibility;
 import io.kafbat.ui.sr.model.CompatibilityCheckResponse;
-import io.kafbat.ui.sr.model.CompatibilityConfig;
 import io.kafbat.ui.sr.model.CompatibilityLevelChange;
+import io.kafbat.ui.sr.model.GetGlobalCompatibilityLevel200Response;
 import io.kafbat.ui.sr.model.NewSubject;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import io.kafbat.ui.util.ReactiveFailover;
+import io.kafbat.ui.util.gcp.GcpBearerAuthFilter;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,9 +35,6 @@ import reactor.core.publisher.Mono;
 public class SchemaRegistryService {
 
   private static final String LATEST = "latest";
-
-  private static final String GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS =
-      "com.google.cloud.hosted.kafka.auth.GcpBearerAuthCredentialProvider";
 
   @AllArgsConstructor
   public static class SubjectWithCompatibilityLevel {
@@ -152,14 +150,16 @@ public class SchemaRegistryService {
                                                          String schemaName) {
     return api(cluster)
         .mono(c -> c.getSubjectCompatibilityLevel(schemaName, true))
-        .map(compatibilityConfig -> selectCompatibilityFormat(cluster, compatibilityConfig))
+        .map(compatibilityResponse ->
+            normalizeCompatibilityResponse(cluster, compatibilityResponse))
         .onErrorResume(error -> Mono.empty());
   }
 
   public Mono<Compatibility> getGlobalSchemaCompatibilityLevel(KafkaCluster cluster) {
     return api(cluster)
         .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
-        .map(compatibilityConfig -> selectCompatibilityFormat(cluster, compatibilityConfig));
+        .map(compatibilityResponse ->
+            normalizeCompatibilityResponse(cluster, compatibilityResponse));
   }
 
   private Mono<Compatibility> getSchemaCompatibilityInfoOrGlobal(KafkaCluster cluster,
@@ -174,13 +174,14 @@ public class SchemaRegistryService {
     return api(cluster).mono(c -> c.checkSchemaCompatibility(schemaName, LATEST, true, newSchemaSubject));
   }
 
-  private Compatibility selectCompatibilityFormat(KafkaCluster cluster, CompatibilityConfig compatibilityConfig) {
+  private Compatibility normalizeCompatibilityResponse(KafkaCluster cluster,
+                                                       GetGlobalCompatibilityLevel200Response compatibilityResponse) {
     if (cluster.getOriginalProperties().getSchemaRegistryAuth() != null
         && Objects.equals(cluster.getOriginalProperties().getSchemaRegistryAuth().getBearerAuthCustomProviderClass(),
-        GCP_BEARER_AUTH_CUSTOM_PROVIDER_CLASS)) {
-      return compatibilityConfig.getCompatibility();
+        GcpBearerAuthFilter.getGcpBearerAuthCustomProviderClass())) {
+      return compatibilityResponse.getCompatibility();
     } else {
-      return compatibilityConfig.getCompatibilityLevel();
+      return compatibilityResponse.getCompatibilityLevel();
     }
   }
 }
