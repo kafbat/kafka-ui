@@ -7,9 +7,7 @@ export const EnumCell = styled.div`
 `;
 
 export const DeleteCell = styled.div`
-  svg {
-    cursor: pointer;
-  }
+  display: flex;
 `;
 
 export const Chip = styled.div<{

@@ -24,6 +24,7 @@ import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel
 import Search from 'components/common/Search/Search';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
+import { ActionPermissionWrapper } from 'components/common/ActionComponent';
 
 import * as S from './List.styled';
 
@@ -150,13 +151,23 @@ const ACList: React.FC = () => {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ row }) => {
           return (
-            <S.DeleteCell onClick={() => handleDeleteClick(row.original)}>
-              <DeleteIcon
-                fill={
-                  rowId === row.id ? theme.acl.table.deleteIcon : 'transparent'
-                }
-              />
-            </S.DeleteCell>
+            <ActionPermissionWrapper
+              onAction={() => handleDeleteClick(row.original)}
+              permission={{
+                resource: ResourceType.ACL,
+                action: Action.EDIT,
+              }}
+            >
+              <S.DeleteCell>
+                <DeleteIcon
+                  fill={
+                    rowId === row.id
+                      ? theme.acl.table.deleteIcon
+                      : 'transparent'
+                  }
+                />
+              </S.DeleteCell>
+            </ActionPermissionWrapper>
           );
         },
         size: 76,
