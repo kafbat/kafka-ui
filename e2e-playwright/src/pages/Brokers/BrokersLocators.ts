@@ -8,4 +8,8 @@ export default class BrokersLocators {
     }
 
     get heading(): Locator { return  this.page.getByRole('heading', { name: 'Brokers' })};
+    get uptime(): Locator { return  this.page.getByRole('heading', { name: 'Uptime' })};
+    get partitions(): Locator { return  this.page.getByRole('heading', { name: 'Partitions' })};
+
+    toBroker(value: string): Locator { return this.page.getByRole('cell', { name: value, exact: true }); }
 }

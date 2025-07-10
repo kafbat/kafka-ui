@@ -51,3 +51,19 @@ Feature: TopicsCreate page
     Then TopicCreate TimeToRetainData value is: "604800000"
     When TopicCreate 4Weeks button clicked
     Then TopicCreate TimeToRetainData value is: "2419200000"
+
+  Scenario: Topic Delete
+    Given Topics is visible
+    When click on Topics link
+    Given Topics AddATopic clicked
+    Given TopicCreate heading visible is: "true"
+    When TopicCreate Topic name starts with: "NewAutoTopic"
+    When TopicCreate Number of partitons: 1
+    When TopicCreate Time to retain data one day
+    When TopicCreate Create topic clicked
+    Then Header starts with: "NewAutoTopic"
+    When click on Topics link
+    Then Topic name started with: "NewAutoTopic" visible is: "true"
+    When Topic name started with: "NewAutoTopic" RemoveTopic clicked
+    Then Topic name started with: "NewAutoTopic" visible is: "false"
+  
