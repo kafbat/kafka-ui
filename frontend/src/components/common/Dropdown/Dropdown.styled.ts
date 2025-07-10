@@ -22,7 +22,7 @@ export const Dropdown = styled(ControlledMenu)(
     ${menuSelector.name} {
       border: 1px solid ${dropdown.borderColor};
       box-shadow: 0 4px 16px ${dropdown.shadow};
-      padding: 8px 0;
+      padding: 8px 4px;
       border-radius: 4px;
       font-size: 14px;
       background-color: ${dropdown.backgroundColor};

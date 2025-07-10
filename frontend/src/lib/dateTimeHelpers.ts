@@ -1,12 +1,18 @@
-export const formatTimestamp = (
-  timestamp?: number | string | Date,
-  format: Intl.DateTimeFormatOptions = { hourCycle: 'h23' }
-): string => {
+import { getSystemTimezone } from 'lib/hooks/useTimezones';
+
+export const formatTimestamp = ({
+  timestamp,
+  format = { hourCycle: 'h23' },
+  timezone,
+}: {
+  timestamp: number | string | Date | undefined;
+  format?: Intl.DateTimeFormatOptions;
+  timezone?: string;
+}): string => {
   if (!timestamp) {
     return '';
   }
 
-  // empty array gets the default one from the browser
   const date = new Date(timestamp);
   // invalid date
   if (Number.isNaN(date.getTime())) {
@@ -15,7 +21,15 @@ export const formatTimestamp = (
 
   // browser support
   const language = navigator.language || navigator.languages[0];
-  return date.toLocaleString(language || [], format);
+
+  const finalTimezone = timezone || getSystemTimezone().value;
+
+  const formatOptions: Intl.DateTimeFormatOptions = {
+    ...format,
+    timeZone: finalTimezone,
+  };
+
+  return date.toLocaleString(language || [], formatOptions);
 };
 
 export const formatMilliseconds = (input = 0) => {

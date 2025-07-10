@@ -3,10 +3,12 @@ import WarningIcon from 'components/common/Icons/WarningIcon';
 import { gitCommitPath } from 'lib/paths';
 import { useLatestVersion } from 'lib/hooks/api/latestVersion';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './Version.styled';
 
 const Version: React.FC = () => {
+  const { currentTimezone } = useTimezone();
   const { data: latestVersionInfo = {} } = useLatestVersion();
   const { buildTime, commitId, isLatestRelease, version } =
     latestVersionInfo.build;
@@ -15,7 +17,10 @@ const Version: React.FC = () => {
   const currentVersion =
     isLatestRelease && version?.match(versionTag)
       ? versionTag
-      : formatTimestamp(buildTime);
+      : formatTimestamp({
+          timestamp: buildTime,
+          timezone: currentTimezone.value,
+        });
 
   return (
     <S.Wrapper>
