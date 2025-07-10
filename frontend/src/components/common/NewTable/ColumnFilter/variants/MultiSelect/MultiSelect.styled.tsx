@@ -5,6 +5,7 @@ export const SelectPanel = styled(ReactMultiSelect)<{
   minWidth?: string;
   height?: string;
 }>`
+  min-width: 160px;
   font-size: 14px;
   padding-right: 12px;
   .dropdown-container:focus-within {
@@ -50,7 +51,6 @@ export const SelectPanel = styled(ReactMultiSelect)<{
 
     & > .dropdown-content {
       width: fit-content;
-      min-width: 120px;
       right: 0px;
       top: 0;
       padding-top: 0;
@@ -67,29 +67,7 @@ export const SelectPanel = styled(ReactMultiSelect)<{
   }
 `;
 
-export const Container = styled.div`
-  display: flex;
-  height: 24px;
-  align-items: center;
-  position: relative;
-  padding-right: 8px;
-`;
-
-export const Positioner = styled.div`
-  position: absolute;
-  z-index: 30;
-`;
-
 export const Count = styled.span`
   padding-left: 4px;
   color: ${({ theme }) => theme.table.filter.multiSelect.value.color};
-`;
-
-export const FilterIcon = styled.div`
-  height: 12px;
-  margin: 2px;
-`;
-
-export const ResetIcon = styled.div`
-  margin: 3px;
 `;
