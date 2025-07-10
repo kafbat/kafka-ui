@@ -27,10 +27,6 @@ public class RoleBasedAccessControlProperties {
     return roles;
   }
 
-  public void setDefaultRole(DefaultRole defaultRole) {
-    this.defaultRole = defaultRole;
-  }
-
   @Nullable
   public DefaultRole getDefaultRole() {
     return defaultRole;

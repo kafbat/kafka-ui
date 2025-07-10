@@ -87,7 +87,8 @@ public class AccessControlService {
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
-    if (!(properties.getRoles().isEmpty() && properties.getDefaultRole() == null)
+    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
+    if (hasRolesConfigured
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
         && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
       log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
