@@ -11,6 +11,8 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -24,8 +26,10 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
+
 
 public class WebClientConfigurator {
 
@@ -33,6 +37,8 @@ public class WebClientConfigurator {
   private HttpClient httpClient = HttpClient
       .create()
       .proxyWithSystemProperties();
+
+  private final List<ExchangeFilterFunction> filters = new ArrayList<>();
 
   public WebClientConfigurator() {
     configureObjectMapper(defaultOM());
@@ -43,6 +49,13 @@ public class WebClientConfigurator {
         .registerModule(new JavaTimeModule())
         .registerModule(new JsonNullableModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
+
+  public WebClientConfigurator filter(ExchangeFilterFunction filter) {
+    if (filter != null) {
+      this.filters.add(filter);
+    }
+    return this;
   }
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
@@ -151,6 +164,7 @@ public class WebClientConfigurator {
   }
 
   public WebClient build() {
+    builder.filters(filterList -> filterList.addAll(this.filters));
     return builder.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
   }
 }
