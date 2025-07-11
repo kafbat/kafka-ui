@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 public class GithubReleaseInfo {
+  public static final String GITHUB_RELEASE_INFO_ENABLED = "github.release.info.enabled";
   public static final String GITHUB_RELEASE_INFO_TIMEOUT = "github.release.info.timeout";
 
   private static final String GITHUB_LATEST_RELEASE_RETRIEVAL_URL =
