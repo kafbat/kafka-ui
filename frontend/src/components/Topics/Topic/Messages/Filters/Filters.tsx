@@ -2,6 +2,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
 import React, { ChangeEvent, useMemo, useState } from 'react';
+import { format } from 'date-fns';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
@@ -18,6 +19,7 @@ import EditIcon from 'components/common/Icons/EditIcon';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './Filters.styled';
 import {
@@ -30,11 +32,29 @@ import {
 import FiltersSideBar from './FiltersSideBar';
 import FiltersMetrics from './FiltersMetrics';
 
+interface MessageData {
+  Value: string | undefined;
+  Offset: number;
+  Key: string | undefined;
+  Partition: number;
+  Headers: { [key: string]: string | undefined } | undefined;
+  Timestamp: Date;
+}
+
+type DownloadFormat = 'json' | 'csv';
+
+function padCurrentDateTimeString(): string {
+  const now: Date = new Date();
+  const dateTimeString: string = format(now, 'yyyy-MM-dd HH:mm:ss');
+  return `_${dateTimeString}`;
+}
+
 export interface FiltersProps {
   phaseMessage?: string;
   consumptionStats?: TopicMessageConsuming;
   isFetching: boolean;
   abortFetchData: () => void;
+  messages?: any[]; // Add messages prop for download functionality
 }
 
 const Filters: React.FC<FiltersProps> = ({
@@ -42,6 +62,7 @@ const Filters: React.FC<FiltersProps> = ({
   isFetching,
   abortFetchData,
   phaseMessage,
+  messages = [],
 }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
 
@@ -68,6 +89,76 @@ const Filters: React.FC<FiltersProps> = ({
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
   const remove = useMessageFiltersStore((state) => state.remove);
+
+  // Download functionality
+  const [selectedFormat, setSelectedFormat] = useState<DownloadFormat>('json');
+  const [showFormatSelector, setShowFormatSelector] = useState(false);
+
+  const formatOptions = [
+    { label: 'Export JSON', value: 'json' as DownloadFormat },
+    { label: 'Export CSV', value: 'csv' as DownloadFormat },
+  ];
+
+  const baseFileName = `topic-messages${padCurrentDateTimeString()}`;
+
+  const savedMessagesJson: MessageData[] = messages.map((message) => ({
+    Value: message.content,
+    Offset: message.offset,
+    Key: message.key,
+    Partition: message.partition,
+    Headers: message.headers,
+    Timestamp: message.timestamp,
+  }));
+
+  const convertToCSV = useMemo(() => {
+    return (messagesData: MessageData[]) => {
+      const headers = [
+        'Value',
+        'Offset',
+        'Key',
+        'Partition',
+        'Headers',
+        'Timestamp',
+      ] as const;
+      const rows = messagesData.map((msg) =>
+        headers
+          .map((header) => {
+            const value = msg[header];
+            if (header === 'Headers') {
+              return JSON.stringify(value || {});
+            }
+            return String(value ?? '');
+          })
+          .join(',')
+      );
+      return [headers.join(','), ...rows].join('\n');
+    };
+  }, []);
+
+  const jsonSaver = useDataSaver(
+    `${baseFileName}.json`,
+    JSON.stringify(savedMessagesJson, null, '\t')
+  );
+  const csvSaver = useDataSaver(
+    `${baseFileName}.csv`,
+    convertToCSV(savedMessagesJson)
+  );
+
+  const handleFormatSelect = (downloadFormat: DownloadFormat) => {
+    setSelectedFormat(downloadFormat);
+    setShowFormatSelector(false);
+    
+    // Automatically download after format selection
+    if (downloadFormat === 'json') {
+      jsonSaver.saveFile();
+    } else {
+      csvSaver.saveFile();
+    }
+  };
+
+  const handleDownloadClick = () => {
+    setShowFormatSelector(!showFormatSelector);
+  };
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -187,7 +278,76 @@ const Filters: React.FC<FiltersProps> = ({
           </Button>
         </FlexBox>
 
-        <Search placeholder="Search" value={search} onChange={setSearch} />
+        <FlexBox gap="8px" alignItems="center">
+          <Search placeholder="Search" value={search} onChange={setSearch} />
+          <div style={{ position: 'relative' }}>
+            <Button
+              disabled={isFetching || messages.length === 0}
+              buttonType="secondary"
+              buttonSize="M"
+              onClick={handleDownloadClick}
+              style={{
+                minWidth: '40px',
+                padding: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg> Export
+            </Button>
+            {showFormatSelector && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: '0',
+                  zIndex: 1000,
+                  backgroundColor: 'white',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  padding: '8px',
+                  minWidth: '120px',
+                }}
+              >
+                {formatOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    onClick={() => handleFormatSelect(option.value)}
+                    style={{
+                      padding: '8px 12px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    {option.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </FlexBox>
       </FlexBox>
       <FlexBox
         gap="10px"
@@ -245,3 +405,4 @@ const Filters: React.FC<FiltersProps> = ({
 };
 
 export default Filters;
+

@@ -21,6 +21,7 @@ const Messages: React.FC = () => {
         isFetching={isFetching}
         phaseMessage={phase}
         abortFetchData={abortFetchData}
+        messages={messages}
       />
       <MessagesTable messages={messages} isFetching={isFetching} />
     </>
@@ -28,3 +29,4 @@ const Messages: React.FC = () => {
 };
 
 export default Messages;
+
