@@ -7,6 +7,7 @@ import {
   clusterACLPath,
   clusterBrokersPath,
   clusterConnectorsPath,
+  clusterConnectsPath,
   clusterConsumerGroupsPath,
   clusterKsqlDbPath,
   clusterSchemasPath,
@@ -81,7 +82,10 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterConnectorsPath(name))}
+              isActive={
+                getIsMenuItemActive(clusterConnectorsPath(name)) ||
+                getIsMenuItemActive(clusterConnectsPath(name))
+              }
               to={clusterConnectorsPath(name)}
               title="Kafka Connect"
             />
