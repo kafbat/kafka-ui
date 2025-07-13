@@ -14,7 +14,12 @@ dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation libs.spring.starter.security
+    implementation(libs.spring.starter.security){
+        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
+    implementation(libs.nimbus.jose.jwt){
+        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
