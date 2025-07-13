@@ -53,7 +53,7 @@ class Replace extends MaskingPolicy {
   private JsonNode replaceRecursive(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.properties().forEach(f -> obj.set(f.getKey(), replaceRecursive(f.getValue())));
+      node.fields().forEachRemaining(f -> obj.set(f.getKey(), replaceRecursive(f.getValue())));
       return obj;
     } else if (node.isArray()) {
       ArrayNode arr = ((ArrayNode) node).arrayNode(node.size());
