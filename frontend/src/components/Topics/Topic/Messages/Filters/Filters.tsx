@@ -1,6 +1,10 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { SerdeUsage, TopicMessageConsuming, TopicMessage } from 'generated-sources';
+import {
+  SerdeUsage,
+  TopicMessageConsuming,
+  TopicMessage,
+} from 'generated-sources';
 import React, { ChangeEvent, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
@@ -54,7 +58,7 @@ export interface FiltersProps {
   consumptionStats?: TopicMessageConsuming;
   isFetching: boolean;
   abortFetchData: () => void;
-  messages?: TopicMessage[]; 
+  messages?: TopicMessage[];
 }
 
 const Filters: React.FC<FiltersProps> = ({
@@ -88,7 +92,9 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
-  const remove = useMessageFiltersStore((state: { remove: (id: string) => void }) => state.remove);
+  const remove = useMessageFiltersStore(
+    (state: { remove: (id: string) => void }) => state.remove
+  );
 
   // Download functionality
   const [showFormatSelector, setShowFormatSelector] = useState(false);
@@ -100,14 +106,16 @@ const Filters: React.FC<FiltersProps> = ({
 
   const baseFileName = `topic-messages${padCurrentDateTimeString()}`;
 
-  const savedMessagesJson: MessageData[] = messages.map((message: TopicMessage) => ({
-    Value: message.content,
-    Offset: message.offset,
-    Key: message.key,
-    Partition: message.partition,
-    Headers: message.headers,
-    Timestamp: message.timestamp,
-  }));
+  const savedMessagesJson: MessageData[] = messages.map(
+    (message: TopicMessage) => ({
+      Value: message.content,
+      Offset: message.offset,
+      Key: message.key,
+      Partition: message.partition,
+      Headers: message.headers,
+      Timestamp: message.timestamp,
+    })
+  );
 
   const convertToCSV = useMemo(() => {
     return (messagesData: MessageData[]) => {
@@ -305,7 +313,8 @@ const Filters: React.FC<FiltersProps> = ({
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7,10 12,15 17,10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
-              </svg> Export
+              </svg>{' '}
+              Export
             </Button>
             {showFormatSelector && (
               <div
@@ -325,6 +334,7 @@ const Filters: React.FC<FiltersProps> = ({
                 {formatOptions.map((option) => (
                   <button
                     key={option.value}
+                    type="button"
                     onClick={() => handleFormatSelect(option.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
