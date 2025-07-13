@@ -155,4 +155,3 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
 };
 
 export default MessagesTable;
-
