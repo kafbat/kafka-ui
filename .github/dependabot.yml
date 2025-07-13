@@ -12,7 +12,15 @@ updates:
     - "type/dependencies"
     - "scope/backend"
   groups:
-    gradle-dependencies:
+    spring-boot-dependencies:
+      patterns:
+        - "org.springframework.boot:*"
+        - "io.spring.dependency-management"
+      # We will handle major upgrades manually
+      update-types:
+        - "patch"
+        - "minor"
+    other-dependencies:
       patterns:
         - "*"
       update-types:
