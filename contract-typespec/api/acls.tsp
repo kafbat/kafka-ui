@@ -104,6 +104,7 @@ alias KafkaAclOpeations =
   | "DESCRIBE_CONFIGS"
   | "ALTER_CONFIGS"
   | "IDEMPOTENT_WRITE"
+  | "TWO_PHASE_COMMIT"
   | "CREATE_TOKENS"
   | "DESCRIBE_TOKENS";
 
