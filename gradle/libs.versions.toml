@@ -61,7 +61,7 @@ spring-starter-actuator = { module = 'org.springframework.boot:spring-boot-start
 spring-starter-test = { module = 'org.springframework.boot:spring-boot-starter-test', version.ref = 'spring-boot' }
 spring-starter-webflux = { module = 'org.springframework.boot:spring-boot-starter-webflux', version.ref = 'spring-boot' }
 spring-starter-security = { module = 'org.springframework.boot:spring-boot-starter-security', version.ref = 'spring-boot' }
-# Temporary overwrite to fix CVE-2025-5386
+# Temporary overwrite to fix CVE-2025-53864
 nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
 spring-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation', version.ref = 'spring-boot' }
 spring-starter-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-oauth2-client', version.ref = 'spring-boot' }
