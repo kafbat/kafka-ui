@@ -41,9 +41,6 @@ testng = '7.10.0'
 bonigarcia-webdrivermanager = '5.9.3'
 aspectj = '1.9.21'
 
-# CVE fixes
-netty = '4.1.119.Final'
-
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
 spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.3' }
