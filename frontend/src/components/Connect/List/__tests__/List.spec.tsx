@@ -73,30 +73,6 @@ describe('Connectors List', () => {
           'hdfs-source-connector'
         )
       );
-      expect(screen.getByText('first')).toHaveAttribute(
-        'href',
-        clusterConnectConnectorPath(
-          clusterName,
-          'first',
-          'hdfs-source-connector'
-        )
-      );
-      expect(screen.getByText('SOURCE')).toHaveAttribute(
-        'href',
-        clusterConnectConnectorPath(
-          clusterName,
-          'first',
-          'hdfs-source-connector'
-        )
-      );
-      expect(screen.getAllByText('FileStreamSource')[0]).toHaveAttribute(
-        'href',
-        clusterConnectConnectorPath(
-          clusterName,
-          'first',
-          'hdfs-source-connector'
-        )
-      );
     });
   });
 

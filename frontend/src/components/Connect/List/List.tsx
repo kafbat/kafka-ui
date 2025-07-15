@@ -8,6 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -24,7 +25,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
   {
     header: 'Connect',
     accessorKey: 'connect',
-    cell: KafkaConnectLinkCell,
+    cell: BreakableTextCell,
     filterFn: 'arrIncludesSome',
     meta: {
       filterVariant: 'multi-select',
@@ -34,7 +35,6 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
   {
     header: 'Type',
     accessorKey: 'type',
-    cell: KafkaConnectLinkCell,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
     size: 120,
@@ -42,7 +42,7 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
   {
     header: 'Plugin',
     accessorKey: 'connectorClass',
-    cell: KafkaConnectLinkCell,
+    cell: BreakableTextCell,
     meta: { filterVariant: 'multi-select' },
     filterFn: 'arrIncludesSome',
     enableResizing: true,
