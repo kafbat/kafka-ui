@@ -10,7 +10,13 @@ interface DropdownProps extends PropsWithChildren<Partial<MenuProps>> {
   disabled?: boolean;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, disabled, children }) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  label,
+  disabled,
+  children,
+  offsetY,
+  ...props
+}) => {
   const ref = useRef(null);
   const { value: isOpen, setFalse, setTrue } = useBoolean(false);
 
@@ -25,7 +31,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, disabled, children }) => {
       <S.DropdownButton
         onClick={handleClick}
         ref={ref}
-        aria-label="Dropdown Toggle"
+        aria-label={props['aria-label'] || 'Dropdown Toggle'}
         disabled={disabled}
       >
         {label || <VerticalElipsisIcon />}
@@ -37,8 +43,12 @@ const Dropdown: React.FC<DropdownProps> = ({ label, disabled, children }) => {
         onClose={setFalse}
         align="end"
         direction="bottom"
-        offsetY={10}
+        offsetY={offsetY ?? 10}
         viewScroll="auto"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         {children}
       </S.Dropdown>

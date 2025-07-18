@@ -1,0 +1,40 @@
+plugins {
+  alias(libs.plugins.node.gradle)
+}
+
+node {
+  download = "true" != project.property("local_node")
+  version = project.property("node_version").toString()
+  pnpmVersion = project.property("pnpm_version").toString()
+  nodeProjectDir = project.layout.projectDirectory
+}
+
+tasks.register('clean', Delete) {
+  group = 'build'
+  description = 'Cleans frontend build'
+  delete layout.buildDirectory
+  delete layout.projectDirectory.dir('src/generated-sources')
+}
+
+tasks.named("pnpmInstall") {
+  inputs.files(file("package.json"))
+  outputs.dir(project.layout.projectDirectory.dir("node_modules"))
+}
+
+tasks.register('generateContract', PnpmTask) {
+  dependsOn pnpmInstall
+  inputs.files(fileTree("../contract/src/main/resources"))
+  outputs.dir(project.layout.projectDirectory.dir("src/generated-sources"))
+  args = ['gen:sources']
+}
+
+tasks.register('buildFrontend', PnpmTask) {
+  dependsOn generateContract
+  inputs.files(fileTree("src/"))
+  outputs.dir(project.layout.buildDirectory.dir("vite/static"))
+  args = ['build']
+  environment = System.getenv() + [
+    "VITE_TAG"   : project.version,
+    "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
+  ]
+}

@@ -88,7 +88,7 @@ const Filters: React.FC<FiltersProps> = ({
     smartFilter,
     setSmartFilter,
     refreshData,
-  } = useMessagesFilters();
+  } = useMessagesFilters(topicName);
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();

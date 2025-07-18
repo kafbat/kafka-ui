@@ -30,6 +30,12 @@ const parseCredentials = (username?: string, password?: string) => {
   return { isAuth: true, username, password };
 };
 
+const parseProperties = (properties?: { [key: string]: string }) =>
+  Object.entries(properties || {}).map(([key, value]) => ({
+    key,
+    value,
+  }));
+
 export const getInitialFormData = (
   payload: ApplicationConfigPropertiesKafkaClusters
 ) => {
@@ -43,6 +49,8 @@ export const getInitialFormData = (
     ksqldbServer,
     ksqldbServerAuth,
     ksqldbServerSsl,
+    masking,
+    serde,
   } = payload;
 
   const initialValues: Partial<ClusterConfigFormValues> = {
@@ -81,6 +89,17 @@ export const getInitialFormData = (
     };
   }
 
+  if (serde && serde.length > 0) {
+    initialValues.serde = serde.map((c) => ({
+      name: c.name,
+      className: c.className,
+      filePath: c.filePath,
+      properties: parseProperties(c.properties),
+      topicKeysPattern: c.topicKeysPattern,
+      topicValuesPattern: c.topicValuesPattern,
+    }));
+  }
+
   if (kafkaConnect && kafkaConnect.length > 0) {
     initialValues.kafkaConnect = kafkaConnect.map((c) => ({
       name: c.name as string,
@@ -97,6 +116,16 @@ export const getInitialFormData = (
       ...parseKeystore(metrics),
       port: `${metrics.port}`,
     };
+  }
+
+  if (masking) {
+    initialValues.masking = masking.map((m) => ({
+      ...m,
+      fields: (m.fields ?? []).map((f) => ({ value: f })),
+      maskingCharsReplacement: (m.maskingCharsReplacement ?? []).map((f) => ({
+        value: f,
+      })),
+    }));
   }
 
   const properties = payload.properties || {};

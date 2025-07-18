@@ -5,13 +5,13 @@ import { PER_PAGE } from 'lib/constants';
 import ClusterContext from 'components/contexts/ClusterContext';
 import Search from 'components/common/Search/Search';
 import { ActionButton } from 'components/common/ActionComponent';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import Switch from 'components/common/Switch/Switch';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import TopicTable from 'components/Topics/List/TopicTable';
 import { Action, ResourceType } from 'generated-sources';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
@@ -46,7 +46,7 @@ const ListPage: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Topics">
+      <ResourcePageHeading text="Topics">
         {!isReadOnly && (
           <ActionButton
             buttonType="primary"
@@ -60,7 +60,7 @@ const ListPage: React.FC = () => {
             <PlusIcon /> Add a Topic
           </ActionButton>
         )}
-      </PageHeading>
+      </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Topic Name" />
         <label>

@@ -30,42 +30,42 @@ class MessageFiltersTest {
     @Test
     void returnsTrueWhenStringContainedInKeyOrContentOrHeadersOrInAllThree() {
       assertTrue(
-          filter.test(msg().key("contains abCd").content("some str"))
+          filter.test(msg().key("contains abCd").value("some str"))
       );
 
       assertTrue(
-          filter.test(msg().key("some str").content("contains abCd"))
+          filter.test(msg().key("some str").value("contains abCd"))
       );
 
       assertTrue(
-          filter.test(msg().key("contains abCd").content("contains abCd"))
+          filter.test(msg().key("contains abCd").value("contains abCd"))
       );
 
       assertTrue(
-          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("abC", "value")))
+          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("abC", "value")))
       );
 
       assertTrue(
-          filter.test(msg().key("dfg").content("does-not-contain").headers(Map.of("x1", "some abC")))
+          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("x1", "some abC")))
       );
     }
 
     @Test
     void returnsFalseOtherwise() {
       assertFalse(
-          filter.test(msg().key("some str").content("some str"))
+          filter.test(msg().key("some str").value("some str"))
       );
 
       assertFalse(
-          filter.test(msg().key(null).content(null))
+          filter.test(msg().key(null).value(null))
       );
 
       assertFalse(
-          filter.test(msg().key("aBc").content("AbC"))
+          filter.test(msg().key("aBc").value("AbC"))
       );
 
       assertFalse(
-          filter.test(msg().key("aBc").content("AbC").headers(Map.of("abc", "value")))
+          filter.test(msg().key("aBc").value("AbC").headers(Map.of("abc", "value")))
       );
 
     }
@@ -120,8 +120,8 @@ class MessageFiltersTest {
     @Test
     void canCheckValueAsText() {
       var f = celScriptFilter("record.valueAsText == 'some text'");
-      assertTrue(f.test(msg().content("some text")));
-      assertFalse(f.test(msg().content("some other text")));
+      assertTrue(f.test(msg().value("some text")));
+      assertFalse(f.test(msg().value("some other text")));
     }
 
     @Test
@@ -157,24 +157,24 @@ class MessageFiltersTest {
     @Test
     void canCheckValueAsJsonObjectIfItCanBeParsedToJson() {
       var f = celScriptFilter("has(record.value.name.first) && record.value.name.first == 'user1'");
-      assertTrue(f.test(msg().content("{ \"name\" : { \"first\" : \"user1\" } }")));
-      assertFalse(f.test(msg().content("{ \"name\" : { \"first\" : \"user2\" } }")));
-      assertFalse(f.test(msg().content("{ \"name\" : { \"second\" : \"user2\" } }")));
+      assertTrue(f.test(msg().value("{ \"name\" : { \"first\" : \"user1\" } }")));
+      assertFalse(f.test(msg().value("{ \"name\" : { \"first\" : \"user2\" } }")));
+      assertFalse(f.test(msg().value("{ \"name\" : { \"second\" : \"user2\" } }")));
     }
 
     @Test
     void valueSetToContentStringIfCantBeParsedToJson() {
       var f = celScriptFilter("record.value == \"not json\"");
-      assertTrue(f.test(msg().content("not json")));
+      assertTrue(f.test(msg().value("not json")));
     }
 
     @Test
     void valueAndValueAsTextSetToNullIfRecordsContentIsNull() {
       var f = celScriptFilter("!has(record.value)");
-      assertTrue(f.test(msg().content(null)));
+      assertTrue(f.test(msg().value(null)));
 
       f = celScriptFilter("!has(record.valueAsText)");
-      assertTrue(f.test(msg().content(null)));
+      assertTrue(f.test(msg().value(null)));
     }
 
     @Test
@@ -188,7 +188,7 @@ class MessageFiltersTest {
         String jsonContent = String.format(
             "{ \"name\" : {  \"randomStr\": \"%s\", \"first\" : \"%s\"} }",
             randString, name);
-        toFilter.add(msg().content(jsonContent).key(randString));
+        toFilter.add(msg().value(jsonContent).key(randString));
       }
       // first iteration for warmup
       // noinspection ResultOfMethodCallIgnored
@@ -201,6 +201,18 @@ class MessageFiltersTest {
       assertThat(took).isLessThan(1000);
       assertThat(matched).isPositive();
     }
+
+    @Test
+    void nullFiltering() {
+      String msg = "{ \"field\": { \"inner\": null } }";
+
+      var f = celScriptFilter("record.value.field.inner == null");
+      assertTrue(f.test(msg().value(msg)));
+
+      f = celScriptFilter("record.value.field.inner != null");
+      assertFalse(f.test(msg().value(msg)));
+    }
+
   }
 
   @Test
@@ -208,14 +220,13 @@ class MessageFiltersTest {
     var uuid = UUID.randomUUID().toString();
     var msg = "test." + Base64.getEncoder().encodeToString(uuid.getBytes());
     var f = celScriptFilter("string(base64.decode(record.value.split('.')[1])).contains('" + uuid + "')");
-    assertTrue(f.test(msg().content(msg)));
+    assertTrue(f.test(msg().value(msg)));
   }
 
   private TopicMessageDTO msg() {
-    return TopicMessageDTO.builder()
+    return new TopicMessageDTO()
         .partition(1)
         .offset(-1L)
-        .timestamp(OffsetDateTime.now())
-        .build();
+        .timestamp(OffsetDateTime.now());
   }
 }

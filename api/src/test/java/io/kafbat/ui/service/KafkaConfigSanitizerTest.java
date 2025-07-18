@@ -27,6 +27,7 @@ class KafkaConfigSanitizerTest {
     assertThat(sanitizer.sanitize("main.consumer.sasl.jaas.config", "secret")).isEqualTo("******");
     assertThat(sanitizer.sanitize("database.password", "secret")).isEqualTo("******");
     assertThat(sanitizer.sanitize("basic.auth.user.info", "secret")).isEqualTo("******");
+    assertThat(sanitizer.sanitize("private.key.passphrase", "secret")).isEqualTo("******");
 
     //AWS var sanitizing
     assertThat(sanitizer.sanitize("aws.access.key.id", "secret")).isEqualTo("******");

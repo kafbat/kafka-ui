@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,6 +63,20 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
+    if (properties.getResourceServer() != null) {
+      OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
+      if (resourceServer.getJwt() != null) {
+        builder.oauth2ResourceServer((c) -> c.jwt((j) -> j.jwkSetUri(resourceServer.getJwt().getJwkSetUri())));
+      } else if (resourceServer.getOpaquetoken() != null) {
+        OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
+        builder.oauth2ResourceServer(
+            (c) -> c.opaqueToken(
+              (o) -> o.introspectionUri(opaquetoken.getIntrospectionUri())
+                  .introspectionClientCredentials(opaquetoken.getClientId(), opaquetoken.getClientSecret())
+            )
+        );
+      }
+    }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 

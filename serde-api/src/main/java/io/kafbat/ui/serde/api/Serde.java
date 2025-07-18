@@ -27,7 +27,14 @@ public interface Serde extends Closeable {
    * Kafka record's part that Serde will be applied to.
    */
   enum Target {
-    KEY, VALUE
+    /**
+     * Should be used for key serialization/deserialization
+     */
+    KEY,
+    /**
+     * Should be used for value serialization/deserialization.
+     */
+    VALUE,
   }
 
   /**
@@ -44,22 +51,32 @@ public interface Serde extends Closeable {
   );
 
   /**
+   * Get serde's description.
    * @return Serde's description. Treated as Markdown text. Will be shown in UI.
    */
   Optional<String> getDescription();
 
   /**
+   * Get schema description for specified topic's key/value.
+   * @param topic topic name
+   * @param type  {@code Target} for which {@code SchemaDescription} will be returned.
    * @return SchemaDescription for specified topic's key/value.
    * {@code Optional.empty} if there is not information about schema.
    */
   Optional<SchemaDescription> getSchema(String topic, Target type);
 
   /**
+   * Checks if this Serde can be applied to specified topic's key/value deserialization.
+   * @param topic topic name
+   * @param type  {@code Target} for which {@code Deserializer} will be applied.
    * @return true if this Serde can be applied to specified topic's key/value deserialization
    */
   boolean canDeserialize(String topic, Target type);
 
   /**
+   * Checks if this Serde can be applied to specified topic's key/value serialization.
+   * @param topic topic name
+   * @param type  {@code Target} for which {@code Serializer} will be applied.
    * @return true if this Serde can be applied to specified topic's key/value serialization
    */
   boolean canSerialize(String topic, Target type);
@@ -78,12 +95,18 @@ public interface Serde extends Closeable {
    * Creates {@code Serializer} for specified topic's key/value.
    * kafbat-ui doesn't cache  {@code Serializes} - new one will be created each time user's message needs to be serialized.
    * (Unless kafbat-ui supports batch inserts).
+   * @param topic topic name
+   * @param type  {@code Target} for which {@code Serializer} will be created.
+   * @return {@code Serializer} for specified topic's key/value.
    */
   Serializer serializer(String topic, Target type);
 
   /**
    * Creates {@code Deserializer} for specified topic's key/value.
    * {@code Deserializer} will be created for each kafka polling and will be used for all messages within that polling cycle.
+   * @param topic topic name
+   * @param type  {@code Target} for which {@code Deserializer} will be created.
+   * @return {@code Deserializer} for specified topic's key/value.
    */
   Deserializer deserializer(String topic, Target type);
 
@@ -93,7 +116,9 @@ public interface Serde extends Closeable {
   interface Serializer {
 
     /**
+     * Serializes input string to bytes.
      * @param input string entered by user into UI text field.<br/> Note: this input is not formatted in any way.
+     * @return serialized bytes. Can be null if input is null or empty string.
      */
     byte[] serialize(String input);
   }
@@ -102,6 +127,12 @@ public interface Serde extends Closeable {
    * Deserializes polled record's key/value (depending on what {@code Type} it was created for).
    */
   interface Deserializer {
+    /**
+     * Deserializes record's key/value to string.
+     * @param headers record's headers
+     * @param data    record's key/value
+     * @return deserialized object. Can be null if input is null or empty string.
+     */
     DeserializeResult deserialize(RecordHeaders headers, byte[] data);
   }
 
