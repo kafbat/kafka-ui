@@ -808,11 +808,11 @@ export const theme = {
   },
   scrollbar: {
     trackColor: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[5],
       active: Colors.neutral[5],
     },
     thumbColor: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[15],
       active: Colors.neutral[50],
     },
   },

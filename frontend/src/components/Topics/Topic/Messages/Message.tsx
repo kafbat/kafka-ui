@@ -9,6 +9,7 @@ import { JSONPath } from 'jsonpath-plus';
 import Ellipsis from 'components/common/Ellipsis/Ellipsis';
 import WarningRedIcon from 'components/common/Icons/WarningRedIcon';
 import Tooltip from 'components/common/Tooltip/Tooltip';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
@@ -41,6 +42,7 @@ const Message: React.FC<Props> = ({
   keyFilters,
   contentFilters,
 }) => {
+  const { currentTimezone } = useTimezone();
   const [isOpen, setIsOpen] = React.useState(false);
   const savedMessageJson = {
     Value: value,
@@ -107,7 +109,9 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <div>{formatTimestamp(timestamp)}</div>
+          <div>
+            {formatTimestamp({ timestamp, timezone: currentTimezone.value })}
+          </div>
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>

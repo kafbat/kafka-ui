@@ -12,6 +12,7 @@ import ProductHuntIcon from 'components/common/Icons/ProductHuntIcon';
 import { Button } from 'components/common/Button/Button';
 import MenuIcon from 'components/common/Icons/MenuIcon';
 
+import { UserTimezone } from './UserTimezone/UserTimezone';
 import UserInfo from './UserInfo/UserInfo';
 import * as S from './NavBar.styled';
 
@@ -73,6 +74,8 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
         </S.NavbarBrand>
       </S.NavbarBrand>
       <S.NavbarSocial>
+        <UserTimezone />
+
         <Select
           options={options}
           value={themeMode}
