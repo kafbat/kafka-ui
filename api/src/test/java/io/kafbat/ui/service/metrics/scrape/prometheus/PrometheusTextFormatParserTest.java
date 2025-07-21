@@ -73,7 +73,7 @@ class PrometheusTextFormatParserTest {
         kafka_server_some_untyped_metric{topic="orders"} 138922
         """;
     String expected = """
-        # TYPE kafka_server_some_untypled_metric untyped
+        # TYPE kafka_server_some_untyped_metric untyped
         kafka_server_some_untyped_metric{topic="orders"} 138922.0
         """;
     test2waySerialization(source, expected);
