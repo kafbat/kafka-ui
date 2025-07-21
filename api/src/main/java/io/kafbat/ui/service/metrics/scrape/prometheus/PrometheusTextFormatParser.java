@@ -101,7 +101,7 @@ public class PrometheusTextFormatParser {
       String timestampString = m.group(4);
       cxt.dataPoint(
           new ParsedDataPoint(
-              PrometheusNaming.sanitizeMetricName(metricName),
+              metricName,
               Optional.ofNullable(labelsString).map(this::parseLabels).orElse(Labels.EMPTY),
               parseDouble(valueString),
               Optional.ofNullable(timestampString).map(Long::parseLong).orElse(0L)));
@@ -180,7 +180,7 @@ public class PrometheusTextFormatParser {
 
     void dataPoint(ParsedDataPoint parsedDataPoint) {
       if (currentMetricName == null) {
-        currentMetricName = parsedDataPoint.name;
+        currentMetricName = PrometheusNaming.sanitizeMetricName(parsedDataPoint.name);
       }
       if (dataPoints == null) {
         dataPoints = new UntypedDataPointsAccumulator();

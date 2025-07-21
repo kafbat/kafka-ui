@@ -48,6 +48,9 @@ class PrometheusMetricsRetriever {
         .bodyToMono(String.class)
         .doOnError(e -> log.error("Error while getting metrics from {}", host, e))
         .map(body -> new PrometheusTextFormatParser().parse(body))
-        .onErrorResume(th -> Mono.just(List.of()));
+        .onErrorResume(th -> {
+          log.warn("Error while getting prometheus metrics from {}", host, th);
+          return Mono.just(List.of());
+        });
   }
 }
