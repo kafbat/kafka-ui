@@ -7,14 +7,20 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/backend"
   open-pull-requests-limit: 10
   labels:
     - "type/dependencies"
     - "scope/backend"
   groups:
-    gradle-dependencies:
+    spring-boot-dependencies:
+      patterns:
+        - "org.springframework.boot:*"
+        - "io.spring.dependency-management"
+      # We will handle major upgrades manually
+      update-types:
+        - "patch"
+        - "minor"
+    other-dependencies:
       patterns:
         - "*"
       update-types:
@@ -27,8 +33,6 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/backend"
   open-pull-requests-limit: 10
   ignore:
   - dependency-name: "azul/zulu-openjdk-alpine"
@@ -43,8 +47,6 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/frontend"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   labels:
@@ -64,8 +66,6 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/devops"
   open-pull-requests-limit: 10
   labels:
     - "type/dependencies"
