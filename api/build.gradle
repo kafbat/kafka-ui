@@ -79,7 +79,9 @@ dependencies {
 
     implementation libs.prometheus.metrics.core
     implementation libs.prometheus.metrics.textformats
-    implementation libs.prometheus.metrics.exporter.pushgateway
+    implementation (libs.prometheus.metrics.exporter.pushgateway) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("PushGW lib pulls protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project.")
+    }
     implementation libs.snappy
 
     // Annotation processors
