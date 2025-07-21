@@ -5,6 +5,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.StatisticsCache;
 import io.kafbat.ui.service.integration.odd.schema.DataSetFieldsExtractors;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import java.net.URI;
 import java.util.List;
@@ -50,7 +51,7 @@ class TopicsExporter {
                 .items(topicsEntities));
   }
 
-  private Mono<DataEntity> createTopicDataEntity(KafkaCluster cluster, String topic, ScrapedClusterState.TopicState topicState) {
+  private Mono<DataEntity> createTopicDataEntity(KafkaCluster cluster, String topic, TopicState topicState) {
     KafkaPath topicOddrnPath = Oddrn.topicOddrnPath(cluster, topic);
     return
         Mono.zip(
@@ -75,7 +76,7 @@ class TopicsExporter {
             );
   }
 
-  private Map<String, Object> getNonDefaultConfigs(ScrapedClusterState.TopicState topicState) {
+  private Map<String, Object> getNonDefaultConfigs(TopicState topicState) {
     List<ConfigEntry> config = topicState.configs();
     if (config == null) {
       return Map.of();
@@ -85,7 +86,7 @@ class TopicsExporter {
         .collect(Collectors.toMap(ConfigEntry::name, ConfigEntry::value));
   }
 
-  private Map<String, Object> getTopicMetadata(ScrapedClusterState.TopicState topicState) {
+  private Map<String, Object> getTopicMetadata(TopicState topicState) {
     TopicDescription topicDescription = topicState.description();
     return ImmutableMap.<String, Object>builder()
         .put("partitions", topicDescription.partitions().size())

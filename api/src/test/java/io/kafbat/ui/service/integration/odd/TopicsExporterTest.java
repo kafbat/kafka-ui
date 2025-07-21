@@ -1,8 +1,6 @@
 package io.kafbat.ui.service.integration.odd;
 
-import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.empty;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;

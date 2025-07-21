@@ -1,7 +1,7 @@
 package io.kafbat.ui.service.metrics;
 
-import static io.prometheus.metrics.model.snapshots.CounterSnapshot.*;
-import static io.prometheus.metrics.model.snapshots.GaugeSnapshot.*;
+import static io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSnapshot;
+import static io.prometheus.metrics.model.snapshots.GaugeSnapshot.GaugeDataPointSnapshot;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.Streams;
@@ -11,6 +11,8 @@ import io.prometheus.metrics.model.snapshots.DataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSnapshot;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Optional;
@@ -27,20 +29,26 @@ public class SummarizedMetrics {
   public Stream<MetricSnapshot> asStream() {
     return Streams.concat(
         metrics.getInferredMetrics().asStream(),
-        metrics.getPerBrokerScrapedMetrics()
-            .values()
-            .stream()
-            .flatMap(Collection::stream)
-            .collect(
-                toMap(
-                  mfs -> mfs.getMetadata().getName(),
-                  Optional::of, SummarizedMetrics::summarizeMetricSnapshot, LinkedHashMap::new
-                )
-            ).values()
-            .stream()
-            .filter(Optional::isPresent)
-            .map(Optional::get)
+        summarize(
+            metrics.getPerBrokerScrapedMetrics()
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+        )
     );
+  }
+
+  private Stream<MetricSnapshot> summarize(Stream<MetricSnapshot> snapshots) {
+    return snapshots
+        .collect(
+            toMap(
+                mfs -> mfs.getMetadata().getName(),
+                Optional::of, SummarizedMetrics::summarizeMetricSnapshot, LinkedHashMap::new
+            )
+        ).values()
+        .stream()
+        .filter(Optional::isPresent)
+        .map(Optional::get);
   }
 
   //returns Optional.empty if merging not supported for metric type
@@ -54,28 +62,38 @@ public class SummarizedMetrics {
 
     var snap1 = snap1Opt.get();
 
-    //TODO: add unknown
-    if (snap1 instanceof GaugeSnapshot || snap1 instanceof CounterSnapshot) {
+    if (snap1 instanceof GaugeSnapshot
+        || snap1 instanceof CounterSnapshot
+        || snap1 instanceof UnknownSnapshot) {
+
       BiFunction<Labels, Double, DataPointSnapshot> pointFactory;
       Function<DataPointSnapshot, Double> valueGetter;
       Function<Collection<?>, MetricSnapshot> builder;
 
-      if (snap1 instanceof CounterSnapshot) {
+      if (snap1 instanceof UnknownSnapshot) {
+        pointFactory = (l, v) -> UnknownDataPointSnapshot.builder()
+            .labels(l)
+            .value(v)
+            .build();
+        valueGetter = (dp) -> ((UnknownDataPointSnapshot) dp).getValue();
+        builder = (dps) ->
+            new UnknownSnapshot(snap1.getMetadata(), (Collection<UnknownDataPointSnapshot>) dps);
+      } else if (snap1 instanceof CounterSnapshot) {
         pointFactory = (l, v) -> CounterDataPointSnapshot.builder()
             .labels(l)
             .value(v)
             .build();
-        valueGetter = (dp) -> ((CounterDataPointSnapshot)dp).getValue();
+        valueGetter = (dp) -> ((CounterDataPointSnapshot) dp).getValue();
         builder = (dps) ->
-            new CounterSnapshot(snap1.getMetadata(), (Collection<CounterDataPointSnapshot>)dps);
+            new CounterSnapshot(snap1.getMetadata(), (Collection<CounterDataPointSnapshot>) dps);
       } else {
-        pointFactory = (l,v) -> GaugeDataPointSnapshot.builder()
+        pointFactory = (l, v) -> GaugeDataPointSnapshot.builder()
             .labels(l)
             .value(v)
             .build();
-        valueGetter = (dp) -> ((GaugeDataPointSnapshot)dp).getValue();
+        valueGetter = (dp) -> ((GaugeDataPointSnapshot) dp).getValue();
         builder = (dps) ->
-            new GaugeSnapshot(snap1.getMetadata(), (Collection<GaugeDataPointSnapshot>)dps);
+            new GaugeSnapshot(snap1.getMetadata(), (Collection<GaugeDataPointSnapshot>) dps);
       }
 
       Collection<DataPointSnapshot> points =

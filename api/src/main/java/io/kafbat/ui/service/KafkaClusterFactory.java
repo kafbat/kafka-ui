@@ -119,13 +119,13 @@ public class KafkaClusterFactory {
             ? validateKsql(() -> ksqlClient(clusterProperties)).map(Optional::of)
             : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty()),
 
-        connectClientsConfigured(clusterProperties) ?
-            Flux.fromIterable(clusterProperties.getKafkaConnect())
-                .flatMap(c ->
-                    KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
-                        .map(r -> Tuples.of(c.getName(), r)))
-                .collectMap(Tuple2::getT1, Tuple2::getT2)
-                .map(Optional::of)
+        connectClientsConfigured(clusterProperties)
+            ? Flux.fromIterable(clusterProperties.getKafkaConnect())
+            .flatMap(c ->
+                KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
+                    .map(r -> Tuples.of(c.getName(), r)))
+            .collectMap(Tuple2::getT1, Tuple2::getT2)
+            .map(Optional::of)
             : Mono.<Optional<Map<String, ApplicationPropertyValidationDTO>>>just(Optional.empty()),
 
         prometheusStorageConfigured(clusterProperties)
@@ -137,7 +137,7 @@ public class KafkaClusterFactory {
       tuple.getT2().ifPresent(validation::schemaRegistry);
       tuple.getT3().ifPresent(validation::ksqldb);
       tuple.getT4().ifPresent(validation::kafkaConnects);
-        tuple.getT5().ifPresent(validation::prometheusStorage);
+      tuple.getT5().ifPresent(validation::prometheusStorage);
       return validation;
     });
   }

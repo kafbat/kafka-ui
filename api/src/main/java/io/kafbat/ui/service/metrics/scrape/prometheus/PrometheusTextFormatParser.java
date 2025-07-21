@@ -2,11 +2,21 @@ package io.kafbat.ui.service.metrics.scrape.prometheus;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.prometheus.metrics.model.snapshots.*;
+import io.prometheus.metrics.model.snapshots.ClassicHistogramBuckets;
+import io.prometheus.metrics.model.snapshots.CounterSnapshot;
 import io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSnapshot;
+import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot.GaugeDataPointSnapshot;
-
+import io.prometheus.metrics.model.snapshots.HistogramSnapshot;
 import io.prometheus.metrics.model.snapshots.HistogramSnapshot.HistogramDataPointSnapshot;
+import io.prometheus.metrics.model.snapshots.Labels;
+import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+import io.prometheus.metrics.model.snapshots.MetricSnapshots;
+import io.prometheus.metrics.model.snapshots.PrometheusNaming;
+import io.prometheus.metrics.model.snapshots.Quantile;
+import io.prometheus.metrics.model.snapshots.Quantiles;
+import io.prometheus.metrics.model.snapshots.SummarySnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
 import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,16 +34,16 @@ import org.jspecify.annotations.Nullable;
  * This class is designed to be the functional inverse of
  * {@code io.prometheus.metrics.expositionformats.PrometheusTextFormatWriter}.
  */
-class PrometheusTextFormatParser {
+public class PrometheusTextFormatParser {
 
   // Regex to capture metric name, optional labels, value, and optional timestamp.
   // Groups: 1=name, 2=labels (content), 3=value, 4=timestamp
   private static final Pattern METRIC_LINE_PATTERN = Pattern.compile(
-      "^([a-zA-Z_:][a-zA-Z0-9_:]*)" +             // Metric name
-          "(?:\\{([^}]*)\\})?" +                     // Optional labels (content in group 2)
-          "\\s+" +
-          "(-?(?:Inf|NaN|(?:\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)))" + // Value (group 3)
-          "(?:\\s+([0-9]+))?$");                     // Optional timestamp (group 4)
+      "^([a-zA-Z_:][a-zA-Z0-9_:]*)"  // Metric name
+          + "(?:\\{([^}]*)\\})?"  // Optional labels (content in group 2)
+          + "\\s+"
+          + "(-?(?:Inf|NaN|(?:\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)))"  // Value (group 3)
+          + "(?:\\s+([0-9]+))?$");   // Optional timestamp (group 4)
 
   private static final Pattern HELP_PATTERN =
       Pattern.compile("^# HELP ([a-zA-Z_:][a-zA-Z0-9_:]*) (.*)");
@@ -45,7 +55,7 @@ class PrometheusTextFormatParser {
   private record ParsedDataPoint(String name, Labels labels, double value, Long scrapedAt) {
   }
 
-  List<MetricSnapshot> parse(String textFormat) {
+  public List<MetricSnapshot> parse(String textFormat) {
     List<MetricSnapshot> snapshots = new ArrayList<>();
     var cxt = new ParsingContext(snapshots);
     textFormat.lines()
@@ -192,6 +202,7 @@ class PrometheusTextFormatParser {
 
   interface MetricDataPointsAccumulator {
     boolean add(ParsedDataPoint parsedDataPoint);
+
     Optional<MetricSnapshot> buildSnapshot(String name, @Nullable String help);
   }
 

@@ -77,21 +77,4 @@ public final class PrometheusExpose {
         .headers(PROMETHEUS_EXPOSE_ENDPOINT_HEADERS)
         .body(buffer.toString(StandardCharsets.UTF_8));
   }
-
-  // copied from io.prometheus.client.exporter.common.TextFormat:writeEscapedLabelValue
-  //TODO: RM
-  public static String escapedLabelValue(String s) {
-    StringBuilder sb = new StringBuilder(s.length());
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      switch (c) {
-        case '\\' -> sb.append("\\\\");
-        case '\"' -> sb.append("\\\"");
-        case '\n' -> sb.append("\\n");
-        default -> sb.append(c);
-      }
-    }
-    return sb.toString();
-  }
-
 }

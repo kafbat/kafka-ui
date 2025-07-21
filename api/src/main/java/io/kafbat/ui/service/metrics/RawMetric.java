@@ -2,7 +2,6 @@ package io.kafbat.ui.service.metrics;
 
 import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;

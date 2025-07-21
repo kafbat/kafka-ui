@@ -20,13 +20,13 @@ class PrometheusExposeTest {
   void prepareMetricsForGlobalExposeAppendsClusterAndBrokerIdLabelsToMetrics() {
 
     var inferredMfs = new GaugeSnapshot(new MetricMetadata("infer", "help"), List.of(
-        new GaugeSnapshot.GaugeDataPointSnapshot(100, Labels.of("lbl1","lblVal1"), null)));
+        new GaugeSnapshot.GaugeDataPointSnapshot(100, Labels.of("lbl1", "lblVal1"), null)));
 
     var broker1Mfs = new GaugeSnapshot(new MetricMetadata("brok", "help"), List.of(
-        new GaugeSnapshot.GaugeDataPointSnapshot(101, Labels.of("broklbl1","broklblVal1"), null)));
+        new GaugeSnapshot.GaugeDataPointSnapshot(101, Labels.of("broklbl1", "broklblVal1"), null)));
 
     var broker2Mfs = new GaugeSnapshot(new MetricMetadata("brok", "help"), List.of(
-        new GaugeSnapshot.GaugeDataPointSnapshot(102, Labels.of("broklbl1","broklblVal1"), null)));
+        new GaugeSnapshot.GaugeDataPointSnapshot(102, Labels.of("broklbl1", "broklblVal1"), null)));
 
     List<MetricSnapshot> prepared = prepareMetricsForGlobalExpose(
         "testCluster",
@@ -48,7 +48,7 @@ class PrometheusExposeTest {
                 Labels.of(
                     "cluster", "testCluster",
                     "broker_id", "1",
-                    "broklbl1","broklblVal1"
+                    "broklbl1", "broklblVal1"
                 ), null
             ))
         )))
@@ -57,7 +57,7 @@ class PrometheusExposeTest {
                     Labels.of(
                         "cluster", "testCluster",
                         "broker_id", "2",
-                        "broklbl1","broklblVal1"
+                        "broklbl1", "broklblVal1"
                     ), null
                 ))
             )

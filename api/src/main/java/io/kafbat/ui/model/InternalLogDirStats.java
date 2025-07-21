@@ -1,4 +1,5 @@
 package io.kafbat.ui.model;
+
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summarizingLong;

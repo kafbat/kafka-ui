@@ -16,8 +16,7 @@ class PromQueryLangGrammar {
       parseExpression(query);
       return Optional.empty();
     } catch (ParseCancellationException e) {
-      //TODO: add more descriptive msg
-      return Optional.of("Syntax error");
+      return Optional.of("PromQL syntax error, " + e.getMessage());
     }
   }
 

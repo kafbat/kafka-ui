@@ -80,6 +80,7 @@ class PrometheusTextFormatParserTest {
   }
 
   @Test
+  @SuppressWarnings("checkstyle:LineLength")
   void testVariousTypes() {
     String source = """
         # HELP kafka_server_brokertopicmetrics_totalfetchrequests_total Total number of fetch requests

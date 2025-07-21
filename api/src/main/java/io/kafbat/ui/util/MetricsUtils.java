@@ -1,8 +1,8 @@
 package io.kafbat.ui.util;
 
-import static io.prometheus.metrics.model.snapshots.CounterSnapshot.*;
-import static io.prometheus.metrics.model.snapshots.HistogramSnapshot.*;
-import static io.prometheus.metrics.model.snapshots.SummarySnapshot.*;
+import static io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSnapshot;
+import static io.prometheus.metrics.model.snapshots.HistogramSnapshot.HistogramDataPointSnapshot;
+import static io.prometheus.metrics.model.snapshots.SummarySnapshot.SummaryDataPointSnapshot;
 
 import io.prometheus.metrics.model.snapshots.CounterSnapshot;
 import io.prometheus.metrics.model.snapshots.DataPointSnapshot;
@@ -17,28 +17,16 @@ import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSna
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import org.apache.kafka.clients.MetadataSnapshot;
 
 public final class MetricsUtils {
 
-  //TODO: rm
   public static double readPointValue(DataPointSnapshot dps) {
     return switch (dps) {
+      case UnknownDataPointSnapshot unknown -> unknown.getValue();
       case GaugeDataPointSnapshot guage -> guage.getValue();
       case CounterDataPointSnapshot counter -> counter.getValue();
       default -> 0;
     };
-  }
-
-  //TODO: rm
-  public static String toGoString(double d) {
-    if (d == Double.POSITIVE_INFINITY) {
-      return "+Inf";
-    } else if (d == Double.NEGATIVE_INFINITY) {
-      return "-Inf";
-    } else {
-      return Double.toString(d);
-    }
   }
 
   public static MetricSnapshot appendLabel(MetricSnapshot md, String name, String value) {
@@ -104,7 +92,7 @@ public final class MetricsUtils {
 
     return switch (d1) {
       case UnknownSnapshot u -> new UnknownSnapshot(u.getMetadata(),
-          (Collection<UnknownDataPointSnapshot>)dataPoints);
+          (Collection<UnknownDataPointSnapshot>) dataPoints);
       case GaugeSnapshot g -> new GaugeSnapshot(g.getMetadata(),
           (Collection<GaugeDataPointSnapshot>) dataPoints);
       case CounterSnapshot c -> new CounterSnapshot(c.getMetadata(),
