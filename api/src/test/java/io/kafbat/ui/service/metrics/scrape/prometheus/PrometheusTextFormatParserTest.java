@@ -20,7 +20,7 @@ class PrometheusTextFormatParserTest {
         kafka_network_requestmetrics_requests_total{request="Metadata"} 21001.0
         kafka_network_requestmetrics_requests_total{request="Produce"} 140321.0
         """;
-    test2waySerialization(source);
+    assertParseAndSerialize(source);
   }
 
   @Test
@@ -30,7 +30,7 @@ class PrometheusTextFormatParserTest {
         # TYPE kafka_controller_kafkacontroller_activecontrollercount gauge
         kafka_controller_kafkacontroller_activecontrollercount 1.0
         """;
-    test2waySerialization(source);
+    assertParseAndSerialize(source);
   }
 
   @Test
@@ -50,7 +50,7 @@ class PrometheusTextFormatParserTest {
         http_request_duration_seconds_count{method="GET",path="/hello"} 100
         http_request_duration_seconds_sum{method="GET",path="/hello"} 22.57
         """;
-    test2waySerialization(source);
+    assertParseAndSerialize(source);
   }
 
   @Test
@@ -64,19 +64,20 @@ class PrometheusTextFormatParserTest {
         kafka_network_requestmetrics_queue_time_ms_count{request="FetchConsumer"} 138912
         kafka_network_requestmetrics_queue_time_ms_sum{request="FetchConsumer"} 37812.3
         """;
-    test2waySerialization(source);
+    assertParseAndSerialize(source);
   }
 
   @Test
   void testUntyped() {
     String source = """
+        # some comment that should be skipped
         kafka_server_some_untyped_metric{topic="orders"} 138922
         """;
     String expected = """
         # TYPE kafka_server_some_untyped_metric untyped
         kafka_server_some_untyped_metric{topic="orders"} 138922.0
         """;
-    test2waySerialization(source, expected);
+    assertParseAndSerialize(source, expected);
   }
 
   @Test
@@ -124,20 +125,21 @@ class PrometheusTextFormatParserTest {
         msdos_file_access_time_seconds{error="Cannot find file:\\n\\"FILE.TXT\\"",path="C:\\\\DIR\\\\FILE.TXT"} 1.458255915E9
         """;
 
-    test2waySerialization(source, expected);
+    assertParseAndSerialize(source, expected);
   }
 
-  private void test2waySerialization(String test) {
-    test2waySerialization(test, test);
+  private void assertParseAndSerialize(String test) {
+    assertParseAndSerialize(test, test);
   }
 
   @SneakyThrows
-  private void test2waySerialization(String source,
-                                     String expected) {
+  private void assertParseAndSerialize(String source,
+                                       String expectedSerialized) {
+    var parsedMetrics = new MetricSnapshots(new PrometheusTextFormatParser().parse(source));
     var baos = new ByteArrayOutputStream();
     new PrometheusTextFormatWriter(false)
-        .write(baos, new MetricSnapshots(new PrometheusTextFormatParser().parse(source)));
-    assertThat(baos.toString(Charsets.UTF_8)).isEqualTo(expected);
+        .write(baos, parsedMetrics);
+    assertThat(baos.toString(Charsets.UTF_8)).isEqualTo(expectedSerialized);
   }
 
 }
