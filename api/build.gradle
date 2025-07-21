@@ -113,7 +113,6 @@ dependencies {
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-package", "ksql"]
 }
 
 tasks.withType(JavaCompile) {
