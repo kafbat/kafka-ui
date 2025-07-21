@@ -125,8 +125,8 @@ public class InferredMetricsScraper {
           state.description().partitions().size()
       );
       state.endOffsets().forEach((partition, endOffset) -> registry.gauge(
-          "kafka_topic_partition_current_offset",
-          "Current Offset of a Broker at Topic/Partition",
+          "kafka_topic_partition_next_offset",
+          "Current (next) Offset of a Broker at Topic/Partition",
           List.of("topic", "partition"),
           List.of(topicName, String.valueOf(partition)),
           endOffset

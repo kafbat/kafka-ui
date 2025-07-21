@@ -12,7 +12,7 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder(access = AccessLevel.PRIVATE)
+@Builder
 public class MetricsScrapeProperties {
   public static final String JMX_METRICS_TYPE = "JMX";
   public static final String PROMETHEUS_METRICS_TYPE = "PROMETHEUS";

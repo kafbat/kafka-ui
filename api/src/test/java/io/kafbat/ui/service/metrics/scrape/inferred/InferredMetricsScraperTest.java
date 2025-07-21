@@ -100,7 +100,7 @@ class InferredMetricsScraperTest {
                 "broker_bytes",
                 "topic_count",
                 "kafka_topic_partitions",
-                "kafka_topic_partition_current_offset",
+                "kafka_topic_partition_next_offset",
                 "kafka_topic_partition_oldest_offset",
                 "kafka_topic_partition_in_sync_replica",
                 "kafka_topic_partition_replicas",

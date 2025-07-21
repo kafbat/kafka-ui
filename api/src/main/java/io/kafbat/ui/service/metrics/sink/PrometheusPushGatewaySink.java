@@ -25,7 +25,6 @@ class PrometheusPushGatewaySink implements MetricsSink {
     PushGateway.Builder builder = PushGateway.builder()
         .address(url);
 
-
     if (hasText(username) && hasText(passw)) {
       builder.basicAuth(username, passw);
     }
