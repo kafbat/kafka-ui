@@ -279,10 +279,6 @@ public class ProtobufFileSerde implements BuiltInSerde {
     @VisibleForTesting
     static Map<Path, ProtobufSchema> loadSchemas(Optional<List<String>> protobufFiles,
                                                  Optional<String> protobufFilesDir) {
-      if (true) {
-        return Map.of();
-      }
-
       if (protobufFilesDir.isPresent()) {
         if (protobufFiles.isPresent()) {
           log.warn("protobufFiles properties will be ignored, since protobufFilesDir provided");
