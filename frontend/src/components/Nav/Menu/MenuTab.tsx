@@ -11,6 +11,7 @@ export interface MenuTabProps {
   isOpen: boolean;
   toggleClusterMenu: () => void;
   setColorKey: Dispatch<SetStateAction<ClusterColorKey>>;
+  isActive?: boolean;
 }
 
 const MenuTab: FC<MenuTabProps> = ({
@@ -19,8 +20,13 @@ const MenuTab: FC<MenuTabProps> = ({
   status,
   isOpen,
   setColorKey,
+  isActive = false,
 }) => (
-  <S.MenuItem $variant="secondary" onClick={toggleClusterMenu}>
+  <S.MenuItem
+    $variant="primary"
+    onClick={toggleClusterMenu}
+    $isActive={isActive}
+  >
     <S.ContentWrapper>
       <S.StatusIconWrapper>
         <S.StatusIcon status={status} aria-label="status">

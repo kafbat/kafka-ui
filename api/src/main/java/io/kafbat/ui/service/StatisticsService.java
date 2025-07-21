@@ -27,6 +27,7 @@ public class StatisticsService {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
   }
 
+  @SuppressWarnings("unchecked")
   private Mono<Statistics> getStatistics(KafkaCluster cluster) {
     return adminClientService.get(cluster).flatMap(ac ->
         ac.describeCluster()

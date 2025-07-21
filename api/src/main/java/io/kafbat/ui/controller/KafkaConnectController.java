@@ -20,6 +20,7 @@ import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.service.KafkaConnectService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaConnectController extends AbstractController implements KafkaConnectApi {
+public class KafkaConnectController extends AbstractController implements KafkaConnectApi, McpTool {
   private static final Set<ConnectorActionDTO> RESTART_ACTIONS
       = Set.of(RESTART, RESTART_FAILED_TASKS, RESTART_ALL_TASKS);
   private static final String CONNECTOR_NAME = "connectorName";
@@ -190,11 +191,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          ConnectorActionDTO action,
                                                          ServerWebExchange exchange) {
     ConnectAction[] connectActions;
-    if (RESTART_ACTIONS.contains(action)) {
-      connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.RESTART};
-    } else {
-      connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.EDIT};
-    }
+    connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.OPERATE};
 
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -236,7 +233,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.RESTART)
+        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.OPERATE)
         .operationName("restartConnectorTask")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();

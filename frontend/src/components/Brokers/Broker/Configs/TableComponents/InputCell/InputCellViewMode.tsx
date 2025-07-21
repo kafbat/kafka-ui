@@ -1,9 +1,10 @@
 import React, { type FC } from 'react';
-import { Button } from 'components/common/Button/Button';
 import EditIcon from 'components/common/Icons/EditIcon';
 import type { ConfigUnit } from 'components/Brokers/Broker/Configs/lib/types';
-import Tooltip from 'components/common/Tooltip/Tooltip';
 import { getConfigDisplayValue } from 'components/Brokers/Broker/Configs/lib/utils';
+import { ActionButton } from 'components/common/ActionComponent';
+import { Action, ResourceType } from 'generated-sources';
+import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
 
 import * as S from './styled';
 
@@ -35,22 +36,22 @@ const InputCellViewMode: FC<InputCellViewModeProps> = ({
       <S.Value $isDynamic={isDynamic} title={title}>
         {displayValue}
       </S.Value>
-      <Tooltip
-        value={
-          <Button
-            buttonType="primary"
-            buttonSize="S"
-            aria-label="editAction"
-            onClick={onEdit}
-            disabled={isReadOnly}
-          >
-            <EditIcon /> Edit
-          </Button>
+      <ActionButton
+        buttonType="primary"
+        buttonSize="S"
+        aria-label="editAction"
+        onClick={onEdit}
+        disabled={isReadOnly}
+        message={
+          isReadOnly ? 'Property is read-only' : getDefaultActionMessage()
         }
-        showTooltip={isReadOnly}
-        content="Property is read-only"
-        placement="left"
-      />
+        permission={{
+          resource: ResourceType.CLUSTERCONFIG,
+          action: Action.EDIT,
+        }}
+      >
+        <EditIcon /> Edit
+      </ActionButton>
     </S.ValueWrapper>
   );
 };

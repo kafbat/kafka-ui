@@ -41,15 +41,19 @@ public class DeserializationService implements Closeable {
     }
   }
 
+  public ClusterSerdes getSerdesFor(String clusterName) {
+    return clusterSerdes.get(clusterName);
+  }
+
   private ClusterSerdes getSerdesFor(KafkaCluster cluster) {
-    return clusterSerdes.get(cluster.getName());
+    return getSerdesFor(cluster.getName());
   }
 
   private Serde.Serializer getSerializer(KafkaCluster cluster,
                                          String topic,
                                          Serde.Target type,
                                          String serdeName) {
-    var serdes = getSerdesFor(cluster);
+    var serdes = getSerdesFor(cluster.getName());
     var serde = serdes.serdeForName(serdeName)
         .orElseThrow(() -> new ValidationException(
             String.format("Serde %s not found", serdeName)));

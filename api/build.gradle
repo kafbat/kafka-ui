@@ -14,7 +14,12 @@ dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation libs.spring.starter.security
+    implementation(libs.spring.starter.security){
+        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-53864. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
+    implementation(libs.nimbus.jose.jwt){
+        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
@@ -53,15 +58,16 @@ dependencies {
         exclude group: 'io.projectreactor.ipc', module: 'reactor-netty'
     }
 
-    runtimeOnly libs.micrometer.registry.prometheus
+    runtimeOnly(libs.micrometer.registry.prometheus) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("Micrometer uses protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project. See https://github.com/prometheus/client_java/issues/1431")
+    }
 
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    implementation libs.json.smart
-    implementation libs.netty.common
-    implementation libs.netty.handler
 
+    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.victools.jsonschema.generator
 
     // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {
@@ -107,6 +113,24 @@ dependencies {
 
 generateGrammarSource {
     maxHeapSize = "64m"
+    arguments += ["-package", "ksql"]
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs += generateGrammarSource.outputDirectory
+        }
+        resources {
+            srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
+        }
+    }
 }
 
 tasks.withType(Checkstyle).configureEach {
@@ -144,15 +168,7 @@ if (buildDockerImages) {
 }
 
 if (includeFrontend) {
-    tasks.named("build") {
-        dependsOn(":frontend:buildFrontend")
-    }
-
     tasks.named("processResources") {
         dependsOn(":frontend:buildFrontend")
-        from(project(":frontend").layout.buildDirectory.dir("vite")) {
-            into("static")
-        }
-        into("$buildDir/resources/main")
     }
 }

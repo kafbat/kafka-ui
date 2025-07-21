@@ -142,6 +142,9 @@ const authPropsSchema = lazy((_, { parent }) => {
     case 'SASL/AWS IAM':
       return object({
         awsProfileName: string(),
+        awsRoleArn: string(),
+        awsRoleSessionName: string(),
+        awsStsRegion: string(),
       });
     case 'SASL/Azure Entra':
     case 'SASL/GCP IAM':
@@ -167,6 +170,7 @@ const authSchema = lazy((value) => {
           'SASL/LDAP',
           'SASL/AWS IAM',
           'SASL/Azure Entra',
+          'SASL/GCP IAM',
           'mTLS',
         ]),
       securityProtocol: string()
@@ -183,6 +187,7 @@ const authSchema = lazy((value) => {
               'SASL/LDAP',
               'SASL/AWS IAM',
               'SASL/Azure Entra',
+              'SASL/GCP IAM',
             ].includes(v);
           },
           then: (schema) => schema.required('required field'),

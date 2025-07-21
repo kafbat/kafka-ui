@@ -25,8 +25,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.ResourceUtils;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 
@@ -40,8 +40,11 @@ public abstract class AbstractIntegrationTest {
 
   private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
 
-  public static final KafkaContainer kafka = new KafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
+  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(
+      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
+
+  public static final ConfluentKafkaContainer kafka = kafkaOriginal
+      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
       .withNetwork(Network.SHARED);
 
   public static final SchemaRegistryContainer schemaRegistry =

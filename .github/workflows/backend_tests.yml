@@ -34,4 +34,4 @@ jobs:
 
       - name: "Tests"
         run: |
-          ./gradlew :api:test --info
+          ./gradlew :api:test

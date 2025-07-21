@@ -2025,6 +2025,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/KafkaAclNamePatternType'
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -3094,7 +3099,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
           nullable: true
         keySerde:
@@ -3184,7 +3189,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
         keyFormat:
           #deprecated - wont be filled - use 'keySerde' field instead
@@ -4007,6 +4012,7 @@ components:
         - MESSAGES_READ
         - MESSAGES_PRODUCE
         - MESSAGES_DELETE
+        - OPERATE
         - RESTART
 
     ResourceType:
@@ -4160,7 +4166,6 @@ components:
     KafkaAclNamePatternType:
       type: string
       enum:
-        - MATCH
         - LITERAL
         - PREFIXED
 
@@ -4369,6 +4374,43 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+                    resourceServer:
+                      type: object
+                      properties:
+                        jwt:
+                          type: object
+                          properties:
+                            jwkSetUri:
+                              type: string
+                            jwsAlgorithms:
+                              type: array
+                              items:
+                                type: string
+                            issuerUri:
+                              type: string
+                            publicKeyLocation:
+                              type: string
+                            audiences:
+                              type: array
+                              items:
+                                type: string
+                            authorityPrefix:
+                              type: string
+                            authoritiesClaimDelimiter:
+                              type: string
+                            authoritiesClaimName:
+                              type: string
+                            principalClaimName:
+                              type: string
+                        opaquetoken:
+                          type: object
+                          properties:
+                            clientId:
+                              type: string
+                            clientSecret:
+                              type: string
+                            introspectionUri:
+                              type: string
             rbac:
               type: object
               properties:
@@ -4394,6 +4436,8 @@ components:
                               type: string
                             value:
                               type: string
+                            regex:
+                              type: string
                       permissions:
                         type: array
                         items:
@@ -4407,6 +4451,22 @@ components:
                               type: array
                               items:
                                 $ref: '#/components/schemas/Action'
+                defaultRole:
+                  type: object
+                  properties:
+                    permissions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          resource:
+                            $ref: '#/components/schemas/ResourceType'
+                          value:
+                            type: string
+                          actions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Action'
             webclient:
               type: object
               properties:
@@ -4427,6 +4487,8 @@ components:
                     maxPageSize:
                       type: integer
                     defaultPageSize:
+                      type: integer
+                    responseTimeoutMs:
                       type: integer
                 adminClientTimeout:
                   type: integer
@@ -4548,9 +4610,13 @@ components:
                       properties:
                         type: object
                         additionalProperties: true
+                      consumerProperties:
+                        type: object
+                        additionalProperties: true
+                      producerProperties:
+                        type: object
+                        additionalProperties: true
                       readOnly:
-                        type: boolean
-                      disableLogDirsCollection:
                         type: boolean
                       serde:
                         type: array

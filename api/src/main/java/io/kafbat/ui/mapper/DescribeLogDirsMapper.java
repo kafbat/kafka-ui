@@ -45,6 +45,8 @@ public class DescribeLogDirsMapper {
   private BrokerTopicLogdirsDTO toTopicLogDirs(
       Integer broker, String name,
       List<Map.Entry<TopicPartition, ReplicaInfo>> partitions) {
+  private BrokerTopicLogdirsDTO toTopicLogDirs(Integer broker, String name,
+                                               List<Map.Entry<TopicPartition, ReplicaInfo>> partitions) {
     BrokerTopicLogdirsDTO topic = new BrokerTopicLogdirsDTO();
     topic.setName(name);
     topic.setPartitions(

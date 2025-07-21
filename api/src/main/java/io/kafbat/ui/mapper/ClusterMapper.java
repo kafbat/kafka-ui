@@ -55,8 +55,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ClusterMapper {
 
+  @Mapping(target = "defaultCluster", ignore = true)
   ClusterDTO toCluster(InternalClusterState clusterState);
 
+  @Mapping(target = "zooKeeperStatus", ignore = true)
   ClusterStatsDTO toClusterStats(InternalClusterState clusterState);
 
   @Deprecated
@@ -107,6 +109,8 @@ public interface ClusterMapper {
 
   BrokerDTO toBrokerDto(InternalBroker broker);
 
+  @Mapping(target = "keySerde", ignore = true)
+  @Mapping(target = "valueSerde", ignore = true)
   TopicDetailsDTO toTopicDetails(InternalTopic topic);
 
   @Mapping(target = "isReadOnly", source = "readOnly")

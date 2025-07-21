@@ -76,12 +76,32 @@ const AuthenticationMethods: React.FC<{ method: string }> = ({ method }) => {
       );
     case 'SASL/AWS IAM':
       return (
-        <Input
-          label="AWS Profile Name"
-          type="text"
-          name="auth.props.awsProfileName"
-          withError
-        />
+        <>
+          <Input
+            label="AWS Profile Name"
+            type="text"
+            name="auth.props.awsProfileName"
+            withError
+          />
+          <Input
+            label="AWS Role Arn"
+            type="text"
+            name="auth.props.awsRoleArn"
+            withError
+          />
+          <Input
+            label="AWS Role Session Name"
+            type="text"
+            name="auth.props.awsRoleSessionName"
+            withError
+          />
+          <Input
+            label="AWS STS Region"
+            type="text"
+            name="auth.props.awsStsRegion"
+            withError
+          />
+        </>
       );
     case 'mTLS':
       return <SSLForm prefix="auth.keystore" title="Keystore" />;
