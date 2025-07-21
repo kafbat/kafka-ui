@@ -32,9 +32,9 @@ public class KafkaCluster {
   private final boolean exposeMetricsViaPrometheusEndpoint;
   private final DataMasking masking;
   private final PollingSettings pollingSettings;
+  private final MetricsScrapping metricsScrapping;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;
   private final Map<String, ReactiveFailover<KafkaConnectClientApi>> connectsClients;
   private final ReactiveFailover<KsqlApiClient> ksqlClient;
-  private final MetricsScrapping metricsScrapping;
   private final ReactiveFailover<PrometheusClientApi> prometheusStorageClient;
 }

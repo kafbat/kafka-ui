@@ -17,6 +17,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
+import io.kafbat.ui.service.metrics.scrape.MetricsScrapping;
 import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsRetriever;
 import io.kafbat.ui.sr.ApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
@@ -51,7 +52,8 @@ public class KafkaClusterFactory {
   private final Duration responseTimeout;
   private final JmxMetricsRetriever jmxMetricsRetriever;
 
-  public KafkaClusterFactory(WebclientProperties webclientProperties, JmxMetricsRetriever jmxMetricsRetriever) {
+  public KafkaClusterFactory(WebclientProperties webclientProperties,
+                             JmxMetricsRetriever jmxMetricsRetriever) {
     this.webClientMaxBuffSize = Optional.ofNullable(webclientProperties.getMaxInMemoryBufferSize())
         .map(DataSize::parse)
         .orElse(DEFAULT_WEBCLIENT_BUFFER);
@@ -74,6 +76,7 @@ public class KafkaClusterFactory {
     builder.exposeMetricsViaPrometheusEndpoint(exposeMetricsViaPrometheusEndpoint(clusterProperties));
     builder.masking(DataMasking.create(clusterProperties.getMasking()));
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));
+    builder.metricsScrapping(MetricsScrapping.create(clusterProperties, jmxMetricsRetriever));
 
     if (schemaRegistryConfigured(clusterProperties)) {
       builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));

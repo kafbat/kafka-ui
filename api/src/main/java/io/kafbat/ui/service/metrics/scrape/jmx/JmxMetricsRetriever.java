@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 
-@Component //need to be a component, since
+@Component //need to be a component, since it is closeable
 @Slf4j
 public class JmxMetricsRetriever implements Closeable {
 

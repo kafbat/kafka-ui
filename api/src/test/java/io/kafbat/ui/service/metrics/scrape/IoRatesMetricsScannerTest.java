@@ -4,7 +4,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kafbat.ui.service.metrics.scrape.prometheus.PrometheusEndpointParser;
+import io.kafbat.ui.service.metrics.scrape.prometheus.PrometheusTextFormatParser;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.math.BigDecimal;
 import java.util.List;
@@ -69,7 +69,7 @@ class IoRatesMetricsScannerTest {
   }
 
   private Map.Entry<Integer, List<MetricSnapshot>> nodeMetrics(Node n, String... prometheusMetrics) {
-    return Map.entry(n.id(), PrometheusEndpointParser.parse(stream(prometheusMetrics)));
+    return Map.entry(n.id(), new PrometheusTextFormatParser().parse(String.join("\n", prometheusMetrics)));
   }
 
 }

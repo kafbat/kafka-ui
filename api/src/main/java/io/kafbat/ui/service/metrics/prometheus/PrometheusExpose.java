@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.util.MetricsUtils;
 import io.prometheus.metrics.expositionformats.OpenMetricsTextFormatWriter;
+import io.prometheus.metrics.expositionformats.PrometheusTextFormatWriter;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.MetricSnapshots;
 import java.io.ByteArrayOutputStream;
@@ -69,7 +70,7 @@ public final class PrometheusExpose {
   @SneakyThrows
   public static ResponseEntity<String> constructHttpsResponse(MetricSnapshots metrics) {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    OpenMetricsTextFormatWriter writer = new OpenMetricsTextFormatWriter(false, false);
+    PrometheusTextFormatWriter writer = new PrometheusTextFormatWriter(false);
     writer.write(buffer, metrics);
     return ResponseEntity
         .ok()
@@ -78,6 +79,7 @@ public final class PrometheusExpose {
   }
 
   // copied from io.prometheus.client.exporter.common.TextFormat:writeEscapedLabelValue
+  //TODO: RM
   public static String escapedLabelValue(String s) {
     StringBuilder sb = new StringBuilder(s.length());
     for (int i = 0; i < s.length(); i++) {

@@ -1,13 +1,12 @@
 package io.kafbat.ui.service.metrics;
 
-import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
-import io.prometheus.metrics.model.snapshots.Labels;
+import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -25,26 +24,25 @@ public interface RawMetric {
     return new SimpleMetric(name, labels, value);
   }
 
-  static Stream<MetricSnapshot> groupIntoMfs(Collection<RawMetric> rawMetrics) {
-    Map<String, GaugeSnapshot.Builder> map = new LinkedHashMap<>();
+  static Stream<MetricSnapshot> groupIntoSnapshot(Collection<RawMetric> rawMetrics) {
+    Map<String, Gauge> map = new LinkedHashMap<>();
     for (RawMetric m : rawMetrics) {
-      var gauge = map.computeIfAbsent(m.name(),
-          (n) -> GaugeSnapshot.builder()
+      var lbls = m.labels().keySet().toArray(String[]::new);
+      var lblVals = Arrays.stream(lbls).map(l -> m.labels().get(l)).toArray(String[]::new);
+      var gauge = map.computeIfAbsent(
+          m.name(),
+          n -> Gauge.builder()
               .name(m.name())
               .help(m.name())
+              .labelNames(lbls)
+              .build()
       );
-
-      List<String> lbls = m.labels().keySet().stream().toList();
-      List<String> lblVals = lbls.stream().map(l -> m.labels().get(l)).toList();
-
-      GaugeSnapshot.GaugeDataPointSnapshot point = GaugeSnapshot.GaugeDataPointSnapshot.builder()
-          .value(m.value().doubleValue())
-          .labels(Labels.of(lbls, lblVals)).build();
-      gauge.dataPoint(point);
+      gauge.labelValues(lblVals).set(m.value().doubleValue());
     }
-    return map.values().stream().map(GaugeSnapshot.Builder::build);
+    return map.values().stream().map(Gauge::collect);
   }
 
-  record SimpleMetric(String name, Map<String, String> labels, BigDecimal value) implements RawMetric { }
+  record SimpleMetric(String name, Map<String, String> labels, BigDecimal value) implements RawMetric {
+  }
 
 }

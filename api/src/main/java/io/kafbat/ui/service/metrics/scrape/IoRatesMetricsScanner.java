@@ -4,14 +4,15 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 
 import io.kafbat.ui.model.Metrics;
-import io.prometheus.metrics.model.snapshots.DataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 // Scans external jmx/prometheus metric and tries to infer io rates
 class IoRatesMetricsScanner {
@@ -31,10 +32,15 @@ class IoRatesMetricsScanner {
       for (MetricSnapshot metric : metrics) {
         String name = metric.getMetadata().getName();
         if (metric instanceof GaugeSnapshot gauge) {
-          for (GaugeSnapshot.GaugeDataPointSnapshot dataPoint : gauge.getDataPoints()) {
-            updateBrokerIOrates(nodeId, name, dataPoint);
-            updateTopicsIOrates(name, dataPoint);
-          }
+          gauge.getDataPoints().forEach(dp -> {
+            updateBrokerIOrates(nodeId, name, dp.getLabels(), dp.getValue());
+            updateTopicsIOrates(name, dp.getLabels(), dp.getValue());
+          });
+        } else if (metric instanceof UnknownSnapshot unknown) {
+          unknown.getDataPoints().forEach(dp -> {
+            updateBrokerIOrates(nodeId, name, dp.getLabels(), dp.getValue());
+            updateTopicsIOrates(name, dp.getLabels(), dp.getValue());
+          });
         }
       }
     }
@@ -49,26 +55,24 @@ class IoRatesMetricsScanner {
         .build();
   }
 
-  private void updateBrokerIOrates(int nodeId, String name, GaugeSnapshot.GaugeDataPointSnapshot point) {
-    Labels labels = point.getLabels();
+  private void updateBrokerIOrates(int nodeId, String name, Labels labels, double value) {
     if (!brokerBytesInFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesInPerSec".equalsIgnoreCase(labels.getValue(0))
         && containsIgnoreCase(name, "BrokerTopicMetrics")
         && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
-      brokerBytesInFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(point.getValue()));
+      brokerBytesInFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
     if (!brokerBytesOutFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesOutPerSec".equalsIgnoreCase(labels.getValue(0))
         && containsIgnoreCase(name, "BrokerTopicMetrics")
         && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
-      brokerBytesOutFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(point.getValue()));
+      brokerBytesOutFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
   }
 
-  private void updateTopicsIOrates(String name, GaugeSnapshot.GaugeDataPointSnapshot point) {
-    Labels labels = point.getLabels();
+  private void updateTopicsIOrates(String name, Labels labels, double value) {
     if (labels.contains("topic")
         && containsIgnoreCase(name, "BrokerTopicMetrics")
         && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
@@ -76,10 +80,10 @@ class IoRatesMetricsScanner {
       if (labels.contains("name")) {
         var nameLblVal = labels.get("name");
         if ("BytesInPerSec".equalsIgnoreCase(nameLblVal)) {
-          BigDecimal val = BigDecimal.valueOf(point.getValue());
+          BigDecimal val = BigDecimal.valueOf(value);
           bytesInFifteenMinuteRate.merge(topic, val, BigDecimal::add);
         } else if ("BytesOutPerSec".equalsIgnoreCase(nameLblVal)) {
-          BigDecimal val = BigDecimal.valueOf(point.getValue());
+          BigDecimal val = BigDecimal.valueOf(value);
           bytesOutFifteenMinuteRate.merge(topic, val, BigDecimal::add);
         }
       }

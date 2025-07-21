@@ -45,28 +45,29 @@ public class SummarizedMetrics {
 
   //returns Optional.empty if merging not supported for metric type
   @SuppressWarnings("unchecked")
-  private static Optional<MetricSnapshot> summarizeMetricSnapshot(Optional<MetricSnapshot> mfs1opt,
-                                                                  Optional<MetricSnapshot> mfs2opt) {
+  private static Optional<MetricSnapshot> summarizeMetricSnapshot(Optional<MetricSnapshot> snap1Opt,
+                                                                  Optional<MetricSnapshot> snap2Opt) {
 
-    if ((mfs1opt.isEmpty() || mfs2opt.isEmpty()) || !(mfs1opt.get().getClass().equals(mfs2opt.get().getClass()))) {
+    if ((snap1Opt.isEmpty() || snap2Opt.isEmpty()) || !(snap1Opt.get().getClass().equals(snap2Opt.get().getClass()))) {
       return Optional.empty();
     }
 
-    var mfs1 = mfs1opt.get();
+    var snap1 = snap1Opt.get();
 
-    if (mfs1 instanceof GaugeSnapshot || mfs1 instanceof CounterSnapshot) {
+    //TODO: add unknown
+    if (snap1 instanceof GaugeSnapshot || snap1 instanceof CounterSnapshot) {
       BiFunction<Labels, Double, DataPointSnapshot> pointFactory;
       Function<DataPointSnapshot, Double> valueGetter;
       Function<Collection<?>, MetricSnapshot> builder;
 
-      if (mfs1 instanceof CounterSnapshot) {
+      if (snap1 instanceof CounterSnapshot) {
         pointFactory = (l, v) -> CounterDataPointSnapshot.builder()
             .labels(l)
             .value(v)
             .build();
         valueGetter = (dp) -> ((CounterDataPointSnapshot)dp).getValue();
         builder = (dps) ->
-            new CounterSnapshot(mfs1.getMetadata(), (Collection<CounterDataPointSnapshot>)dps);
+            new CounterSnapshot(snap1.getMetadata(), (Collection<CounterDataPointSnapshot>)dps);
       } else {
         pointFactory = (l,v) -> GaugeDataPointSnapshot.builder()
             .labels(l)
@@ -74,11 +75,11 @@ public class SummarizedMetrics {
             .build();
         valueGetter = (dp) -> ((GaugeDataPointSnapshot)dp).getValue();
         builder = (dps) ->
-            new GaugeSnapshot(mfs1.getMetadata(), (Collection<GaugeDataPointSnapshot>)dps);
+            new GaugeSnapshot(snap1.getMetadata(), (Collection<GaugeDataPointSnapshot>)dps);
       }
 
       Collection<DataPointSnapshot> points =
-          Stream.concat(mfs1.getDataPoints().stream(), mfs2opt.get().getDataPoints().stream())
+          Stream.concat(snap1.getDataPoints().stream(), snap2Opt.get().getDataPoints().stream())
               .collect(
                   toMap(
                       // merging samples with same labels

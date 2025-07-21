@@ -4,6 +4,7 @@ import static io.kafbat.ui.config.ClustersProperties.Cluster;
 import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
 import static io.kafbat.ui.model.MetricsScrapeProperties.PROMETHEUS_METRICS_TYPE;
 
+import io.kafbat.ui.config.ClustersProperties.MetricsConfig;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.MetricsScrapeProperties;
 import io.kafbat.ui.service.metrics.prometheus.PrometheusExpose;
@@ -17,55 +18,54 @@ import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.Node;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MetricsScrapping {
 
   private final String clusterName;
   private final MetricsSink sink;
   private final InferredMetricsScraper inferredMetricsScraper;
   @Nullable
-  private final JmxMetricsScraper jmxMetricsScraper;
-  @Nullable
-  private final PrometheusScraper prometheusScraper;
+  private final BrokerMetricsScraper brokerMetricsScraper;
 
   public static MetricsScrapping create(Cluster cluster,
                                         JmxMetricsRetriever jmxMetricsRetriever) {
-    JmxMetricsScraper jmxMetricsScraper = null;
-    PrometheusScraper prometheusScraper = null;
-    var metrics = cluster.getMetrics();
+    BrokerMetricsScraper scraper = null;
+    MetricsConfig metricsConfig = cluster.getMetrics();
     if (cluster.getMetrics() != null) {
       var scrapeProperties = MetricsScrapeProperties.create(cluster);
-      if (metrics.getType().equalsIgnoreCase(JMX_METRICS_TYPE) && metrics.getPort() != null) {
-        jmxMetricsScraper = new JmxMetricsScraper(scrapeProperties, jmxMetricsRetriever);
-      } else if (metrics.getType().equalsIgnoreCase(PROMETHEUS_METRICS_TYPE)) {
-        prometheusScraper = new PrometheusScraper(scrapeProperties);
+      if (metricsConfig.getType().equalsIgnoreCase(JMX_METRICS_TYPE) && metricsConfig.getPort() != null) {
+        scraper = new JmxMetricsScraper(scrapeProperties, jmxMetricsRetriever);
+      } else if (metricsConfig.getType().equalsIgnoreCase(PROMETHEUS_METRICS_TYPE)) {
+        scraper = new PrometheusScraper(scrapeProperties);
       }
     }
     return new MetricsScrapping(
         cluster.getName(),
         MetricsSink.create(cluster),
         new InferredMetricsScraper(),
-        jmxMetricsScraper,
-        prometheusScraper
+        scraper
     );
   }
 
   public Mono<Metrics> scrape(ScrapedClusterState clusterState, Collection<Node> nodes) {
     Mono<InferredMetrics> inferred = inferredMetricsScraper.scrape(clusterState);
-    Mono<PerBrokerScrapedMetrics> external = scrapeExternal(nodes);
+    Mono<PerBrokerScrapedMetrics> brokerMetrics = scrapeBrokers(nodes);
     return inferred.zipWith(
-        external,
-        (inf, ext) -> Metrics.builder()
-            .inferredMetrics(inf)
-            .ioRates(ext.ioRates())
-            .perBrokerScrapedMetrics(ext.perBrokerMetrics())
-            .build()
+        brokerMetrics,
+        (inf, ext) ->
+            Metrics.builder()
+                .inferredMetrics(inf)
+                .ioRates(ext.ioRates())
+                .perBrokerScrapedMetrics(ext.perBrokerMetrics())
+                .build()
     ).doOnNext(this::sendMetricsToSink);
   }
 
@@ -75,16 +75,16 @@ public class MetricsScrapping {
         .subscribe();
   }
 
-  private Stream<MetricSnapshot> prepareMetricsForSending(Metrics metrics) {
-    return PrometheusExpose.prepareMetricsForGlobalExpose(clusterName, metrics);
+  private Flux<MetricSnapshot> prepareMetricsForSending(Metrics metrics) {
+    //need to be "cold" because sinks can resubscribe multiple times
+    return Flux.defer(() ->
+        Flux.fromStream(
+            PrometheusExpose.prepareMetricsForGlobalExpose(clusterName, metrics)));
   }
 
-  private Mono<PerBrokerScrapedMetrics> scrapeExternal(Collection<Node> nodes) {
-    if (jmxMetricsScraper != null) {
-      return jmxMetricsScraper.scrape(nodes);
-    }
-    if (prometheusScraper != null) {
-      return prometheusScraper.scrape(nodes);
+  private Mono<PerBrokerScrapedMetrics> scrapeBrokers(Collection<Node> nodes) {
+    if (brokerMetricsScraper != null) {
+      return brokerMetricsScraper.scrape(nodes);
     }
     return Mono.just(PerBrokerScrapedMetrics.empty());
   }

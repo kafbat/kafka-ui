@@ -2,14 +2,11 @@ package io.kafbat.ui.service;
 
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.KafkaCluster;
-import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.Statistics;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.springframework.stereotype.Component;
@@ -20,7 +17,7 @@ public class StatisticsCache {
   private final Map<String, Statistics> cache = new ConcurrentHashMap<>();
 
   public StatisticsCache(ClustersStorage clustersStorage) {
-    var initializing = Statistics.empty().toBuilder().status(ServerStatusDTO.INITIALIZING).build();
+    Statistics initializing = Statistics.initializing();
     clustersStorage.getKafkaClusters().forEach(c -> cache.put(c.getName(), initializing));
   }
 
@@ -35,9 +32,7 @@ public class StatisticsCache {
     var stats = get(c);
     replace(
         c,
-        stats.toBuilder()
-            .clusterState(stats.getClusterState().updateTopics(descriptions, configs, partitionsOffsets))
-            .build()
+        stats.withClusterState(s -> s.updateTopics(descriptions, configs, partitionsOffsets))
     );
   }
 
@@ -45,9 +40,7 @@ public class StatisticsCache {
     var stats = get(c);
     replace(
         c,
-        stats.toBuilder()
-            .clusterState(stats.getClusterState().topicDeleted(topic))
-            .build()
+        stats.withClusterState(s -> s.topicDeleted(topic))
     );
   }
 

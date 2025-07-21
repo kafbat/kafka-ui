@@ -7,10 +7,9 @@ import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.MetricSnapshots;
 import jakarta.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -34,13 +33,12 @@ class PrometheusPushGatewaySink implements MetricsSink {
   }
 
   @Override
-  public Mono<Void> send(Stream<MetricSnapshot> metrics) {
-    List<MetricSnapshot> metricsToPush = metrics.toList();
-    if (metricsToPush.isEmpty()) {
-      return Mono.empty();
-    }
-    return Mono.<Void>fromRunnable(() -> pushSync(metricsToPush))
-        .subscribeOn(Schedulers.boundedElastic());
+  public Mono<Void> send(Flux<MetricSnapshot> metrics) {
+    return metrics.collectList()
+        .filter(lst -> !lst.isEmpty())
+        .doOnNext(this::pushSync)
+        .subscribeOn(Schedulers.boundedElastic())
+        .then();
   }
 
   @SneakyThrows

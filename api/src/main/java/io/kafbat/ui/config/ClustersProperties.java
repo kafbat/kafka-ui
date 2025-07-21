@@ -99,12 +99,6 @@ public class ClustersProperties {
   @Data
   public static class MetricsStorage {
     PrometheusStorage prometheus;
-    KafkaMetricsStorage kafka;
-  }
-
-  @Data
-  public static class KafkaMetricsStorage  {
-    String topic;
   }
 
   @Data

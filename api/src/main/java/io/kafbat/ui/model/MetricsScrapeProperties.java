@@ -7,11 +7,12 @@ import io.kafbat.ui.config.ClustersProperties;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 public class MetricsScrapeProperties {
   public static final String JMX_METRICS_TYPE = "JMX";
   public static final String PROMETHEUS_METRICS_TYPE = "PROMETHEUS";

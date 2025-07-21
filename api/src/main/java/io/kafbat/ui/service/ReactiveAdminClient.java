@@ -133,6 +133,10 @@ public class ReactiveAdminClient implements Closeable {
     Collection<Node> nodes;
     @Nullable // null, if ACL is disabled
     Set<AclOperation> authorizedOperations;
+
+    public static ClusterDescription empty() {
+      return new ReactiveAdminClient.ClusterDescription(null, null, List.of(), Set.of());
+    }
   }
 
   @Builder

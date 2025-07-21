@@ -1,6 +1,7 @@
 package io.kafbat.ui.service.metrics.scrape.prometheus;
 
 import io.kafbat.ui.model.MetricsScrapeProperties;
+import io.kafbat.ui.service.metrics.scrape.BrokerMetricsScraper;
 import io.kafbat.ui.service.metrics.scrape.PerBrokerScrapedMetrics;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.util.Collection;
@@ -12,7 +13,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-public class PrometheusScraper {
+public class PrometheusScraper implements BrokerMetricsScraper {
 
   private final PrometheusMetricsRetriever retriever;
 
@@ -20,6 +21,7 @@ public class PrometheusScraper {
     this.retriever = new PrometheusMetricsRetriever(scrapeProperties);
   }
 
+  @Override
   public Mono<PerBrokerScrapedMetrics> scrape(Collection<Node> clusterNodes) {
     Mono<Map<Integer, List<MetricSnapshot>>> collected = Flux.fromIterable(clusterNodes)
         .flatMap(n -> retriever.retrieve(n.host()).map(metrics -> Tuples.of(n, metrics)))

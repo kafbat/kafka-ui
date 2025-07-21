@@ -12,12 +12,16 @@ import io.prometheus.metrics.model.snapshots.HistogramSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.SummarySnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSnapshot;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.MetadataSnapshot;
 
 public final class MetricsUtils {
+
+  //TODO: rm
   public static double readPointValue(DataPointSnapshot dps) {
     return switch (dps) {
       case GaugeDataPointSnapshot guage -> guage.getValue();
@@ -26,6 +30,7 @@ public final class MetricsUtils {
     };
   }
 
+  //TODO: rm
   public static String toGoString(double d) {
     if (d == Double.POSITIVE_INFINITY) {
       return "+Inf";
@@ -38,7 +43,17 @@ public final class MetricsUtils {
 
   public static MetricSnapshot appendLabel(MetricSnapshot md, String name, String value) {
     return switch (md) {
-      case GaugeSnapshot gauge ->  new GaugeSnapshot(gauge.getMetadata(), gauge.getDataPoints()
+      case UnknownSnapshot unknown -> new UnknownSnapshot(unknown.getMetadata(), unknown.getDataPoints()
+          .stream().map(dp ->
+              new UnknownDataPointSnapshot(
+                  dp.getValue(),
+                  extendLabels(dp.getLabels(), name, value),
+                  dp.getExemplar(),
+                  dp.getScrapeTimestampMillis()
+              )
+          ).toList()
+      );
+      case GaugeSnapshot gauge -> new GaugeSnapshot(gauge.getMetadata(), gauge.getDataPoints()
           .stream().map(dp ->
               new GaugeDataPointSnapshot(
                   dp.getValue(),
@@ -88,6 +103,8 @@ public final class MetricsUtils {
     ).toList();
 
     return switch (d1) {
+      case UnknownSnapshot u -> new UnknownSnapshot(u.getMetadata(),
+          (Collection<UnknownDataPointSnapshot>)dataPoints);
       case GaugeSnapshot g -> new GaugeSnapshot(g.getMetadata(),
           (Collection<GaugeDataPointSnapshot>) dataPoints);
       case CounterSnapshot c -> new CounterSnapshot(c.getMetadata(),
@@ -100,8 +117,7 @@ public final class MetricsUtils {
     };
   }
 
-
-  public static Labels extendLabels(Labels labels, String name, String value) {
+  private static Labels extendLabels(Labels labels, String name, String value) {
     return labels.add(name, value);
   }
 }

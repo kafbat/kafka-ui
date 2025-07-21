@@ -4,6 +4,7 @@ import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.util.List;
 import java.util.stream.Stream;
 
+//metrics that we inferred from cluster state (always present for any setup)
 public class InferredMetrics {
 
   private final List<MetricSnapshot> metrics;
