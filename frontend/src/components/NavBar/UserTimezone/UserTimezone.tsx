@@ -36,6 +36,7 @@ export const UserTimezone = () => {
     <Dropdown
       onClose={() => setSearchValue('')}
       align="center"
+      aria-label="user-timezone-dropdown"
       openBtnEl={
         <Button buttonType="text" buttonSize="L">
           <S.SelectedTimezoneContainer>
