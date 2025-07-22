@@ -27,7 +27,6 @@ public class BrokersTest extends BaseTest {
     verifyElementsCondition(brokersList.getAllEnabledElements(), Condition.enabled);
   }
 
-  @Ignore
   @Test
   public void existingBrokersInClusterCheck() {
     navigateToBrokers();

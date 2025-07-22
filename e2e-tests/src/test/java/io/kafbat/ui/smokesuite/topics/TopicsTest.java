@@ -109,7 +109,6 @@ public class TopicsTest extends BaseTest {
     softly.assertAll();
   }
 
-  @Ignore
   @Test(priority = 4)
   public void updateTopicCheck() {
     navigateToTopicsAndOpenDetails(UPDATE_TOPIC.getName());

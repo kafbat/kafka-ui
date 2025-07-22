@@ -161,7 +161,6 @@ public class MessagesTest extends BaseTest {
     softly.assertAll();
   }
 
-  @Ignore
   @Test(priority = 8)
   public void clearTopicMessageFromOverviewTabCheck() {
     navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());

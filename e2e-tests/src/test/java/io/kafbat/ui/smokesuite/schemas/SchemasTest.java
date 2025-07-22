@@ -100,7 +100,6 @@ public class SchemasTest extends BaseTest {
     Assert.assertEquals(schemaCreateForm.getMarkedLinesNumber(), 20, "getMarkedLinesNumber()");
   }
 
-  @Ignore
   @Test(priority = 4)
   public void deleteSchemaAvroCheck() {
     navigateToSchemaRegistryAndOpenDetails(AVRO_SCHEMA.getName());
