@@ -49,6 +49,7 @@ export const UserTimezone = () => {
       <S.ContentContainer>
         <S.InputContainer>
           <Input
+            id="user-timezone-search"
             type="text"
             placeholder="Search timezone..."
             value={searchValue}
