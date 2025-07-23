@@ -137,3 +137,6 @@ google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', 
 
 modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.10.0'}
 victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-generator', version = '4.38.0'}
+
+# CVE fixes
+reactor-netty-http = {module = 'io.projectreactor.netty:reactor-netty-http', version = '1.2.8'}
