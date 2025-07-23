@@ -9,70 +9,63 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  jar-build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write
+
+    outputs:
+      version: ${{steps.build.outputs.version}}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # infered from @v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'zulu'
-          cache: 'maven'
+          cache: 'gradle'
 
-      - name: Build a jar
+      - name: Build jar
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -V -B -ntp clean package -Pprod -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          version=${GITHUB_SHA::7}
+          echo "version=$version" >> $GITHUB_OUTPUT
+          ./gradlew clean build \
+          -x test \
+          -Pinclude-frontend=true \
+          -Pversion=$version
 
-      # docker images
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
+      - name: Upload jar
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # infered from @v4
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+          name: kafbat-ui-${{ steps.build.outputs.version }}
+          path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
+          retention-days: 1
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  docker-build:
+    needs: jar-build
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker_build.yml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+      version: ${{ needs.jar-build.outputs.version }}
 
-      - name: Build & push docker image
-        id: docker_build_and_push
-        uses: docker/build-push-action@v5
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          context: api
-          platforms: linux/amd64,linux/arm64
-          provenance: false
-          push: true
-          tags: |
-            ghcr.io/kafbat/kafka-ui:${{ steps.build.outputs.version }}
-            ghcr.io/kafbat/kafka-ui:main
-          build-args: |
-            JAR_FILE=api-${{ steps.build.outputs.version }}.jar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+  docker-deploy:
+    needs: [ jar-build, docker-build ]
+    permissions:
+      packages: write
+      id-token: write # Required to authenticate with OIDC for AWS
+    uses: ./.github/workflows/docker_publish.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.jar-build.outputs.version }}
+      generic_tag: main

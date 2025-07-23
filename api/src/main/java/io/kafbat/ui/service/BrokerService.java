@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.LogDirDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartitionReplica;
 import org.apache.kafka.common.errors.InvalidRequestException;
@@ -59,7 +60,7 @@ public class BrokerService {
     }
     return loadBrokersConfig(cluster, brokerId)
         .map(list -> list.stream()
-            .map(InternalBrokerConfig::from)
+            .map(configEntry -> InternalBrokerConfig.from(configEntry, cluster.isReadOnly()))
             .collect(Collectors.toList()))
         .flatMapMany(Flux::fromIterable);
   }
@@ -109,7 +110,7 @@ public class BrokerService {
         .doOnError(e -> log.error("Unexpected error", e));
   }
 
-  private Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> getClusterLogDirs(
+  private Mono<Map<Integer, Map<String, LogDirDescription>>> getClusterLogDirs(
       KafkaCluster cluster, List<Integer> reqBrokers) {
     return adminClientService.get(cluster)
         .flatMap(admin -> {

@@ -90,7 +90,7 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH_GITHUB))
             .filter(s -> s.getType().equals("user"))
-            .anyMatch(s -> s.getValue().equals(username)))
+            .anyMatch(s -> s.matches(username)))
         .map(Role::getName)
         .collect(Collectors.toSet());
 
@@ -131,7 +131,7 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
                 .filter(s -> s.getType().equals(ORGANIZATION))
                 .anyMatch(subject -> orgsMap.stream()
                     .map(org -> org.get(ORGANIZATION_NAME).toString())
-                    .anyMatch(orgName -> orgName.equalsIgnoreCase(subject.getValue()))
+                    .anyMatch(subject::matches)
                 ))
             .map(Role::getName)
             .collect(Collectors.toSet()));
@@ -189,7 +189,7 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
                 .filter(s -> s.getProvider().equals(Provider.OAUTH_GITHUB))
                 .filter(s -> s.getType().equals("team"))
                 .anyMatch(subject -> teams.stream()
-                    .anyMatch(teamName -> teamName.equalsIgnoreCase(subject.getValue()))
+                    .anyMatch(subject::matches)
                 ))
             .map(Role::getName)
             .collect(Collectors.toSet()));

@@ -10,7 +10,6 @@ import {
   RouteParamsClusterTopic,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import {
   ActionButton,
   ActionNavLink,
@@ -29,6 +28,7 @@ import { Action, CleanUpPolicy, ResourceType } from 'generated-sources';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import SlidingSidebar from 'components/common/SlidingSidebar';
 import useBoolean from 'lib/hooks/useBoolean';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import Messages from './Messages/Messages';
 import Overview from './Overview/Overview';
@@ -67,7 +67,7 @@ const Topic: React.FC = () => {
 
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={topicName}
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}
@@ -162,7 +162,7 @@ const Topic: React.FC = () => {
             )}
           </ActionDropdownItem>
         </Dropdown>
-      </PageHeading>
+      </ResourcePageHeading>
       <Navbar role="navigation">
         <NavLink
           to="."
@@ -194,12 +194,17 @@ const Topic: React.FC = () => {
         >
           Settings
         </NavLink>
-        <NavLink
+        <ActionNavLink
           to={clusterTopicStatisticsRelativePath}
           className={({ isActive }) => (isActive ? 'is-active' : '')}
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.ANALYSIS_VIEW,
+            value: topicName,
+          }}
         >
           Statistics
-        </NavLink>
+        </ActionNavLink>
       </Navbar>
       <Suspense fallback={<PageLoader />}>
         <Routes>

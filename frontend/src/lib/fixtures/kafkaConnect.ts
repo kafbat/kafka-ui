@@ -38,6 +38,18 @@ export const connectors: FullConnectorInfo[] = [
     tasksCount: 3,
     failedTasksCount: 1,
   },
+  {
+    connect: 'third',
+    name: 'hdfs3-source-connector',
+    connectorClass: 'FileStreamSource',
+    type: ConnectorType.SINK,
+    topics: ['test-topic'],
+    status: {
+      state: ConnectorState.STOPPED,
+    },
+    tasksCount: 0,
+    failedTasksCount: 0,
+  },
 ];
 
 export const connector: Connector = {

@@ -68,10 +68,11 @@ public class AclsService {
         .doOnSuccess(v -> log.info("ACL DELETED: [{}]", aclString));
   }
 
-  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter) {
+  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch) {
     return adminClientService.get(cluster)
         .flatMap(c -> c.listAcls(filter))
         .flatMapIterable(acls -> acls)
+        .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
         .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
   }
 
@@ -112,13 +113,13 @@ public class AclsService {
     if (!toBeAdded.isEmpty()) {
       log.info("ACLs to be added ({}): ", toBeAdded.size());
       for (AclBinding aclBinding : toBeAdded) {
-        log.info(" " + AclCsv.createAclString(aclBinding));
+        log.info(" {}", AclCsv.createAclString(aclBinding));
       }
     }
     if (!toBeDeleted.isEmpty()) {
       log.info("ACLs to be deleted ({}): ", toBeDeleted.size());
       for (AclBinding aclBinding : toBeDeleted) {
-        log.info(" " + AclCsv.createAclString(aclBinding));
+        log.info(" {}", AclCsv.createAclString(aclBinding));
       }
     }
   }
@@ -158,7 +159,7 @@ public class AclsService {
         .then();
   }
 
-  //Read, Describe on topics, Read on consumerGroups
+  //Read, Describe on topics and consumerGroups
   private List<AclBinding> createConsumerBindings(CreateConsumerAclDTO request) {
     List<AclBinding> bindings = new ArrayList<>();
     bindings.addAll(
@@ -172,7 +173,7 @@ public class AclsService {
     bindings.addAll(
         createAllowBindings(
             GROUP,
-            List.of(READ),
+            List.of(READ, DESCRIBE),
             request.getPrincipal(),
             request.getHost(),
             request.getConsumerGroupsPrefix(),

@@ -1,17 +1,15 @@
 package io.kafbat.ui.config.auth;
 
-import io.kafbat.ui.util.EmptyRedirectStrategy;
-import java.net.URI;
+import io.kafbat.ui.util.StaticFileWebFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
-import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 @Configuration
@@ -20,32 +18,28 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @Slf4j
 public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
-  public static final String LOGIN_URL = "/auth";
-  public static final String LOGOUT_URL = "/auth?logout";
-
   @Bean
   public SecurityWebFilterChain configure(ServerHttpSecurity http) {
     log.info("Configuring LOGIN_FORM authentication.");
 
-    final var authHandler = new RedirectServerAuthenticationSuccessHandler();
-    authHandler.setRedirectStrategy(new EmptyRedirectStrategy());
-
-    final var logoutSuccessHandler = new RedirectServerLogoutSuccessHandler();
-    logoutSuccessHandler.setLogoutSuccessUrl(URI.create(LOGOUT_URL));
-
-
-    return http.authorizeExchange(spec -> spec
+    var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
             .authenticated()
         )
-        .formLogin(spec -> spec.loginPage(LOGIN_URL).authenticationSuccessHandler(authHandler))
+        .formLogin(form -> form
+            .loginPage(LOGIN_URL)
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
+        )
         .logout(spec -> spec
-            .logoutSuccessHandler(logoutSuccessHandler)
+            .logoutSuccessHandler(redirectLogoutSuccessHandler())
             .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .build();
+        .csrf(ServerHttpSecurity.CsrfSpec::disable);
+
+    builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+
+    return builder.build();
   }
 
 }

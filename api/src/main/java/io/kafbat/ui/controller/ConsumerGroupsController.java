@@ -19,6 +19,7 @@ import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.service.ConsumerGroupService;
 import io.kafbat.ui.service.OffsetsResetService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -35,7 +36,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class ConsumerGroupsController extends AbstractController implements ConsumerGroupsApi {
+public class ConsumerGroupsController extends AbstractController implements ConsumerGroupsApi, McpTool {
 
   private final ConsumerGroupService consumerGroupService;
   private final OffsetsResetService offsetsResetService;
@@ -55,6 +56,24 @@ public class ConsumerGroupsController extends AbstractController implements Cons
 
     return validateAccess(context)
         .then(consumerGroupService.deleteConsumerGroupById(getCluster(clusterName), id))
+        .doOnEach(sig -> audit(context, sig))
+        .thenReturn(ResponseEntity.ok().build());
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> deleteConsumerGroupOffsets(String clusterName,
+                                                               String groupId,
+                                                               String topicName,
+                                                               ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .consumerGroupActions(groupId, RESET_OFFSETS)
+        .topicActions(topicName, TopicAction.VIEW)
+        .operationName("deleteConsumerGroupOffsets")
+        .build();
+
+    return validateAccess(context)
+        .then(consumerGroupService.deleteConsumerGroupOffset(getCluster(clusterName), groupId, topicName))
         .doOnEach(sig -> audit(context, sig))
         .thenReturn(ResponseEntity.ok().build());
   }

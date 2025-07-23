@@ -2,7 +2,11 @@
 
 
 # BACKEND
-/pom.xml                    @kafbat/backend
+gradle/libs.versions.toml   @kafbat/backend
+/build.gradle               @kafbat/backend
+/gradle.properties          @kafbat/backend
+/settings.gradle            @kafbat/backend
+/gradle/                    @kafbat/backend
 /contract/                  @kafbat/backend
 /api/                       @kafbat/backend
 /serde-api/                 @kafbat/backend

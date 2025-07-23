@@ -1,9 +1,10 @@
 package io.kafbat.ui.controller;
 
+import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_RUN;
+import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_VIEW;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.CREATE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
-import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
 
@@ -28,6 +29,7 @@ import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class TopicsController extends AbstractController implements TopicsApi {
+public class TopicsController extends AbstractController implements TopicsApi, McpTool {
 
   private static final Integer DEFAULT_PAGE_SIZE = 25;
 
@@ -272,7 +274,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_RUN)
         .operationName("analyzeTopic")
         .build();
 
@@ -288,7 +290,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
                                                         ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_RUN)
         .operationName("cancelTopicAnalysis")
         .build();
 
@@ -306,7 +308,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
+        .topicActions(topicName, ANALYSIS_VIEW)
         .operationName("getTopicAnalysis")
         .build();
 
@@ -350,18 +352,12 @@ public class TopicsController extends AbstractController implements TopicsApi {
     if (orderBy == null) {
       return defaultComparator;
     }
-    switch (orderBy) {
-      case TOTAL_PARTITIONS:
-        return Comparator.comparing(InternalTopic::getPartitionCount);
-      case OUT_OF_SYNC_REPLICAS:
-        return Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
-      case REPLICATION_FACTOR:
-        return Comparator.comparing(InternalTopic::getReplicationFactor);
-      case SIZE:
-        return Comparator.comparing(InternalTopic::getSegmentSize);
-      case NAME:
-      default:
-        return defaultComparator;
-    }
+    return switch (orderBy) {
+      case TOTAL_PARTITIONS -> Comparator.comparing(InternalTopic::getPartitionCount);
+      case OUT_OF_SYNC_REPLICAS -> Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
+      case REPLICATION_FACTOR -> Comparator.comparing(InternalTopic::getReplicationFactor);
+      case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
+      default -> defaultComparator;
+    };
   }
 }

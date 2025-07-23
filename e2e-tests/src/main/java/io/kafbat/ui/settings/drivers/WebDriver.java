@@ -19,8 +19,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 @Slf4j
 public abstract class WebDriver {
 
-  private static final String MAC_OS_CHROME_BIN_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  private static final String SELENIDE_RESULTS_PATH = "target/selenide-results";
+  private static final String SELENIDE_RESULTS_PATH = "build/selenide-results";
 
   @Step
   public static void browserSetup() {
@@ -49,8 +48,6 @@ public abstract class WebDriver {
       selenoidOptions.put("enableVideo", false);
       selenoidOptions.put("sessionTimeout", "30m");
       chromeOptions.setCapability("selenoid:options", selenoidOptions);
-    } else if (System.getProperty("os.name").equals("Mac OS X")) {
-      Configuration.browserBinary = MAC_OS_CHROME_BIN_PATH;
     }
     Configuration.browserCapabilities = chromeOptions;
   }
@@ -68,7 +65,7 @@ public abstract class WebDriver {
   @Step
   public static void openUrl(String url) {
     org.openqa.selenium.WebDriver driver = getWebDriver();
-    if (!driver.getCurrentUrl().equals(url)) {
+    if (!url.equals(driver.getCurrentUrl())) {
       driver.get(url);
     }
   }

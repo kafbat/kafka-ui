@@ -37,7 +37,7 @@ class GithubReleaseInfoTest {
             """));
     var url = mockWebServer.url("repos/kafbat/kafka-ui/releases/latest").toString();
 
-    var infoHolder = new GithubReleaseInfo(url);
+    var infoHolder = new GithubReleaseInfo(url, 10);
     infoHolder.refresh().block();
 
     var i = infoHolder.get();

@@ -28,7 +28,7 @@ public class MetricsCollector {
     return Flux.fromIterable(nodes)
         .flatMap(n -> getMetrics(cluster, n).map(lst -> Tuples.of(n, lst)))
         .collectMap(Tuple2::getT1, Tuple2::getT2)
-        .map(nodeMetrics -> collectMetrics(cluster, nodeMetrics))
+        .map(this::collectMetrics)
         .defaultIfEmpty(Metrics.empty());
   }
 
@@ -45,20 +45,19 @@ public class MetricsCollector {
     return metricFlux.collectList();
   }
 
-  public Metrics collectMetrics(KafkaCluster cluster, Map<Node, List<RawMetric>> perBrokerMetrics) {
+  public Metrics collectMetrics(Map<Node, List<RawMetric>> perBrokerMetrics) {
     Metrics.MetricsBuilder builder = Metrics.builder()
         .perBrokerMetrics(
             perBrokerMetrics.entrySet()
                 .stream()
                 .collect(Collectors.toMap(e -> e.getKey().id(), Map.Entry::getValue)));
 
-    populateWellknowMetrics(cluster, perBrokerMetrics)
-        .apply(builder);
+    populateWellknowMetrics(perBrokerMetrics).apply(builder);
 
     return builder.build();
   }
 
-  private WellKnownMetrics populateWellknowMetrics(KafkaCluster cluster, Map<Node, List<RawMetric>> perBrokerMetrics) {
+  private WellKnownMetrics populateWellknowMetrics(Map<Node, List<RawMetric>> perBrokerMetrics) {
     WellKnownMetrics wellKnownMetrics = new WellKnownMetrics();
     perBrokerMetrics.forEach((node, metrics) ->
         metrics.forEach(metric ->

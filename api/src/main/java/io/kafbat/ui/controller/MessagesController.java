@@ -26,11 +26,13 @@ import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.service.DeserializationService;
 import io.kafbat.ui.service.MessagesService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,7 +43,7 @@ import reactor.core.scheduler.Schedulers;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class MessagesController extends AbstractController implements MessagesApi {
+public class MessagesController extends AbstractController implements MessagesApi, McpTool {
 
   private final MessagesService messagesService;
   private final DeserializationService deserializationService;
@@ -118,10 +120,11 @@ public class MessagesController extends AbstractController implements MessagesAp
     if (cursor != null) {
       messagesFlux = messagesService.loadMessages(getCluster(clusterName), topicName, cursor);
     } else {
+      var pollingMode = mode == null ? PollingModeDTO.LATEST : mode;
       messagesFlux = messagesService.loadMessages(
           getCluster(clusterName),
           topicName,
-          ConsumerPosition.create(checkNotNull(mode), checkNotNull(topicName), partitions, timestamp, offset),
+          ConsumerPosition.create(pollingMode, checkNotNull(topicName), partitions, timestamp, offset),
           stringFilter,
           smartFilterId,
           limit,
@@ -147,8 +150,8 @@ public class MessagesController extends AbstractController implements MessagesAp
 
     return validateAccess(context).then(
         createTopicMessage.flatMap(msg ->
-            messagesService.sendMessage(getCluster(clusterName), topicName, msg).then()
-        ).map(ResponseEntity::ok)
+            messagesService.sendMessage(getCluster(clusterName), topicName, msg)
+        ).map(m -> new ResponseEntity<Void>(HttpStatus.OK))
     ).doOnEach(sig -> audit(context, sig));
   }
 

@@ -11,6 +11,7 @@ import useAppParams from 'lib/hooks/useAppParams';
 import {
   useConnector,
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import {
@@ -37,7 +38,7 @@ const Actions: React.FC = () => {
   const deleteConnectorHandler = () =>
     confirm(
       <>
-        Are you sure you want to remove <b>{routerProps.connectorName}</b>{' '}
+        Are you sure you want to remove the <b>{routerProps.connectorName}</b>{' '}
         connector?
       </>,
       async () => {
@@ -59,11 +60,25 @@ const Actions: React.FC = () => {
     stateMutation.mutateAsync(ConnectorAction.RESTART_FAILED_TASKS);
   const pauseConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.PAUSE);
+  const stopConnectorHandler = () =>
+    stateMutation.mutateAsync(ConnectorAction.STOP);
   const resumeConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESUME);
+
+  const resetConnectorOffsetsMutation = useResetConnectorOffsets(routerProps);
+  const resetConnectorOffsetsHandler = () =>
+    confirm(
+      <>
+        Are you sure you want to reset the <b>{routerProps.connectorName}</b>{' '}
+        connector offsets?
+      </>,
+      () => resetConnectorOffsetsMutation.mutateAsync()
+    );
+
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
+        disabled={isMutating}
         label={
           <S.RestartButton>
             <S.ButtonLabel>Restart</S.ButtonLabel>
@@ -74,23 +89,34 @@ const Actions: React.FC = () => {
         {connector?.status.state === ConnectorState.RUNNING && (
           <ActionDropdownItem
             onClick={pauseConnectorHandler}
-            disabled={isMutating}
             permission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
             Pause
           </ActionDropdownItem>
         )}
-        {connector?.status.state === ConnectorState.PAUSED && (
+        {connector?.status.state === ConnectorState.RUNNING && (
           <ActionDropdownItem
-            onClick={resumeConnectorHandler}
-            disabled={isMutating}
+            onClick={stopConnectorHandler}
             permission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            }}
+          >
+            Stop
+          </ActionDropdownItem>
+        )}
+        {(connector?.status.state === ConnectorState.PAUSED ||
+          connector?.status.state === ConnectorState.STOPPED) && (
+          <ActionDropdownItem
+            onClick={resumeConnectorHandler}
+            permission={{
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -99,10 +125,9 @@ const Actions: React.FC = () => {
         )}
         <ActionDropdownItem
           onClick={restartConnectorHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -110,10 +135,9 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
         <ActionDropdownItem
           onClick={restartAllTasksHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -121,10 +145,9 @@ const Actions: React.FC = () => {
         </ActionDropdownItem>
         <ActionDropdownItem
           onClick={restartFailedTasksHandler}
-          disabled={isMutating}
           permission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -133,8 +156,21 @@ const Actions: React.FC = () => {
       </Dropdown>
       <Dropdown>
         <ActionDropdownItem
+          onClick={resetConnectorOffsetsHandler}
+          disabled={
+            isMutating || connector?.status.state !== ConnectorState.STOPPED
+          }
+          danger
+          permission={{
+            resource: ResourceType.CONNECT,
+            action: Action.RESET_OFFSETS,
+            value: routerProps.connectName,
+          }}
+        >
+          Reset Offsets
+        </ActionDropdownItem>
+        <ActionDropdownItem
           onClick={deleteConnectorHandler}
-          disabled={isMutating}
           danger
           permission={{
             resource: ResourceType.CONNECT,

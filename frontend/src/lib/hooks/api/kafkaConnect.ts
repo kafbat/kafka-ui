@@ -98,7 +98,10 @@ export function useUpdateConnectorState(props: UseConnectorProps) {
     (action: ConnectorAction) => api.updateConnectorState({ ...props, action }),
     {
       onSuccess: () =>
-        client.invalidateQueries(['clusters', props.clusterName, 'connectors']),
+        Promise.all([
+          client.invalidateQueries(connectorsKey(props.clusterName)),
+          client.invalidateQueries(connectorKey(props)),
+        ]),
     }
   );
 }
@@ -159,5 +162,13 @@ export function useDeleteConnector(props: UseConnectorProps) {
 
   return useMutation(() => api.deleteConnector(props), {
     onSuccess: () => client.invalidateQueries(connectorsKey(props.clusterName)),
+  });
+}
+
+export function useResetConnectorOffsets(props: UseConnectorProps) {
+  const client = useQueryClient();
+
+  return useMutation(() => api.resetConnectorOffsets(props), {
+    onSuccess: () => client.invalidateQueries(connectorKey(props)),
   });
 }

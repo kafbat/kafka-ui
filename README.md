@@ -15,10 +15,10 @@ Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
 
 <p align="center">
     <a href="https://ui.docs.kafbat.io/">Documentation</a> • 
-    <a href="https://ui.docs.kafbat.io/configuration/quick-start">Quick Start</a> • 
+    <a href="https://ui.docs.kafbat.io/quick-start/demo-run">Quick Start</a> • 
     <a href="https://discord.gg/4DWzD7pGE5">Community</a>
     <br/>
-    <a href="https://aws.amazon.com/marketplace/pp/{replaceMe}">AWS Marketplace</a>  •
+    <a href="https://aws.amazon.com/marketplace/pp/prodview-6tdqqzzjwmejq">AWS Marketplace</a>  •
     <a href="https://www.producthunt.com/products/ui-for-apache-kafka/reviews/new">ProductHunt</a>
 </p>
 
@@ -28,7 +28,7 @@ Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
 
 #### Kafbat UI is a free, open-source web UI to monitor and manage Apache Kafka clusters.
 
-Kafbat UI is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
+[Kafbat UI](https://kafbat.io/) is a simple tool that makes your data flows observable, helps find and troubleshoot issues faster and deliver optimal performance. Its lightweight dashboard makes it easy to track key metrics of your Kafka clusters - Brokers, Topics, Partitions, Production, and Consumption.
 
 <i>
 Kafbat UI, developed by <b>Kafbat</b>*, proudly carries forward the legacy of the UI Apache Kafka project.
@@ -50,7 +50,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 * **View Consumer Groups** — view per-partition parked offsets, combined and per-partition lag
 * **Browse Messages** — browse messages with JSON, plain text, and Avro encoding
 * **Dynamic Topic Configuration** — create and configure new topics with dynamic configuration
-* **Configurable Authentification** — [secure](https://ui.docs.kafbat.io/configuration/authentication) your installation with optional Github/Gitlab/Google OAuth 2.0
+* **Configurable Authentication** — [secure](https://ui.docs.kafbat.io/configuration/authentication) your installation with optional Github/Gitlab/Google OAuth 2.0
 * **Custom serialization/deserialization plugins** - [use](https://ui.docs.kafbat.io/configuration/serialization-serde) a ready-to-go serde for your data like AWS Glue or Smile, or code your own!
 * **Role based access control** - [manage permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) to access the UI with granular precision
 * **Data masking** - [obfuscate](https://ui.docs.kafbat.io/configuration/data-masking) sensitive data in topic messages
@@ -99,7 +99,7 @@ To run Kafbat UI, you can use either a pre-built Docker image or build it (or a 
 
 ## Quick start (Demo run)
 
-```
+```bash
 docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true ghcr.io/kafbat/kafka-ui
 ```
 
@@ -109,7 +109,7 @@ The command is sufficient to try things out. When you're done trying things out,
 
 ## Persistent installation
 
-```
+```yml
 services:
   kafbat-ui:
     container_name: kafbat-ui
@@ -158,3 +158,7 @@ Please refer to [contributing guide](https://ui.docs.kafbat.io/development/contr
 
 As we're fully independent, team members contribute in their free time.
 Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat) 
+
+# Powered by
+
+[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSourceSupport)

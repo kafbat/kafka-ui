@@ -35,7 +35,7 @@ public class ProducerRecordCreator {
   private Headers createHeaders(Map<String, String> clientHeaders) {
     RecordHeaders headers = new RecordHeaders();
     if (clientHeaders != null) {
-      clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v.getBytes())));
+      clientHeaders.forEach((k, v) -> headers.add(new RecordHeader(k, v == null ? null : v.getBytes())));
     }
     return headers;
   }
