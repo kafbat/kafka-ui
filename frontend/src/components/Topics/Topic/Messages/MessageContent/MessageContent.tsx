@@ -3,6 +3,7 @@ import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './MessageContent.styled';
 
@@ -31,6 +32,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
   keySerde,
   valueSerde,
 }) => {
+  const { currentTimezone } = useTimezone();
+
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
   const activeTabContent = () => {
     switch (activeTab) {
@@ -103,7 +106,12 @@ const MessageContent: React.FC<MessageContentProps> = ({
             <S.Metadata>
               <S.MetadataLabel>Timestamp</S.MetadataLabel>
               <span>
-                <S.MetadataValue>{formatTimestamp(timestamp)}</S.MetadataValue>
+                <S.MetadataValue>
+                  {formatTimestamp({
+                    timestamp,
+                    timezone: currentTimezone.value,
+                  })}
+                </S.MetadataValue>
                 <S.MetadataMeta>Timestamp type: {timestampType}</S.MetadataMeta>
               </span>
             </S.Metadata>
