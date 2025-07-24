@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
@@ -20,6 +21,7 @@ public class MockedRbacUtils {
 
   public static final String ADMIN_ROLE = "admin_role";
   public static final String DEV_ROLE = "dev_role";
+  public static final String DEFAULT_ROLE = "default_role";
 
   public static final String PROD_CLUSTER = "prod";
   public static final String DEV_CLUSTER = "dev";
@@ -94,6 +96,39 @@ public class MockedRbacUtils {
         schemaPermission,
         connectPermission
     );
+    role.setPermissions(permissions);
+    role.validate();
+    return role;
+  }
+
+  public static DefaultRole getDefaultRole() {
+    Permission topicViewPermission = new Permission();
+    topicViewPermission.setResource(Resource.TOPIC.name());
+    topicViewPermission.setActions(List.of(TopicAction.VIEW.name()));
+    topicViewPermission.setValue(TOPIC_NAME);
+
+    Permission consumerGroupPermission = new Permission();
+    consumerGroupPermission.setResource(Resource.CONSUMER.name());
+    consumerGroupPermission.setActions(List.of(ConsumerGroupAction.VIEW.name()));
+    consumerGroupPermission.setValue(CONSUMER_GROUP_NAME);
+
+    Permission schemaPermission = new Permission();
+    schemaPermission.setResource(Resource.SCHEMA.name());
+    schemaPermission.setActions(List.of(SchemaAction.VIEW.name()));
+    schemaPermission.setValue(SCHEMA_NAME);
+
+    Permission connectPermission = new Permission();
+    connectPermission.setResource(Resource.CONNECT.name());
+    connectPermission.setActions(List.of(ConnectAction.VIEW.name()));
+    connectPermission.setValue(CONNECT_NAME);
+
+    List<Permission> permissions = List.of(
+        topicViewPermission,
+        consumerGroupPermission,
+        schemaPermission,
+        connectPermission
+    );
+    DefaultRole role = new DefaultRole();
     role.setPermissions(permissions);
     role.validate();
     return role;

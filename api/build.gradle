@@ -14,7 +14,12 @@ dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation libs.spring.starter.security
+    implementation(libs.spring.starter.security){
+        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-53864. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
+    implementation(libs.nimbus.jose.jwt){
+        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
@@ -53,15 +58,15 @@ dependencies {
         exclude group: 'io.projectreactor.ipc', module: 'reactor-netty'
     }
 
-    runtimeOnly libs.micrometer.registry.prometheus
+    runtimeOnly(libs.micrometer.registry.prometheus) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("Micrometer uses protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project. See https://github.com/prometheus/client_java/issues/1431")
+    }
 
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    implementation libs.json.smart
-    implementation libs.netty.common
-    implementation libs.netty.handler
-    implementation libs.spring.context
+    implementation libs.reactor.netty.http
+    // CVE Fixes End
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator

@@ -45,15 +45,20 @@ const List: React.FC = () => {
         // eslint-disable-next-line react/no-unstable-nested-components
         cell: ({ getValue }) => (
           <LinkCell
+            wordBreak
             value={`${getValue<string | number>()}`}
             to={encodeURIComponent(`${getValue<string | number>()}`)}
           />
         ),
       },
-      { header: 'Id', accessorKey: 'id' },
-      { header: 'Type', accessorKey: 'schemaType' },
-      { header: 'Version', accessorKey: 'version' },
-      { header: 'Compatibility', accessorKey: 'compatibilityLevel' },
+      { header: 'Id', accessorKey: 'id', size: 120 },
+      { header: 'Type', accessorKey: 'schemaType', size: 120 },
+      { header: 'Version', accessorKey: 'version', size: 120 },
+      {
+        header: 'Compatibility',
+        accessorKey: 'compatibilityLevel',
+        size: 160,
+      },
     ],
     []
   );
