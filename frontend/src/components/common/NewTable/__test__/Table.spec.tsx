@@ -145,7 +145,7 @@ describe('Table', () => {
   it('renders TimestampCell', () => {
     renderComponent();
     expect(
-      screen.getByText(formatTimestamp(data[0].timestamp))
+      screen.getByText(formatTimestamp({ timestamp: data[0].timestamp }))
     ).toBeInTheDocument();
   });
 

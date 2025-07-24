@@ -98,6 +98,35 @@ export default createGlobalStyle(
       margin: 0;
     }
 
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: ${theme.scrollbar.trackColor.normal};
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: ${theme.scrollbar.thumbColor.normal};
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      cursor: pointer;
+      background: ${theme.scrollbar.thumbColor.active};
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+      background: ${theme.scrollbar.thumbColor.active};
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
     fieldset {
       border: none;
     }
