@@ -18,7 +18,8 @@ public class JmxMetricsFormatter {
 
   // copied from https://github.com/prometheus/jmx_exporter/blob/b6b811b4aae994e812e902b26dd41f29364c0e2b/collector/src/main/java/io/prometheus/jmx/JmxMBeanPropertyCache.java#L15
   private static final Pattern PROPERTY_PATTERN = Pattern.compile(
-      "([^,=:\\*\\?]+)=(\"(?:[^\\\\\"]*(?:\\\\.)?)*\"|[^,=:\"]*)");
+      "([^,=:\\*\\?]+)=(\"(?>[^\\\\\"]*(?:\\\\.)?)*\"|[^,=:\"]*)"
+  );
 
   public static List<RawMetric> constructMetricsList(ObjectName jmxMetric,
                                               MBeanAttributeInfo[] attributes,
