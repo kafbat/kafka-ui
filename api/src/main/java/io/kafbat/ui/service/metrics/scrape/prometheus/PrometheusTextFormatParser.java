@@ -51,6 +51,7 @@ public class PrometheusTextFormatParser {
       Pattern.compile("^# TYPE ([a-zA-Z_:][a-zA-Z0-9_:]*) (counter|gauge|histogram|summary|untyped)");
   private static final Pattern LABEL_PATTERN =
       Pattern.compile("([a-zA-Z_:][a-zA-Z0-9_:]*)=\"((?:\\\\\"|\\\\\\\\|\\\\n|[^\"])*)\"");
+  public static final String QUANTILE_LABEL = "quantile";
 
   private record ParsedDataPoint(String name, Labels labels, double value, Long scrapedAt) {
   }
@@ -258,18 +259,20 @@ public class PrometheusTextFormatParser {
     }
   }
 
-  @RequiredArgsConstructor
   static class CounterDataPointsAccumulator extends UntypedDataPointsAccumulator {
 
-    final String name;
-    final List<CounterDataPointSnapshot> dataPoints = new ArrayList<>();
+    final List<CounterDataPointSnapshot> counterDataPoints = new ArrayList<>();
+
+    public CounterDataPointsAccumulator(String name) {
+      this.name = name;
+    }
 
     @Override
     public boolean add(ParsedDataPoint dp) {
       if (!dp.name.equals(name + "_total")) {
         return false;
       }
-      dataPoints.add(
+      counterDataPoints.add(
           CounterDataPointSnapshot.builder()
               .labels(dp.labels).value(dp.value).scrapeTimestampMillis(dp.scrapedAt).build());
       return true;
@@ -277,11 +280,11 @@ public class PrometheusTextFormatParser {
 
     @Override
     public Optional<MetricSnapshot> buildSnapshot(String name, @Nullable String help) {
-      if (dataPoints.isEmpty()) {
+      if (counterDataPoints.isEmpty()) {
         return Optional.empty();
       }
       var builder = CounterSnapshot.builder().name(name).help(help);
-      dataPoints.forEach(builder::dataPoint);
+      counterDataPoints.forEach(builder::dataPoint);
       return Optional.of(builder.build());
     }
   }
@@ -359,9 +362,9 @@ public class PrometheusTextFormatParser {
 
     @Override
     public boolean add(ParsedDataPoint dp) {
-      if (dp.name.equals(name) && dp.labels.contains("quantile")) {
-        var histLbls = rmLabel(dp.labels, "quantile");
-        quantiles.put(histLbls, new Quantile(parseDouble(dp.labels.get("quantile")), dp.value));
+      if (dp.name.equals(name) && dp.labels.contains(QUANTILE_LABEL)) {
+        var histLbls = rmLabel(dp.labels, QUANTILE_LABEL);
+        quantiles.put(histLbls, new Quantile(parseDouble(dp.labels.get(QUANTILE_LABEL)), dp.value));
         return true;
       }
       if (dp.name.equals(name + "_count")) {

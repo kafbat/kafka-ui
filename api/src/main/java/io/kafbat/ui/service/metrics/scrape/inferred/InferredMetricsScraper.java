@@ -23,6 +23,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class InferredMetricsScraper {
 
+  public static final String NODE_ID_TAG = "node_id";
+  public static final String TOPIC_TAG = "topic";
+  public static final String GROUP_TAG = "group";
   private ScrapedClusterState prevState = null;
 
   public synchronized Mono<InferredMetrics> scrape(ScrapedClusterState newState) {
@@ -79,7 +82,7 @@ public class InferredMetricsScraper {
         registry.gauge(
             "broker_bytes_disk",
             "Written disk size in bytes of a broker",
-            List.of("node_id"),
+            List.of(NODE_ID_TAG),
             List.of(nodeId.toString()),
             state.segmentStats().getSegmentSize()
         );
@@ -89,7 +92,7 @@ public class InferredMetricsScraper {
           registry.gauge(
               "broker_bytes_usable",
               "Usable disk size in bytes of a broker",
-              List.of("node_id"),
+              List.of(NODE_ID_TAG),
               List.of(nodeId.toString()),
               state.logDirSpaceStats().usableBytes()
           );
@@ -98,7 +101,7 @@ public class InferredMetricsScraper {
           registry.gauge(
               "broker_bytes_total",
               "Total disk size in bytes of a broker",
-              List.of("node_id"),
+              List.of(NODE_ID_TAG),
               List.of(nodeId.toString()),
               state.logDirSpaceStats().totalBytes()
           );
@@ -120,21 +123,21 @@ public class InferredMetricsScraper {
       registry.gauge(
           "kafka_topic_partitions",
           "Number of partitions for this Topic",
-          List.of("topic"),
+          List.of(TOPIC_TAG),
           List.of(topicName),
           state.description().partitions().size()
       );
       state.endOffsets().forEach((partition, endOffset) -> registry.gauge(
           "kafka_topic_partition_next_offset",
           "Current (next) Offset of a Broker at Topic/Partition",
-          List.of("topic", "partition"),
+          List.of(TOPIC_TAG, "partition"),
           List.of(topicName, String.valueOf(partition)),
           endOffset
       ));
       state.startOffsets().forEach((partition, startOffset) -> registry.gauge(
           "kafka_topic_partition_oldest_offset",
           "Oldest Offset of a Broker at Topic/Partition",
-          List.of("topic", "partition"),
+          List.of(TOPIC_TAG, "partition"),
           List.of(topicName, String.valueOf(partition)),
           startOffset
       ));
@@ -142,21 +145,21 @@ public class InferredMetricsScraper {
         registry.gauge(
             "kafka_topic_partition_in_sync_replica",
             "Number of In-Sync Replicas for this Topic/Partition",
-            List.of("topic", "partition"),
+            List.of(TOPIC_TAG, "partition"),
             List.of(topicName, String.valueOf(p.partition())),
             p.isr().size()
         );
         registry.gauge(
             "kafka_topic_partition_replicas",
             "Number of Replicas for this Topic/Partition",
-            List.of("topic", "partition"),
+            List.of(TOPIC_TAG, "partition"),
             List.of(topicName, String.valueOf(p.partition())),
             p.replicas().size()
         );
         registry.gauge(
             "kafka_topic_partition_leader",
             "Leader Broker ID of this Topic/Partition (-1, if no leader)",
-            List.of("topic", "partition"),
+            List.of(TOPIC_TAG, "partition"),
             List.of(topicName, String.valueOf(p.partition())),
             Optional.ofNullable(p.leader()).map(Node::id).orElse(-1)
         );
@@ -165,7 +168,7 @@ public class InferredMetricsScraper {
         registry.gauge(
             "topic_bytes_disk",
             "Disk size in bytes of a topic",
-            List.of("topic"),
+            List.of(TOPIC_TAG),
             List.of(topicName),
             state.segmentStats().getSegmentSize()
         );
@@ -186,21 +189,21 @@ public class InferredMetricsScraper {
       registry.gauge(
           "group_state",
           "State of the consumer group, value = ordinal of org.apache.kafka.common.ConsumerGroupState",
-          List.of("group"),
+          List.of(GROUP_TAG),
           List.of(groupName),
           state.description().state().ordinal()
       );
       registry.gauge(
           "group_member_count",
           "Number of member assignments in the consumer group.",
-          List.of("group"),
+          List.of(GROUP_TAG),
           List.of(groupName),
           state.description().members().size()
       );
       registry.gauge(
           "group_host_count",
           "Number of distinct hosts in the consumer group.",
-          List.of("group"),
+          List.of(GROUP_TAG),
           List.of(groupName),
           state.description().members().stream().map(MemberDescription::host).distinct().count()
       );
@@ -209,7 +212,7 @@ public class InferredMetricsScraper {
         registry.gauge(
             "kafka_consumergroup_current_offset",
             "Current Offset of a ConsumerGroup at Topic/Partition",
-            List.of("consumergroup", "topic", "partition"),
+            List.of("consumergroup", TOPIC_TAG, "partition"),
             List.of(groupName, tp.topic(), String.valueOf(tp.partition())),
             committedOffset
         );
@@ -220,7 +223,7 @@ public class InferredMetricsScraper {
                 registry.gauge(
                     "kafka_consumergroup_lag",
                     "Current Approximate Lag of a ConsumerGroup at Topic/Partition",
-                    List.of("consumergroup", "topic", "partition"),
+                    List.of("consumergroup", TOPIC_TAG, "partition"),
                     List.of(groupName, tp.topic(), String.valueOf(tp.partition())),
                     endOffset - committedOffset //TODO: check +-1
                 ));

@@ -10,6 +10,9 @@ import promql.PromQLParser;
 
 class PromQueryLangGrammar {
 
+  private PromQueryLangGrammar() {
+  }
+
   // returns error msg, or empty if query is valid
   static Optional<String> validateExpression(String query) {
     try {

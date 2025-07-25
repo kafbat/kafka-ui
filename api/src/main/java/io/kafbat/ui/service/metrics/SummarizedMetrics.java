@@ -21,7 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
-@Deprecated //used for api backward-compatibility
+@Deprecated(forRemoval = false) //used for api backward-compatibility
 @RequiredArgsConstructor
 public class SummarizedMetrics {
 

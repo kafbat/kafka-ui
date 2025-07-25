@@ -12,11 +12,12 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 // Scans external jmx/prometheus metric and tries to infer io rates
 class IoRatesMetricsScanner {
 
+  public static final String BROKER_TOPIC_METRICS_SUFFIX = "BrokerTopicMetrics";
+  public static final String FIFTEEN_MINUTE_RATE_SUFFIX = "FifteenMinuteRate";
   // per broker
   final Map<Integer, BigDecimal> brokerBytesInFifteenMinuteRate = new HashMap<>();
   final Map<Integer, BigDecimal> brokerBytesOutFifteenMinuteRate = new HashMap<>();
@@ -59,23 +60,23 @@ class IoRatesMetricsScanner {
     if (!brokerBytesInFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesInPerSec".equalsIgnoreCase(labels.getValue(0))
-        && containsIgnoreCase(name, "BrokerTopicMetrics")
-        && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
+        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       brokerBytesInFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
     if (!brokerBytesOutFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesOutPerSec".equalsIgnoreCase(labels.getValue(0))
-        && containsIgnoreCase(name, "BrokerTopicMetrics")
-        && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
+        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       brokerBytesOutFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
   }
 
   private void updateTopicsIOrates(String name, Labels labels, double value) {
     if (labels.contains("topic")
-        && containsIgnoreCase(name, "BrokerTopicMetrics")
-        && endsWithIgnoreCase(name, "FifteenMinuteRate")) {
+        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       String topic = labels.get("topic");
       if (labels.contains("name")) {
         var nameLblVal = labels.get("name");
