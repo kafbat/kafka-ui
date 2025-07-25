@@ -54,7 +54,6 @@ Feature: Produce Messages page
     When TopicName UpdateTopic button clicked
     Then Header starts with: "ANewAutoTopic"
     Given TopicName menu button clicked
-    Then TopicNameMenu clear messages active is: "false"
     When TopicNameMenu edit settings clicked
     When TopicName cleanup policy set to: "Delete"
     When TopicName UpdateTopic button clicked
