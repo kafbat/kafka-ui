@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 
 class PromQueryTemplate {
 
@@ -45,7 +45,7 @@ class PromQueryTemplate {
   }
 
   private String replaceParams(Map<String, String> replacements) {
-    return new StrSubstitutor(replacements).replace(queryTemplate);
+    return new StringSubstitutor(replacements).replace(queryTemplate);
   }
 
 }

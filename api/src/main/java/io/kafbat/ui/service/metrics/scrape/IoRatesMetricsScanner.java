@@ -1,7 +1,7 @@
 package io.kafbat.ui.service.metrics.scrape;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+import static org.apache.commons.lang3.Strings.CI;
+import static org.apache.commons.lang3.Strings.CS;
 
 import io.kafbat.ui.model.Metrics;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
@@ -60,23 +60,23 @@ class IoRatesMetricsScanner {
     if (!brokerBytesInFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesInPerSec".equalsIgnoreCase(labels.getValue(0))
-        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
-        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
+        && CI.contains(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && CI.endsWith(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       brokerBytesInFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
     if (!brokerBytesOutFifteenMinuteRate.containsKey(nodeId)
         && labels.size() == 1
         && "BytesOutPerSec".equalsIgnoreCase(labels.getValue(0))
-        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
-        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
+        && CI.contains(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && CI.endsWith(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       brokerBytesOutFifteenMinuteRate.put(nodeId, BigDecimal.valueOf(value));
     }
   }
 
   private void updateTopicsIOrates(String name, Labels labels, double value) {
     if (labels.contains("topic")
-        && containsIgnoreCase(name, BROKER_TOPIC_METRICS_SUFFIX)
-        && endsWithIgnoreCase(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
+        && CI.contains(name, BROKER_TOPIC_METRICS_SUFFIX)
+        && CI.endsWith(name, FIFTEEN_MINUTE_RATE_SUFFIX)) {
       String topic = labels.get("topic");
       if (labels.contains("name")) {
         var nameLblVal = labels.get("name");

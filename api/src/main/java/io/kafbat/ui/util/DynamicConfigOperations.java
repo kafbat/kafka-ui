@@ -221,7 +221,7 @@ public class DynamicConfigOperations {
 
   @Data
   @Builder
-  // field name should be in sync with @ConfigurationProperties annotation
+  // the field name should be in sync with @ConfigurationProperties annotation
   public static class PropertiesStructure {
 
     private ClustersProperties kafka;

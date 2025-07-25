@@ -61,7 +61,6 @@ public interface ClusterMapper {
   @Mapping(target = "zooKeeperStatus", ignore = true)
   ClusterStatsDTO toClusterStats(InternalClusterState clusterState);
 
-  @Deprecated
   default ClusterMetricsDTO toClusterMetrics(Metrics metrics) {
     return new ClusterMetricsDTO()
         .items(convert(new SummarizedMetrics(metrics).asStream()).toList());

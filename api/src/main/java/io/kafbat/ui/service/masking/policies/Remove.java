@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map;
 
 
 class Remove extends MaskingPolicy {
@@ -25,13 +26,13 @@ class Remove extends MaskingPolicy {
   private JsonNode removeFields(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.fields().forEachRemaining(f -> {
-        String fieldName = f.getKey();
-        JsonNode fieldVal = f.getValue();
+      for (Map.Entry<String, JsonNode> property : node.properties()) {
+        String fieldName = property.getKey();
+        JsonNode fieldVal = property.getValue();
         if (!fieldShouldBeMasked(fieldName)) {
           obj.set(fieldName, removeFields(fieldVal));
         }
-      });
+      }
       return obj;
     } else if (node.isArray()) {
       var arr = ((ArrayNode) node).arrayNode(node.size());

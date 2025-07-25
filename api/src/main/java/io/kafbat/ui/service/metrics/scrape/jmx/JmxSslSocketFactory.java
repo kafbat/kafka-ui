@@ -165,7 +165,7 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
     return defaultSocketFactory.createSocket(host, port);
   }
 
-  /// FOLLOWING METHODS WON'T BE USED DURING JMX INTERACTION, IMPLEMENTING THEM JUST FOR CONSISTENCY ->>>>>
+  // THE FOLLOWING METHODS WON'T BE USED DURING JMX INTERACTION, IMPLEMENTING THEM JUST FOR CONSISTENCY ->>>>>
 
   @Override
   public Socket createSocket(Socket s, String host, int port, boolean autoClose) throws IOException {
@@ -177,7 +177,7 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
 
   @Override
   public Socket createSocket(String host, int port, InetAddress localHost, int localPort)
-      throws IOException, UnknownHostException {
+      throws IOException {
     if (threadLocalContextSet()) {
       return createFactoryFromThreadLocalCtx().createSocket(host, port, localHost, localPort);
     }

@@ -64,6 +64,7 @@ class StatisticsServiceTest extends AbstractIntegrationTest {
         .isEqualTo(4);
   }
 
+  @SuppressWarnings("unchecked")
   private GaugeDataPointSnapshot getGaugeSnapshot(InferredMetrics inferredMetrics,
                                                   String metricName,
                                                   Labels labels) {

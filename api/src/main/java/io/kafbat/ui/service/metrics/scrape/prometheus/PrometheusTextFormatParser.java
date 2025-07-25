@@ -39,12 +39,11 @@ public class PrometheusTextFormatParser {
   // Regex to capture metric name, optional labels, value, and optional timestamp.
   // Groups: 1=name, 2=labels (content), 3=value, 4=timestamp
   private static final Pattern METRIC_LINE_PATTERN = Pattern.compile(
-      "^([a-zA-Z_:][a-zA-Z0-9_:]*)"                        // Metric name
-      + "(?:\\{(?>[^}]*)\\})?"                               // Optional labels (atomic group)
-      + "\\s+"
-      + "(-?(?:Inf|NaN|(?:\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)))" // Metric value
-      + "(?:\\s+([0-9]+))?$"                                   // Optional timestamp
-  );                // Group 4: Optional timestamp
+      "^([a-zA-Z_:][a-zA-Z0-9_:]*)"            // Metric name
+          + "(?:\\{([^}]*)\\})?"                     // Optional labels (content in group 2)
+          + "\\s+"
+          + "(-?(?:Inf|NaN|(?:\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)))" // Value (group 3)
+          + "(?:\\s+([0-9]+))?$");                 // Group 4: Optional timestamp
 
 
   private static final Pattern HELP_PATTERN =
@@ -329,11 +328,11 @@ public class PrometheusTextFormatParser {
         return Optional.empty();
       }
       var builder = HistogramSnapshot.builder().name(name).help(help);
-      buckets.asMap().forEach((labels, buckets) -> {
-        buckets = buckets.stream().sorted().toList();
+      buckets.asMap().forEach((labels, localBuckets) -> {
+        localBuckets = localBuckets.stream().sorted().toList();
         long prevCount = 0;
         var nonCumulativeBuckets = new ArrayList<Bucket>();
-        for (Bucket b : buckets) {
+        for (Bucket b : localBuckets) {
           nonCumulativeBuckets.add(new Bucket(b.le, b.count - prevCount));
           prevCount = b.count;
         }

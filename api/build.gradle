@@ -33,6 +33,7 @@ dependencies {
 
     implementation libs.apache.avro
     implementation libs.apache.commons
+    implementation libs.apache.commons.text
     implementation libs.apache.commons.pool2
     implementation libs.apache.datasketches
 

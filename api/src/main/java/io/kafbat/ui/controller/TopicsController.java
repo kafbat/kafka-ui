@@ -7,6 +7,7 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.Strings.CI;
 
 import io.kafbat.ui.api.TopicsApi;
 import io.kafbat.ui.mapper.ClusterMapper;
@@ -190,7 +191,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
           List<InternalTopic> filtered = topics.stream()
               .filter(topic -> !topic.isInternal()
                   || showInternal != null && showInternal)
-              .filter(topic -> search == null || StringUtils.containsIgnoreCase(topic.getName(), search))
+              .filter(topic -> search == null || CI.contains(topic.getName(), search))
               .sorted(comparator)
               .toList();
           var totalPages = (filtered.size() / pageSize)

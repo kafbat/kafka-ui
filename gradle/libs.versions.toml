@@ -6,6 +6,7 @@ aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
 
 apache-commons-lang3 = '3.18.0'
+apache-commons-text = '1.13.1'
 apache-commons-io = '2.18.0'
 apache-commons-pool2 = '2.12.1'
 apache-datasketches = '3.1.0'
@@ -80,6 +81,7 @@ jackson-databind-nullable = { module = 'org.openapitools:jackson-databind-nullab
 kafka-clients = { module = 'org.apache.kafka:kafka-clients', version.ref = 'confluent-ccs' }
 
 apache-commons = { module = 'org.apache.commons:commons-lang3', version.ref = 'apache-commons-lang3' }
+apache-commons-text = { module = 'org.apache.commons:commons-text', version.ref = 'apache-commons-text' }
 apache-commons-compress = { module = 'org.apache.commons:commons-compress', version.ref = 'apache-commons-compress' }
 apache-commons-io = { module = 'commons-io:commons-io', version.ref = 'apache-commons-io' }
 apache-commons-pool2 = { module = 'org.apache.commons:commons-pool2', version.ref = 'apache-commons-pool2' }
