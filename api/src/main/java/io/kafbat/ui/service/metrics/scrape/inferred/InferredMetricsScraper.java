@@ -26,6 +26,7 @@ public class InferredMetricsScraper {
   public static final String NODE_ID_TAG = "node_id";
   public static final String TOPIC_TAG = "topic";
   public static final String GROUP_TAG = "group";
+  public static final String PARTITION_TAG = "partition";
   private ScrapedClusterState prevState = null;
 
   public synchronized Mono<InferredMetrics> scrape(ScrapedClusterState newState) {
@@ -130,14 +131,14 @@ public class InferredMetricsScraper {
       state.endOffsets().forEach((partition, endOffset) -> registry.gauge(
           "kafka_topic_partition_next_offset",
           "Current (next) Offset of a Broker at Topic/Partition",
-          List.of(TOPIC_TAG, "partition"),
+          List.of(TOPIC_TAG, PARTITION_TAG),
           List.of(topicName, String.valueOf(partition)),
           endOffset
       ));
       state.startOffsets().forEach((partition, startOffset) -> registry.gauge(
           "kafka_topic_partition_oldest_offset",
           "Oldest Offset of a Broker at Topic/Partition",
-          List.of(TOPIC_TAG, "partition"),
+          List.of(TOPIC_TAG, PARTITION_TAG),
           List.of(topicName, String.valueOf(partition)),
           startOffset
       ));
@@ -145,21 +146,21 @@ public class InferredMetricsScraper {
         registry.gauge(
             "kafka_topic_partition_in_sync_replica",
             "Number of In-Sync Replicas for this Topic/Partition",
-            List.of(TOPIC_TAG, "partition"),
+            List.of(TOPIC_TAG, PARTITION_TAG),
             List.of(topicName, String.valueOf(p.partition())),
             p.isr().size()
         );
         registry.gauge(
             "kafka_topic_partition_replicas",
             "Number of Replicas for this Topic/Partition",
-            List.of(TOPIC_TAG, "partition"),
+            List.of(TOPIC_TAG, PARTITION_TAG),
             List.of(topicName, String.valueOf(p.partition())),
             p.replicas().size()
         );
         registry.gauge(
             "kafka_topic_partition_leader",
             "Leader Broker ID of this Topic/Partition (-1, if no leader)",
-            List.of(TOPIC_TAG, "partition"),
+            List.of(TOPIC_TAG, PARTITION_TAG),
             List.of(topicName, String.valueOf(p.partition())),
             Optional.ofNullable(p.leader()).map(Node::id).orElse(-1)
         );
@@ -212,7 +213,7 @@ public class InferredMetricsScraper {
         registry.gauge(
             "kafka_consumergroup_current_offset",
             "Current Offset of a ConsumerGroup at Topic/Partition",
-            List.of("consumergroup", TOPIC_TAG, "partition"),
+            List.of("consumergroup", TOPIC_TAG, PARTITION_TAG),
             List.of(groupName, tp.topic(), String.valueOf(tp.partition())),
             committedOffset
         );
@@ -223,7 +224,7 @@ public class InferredMetricsScraper {
                 registry.gauge(
                     "kafka_consumergroup_lag",
                     "Current Approximate Lag of a ConsumerGroup at Topic/Partition",
-                    List.of("consumergroup", TOPIC_TAG, "partition"),
+                    List.of("consumergroup", TOPIC_TAG, PARTITION_TAG),
                     List.of(groupName, tp.topic(), String.valueOf(tp.partition())),
                     endOffset - committedOffset //TODO: check +-1
                 ));

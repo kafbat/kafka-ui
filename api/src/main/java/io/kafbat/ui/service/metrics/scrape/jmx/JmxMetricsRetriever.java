@@ -71,18 +71,32 @@ public class JmxMetricsRetriever implements Closeable {
                                 MetricsScrapeProperties scrapeProperties,
                                 Consumer<JMXConnector> consumer) {
     var env = prepareJmxEnvAndSetThreadLocal(scrapeProperties);
-    try (JMXConnector connector = JMXConnectorFactory.newJMXConnector(new JMXServiceURL(jmxUrl), env)) {
-      try {
-        connector.connect(env);
-      } catch (Exception exception) {
-        log.error("Error connecting to {}", jmxUrl, exception);
+    JMXServiceURL serviceUrl;
+    try {
+      serviceUrl = new JMXServiceURL(jmxUrl);
+    } catch (java.net.MalformedURLException e) {
+      log.error("Malformed JMX URL: {}", jmxUrl, e);
+      return;
+    }
+    try (JMXConnector connector = JMXConnectorFactory.newJMXConnector(serviceUrl, env)) {
+      if (!tryConnect(connector, env, jmxUrl)) {
         return;
       }
       consumer.accept(connector);
-    } catch (Exception e) {
-      log.error("Error getting jmx metrics from {}", jmxUrl, e);
+    } catch (Exception connectorException) {
+      log.error("Error getting jmx metrics from {}", jmxUrl, connectorException);
     } finally {
       JmxSslSocketFactory.clearThreadLocalContext();
+    }
+  }
+
+  private boolean tryConnect(JMXConnector connector, Map<String, ?> env, String jmxUrl) {
+    try {
+      connector.connect(env);
+      return true;
+    } catch (Exception connectException) {
+      log.error("Error connecting to {}", jmxUrl, connectException);
+      return false;
     }
   }
 
