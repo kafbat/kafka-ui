@@ -15,6 +15,10 @@ tasks.register('javadocJar', Jar) {
     from javadoc.destinationDir
 }
 
+dependencies {
+    implementation libs.kafka.clients
+}
+
 artifacts {
     archives sourceJar, javadocJar
 }
