@@ -1,0 +1,1 @@
+export const getBlankJson = '{"name":"Name","value":{"internalValue":2}}';

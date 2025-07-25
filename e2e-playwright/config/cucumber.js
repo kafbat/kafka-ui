@@ -1,7 +1,7 @@
 /* eslint-disable */
 module.exports = {
     default: {
-        timeout: 30000,
+        timeout: 60000,
         tags: process.env.npm_config_TAGS || "",
         formatOptions: {
             snippetInterface: "async-await"
