@@ -8,12 +8,15 @@ import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.util.Optional;
 
 public class MetricsUtils {
+
+  private MetricsUtils() {
+  }
+
   public static boolean isTheSameMetric(MetricSnapshot m1, MetricSnapshot m2) {
     if (m1.getClass().equals(m2.getClass())) {
       MetricMetadata metadata1 = m1.getMetadata();
       MetricMetadata metadata2 = m2.getMetadata();
       if (
-
           metadata1.getName().equals(metadata2.getName())
               && metadata1.getHelp().equals(metadata2.getHelp())
               && Optional.ofNullable(

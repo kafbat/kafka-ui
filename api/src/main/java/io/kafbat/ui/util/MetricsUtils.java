@@ -20,6 +20,9 @@ import java.util.stream.Stream;
 
 public final class MetricsUtils {
 
+  private MetricsUtils() {
+  }
+
   public static double readPointValue(DataPointSnapshot dps) {
     return switch (dps) {
       case UnknownDataPointSnapshot unknown -> unknown.getValue();

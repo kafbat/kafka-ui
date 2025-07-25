@@ -384,11 +384,11 @@ public class PrometheusTextFormatParser {
         return Optional.empty();
       }
       var builder = SummarySnapshot.builder().name(name).help(help);
-      quantiles.asMap().forEach((labels, quantiles) -> {
+      quantiles.asMap().forEach((labels, localQuantiles) -> {
         builder.dataPoint(
             SummarySnapshot.SummaryDataPointSnapshot.builder()
                 .labels(labels)
-                .quantiles(Quantiles.of(new ArrayList<>(quantiles)))
+                .quantiles(Quantiles.of(new ArrayList<>(localQuantiles)))
                 .sum(sums.getOrDefault(labels, Double.NaN))
                 .count(counts.getOrDefault(labels, 0L))
                 .build()
