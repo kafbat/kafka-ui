@@ -52,7 +52,7 @@ public class PrometheusTextFormatParser {
   private static final Pattern TYPE_PATTERN =
       Pattern.compile("^# TYPE ([a-zA-Z_:][a-zA-Z0-9_:]*) (counter|gauge|histogram|summary|untyped)");
   private static final Pattern LABEL_PATTERN =
-      Pattern.compile("([a-zA-Z_:][a-zA-Z0-9_:]*)=\"((?:\\\\\"|\\\\\\\\|\\\\n|[^\"])*)\"");
+      Pattern.compile("([a-zA-Z_:][a-zA-Z0-9_:]*)=\"((?>\\\\\"|\\\\\\\\|\\\\n|[^\"])*)\"");
   public static final String QUANTILE_LABEL = "quantile";
 
   private record ParsedDataPoint(String name, Labels labels, double value, Long scrapedAt) {
