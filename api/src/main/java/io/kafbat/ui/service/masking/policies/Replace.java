@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Preconditions;
+import java.util.Map;
 
 class Replace extends MaskingPolicy {
 
@@ -31,15 +32,15 @@ class Replace extends MaskingPolicy {
   private JsonNode replaceWithFieldsCheck(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.fields().forEachRemaining(f -> {
-        String fieldName = f.getKey();
-        JsonNode fieldVal = f.getValue();
+      for (Map.Entry<String, JsonNode> property : node.properties()) {
+        String fieldName = property.getKey();
+        JsonNode fieldVal = property.getValue();
         if (fieldShouldBeMasked(fieldName)) {
           obj.set(fieldName, replaceRecursive(fieldVal));
         } else {
           obj.set(fieldName, replaceWithFieldsCheck(fieldVal));
         }
-      });
+      }
       return obj;
     } else if (node.isArray()) {
       ArrayNode arr = ((ArrayNode) node).arrayNode(node.size());
@@ -53,7 +54,9 @@ class Replace extends MaskingPolicy {
   private JsonNode replaceRecursive(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.fields().forEachRemaining(f -> obj.set(f.getKey(), replaceRecursive(f.getValue())));
+      for (Map.Entry<String, JsonNode> property : node.properties()) {
+        obj.set(property.getKey(), replaceRecursive(property.getValue()));
+      }
       return obj;
     } else if (node.isArray()) {
       ArrayNode arr = ((ArrayNode) node).arrayNode(node.size());

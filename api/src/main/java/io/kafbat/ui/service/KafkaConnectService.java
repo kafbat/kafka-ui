@@ -1,5 +1,7 @@
 package io.kafbat.ui.service;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
@@ -80,7 +82,7 @@ public class KafkaConnectService {
       return c -> true;
     }
     return connector -> getStringsForSearch(connector)
-        .anyMatch(string -> StringUtils.containsIgnoreCase(string, search));
+        .anyMatch(string -> CI.contains(string, search));
   }
 
   private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {

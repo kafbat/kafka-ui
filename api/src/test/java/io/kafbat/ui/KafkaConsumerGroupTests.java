@@ -215,7 +215,7 @@ class KafkaConsumerGroupTests extends AbstractIntegrationTest {
     String topicName = createTopicWithRandomName();
     var consumers =
         Stream.generate(() -> {
-          String groupId = consumerGroupPrefix + RandomStringUtils.randomAlphabetic(5);
+          String groupId = consumerGroupPrefix + RandomStringUtils.secure().nextAlphabetic(5);
           val consumer = createTestConsumerWithGroupId(groupId);
           consumer.subscribe(List.of(topicName));
           consumer.poll(Duration.ofMillis(100));

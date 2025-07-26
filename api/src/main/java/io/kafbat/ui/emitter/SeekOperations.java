@@ -55,7 +55,7 @@ public class SeekOperations {
   public long offsetsProcessedFromSeek() {
     MutableLong count = new MutableLong();
     offsetsForSeek.forEach((tp, initialOffset) -> count.add(consumer.position(tp) - initialOffset));
-    return count.getValue();
+    return count.get().longValue();
   }
 
   // Get offsets to seek to. NOTE: offsets do not contain empty partitions offsets
