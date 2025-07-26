@@ -18,7 +18,7 @@ export default class TopicsTopickNameLocators {
     get headersButton():Locator { return this.page.getByRole('button', { name: 'Headers' }); }
     get dotsMenu():Locator {return this.page.locator('#root div').filter({ hasText: 'Edit settingsPay attention!' }).nth(3)}
 
-    get menuItemEditSettings():Locator { return this.page.getByRole('menuitem', { name: 'Edit settings Pay attention!' }) }
+    get menuItemEditSettings():Locator { return this.page.getByText('Pay attention!') }
     get menuItemClearMessages():Locator { return this.page.getByText('Clear messagesClearing') }
     get menuItemRecreateTopic():Locator { return this.page.getByText('Recreate Topic') }
     get confirm():Locator { return this.page.getByRole('button', { name: 'Confirm' }) }
@@ -39,6 +39,7 @@ export default class TopicsTopickNameLocators {
     get editFilter():Locator { return this.page.getByTestId('activeSmartFilter').getByRole('button', { name: 'Edit' }) }
     get editFilterButton():Locator { return this.page.getByRole('button', { name: 'Edit Filter' }) }
 
+    dotsMenuForTopic(value: string):Locator {return this.page.getByRole('main').locator('div').filter({ hasText: `localTopics${value}Produce Message Edit settingsPay attention!` }).getByLabel('Dropdown Toggle')}
     heading(topicName: string): Locator { return this.page.getByText(`Topics${topicName}`); }
     partitions(value: string):Locator { return this.page.getByRole('group').getByText(value).first(); }
     messageKey(value: string):Locator  { return this.page.getByText(value, { exact: true }); }

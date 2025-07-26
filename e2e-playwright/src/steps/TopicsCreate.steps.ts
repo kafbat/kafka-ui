@@ -105,6 +105,11 @@ Then('Header starts with: {string}', async function(this: PlaywrightWorld, prefi
   await expect(header).toBeVisible();
 });
 
+Given('TopicName menu button clicked for topic starts with: {string}', async function(this: PlaywrightWorld, prefix: string) {
+  const topicName = this.getValue<string>(`topicName-${prefix}`);
+  await this.locators.topicTopicName.dotsMenuForTopic(topicName).click();
+});
+
 Then('Topic name started with: {string} visible is: {string}', async function(this: PlaywrightWorld, prefix: string, visible: string) {
   const topicName = this.getValue<string>(`topicName-${prefix}`);
   await expectVisibility(this.locators.topics.nameLink(topicName), visible);
