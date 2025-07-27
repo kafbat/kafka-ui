@@ -15,6 +15,10 @@ import io.kafbat.ui.model.ClusterStatsDTO;
 import io.kafbat.ui.model.ConfigSourceDTO;
 import io.kafbat.ui.model.ConfigSynonymDTO;
 import io.kafbat.ui.model.ConnectDTO;
+import io.kafbat.ui.model.ConnectorDTO;
+import io.kafbat.ui.model.ConnectorStateDTO;
+import io.kafbat.ui.model.ConnectorStatusDTO;
+import io.kafbat.ui.model.ConnectorTaskStatusDTO;
 import io.kafbat.ui.model.InternalBroker;
 import io.kafbat.ui.model.InternalBrokerConfig;
 import io.kafbat.ui.model.InternalClusterState;
@@ -29,16 +33,19 @@ import io.kafbat.ui.model.MetricDTO;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.PartitionDTO;
 import io.kafbat.ui.model.ReplicaDTO;
+import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.TopicConfigDTO;
 import io.kafbat.ui.model.TopicDTO;
 import io.kafbat.ui.model.TopicDetailsDTO;
 import io.kafbat.ui.model.TopicProducerStateDTO;
+import io.kafbat.ui.model.connect.InternalConnectorInfo;
 import io.kafbat.ui.service.metrics.SummarizedMetrics;
 import io.prometheus.metrics.model.snapshots.Label;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ProducerState;
@@ -118,7 +125,38 @@ public interface ClusterMapper {
 
   ReplicaDTO toReplica(InternalReplica replica);
 
-  ConnectDTO toKafkaConnect(ClustersProperties.ConnectCluster connect);
+  default ConnectDTO toKafkaConnect(ClustersProperties.ConnectCluster connect, List<InternalConnectorInfo> connectors) {
+    int connectorCount = connectors.size();
+    int failedConnectors = 0;
+    int tasksCount = 0;
+    int failedTasksCount = 0;
+
+    for (InternalConnectorInfo connector : connectors) {
+      Optional<ConnectorDTO> internalConnector = Optional.ofNullable(connector.getConnector());
+
+      failedConnectors += internalConnector
+          .map(ConnectorDTO::getStatus)
+          .map(ConnectorStatusDTO::getState)
+          .filter(ConnectorStateDTO.FAILED::equals)
+          .map(s -> 1).orElse(0);
+
+      tasksCount += internalConnector.map(c -> c.getTasks().size()).orElse(0);
+
+      for (TaskDTO task : connector.getTasks()) {
+        if (task.getStatus() != null && ConnectorTaskStatusDTO.FAILED.equals(task.getStatus().getState())) {
+          failedTasksCount += tasksCount;
+        }
+      }
+    }
+
+    return new ConnectDTO()
+        .address(connect.getAddress())
+        .name(connect.getName())
+        .connectorsCount(connectorCount)
+        .failedConnectorsCount(failedConnectors)
+        .tasksCount(tasksCount)
+        .failedTasksCount(failedTasksCount);
+  }
 
   List<ClusterDTO.FeaturesEnum> toFeaturesEnum(List<ClusterFeature> features);
 

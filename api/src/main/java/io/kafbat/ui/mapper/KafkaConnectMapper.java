@@ -11,7 +11,7 @@ import io.kafbat.ui.model.ConnectorTaskStatusDTO;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.TaskStatusDTO;
-import io.kafbat.ui.model.connect.InternalConnectInfo;
+import io.kafbat.ui.model.connect.InternalConnectorInfo;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -38,7 +38,7 @@ public interface KafkaConnectMapper {
       io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse
           connectorPluginConfigValidationResponse);
 
-  default FullConnectorInfoDTO fullConnectorInfo(InternalConnectInfo connectInfo) {
+  default FullConnectorInfoDTO fullConnectorInfo(InternalConnectorInfo connectInfo) {
     ConnectorDTO connector = connectInfo.getConnector();
     List<TaskDTO> tasks = connectInfo.getTasks();
     int failedTasksCount = (int) tasks.stream()

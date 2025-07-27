@@ -23,7 +23,8 @@ import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.TaskDTO;
-import io.kafbat.ui.model.connect.InternalConnectInfo;
+import io.kafbat.ui.model.TaskStatusDTO;
+import io.kafbat.ui.model.connect.InternalConnectorInfo;
 import io.kafbat.ui.util.ReactiveFailover;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -48,11 +48,24 @@ public class KafkaConnectService {
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster) {
-    return Flux.fromIterable(
-        Optional.ofNullable(cluster.getOriginalProperties().getKafkaConnect())
-            .map(lst -> lst.stream().map(clusterMapper::toKafkaConnect).toList())
-            .orElse(List.of())
-    );
+    return Optional.ofNullable(cluster.getOriginalProperties().getKafkaConnect())
+        .map(connects -> Flux.fromIterable(connects).flatMap(connect ->
+            getConnectorNamesWithErrorsSuppress(cluster, connect.getName()).flatMap(connectorName ->
+                Mono.zip(
+                    getConnector(cluster, connect.getName(), connectorName),
+                    getConnectorTasks(cluster, connect.getName(), connectorName).collectList()
+                ).map(tuple ->
+                    InternalConnectorInfo.builder()
+                        .connector(tuple.getT1())
+                        .config(null)
+                        .tasks(tuple.getT2())
+                        .topics(null)
+                        .build()
+                )
+            ).collectList().map(connectors ->
+                clusterMapper.toKafkaConnect(connect, connectors)
+            )
+        )).orElse(Flux.fromIterable(List.of()));
   }
 
   public Flux<FullConnectorInfoDTO> getAllConnectors(final KafkaCluster cluster,
@@ -67,7 +80,7 @@ public class KafkaConnectService {
                         getConnectorTasks(cluster, connect.getName(), connectorName).collectList(),
                         getConnectorTopics(cluster, connect.getName(), connectorName)
                     ).map(tuple ->
-                        InternalConnectInfo.builder()
+                        InternalConnectorInfo.builder()
                             .connector(tuple.getT1())
                             .config(tuple.getT2())
                             .tasks(tuple.getT3())
