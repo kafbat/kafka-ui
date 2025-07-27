@@ -47,18 +47,18 @@ Feature: Produce Messages page
     When TopicCreate Time to retain data one day
     When TopicCreate Create topic clicked
     Then Header starts with: "ANewAutoTopic"
-    Given TopicName menu button clicked
+    Given TopicName menu button clicked for topic starts with: "ANewAutoTopic"
     Then TopicNameMenu clear messages active is: "true"
     When TopicNameMenu edit settings clicked
     When TopicName cleanup policy set to: "Compact"
     When TopicName UpdateTopic button clicked
     Then Header starts with: "ANewAutoTopic"
-    Given TopicName menu button clicked
-    When TopicNameMenu edit settings clicked
+    Given TopicName menu button clicked for topic starts with: "ANewAutoTopic"
+    When TopicNameMenu edit settings clicked 
     When TopicName cleanup policy set to: "Delete"
     When TopicName UpdateTopic button clicked
     Then Header starts with: "ANewAutoTopic"
-    Given TopicName menu button clicked
+    Given TopicName menu button clicked for topic starts with: "ANewAutoTopic"
     Then TopicNameMenu clear messages active is: "true"
 
   Scenario: Produce messages clear messages
@@ -103,7 +103,7 @@ Feature: Produce Messages page
     Given ProduceMessage Headers input key is: "headerKey4", value is: "headerValue4"
     Given ProduceMessage Produce Message button clicked
     Then TopicName messages count is "2"
-    When TopicName menu button clicked
+    When TopicName menu button clicked for topic starts with: "ANewAutoTopic"
     When TopicName menu clear messages clicked
     Then TopicName messages count is "0"
     Given Produce message clicked
@@ -118,7 +118,7 @@ Feature: Produce Messages page
     Given ProduceMessage Headers input key is: "headerKey6", value is: "headerValue6"
     Given ProduceMessage Produce Message button clicked
     Then TopicName messages count is "2"
-    When TopicName menu button clicked
+    When TopicName menu button clicked for topic starts with: "ANewAutoTopic"
     When TopicName menu RecreateTopic clicked
     Then TopicName messages count is "0"
     Given Produce message clicked
@@ -161,6 +161,3 @@ Feature: Produce Messages page
 
     Then Topics TopicName Messages filter name starts with: "Filter" visible is: "true"
     Then Topics TopicName Messages exist is: "false"
-
-
-
