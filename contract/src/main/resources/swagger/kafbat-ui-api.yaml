@@ -3434,6 +3434,14 @@ components:
           type: string
         address:
           type: string
+        connectors_count:
+          type: integer
+        failed_connectors_count:
+          type: integer
+        tasks_count:
+          type: integer
+        failed_tasks_count:
+          type: integer
       required:
         - name
 

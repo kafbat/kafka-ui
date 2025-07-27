@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder(toBuilder = true)
-public class InternalConnectInfo {
+public class InternalConnectorInfo {
   private final ConnectorDTO connector;
   private final Map<String, Object> config;
   private final List<TaskDTO> tasks;
