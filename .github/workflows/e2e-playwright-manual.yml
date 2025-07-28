@@ -15,6 +15,6 @@ jobs:
     uses: ./.github/workflows/e2e-playwright-run.yml
     secrets: inherit
     with:
-      sha: ${{ github.sha }}
+      sha: ${{ inputs.sha }}
 
 
