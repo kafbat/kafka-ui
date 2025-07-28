@@ -1,9 +1,11 @@
-name: "E2E: Playwright Manual run"
+name: "E2E: Playwright"
+
 on:
-  workflow_dispatch:
-    sha:
-      required: true
-      type: string
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
 
 permissions:
   contents: read
