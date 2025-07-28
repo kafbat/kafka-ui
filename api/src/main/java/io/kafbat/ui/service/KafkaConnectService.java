@@ -67,12 +67,11 @@ public class KafkaConnectService {
     Optional<List<ClustersProperties.@Valid ConnectCluster>> connectClusters =
         Optional.ofNullable(cluster.getOriginalProperties().getKafkaConnect());
     if (withStats) {
-      return connectClusters.map(connects -> Flux.fromIterable(connects).flatMap(connect -> (
-                  clustersProperties.getCache().isEnabled() ? Mono.fromFuture(
-                      cachedConnectors.get(new ConnectCacheKey(cluster, connect), (t, e) ->
-                          getConnectConnectors(t.cluster(), t.connect()).collectList().toFuture())
-                  ) : getConnectConnectors(cluster, connect).collectList()).map(connectors ->
-                  kafkaConnectMapper.toKafkaConnect(connect, connectors, withStats)
+      return connectClusters.map(connects ->
+              Flux.fromIterable(connects).flatMap(connect -> (
+                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, connect), withStats).map(
+                      connectors -> kafkaConnectMapper.toKafkaConnect(connect, connectors, withStats)
+                  )
               )
           )
       ).orElse(Flux.fromIterable(List.of()));
@@ -80,6 +79,18 @@ public class KafkaConnectService {
       return Flux.fromIterable(connectClusters.map(connects ->
           connects.stream().map(c -> kafkaConnectMapper.toKafkaConnect(c, List.of(), withStats)).toList()
       ).orElse(List.of()));
+    }
+  }
+
+  private Mono<List<InternalConnectorInfo>> getConnectConnectorsFromCache(ConnectCacheKey key, boolean withStats) {
+    if (clustersProperties.getCache().isEnabled()) {
+      return Mono.fromFuture(
+          cachedConnectors.get(key, (t, e) ->
+              getConnectConnectors(t.cluster(), t.connect()).collectList().toFuture()
+          )
+      );
+    } else {
+      return getConnectConnectors(key.cluster(), key.connect()).collectList();
     }
   }
 
