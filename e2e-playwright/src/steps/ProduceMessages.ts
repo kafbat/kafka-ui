@@ -141,6 +141,12 @@ When('TopicName menu clear messages clicked', async function(this: PlaywrightWor
   }
 );
 
+Given('TopicName menu button clicked for topic starts with: {string}', async function(this: PlaywrightWorld, prefix: string) {
+  const topicName = this.getValue<string>(`topicName-${prefix}`);
+  await this.locators.topicTopicName.dotsMenuForTopic(topicName).click();
+});
+
+
 When('TopicName menu RecreateTopic clicked', async function(this: PlaywrightWorld) {
     await this.locators.topicTopicName.menuItemRecreateTopic.click();
     await this.locators.topicTopicName.confirm.click();
