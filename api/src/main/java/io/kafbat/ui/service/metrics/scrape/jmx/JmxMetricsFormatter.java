@@ -17,7 +17,7 @@ import javax.management.ObjectName;
 public class JmxMetricsFormatter {
 
   // copied from https://github.com/prometheus/jmx_exporter/blob/b6b811b4aae994e812e902b26dd41f29364c0e2b/collector/src/main/java/io/prometheus/jmx/JmxMBeanPropertyCache.java#L15
-  private static final Pattern PROPERTY_PATTERN = Pattern.compile(
+  private static final Pattern PROPERTY_PATTERN = Pattern.compile( // NOSONAR
       "([^,=:\\*\\?]+)=(\"(?:[^\\\\\"]*(?:\\\\.)?)*\"|[^,=:\"]*)"
   );
 
@@ -78,17 +78,20 @@ public class JmxMetricsFormatter {
       throw new IllegalArgumentException("MBean key property list too long: " + properties);
     }
 
-    Matcher match = PROPERTY_PATTERN.matcher(properties);
-    while (match.lookingAt()) {
-      String labelName = fixIllegalChars(match.group(1)); // label names should be fixed
-      String labelValue = match.group(2);
-      keyProperties.put(labelName, labelValue);
-      properties = properties.substring(match.end());
-      if (properties.startsWith(",")) {
-        properties = properties.substring(1);
+    if (!properties.isBlank()) {
+      Matcher match = PROPERTY_PATTERN.matcher(properties);
+      while (match.lookingAt()) {
+        String labelName = fixIllegalChars(match.group(1)); // label names should be fixed
+        String labelValue = match.group(2);
+        keyProperties.put(labelName, labelValue);
+        properties = properties.substring(match.end());
+        if (properties.startsWith(",")) {
+          properties = properties.substring(1);
+        }
+        match.reset(properties);
       }
-      match.reset(properties);
     }
+
     return keyProperties;
   }
 
