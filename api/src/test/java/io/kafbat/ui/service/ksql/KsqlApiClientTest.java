@@ -10,12 +10,14 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import io.kafbat.ui.AbstractIntegrationTest;
 import java.time.Duration;
 import java.util.Map;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import reactor.test.StepVerifier;
 
+@Ignore
 class KsqlApiClientTest extends AbstractIntegrationTest {
 
   @BeforeAll

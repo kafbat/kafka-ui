@@ -183,8 +183,8 @@ class MessageFiltersTest {
 
       List<TopicMessageDTO> toFilter = new ArrayList<>();
       for (int i = 0; i < 5_000; i++) {
-        String name = i % 2 == 0 ? "user1" : RandomStringUtils.randomAlphabetic(10);
-        String randString = RandomStringUtils.randomAlphabetic(30);
+        String name = i % 2 == 0 ? "user1" : RandomStringUtils.secure().nextAlphabetic(10);
+        String randString = RandomStringUtils.secure().nextAlphabetic(30);
         String jsonContent = String.format(
             "{ \"name\" : {  \"randomStr\": \"%s\", \"first\" : \"%s\"} }",
             randString, name);

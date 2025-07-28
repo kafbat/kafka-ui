@@ -1,5 +1,7 @@
 package io.kafbat.ui.service;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
@@ -31,7 +33,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -80,7 +81,7 @@ public class KafkaConnectService {
       return c -> true;
     }
     return connector -> getStringsForSearch(connector)
-        .anyMatch(string -> StringUtils.containsIgnoreCase(string, search));
+        .anyMatch(string -> CI.contains(string, search));
   }
 
   private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {

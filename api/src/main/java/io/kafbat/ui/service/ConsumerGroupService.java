@@ -1,5 +1,7 @@
 package io.kafbat.ui.service;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
 import io.kafbat.ui.emitter.EnhancedConsumer;
@@ -115,7 +117,7 @@ public class ConsumerGroupService {
             .map(listing -> search == null
                 ? listing
                 : listing.stream()
-                .filter(g -> StringUtils.containsIgnoreCase(g.groupId(), search))
+                .filter(g -> CI.contains(g.groupId(), search))
                 .toList()
             )
             .flatMapIterable(lst -> lst)

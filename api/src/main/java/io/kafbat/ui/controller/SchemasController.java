@@ -1,5 +1,7 @@
 package io.kafbat.ui.controller;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import io.kafbat.ui.api.SchemasApi;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.KafkaSrMapper;
@@ -222,7 +224,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
           List<String> filteredSubjects = subjects
               .stream()
-              .filter(subj -> search == null || StringUtils.containsIgnoreCase(subj, search))
+              .filter(subj -> search == null || CI.contains(subj, search))
               .sorted().toList();
           var totalPages = (filteredSubjects.size() / pageSize)
               + (filteredSubjects.size() % pageSize == 0 ? 0 : 1);

@@ -36,6 +36,10 @@ public class FeatureService {
       features.add(Mono.just(ClusterFeature.KSQL_DB));
     }
 
+    if (cluster.getPrometheusStorageClient() != null) {
+      features.add(Mono.just(ClusterFeature.GRAPHS_ENABLED));
+    }
+
     if (cluster.getSchemaRegistryClient() != null) {
       features.add(Mono.just(ClusterFeature.SCHEMA_REGISTRY));
     }
