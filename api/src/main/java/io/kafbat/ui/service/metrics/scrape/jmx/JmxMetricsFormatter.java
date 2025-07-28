@@ -74,10 +74,6 @@ public class JmxMetricsFormatter {
     LinkedHashMap<String, String> keyProperties = new LinkedHashMap<>();
     String properties = mbeanName.getKeyPropertyListString();
 
-    if (properties.length() > 1024) {
-      throw new IllegalArgumentException("MBean key property list too long: " + properties);
-    }
-
     if (!properties.isBlank()) {
       Matcher match = PROPERTY_PATTERN.matcher(properties);
       while (match.lookingAt()) {

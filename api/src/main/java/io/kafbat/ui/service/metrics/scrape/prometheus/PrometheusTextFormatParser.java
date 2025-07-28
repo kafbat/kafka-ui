@@ -38,7 +38,7 @@ public class PrometheusTextFormatParser {
 
   // Regex to capture metric name, optional labels, value, and optional timestamp.
   // Groups: 1=name, 2=labels (content), 3=value, 4=timestamp
-  private static final Pattern METRIC_LINE_PATTERN = Pattern.compile(
+  private static final Pattern METRIC_LINE_PATTERN = Pattern.compile( // NOSONAR
       "^([a-zA-Z_:][a-zA-Z0-9_:]*)"            // Metric name
           + "(?:\\{([^}]*)})?"                     // Optional labels (content in group 2)
           + "\\s+"
