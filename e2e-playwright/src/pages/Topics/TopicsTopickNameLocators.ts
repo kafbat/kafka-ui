@@ -39,6 +39,7 @@ export default class TopicsTopickNameLocators {
     get editFilter():Locator { return this.page.getByTestId('activeSmartFilter').getByRole('button', { name: 'Edit' }) }
     get editFilterButton():Locator { return this.page.getByRole('button', { name: 'Edit Filter' }) }
 
+    dotsMenuForTopic(value: string):Locator {return this.page.getByRole('main').locator('div').filter({ hasText: `localTopics${value}Produce Message Edit settingsPay attention!` }).getByLabel('Dropdown Toggle')}
     heading(topicName: string): Locator { return this.page.getByText(`Topics${topicName}`); }
     partitions(value: string):Locator { return this.page.getByRole('group').getByText(value).first(); }
     messageKey(value: string):Locator  { return this.page.getByText(value, { exact: true }); }
