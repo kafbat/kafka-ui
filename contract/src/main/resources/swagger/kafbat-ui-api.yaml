@@ -1401,6 +1401,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: withStats
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -3436,12 +3441,16 @@ components:
           type: string
         connectors_count:
           type: integer
+          nullable: true
         failed_connectors_count:
           type: integer
+          nullable: true
         tasks_count:
           type: integer
+          nullable: true
         failed_tasks_count:
           type: integer
+          nullable: true
       required:
         - name
 

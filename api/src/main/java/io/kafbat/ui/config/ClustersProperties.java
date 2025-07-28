@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +36,8 @@ public class ClustersProperties {
   Integer adminClientTimeout;
 
   PollingProperties polling = new PollingProperties();
+
+  CacheProperties cache = new CacheProperties();
 
   @Data
   public static class Cluster {
@@ -181,6 +184,14 @@ public class ClustersProperties {
       ALL,
       ALTER_ONLY //default
     }
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CacheProperties {
+    boolean enabled = true;
+    Duration connectCacheExpiry = Duration.ofMinutes(1);
   }
 
   @PostConstruct
