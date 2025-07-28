@@ -1,5 +1,6 @@
 package io.kafbat.ui.model;
 
+import io.kafbat.ui.model.state.TopicState;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
@@ -11,7 +12,7 @@ import org.apache.kafka.clients.admin.TopicDescription;
 
 @Value
 @Builder(toBuilder = true)
-public class Statistics {
+public class Statistics implements AutoCloseable {
   ServerStatusDTO status;
   Throwable lastKafkaException;
   String version;
@@ -40,10 +41,17 @@ public class Statistics {
   }
 
   public Stream<TopicDescription> topicDescriptions() {
-    return clusterState.getTopicStates().values().stream().map(ScrapedClusterState.TopicState::description);
+    return clusterState.getTopicStates().values().stream().map(TopicState::description);
   }
 
   public Statistics withClusterState(UnaryOperator<ScrapedClusterState> stateUpdate) {
     return toBuilder().clusterState(stateUpdate.apply(clusterState)).build();
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (this.clusterState != null) {
+      this.clusterState.close();
+    }
   }
 }

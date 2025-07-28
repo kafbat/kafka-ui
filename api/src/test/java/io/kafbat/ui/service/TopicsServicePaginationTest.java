@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.mapper.ClusterMapperImpl;
-import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;

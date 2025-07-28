@@ -51,6 +51,7 @@ dependencies {
     implementation libs.cel
     antlr libs.antlr
     implementation libs.antlr.runtime
+    implementation libs.lucene
 
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {

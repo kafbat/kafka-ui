@@ -2,11 +2,11 @@ package io.kafbat.ui.service.metrics.scrape.inferred;
 
 import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
-import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.ConsumerGroupState;
-import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.NodeState;
-import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.kafbat.ui.model.state.ConsumerGroupState;
+import io.kafbat.ui.model.state.NodeState;
+import io.kafbat.ui.model.state.TopicState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.time.Instant;
 import java.util.List;

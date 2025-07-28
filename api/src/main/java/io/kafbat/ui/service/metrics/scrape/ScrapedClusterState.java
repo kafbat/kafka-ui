@@ -1,14 +1,19 @@
 package io.kafbat.ui.service.metrics.scrape;
 
-import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
+import io.kafbat.ui.model.InternalTopic;
+import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.model.state.ConsumerGroupState;
+import io.kafbat.ui.model.state.NodeState;
+import io.kafbat.ui.model.state.TopicState;
 import io.kafbat.ui.service.ReactiveAdminClient;
-import jakarta.annotation.Nullable;
+import io.kafbat.ui.service.index.TopicsIndex;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -31,34 +36,14 @@ import reactor.core.publisher.Mono;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
 @Value
-public class ScrapedClusterState {
+public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
   Map<Integer, NodeState> nodesStates;
   Map<String, TopicState> topicStates;
   Map<String, ConsumerGroupState> consumerGroupsStates;
+  TopicsIndex topicsIndex;
 
-  public record NodeState(int id,
-                          Node node,
-                          @Nullable SegmentStats segmentStats,
-                          @Nullable LogDirSpaceStats logDirSpaceStats) {
-  }
-
-  public record TopicState(
-      String name,
-      TopicDescription description,
-      List<ConfigEntry> configs,
-      Map<Integer, Long> startOffsets,
-      Map<Integer, Long> endOffsets,
-      @Nullable SegmentStats segmentStats,
-      @Nullable Map<Integer, SegmentStats> partitionsSegmentStats) {
-  }
-
-  public record ConsumerGroupState(
-      String group,
-      ConsumerGroupDescription description,
-      Map<TopicPartition, Long> committedOffsets) {
-  }
 
   public static ScrapedClusterState empty() {
     return ScrapedClusterState.builder()
@@ -107,6 +92,7 @@ public class ScrapedClusterState {
   }
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
+                                                 ClustersProperties clustersProperties,
                                                  ReactiveAdminClient ac) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
@@ -120,13 +106,14 @@ public class ScrapedClusterState {
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
             ac.describeConsumerGroups(phase1.getT2()),
             ac.listConsumerGroupOffsets(phase1.getT2(), null)
-        ).map(phase2 ->
+        ).flatMap(phase2 ->
             create(
                 clusterDescription,
                 phase1.getT1(),
                 topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
                 phase2.getT3(),
-                phase2.getT4()
+                phase2.getT4(),
+                clustersProperties
             )));
   }
 
@@ -153,38 +140,59 @@ public class ScrapedClusterState {
     ));
   }
 
-  private static ScrapedClusterState create(ClusterDescription clusterDescription,
+  private static Mono<ScrapedClusterState> create(ClusterDescription clusterDescription,
                                             InternalLogDirStats segmentStats,
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
-                                            Table<String, TopicPartition, Long> consumerOffsets) {
+                                            Table<String, TopicPartition, Long> consumerOffsets,
+                                            ClustersProperties clustersProperties) {
+    try {
+      Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
+      consumerDescriptions.forEach((name, desc) ->
+          consumerGroupsStates.put(
+              name,
+              new ConsumerGroupState(
+                  name,
+                  desc,
+                  consumerOffsets.row(name)
+              )));
 
-    Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
-    consumerDescriptions.forEach((name, desc) ->
-        consumerGroupsStates.put(
-            name,
-            new ConsumerGroupState(
-                name,
-                desc,
-                consumerOffsets.row(name)
-            )));
+      Map<Integer, NodeState> nodesStates = new HashMap<>();
+      clusterDescription.getNodes().forEach(node ->
+          nodesStates.put(
+              node.id(),
+              new NodeState(
+                  node.id(),
+                  node,
+                  segmentStats.getBrokerStats().get(node.id()),
+                  segmentStats.getBrokerDirsStats().get(node.id())
+              )));
 
-    Map<Integer, NodeState> nodesStates = new HashMap<>();
-    clusterDescription.getNodes().forEach(node ->
-        nodesStates.put(
-            node.id(),
-            new NodeState(
-                node.id(),
-                node,
-                segmentStats.getBrokerStats().get(node.id()),
-                segmentStats.getBrokerDirsStats().get(node.id())
-            )));
+      TopicsIndex topicsIndex = new TopicsIndex(topicStates.entrySet().stream().map(e ->
+          buildInternalTopic(e.getValue(), clustersProperties)
+      ).toList());
 
-    return new ScrapedClusterState(
-        Instant.now(),
-        nodesStates,
-        topicStates,
-        consumerGroupsStates
+      return Mono.just(new ScrapedClusterState(
+          Instant.now(),
+          nodesStates,
+          topicStates,
+          consumerGroupsStates,
+          topicsIndex
+      ));
+    } catch (Exception e) {
+      return Mono.error(new RuntimeException("Error scrapping cluster", e));
+    }
+  }
+
+  private static InternalTopic buildInternalTopic(TopicState state, ClustersProperties clustersProperties) {
+    return InternalTopic.from(
+        state.description(),
+        state.configs(),
+        InternalPartitionsOffsets.empty(),
+        null,
+        state.segmentStats(),
+        state.partitionsSegmentStats(),
+        clustersProperties.getInternalTopicPrefix()
     );
   }
 
@@ -196,4 +204,10 @@ public class ScrapedClusterState {
   }
 
 
+  @Override
+  public void close() throws Exception {
+    if (this.topicsIndex != null) {
+      this.topicsIndex.close();
+    }
+  }
 }

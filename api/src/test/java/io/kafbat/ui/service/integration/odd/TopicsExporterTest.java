@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.model.state.TopicState;
 import io.kafbat.ui.service.StatisticsCache;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
-import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import io.kafbat.ui.sr.model.SchemaType;

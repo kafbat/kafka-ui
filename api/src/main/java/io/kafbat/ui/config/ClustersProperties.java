@@ -39,6 +39,8 @@ public class ClustersProperties {
 
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
+  boolean useLuceneIndex = false;
+
   @Data
   public static class Cluster {
     @NotBlank(message = "field name for for cluster could not be blank")

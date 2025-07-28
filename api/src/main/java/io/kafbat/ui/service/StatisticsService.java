@@ -2,6 +2,7 @@ package io.kafbat.ui.service;
 
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
@@ -22,6 +23,7 @@ public class StatisticsService {
   private final AdminClientService adminClientService;
   private final FeatureService featureService;
   private final StatisticsCache cache;
+  private final ClustersProperties clustersProperties;
 
   public Mono<Statistics> updateCache(KafkaCluster c) {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
@@ -62,7 +64,7 @@ public class StatisticsService {
 
   private Mono<ScrapedClusterState> loadClusterState(ClusterDescription clusterDescription,
                                                      ReactiveAdminClient ac) {
-    return ScrapedClusterState.scrape(clusterDescription, ac);
+    return ScrapedClusterState.scrape(clusterDescription, clustersProperties, ac);
   }
 
   private Mono<Metrics> scrapeMetrics(KafkaCluster cluster,

@@ -181,7 +181,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .operationName("getTopics")
         .build();
 
-    return topicsService.getTopicsForPagination(getCluster(clusterName))
+    return topicsService.getTopicsForPagination(getCluster(clusterName), search, showInternal)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .flatMap(topics -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
@@ -189,9 +189,6 @@ public class TopicsController extends AbstractController implements TopicsApi, M
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
               ? getComparatorForTopic(orderBy) : getComparatorForTopic(orderBy).reversed();
           List<InternalTopic> filtered = topics.stream()
-              .filter(topic -> !topic.isInternal()
-                  || showInternal != null && showInternal)
-              .filter(topic -> search == null || CI.contains(topic.getName(), search))
               .sorted(comparator)
               .toList();
           var totalPages = (filtered.size() / pageSize)
