@@ -207,6 +207,7 @@ export type RouteParamsClusterTopic = {
 // Kafka Connect
 export const clusterConnectsRelativePath = 'connects';
 export const clusterConnectorsRelativePath = 'connectors';
+export const kafkaConnectsPaths = 'kafka-connects';
 export const clusterConnectorNewRelativePath = 'create-new';
 export const clusterConnectConnectorsRelativePath = `${RouteParams.connectName}/connectors`;
 export const clusterConnectConnectorRelativePath = `${clusterConnectConnectorsRelativePath}/${RouteParams.connectorName}`;
@@ -216,6 +217,11 @@ export const clusterConnectConnectorConfigRelativePath = 'config';
 export const clusterConnectsPath = (
   clusterName: ClusterName = RouteParams.clusterName
 ) => `${clusterPath(clusterName)}/connects`;
+
+export const kafkaConnectsPath = (
+  clusterName: ClusterName = RouteParams.clusterName
+) => `${clusterPath(clusterName)}/kafka-connects`;
+
 export const clusterConnectorsPath = (
   clusterName: ClusterName = RouteParams.clusterName
 ) => `${clusterPath(clusterName)}/connectors`;

@@ -12,6 +12,7 @@ import {
   clusterKsqlDbPath,
   clusterSchemasPath,
   clusterTopicsPath,
+  kafkaConnectsPath,
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
@@ -78,6 +79,13 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
               isActive={getIsMenuItemActive(clusterSchemasPath(name))}
               to={clusterSchemasPath(name)}
               title="Schema Registry"
+            />
+          )}
+          {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
+            <MenuItem
+              isActive={getIsMenuItemActive(kafkaConnectsPath(name))}
+              to={kafkaConnectsPath(name)}
+              title="Kafka Connect Clusters"
             />
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (

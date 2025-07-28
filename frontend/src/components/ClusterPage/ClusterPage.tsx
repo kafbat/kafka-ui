@@ -14,6 +14,7 @@ import {
   clusterConfigRelativePath,
   getNonExactPath,
   clusterAclRelativePath,
+  kafkaConnectsPaths,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
@@ -24,6 +25,9 @@ const Brokers = React.lazy(() => import('components/Brokers/Brokers'));
 const Topics = React.lazy(() => import('components/Topics/Topics'));
 const Schemas = React.lazy(() => import('components/Schemas/Schemas'));
 const Connect = React.lazy(() => import('components/Connect/Connect'));
+const KafkaConnectClusters = React.lazy(
+  () => import('components/KafkaConnectClustersPage/KafkaConnectClustersPage')
+);
 const KsqlDb = React.lazy(() => import('components/KsqlDb/KsqlDb'));
 const ClusterConfigPage = React.lazy(
   () => import('components/ClusterPage/ClusterConfigPage')
@@ -86,6 +90,12 @@ const ClusterPage: React.FC = () => {
               <Route
                 path={getNonExactPath(clusterConnectsRelativePath)}
                 element={<Connect />}
+              />
+            )}
+            {contextValue.hasKafkaConnectConfigured && (
+              <Route
+                path={getNonExactPath(kafkaConnectsPaths)}
+                element={<KafkaConnectClusters />}
               />
             )}
             {contextValue.hasKafkaConnectConfigured && (
