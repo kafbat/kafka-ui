@@ -18,7 +18,7 @@ public class JmxMetricsFormatter {
 
   // copied from https://github.com/prometheus/jmx_exporter/blob/b6b811b4aae994e812e902b26dd41f29364c0e2b/collector/src/main/java/io/prometheus/jmx/JmxMBeanPropertyCache.java#L15
   private static final Pattern PROPERTY_PATTERN = Pattern.compile(
-      "([^,=:\\*\\?]+)=(\"(?:\\\\.|[^\\\\\"])*\"|[^,=:\"]*)"
+      "([^,=:\\*\\?]+)=(\"(?:[^\\\\\"]*(?:\\\\.)?)*\"|[^,=:\"]*)"
   );
 
   private JmxMetricsFormatter() {
@@ -73,6 +73,11 @@ public class JmxMetricsFormatter {
   private static LinkedHashMap<String, String> getLabelsMap(ObjectName mbeanName) {
     LinkedHashMap<String, String> keyProperties = new LinkedHashMap<>();
     String properties = mbeanName.getKeyPropertyListString();
+
+    if (properties.length() > 1024) {
+      throw new IllegalArgumentException("MBean key property list too long: " + properties);
+    }
+
     Matcher match = PROPERTY_PATTERN.matcher(properties);
     while (match.lookingAt()) {
       String labelName = fixIllegalChars(match.group(1)); // label names should be fixed

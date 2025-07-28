@@ -40,9 +40,9 @@ public class PrometheusTextFormatParser {
   // Groups: 1=name, 2=labels (content), 3=value, 4=timestamp
   private static final Pattern METRIC_LINE_PATTERN = Pattern.compile(
       "^([a-zA-Z_:][a-zA-Z0-9_:]*)"            // Metric name
-          + "(?:\\{([^}]*)\\})?"                     // Optional labels (content in group 2)
+          + "(?:\\{([^}]*)})?"                     // Optional labels (content in group 2)
           + "\\s+"
-          + "(-?(?:Inf|NaN|(?:\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)))" // Value (group 3)
+          + "(-?(?:Inf|NaN|\\d*\\.?\\d+(?:[eE][+-]?\\d+)?))" // Value (group 3)
           + "(?:\\s+(\\d+))?$");                 // Group 4: Optional timestamp
 
 
