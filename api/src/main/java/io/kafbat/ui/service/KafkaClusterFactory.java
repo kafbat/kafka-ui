@@ -87,9 +87,18 @@ public class KafkaClusterFactory {
     if (ksqlConfigured(clusterProperties)) {
       builder.ksqlClient(ksqlClient(clusterProperties));
     }
-    if (prometheusStorageConfigured(clusterProperties)) {
-      builder.prometheusStorageClient(prometheusStorageClient(clusterProperties));
+    if (prometheusStorageConfigured(properties.getDefaultMetricsStorage())) {
+      builder.prometheusStorageClient(
+          prometheusStorageClient(properties.getDefaultMetricsStorage(), clusterProperties.getSsl())
+      );
     }
+    if (prometheusStorageConfigured(clusterProperties)) {
+      builder.prometheusStorageClient(prometheusStorageClient(
+          clusterProperties.getMetrics().getStore(),
+          clusterProperties.getSsl())
+      );
+    }
+
     builder.originalProperties(clusterProperties);
     return builder.build();
   }
@@ -129,7 +138,8 @@ public class KafkaClusterFactory {
             : Mono.<Optional<Map<String, ApplicationPropertyValidationDTO>>>just(Optional.empty()),
 
         prometheusStorageConfigured(clusterProperties)
-            ? validatePrometheusStore(() -> prometheusStorageClient(clusterProperties)).map(Optional::of)
+            ? validatePrometheusStore(() -> prometheusStorageClient(
+                clusterProperties.getMetrics().getStore(), clusterProperties.getSsl())).map(Optional::of)
             : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty())
     ).map(tuple -> {
       var validation = new ClusterConfigValidationDTO();
@@ -156,13 +166,14 @@ public class KafkaClusterFactory {
     return properties;
   }
 
-  private ReactiveFailover<PrometheusClientApi> prometheusStorageClient(ClustersProperties.Cluster cluster) {
+  private ReactiveFailover<PrometheusClientApi> prometheusStorageClient(
+      ClustersProperties.MetricsStorage storage, ClustersProperties.TruststoreConfig ssl) {
     WebClient webClient = new WebClientConfigurator()
-        .configureSsl(cluster.getSsl(), null)
+        .configureSsl(ssl, null)
         .configureBufferSize(webClientMaxBuffSize)
         .build();
     return ReactiveFailover.create(
-        parseUrlList(cluster.getMetrics().getStore().getPrometheus().getUrl()),
+        parseUrlList(storage.getPrometheus().getUrl()),
         url -> new PrometheusClientApi(new io.kafbat.ui.prometheus.ApiClient(webClient).setBasePath(url)),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No live schemaRegistry instances available",
@@ -173,6 +184,12 @@ public class KafkaClusterFactory {
   private boolean prometheusStorageConfigured(ClustersProperties.Cluster cluster) {
     return Optional.ofNullable(cluster.getMetrics())
         .flatMap(m -> Optional.ofNullable(m.getStore()))
+        .map(this::prometheusStorageConfigured)
+        .orElse(false);
+  }
+
+  private boolean prometheusStorageConfigured(ClustersProperties.MetricsStorage storage) {
+    return Optional.ofNullable(storage)
         .flatMap(s -> Optional.ofNullable(s.getPrometheus()))
         .map(p -> StringUtils.hasText(p.getUrl()))
         .orElse(false);

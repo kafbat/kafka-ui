@@ -205,8 +205,28 @@ paths:
     get:
       tags:
         - PrometheusExpose
-      summary: getAllMetrics
-      operationId: getAllMetrics
+      summary: exposeAllMetrics
+      operationId: exposeAllMetrics
+      responses:
+        200:
+          description: OK
+          content:
+            application/text:
+              schema:
+                type: string
+
+  /metrics/{clusterName}:
+    get:
+      tags:
+        - PrometheusExpose
+      summary: exposeClusterMetrics
+      operationId: exposeClusterMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -2540,6 +2560,7 @@ components:
               - KAFKA_ACL_VIEW # get ACLs listing
               - KAFKA_ACL_EDIT # create & delete ACLs
               - CLIENT_QUOTA_MANAGEMENT
+              - GRAPHS_ENABLED
       required:
         - id
         - name
@@ -4494,6 +4515,8 @@ components:
                   type: integer
                 internalTopicPrefix:
                   type: string
+                defaultMetricsStorage:
+                  $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                 clusters:
                   type: array
                   items:
@@ -4585,28 +4608,7 @@ components:
                           prometheusExpose:
                             type: boolean
                           store:
-                            type: object
-                            properties:
-                              prometheus:
-                                type: object
-                                properties:
-                                  url:
-                                    type: string
-                                  remoteWrite:
-                                    type: boolean
-                                  pushGatewayUrl:
-                                    type: string
-                                  pushGatewayUsername:
-                                    type: string
-                                  pushGatewayPassword:
-                                    type: string
-                                  pushGatewayJobName:
-                                    type: string
-                              kafka:
-                                type: object
-                                properties:
-                                  topic:
-                                    type: string
+                            $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                       properties:
                         type: object
                         additionalProperties: true
@@ -4688,3 +4690,21 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+    ClusterMetricsStoreConfig:
+      type: object
+      properties:
+        prometheus:
+          type: object
+          properties:
+            url:
+              type: string
+            remoteWrite:
+              type: boolean
+            pushGatewayUrl:
+              type: string
+            pushGatewayUsername:
+              type: string
+            pushGatewayPassword:
+              type: string
+            pushGatewayJobName:
+              type: string

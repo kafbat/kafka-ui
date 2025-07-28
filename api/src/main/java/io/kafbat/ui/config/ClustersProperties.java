@@ -37,6 +37,8 @@ public class ClustersProperties {
 
   PollingProperties polling = new PollingProperties();
 
+  MetricsStorage defaultMetricsStorage = new MetricsStorage();
+
   @Data
   public static class Cluster {
     @NotBlank(message = "field name for for cluster could not be blank")

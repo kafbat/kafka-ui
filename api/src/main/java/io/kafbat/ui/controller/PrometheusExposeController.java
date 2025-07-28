@@ -4,6 +4,8 @@ import io.kafbat.ui.api.PrometheusExposeApi;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.StatisticsCache;
 import io.kafbat.ui.service.metrics.prometheus.PrometheusExpose;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,7 @@ public class PrometheusExposeController extends AbstractController implements Pr
   private final StatisticsCache statisticsCache;
 
   @Override
-  public Mono<ResponseEntity<String>> getAllMetrics(ServerWebExchange exchange) {
+  public Mono<ResponseEntity<String>> exposeAllMetrics(ServerWebExchange exchange) {
     return Mono.just(
         PrometheusExpose.exposeAllMetrics(
             clustersStorage.getKafkaClusters()
@@ -27,6 +29,19 @@ public class PrometheusExposeController extends AbstractController implements Pr
                 .collect(Collectors.toMap(KafkaCluster::getName, c -> statisticsCache.get(c).getMetrics()))
         )
     );
+  }
+
+  @Override
+  public Mono<ResponseEntity<String>> exposeClusterMetrics(String clusterName,
+                                                           ServerWebExchange exchange) {
+    Optional<KafkaCluster> cluster = clustersStorage.getClusterByName(clusterName);
+    if (cluster.isPresent() && cluster.get().isExposeMetricsViaPrometheusEndpoint()) {
+      return Mono.just(PrometheusExpose.exposeAllMetrics(
+          Map.of(clusterName, statisticsCache.get(cluster.get()).getMetrics())
+      ));
+    } else {
+      return Mono.just(ResponseEntity.notFound().build());
+    }
   }
 
 }
