@@ -226,7 +226,7 @@ public class InferredMetricsScraper {
                     "Current Approximate Lag of a ConsumerGroup at Topic/Partition",
                     List.of("consumergroup", TOPIC_TAG, PARTITION_TAG),
                     List.of(groupName, tp.topic(), String.valueOf(tp.partition())),
-                    endOffset - committedOffset //TODO: check +-1
+                    endOffset - committedOffset
                 ));
 
       });

@@ -43,7 +43,7 @@ public class PrometheusTextFormatParser {
           + "(?:\\{([^}]*)\\})?"                     // Optional labels (content in group 2)
           + "\\s+"
           + "(-?(?:Inf|NaN|(?:\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)))" // Value (group 3)
-          + "(?:\\s+([0-9]+))?$");                 // Group 4: Optional timestamp
+          + "(?:\\s+(\\d+))?$");                 // Group 4: Optional timestamp
 
 
   private static final Pattern HELP_PATTERN =

@@ -21,9 +21,12 @@ public class JmxMetricsFormatter {
       "([^,=:\\*\\?]+)=(\"(?:\\\\.|[^\\\\\"])*\"|[^,=:\"]*)"
   );
 
+  private JmxMetricsFormatter() {
+  }
+
   public static List<RawMetric> constructMetricsList(ObjectName jmxMetric,
-                                              MBeanAttributeInfo[] attributes,
-                                              Object[] attrValues) {
+                                                     MBeanAttributeInfo[] attributes,
+                                                     Object[] attrValues) {
     String domain = fixIllegalChars(jmxMetric.getDomain());
     LinkedHashMap<String, String> labels = getLabelsMap(jmxMetric);
     String firstLabel = labels.keySet().iterator().next();

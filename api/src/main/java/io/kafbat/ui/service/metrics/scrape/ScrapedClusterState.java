@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -123,40 +124,40 @@ public class ScrapedClusterState {
             create(
                 clusterDescription,
                 phase1.getT1(),
-                phase1.getT3(),
-                phase1.getT4(),
-                phase2.getT1(),
-                phase2.getT2(),
+                topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
                 phase2.getT3(),
                 phase2.getT4()
             )));
   }
 
+  private static Map<String, TopicState> topicStateMap(
+      InternalLogDirStats segmentStats,
+      Map<String, TopicDescription> topicDescriptions,
+      Map<String, List<ConfigEntry>> topicConfigs,
+      Map<TopicPartition, Long> latestOffsets,
+      Map<TopicPartition, Long> earliestOffsets) {
+
+    return topicDescriptions.entrySet().stream().map(entry -> new TopicState(
+        entry.getKey(),
+        entry.getValue(),
+        topicConfigs.getOrDefault(entry.getKey(), List.of()),
+        filterTopic(entry.getKey(), earliestOffsets),
+        filterTopic(entry.getKey(), latestOffsets),
+        segmentStats.getTopicStats().get(entry.getKey()),
+        Optional.ofNullable(segmentStats.getPartitionsStats())
+            .map(topicForFilter -> filterTopic(entry.getKey(), topicForFilter))
+            .orElse(null)
+    )).collect(Collectors.toMap(
+        TopicState::name,
+        Function.identity()
+    ));
+  }
+
   private static ScrapedClusterState create(ClusterDescription clusterDescription,
                                             InternalLogDirStats segmentStats,
-                                            Map<String, TopicDescription> topicDescriptions,
-                                            Map<String, List<ConfigEntry>> topicConfigs,
-                                            Map<TopicPartition, Long> latestOffsets,
-                                            Map<TopicPartition, Long> earliestOffsets,
+                                            Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
                                             Table<String, TopicPartition, Long> consumerOffsets) {
-
-
-    Map<String, TopicState> topicStates = new HashMap<>();
-    topicDescriptions.forEach((name, desc) ->
-        topicStates.put(
-            name,
-            new TopicState(
-                name,
-                desc,
-                topicConfigs.getOrDefault(name, List.of()),
-                filterTopic(name, earliestOffsets),
-                filterTopic(name, latestOffsets),
-                segmentStats.getTopicStats().get(name),
-                Optional.ofNullable(segmentStats.getPartitionsStats())
-                    .map(topicForFilter -> filterTopic(name, topicForFilter))
-                    .orElse(null)
-            )));
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->

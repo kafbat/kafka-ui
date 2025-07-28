@@ -249,9 +249,4 @@ public class KafkaClusterFactory {
   private List<String> parseUrlList(String url) {
     return Stream.of(url.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList();
   }
-
-  private boolean metricsConfigured(ClustersProperties.Cluster clusterProperties) {
-    return clusterProperties.getMetrics() != null;
-  }
-
 }
