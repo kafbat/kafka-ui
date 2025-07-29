@@ -98,6 +98,7 @@ micrometer-registry-prometheus = { module = 'io.micrometer:micrometer-registry-p
 antlr = { module = 'org.antlr:antlr4', version.ref = 'antlr' }
 antlr-runtime = { module = 'org.antlr:antlr4-runtime', version.ref = 'antlr' }
 cel = { module = 'dev.cel:cel', version.ref = 'cel' }
+caffeine = { module = 'com.github.ben-manes.caffeine:caffeine', version = '3.2.2'}
 
 testcontainers = { module = 'org.testcontainers:testcontainers', version.ref = 'testcontainers' }
 testcontainers-kafka = { module = 'org.testcontainers:kafka', version.ref = 'testcontainers' }

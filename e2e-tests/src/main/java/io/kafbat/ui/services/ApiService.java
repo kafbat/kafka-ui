@@ -177,7 +177,7 @@ public class ApiService extends BaseSource {
 
   @Step
   public String getFirstConnectName(String clusterName) {
-    return Objects.requireNonNull(connectorApi().getConnects(clusterName).blockFirst()).getName();
+    return Objects.requireNonNull(connectorApi().getConnects(clusterName, false).blockFirst()).getName();
   }
 
   @SneakyThrows

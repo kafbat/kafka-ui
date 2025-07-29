@@ -1,6 +1,5 @@
 package io.kafbat.ui.mapper;
 
-import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.BrokerConfigDTO;
 import io.kafbat.ui.model.BrokerDTO;
 import io.kafbat.ui.model.BrokerDiskUsageDTO;
@@ -11,7 +10,6 @@ import io.kafbat.ui.model.ClusterMetricsDTO;
 import io.kafbat.ui.model.ClusterStatsDTO;
 import io.kafbat.ui.model.ConfigSourceDTO;
 import io.kafbat.ui.model.ConfigSynonymDTO;
-import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalBroker;
 import io.kafbat.ui.model.InternalBrokerConfig;
 import io.kafbat.ui.model.InternalBrokerDiskUsage;
@@ -106,8 +104,6 @@ public interface ClusterMapper {
   TopicConfigDTO toTopicConfig(InternalTopicConfig topic);
 
   ReplicaDTO toReplica(InternalReplica replica);
-
-  ConnectDTO toKafkaConnect(ClustersProperties.ConnectCluster connect);
 
   List<ClusterDTO.FeaturesEnum> toFeaturesEnum(List<ClusterFeature> features);
 
