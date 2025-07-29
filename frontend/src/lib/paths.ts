@@ -207,10 +207,12 @@ export type RouteParamsClusterTopic = {
 // Kafka Connect
 export const clusterConnectsRelativePath = 'connects';
 export const clusterConnectorsRelativePath = 'connectors';
-export const kafkaConnectsPaths = 'kafka-connects';
-export const clusterConnectorNewRelativePath = 'create-new';
+export const kafkaConnectRelativePath = 'kafka-connect';
+export const kafkaConnectClustersRelativePath = 'clusters';
+
 export const clusterConnectConnectorsRelativePath = `${RouteParams.connectName}/connectors`;
-export const clusterConnectConnectorRelativePath = `${clusterConnectConnectorsRelativePath}/${RouteParams.connectorName}`;
+export const clusterConnectConnectorRelativePath = `${clusterConnectsRelativePath}/${clusterConnectConnectorsRelativePath}/${RouteParams.connectorName}`;
+export const clusterConnectorNewRelativePath = 'create-new';
 const clusterConnectConnectorTasksRelativePath = 'tasks';
 export const clusterConnectConnectorConfigRelativePath = 'config';
 
@@ -218,13 +220,18 @@ export const clusterConnectsPath = (
   clusterName: ClusterName = RouteParams.clusterName
 ) => `${clusterPath(clusterName)}/connects`;
 
-export const kafkaConnectsPath = (
+export const kafkaConnectPath = (
   clusterName: ClusterName = RouteParams.clusterName
-) => `${clusterPath(clusterName)}/kafka-connects`;
+) => `${clusterPath(clusterName)}/kafka-connect`;
+export const kafkaConnectClustersPath = (
+  clusterName: ClusterName = RouteParams.clusterName
+) => {
+  return `${kafkaConnectPath(clusterName)}/clusters`;
+};
 
 export const clusterConnectorsPath = (
   clusterName: ClusterName = RouteParams.clusterName
-) => `${clusterPath(clusterName)}/connectors`;
+) => `${kafkaConnectPath(clusterName)}/connectors`;
 export const clusterConnectorNameSubPath = (
   clusterName: ClusterName = RouteParams.connectorName
 ) => {
@@ -233,7 +240,7 @@ export const clusterConnectorNameSubPath = (
 
 export const clusterConnectorNewPath = (
   clusterName: ClusterName = RouteParams.clusterName
-) => `${clusterConnectorsPath(clusterName)}/create-new`;
+) => `${clusterPath(clusterName)}/create-new`;
 export const clusterConnectConnectorsPath = (
   clusterName: ClusterName = RouteParams.clusterName,
   connectName: Connect['name'] = RouteParams.connectName

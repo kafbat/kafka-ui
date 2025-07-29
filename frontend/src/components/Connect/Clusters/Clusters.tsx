@@ -1,9 +1,8 @@
 import React from 'react';
-import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { Connect } from 'generated-sources';
 
 import List from './ui/List/List';
-import Statistics from './ui/Statistics/Statistics';
+import ClustersStatistics from './ui/Statistics/Statistics';
 
 const connects: Connect[] = [
   {
@@ -24,11 +23,10 @@ const connects: Connect[] = [
 
 const KafkaConnectClustersPage = () => {
   return (
-    <div>
-      <ResourcePageHeading text="Kafka connect clusters" />
-      <Statistics connects={connects} />
+    <>
+      <ClustersStatistics connects={connects} />
       <List connects={connects} />
-    </div>
+    </>
   );
 };
 

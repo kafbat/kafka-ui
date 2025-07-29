@@ -8,6 +8,10 @@ const TasksCell = ({ connect }: Props) => {
   const failedCount = connect.failedTasksCount ?? 0;
   const text = `${count - failedCount}/${count}`;
 
+  if (!count) {
+    return null;
+  }
+
   if (failedCount > 0) {
     return (
       <AlertBadge>

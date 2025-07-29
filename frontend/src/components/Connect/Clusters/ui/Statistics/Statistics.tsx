@@ -1,30 +1,35 @@
 import React, { useMemo } from 'react';
 import { Connect } from 'generated-sources';
+import * as Statistics from 'components/common/Statistics';
 
-import * as S from './Statistics.styled';
 import { computeStatistic } from './models/computeStatistics';
-import Statistic from './Statistic/Statistic';
 
-type Props = { connects: Connect[] };
-const Statistics = ({ connects }: Props) => {
+type Props = { connects: Connect[]; isLoading: boolean };
+const ClustersStatistics = ({ connects, isLoading }: Props) => {
   const statistic = useMemo(() => {
     return computeStatistic(connects);
   }, [connects]);
   return (
-    <S.Container>
-      <Statistic title="Clusters" count={statistic.clustersCount} />
-      <Statistic
+    <Statistics.Container>
+      <Statistics.Item
+        title="Clusters"
+        count={statistic.clustersCount}
+        isLoading={isLoading}
+      />
+      <Statistics.Item
         title="Connectors"
         count={statistic.connectorsCount}
         warningCount={statistic.failedConnectorsCount}
+        isLoading={isLoading}
       />
-      <Statistic
+      <Statistics.Item
         title="Tasks"
         count={statistic.tasksCount}
         warningCount={statistic.failedTasksCount}
+        isLoading={isLoading}
       />
-    </S.Container>
+    </Statistics.Container>
   );
 };
 
-export default Statistics;
+export default ClustersStatistics;

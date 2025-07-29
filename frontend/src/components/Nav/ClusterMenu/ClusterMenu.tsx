@@ -6,13 +6,11 @@ import MenuItem from 'components/Nav/Menu/MenuItem';
 import {
   clusterACLPath,
   clusterBrokersPath,
-  clusterConnectorsPath,
-  clusterConnectsPath,
   clusterConsumerGroupsPath,
   clusterKsqlDbPath,
   clusterSchemasPath,
   clusterTopicsPath,
-  kafkaConnectsPath,
+  kafkaConnectPath,
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
@@ -83,18 +81,8 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
             <MenuItem
-              isActive={getIsMenuItemActive(kafkaConnectsPath(name))}
-              to={kafkaConnectsPath(name)}
-              title="Kafka Connect Clusters"
-            />
-          )}
-          {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
-            <MenuItem
-              isActive={
-                getIsMenuItemActive(clusterConnectorsPath(name)) ||
-                getIsMenuItemActive(clusterConnectsPath(name))
-              }
-              to={clusterConnectorsPath(name)}
+              isActive={getIsMenuItemActive(kafkaConnectPath(name))}
+              to={kafkaConnectPath(name)}
               title="Kafka Connect"
             />
           )}

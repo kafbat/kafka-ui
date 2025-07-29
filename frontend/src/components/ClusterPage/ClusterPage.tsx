@@ -4,8 +4,6 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterFeaturesEnum } from 'generated-sources';
 import {
   clusterBrokerRelativePath,
-  clusterConnectorsRelativePath,
-  clusterConnectsRelativePath,
   clusterConsumerGroupsRelativePath,
   clusterKsqlDbRelativePath,
   ClusterNameRoute,
@@ -14,20 +12,23 @@ import {
   clusterConfigRelativePath,
   getNonExactPath,
   clusterAclRelativePath,
-  kafkaConnectsPaths,
+  kafkaConnectRelativePath,
+  clusterConnectorNewRelativePath,
+  clusterConnectConnectorRelativePath,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { useClusters } from 'lib/hooks/api/clusters';
 import { GlobalSettingsContext } from 'components/contexts/GlobalSettingsContext';
+import New from 'components/Connect/New/New';
+import SuspenseQueryComponent from 'components/common/SuspenseQueryComponent/SuspenseQueryComponent';
+import DetailsPage from 'components/Connect/Details/DetailsPage';
 
 const Brokers = React.lazy(() => import('components/Brokers/Brokers'));
 const Topics = React.lazy(() => import('components/Topics/Topics'));
 const Schemas = React.lazy(() => import('components/Schemas/Schemas'));
-const Connect = React.lazy(() => import('components/Connect/Connect'));
-const KafkaConnectClusters = React.lazy(
-  () => import('components/KafkaConnectClustersPage/KafkaConnectClustersPage')
-);
+const KafkaConnect = React.lazy(() => import('components/Connect/Connect'));
+
 const KsqlDb = React.lazy(() => import('components/KsqlDb/KsqlDb'));
 const ClusterConfigPage = React.lazy(
   () => import('components/ClusterPage/ClusterConfigPage')
@@ -87,21 +88,28 @@ const ClusterPage: React.FC = () => {
               />
             )}
             {contextValue.hasKafkaConnectConfigured && (
+              <Route path={clusterConnectorNewRelativePath} element={<New />} />
+            )}
+            {contextValue.hasKafkaConnectConfigured && (
               <Route
-                path={getNonExactPath(clusterConnectsRelativePath)}
-                element={<Connect />}
+                path={getNonExactPath(clusterConnectConnectorRelativePath)}
+                element={
+                  <SuspenseQueryComponent>
+                    <DetailsPage />
+                  </SuspenseQueryComponent>
+                }
               />
             )}
             {contextValue.hasKafkaConnectConfigured && (
               <Route
-                path={getNonExactPath(kafkaConnectsPaths)}
-                element={<KafkaConnectClusters />}
+                path={getNonExactPath(kafkaConnectRelativePath)}
+                element={<KafkaConnect />}
               />
             )}
             {contextValue.hasKafkaConnectConfigured && (
               <Route
-                path={getNonExactPath(clusterConnectorsRelativePath)}
-                element={<Connect />}
+                path={getNonExactPath(kafkaConnectRelativePath)}
+                element={<KafkaConnect />}
               />
             )}
             {contextValue.hasKsqlDbConfigured && (
