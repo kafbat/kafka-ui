@@ -11,7 +11,7 @@ import React from 'react';
 const Header = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const { data: connects = [] } = useConnects(clusterName);
+  const { data: connects = [] } = useConnects(clusterName, true);
   return (
     <ResourcePageHeading text="Kafka Connect">
       {!isReadOnly && (

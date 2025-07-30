@@ -19,10 +19,11 @@ interface CreateConnectorProps {
   newConnector: NewConnector;
 }
 
-const connectsKey = (clusterName: ClusterName) => [
+const connectsKey = (clusterName: ClusterName, withStats: boolean) => [
   'clusters',
   clusterName,
   'connects',
+  withStats,
 ];
 const connectorsKey = (clusterName: ClusterName, search?: string) => {
   const base = ['clusters', clusterName, 'connectors'];
@@ -44,9 +45,9 @@ const connectorTasksKey = (props: UseConnectorProps) => [
   'tasks',
 ];
 
-export function useConnects(clusterName: ClusterName) {
-  return useQuery(connectsKey(clusterName), () =>
-    api.getConnects({ clusterName })
+export function useConnects(clusterName: ClusterName, withStats = false) {
+  return useQuery(connectsKey(clusterName, withStats), () =>
+    api.getConnects({ clusterName, withStats })
   );
 }
 export function useConnectors(clusterName: ClusterName, search?: string) {

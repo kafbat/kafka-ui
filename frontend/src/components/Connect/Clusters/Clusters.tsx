@@ -1,10 +1,13 @@
 import React from 'react';
 import { Connect } from 'generated-sources';
+import { useConnects } from 'lib/hooks/api/kafkaConnect';
+import useAppParams from 'lib/hooks/useAppParams';
+import { ClusterNameRoute } from 'lib/paths';
 
-import List from './ui/List/List';
 import ClustersStatistics from './ui/Statistics/Statistics';
+import List from './ui/List/List';
 
-const connects: Connect[] = [
+const testConnects: Connect[] = [
   {
     name: 'local',
     connectorsCount: 5,
@@ -22,10 +25,12 @@ const connects: Connect[] = [
 ];
 
 const KafkaConnectClustersPage = () => {
+  const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { data: connects, isLoading } = useConnects(clusterName, true);
   return (
     <>
-      <ClustersStatistics connects={connects} />
-      <List connects={connects} />
+      <ClustersStatistics connects={connects ?? []} isLoading={isLoading} />
+      <List connects={connects ?? []} />
     </>
   );
 };

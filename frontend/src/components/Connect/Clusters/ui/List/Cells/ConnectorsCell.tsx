@@ -8,6 +8,10 @@ const ConnectorsCell = ({ connect }: Props) => {
   const failedCount = connect.failedConnectorsCount ?? 0;
   const text = `${count - failedCount}/${count}`;
 
+  if (count === 0) {
+    return null;
+  }
+
   if (failedCount > 0) {
     return (
       <AlertBadge>
