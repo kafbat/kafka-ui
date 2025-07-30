@@ -6,6 +6,8 @@ import MenuItem from 'components/Nav/Menu/MenuItem';
 import {
   clusterACLPath,
   clusterBrokersPath,
+  clusterConnectsPath,
+  clusterConnectorsPath,
   clusterConsumerGroupsPath,
   clusterKsqlDbPath,
   clusterSchemasPath,
@@ -81,7 +83,11 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
             <MenuItem
-              isActive={getIsMenuItemActive(kafkaConnectPath(name))}
+              isActive={
+                getIsMenuItemActive(kafkaConnectPath(name)) ||
+                getIsMenuItemActive(clusterConnectorsPath(name)) ||
+                getIsMenuItemActive(clusterConnectsPath(name))
+              }
               to={kafkaConnectPath(name)}
               title="Kafka Connect"
             />
