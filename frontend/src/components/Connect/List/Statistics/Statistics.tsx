@@ -14,7 +14,7 @@ const ConnectorsStatistics = ({ connectors, isLoading }: Props) => {
   }, [connectors]);
 
   return (
-    <Statistics.Container>
+    <Statistics.Container role="group">
       <Statistics.Item
         title="Connectors"
         count={statistics.connectorsCount}

@@ -6,7 +6,7 @@ import * as S from './AlertBadge.styled';
 
 interface AlertBadgeProps {}
 function AlertBadge({ children }: PropsWithChildren<AlertBadgeProps>) {
-  return <S.Container>{children}</S.Container>;
+  return <S.Container role="alert">{children}</S.Container>;
 }
 
 const Icon = () => {

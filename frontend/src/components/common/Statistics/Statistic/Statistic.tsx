@@ -13,14 +13,16 @@ type Props = {
 const Statistic = ({ title, count, warningCount, isLoading }: Props) => {
   const showWarning = warningCount !== undefined && warningCount > 0;
   return (
-    <S.Container>
+    <S.Container role="cell">
       <S.Header>{title}</S.Header>
       <S.Footer>
         {isLoading ? (
-          <SpinnerIcon />
+          <div role="status">
+            <SpinnerIcon />
+          </div>
         ) : (
           <>
-            <S.Count>{count}</S.Count>
+            <S.Count role="contentinfo">{count}</S.Count>
             {showWarning && (
               <AlertBadge>
                 <AlertBadge.Icon />

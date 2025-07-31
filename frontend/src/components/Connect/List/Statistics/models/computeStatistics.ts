@@ -16,7 +16,7 @@ export const computeStatistics = (
   let failedTasksCount = 0;
 
   connectors.forEach((connector) => {
-    if (connector.status.state !== ConnectorState.RUNNING) {
+    if (connector.status.state === ConnectorState.FAILED) {
       failedConnectorsCount += 1;
     }
 

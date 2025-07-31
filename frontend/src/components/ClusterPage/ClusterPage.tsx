@@ -106,12 +106,6 @@ const ClusterPage: React.FC = () => {
                 element={<KafkaConnect />}
               />
             )}
-            {contextValue.hasKafkaConnectConfigured && (
-              <Route
-                path={getNonExactPath(kafkaConnectRelativePath)}
-                element={<KafkaConnect />}
-              />
-            )}
             {contextValue.hasKsqlDbConfigured && (
               <Route
                 path={getNonExactPath(clusterKsqlDbRelativePath)}
