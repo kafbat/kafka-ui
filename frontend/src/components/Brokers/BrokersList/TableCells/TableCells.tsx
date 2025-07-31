@@ -57,7 +57,7 @@ export const DiscUsage = ({
 
 type ScewProps = CellContext<
   BrokersTableRow,
-  BrokersTableRow['partitionsSkew'] | BrokersTableRow['leadersSkew']
+  BrokersTableRow['replicasSkew'] | BrokersTableRow['leadersSkew']
 >;
 
 export const Skew = ({ getValue }: ScewProps) => {
@@ -73,25 +73,24 @@ export const Skew = ({ getValue }: ScewProps) => {
   );
 };
 
-type OnlinePartitionsProps = CellContext<
+type InSyncReplicasProps = CellContext<
   BrokersTableRow,
-  BrokersTableRow['onlinePartitionCount']
+  BrokersTableRow['inSyncReplicas']
 >;
 
-export const OnlinePartitions = ({ row }: OnlinePartitionsProps) => {
-  const { onlinePartitionCount, offlinePartitionCount } = row.original;
-
-  if (
-    onlinePartitionCount === undefined ||
-    offlinePartitionCount === undefined
-  ) {
+export const InSyncReplicas = ({ getValue, row }: InSyncReplicasProps) => {
+  const inSyncReplicas = getValue();
+  const { replicas } = row.original;
+  if (inSyncReplicas === undefined || replicas === undefined) {
     return null;
   }
-
   return (
-    <ColoredCell
-      value={onlinePartitionCount}
-      attention={offlinePartitionCount > 0}
-    />
+    <ColoredCell value={inSyncReplicas} attention={inSyncReplicas < replicas} />
   );
+};
+
+type ReplicasProps = CellContext<BrokersTableRow, BrokersTableRow['replicas']>;
+
+export const Replicas = ({ getValue }: ReplicasProps) => {
+  return <ColoredCell value={getValue() || ''} />;
 };

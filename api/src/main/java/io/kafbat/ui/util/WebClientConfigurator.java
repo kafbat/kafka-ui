@@ -10,6 +10,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.time.Duration;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -141,6 +142,11 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {
     builder.codecs(configurer);
+    return this;
+  }
+
+  public WebClientConfigurator configureResponseTimeout(Duration responseTimeout) {
+    httpClient = httpClient.responseTimeout(responseTimeout);
     return this;
   }
 

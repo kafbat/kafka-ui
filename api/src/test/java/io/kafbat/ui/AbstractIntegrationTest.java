@@ -12,6 +12,7 @@ import java.util.Properties;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.IsolationLevel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,8 +25,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.ResourceUtils;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 
@@ -39,8 +40,11 @@ public abstract class AbstractIntegrationTest {
 
   private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
 
-  public static final KafkaContainer kafka = new KafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
+  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(
+      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
+
+  public static final ConfluentKafkaContainer kafka = kafkaOriginal
+      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
       .withNetwork(Network.SHARED);
 
   public static final SchemaRegistryContainer schemaRegistry =
@@ -101,6 +105,12 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.0.masking.0.topicValuesPattern", "masking-test-.*");
       System.setProperty("kafka.clusters.0.audit.topicAuditEnabled", "true");
       System.setProperty("kafka.clusters.0.audit.consoleAuditEnabled", "true");
+
+      System.setProperty("kafka.clusters.0.consumerProperties.request.timeout.ms", "60000");
+      System.setProperty("kafka.clusters.0.consumerProperties.isolation.level",
+          IsolationLevel.READ_COMMITTED.toString());
+      System.setProperty("kafka.clusters.0.producerProperties.request.timeout.ms", "45000");
+      System.setProperty("kafka.clusters.0.producerProperties.max.block.ms", "80000");
 
       System.setProperty("kafka.clusters.1.name", SECOND_LOCAL);
       System.setProperty("kafka.clusters.1.readOnly", "true");

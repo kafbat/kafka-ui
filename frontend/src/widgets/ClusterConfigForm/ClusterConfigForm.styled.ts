@@ -41,6 +41,7 @@ export const FlexGrow1 = styled.div`
   flex-direction: column;
   display: flex;
 `;
+
 // KafkaCluster
 export const BootstrapServer = styled(InputContainer)`
   grid-template-columns: 3fr 110px 30px;
@@ -58,5 +59,35 @@ export const FileUploadInputWrapper = styled.div`
   display: flex;
   height: 40px;
   align-items: center;
-  color: ${({ theme }) => theme.clusterConfigForm.fileInput.color}};
+  color: ${({ theme }) => theme.clusterConfigForm.fileInput.color};
+`;
+
+// Masking
+export const FieldWrapper = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+`;
+export const FieldContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+`;
+export const Error = styled.p`
+  color: ${({ theme }) => theme.input.error};
+  font-size: 12px;
+`;
+
+// Serde
+export const SerdeProperties = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+export const SerdePropertiesActions = styled(IconButtonWrapper)`
+  align-self: stretch;
+  margin-top: 12px;
+  margin-left: 8px;
 `;

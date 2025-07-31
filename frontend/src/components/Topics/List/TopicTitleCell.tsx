@@ -9,7 +9,11 @@ export const TopicTitleCell: React.FC<CellContext<Topic, unknown>> = ({
 }) => {
   const { internal, name } = original;
   return (
-    <NavLink to={name} title={name}>
+    <NavLink
+      to={name}
+      title={name}
+      style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
+    >
       {internal && (
         <>
           <Tag color="gray">IN</Tag>
