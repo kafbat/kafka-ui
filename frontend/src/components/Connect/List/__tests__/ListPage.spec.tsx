@@ -1,11 +1,11 @@
 import React from 'react';
-import { connectors, connects } from 'lib/fixtures/kafkaConnect';
+import { connects } from 'lib/fixtures/kafkaConnect';
 import ClusterContext, {
   ContextProps,
   initialValue,
 } from 'components/contexts/ClusterContext';
 import ListPage from 'components/Connect/List/ListPage';
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { render, WithRoute } from 'lib/testHelpers';
 import { clusterConnectorsPath } from 'lib/paths';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
