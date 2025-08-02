@@ -2,13 +2,7 @@ import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
 import { screen } from '@testing-library/react';
 import Connect from 'components/Connect/Connect';
-import {
-  clusterConnectorsPath,
-  clusterConnectorNewPath,
-  clusterConnectConnectorPath,
-  getNonExactPath,
-  clusterConnectsPath,
-} from 'lib/paths';
+import { getNonExactPath, kafkaConnectPath } from 'lib/paths';
 
 const ConnectCompText = {
   new: 'New Page',
@@ -35,27 +29,22 @@ describe('Connect', () => {
       { initialEntries: [pathname] }
     );
 
-  it('renders ListPage', () => {
-    renderComponent(
-      clusterConnectorsPath('my-cluster'),
-      clusterConnectorsPath()
-    );
-    expect(screen.getByText(ConnectCompText.list)).toBeInTheDocument();
+  it('renders header', () => {
+    renderComponent(kafkaConnectPath('my-cluster'), kafkaConnectPath());
+
+    const header = screen.getByRole('heading', { name: 'Kafka Connect' });
+    expect(header).toBeInTheDocument();
   });
 
-  it('renders New Page', () => {
-    renderComponent(
-      clusterConnectorNewPath('my-cluster'),
-      clusterConnectorsPath()
-    );
-    expect(screen.getByText(ConnectCompText.new)).toBeInTheDocument();
-  });
+  it('renders navigation', () => {
+    renderComponent(kafkaConnectPath('my-cluster'), kafkaConnectPath());
 
-  it('renders Details Page', () => {
-    renderComponent(
-      clusterConnectConnectorPath('my-cluster', 'my-connect', 'my-connector'),
-      clusterConnectsPath()
-    );
-    expect(screen.getByText(ConnectCompText.details)).toBeInTheDocument();
+    const clusterNavigation = screen.getByRole('link', { name: 'Clusters' });
+    expect(clusterNavigation).toBeInTheDocument();
+
+    const connectorsNavigation = screen.getByRole('link', {
+      name: 'Connectors',
+    });
+    expect(connectorsNavigation).toBeInTheDocument();
   });
 });

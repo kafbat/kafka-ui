@@ -61,6 +61,10 @@ const Colors = {
     '55': '#CF1717',
     '60': '#B81414',
   },
+  orange: {
+    '10': '#BF83401A',
+    '100': '#FF9D00',
+  },
   yellow: {
     '10': '#FFEECC',
     '20': '#FFDD57',
@@ -404,6 +408,29 @@ const baseTheme = {
 
 export const theme = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[90],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[5],
+    },
+    statistic: {
+      background: Colors.neutral[0],
+      count: {
+        color: Colors.neutral[90],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   logo: {
     color: Colors.brand[90],
   },
@@ -929,6 +956,29 @@ export type ClusterColorKey =
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[0],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[95],
+    },
+    statistic: {
+      background: Colors.neutral[90],
+      count: {
+        color: Colors.neutral[0],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   auth_page: {
     backgroundColor: Colors.neutral[90],
     fontFamily: baseTheme.auth_page.fontFamily,
