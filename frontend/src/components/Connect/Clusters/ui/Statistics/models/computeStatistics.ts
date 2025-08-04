@@ -17,8 +17,8 @@ export const computeStatistic = (connects: Connect[]): Statistic => {
   connects.forEach((connect) => {
     connectorsCount += connect.connectorsCount ?? 0;
     failedConnectorsCount += connect.failedConnectorsCount ?? 0;
-    tasksCount += connect.failedConnectorsCount ?? 0;
-    failedTasksCount += connect.failedConnectorsCount ?? 0;
+    tasksCount += connect.tasksCount ?? 0;
+    failedTasksCount += connect.failedTasksCount ?? 0;
   });
 
   return {
