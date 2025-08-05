@@ -163,9 +163,9 @@ public class ReactiveAdminClient implements Closeable {
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = Optional.of(entry.value());
+                      version = Optional.ofNullable(entry.value());
                     }
-                    if (entry.name().equals("delete.topic.enable")) {
+                    if (entry.name().equals("delete.topic.enable") && entry.value() != null) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
