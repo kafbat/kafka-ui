@@ -72,7 +72,7 @@ public class KafkaConnectService {
 
     if (withStats) {
       return connectClusters.map(connects ->
-              Flux.fromIterable(connects).flatMap( c ->
+              Flux.fromIterable(connects).flatMap(c ->
                   getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci))
               ).flatMap(tuple -> (
                   getConnectConnectorsFromCache(new ConnectCacheKey(cluster, tuple.getT1()))
