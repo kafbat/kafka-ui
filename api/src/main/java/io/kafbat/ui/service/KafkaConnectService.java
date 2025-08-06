@@ -13,7 +13,6 @@ import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.exception.ConnectorOffsetsResetException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
-import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.mapper.KafkaConnectMapper;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorActionDTO;
@@ -37,7 +36,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -47,7 +45,6 @@ import reactor.util.function.Tuples;
 @Service
 @Slf4j
 public class KafkaConnectService {
-  private final ClusterMapper clusterMapper;
   private final KafkaConnectMapper kafkaConnectMapper;
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
   private final ClustersProperties clustersProperties;
@@ -55,10 +52,9 @@ public class KafkaConnectService {
   private final AsyncCache<ConnectCacheKey, List<InternalConnectorInfo>> cachedConnectors;
   private final AsyncCache<String, ClusterInfo> cacheClusterInfo;
 
-  public KafkaConnectService(ClusterMapper clusterMapper, KafkaConnectMapper kafkaConnectMapper,
+  public KafkaConnectService(KafkaConnectMapper kafkaConnectMapper,
                              KafkaConfigSanitizer kafkaConfigSanitizer,
                              ClustersProperties clustersProperties) {
-    this.clusterMapper = clusterMapper;
     this.kafkaConnectMapper = kafkaConnectMapper;
     this.kafkaConfigSanitizer = kafkaConfigSanitizer;
     this.clustersProperties = clustersProperties;
@@ -79,7 +75,7 @@ public class KafkaConnectService {
               Flux.fromIterable(connects).flatMap( c ->
                   getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci))
               ).flatMap(tuple -> (
-                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, tuple.getT1()), withStats)
+                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, tuple.getT1()))
                       .map(connectors ->
                           kafkaConnectMapper.toKafkaConnect(tuple.getT1(), connectors, tuple.getT2(), withStats)
                       )
@@ -96,7 +92,7 @@ public class KafkaConnectService {
     }
   }
 
-  private Mono<List<InternalConnectorInfo>> getConnectConnectorsFromCache(ConnectCacheKey key, boolean withStats) {
+  private Mono<List<InternalConnectorInfo>> getConnectConnectorsFromCache(ConnectCacheKey key) {
     if (clustersProperties.getCache().isEnabled()) {
       return Mono.fromFuture(
           cachedConnectors.get(key, (t, e) ->
@@ -201,12 +197,13 @@ public class KafkaConnectService {
         .mono(client ->
             connector
                 .flatMap(c -> connectorExists(cluster, connectName, c.getName())
-                    .map(exists -> {
+                    .flatMap(exists -> {
                       if (Boolean.TRUE.equals(exists)) {
-                        throw new ValidationException(
-                            String.format("Connector with name %s already exists", c.getName()));
+                        return Mono.error(new ValidationException(
+                            String.format("Connector with name %s already exists", c.getName())));
+                      } else {
+                        return Mono.just(c);
                       }
-                      return c;
                     }))
                 .map(kafkaConnectMapper::toClient)
                 .flatMap(client::createConnector)
