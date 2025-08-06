@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
+import io.kafbat.ui.connect.model.ClusterInfo;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTopics;
@@ -36,10 +37,12 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 @Service
 @Slf4j
@@ -50,6 +53,7 @@ public class KafkaConnectService {
   private final ClustersProperties clustersProperties;
 
   private final AsyncCache<ConnectCacheKey, List<InternalConnectorInfo>> cachedConnectors;
+  private final AsyncCache<String, ClusterInfo> cacheClusterInfo;
 
   public KafkaConnectService(ClusterMapper clusterMapper, KafkaConnectMapper kafkaConnectMapper,
                              KafkaConfigSanitizer kafkaConfigSanitizer,
@@ -61,24 +65,34 @@ public class KafkaConnectService {
     this.cachedConnectors = Caffeine.newBuilder()
         .expireAfterWrite(clustersProperties.getCache().getConnectCacheExpiry())
         .buildAsync();
+    this.cacheClusterInfo = Caffeine.newBuilder()
+        .expireAfterWrite(clustersProperties.getCache().getConnectClusterCacheExpiry())
+        .buildAsync();
   }
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster, boolean withStats) {
     Optional<List<ClustersProperties.@Valid ConnectCluster>> connectClusters =
         Optional.ofNullable(cluster.getOriginalProperties().getKafkaConnect());
+
     if (withStats) {
       return connectClusters.map(connects ->
-              Flux.fromIterable(connects).flatMap(connect -> (
-                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, connect), withStats).map(
-                      connectors -> kafkaConnectMapper.toKafkaConnect(connect, connectors, withStats)
-                  )
+              Flux.fromIterable(connects).flatMap( c ->
+                  getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci))
+              ).flatMap(tuple -> (
+                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, tuple.getT1()), withStats)
+                      .map(connectors ->
+                          kafkaConnectMapper.toKafkaConnect(tuple.getT1(), connectors, tuple.getT2(), withStats)
+                      )
               )
           )
       ).orElse(Flux.fromIterable(List.of()));
     } else {
-      return Flux.fromIterable(connectClusters.map(connects ->
-          connects.stream().map(c -> kafkaConnectMapper.toKafkaConnect(c, List.of(), withStats)).toList()
-      ).orElse(List.of()));
+      return Flux.fromIterable(connectClusters.orElse(List.of()))
+          .flatMap(c ->
+              getClusterInfo(cluster, c.getName()).map(info ->
+                  kafkaConnectMapper.toKafkaConnect(c, List.of(), info, withStats)
+              )
+          );
     }
   }
 
@@ -92,6 +106,16 @@ public class KafkaConnectService {
     } else {
       return getConnectConnectors(key.cluster(), key.connect()).collectList();
     }
+  }
+
+  private Mono<ClusterInfo> getClusterInfo(KafkaCluster cluster, String connectName) {
+    return Mono.fromFuture(cacheClusterInfo.get(connectName, (t, e) ->
+        api(cluster, connectName).mono(KafkaConnectClientApi::getClusterInfo)
+            .onErrorResume(th -> {
+              log.error("Error on collecting cluster info" + th.getMessage(), th);
+              return Mono.just(new ClusterInfo());
+            }).toFuture()
+    ));
   }
 
   private Flux<InternalConnectorInfo> getConnectConnectors(

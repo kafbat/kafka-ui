@@ -3445,12 +3445,22 @@ components:
         failed_connectors_count:
           type: integer
           nullable: true
-        tasks_count:
+        tasksCount:
           type: integer
           nullable: true
-        failed_tasks_count:
+        failedTasksCount:
           type: integer
           nullable: true
+        version:
+          type: string
+          nullable: true
+        commit:
+          type: string
+          nullable: true
+        clusterId:
+          type: string
+          nullable: true
+
       required:
         - name
 
