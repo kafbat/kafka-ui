@@ -1,7 +1,6 @@
 package io.kafbat.ui.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.model.ClusterInfo;
@@ -26,12 +25,6 @@ class KafkaConnectMapperTest {
   @Test
   void toKafkaConnect() {
     ThreadLocalRandom random = ThreadLocalRandom.current();
-    KafkaConnectMapper mapper = new KafkaConnectMapperImpl();
-    ClustersProperties.ConnectCluster connectCluster = ClustersProperties.ConnectCluster.builder()
-        .name(UUID.randomUUID().toString())
-        .address("http://localhost:" + random.nextInt(1000, 5000))
-        .username(UUID.randomUUID().toString())
-        .password(UUID.randomUUID().toString()).build();
 
     List<InternalConnectorInfo> connectors = new ArrayList<>();
     int failedConnectors = 0;
@@ -39,18 +32,18 @@ class KafkaConnectMapperTest {
     int tasksPerConnector = random.nextInt(1, 10);
 
     for (int i = 0; i < 10; i++) {
-      ConnectorStateDTO connectorStateDTO;
+      ConnectorStateDTO connectorState;
       if (random.nextBoolean()) {
-        connectorStateDTO = ConnectorStateDTO.FAILED;
+        connectorState = ConnectorStateDTO.FAILED;
         failedConnectors++;
       } else {
-        connectorStateDTO = ConnectorStateDTO.RUNNING;
+        connectorState = ConnectorStateDTO.RUNNING;
       }
 
-      ConnectorDTO connectorDTO = new ConnectorDTO();
-      connectorDTO.setName(UUID.randomUUID().toString());
-      connectorDTO.setStatus(
-          new ConnectorStatusDTO(connectorStateDTO, UUID.randomUUID().toString())
+      ConnectorDTO connectorDto = new ConnectorDTO();
+      connectorDto.setName(UUID.randomUUID().toString());
+      connectorDto.setStatus(
+          new ConnectorStatusDTO(connectorState, UUID.randomUUID().toString())
       );
 
       List<TaskDTO> tasks = new ArrayList<>();
@@ -76,9 +69,9 @@ class KafkaConnectMapperTest {
         taskIds.add(taskId);
       }
 
-      connectorDTO.setTasks(taskIds);
+      connectorDto.setTasks(taskIds);
       InternalConnectorInfo connector = InternalConnectorInfo.builder()
-          .connector(connectorDTO)
+          .connector(connectorDto)
           .tasks(tasks)
           .build();
 
@@ -90,17 +83,24 @@ class KafkaConnectMapperTest {
     clusterInfo.setCommit(UUID.randomUUID().toString());
     clusterInfo.setKafkaClusterId(UUID.randomUUID().toString());
 
-    ConnectDTO connectDTO = new ConnectDTO();
-    connectDTO.setName(connectCluster.getName());
-    connectDTO.setAddress(connectCluster.getAddress());
-    connectDTO.setVersion(JsonNullable.of(clusterInfo.getVersion()));
-    connectDTO.setCommit(JsonNullable.of(clusterInfo.getCommit()));
-    connectDTO.setClusterId(JsonNullable.of(clusterInfo.getKafkaClusterId()));
-    connectDTO.setConnectorsCount(JsonNullable.of(connectors.size()));
-    connectDTO.setFailedConnectorsCount(JsonNullable.of(failedConnectors));
-    connectDTO.setTasksCount(JsonNullable.of(connectors.size() * tasksPerConnector));
-    connectDTO.setFailedTasksCount(JsonNullable.of(failedTasks));
+    ClustersProperties.ConnectCluster connectCluster = ClustersProperties.ConnectCluster.builder()
+        .name(UUID.randomUUID().toString())
+        .address("http://localhost:" + random.nextInt(1000, 5000))
+        .username(UUID.randomUUID().toString())
+        .password(UUID.randomUUID().toString()).build();
 
+    ConnectDTO connectDto = new ConnectDTO();
+    connectDto.setName(connectCluster.getName());
+    connectDto.setAddress(connectCluster.getAddress());
+    connectDto.setVersion(JsonNullable.of(clusterInfo.getVersion()));
+    connectDto.setCommit(JsonNullable.of(clusterInfo.getCommit()));
+    connectDto.setClusterId(JsonNullable.of(clusterInfo.getKafkaClusterId()));
+    connectDto.setConnectorsCount(JsonNullable.of(connectors.size()));
+    connectDto.setFailedConnectorsCount(JsonNullable.of(failedConnectors));
+    connectDto.setTasksCount(JsonNullable.of(connectors.size() * tasksPerConnector));
+    connectDto.setFailedTasksCount(JsonNullable.of(failedTasks));
+
+    KafkaConnectMapper mapper = new KafkaConnectMapperImpl();
     ConnectDTO kafkaConnect = mapper.toKafkaConnect(
         connectCluster,
         connectors,
@@ -109,7 +109,7 @@ class KafkaConnectMapperTest {
     );
 
     assertThat(kafkaConnect).isNotNull();
-    assertThat(kafkaConnect).isEqualTo(connectDTO);
+    assertThat(kafkaConnect).isEqualTo(connectDto);
 
   }
 }
