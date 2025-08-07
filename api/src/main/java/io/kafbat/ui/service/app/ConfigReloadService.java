@@ -13,13 +13,29 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.env.OriginTrackedMapPropertySource;
+import org.springframework.boot.origin.Origin;
+import org.springframework.boot.origin.OriginLookup;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.stereotype.Service;
+import org.stringtemplate.v4.ST;
 
 @Service
-@ConditionalOnProperty(value = "dynamic.config.autoreload", havingValue = "true")
+//@ConditionalOnProperty(value = "dynamic.config.autoreload", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class ConfigReloadService {
@@ -34,8 +50,69 @@ public class ConfigReloadService {
   private WatchService watchService;
   private Thread watcherThread;
 
+  private final ApplicationContext context;
+  private final ConfigurableEnvironment environment;
+
   @PostConstruct
   public void init() {
+
+/*    environment.getPropertySources()
+        .stream()
+        .filter(ps -> ps instanceof OriginTrackedMapPropertySource)
+        .map(ps -> (OriginTrackedMapPropertySource)ps)
+        .map(ps -> ps.getSource())
+        .map(source -> source.values())
+        .map(values -> {
+          return (HashMap<String, String>) values;
+        })
+//    .map(sourceValues -> sourceValues.)
+        .collect(Collectors.toUnmodifiableList());*/
+
+
+    // =============
+
+/*    environment.getPropertySources().stream()
+        .filter(ps -> ps instanceof EnumerablePropertySource)
+        .filter(ps -> ps instanceof OriginLookup)
+        .flatMap(ps -> {
+          EnumerablePropertySource<?> eps = (EnumerablePropertySource<?>) ps;
+          OriginLookup<String> lookup = (OriginLookup<String>) ps;
+          return Arrays.stream(eps.getPropertyNames())
+              .map(name -> {
+                Origin origin = lookup.getOrigin(name);
+                return origin != null ? origin.toString() : null;
+              });
+        })
+        .filter(Objects::nonNull)
+        .distinct()
+        .collect(Collectors.toUnmodifiableList());*/
+
+    // ===============
+
+/*    Map<String, Object> map = new HashMap();
+    for(Iterator it = ((AbstractEnvironment) environment).getPropertySources().iterator(); it.hasNext(); ) {
+      PropertySource propertySource = (PropertySource) it.next();
+      if (propertySource instanceof MapPropertySource) {
+        map.putAll(((MapPropertySource) propertySource).getSource());
+      }
+    }*/
+
+    // ====
+
+    SpringConfigurableEnvironment properties = new SpringConfigurableEnvironment(springEnv);
+    SpringConfigurableEnvironment.PropertyInfo info = properties.get("profile.env");
+    assertEquals("default", properties.get(info.getValue());
+    assertEquals(
+        "Config resource 'class path resource [application.properties]' via location 'optional:classpath:/'",
+        info.getSourceList.get(0));
+
+
+
+
+    System.out.println();
+//    environment.getPropertySources()
+//        .stream()
+
     var configPath = dynamicConfigOperations.dynamicConfigFilePath();
     if (!Files.exists(configPath) || !Files.isReadable(configPath)) {
       log.warn("Dynamic config file {} doesnt exist or is not readable. Auto reload is disabled", configPath);
