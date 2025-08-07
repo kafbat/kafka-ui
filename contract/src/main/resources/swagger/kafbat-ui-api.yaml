@@ -3449,6 +3449,16 @@ components:
         failedTasksCount:
           type: integer
           nullable: true
+        version:
+          type: string
+          nullable: true
+        commit:
+          type: string
+          nullable: true
+        clusterId:
+          type: string
+          nullable: true
+
       required:
         - name
 
