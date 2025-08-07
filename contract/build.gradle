@@ -3,6 +3,7 @@ import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 plugins {
     id "java-library"
     alias(libs.plugins.openapi.generator)
+    id "org.openapitools.openapistylevalidator" version "1.10"
 }
 
 
@@ -59,6 +60,21 @@ tasks.register('generateBackendApi', GenerateTask) {
             @lombok.NoArgsConstructor
             """]
 }
+
+openAPIStyleValidator {
+    inputFile = "${project.projectDir}/src/main/resources/swagger/kafbat-ui-api.yaml"
+    validateModelPropertiesDescription = false
+    validateModelPropertiesExample = false
+    parameterNamingConvention = "UnderscoreCase"
+    propertyNamingConvention = "camelCase"
+    queryParamNamingConvention = "camelCase"
+    pathParamNamingConvention = "camelCase"
+    validateOperationDescription = false
+    validateInfoLicense = false
+    validateInfoDescription = false
+    validateInfoContact = false
+}
+
 
 tasks.register('generateConnectClient', GenerateTask) {
     generatorName = "java"
