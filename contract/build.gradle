@@ -72,7 +72,11 @@ tasks.register('generateBackendApi', GenerateTask) {
 }
 
 openAPIStyleValidator {
-    inputFile = "${project.projectDir}/src/main/resources/swagger/kafbat-ui-api.yaml"
+    if (useTypeSpec) {
+        inputFile = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputFile = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     validateModelPropertiesDescription = false
     validateModelPropertiesExample = false
     parameterNamingConvention = "UnderscoreCase"

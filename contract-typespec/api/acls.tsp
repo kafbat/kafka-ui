@@ -62,7 +62,7 @@ interface AclApi {
     @body payload: CreateProducerAcl,
   ): void | ApiBadRequestResponse;
 
-  @route("/streamApp")
+  @route("/streamapp")
   @doc("createStreamAppAcl")
   @post
   @operationId("createStreamAppAcl")
