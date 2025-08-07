@@ -7,9 +7,16 @@ interface Timezone {
   UTCOffset: string;
 }
 
+const UTCPlain: Timezone = {
+  value: 'UTC',
+  label: 'Plain UTC',
+  offset: 'UTC+00:00',
+  UTCOffset: 'UTC+00:00',
+};
+
 const generateTimezones = (): Timezone[] => {
   try {
-    return Intl.supportedValuesOf('timeZone').map((timeZone) => {
+    const timezones = Intl.supportedValuesOf('timeZone').map((timeZone) => {
       try {
         const offsetPart =
           new Intl.DateTimeFormat('en', {
@@ -59,12 +66,14 @@ const generateTimezones = (): Timezone[] => {
         };
       }
     });
+    timezones.push(UTCPlain);
+    return timezones;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.warn(
       'Intl.supportedValuesOf not supported, using fallback timezones'
     );
-    return [
+    const timezones = [
       {
         value: 'UTC',
         label: 'UTC',
@@ -90,6 +99,8 @@ const generateTimezones = (): Timezone[] => {
         UTCOffset: 'GMT+09:00',
       },
     ];
+    timezones.push(UTCPlain);
+    return timezones;
   }
 };
 

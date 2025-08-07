@@ -45,10 +45,12 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
   @Override
   public Mono<ResponseEntity<Flux<ConnectDTO>>> getConnects(String clusterName,
+                                                            Boolean withStats,
                                                             ServerWebExchange exchange) {
 
-    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(getCluster(clusterName))
-        .filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
+    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(
+        getCluster(clusterName), withStats != null ? withStats : false
+        ).filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
 
     return Mono.just(ResponseEntity.ok(availableConnects));
   }

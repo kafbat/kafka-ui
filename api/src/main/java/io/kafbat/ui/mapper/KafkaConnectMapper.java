@@ -1,18 +1,23 @@
 package io.kafbat.ui.mapper;
 
+import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.connect.model.ClusterInfo;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.NewConnector;
+import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorDTO;
 import io.kafbat.ui.model.ConnectorPluginConfigValidationResponseDTO;
 import io.kafbat.ui.model.ConnectorPluginDTO;
+import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTaskStatusDTO;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.TaskStatusDTO;
-import io.kafbat.ui.model.connect.InternalConnectInfo;
+import io.kafbat.ui.model.connect.InternalConnectorInfo;
 import java.util.List;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -38,7 +43,60 @@ public interface KafkaConnectMapper {
       io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse
           connectorPluginConfigValidationResponse);
 
-  default FullConnectorInfoDTO fullConnectorInfo(InternalConnectInfo connectInfo) {
+  default ConnectDTO toKafkaConnect(
+      ClustersProperties.ConnectCluster connect,
+      List<InternalConnectorInfo> connectors,
+      ClusterInfo clusterInfo,
+      boolean withStats) {
+    Integer connectorCount = null;
+    Integer failedConnectors = null;
+    Integer tasksCount = null;
+    Integer failedTasksCount = null;
+
+    if (withStats) {
+      connectorCount = connectors.size();
+      failedConnectors = 0;
+      tasksCount = 0;
+      failedTasksCount = 0;
+
+      for (InternalConnectorInfo connector : connectors) {
+        Optional<ConnectorDTO> internalConnector = Optional.ofNullable(connector.getConnector());
+
+        failedConnectors += internalConnector
+            .map(ConnectorDTO::getStatus)
+            .map(ConnectorStatusDTO::getState)
+            .filter(ConnectorStateDTO.FAILED::equals)
+            .map(s -> 1).orElse(0);
+
+        tasksCount += internalConnector.map(ConnectorDTO::getTasks).map(List::size).orElse(0);
+
+        if (connector.getTasks() != null) {
+          failedTasksCount += (int) connector.getTasks().stream()
+              .filter(t ->
+                  Optional.ofNullable(t)
+                      .map(TaskDTO::getStatus)
+                      .map(TaskStatusDTO::getState)
+                      .map(ConnectorTaskStatusDTO.FAILED::equals)
+                      .orElse(false)
+              ).count();
+        }
+      }
+
+    }
+
+    return new ConnectDTO()
+        .address(connect.getAddress())
+        .name(connect.getName())
+        .connectorsCount(connectorCount)
+        .failedConnectorsCount(failedConnectors)
+        .tasksCount(tasksCount)
+        .failedTasksCount(failedTasksCount)
+        .version(clusterInfo.getVersion())
+        .commit(clusterInfo.getCommit())
+        .clusterId(clusterInfo.getKafkaClusterId());
+  }
+
+  default FullConnectorInfoDTO fullConnectorInfo(InternalConnectorInfo connectInfo) {
     ConnectorDTO connector = connectInfo.getConnector();
     List<TaskDTO> tasks = connectInfo.getTasks();
     int failedTasksCount = (int) tasks.stream()
