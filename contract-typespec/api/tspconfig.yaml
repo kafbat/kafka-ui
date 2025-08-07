@@ -1,3 +1,5 @@
+output-dir: "{project-root}/../build/tsp/api"
+
 emit:
   - "@typespec/openapi3"
 options:
