@@ -64,7 +64,7 @@ export const topicConsumerGroups: ConsumerGroup[] = [
     state: ConsumerGroupState.UNKNOWN,
     coordinator: { id: 1 },
     consumerLag: 9,
-    inherit: ''
+    inherit: '',
   },
   {
     groupId: 'amazon.msk.canary.group.broker-4',
@@ -75,7 +75,7 @@ export const topicConsumerGroups: ConsumerGroup[] = [
     state: ConsumerGroupState.COMPLETING_REBALANCE,
     coordinator: { id: 1 },
     consumerLag: 9,
-    inherit: ''
+    inherit: '',
   },
 ];
 
