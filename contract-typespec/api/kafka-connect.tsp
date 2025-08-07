@@ -11,7 +11,7 @@ using OpenAPI;
 interface ConnectInstancesApi {
   @get
   @operationId("getConnects")
-  getConnects(@path clusterName: string): Connect[];
+  getConnects(@path clusterName: string, @query withStats: boolean): Connect[];
 
   @get
   @route("/{connectName}/plugins")
@@ -144,6 +144,13 @@ interface KafkaConnectConnectorsApi {
 model Connect {
   name: string;
   address?: string;
+  connectorsCount?: int32 | null;
+  failedConnectorsCount?: int32 | null;
+  tasksCount?: int32 | null;
+  failedTasksCount?: int32 | null;
+  version?: string | null;
+  commit?: string | null;
+  clusterId?: string | null;
 }
 
 model ConnectorConfig is Record<unknown>;
@@ -156,7 +163,7 @@ model TaskId {
 model TaskStatus {
   id: int32;
   state: ConnectorTaskStatus;
-  worker_id: string;
+  workerId: string;
   trace?: string;
 }
 
@@ -196,7 +203,7 @@ enum ConnectorState {
 
 model ConnectorStatus {
   state: ConnectorState;
-  worker_id?: string;
+  workerId?: string;
 }
 
 model Connector {
@@ -213,7 +220,7 @@ enum ConnectorAction {
   RESTART_FAILED_TASKS,
   PAUSE,
   RESUME,
-  STOP,
+  STOP
 }
 
 enum TaskAction {
@@ -237,12 +244,12 @@ model ConnectorPluginConfigDefinition {
     | "SHORT"
     | "STRING";
   required?: boolean;
-  default_value?: string;
+  defaultValue?: string;
   importance?: "LOW" | "MEDIUM" | "HIGH";
   documentation?: string;
   group?: string;
   width?: "SHORT" | "MEDIUM" | "LONG" | "NONE";
-  display_name?: string;
+  displayName?: string;
   dependents?: string[];
   order?: int32;
 }
@@ -250,7 +257,7 @@ model ConnectorPluginConfigDefinition {
 model ConnectorPluginConfigValue {
   name?: string;
   value?: string;
-  recommended_values?: string[];
+  recommendedValues?: string[];
   errors?: string[];
   visible?: boolean;
 }
@@ -262,7 +269,7 @@ model ConnectorPluginConfig {
 
 model ConnectorPluginConfigValidationResponse {
   name?: string;
-  error_count?: int32;
+  errorCount?: int32;
   groups?: string[];
   configs?: ConnectorPluginConfig[];
 }
@@ -270,12 +277,12 @@ model ConnectorPluginConfigValidationResponse {
 model FullConnectorInfo {
   connect: string;
   name: string;
-  connector_class?: string;
+  connectorClass?: string;
   type?: ConnectorType;
   topics?: string[];
   status: ConnectorStatus;
-  tasks_count?: integer;
-  failed_tasks_count?: integer;
+  tasksCount?: integer;
+  failedTasksCount?: integer;
 }
 
 enum ConnectorColumnsToSort {
