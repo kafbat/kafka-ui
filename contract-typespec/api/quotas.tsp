@@ -11,12 +11,12 @@ using OpenAPI;
 @tag("ClientQuotas")
 interface QuoatsApi {
   @get
-  @doc("listQuotas")
+  @summary("listQuotas")
   @operationId("listQuotas")
   listQuotas(@path clusterName: string): ClientQuotas[];
 
   @post
-  @doc("upsertClientQuotas")
+  @summary("upsertClientQuotas")
   @operationId("upsertClientQuotas")
   upsertClientQuotas(
     @path clusterName: string,

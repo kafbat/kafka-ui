@@ -11,11 +11,12 @@ using OpenAPI;
 interface ConnectInstancesApi {
   @get
   @operationId("getConnects")
+  @summary("getConnects")
   getConnects(@path clusterName: string, @query withStats?: boolean): Connect[];
 
   @get
   @route("/{connectName}/plugins")
-  @doc("get connector plugins")
+  @summary("get connector plugins")
   @operationId("getConnectorPlugins")
   getConnectorPlugins(
     @path clusterName: string,
@@ -24,7 +25,7 @@ interface ConnectInstancesApi {
 
   @put
   @route("/{connectName}/plugins/{pluginName}/config/validate")
-  @doc("validate connector plugin configuration")
+  @summary("validate connector plugin configuration")
   @operationId("validateConnectorPluginConfig")
   validateConnectorPluginConfig(
     @path clusterName: string,
@@ -40,6 +41,7 @@ interface ConnectInstancesApi {
 interface ConnectorsApi {
   @get
   @operationId("getAllConnectors")
+  @summary("getAllConnectors")
   getAllConnectors(
     @path clusterName: string,
     @query search?: string,
@@ -54,10 +56,12 @@ interface ConnectorsApi {
 interface KafkaConnectConnectorsApi {
   @get
   @operationId("getConnectors")
+  @summary("getConnectors")
   getConnectors(@path clusterName: string, @path connectName: string): string[];
 
   @post
   @operationId("createConnector")
+  @summary("createConnector")
   createConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -67,6 +71,7 @@ interface KafkaConnectConnectorsApi {
   @get
   @route("/{connectorName}")
   @operationId("getConnector")
+  @summary("getConnector")
   getConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -76,6 +81,7 @@ interface KafkaConnectConnectorsApi {
   @delete
   @route("/{connectorName}")
   @operationId("deleteConnector")
+  @summary("deleteConnector")
   deleteConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -85,6 +91,7 @@ interface KafkaConnectConnectorsApi {
   @post
   @route("/{connectorName}/action/{action}")
   @operationId("updateConnectorState")
+  @summary("updateConnectorState")
   updateConnectorState(
     @path clusterName: string,
     @path connectName: string,
@@ -95,6 +102,7 @@ interface KafkaConnectConnectorsApi {
   @get
   @route("/{connectorName}/config")
   @operationId("getConnectorConfig")
+  @summary("getConnectorConfig")
   getConnectorConfig(
     @path clusterName: string,
     @path connectName: string,
@@ -104,6 +112,7 @@ interface KafkaConnectConnectorsApi {
   @put
   @route("/{connectorName}/config")
   @operationId("setConnectorConfig")
+  @summary("setConnectorConfig")
   setConnectorConfig(
     @path clusterName: string,
     @path connectName: string,
@@ -114,6 +123,7 @@ interface KafkaConnectConnectorsApi {
   @get
   @route("/{connectorName}/tasks")
   @operationId("getConnectorTasks")
+  @summary("getConnectorTasks")
   getConnectorTasks(
     @path clusterName: string,
     @path connectName: string,
@@ -123,6 +133,7 @@ interface KafkaConnectConnectorsApi {
   @post
   @route("/{connectorName}/tasks/{taskId}/action/restart")
   @operationId("restartConnectorTask")
+  @summary("restartConnectorTask")
   restartConnectorTask(
     @path clusterName: string,
     @path connectName: string,
@@ -133,6 +144,7 @@ interface KafkaConnectConnectorsApi {
   @delete
   @route("/{connectorName}/offsets")
   @operationId("resetConnectorOffsets")
+  @summary("resetConnectorOffsets")
   resetConnectorOffsets(
     @path clusterName: string,
     @path connectName: string,

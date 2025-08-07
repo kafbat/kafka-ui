@@ -8,7 +8,7 @@ using OpenAPI;
 @route("/api/clusters/{clusterName}/acls")
 @tag("Acls")
 interface AclApi {
-  @doc("listKafkaAcls")
+  @summary("listKafkaAcls")
   @get
   @operationId("listAcls")
   listAcls(
@@ -20,41 +20,42 @@ interface AclApi {
   ): KafkaAcl[];
 
   @route("/csv")
-  @doc("getAclAsCsv")
+  @summary("getAclAsCsv")
   @get
   @operationId("getAclAsCsv")
   getAclAsCsv(@path clusterName: string): string;
 
   @route("/csv")
-  @doc("syncAclsCsv")
+  @summary("syncAclsCsv")
   @post
   @operationId("syncAclsCsv")
   syncAclsCsv(@path clusterName: string, @body content: string): void | ApiBadRequestResponse;
 
-  @doc("createAcl")
   @post
   @operationId("createAcl")
+  @summary("createAcl")
   createAcl(@path clusterName: string, @body acl: KafkaAcl): void | ApiBadRequestResponse;
 
-  @doc("deleteAcl")
+  @summary("deleteAcl")
   @delete
   @operationId("deleteAcl")
+  @summary("deleteAcl")
   deleteAcl(
     @path clusterName: string,
     @body acl: KafkaAcl,
   ): void | ApiNotFoundResponse;
 
   @route("/consumer")
-  @doc("createConsumerAcl")
   @post
   @operationId("createConsumerAcl")
+  @summary("createConsumerAcl")
   createConsumerAcl(
     @path clusterName: string,
     @body payload: CreateConsumerAcl,
   ): void | ApiBadRequestResponse;
 
   @route("/producer")
-  @doc("createProducerAcl")
+  @summary("createProducerAcl")
   @operationId("createProducerAcl")
   @post
   createProducerAcl(
@@ -63,7 +64,7 @@ interface AclApi {
   ): void | ApiBadRequestResponse;
 
   @route("/streamapp")
-  @doc("createStreamAppAcl")
+  @summary("createStreamAppAcl")
   @post
   @operationId("createStreamAppAcl")
   createStreamAppAcl(

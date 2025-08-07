@@ -8,14 +8,14 @@ using OpenAPI;
 @tag("Authorization")
 interface AuthorizationApi {
   @route("/api/authorization")
-  @doc("Get user authorization related info")
+  @summary("Get user authorization related info")
   @operationId("getUserAuthInfo")
   @get
   getUserAuthInfo(): AuthenticationInfo;
 }
 
 @route("/login")
-@doc("Authenticate")
+@summary("Authenticate")
 @operationId("authenticate")
 @post
 @tag("Unmapped")

@@ -11,6 +11,7 @@ using OpenAPI;
 interface SchemasApi {
   @post
   @operationId("createNewSchema")
+  @summary("createNewSchema")
   createNewSchema(@path clusterName: string, @body input: NewSchemaSubject):
     | SchemaSubject
     | ApiBadRequestResponse
@@ -19,6 +20,7 @@ interface SchemasApi {
 
   @get
   @operationId("getSchemas")
+  @summary("getSchemas")
   getSchemas(
     @path clusterName: string,
     @query page?: int32,
@@ -29,6 +31,7 @@ interface SchemasApi {
   @delete
   @route("/{subject}")
   @operationId("deleteSchema")
+  @summary("deleteSchema")
   deleteSchema(
     @path clusterName: string,
     @path subject: string,
@@ -37,6 +40,7 @@ interface SchemasApi {
   @get
   @route("/{subject}/versions")
   @operationId("getAllVersionsBySubject")
+  @summary("getAllVersionsBySubject")
   getAllVersionsBySubject(
     @path clusterName: string,
     @path subject: string,
@@ -45,6 +49,7 @@ interface SchemasApi {
   @get
   @route("/{subject}/latest")
   @operationId("getLatestSchema")
+  @summary("getLatestSchema")
   getLatestSchema(
     @path clusterName: string,
     @path subject: string,
@@ -53,6 +58,7 @@ interface SchemasApi {
   @delete
   @route("/{subject}/latest")
   @operationId("deleteLatestSchema")
+  @summary("deleteLatestSchema")
   deleteLatestSchema(
     @path clusterName: string,
     @path subject: string,
@@ -61,6 +67,7 @@ interface SchemasApi {
   @get
   @route("/{subject}/versions/{version}")
   @operationId("getSchemaByVersion")
+  @summary("getSchemaByVersion")
   getSchemaByVersion(
     @path clusterName: string,
     @path subject: string,
@@ -70,6 +77,7 @@ interface SchemasApi {
   @delete
   @route("/{subject}/versions/{version}")
   @operationId("deleteSchemaByVersion")
+  @summary("deleteSchemaByVersion")
   deleteSchemaByVersion(
     @path clusterName: string,
     @path subject: string,
@@ -79,6 +87,7 @@ interface SchemasApi {
   @get
   @route("/compatibility")
   @operationId("getGlobalSchemaCompatibilityLevel")
+  @summary("getGlobalSchemaCompatibilityLevel")
   getGlobalSchemaCompatibilityLevel(
     @path clusterName: string,
   ): CompatibilityLevel;
@@ -86,6 +95,7 @@ interface SchemasApi {
   @put
   @route("/compatibility")
   @operationId("updateGlobalSchemaCompatibilityLevel")
+  @summary("updateGlobalSchemaCompatibilityLevel")
   updateGlobalSchemaCompatibilityLevel(
     @path clusterName: string,
     @body level: CompatibilityLevel,
@@ -94,6 +104,7 @@ interface SchemasApi {
   @put
   @route("/{subject}/compatibility")
   @operationId("updateSchemaCompatibilityLevel")
+  @summary("updateSchemaCompatibilityLevel")
   updateSchemaCompatibilityLevel(
     @path clusterName: string,
     @path subject: string,
@@ -103,6 +114,7 @@ interface SchemasApi {
   @post
   @route("/{subject}/check")
   @operationId("checkSchemaCompatibility")
+  @summary("checkSchemaCompatibility")
   checkSchemaCompatibility(
     @path clusterName: string,
     @path subject: string,

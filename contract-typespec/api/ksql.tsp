@@ -12,6 +12,7 @@ interface KsqlApi {
   @post
   @route("/v2")
   @operationId("executeKsql")
+  @summary("executeKsql")
   executeKsql(
     @path clusterName: string,
     @body command: KsqlCommandV2,
@@ -20,16 +21,19 @@ interface KsqlApi {
   @get
   @route("/tables")
   @operationId("listTables")
+  @summary("listTables")
   listTables(@path clusterName: string): KsqlTableDescription[];
 
   @get
   @route("/streams")
   @operationId("listStreams")
+  @summary("listStreams")
   listStreams(@path clusterName: string): KsqlStreamDescription[];
 
   @get
   @route("/response")
   @operationId("openKsqlResponsePipe")
+  @summary("openKsqlResponsePipe")
   openKsqlResponsePipe(
     @path clusterName: string,
     @query pipeId: string,

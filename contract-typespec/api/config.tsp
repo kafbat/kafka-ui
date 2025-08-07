@@ -7,7 +7,7 @@ using TypeSpec.Http;
 using OpenAPI;
 
 @route("/api/info")
-@doc("Gets application info")
+@summary("Gets application info")
 @get
 @tag("ApplicationConfig")
 op getApplicationInfo(): ApplicationInfo;
@@ -15,25 +15,25 @@ op getApplicationInfo(): ApplicationInfo;
 @route("/api/config")
 @tag("ApplicationConfig")
 interface ApplicationConfigApi {
-  @doc("Gets current application configuration")
+  @summary("Gets current application configuration")
   @get
   @operationId("getCurrentConfig")
   getCurrentConfig(): ApplicationConfig;
 
   @put
-  @doc("Restarts application with specified configuration")
+  @summary("Restarts application with specified configuration")
   @operationId("restartWithConfig")
   restartWithConfig(@body config: RestartRequest): void | ApiBadRequestResponse;
 
   @put
   @route("/validated")
-  @doc("Restarts application with specified configuration")
+  @summary("Restarts application with specified configuration")
   @operationId("validateConfig")
   validateConfig(@body config: ApplicationConfig): ApplicationConfigValidation | ApiBadRequestResponse;
 
   @post
   @route("/relatedfiles")
-  @doc("Upload config related file")
+  @summary("Upload config related file")
   @operationId("uploadConfigRelatedFile")
   uploadConfigRelatedFile(
     @multipartBody body: {
@@ -43,7 +43,7 @@ interface ApplicationConfigApi {
 
   @get
   @route("/authentication")
-  @doc("Get authentication methods enabled for the app and other related settings")
+  @summary("Get authentication methods enabled for the app and other related settings")
   @operationId("getAuthenticationSettings")
   getAuthenticationSettings(): AppAuthenticationSettings;
 }

@@ -11,6 +11,7 @@ using OpenAPI;
 interface TopicsApi {
   @get
   @operationId("getTopics")
+  @summary("getTopics")
   getTopics(
     @path clusterName: string,
     @query page?: int32,
@@ -23,6 +24,7 @@ interface TopicsApi {
 
   @post
   @operationId("createTopic")
+  @summary("createTopic")
   createTopic(
     @path clusterName: string,
     @body topic: TopicCreation,
@@ -31,6 +33,7 @@ interface TopicsApi {
   @post
   @route("/{topicName}/clone")
   @operationId("cloneTopic")
+  @summary("cloneTopic")
   cloneTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -40,6 +43,7 @@ interface TopicsApi {
   @get
   @route("/{topicName}/analysis")
   @operationId("getTopicAnalysis")
+  @summary("getTopicAnalysis")
   getTopicAnalysis(
     @path clusterName: string,
     @path topicName: string,
@@ -48,6 +52,7 @@ interface TopicsApi {
   @post
   @route("/{topicName}/analysis")
   @operationId("analyzeTopic")
+  @summary("analyzeTopic")
   analyzeTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -56,6 +61,7 @@ interface TopicsApi {
   @delete
   @route("/{topicName}/analysis")
   @operationId("cancelTopicAnalysis")
+  @summary("cancelTopicAnalysis")
   cancelTopicAnalysis(
     @path clusterName: string,
     @path topicName: string,
@@ -64,6 +70,7 @@ interface TopicsApi {
   @get
   @route("/{topicName}")
   @operationId("getTopicDetails")
+  @summary("getTopicDetails")
   getTopicDetails(
     @path clusterName: string,
     @path topicName: string,
@@ -72,6 +79,7 @@ interface TopicsApi {
   @post
   @route("/{topicName}")
   @operationId("recreateTopic")
+  @summary("recreateTopic")
   recreateTopic(@path clusterName: string, @path topicName: string):
     | ApiCreatedResponse<Topic>
     | ApiTimeoutResponse
@@ -81,6 +89,7 @@ interface TopicsApi {
   @patch(#{implicitOptionality: true})
   @route("/{topicName}")
   @operationId("updateTopic")
+  @summary("updateTopic")
   updateTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -90,6 +99,7 @@ interface TopicsApi {
   @delete
   @route("/{topicName}")
   @operationId("deleteTopic")
+  @summary("deleteTopic")
   deleteTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -98,6 +108,7 @@ interface TopicsApi {
   @get
   @route("/{topicName}/config")
   @operationId("getTopicConfigs")
+  @summary("getTopicConfigs")
   getTopicConfigs(
     @path clusterName: string,
     @path topicName: string,
@@ -106,6 +117,7 @@ interface TopicsApi {
   @patch(#{ implicitOptionality: true })
   @route("/{topicName}/replications")
   @operationId("changeReplicationFactor")
+  @summary("changeReplicationFactor")
   changeReplicationFactor(
     @path clusterName: string,
     @path topicName: string,
@@ -115,6 +127,7 @@ interface TopicsApi {
   @get
   @route("/{topicName}/activeproducers")
   @operationId("getActiveProducerStates")
+  @summary("getActiveProducerStates")
   getActiveProducerStates(
     @path clusterName: string,
     @path topicName: string,
@@ -122,7 +135,7 @@ interface TopicsApi {
 
   @patch(#{ implicitOptionality: true })
   @route("/{topicName}/partitions")
-  @doc("increaseTopicPartitions")
+  @summary("increaseTopicPartitions")
   @operationId("increaseTopicPartitions")
   increaseTopicPartitions(
     @path clusterName: string,

@@ -13,6 +13,7 @@ interface MessagesApi {
   @get
   @route("/serdes")
   @operationId("getSerdes")
+  @summary("getSerdes")
   getSerdes(
     @path clusterName: string,
     @path topicName: string,
@@ -22,6 +23,7 @@ interface MessagesApi {
   @get
   @route("/messages")
   @operationId("getTopicMessages")
+  @summary("getTopicMessages")
   getTopicMessages(
     @path clusterName: string,
     @path topicName: string,
@@ -38,6 +40,7 @@ interface MessagesApi {
   @delete
   @route("/messages")
   @operationId("deleteTopicMessages")
+  @summary("deleteTopicMessages")
   deleteTopicMessages(
     @path clusterName: string,
     @path topicName: string,
@@ -47,6 +50,7 @@ interface MessagesApi {
   @post
   @route("/messages")
   @operationId("sendTopicMessages")
+  @summary("sendTopicMessages")
   sendTopicMessages(
     @path clusterName: string,
     @path topicName: string,
@@ -56,6 +60,7 @@ interface MessagesApi {
   @post
   @route("/smartfilters")
   @operationId("registerFilter")
+  @summary("registerFilter")
   registerFilter(
     @path clusterName: string,
     @path topicName: string,
@@ -65,6 +70,7 @@ interface MessagesApi {
   @get
   @route("/messages/v2")
   @operationId("getTopicMessagesV2")
+  @summary("getTopicMessagesV2")
   getTopicMessagesV2(
     @path clusterName: string,
     @path topicName: string,
@@ -86,6 +92,7 @@ interface MessagesApi {
 interface SmartFiltersTestExecutionsApi {
   @put
   @operationId("executeSmartFilterTest")
+  @summary("executeSmartFilterTest")
   executeSmartFilterTest(
     @body input: SmartFilterTestExecution,
   ): SmartFilterTestExecutionResult | ApiBadRequestResponse;

@@ -10,19 +10,19 @@ using OpenAPI;
 interface BrokersApi {
   @get
   @operationId("getBrokers")
-  @doc("getBrokers")
+  @summary("getBrokers")
   getBrokers(@path clusterName: string): Broker[];
 
   @get
   @route("/{id}/configs")
   @operationId("getBrokerConfig")
-  @doc("getBrokerConfig")
+  @summary("getBrokerConfig")
   getBrokerConfig(@path clusterName: string, @path id: int32): BrokerConfig[];
 
   @put
   @route("/{id}/configs/{name}")
   @operationId("updateBrokerConfigByName")
-  @doc("updateBrokerConfigByName")
+  @summary("updateBrokerConfigByName")
   updateBrokerConfigByName(
     @path clusterName: string,
     @path id: int32,
@@ -33,13 +33,13 @@ interface BrokersApi {
   @get
   @route("/{id}/metrics")
   @operationId("getBrokersMetrics")
-  @doc("getBrokersMetrics")
+  @summary("getBrokersMetrics")
   getBrokersMetrics(@path clusterName: string, @path id: int32): BrokerMetrics;
 
   @get
   @route("/logdirs")
   @operationId("getAllBrokersLogdirs")
-  @doc("getAllBrokersLogdirs")
+  @summary("getAllBrokersLogdirs")
   getAllBrokersLogdirs(
     @path clusterName: string,
     @query broker?: int32[],
@@ -48,7 +48,7 @@ interface BrokersApi {
   @patch(#{implicitOptionality: true})
   @route("/{id}/logdirs")
   @operationId("updateBrokerTopicPartitionLogDir")
-  @doc("updateBrokerTopicPartitionLogDir")
+  @summary("updateBrokerTopicPartitionLogDir")
   updateBrokerTopicPartitionLogDir(
     @path clusterName: string,
     @path id: int32,

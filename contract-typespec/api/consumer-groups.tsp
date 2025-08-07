@@ -12,6 +12,7 @@ interface ConsumerGroupsApi {
   @get
   @route("/paged")
   @operationId("getConsumerGroupsPage")
+  @summary("getConsumerGroupsPage")
   getConsumerGroupsPage(
     @path clusterName: string,
     @query page?: int32,
@@ -24,6 +25,7 @@ interface ConsumerGroupsApi {
   @get
   @route("/{id}")
   @operationId("getConsumerGroup")
+  @summary("getConsumerGroup")
   getConsumerGroup(
     @path clusterName: string,
     @path id: string,
@@ -32,11 +34,13 @@ interface ConsumerGroupsApi {
   @delete
   @route("/{id}")
   @operationId("deleteConsumerGroup")
+  @summary("deleteConsumerGroup")
   deleteConsumerGroup(@path clusterName: string, @path id: string): void;
 
   @post
   @route("/{id}/offsets")
   @operationId("resetConsumerGroupOffsets")
+  @summary("resetConsumerGroupOffsets")
   resetConsumerGroupOffsets(
     @path clusterName: string,
     @path id: string,
@@ -46,6 +50,7 @@ interface ConsumerGroupsApi {
   @delete
   @route("/{id}/topics/{topicName}")
   @operationId("deleteConsumerGroupOffsets")
+  @summary("deleteConsumerGroupOffsets")
   deleteConsumerGroupOffsets(
     @path clusterName: string,
     @path id: string,
@@ -58,6 +63,7 @@ interface ConsumerGroupsApi {
 interface TopicConsumerGroupsApi {
   @get
   @operationId("getTopicConsumerGroups")
+  @summary("getTopicConsumerGroups")
   getTopicConsumerGroups(
     @path clusterName: string,
     @path topicName: string,

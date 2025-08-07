@@ -11,25 +11,25 @@ using OpenAPI;
 interface ClustersApi {
   @get
   @operationId("getClusters")
-  @doc("getClusters")
+  @summary("getClusters")
   getClusters(): Cluster[];
 
   @post
   @route("/{clusterName}/cache")
   @operationId("updateClusterInfo")
-  @doc("updateClusterInfo")
+  @summary("updateClusterInfo")
   updateClusterInfo(@path clusterName: string): Cluster;
 
   @get
   @route("/{clusterName}/metrics")
   @operationId("getClusterMetrics")
-  @doc("getClusterMetrics")
+  @summary("getClusterMetrics")
   getClusterMetrics(@path clusterName: string): ClusterMetrics;
 
   @get
   @route("/{clusterName}/stats")
   @operationId("getClusterStats")
-  @doc("getClusterStats")
+  @summary("getClusterStats")
   getClusterStats(@path clusterName: string): ClusterStats;
 }
 
