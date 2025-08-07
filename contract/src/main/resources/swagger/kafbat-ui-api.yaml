@@ -1481,6 +1481,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: withStats
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -2232,7 +2237,7 @@ paths:
         204:
           description: Existing quota deleted
 
-  /api/clusters/{clusterName}/acl/streamApp:
+  /api/clusters/{clusterName}/acl/streamapp:
     post:
       tags:
         - Acls
@@ -2562,7 +2567,6 @@ components:
               - CLIENT_QUOTA_MANAGEMENT
               - GRAPHS_ENABLED
       required:
-        - id
         - name
         - status
 
@@ -3313,7 +3317,6 @@ components:
           type: integer
           format: int64
       required:
-        - topic
         - partition
         - offsetMax
         - offsetMin
@@ -3515,6 +3518,28 @@ components:
           type: string
         address:
           type: string
+        connectorsCount:
+          type: integer
+          nullable: true
+        failedConnectorsCount:
+          type: integer
+          nullable: true
+        tasksCount:
+          type: integer
+          nullable: true
+        failedTasksCount:
+          type: integer
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        commit:
+          type: string
+          nullable: true
+        clusterId:
+          type: string
+          nullable: true
+
       required:
         - name
 
@@ -3631,21 +3656,21 @@ components:
           type: integer
         state:
           $ref: '#/components/schemas/ConnectorTaskStatus'
-        worker_id:
+        workerId:
           type: string
         trace:
           type: string
       required:
         - id
         - state
-        - worker_id
+        - workerId
 
     ConnectorStatus:
       type: object
       properties:
         state:
           $ref: '#/components/schemas/ConnectorState'
-        worker_id:
+        workerId:
           type: string
       required:
         - state
@@ -3710,7 +3735,7 @@ components:
             - STRING
         required:
           type: boolean
-        default_value:
+        defaultValue:
           type: string
         importance:
           type: string
@@ -3729,7 +3754,7 @@ components:
             - MEDIUM
             - LONG
             - NONE
-        display_name:
+        displayName:
           type: string
         dependents:
           type: array
@@ -3745,7 +3770,7 @@ components:
           type: string
         value:
           type: string
-        recommended_values:
+        recommendedValues:
           type: array
           items:
             type: string
@@ -3769,7 +3794,7 @@ components:
       properties:
         name:
           type: string
-        error_count:
+        errorCount:
           type: integer
         groups:
           type: array
@@ -3855,7 +3880,7 @@ components:
           type: string
         name:
           type: string
-        connector_class:
+        connectorClass:
           type: string
         type:
           $ref: '#/components/schemas/ConnectorType'
@@ -3865,9 +3890,9 @@ components:
             type: string
         status:
           $ref: '#/components/schemas/ConnectorStatus'
-        tasks_count:
+        tasksCount:
           type: integer
-        failed_tasks_count:
+        failedTasksCount:
           type: integer
       required:
         - name

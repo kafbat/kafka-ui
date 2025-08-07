@@ -58,7 +58,7 @@ class ConnectorsExporterTest {
         )
     );
 
-    when(kafkaConnectService.getConnects(CLUSTER))
+    when(kafkaConnectService.getConnects(CLUSTER, false))
         .thenReturn(Flux.just(connect));
 
     when(kafkaConnectService.getConnectorNamesWithErrorsSuppress(CLUSTER, connect.getName()))
