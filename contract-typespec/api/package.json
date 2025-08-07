@@ -9,6 +9,7 @@
         "@typespec/openapi3": "^1.0.0",
         "@typespec/rest": "^0.70.0",
         "@typespec/sse": "^0.70.0",
+        "@typespec/streams": "^0.70.0",
         "build": "^0.1.4"
     },
     "scripts": {
