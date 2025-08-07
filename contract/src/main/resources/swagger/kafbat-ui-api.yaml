@@ -3439,10 +3439,10 @@ components:
           type: string
         address:
           type: string
-        connectors_count:
+        connectorsCount:
           type: integer
           nullable: true
-        failed_connectors_count:
+        failedConnectorsCount:
           type: integer
           nullable: true
         tasksCount:
