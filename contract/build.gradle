@@ -3,7 +3,7 @@ import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 plugins {
     id "java-library"
     alias(libs.plugins.openapi.generator)
-    id "org.openapitools.openapistylevalidator" version "1.10"
+    alias(libs.plugins.openapi.validator)
 }
 
 
