@@ -25,6 +25,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import org.springframework.boot.origin.Origin;
 import org.springframework.boot.origin.OriginLookup;
+import org.springframework.boot.origin.OriginTrackedValue;
+import org.springframework.boot.origin.TextResourceOrigin;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -56,7 +58,28 @@ public class ConfigReloadService {
   @PostConstruct
   public void init() {
 
-/*    environment.getPropertySources()
+    var o = environment.getPropertySources()
+        .stream()
+        .filter(ps -> ps instanceof OriginTrackedMapPropertySource)
+        .map(ps -> (OriginTrackedMapPropertySource) ps)
+        .collect(Collectors.toUnmodifiableList())
+        .stream()
+        .findFirst()
+        .get()
+        .getSource()
+        .values()
+        .stream()
+        .findFirst()
+        .map(a -> (OriginTrackedValue) a)
+        .get()
+        .getOrigin();
+
+    var origin = (TextResourceOrigin) o;
+
+    origin.getResource();
+
+/*
+    environment.getPropertySources()
         .stream()
         .filter(ps -> ps instanceof OriginTrackedMapPropertySource)
         .map(ps -> (OriginTrackedMapPropertySource)ps)
@@ -66,12 +89,13 @@ public class ConfigReloadService {
           return (HashMap<String, String>) values;
         })
 //    .map(sourceValues -> sourceValues.)
-        .collect(Collectors.toUnmodifiableList());*/
+        .collect(Collectors.toUnmodifiableList());
+*/
 
 
     // =============
 
-/*    environment.getPropertySources().stream()
+/*   environment.getPropertySources().stream()
         .filter(ps -> ps instanceof EnumerablePropertySource)
         .filter(ps -> ps instanceof OriginLookup)
         .flatMap(ps -> {
@@ -99,12 +123,12 @@ public class ConfigReloadService {
 
     // ====
 
-    SpringConfigurableEnvironment properties = new SpringConfigurableEnvironment(springEnv);
+/*    SpringConfigurableEnvironment properties = new SpringConfigurableEnvironment(springEnv);
     SpringConfigurableEnvironment.PropertyInfo info = properties.get("profile.env");
     assertEquals("default", properties.get(info.getValue());
     assertEquals(
         "Config resource 'class path resource [application.properties]' via location 'optional:classpath:/'",
-        info.getSourceList.get(0));
+        info.getSourceList.get(0));*/
 
 
 
