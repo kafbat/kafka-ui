@@ -2,7 +2,6 @@ package io.kafbat.ui.service;
 
 import static org.apache.commons.lang3.Strings.CI;
 
-
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.kafbat.ui.config.ClustersProperties;
