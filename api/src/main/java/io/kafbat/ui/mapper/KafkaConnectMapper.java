@@ -1,6 +1,7 @@
 package io.kafbat.ui.mapper;
 
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.connect.model.ClusterInfo;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.NewConnector;
@@ -45,6 +46,7 @@ public interface KafkaConnectMapper {
   default ConnectDTO toKafkaConnect(
       ClustersProperties.ConnectCluster connect,
       List<InternalConnectorInfo> connectors,
+      ClusterInfo clusterInfo,
       boolean withStats) {
     Integer connectorCount = null;
     Integer failedConnectors = null;
@@ -66,12 +68,17 @@ public interface KafkaConnectMapper {
             .filter(ConnectorStateDTO.FAILED::equals)
             .map(s -> 1).orElse(0);
 
-        tasksCount += internalConnector.map(c -> c.getTasks().size()).orElse(0);
+        tasksCount += internalConnector.map(ConnectorDTO::getTasks).map(List::size).orElse(0);
 
-        for (TaskDTO task : connector.getTasks()) {
-          if (task.getStatus() != null && ConnectorTaskStatusDTO.FAILED.equals(task.getStatus().getState())) {
-            failedTasksCount += tasksCount;
-          }
+        if (connector.getTasks() != null) {
+          failedTasksCount += (int) connector.getTasks().stream()
+              .filter(t ->
+                  Optional.ofNullable(t)
+                      .map(TaskDTO::getStatus)
+                      .map(TaskStatusDTO::getState)
+                      .map(ConnectorTaskStatusDTO.FAILED::equals)
+                      .orElse(false)
+              ).count();
         }
       }
 
@@ -83,7 +90,10 @@ public interface KafkaConnectMapper {
         .connectorsCount(connectorCount)
         .failedConnectorsCount(failedConnectors)
         .tasksCount(tasksCount)
-        .failedTasksCount(failedTasksCount);
+        .failedTasksCount(failedTasksCount)
+        .version(clusterInfo.getVersion())
+        .commit(clusterInfo.getCommit())
+        .clusterId(clusterInfo.getKafkaClusterId());
   }
 
   default FullConnectorInfoDTO fullConnectorInfo(InternalConnectorInfo connectInfo) {

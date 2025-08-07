@@ -192,6 +192,7 @@ public class ClustersProperties {
   public static class CacheProperties {
     boolean enabled = true;
     Duration connectCacheExpiry = Duration.ofMinutes(1);
+    Duration connectClusterCacheExpiry = Duration.ofHours(24);
   }
 
   @PostConstruct
