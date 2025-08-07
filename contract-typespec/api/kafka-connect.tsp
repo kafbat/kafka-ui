@@ -11,7 +11,7 @@ using OpenAPI;
 interface ConnectInstancesApi {
   @get
   @operationId("getConnects")
-  getConnects(@path clusterName: string, @query withStats: boolean): Connect[];
+  getConnects(@path clusterName: string, @query withStats?: boolean): Connect[];
 
   @get
   @route("/{connectName}/plugins")
