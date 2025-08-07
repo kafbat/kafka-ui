@@ -7,6 +7,7 @@ import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
@@ -62,7 +63,7 @@ public class AccessControlService {
 
   @PostConstruct
   public void init() {
-    if (CollectionUtils.isEmpty(properties.getRoles())) {
+    if (CollectionUtils.isEmpty(properties.getRoles()) && properties.getDefaultRole() == null) {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
@@ -86,7 +87,8 @@ public class AccessControlService {
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
-    if (!properties.getRoles().isEmpty()
+    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
+    if (hasRolesConfigured
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
         && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
       log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
@@ -114,12 +116,20 @@ public class AccessControlService {
   }
 
   private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
-    return properties.getRoles()
-        .stream()
-        .filter(filterRole(user))
-        .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
-        .flatMap(role -> role.getPermissions().stream())
-        .toList();
+    List<Role> filteredRoles = properties.getRoles()
+            .stream()
+            .filter(filterRole(user))
+            .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+            .toList();
+
+    // if no roles are found, check if default role is set
+    if (filteredRoles.isEmpty() && properties.getDefaultRole() != null) {
+      return properties.getDefaultRole().getPermissions();
+    }
+
+    return filteredRoles.stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .toList();
   }
 
   public static Mono<AuthenticatedUser> getUser() {
@@ -132,10 +142,12 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
-    return properties.getRoles()
+    boolean isAccessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
+    
+    return isAccessible || properties.getDefaultRole() != null;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {
@@ -198,6 +210,10 @@ public class AccessControlService {
       return Collections.emptyList();
     }
     return Collections.unmodifiableList(properties.getRoles());
+  }
+
+  public DefaultRole getDefaultRole() {
+    return properties.getDefaultRole();
   }
 
   private Predicate<Role> filterRole(AuthenticatedUser user) {

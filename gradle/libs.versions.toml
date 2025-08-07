@@ -1,10 +1,11 @@
 [versions]
-spring-boot = '3.4.5'
+spring-boot = '3.5.3'
+nimbus-jose-jwt = '10.0.2'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
 
-apache-commons-lang3 = '3.12.0'
+apache-commons-lang3 = '3.18.0'
 apache-commons-io = '2.18.0'
 apache-commons-pool2 = '2.12.1'
 apache-datasketches = '3.1.0'
@@ -21,7 +22,9 @@ lombok = '1.18.34'
 odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
-junit = '5.11.2'
+# This version should be compatible with the version used by spring-boot-starter-test to avoid conflicts
+# See https://github.com/spring-projects/spring-boot/blob/b6b570ebebb6ea233e00af5e554adcf40256f224/gradle.properties#L16C21-L16C27
+junit = '5.12.2'
 mockito = '5.16.0'
 okhttp3 = '4.12.0'
 testcontainers = '1.20.6'
@@ -35,16 +38,14 @@ checkstyle = '10.24.0'
 allure = '2.29.1'
 selenide = '7.2.3'
 testng = '7.10.0'
-bonigarcia-webdrivermanager = '5.9.3'
+bonigarcia-webdrivermanager = '6.1.1'
 aspectj = '1.9.21'
-
-# CVE fixes
-netty = '4.1.119.Final'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
 spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.3' }
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
+openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.10" }
 openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
 allure = { id = 'io.qameta.allure', version = '2.10.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
@@ -53,11 +54,14 @@ node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 
+
 [libraries]
 spring-starter-actuator = { module = 'org.springframework.boot:spring-boot-starter-actuator', version.ref = 'spring-boot' }
 spring-starter-test = { module = 'org.springframework.boot:spring-boot-starter-test', version.ref = 'spring-boot' }
 spring-starter-webflux = { module = 'org.springframework.boot:spring-boot-starter-webflux', version.ref = 'spring-boot' }
 spring-starter-security = { module = 'org.springframework.boot:spring-boot-starter-security', version.ref = 'spring-boot' }
+# Temporary overwrite to fix CVE-2025-53864
+nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
 spring-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation', version.ref = 'spring-boot' }
 spring-starter-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-oauth2-client', version.ref = 'spring-boot' }
 spring-starter-logging = { module = 'org.springframework.boot:spring-boot-starter-logging', version.ref = 'spring-boot' }
@@ -96,6 +100,7 @@ micrometer-registry-prometheus = { module = 'io.micrometer:micrometer-registry-p
 antlr = { module = 'org.antlr:antlr4', version.ref = 'antlr' }
 antlr-runtime = { module = 'org.antlr:antlr4-runtime', version.ref = 'antlr' }
 cel = { module = 'dev.cel:cel', version.ref = 'cel' }
+caffeine = { module = 'com.github.ben-manes.caffeine:caffeine', version = '3.2.2'}
 
 testcontainers = { module = 'org.testcontainers:testcontainers', version.ref = 'testcontainers' }
 testcontainers-kafka = { module = 'org.testcontainers:kafka', version.ref = 'testcontainers' }
@@ -125,12 +130,6 @@ testng = { module = 'org.testng:testng', version.ref = 'testng' }
 aspectj = { module = 'org.aspectj:aspectjweaver', version.ref = 'aspectj' }
 bonigarcia-webdrivermanager = { module = 'io.github.bonigarcia:webdrivermanager', version.ref = 'bonigarcia-webdrivermanager' }
 netty-resolver-dns-native = { module = 'io.netty:netty-resolver-dns-native-macos' }
-
-# CVE fixes
-json-smart = { module = 'net.minidev:json-smart', version = '2.5.2' }
-netty-common = { module = 'io.netty:netty-common', version.ref = 'netty' }
-netty-handler = { module = 'io.netty:netty-handler', version.ref = 'netty' }
-spring-context = { module = 'org.springframework:spring-context', version = '6.2.7' }
 
 # test scope
 bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
