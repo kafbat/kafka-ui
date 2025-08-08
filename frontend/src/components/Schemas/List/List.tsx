@@ -97,6 +97,7 @@ const List: React.FC = () => {
           onRowClick={(row) =>
             navigate(clusterSchemaPath(clusterName, row.original.subject))
           }
+          enableSorting
           serverSideProcessing
         />
       )}
