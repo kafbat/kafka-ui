@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Lists;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
-import io.confluent.kafka.serializers.AvroData;
 import io.kafbat.ui.exception.JsonAvroConversionException;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;

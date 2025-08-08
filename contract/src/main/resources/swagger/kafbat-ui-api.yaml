@@ -3897,6 +3897,7 @@ components:
         - DYNAMIC_CLIENT_METRICS_CONFIG
         - STATIC_BROKER_CONFIG
         - DEFAULT_CONFIG
+        - DYNAMIC_GROUP_CONFIG
         - UNKNOWN
 
     ConfigSynonym:
