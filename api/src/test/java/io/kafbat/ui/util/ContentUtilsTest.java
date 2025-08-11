@@ -56,7 +56,7 @@ public class ContentUtilsTest {
 
   @Test
   void testHeaderValueLongStringUtf8() {
-    String testValue = RandomStringUtils.random(10000, true, false);
+    String testValue = RandomStringUtils.secure().next(10000, true, false);
 
     assertEquals(testValue, ContentUtils.convertToString(testValue.getBytes(StandardCharsets.UTF_8)));
   }
