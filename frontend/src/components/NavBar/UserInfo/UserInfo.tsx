@@ -19,7 +19,7 @@ const UserInfo = () => {
         </S.Wrapper>
       }
     >
-      <DropdownItem href="/logout">Log out</DropdownItem>
+      <DropdownItem href={`${window.basePath}/logout`}>Log out</DropdownItem>
     </Dropdown>
   ) : null;
 };
