@@ -1,58 +1,58 @@
 [versions]
-spring-boot = '3.5.3'
-nimbus-jose-jwt = '10.0.2'
+spring-boot = '3.5.4'
+nimbus-jose-jwt = '10.4.1'
 
-aws-msk-auth = '2.3.0'
-azure-identity = '1.15.4'
+aws-msk-auth = '2.3.2'
+azure-identity = '1.17.0'
 
 apache-commons-lang3 = '3.18.0'
-apache-commons-io = '2.18.0'
+apache-commons-io = '2.20.0'
 apache-commons-pool2 = '2.12.1'
 apache-datasketches = '3.1.0'
-apache-commons-compress = '1.26.0'
+apache-commons-compress = '1.28.0'
 
-assertj = '3.25.3'
-avro = '1.11.4'
-byte-buddy = '1.14.19'
+assertj = '3.27.4'
+avro = '1.12.0'
+byte-buddy = '1.17.6'
 confluent = '7.9.0'
 confluent-ccs = '7.9.0-ccs'
 
-mapstruct = '1.6.2'
-lombok = '1.18.34'
+mapstruct = '1.6.3'
+lombok = '1.18.38'
 odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
-cel = '0.3.0'
+cel = '0.10.1'
 # This version should be compatible with the version used by spring-boot-starter-test to avoid conflicts
 # See https://github.com/spring-projects/spring-boot/blob/b6b570ebebb6ea233e00af5e554adcf40256f224/gradle.properties#L16C21-L16C27
-junit = '5.12.2'
-mockito = '5.16.0'
+junit = '5.13.4'
+mockito = '5.18.0'
 okhttp3 = '4.12.0'
-testcontainers = '1.20.6'
-swagger-integration-jakarta = '2.2.28'
+testcontainers = '1.21.3'
+swagger-integration-jakarta = '2.2.35'
 jakarta-annotation-api = '2.1.1'
 jackson-databind-nullable = '0.2.6'
-antlr = '4.12.0'
+antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
 
 allure = '2.29.1'
-selenide = '7.2.3'
-testng = '7.10.0'
-bonigarcia-webdrivermanager = '6.1.1'
-aspectj = '1.9.21'
+selenide = '7.9.4'
+testng = '7.11.0'
+bonigarcia-webdrivermanager = '6.2.0'
+aspectj = '1.9.24'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
-spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.3' }
+spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.7' }
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
-openapi-generator = { id = 'org.openapi.generator', version = '7.9.0' }
-openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.10" }
-allure = { id = 'io.qameta.allure', version = '2.10.0' }
+openapi-generator = { id = 'org.openapi.generator', version = '7.14.0' }
+openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.11" }
+allure = { id = 'io.qameta.allure', version = '2.12.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 #jib = { id = 'com.google.cloud.tools.jib', version = '3.4.4' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
-sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
+sonarqube = { id = "org.sonarqube", version = "6.2.0.5505" }
 
 
 
@@ -133,13 +133,13 @@ bonigarcia-webdrivermanager = { module = 'io.github.bonigarcia:webdrivermanager'
 netty-resolver-dns-native = { module = 'io.netty:netty-resolver-dns-native-macos' }
 
 # test scope
-bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
+bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.81' }
 
 # Google Managed Service for Apache Kafka support
-google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
+google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.6'}
 google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', version = '1.39.0' }
 
-modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.10.0'}
+modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.11.2'}
 victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-generator', version = '4.38.0'}
 
 # CVE fixes
