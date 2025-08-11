@@ -83,13 +83,13 @@ jobs:
           cache: 'gradle'
 
       - name: Download build artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # infered from @v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # infered from @v4
         with:
           name: artifacts
           path: api/build
 
       - name: Download docker image
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # infered from @v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # infered from @v4
         with:
           name: image
           path: /tmp
@@ -141,7 +141,7 @@ jobs:
     if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     steps:
       - name: Download allure reports artifact
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # infered from @v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # infered from @v4
         with:
           name: reports
           path: ./e2e-tests/build/allure-results
