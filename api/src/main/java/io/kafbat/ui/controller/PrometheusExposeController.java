@@ -3,7 +3,7 @@ package io.kafbat.ui.controller;
 import io.kafbat.ui.api.PrometheusExposeApi;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.StatisticsCache;
-import io.kafbat.ui.service.metrics.prometheus.PrometheusExpose;
+import io.kafbat.ui.service.metrics.prometheus.PrometheusMetricsExposer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class PrometheusExposeController extends AbstractController implements Pr
   @Override
   public Mono<ResponseEntity<String>> exposeAllMetrics(ServerWebExchange exchange) {
     return Mono.just(
-        PrometheusExpose.exposeAllMetrics(
+        PrometheusMetricsExposer.exposeAllMetrics(
             clustersStorage.getKafkaClusters()
                 .stream()
                 .filter(KafkaCluster::isExposeMetricsViaPrometheusEndpoint)
@@ -36,7 +36,7 @@ public class PrometheusExposeController extends AbstractController implements Pr
                                                            ServerWebExchange exchange) {
     Optional<KafkaCluster> cluster = clustersStorage.getClusterByName(clusterName);
     if (cluster.isPresent() && cluster.get().isExposeMetricsViaPrometheusEndpoint()) {
-      return Mono.just(PrometheusExpose.exposeAllMetrics(
+      return Mono.just(PrometheusMetricsExposer.exposeAllMetrics(
           Map.of(clusterName, statisticsCache.get(cluster.get()).getMetrics())
       ));
     } else {

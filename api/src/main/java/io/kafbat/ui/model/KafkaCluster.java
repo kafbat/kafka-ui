@@ -6,7 +6,7 @@ import io.kafbat.ui.emitter.PollingSettings;
 import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
-import io.kafbat.ui.service.metrics.scrape.MetricsScrapping;
+import io.kafbat.ui.service.metrics.scrape.MetricsScraper;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.util.ReactiveFailover;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class KafkaCluster {
   private final boolean exposeMetricsViaPrometheusEndpoint;
   private final DataMasking masking;
   private final PollingSettings pollingSettings;
-  private final MetricsScrapping metricsScrapping;
+  private final MetricsScraper metricsScrapping;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;
   private final Map<String, ReactiveFailover<KafkaConnectClientApi>> connectsClients;
   private final ReactiveFailover<KsqlApiClient> ksqlClient;

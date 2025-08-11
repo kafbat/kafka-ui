@@ -132,8 +132,10 @@ public class TopicsService {
             configs.getOrDefault(t, List.of()),
             partitionsOffsets,
             metrics,
-            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(s -> s.segmentStats()).orElse(null),
-            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(s -> s.partitionsSegmentStats()).orElse(null),
+            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(TopicState::segmentStats)
+                .orElse(null),
+            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(TopicState::partitionsSegmentStats)
+                .orElse(Map.of()),
             clustersProperties.getInternalTopicPrefix()
         ))
         .collect(toList());

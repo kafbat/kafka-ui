@@ -21,7 +21,7 @@ import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
-public final class PrometheusExpose {
+public final class PrometheusMetricsExposer {
 
   private static final String CLUSTER_EXPOSE_LBL_NAME = "cluster";
   private static final String BROKER_EXPOSE_LBL_NAME = "broker_id";
@@ -33,7 +33,7 @@ public final class PrometheusExpose {
     PROMETHEUS_EXPOSE_ENDPOINT_HEADERS.set(CONTENT_TYPE, OpenMetricsTextFormatWriter.CONTENT_TYPE);
   }
 
-  private PrometheusExpose() {
+  private PrometheusMetricsExposer() {
   }
 
   public static ResponseEntity<String> exposeAllMetrics(Map<String, Metrics> clustersMetrics) {

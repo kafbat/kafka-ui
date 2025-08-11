@@ -1,7 +1,7 @@
 package io.kafbat.ui.service.metrics.prometheus;
 
 import static io.kafbat.ui.service.metrics.MetricsUtils.isTheSameMetric;
-import static io.kafbat.ui.service.metrics.prometheus.PrometheusExpose.prepareMetricsForGlobalExpose;
+import static io.kafbat.ui.service.metrics.prometheus.PrometheusMetricsExposer.prepareMetricsForGlobalExpose;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.model.Metrics;

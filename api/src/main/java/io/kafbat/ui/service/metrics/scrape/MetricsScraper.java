@@ -7,7 +7,7 @@ import static io.kafbat.ui.model.MetricsScrapeProperties.PROMETHEUS_METRICS_TYPE
 import io.kafbat.ui.config.ClustersProperties.MetricsConfig;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.MetricsScrapeProperties;
-import io.kafbat.ui.service.metrics.prometheus.PrometheusExpose;
+import io.kafbat.ui.service.metrics.prometheus.PrometheusMetricsExposer;
 import io.kafbat.ui.service.metrics.scrape.inferred.InferredMetrics;
 import io.kafbat.ui.service.metrics.scrape.inferred.InferredMetricsScraper;
 import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsRetriever;
@@ -17,7 +17,6 @@ import io.kafbat.ui.service.metrics.sink.MetricsSink;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
-import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class MetricsScrapping {
+public class MetricsScraper {
 
   private final String clusterName;
   private final MetricsSink sink;
@@ -35,8 +34,8 @@ public class MetricsScrapping {
   @Nullable
   private final BrokerMetricsScraper brokerMetricsScraper;
 
-  public static MetricsScrapping create(Cluster cluster,
-                                        JmxMetricsRetriever jmxMetricsRetriever) {
+  public static MetricsScraper create(Cluster cluster,
+                                      JmxMetricsRetriever jmxMetricsRetriever) {
     BrokerMetricsScraper scraper = null;
     MetricsConfig metricsConfig = cluster.getMetrics();
     if (cluster.getMetrics() != null) {
@@ -47,7 +46,7 @@ public class MetricsScrapping {
         scraper = new PrometheusScraper(scrapeProperties);
       }
     }
-    return new MetricsScrapping(
+    return new MetricsScraper(
         cluster.getName(),
         MetricsSink.create(cluster),
         new InferredMetricsScraper(),
@@ -79,7 +78,7 @@ public class MetricsScrapping {
     //need to be "cold" because sinks can resubscribe multiple times
     return Flux.defer(() ->
         Flux.fromStream(
-            PrometheusExpose.prepareMetricsForGlobalExpose(clusterName, metrics)));
+            PrometheusMetricsExposer.prepareMetricsForGlobalExpose(clusterName, metrics)));
   }
 
   private Mono<PerBrokerScrapedMetrics> scrapeBrokers(Collection<Node> nodes) {

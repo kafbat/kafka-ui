@@ -45,7 +45,7 @@ public class JmxMetricsRetriever implements Closeable {
 
   public Mono<List<RawMetric>> retrieveFromNode(MetricsScrapeProperties scrapeProperties, Node node) {
     if (isSslJmxEndpoint(scrapeProperties) && !SSL_JMX_SUPPORTED) {
-      log.warn("Cluster has jmx ssl configured, but it is not supported by app");
+      log.warn("Cluster has jmx ssl configured, but it is not supported by the app");
       return Mono.just(List.of());
     }
     return Mono.fromSupplier(() -> retrieveSync(scrapeProperties, node))
@@ -60,7 +60,7 @@ public class JmxMetricsRetriever implements Closeable {
   @SneakyThrows
   private List<RawMetric> retrieveSync(MetricsScrapeProperties scrapeProperties, Node node) {
     String jmxUrl = JMX_URL + node.host() + ":" + scrapeProperties.getPort() + "/" + JMX_SERVICE_TYPE;
-    log.debug("Collection JMX metrics for {}", jmxUrl);
+    log.debug("Collecting JMX metrics for {}", jmxUrl);
     List<RawMetric> result = new ArrayList<>();
     withJmxConnector(jmxUrl, scrapeProperties, jmxConnector -> getMetricsFromJmx(jmxConnector, result));
     log.debug("{} metrics collected for {}", result.size(), jmxUrl);

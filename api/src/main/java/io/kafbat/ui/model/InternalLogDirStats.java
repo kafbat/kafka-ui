@@ -85,7 +85,7 @@ public class InternalLogDirStats {
       Map<String, Long> totalBytes = new HashMap<>();
       Map<String, Long> usableBytes = new HashMap<>();
       logDirStats.forEach((logDir, descr) -> {
-        if (descr.error() == null) {
+        if (descr.error() != null) {
           return;
         }
         descr.totalBytes().ifPresent(b -> totalBytes.merge(logDir, b, Long::sum));
