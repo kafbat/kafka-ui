@@ -176,7 +176,7 @@ public class KafkaClusterFactory {
         parseUrlList(storage.getPrometheus().getUrl()),
         url -> new PrometheusClientApi(new io.kafbat.ui.prometheus.ApiClient(webClient).setBasePath(url)),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
-        "No live schemaRegistry instances available",
+        "No live Prometheus instances available",
         ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS
     );
   }
