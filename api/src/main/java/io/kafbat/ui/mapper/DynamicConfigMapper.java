@@ -9,6 +9,7 @@ import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpa
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesKafkaClustersInnerDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO;
+import io.kafbat.ui.model.RbacPermissionDTO;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Optional;
@@ -25,6 +26,9 @@ public interface DynamicConfigMapper {
 
   @Mapping(target = "kafka.clusters[].metrics.store", ignore = true)
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
+
+  @Mapping(target = "parsedActions", ignore = true)
+  Permission toPermission(RbacPermissionDTO dto);
 
   default String map(Resource resource) {
     return resource.getFilename();

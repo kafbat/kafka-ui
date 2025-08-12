@@ -55,7 +55,8 @@ alias ClusterFeature =
   | "TOPIC_DELETION"
   | "KAFKA_ACL_VIEW"
   | "KAFKA_ACL_EDIT"
-  | "CLIENT_QUOTA_MANAGEMENT";
+  | "CLIENT_QUOTA_MANAGEMENT"
+  | "GRAPHS_ENABLED";
 
 enum ServerStatus {
   ONLINE,

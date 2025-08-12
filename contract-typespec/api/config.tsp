@@ -115,12 +115,11 @@ model ApplicationConfig {
             value?: string;
             regex?: boolean = false;
         }[];
-        permissions?: {
-          resource?: ResourceType;
-          value?: string;
-          actions?: Action[];
-        }[];
+        permissions?: RbacPermission[];
       }[];
+      defaultRole?: {
+        permissions?: RbacPermission[];
+      }
     };
     webclient?: {
       maxInMemoryBufferSize?: string;
@@ -135,6 +134,14 @@ model ApplicationConfig {
       };
       adminClientTimeout?: int32;
       internalTopicPrefix?: string;
+      defaultMetricsStorage?: ClusterMetricsStoreConfig;
+      cache?: {
+        enabled?: boolean;
+        @format("duration")
+        connectCacheExpiry?: string;
+        @format("duration")
+        connectClusterCacheExpiry?: string;
+      };
       clusters?: {
         name?: string;
         bootstrapServers?: string;
@@ -177,6 +184,8 @@ model ApplicationConfig {
           password?: string;
           keystoreLocation?: string;
           keystorePassword?: string;
+          prometheusExpose?: boolean;
+          store?: ClusterMetricsStoreConfig;
         };
         properties?: Record<unknown>;
         consumerProperties?: Record<unknown>;
@@ -231,6 +240,7 @@ model ClusterConfigValidation {
   schemaRegistry?: ApplicationPropertyValidation;
   kafkaConnects?: Record<ApplicationPropertyValidation>;
   ksqldb?: ApplicationPropertyValidation;
+  prometheusStorage?: ApplicationPropertyValidation;
 }
 
 alias ApplicationFeature =
@@ -290,4 +300,23 @@ enum ResourceType {
   ACL,
   AUDIT,
   CLIENT_QUOTAS,
+}
+
+model ClusterMetricsStoreConfig {
+    prometheus?: PrometheusStorage;
+}
+
+model PrometheusStorage {
+    url?: string;
+    remoteWrite?: boolean;
+    pushGatewayUrl?: string;
+    pushGatewayUsername?: string;
+    pushGatewayPassword?: string;
+    pushGatewayJobName?: string;
+}
+
+model RbacPermission {
+    resource?: ResourceType;
+    value?: string;
+    actions?: Action[];
 }

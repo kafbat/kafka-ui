@@ -11,6 +11,8 @@ import "./acls.tsp";
 import "./quotas.tsp";
 import "./auth.tsp";
 import "./config.tsp";
+import "./graphs.tsp";
+import "./prometheus.tsp";
 
 import "@typespec/http";
 import "@typespec/rest";
