@@ -2,13 +2,11 @@ package io.kafbat.ui.mapper;
 
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ActionDTO;
-import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ClientValueDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerJwtDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpaquetokenDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesKafkaClustersInnerDTO;
-import io.kafbat.ui.model.ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO;
 import io.kafbat.ui.model.RbacPermissionDTO;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.util.DynamicConfigOperations;
@@ -27,9 +25,6 @@ public interface DynamicConfigMapper {
   @Mapping(target = "kafka.clusters[].metrics.store", ignore = true)
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
-  @Mapping(target = "parsedActions", ignore = true)
-  Permission toPermission(RbacPermissionDTO dto);
-
   default String map(Resource resource) {
     return resource.getFilename();
   }
@@ -37,7 +32,7 @@ public interface DynamicConfigMapper {
   @Mapping(source = "metrics.store", target = "metrics.store", ignore = true)
   ApplicationConfigPropertiesKafkaClustersInnerDTO map(ClustersProperties.Cluster cluster);
 
-  default Permission map(ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO perm) {
+  default Permission map(RbacPermissionDTO perm) {
     Permission permission = new Permission();
     permission.setResource(perm.getResource().getValue());
     permission.setActions(perm.getActions().stream().map(ActionDTO::getValue).toList());
