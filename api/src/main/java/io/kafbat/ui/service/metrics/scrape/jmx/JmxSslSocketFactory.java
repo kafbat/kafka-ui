@@ -1,4 +1,4 @@
-package io.kafbat.ui.service.metrics;
+package io.kafbat.ui.service.metrics.scrape.jmx;
 
 import com.google.common.base.Preconditions;
 import java.io.FileInputStream;
@@ -61,9 +61,8 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
     } catch (Exception e) {
       log.error("----------------------------------");
       log.error("SSL can't be enabled for JMX retrieval. "
-              + "Make sure your java app run with '--add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED' arg. Err: {}",
+              + "Make sure your java app is running with '--add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED' arg. Err: {}",
           e.getMessage());
-      log.trace("SSL can't be enabled for JMX retrieval", e);
       log.error("----------------------------------");
     }
     SSL_JMX_SUPPORTED = sslJmxSupported;
@@ -166,7 +165,7 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
     return defaultSocketFactory.createSocket(host, port);
   }
 
-  /// FOLLOWING METHODS WON'T BE USED DURING JMX INTERACTION, IMPLEMENTING THEM JUST FOR CONSISTENCY ->>>>>
+  // THE FOLLOWING METHODS WON'T BE USED DURING JMX INTERACTION, IMPLEMENTING THEM JUST FOR CONSISTENCY ->>>>>
 
   @Override
   public Socket createSocket(Socket s, String host, int port, boolean autoClose) throws IOException {
@@ -178,7 +177,7 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
 
   @Override
   public Socket createSocket(String host, int port, InetAddress localHost, int localPort)
-      throws IOException, UnknownHostException {
+      throws IOException {
     if (threadLocalContextSet()) {
       return createFactoryFromThreadLocalCtx().createSocket(host, port, localHost, localPort);
     }

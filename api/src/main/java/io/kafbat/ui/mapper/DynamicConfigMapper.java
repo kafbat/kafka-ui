@@ -1,16 +1,19 @@
 package io.kafbat.ui.mapper;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ActionDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ClientValueDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerJwtDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpaquetokenDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
+import io.kafbat.ui.model.ApplicationConfigPropertiesKafkaClustersInnerDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Optional;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -20,11 +23,15 @@ public interface DynamicConfigMapper {
 
   DynamicConfigOperations.PropertiesStructure fromDto(ApplicationConfigPropertiesDTO dto);
 
+  @Mapping(target = "kafka.clusters[].metrics.store", ignore = true)
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
   default String map(Resource resource) {
     return resource.getFilename();
   }
+
+  @Mapping(source = "metrics.store", target = "metrics.store", ignore = true)
+  ApplicationConfigPropertiesKafkaClustersInnerDTO map(ClustersProperties.Cluster cluster);
 
   default Permission map(ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO perm) {
     Permission permission = new Permission();

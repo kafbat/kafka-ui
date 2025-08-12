@@ -3,6 +3,7 @@ package io.kafbat.ui.model;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Builder;
@@ -41,7 +42,8 @@ public class InternalTopic {
                                    List<ConfigEntry> configs,
                                    InternalPartitionsOffsets partitionsOffsets,
                                    Metrics metrics,
-                                   InternalLogDirStats logDirInfo,
+                                   @Nullable InternalLogDirStats.SegmentStats segmentStats,
+                                   @Nullable Map<Integer, InternalLogDirStats.SegmentStats> partitionsSegmentStats,
                                    @Nullable String internalTopicPrefix) {
     var topic = InternalTopic.builder();
 
@@ -78,13 +80,13 @@ public class InternalTopic {
                 partitionDto.offsetMax(offsets.getLatest());
               });
 
-          var segmentStats =
-              logDirInfo.getPartitionsStats().get(
-                  new TopicPartition(topicDescription.name(), partition.partition()));
-          if (segmentStats != null) {
-            partitionDto.segmentCount(segmentStats.getSegmentsCount());
-            partitionDto.segmentSize(segmentStats.getSegmentSize());
-          }
+          Optional.ofNullable(partitionsSegmentStats)
+              .flatMap(s -> Optional.ofNullable(s.get(partition.partition())))
+              .ifPresent(stats -> {
+                partitionDto.segmentCount(stats.getSegmentsCount());
+                partitionDto.segmentSize(stats.getSegmentSize());
+              });
+
 
           return partitionDto.build();
         })
@@ -105,14 +107,14 @@ public class InternalTopic {
             : topicDescription.partitions().get(0).replicas().size()
     );
 
-    var segmentStats = logDirInfo.getTopicStats().get(topicDescription.name());
-    if (segmentStats != null) {
-      topic.segmentCount(segmentStats.getSegmentsCount());
-      topic.segmentSize(segmentStats.getSegmentSize());
-    }
+    Optional.ofNullable(segmentStats)
+        .ifPresent(stats -> {
+          topic.segmentCount(stats.getSegmentsCount());
+          topic.segmentSize(stats.getSegmentSize());
+        });
 
-    topic.bytesInPerSec(metrics.getTopicBytesInPerSec().get(topicDescription.name()));
-    topic.bytesOutPerSec(metrics.getTopicBytesOutPerSec().get(topicDescription.name()));
+    topic.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(topicDescription.name()));
+    topic.bytesOutPerSec(metrics.getIoRates().topicBytesOutPerSec().get(topicDescription.name()));
 
     topic.topicConfigs(
         configs.stream().map(InternalTopicConfig::from).collect(Collectors.toList()));

@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.openapi.validator)
 }
 
-
 def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
 def targetDir = project.layout.buildDirectory.dir("generated").get()
 
@@ -125,6 +124,23 @@ tasks.register('generateSchemaRegistryClient', GenerateTask) {
                      dateLibrary      : "java8",]
 }
 
+tasks.register('generatePrometheusClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("prometheus-query-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("prometheus-api").asFile.absolutePath
+    generateApiTests = false
+    generateModelTests = false
+    apiPackage = "io.kafbat.ui.prometheus.api"
+    invokerPackage = "io.kafbat.ui.prometheus"
+    modelPackage = "io.kafbat.ui.prometheus.model"
+
+    configOptions = [asyncNative      : "true",
+                     library          : "webclient",
+                     useJakartaEe     : "true",
+                     useBeanValidation: "true",
+                     dateLibrary      : "java8",]
+}
+
 sourceSets {
     main {
         java {
@@ -132,6 +148,7 @@ sourceSets {
             srcDir targetDir.dir("kafka-connect-client/src/main/java")
             srcDir targetDir.dir("kafbat-ui-client/src/main/java")
             srcDir targetDir.dir("kafka-sr-client/src/main/java")
+            srcDir targetDir.dir("prometheus-api/src/main/java")
         }
 
         resources {
@@ -140,5 +157,5 @@ sourceSets {
     }
 }
 
-compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
-processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
+compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generatePrometheusClient
+processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generatePrometheusClient

@@ -34,6 +34,7 @@ dependencies {
 
     implementation libs.apache.avro
     implementation libs.apache.commons
+    implementation libs.apache.commons.text
     implementation libs.apache.commons.pool2
     implementation libs.apache.datasketches
 
@@ -81,6 +82,13 @@ dependencies {
         because("CVE Fix: It is excluded above because of a vulnerability")
     }
 
+    implementation libs.prometheus.metrics.core
+    implementation libs.prometheus.metrics.textformats
+    implementation (libs.prometheus.metrics.exporter.pushgateway) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("PushGW lib pulls protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project.")
+    }
+    implementation libs.snappy
+
     // Annotation processors
     implementation libs.lombok
     implementation libs.mapstruct
@@ -107,11 +115,11 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.prometheus.metrics.core
 }
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-package", "ksql"]
 }
 
 tasks.withType(JavaCompile) {
@@ -133,6 +141,7 @@ sourceSets {
 
 tasks.withType(Checkstyle).configureEach {
     exclude '**/ksql/**'
+    exclude '**/promql/**'
 }
 
 checkstyle {
