@@ -8,7 +8,9 @@ import com.google.common.collect.Table;
 import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
+import java.io.Closeable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -31,12 +33,20 @@ import reactor.core.publisher.Mono;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
 @Value
-public class ScrapedClusterState {
+public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
   Map<Integer, NodeState> nodesStates;
   Map<String, TopicState> topicStates;
   Map<String, ConsumerGroupState> consumerGroupsStates;
+  TopicsIndex topicsIndex;
+
+  @Override
+  public void close() throws Exception {
+    if (this.topicsIndex != null) {
+      this.topicsIndex.close();
+    }
+  }
 
   public record NodeState(int id,
                           Node node,

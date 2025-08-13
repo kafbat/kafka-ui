@@ -41,6 +41,7 @@ public class ClustersProperties {
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
   CacheProperties cache = new CacheProperties();
+  FtsProperties fts = new FtsProperties();
 
   @Data
   public static class Cluster {
@@ -215,6 +216,17 @@ public class ClustersProperties {
     boolean enabled = true;
     Duration connectCacheExpiry = Duration.ofMinutes(1);
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class FtsProperties {
+    boolean enabled = true;
+    int topicsMinNGram = 3;
+    int topicsMaxNGram = 5;
+    int filterMinNGram = 1;
+    int filterMaxNGram = 4;
   }
 
   @PostConstruct
