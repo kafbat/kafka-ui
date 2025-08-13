@@ -21,10 +21,6 @@ const TasksCell = ({ connect }: Props) => {
     );
   }
 
-  return (
-    <div>
-      {count - failedCount}/{count}
-    </div>
-  );
+  return <div>{text}</div>;
 };
 export default TasksCell;
