@@ -14,6 +14,11 @@ import TasksCell from './Cells/TasksCell';
 const helper = createColumnHelper<Connect>();
 export const columns = [
   helper.accessor('name', { cell: NameCell, size: 600 }),
+  helper.accessor('version', {
+    header: 'Version',
+    cell: ({ getValue }) => getValue(),
+    enableSorting: true,
+  }),
   helper.display({
     header: 'Connectors',
     id: 'connectors',
@@ -43,6 +48,7 @@ const List = ({ connects }: Props) => {
         navigate(`${clusterConnectorsPath(clusterName)}?connect=${name}`);
       }}
       emptyMessage="No kafka connect clusters"
+      enableSorting
     />
   );
 };
