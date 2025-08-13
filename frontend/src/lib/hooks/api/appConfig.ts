@@ -38,7 +38,7 @@ export function useAppInfo() {
       response = {};
     }
 
-    let url = new URL(data.raw.url);
+    const url = new URL(data.raw.url);
     return {
       redirect: url.pathname.includes('auth'),
       response,
