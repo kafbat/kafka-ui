@@ -75,7 +75,7 @@ public class JsonAvroConversion {
         assertJsonType(node, JsonNodeType.OBJECT);
         var map = new LinkedHashMap<String, Object>();
         var valueSchema = avroSchema.getValueType();
-        node.fields().forEachRemaining(f -> map.put(f.getKey(), convert(f.getValue(), valueSchema)));
+        node.properties().forEach(f -> map.put(f.getKey(), convert(f.getValue(), valueSchema)));
         yield map;
       }
       case ARRAY -> {
@@ -101,7 +101,7 @@ public class JsonAvroConversion {
         }
 
         assertJsonType(node, JsonNodeType.OBJECT);
-        var elements = Lists.newArrayList(node.fields());
+        var elements = Lists.newArrayList(node.properties());
         if (elements.size() != 1) {
           throw new JsonAvroConversionException(
               "UNION field value should be an object with single field == type name");
