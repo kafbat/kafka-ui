@@ -222,7 +222,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class FtsProperties {
-    boolean enabled = true;
+    boolean enabled = false;
     int topicsMinNGram = 3;
     int topicsMaxNGram = 5;
     int filterMinNGram = 1;

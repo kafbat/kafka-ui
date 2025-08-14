@@ -2,6 +2,7 @@ package io.kafbat.ui.service;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.Strings.CI;
 
 import com.google.common.collect.Sets;
 import io.kafbat.ui.config.ClustersProperties;
@@ -26,6 +27,7 @@ import io.kafbat.ui.model.TopicCreationDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +50,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -76,7 +79,7 @@ public class TopicsService {
             ac.describeTopics(topics).zipWith(ac.getTopicsConfig(topics, false),
                 (descriptions, configs) ->
                     getPartitionOffsets(descriptions, ac).map(offsets -> {
-                      statisticsCache.update(c, descriptions, configs, offsets);
+                      statisticsCache.update(c, descriptions, configs, offsets, clustersProperties);
                       var stats = statisticsCache.get(c);
                       return createList(
                           topics,
@@ -465,23 +468,36 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster) {
+  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal) {
     Statistics stats = statisticsCache.get(cluster);
-    Map<String, TopicState> topicStates = stats.getClusterState().getTopicStates();
-    return filterExisting(cluster, topicStates.keySet())
-        .map(lst -> lst.stream()
-            .map(topicName ->
-                InternalTopic.from(
-                    topicStates.get(topicName).description(),
-                    topicStates.get(topicName).configs(),
-                    InternalPartitionsOffsets.empty(),
-                    stats.getMetrics(),
-                    Optional.ofNullable(topicStates.get(topicName))
-                        .map(TopicState::segmentStats).orElse(null),
-                    Optional.ofNullable(topicStates.get(topicName))
-                        .map(TopicState::partitionsSegmentStats).orElse(null),
-                    clustersProperties.getInternalTopicPrefix()
-        )).collect(toList()));
+    ScrapedClusterState clusterState = stats.getClusterState();
+    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+    Mono<List<String>> topics;
+
+    Map<String, TopicState> topicStates = clusterState.getTopicStates();
+    if (fts.isEnabled() && clusterState.getTopicIndex() != null && search != null && !search.isBlank()) {
+      try {
+        topics = Mono.just(clusterState.getTopicIndex().find(search, showInternal, null));
+      } catch (IOException e) {
+        topics = Mono.error(e);
+      }
+    } else {
+      topics = Mono.just(new ArrayList<>(topicStates.keySet()));
+    }
+
+    return topics.flatMap(lst -> filterExisting(cluster, lst))
+        .flatMapMany(Flux::fromIterable)
+        .map(topicName ->  InternalTopic.from(
+            topicStates.get(topicName).description(),
+            topicStates.get(topicName).configs(),
+            InternalPartitionsOffsets.empty(),
+            stats.getMetrics(),
+            Optional.ofNullable(topicStates.get(topicName))
+                .map(TopicState::segmentStats).orElse(null),
+            Optional.ofNullable(topicStates.get(topicName))
+                .map(TopicState::partitionsSegmentStats).orElse(null),
+            clustersProperties.getInternalTopicPrefix()
+        )).collectList();
   }
 
   public Mono<Map<TopicPartition, List<ProducerState>>> getActiveProducersState(KafkaCluster cluster, String topic) {

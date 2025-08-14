@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import java.util.List;
 import java.util.Map;
+import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.junit.jupiter.api.Test;
 
 class ConsumerGroupsFilterTest {
@@ -21,8 +22,8 @@ class ConsumerGroupsFilterTest {
 
   @Test
   void testFindTopicsByName() throws Exception {
-    List<InternalConsumerGroup> groups =
-        names.stream().map(n -> InternalConsumerGroup.builder().groupId(n).build()).toList();
+    List<ConsumerGroupListing> groups =
+        names.stream().map(n -> new ConsumerGroupListing(n, true)).toList();
 
     ConsumerGroupFilter filter = new ConsumerGroupFilter(groups);
 
@@ -35,7 +36,7 @@ class ConsumerGroupsFilterTest {
     );
 
     for (Map.Entry<String, Integer> entry : tests.entrySet()) {
-      List<InternalConsumerGroup> result = filter.find(entry.getKey());
+      List<ConsumerGroupListing> result = filter.find(entry.getKey());
       assertThat(result).size()
           .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), result)
           .isEqualTo(entry.getValue());

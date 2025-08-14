@@ -60,7 +60,7 @@ class TopicsIndexTest {
     );
 
     SoftAssertions softly = new SoftAssertions();
-    try(TopicsIndex index = new TopicsIndex(topics)) {
+    try (TopicsIndex index = new TopicsIndex(topics)) {
       for (Map.Entry<String, Integer> entry : examples.entrySet()) {
         List<String> resultAll = index.find(entry.getKey(), null, topics.size());
         softly.assertThat(resultAll.size())

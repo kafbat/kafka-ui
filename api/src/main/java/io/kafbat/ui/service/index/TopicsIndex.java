@@ -5,6 +5,9 @@ import io.kafbat.ui.model.InternalTopicConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -43,9 +46,11 @@ public class TopicsIndex implements AutoCloseable {
   private final DirectoryReader indexReader;
   private final IndexSearcher indexSearcher;
   private final Analyzer analyzer;
+  private final int maxSize;
+  private final ReadWriteLock closeLock = new ReentrantReadWriteLock();
 
   public TopicsIndex(List<InternalTopic> topics) throws IOException {
-    this(topics, 3,5);
+    this(topics, 3, 5);
   }
 
   public TopicsIndex(List<InternalTopic> topics, int minNgram, int maxNgram) throws IOException {
@@ -53,11 +58,12 @@ public class TopicsIndex implements AutoCloseable {
     this.directory = build(topics);
     this.indexReader = DirectoryReader.open(directory);
     this.indexSearcher = new IndexSearcher(indexReader);
+    this.maxSize = topics.size();
   }
 
   private Directory build(List<InternalTopic> topics) {
     Directory directory = new ByteBuffersDirectory();
-    try(IndexWriter directoryWriter = new IndexWriter(directory, new IndexWriterConfig(this.analyzer))) {
+    try (IndexWriter directoryWriter = new IndexWriter(directory, new IndexWriterConfig(this.analyzer))) {
       for (InternalTopic topic : topics) {
         Document doc = new Document();
         doc.add(new StringField(FIELD_NAME_RAW, topic.getName(), Field.Store.YES));
@@ -67,7 +73,8 @@ public class TopicsIndex implements AutoCloseable {
         doc.add(new LongPoint(FIELD_SIZE, topic.getSegmentSize()));
         if (topic.getTopicConfigs() != null && !topic.getTopicConfigs().isEmpty()) {
           for (InternalTopicConfig topicConfig : topic.getTopicConfigs()) {
-            doc.add(new StringField(FIELD_CONFIG_PREFIX+"_"+topicConfig.getName(), topicConfig.getValue(), Field.Store.NO));
+            doc.add(new StringField(FIELD_CONFIG_PREFIX + "_" + topicConfig.getName(), topicConfig.getValue(),
+                Field.Store.NO));
           }
         }
         doc.add(new StringField(FIELD_INTERNAL, String.valueOf(topic.isInternal()), Field.Store.NO));
@@ -81,57 +88,69 @@ public class TopicsIndex implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    if (indexReader != null) {
-      this.indexReader.close();
-    }
-    if (this.directory != null) {
-      this.directory.close();
-    }
-  }
-
-  public List<String> find(String search, Boolean showInternal, int count) throws IOException {
-    return find(search, showInternal, FIELD_NAME, count, 0.0f, 2);
-  }
-
-  public List<String> find(String search, Boolean showInternal, String sort, int count) throws IOException {
-    return find(search, showInternal, sort, count, 0.0f, 2);
-  }
-
-  public List<String> find(String search, Boolean showInternal, String sortField, int count, float minScore, int maxEdits) throws IOException {
-    QueryParser queryParser = new QueryParser(FIELD_NAME, this.analyzer);
-    queryParser.setDefaultOperator(QueryParser.Operator.AND);
-    Query nameQuery = null;
+    this.closeLock.writeLock().lock();
     try {
-      nameQuery = queryParser.parse(search);
-    } catch (ParseException e) {
-      throw new RuntimeException(e);
+      if (indexReader != null) {
+        this.indexReader.close();
+      }
+      if (this.directory != null) {
+        this.directory.close();
+      }
+    } finally {
+      this.closeLock.writeLock().unlock();
     }
+  }
 
-    Query internalFilter = new TermQuery(new Term(FIELD_INTERNAL, "true"));
+  public List<String> find(String search, Boolean showInternal, Integer count) throws IOException {
+    return find(search, showInternal, FIELD_NAME, count, 0.0f);
+  }
 
-    BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
-    queryBuilder.add(nameQuery, BooleanClause.Occur.MUST);
-    if (showInternal == null || !showInternal) {
-      queryBuilder.add(internalFilter, BooleanClause.Occur.MUST_NOT);
-    }
+  public List<String> find(String search, Boolean showInternal, String sort, Integer count) throws IOException {
+    return find(search, showInternal, sort, count, 0.0f);
+  }
 
-    List<SortField> sortFields = new ArrayList<>();
-    sortFields.add(SortField.FIELD_SCORE);
-    if (!sortField.equals(FIELD_NAME)) {
-      sortFields.add(new SortField(sortField, SortField.Type.INT, true));
-    }
+  public List<String> find(String search, Boolean showInternal,
+                           String sortField, Integer count, float minScore) throws IOException {
+    closeLock.readLock().lock();
+    try {
+      QueryParser queryParser = new QueryParser(FIELD_NAME, this.analyzer);
+      queryParser.setDefaultOperator(QueryParser.Operator.AND);
+      Query nameQuery;
+      try {
+        nameQuery = queryParser.parse(search);
+      } catch (ParseException e) {
+        throw new RuntimeException(e);
+      }
 
-    Sort sort = new Sort(sortFields.toArray(new SortField[0]));
+      Query internalFilter = new TermQuery(new Term(FIELD_INTERNAL, "true"));
 
-    TopDocs result = this.indexSearcher.search(queryBuilder.build(), count);
+      BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
+      queryBuilder.add(nameQuery, BooleanClause.Occur.MUST);
+      if (showInternal == null || !showInternal) {
+        queryBuilder.add(internalFilter, BooleanClause.Occur.MUST_NOT);
+      }
 
-    List<String> topics = new ArrayList<>();
-    for (ScoreDoc scoreDoc : result.scoreDocs) {
-      if (scoreDoc.score > minScore) {
+      List<SortField> sortFields = new ArrayList<>();
+      sortFields.add(SortField.FIELD_SCORE);
+      if (!sortField.equals(FIELD_NAME)) {
+        sortFields.add(new SortField(sortField, SortField.Type.INT, true));
+      }
+
+      Sort sort = new Sort(sortFields.toArray(new SortField[0]));
+
+      TopDocs result = this.indexSearcher.search(queryBuilder.build(), count != null ? count : this.maxSize, sort);
+
+      List<String> topics = new ArrayList<>();
+      for (ScoreDoc scoreDoc : result.scoreDocs) {
+        if (minScore > 0.00001f && scoreDoc.score < minScore) {
+          continue;
+        }
         Document document = this.indexSearcher.storedFields().document(scoreDoc.doc);
         topics.add(document.get(FIELD_NAME_RAW));
       }
+      return topics;
+    } finally {
+      this.closeLock.readLock().unlock();
     }
-    return topics;
   }
 }

@@ -24,17 +24,15 @@ public class ShortWordNGramAnalyzer extends Analyzer {
   }
 
 
-
   @Override
   protected TokenStreamComponents createComponents(String fieldName) {
     Tokenizer tokenizer = new StandardTokenizer();
 
     TokenStream tokenStream = new WordDelimiterGraphFilter(
         tokenizer,
-        WordDelimiterGraphFilter.GENERATE_WORD_PARTS |
-            WordDelimiterGraphFilter.SPLIT_ON_CASE_CHANGE |
-            //WordDelimiterGraphFilter.SPLIT_ON_NUMERICS |
-            WordDelimiterGraphFilter.STEM_ENGLISH_POSSESSIVE,
+        WordDelimiterGraphFilter.GENERATE_WORD_PARTS
+            | WordDelimiterGraphFilter.SPLIT_ON_CASE_CHANGE
+            | WordDelimiterGraphFilter.STEM_ENGLISH_POSSESSIVE,
         null
     );
 

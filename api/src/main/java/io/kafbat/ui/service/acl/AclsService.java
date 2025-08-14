@@ -15,12 +15,14 @@ import static org.apache.kafka.common.resource.ResourceType.TOPIC;
 import static org.apache.kafka.common.resource.ResourceType.TRANSACTIONAL_ID;
 
 import com.google.common.collect.Sets;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.CreateConsumerAclDTO;
 import io.kafbat.ui.model.CreateProducerAclDTO;
 import io.kafbat.ui.model.CreateStreamAppAclDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.AdminClientService;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.index.AclBindingNgramFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
+import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.resource.Resource;
 import org.apache.kafka.common.resource.ResourcePattern;
@@ -48,6 +51,7 @@ import reactor.core.publisher.Mono;
 public class AclsService {
 
   private final AdminClientService adminClientService;
+  private final ClustersProperties clustersProperties;
 
   public Mono<Void> createAcl(KafkaCluster cluster, AclBinding aclBinding) {
     return adminClientService.get(cluster)
@@ -70,10 +74,28 @@ public class AclsService {
 
   public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch) {
     return adminClientService.get(cluster)
-        .flatMap(c -> c.listAcls(filter))
-        .flatMapIterable(acls -> acls)
-        .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
-        .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
+      .flatMap(c -> c.listAcls(filter))
+      .flatMapIterable(acls -> acls)
+      .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
+      .collectList()
+      .map(lst -> filter(lst, principalSearch))
+      .flatMapMany(Flux::fromIterable)
+      .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
+  }
+
+  private List<AclBinding> filter(List<AclBinding> acls, String principalSearch) {
+    if (principalSearch == null) {
+      return acls;
+    }
+    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+    if (fts.isEnabled()) {
+      AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, fts.getFilterMinNGram(), fts.getFilterMaxNGram());
+      return filter.find(principalSearch);
+    } else {
+      return acls.stream()
+          .filter(acl -> acl.entry().principal().contains(principalSearch))
+          .toList();
+    }
   }
 
   public Mono<String> getAclAsCsvString(KafkaCluster cluster) {
