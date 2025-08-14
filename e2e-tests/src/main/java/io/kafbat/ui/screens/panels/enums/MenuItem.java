@@ -10,7 +10,7 @@ public enum MenuItem {
   TOPICS("Topics", "Topics"),
   CONSUMERS("Consumers", "Consumers"),
   SCHEMA_REGISTRY("Schema Registry", "Schema Registry"),
-  KAFKA_CONNECT("Kafka Connect", "Connectors"),
+  KAFKA_CONNECT("Kafka Connect", "Kafka Connect"),
   KSQL_DB("KSQL DB", "KSQL DB");
 
   private final String naviTitle;
