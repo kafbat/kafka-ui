@@ -73,6 +73,7 @@ dependencies {
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
     implementation libs.reactor.netty.http
+    implementation libs.netty.codec.http2
     // CVE Fixes End
 
     implementation libs.modelcontextprotocol.spring.webflux

@@ -110,7 +110,11 @@ const Message: React.FC<Props> = ({
         <td>{partition}</td>
         <td>
           <div>
-            {formatTimestamp({ timestamp, timezone: currentTimezone.value })}
+            {formatTimestamp({
+              timestamp,
+              timezone: currentTimezone.value,
+              withMilliseconds: true,
+            })}
           </div>
         </td>
         <S.DataCell title={key}>
