@@ -76,6 +76,7 @@ public class ClustersProperties {
     List<@Valid Masking> masking;
 
     AuditProperties audit;
+
   }
 
   @Data
@@ -138,6 +139,7 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+    String bearerAuthCustomProviderClass;
   }
 
   @Data
