@@ -9,6 +9,7 @@ import { JSONPath } from 'jsonpath-plus';
 import Ellipsis from 'components/common/Ellipsis/Ellipsis';
 import WarningRedIcon from 'components/common/Icons/WarningRedIcon';
 import Tooltip from 'components/common/Tooltip/Tooltip';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
@@ -32,7 +33,7 @@ const Message: React.FC<Props> = ({
     key,
     keySize,
     partition,
-    content,
+    value,
     valueSize,
     headers,
     valueSerde,
@@ -41,9 +42,10 @@ const Message: React.FC<Props> = ({
   keyFilters,
   contentFilters,
 }) => {
+  const { currentTimezone } = useTimezone();
   const [isOpen, setIsOpen] = React.useState(false);
   const savedMessageJson = {
-    Value: content,
+    Value: value,
     Offset: offset,
     Key: key,
     Partition: partition,
@@ -107,7 +109,13 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <div>{formatTimestamp(timestamp)}</div>
+          <div>
+            {formatTimestamp({
+              timestamp,
+              timezone: currentTimezone.value,
+              withMilliseconds: true,
+            })}
+          </div>
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>
@@ -120,10 +128,10 @@ const Message: React.FC<Props> = ({
             )}
           </Ellipsis>
         </S.DataCell>
-        <S.DataCell title={content}>
+        <S.DataCell title={value}>
           <S.Metadata>
             <S.MetadataValue>
-              <Ellipsis text={renderFilteredJson(content, contentFilters)}>
+              <Ellipsis text={renderFilteredJson(value, contentFilters)}>
                 {valueSerde === 'Fallback' && (
                   <Tooltip
                     value={<WarningRedIcon />}
@@ -149,7 +157,7 @@ const Message: React.FC<Props> = ({
       {isOpen && (
         <MessageContent
           messageKey={key}
-          messageContent={content}
+          messageContent={value}
           headers={headers}
           timestamp={timestamp}
           timestampType={timestampType}

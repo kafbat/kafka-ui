@@ -2,9 +2,9 @@ package io.kafbat.ui.container;
 
 import java.time.Duration;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 public class KsqlDbContainer extends GenericContainer<KsqlDbContainer> {
@@ -20,9 +20,9 @@ public class KsqlDbContainer extends GenericContainer<KsqlDbContainer> {
         .withStartupTimeout(Duration.ofMinutes(5));
   }
 
-  public KsqlDbContainer withKafka(KafkaContainer kafka) {
+  public KsqlDbContainer withKafka(ConfluentKafkaContainer kafka) {
     dependsOn(kafka);
-    String bootstrapServers = kafka.getNetworkAliases().get(0) + ":9092";
+    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9095";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
 
@@ -34,6 +34,6 @@ public class KsqlDbContainer extends GenericContainer<KsqlDbContainer> {
   }
 
   public String url() {
-    return "http://" + getContainerIpAddress() + ":" + getMappedPort(PORT);
+    return "http://" + getHost() + ":" + getMappedPort(PORT);
   }
 }

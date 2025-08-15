@@ -13,6 +13,7 @@ import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -24,14 +25,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class KafkaConsumerTests extends AbstractIntegrationTest {
+class KafkaConsumerTests extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;
 
 
   @Test
-  public void shouldDeleteRecords() {
+  void shouldDeleteRecords() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -55,15 +56,17 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
       throw new RuntimeException(e);
     }
 
-    long count = webTestClient.get()
-        .uri("/api/clusters/{clusterName}/topics/{topicName}/messages/v2?mode=EARLIEST", LOCAL, topicName)
-        .accept(TEXT_EVENT_STREAM)
-        .exchange()
-        .expectStatus()
-        .isOk()
-        .expectBodyList(TopicMessageEventDTO.class)
-        .returnResult()
-        .getResponseBody()
+    long count = Objects.requireNonNull(
+        webTestClient.get()
+            .uri("/api/clusters/{clusterName}/topics/{topicName}/messages/v2?mode=EARLIEST", LOCAL, topicName)
+            .accept(TEXT_EVENT_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(TopicMessageEventDTO.class)
+            .returnResult()
+            .getResponseBody()
+        )
         .stream()
         .filter(e -> e.getType().equals(TopicMessageEventDTO.TypeEnum.MESSAGE))
         .count();
@@ -76,14 +79,16 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
         .expectStatus()
         .isOk();
 
-    count = webTestClient.get()
-        .uri("/api/clusters/{clusterName}/topics/{topicName}/messages/v2?mode=EARLIEST", LOCAL, topicName)
-        .exchange()
-        .expectStatus()
-        .isOk()
-        .expectBodyList(TopicMessageEventDTO.class)
-        .returnResult()
-        .getResponseBody()
+    count = Objects.requireNonNull(
+        webTestClient.get()
+            .uri("/api/clusters/{clusterName}/topics/{topicName}/messages/v2?mode=EARLIEST", LOCAL, topicName)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBodyList(TopicMessageEventDTO.class)
+            .returnResult()
+            .getResponseBody()
+        )
         .stream()
         .filter(e -> e.getType().equals(TopicMessageEventDTO.TypeEnum.MESSAGE))
         .count();
@@ -92,7 +97,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldIncreasePartitionsUpTo10() {
+  void shouldIncreasePartitionsUpTo10() {
     var topicName = UUID.randomUUID().toString();
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
@@ -120,7 +125,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
         .returnResult()
         .getResponseBody();
 
-    assert response != null;
+    Assertions.assertNotNull(response);
     Assertions.assertEquals(10, response.getTotalPartitionsCount());
 
     TopicDetailsDTO topicDetails = webTestClient.get()
@@ -134,12 +139,12 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
         .returnResult()
         .getResponseBody();
 
-    assert topicDetails != null;
+    Assertions.assertNotNull(topicDetails);
     Assertions.assertEquals(10, topicDetails.getPartitionCount());
   }
 
   @Test
-  public void shouldReturn404ForNonExistingTopic() {
+  void shouldReturn404ForNonExistingTopic() {
     var topicName = UUID.randomUUID().toString();
 
     webTestClient.delete()
@@ -156,9 +161,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnConfigsForBroker() {
-    var topicName = UUID.randomUUID().toString();
-
+  void shouldReturnConfigsForBroker() {
     List<BrokerConfigDTO> configs = webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/{id}/configs",
             LOCAL,
@@ -171,16 +174,17 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
         .getResponseBody();
 
     Assertions.assertNotNull(configs);
-    assert !configs.isEmpty();
-    Assertions.assertNotNull(configs.get(0).getName());
-    Assertions.assertNotNull(configs.get(0).getIsReadOnly());
-    Assertions.assertNotNull(configs.get(0).getIsSensitive());
-    Assertions.assertNotNull(configs.get(0).getSource());
-    Assertions.assertNotNull(configs.get(0).getSynonyms());
+    Assertions.assertFalse(configs.isEmpty());
+    BrokerConfigDTO brokerConfigDto = configs.getFirst();
+    Assertions.assertNotNull(brokerConfigDto.getName());
+    Assertions.assertNotNull(brokerConfigDto.getIsReadOnly());
+    Assertions.assertNotNull(brokerConfigDto.getIsSensitive());
+    Assertions.assertNotNull(brokerConfigDto.getSource());
+    Assertions.assertNotNull(brokerConfigDto.getSynonyms());
   }
 
   @Test
-  public void shouldReturn404ForNonExistingBroker() {
+  void shouldReturn404ForNonExistingBroker() {
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/brokers/{id}/configs",
             LOCAL,
@@ -191,7 +195,7 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldRetrieveTopicConfig() {
+  void shouldRetrieveTopicConfig() {
     var topicName = UUID.randomUUID().toString();
 
     webTestClient.post()
@@ -216,11 +220,12 @@ public class KafkaConsumerTests extends AbstractIntegrationTest {
             .getResponseBody();
 
     Assertions.assertNotNull(configs);
-    assert !configs.isEmpty();
-    Assertions.assertNotNull(configs.get(0).getName());
-    Assertions.assertNotNull(configs.get(0).getIsReadOnly());
-    Assertions.assertNotNull(configs.get(0).getIsSensitive());
-    Assertions.assertNotNull(configs.get(0).getSource());
-    Assertions.assertNotNull(configs.get(0).getSynonyms());
+    Assertions.assertFalse(configs.isEmpty());
+    TopicConfigDTO topicConfigDto = configs.getFirst();
+    Assertions.assertNotNull(topicConfigDto.getName());
+    Assertions.assertNotNull(topicConfigDto.getIsReadOnly());
+    Assertions.assertNotNull(topicConfigDto.getIsSensitive());
+    Assertions.assertNotNull(topicConfigDto.getSource());
+    Assertions.assertNotNull(topicConfigDto.getSynonyms());
   }
 }

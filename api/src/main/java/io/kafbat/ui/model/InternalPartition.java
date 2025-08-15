@@ -20,5 +20,4 @@ public class InternalPartition {
   private final Long segmentSize;
   private final Integer segmentCount;
 
-
 }

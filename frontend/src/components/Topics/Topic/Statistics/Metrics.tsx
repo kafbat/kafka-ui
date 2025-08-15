@@ -16,6 +16,7 @@ import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import { calculateTimer, formatTimestamp } from 'lib/dateTimeHelpers';
 import { Action, ResourceType } from 'generated-sources';
 import { ActionButton } from 'components/common/ActionComponent';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './Statistics.styles';
 import Total from './Indicators/Total';
@@ -25,6 +26,7 @@ import { LabelValue } from './Statistics.styles';
 
 const Metrics: React.FC = () => {
   const params = useAppParams<RouteParamsClusterTopic>();
+  const { currentTimezone } = useTimezone();
 
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const analyzeTopic = useAnalyzeTopic(params);
@@ -60,7 +62,7 @@ const Metrics: React.FC = () => {
           buttonSize="M"
           permission={{
             resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_READ,
+            action: Action.ANALYSIS_RUN,
             value: params.topicName,
           }}
         >
@@ -69,10 +71,14 @@ const Metrics: React.FC = () => {
         <List>
           <Label>Started at</Label>
           <LabelValue>
-            {formatTimestamp(data.progress.startedAt, {
-              hour: 'numeric',
-              minute: 'numeric',
-              second: 'numeric',
+            {formatTimestamp({
+              timestamp: data.progress.startedAt,
+              format: {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+              },
+              timezone: currentTimezone.value,
             })}
           </LabelValue>
           <Label>Passed since start</Label>
@@ -100,7 +106,12 @@ const Metrics: React.FC = () => {
   return (
     <>
       <S.ActionsBar>
-        <S.CreatedAt>{formatTimestamp(data?.result?.finishedAt)}</S.CreatedAt>
+        <S.CreatedAt>
+          {formatTimestamp({
+            timezone: currentTimezone.value,
+            timestamp: data?.result?.finishedAt,
+          })}
+        </S.CreatedAt>
         <ActionButton
           onClick={async () => {
             await analyzeTopic.mutateAsync();
@@ -110,7 +121,7 @@ const Metrics: React.FC = () => {
           buttonSize="S"
           permission={{
             resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_READ,
+            action: Action.ANALYSIS_RUN,
             value: params.topicName,
           }}
         >

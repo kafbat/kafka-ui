@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-public class KafkaTopicCreateTests extends AbstractIntegrationTest {
+class KafkaTopicCreateTests extends AbstractIntegrationTest {
   @Autowired
   private WebTestClient webTestClient;
   private TopicCreationDTO topicCreation;
 
   @BeforeEach
-  public void setUpBefore() {
+  void setUpBefore() {
     this.topicCreation = new TopicCreationDTO()
         .replicationFactor(1)
         .partitions(3)

@@ -8,7 +8,6 @@ import {
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import { Button } from 'components/common/Button/Button';
 import { TableTitle } from 'components/common/table/TableTitle/TableTitle.styled';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -24,6 +23,7 @@ import {
   useGetLatestSchema,
   useGetSchemasVersions,
 } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import LatestVersionItem from './LatestVersion/LatestVersionItem';
 import SchemaVersion from './SchemaVersion/SchemaVersion';
@@ -71,7 +71,7 @@ const Details: React.FC = () => {
 
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={schema?.subject || ''}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
@@ -120,7 +120,7 @@ const Details: React.FC = () => {
             </Dropdown>
           </>
         )}
-      </PageHeading>
+      </ResourcePageHeading>
       {schema && <LatestVersionItem schema={schema} />}
       <TableTitle>Old versions</TableTitle>
       {areVersionsFetching ? (

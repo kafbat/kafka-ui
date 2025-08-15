@@ -7,8 +7,10 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.time.Duration;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
@@ -45,6 +47,10 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
                                             @Nullable ClustersProperties.KeystoreConfig keystoreConfig) {
+    if (truststoreConfig != null && !truststoreConfig.isVerifySsl()) {
+      return configureNoSsl();
+    }
+
     return configureSsl(
         keystoreConfig != null ? keystoreConfig.getKeystoreLocation() : null,
         keystoreConfig != null ? keystoreConfig.getKeystorePassword() : null,
@@ -97,6 +103,17 @@ public class WebClientConfigurator {
     return this;
   }
 
+  @SneakyThrows
+  public WebClientConfigurator configureNoSsl() {
+    var contextBuilder = SslContextBuilder.forClient();
+    contextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+
+    SslContext context = contextBuilder.build();
+
+    httpClient = httpClient.secure(t -> t.sslContext(context));
+    return this;
+  }
+
   public WebClientConfigurator configureBasicAuth(@Nullable String username, @Nullable String password) {
     if (username != null && password != null) {
       builder.defaultHeaders(httpHeaders -> httpHeaders.setBasicAuth(username, password));
@@ -125,6 +142,11 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {
     builder.codecs(configurer);
+    return this;
+  }
+
+  public WebClientConfigurator configureResponseTimeout(Duration responseTimeout) {
+    httpClient = httpClient.responseTimeout(responseTimeout);
     return this;
   }
 

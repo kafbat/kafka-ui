@@ -10,10 +10,10 @@ import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
-import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
+import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +48,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     cluster = applicationContext
         .getBean(ClustersStorage.class)
         .getClusterByName(LOCAL)
-        .get();
+        .orElseThrow();
   }
 
   @AfterEach
@@ -104,8 +104,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
 
     // both messages should be masked
     StepVerifier.create(msgsFlux)
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
         .verifyComplete();
   }
 
@@ -136,7 +136,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(msgsFlux)
         .expectNextCount(pageSize)
@@ -151,7 +151,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(remainingMsgs)
         .expectNextCount(msgsToGenerate - pageSize)
@@ -213,6 +213,35 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     );
     assertThat(result.getResult()).isNull();
     assertThat(result.getError()).containsIgnoringCase("Compilation error");
+  }
+
+  @Test
+  void sendMessageWithProtobufAnyType() {
+    String jsonContent = """
+        {
+          "name": "testName",
+          "payload": {
+            "@type": "type.googleapis.com/test.PayloadMessage",
+            "id": "123"
+          }
+        }
+        """;
+
+    CreateTopicMessageDTO testMessage = new CreateTopicMessageDTO()
+        .key(null)
+        .partition(0)
+        .keySerde(StringSerde.name())
+        .value(jsonContent)
+        .valueSerde(ProtobufFileSerde.name());
+
+    String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));
+
+    StepVerifier.create(messagesService.sendMessage(cluster, testTopic, testMessage))
+        .expectNextMatches(metadata -> metadata.topic().equals(testTopic)
+            && metadata.partition() == 0
+            && metadata.offset() >= 0)
+        .verifyComplete();
   }
 
 }

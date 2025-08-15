@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 
+@SuppressWarnings("unchecked")
 class AuditServiceTest {
 
   @Test
@@ -59,6 +60,7 @@ class AuditServiceTest {
     verify(auditWriter).write(any(), any(), eq(th));
   }
 
+  @SuppressWarnings("unchecked")
   @Nested
   class CreateAuditWriter {
 

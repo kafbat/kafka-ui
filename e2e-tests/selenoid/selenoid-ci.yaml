@@ -1,6 +1,3 @@
----
-version: '3'
-
 services:
 
   # https://github.com/aerokube/selenoid/releases
@@ -10,13 +7,14 @@ services:
     volumes:
       - "../selenoid/config:/etc/selenoid"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "../target/selenoid-results/video:/opt/selenoid/video"
-      - "../target/selenoid-results/logs:/opt/selenoid/logs"
+      - "/tmp/build/selenoid-results/video:/opt/selenoid/video"
+      - "/tmp/build/selenoid-results/logs:/opt/selenoid/logs"
     environment:
       - OVERRIDE_VIDEO_OUTPUT_DIR=../docker/selenoid/video
     ports:
       - "4444:4444"
-    command: [ "-limit", "5", "-conf", "/etc/selenoid/browsers-ci.json", "-video-output-dir", "/opt/selenoid/video", "-log-output-dir", "/opt/selenoid/logs" ]
+    command: [ "-limit", "5", "-conf", "/etc/selenoid/browsers-ci.json",
+               "-video-output-dir", "/opt/selenoid/video", "-log-output-dir", "/opt/selenoid/logs" ]
 
   # https://github.com/aerokube/selenoid-ui/releases
   selenoid-ui:
@@ -30,7 +28,8 @@ services:
 
   # https://aerokube.com/images/latest
   selenoid-chrome:
-    image: selenoid/vnc_chrome:117.0
+    image: selenium/standalone-chromium:133.0
+    shm_size: 2gb
     extra_hosts:
       - "host.docker.internal:host-gateway"
     links:

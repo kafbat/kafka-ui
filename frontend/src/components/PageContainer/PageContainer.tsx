@@ -1,6 +1,7 @@
 import React, {
   type FC,
   type PropsWithChildren,
+  Suspense,
   useEffect,
   useMemo,
 } from 'react';
@@ -15,6 +16,7 @@ import { useClusters } from 'lib/hooks/api/clusters';
 import { ResourceType } from 'generated-sources';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
 import { useScreenSize } from 'lib/hooks/useScreenSize';
+import PageLoader from 'components/common/PageLoader/PageLoader';
 
 const PageContainer: FC<PropsWithChildren> = ({ children }) => {
   const { isLarge } = useScreenSize();
@@ -62,7 +64,7 @@ const PageContainer: FC<PropsWithChildren> = ({ children }) => {
           aria-hidden="true"
           aria-label="Overlay"
         />
-        {children}
+        <Suspense fallback={<PageLoader fullSize />}>{children}</Suspense>
       </S.Container>
     </>
   );

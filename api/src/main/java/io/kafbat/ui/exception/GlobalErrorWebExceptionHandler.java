@@ -2,12 +2,14 @@ package io.kafbat.ui.exception;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+import io.kafbat.ui.config.CorsGlobalConfiguration;
 import io.kafbat.ui.model.ErrorResponseDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.web.WebProperties;
@@ -16,6 +18,7 @@ import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerCodecConfigurer;
@@ -51,18 +54,18 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     Throwable throwable = getError(request);
 
     // validation and params binding errors
-    if (throwable instanceof WebExchangeBindException) {
-      return render((WebExchangeBindException) throwable, request);
+    if (throwable instanceof WebExchangeBindException webExchangeBindException) {
+      return render(webExchangeBindException, request);
     }
 
     // requests mapping & access errors
-    if (throwable instanceof ResponseStatusException) {
-      return render((ResponseStatusException) throwable, request);
+    if (throwable instanceof ResponseStatusException responseStatusException) {
+      return render(responseStatusException, request);
     }
 
     // custom exceptions
-    if (throwable instanceof CustomBaseException) {
-      return render((CustomBaseException) throwable, request);
+    if (throwable instanceof CustomBaseException customBaseException) {
+      return render(customBaseException, request);
     }
 
     return renderDefault(throwable, request);
@@ -78,6 +81,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(ErrorCode.UNEXPECTED.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
@@ -92,13 +96,13 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(errorCode.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
   private Mono<ServerResponse> render(WebExchangeBindException exception, ServerRequest request) {
     Map<String, Set<String>> fieldErrorsMap = exception.getFieldErrors().stream()
-        .collect(Collectors
-            .toMap(FieldError::getField, f -> Set.of(extractFieldErrorMsg(f)), Sets::union));
+        .collect(Collectors.toMap(FieldError::getField, f -> Set.of(extractFieldErrorMsg(f)), Sets::union));
 
     var fieldsErrors = fieldErrorsMap.entrySet().stream()
         .map(e -> {
@@ -122,6 +126,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
@@ -136,11 +141,16 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return ServerResponse
         .status(exception.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
+        .headers(headers(request))
         .bodyValue(response);
   }
 
   private String requestId(ServerRequest request) {
     return request.exchange().getRequest().getId();
+  }
+
+  private Consumer<HttpHeaders> headers(ServerRequest request) {
+    return (HttpHeaders headers) -> CorsGlobalConfiguration.fillCorsHeader(headers, request.exchange().getRequest());
   }
 
   private BigDecimal currentTimestamp() {
@@ -151,6 +161,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     return coalesce(fieldError.getDefaultMessage(), fieldError.getCode(), "Invalid field value");
   }
 
+  @SafeVarargs
   private <T> T coalesce(T... items) {
     return Stream.of(items).filter(Objects::nonNull).findFirst().orElse(null);
   }

@@ -13,6 +13,7 @@ import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.KafkaVersion;
+import io.kafbat.ui.util.MetadataVersion;
 import io.kafbat.ui.util.annotation.KafkaClientInternalsDependant;
 import java.io.Closeable;
 import java.time.Duration;
@@ -49,9 +50,12 @@ import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeConfigsOptions;
+import org.apache.kafka.clients.admin.FeatureMetadata;
+import org.apache.kafka.clients.admin.FinalizedVersionRange;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.LogDirDescription;
 import org.apache.kafka.clients.admin.NewPartitionReassignment;
 import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -74,6 +78,7 @@ import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.GroupIdNotFoundException;
 import org.apache.kafka.common.errors.GroupNotEmptyException;
+import org.apache.kafka.common.errors.GroupSubscribedToTopicException;
 import org.apache.kafka.common.errors.InvalidRequestException;
 import org.apache.kafka.common.errors.SecurityDisabledException;
 import org.apache.kafka.common.errors.TopicAuthorizationException;
@@ -95,6 +100,7 @@ import reactor.util.function.Tuples;
 @Slf4j
 @AllArgsConstructor
 public class ReactiveAdminClient implements Closeable {
+  private static final String DEFAULT_UNKNOWN_VERSION = "Unknown";
 
   public enum SupportedFeature {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
@@ -113,8 +119,8 @@ public class ReactiveAdminClient implements Closeable {
       this.predicate = (admin, ver) -> Mono.just(ver != null && ver >= fromVersion);
     }
 
-    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, String kafkaVersionStr) {
-      @Nullable Float kafkaVersion = KafkaVersion.parse(kafkaVersionStr).orElse(null);
+    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, Optional<String> kafkaVersionStr) {
+      @Nullable Float kafkaVersion = kafkaVersionStr.flatMap(KafkaVersion::parse).orElse(null);
       return Flux.fromArray(SupportedFeature.values())
           .flatMap(f -> f.predicate.apply(ac, kafkaVersion).map(enabled -> Tuples.of(f, enabled)))
           .filter(Tuple2::getT2)
@@ -131,6 +137,10 @@ public class ReactiveAdminClient implements Closeable {
     Collection<Node> nodes;
     @Nullable // null, if ACL is disabled
     Set<AclOperation> authorizedOperations;
+
+    public static ClusterDescription empty() {
+      return new ReactiveAdminClient.ClusterDescription(null, null, List.of(), Set.of());
+    }
   }
 
   @Builder
@@ -149,18 +159,28 @@ public class ReactiveAdminClient implements Closeable {
                 .orElse(desc.getNodes().iterator().next().id());
             return loadBrokersConfig(ac, List.of(targetNodeId))
                 .map(map -> map.isEmpty() ? List.<ConfigEntry>of() : map.get(targetNodeId))
-                .flatMap(configs -> {
-                  String version = "1.0-UNKNOWN";
+                .zipWith(toMono(ac.describeFeatures().featureMetadata()))
+                .flatMap(tuple -> {
+                  List<ConfigEntry> configs = tuple.getT1();
+                  FeatureMetadata featureMetadata = tuple.getT2();
+                  Optional<String> version = Optional.empty();
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = entry.value();
+                      version = Optional.ofNullable(entry.value());
                     }
-                    if (entry.name().equals("delete.topic.enable")) {
+                    if (entry.name().equals("delete.topic.enable") && entry.value() != null) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
-                  final String finalVersion = version;
+                  if (version.isEmpty()) {
+                    FinalizedVersionRange metadataVersion =
+                        featureMetadata.finalizedFeatures().get("metadata.version");
+                    if (metadataVersion != null) {
+                      version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel());
+                    }
+                  }
+                  final String finalVersion = version.orElse(DEFAULT_UNKNOWN_VERSION);
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
                   return SupportedFeature.forVersion(ac, version)
                       .map(features -> new ConfigRelatedInfo(finalVersion, features, finalTopicDeletionEnabled));
@@ -361,6 +381,7 @@ public class ReactiveAdminClient implements Closeable {
    * This method converts input map into Mono[Map] ignoring keys for which KafkaFutures
    * finished with <code>classes</code> exceptions and empty Monos.
    */
+  @SuppressWarnings("unchecked")
   @SafeVarargs
   static <K, V> Mono<Map<K, V>> toMonoWithExceptionFilter(Map<K, KafkaFuture<V>> values,
                                                           Class<? extends KafkaException>... classes) {
@@ -388,15 +409,9 @@ public class ReactiveAdminClient implements Closeable {
     );
   }
 
-  public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs() {
-    return describeCluster()
-        .map(d -> d.getNodes().stream().map(Node::id).collect(toList()))
-        .flatMap(this::describeLogDirs);
-  }
-
-  public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs(
+  public Mono<Map<Integer, Map<String, LogDirDescription>>> describeLogDirs(
       Collection<Integer> brokerIds) {
-    return toMono(client.describeLogDirs(brokerIds).all())
+    return toMono(client.describeLogDirs(brokerIds).allDescriptions())
         .onErrorResume(UnsupportedVersionException.class, th -> Mono.just(Map.of()))
         .onErrorResume(ClusterAuthorizationException.class, th -> Mono.just(Map.of()))
         .onErrorResume(th -> true, th -> {
@@ -418,12 +433,12 @@ public class ReactiveAdminClient implements Closeable {
         result.controller(), result.clusterId(), result.nodes(), result.authorizedOperations());
     return toMono(allOfFuture).then(
         Mono.fromCallable(() ->
-          new ClusterDescription(
-            result.controller().get(),
-            result.clusterId().get(),
-            result.nodes().get(),
-            result.authorizedOperations().get()
-          )
+            new ClusterDescription(
+              result.controller().get(),
+              result.clusterId().get(),
+              result.nodes().get(),
+              result.authorizedOperations().get()
+            )
         )
     );
   }
@@ -433,6 +448,27 @@ public class ReactiveAdminClient implements Closeable {
         .onErrorResume(GroupIdNotFoundException.class,
             th -> Mono.error(new NotFoundException("The group id does not exist")))
         .onErrorResume(GroupNotEmptyException.class,
+            th -> Mono.error(new IllegalEntityStateException("The group is not empty")));
+  }
+
+  public Mono<Void> deleteConsumerGroupOffsets(String groupId, String topicName) {
+    return listConsumerGroupOffsets(List.of(groupId), null)
+        .flatMap(table -> {
+          // filter TopicPartitions by topicName
+          Set<TopicPartition> partitions = table.row(groupId).keySet().stream()
+              .filter(tp -> tp.topic().equals(topicName))
+              .collect(Collectors.toSet());
+          // check if partitions have no committed offsets
+          return partitions.isEmpty()
+              ? Mono.error(new NotFoundException("The topic or partition is unknown"))
+              // call deleteConsumerGroupOffsets
+              : toMono(client.deleteConsumerGroupOffsets(groupId, partitions).all());
+        })
+        .onErrorResume(GroupIdNotFoundException.class,
+            th -> Mono.error(new NotFoundException("The group id does not exist")))
+        .onErrorResume(UnknownTopicOrPartitionException.class,
+            th -> Mono.error(new NotFoundException("The topic or partition is unknown")))
+        .onErrorResume(GroupSubscribedToTopicException.class,
             th -> Mono.error(new IllegalEntityStateException("The group is not empty")));
   }
 

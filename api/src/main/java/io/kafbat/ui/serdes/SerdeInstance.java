@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -80,7 +81,17 @@ public class SerdeInstance implements Closeable {
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     return wrapWithClassloader(() -> {
       var serializer = serde.serializer(topic, type);
-      return input -> wrapWithClassloader(() -> serializer.serialize(input));
+      return new Serde.Serializer() {
+        @Override
+        public byte[] serialize(String input) {
+          return wrapWithClassloader(() -> serializer.serialize(input));
+        }
+
+        @Override
+        public byte[] serialize(String input, Headers headers) {
+          return wrapWithClassloader(() -> serializer.serialize(input, headers));
+        }
+      };
     });
   }
 
@@ -97,7 +108,7 @@ public class SerdeInstance implements Closeable {
       try {
         serde.close();
       } catch (Exception e) {
-        log.error("Error closing serde " + name, e);
+        log.error("Error closing serde {}", name, e);
       }
       return null;
     });

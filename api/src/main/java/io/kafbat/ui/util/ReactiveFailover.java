@@ -59,8 +59,8 @@ public class ReactiveFailover<T> {
   }
 
   private ReactiveFailover(List<PublisherHolder<T>> publishers,
-                   Predicate<Throwable> failoverExceptionsPredicate,
-                   String noAvailablePublishersMsg) {
+                           Predicate<Throwable> failoverExceptionsPredicate,
+                           String noAvailablePublishersMsg) {
     Preconditions.checkArgument(!publishers.isEmpty());
     this.publishers = publishers;
     this.failoverExceptionsPredicate = failoverExceptionsPredicate;
@@ -81,9 +81,6 @@ public class ReactiveFailover<T> {
         .flatMap(f)
         .onErrorResume(failoverExceptionsPredicate, th -> {
           publisher.markFailed();
-          if (candidates.size() == 1) {
-            return Mono.error(th);
-          }
           var newCandidates = candidates.stream().skip(1).filter(PublisherHolder::isActive).toList();
           if (newCandidates.isEmpty()) {
             return Mono.error(th);
@@ -106,9 +103,6 @@ public class ReactiveFailover<T> {
         .flatMapMany(f)
         .onErrorResume(failoverExceptionsPredicate, th -> {
           publisher.markFailed();
-          if (candidates.size() == 1) {
-            return Flux.error(th);
-          }
           var newCandidates = candidates.stream().skip(1).filter(PublisherHolder::isActive).toList();
           if (newCandidates.isEmpty()) {
             return Flux.error(th);

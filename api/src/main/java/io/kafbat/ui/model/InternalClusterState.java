@@ -1,9 +1,6 @@
 package io.kafbat.ui.model;
 
 import com.google.common.base.Throwables;
-import io.kafbat.ui.model.BrokerDiskUsageDTO;
-import io.kafbat.ui.model.MetricsCollectionErrorDTO;
-import io.kafbat.ui.model.ServerStatusDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -39,39 +36,42 @@ public class InternalClusterState {
             .message(e.getMessage())
             .stackTrace(Throwables.getStackTraceAsString(e)))
         .orElse(null);
-    topicCount = statistics.getTopicDescriptions().size();
+    topicCount = (int) statistics.topicDescriptions().count();
     brokerCount = statistics.getClusterDescription().getNodes().size();
     activeControllers = Optional.ofNullable(statistics.getClusterDescription().getController())
         .map(Node::id)
         .orElse(null);
     version = statistics.getVersion();
 
-    if (statistics.getLogDirInfo() != null) {
-      diskUsage = statistics.getLogDirInfo().getBrokerStats().entrySet().stream()
-          .map(e -> new BrokerDiskUsageDTO()
-              .brokerId(e.getKey())
-              .segmentSize(e.getValue().getSegmentSize())
-              .segmentCount(e.getValue().getSegmentsCount()))
-          .collect(Collectors.toList());
-    }
+    diskUsage = statistics.getClusterState().getNodesStates().values().stream()
+        .filter(n -> n.segmentStats() != null)
+        .map(n -> new BrokerDiskUsageDTO()
+            .brokerId(n.id())
+            .segmentSize(n.segmentStats().getSegmentSize())
+            .segmentCount(n.segmentStats().getSegmentsCount()))
+        .collect(Collectors.toList());
 
     features = statistics.getFeatures();
 
     bytesInPerSec = statistics
         .getMetrics()
-        .getBrokerBytesInPerSec()
-        .values().stream()
+        .getIoRates()
+        .brokerBytesInPerSec()
+        .values()
+        .stream()
         .reduce(BigDecimal::add)
         .orElse(null);
 
     bytesOutPerSec = statistics
         .getMetrics()
-        .getBrokerBytesOutPerSec()
-        .values().stream()
+        .getIoRates()
+        .brokerBytesOutPerSec()
+        .values()
+        .stream()
         .reduce(BigDecimal::add)
         .orElse(null);
 
-    var partitionsStats = new PartitionsStats(statistics.getTopicDescriptions().values());
+    var partitionsStats = new PartitionsStats(statistics.topicDescriptions().toList());
     onlinePartitionCount = partitionsStats.getOnlinePartitionCount();
     offlinePartitionCount = partitionsStats.getOfflinePartitionCount();
     inSyncReplicasCount = partitionsStats.getInSyncReplicasCount();

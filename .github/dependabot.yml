@@ -1,15 +1,42 @@
 version: 2
 updates:
 
-- package-ecosystem: maven
+- package-ecosystem: gradle
   directory: "/"
   schedule:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/backend"
   open-pull-requests-limit: 10
+  labels:
+    - "type/dependencies"
+    - "scope/backend"
+  groups:
+    spring-boot-dependencies:
+      patterns:
+        - "org.springframework.boot:*"
+        - "io.spring.dependency-management"
+      # We will handle major upgrades manually
+      update-types:
+        - "patch"
+        - "minor"
+    other-dependencies:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
+
+- package-ecosystem: docker
+  directory: "/api"
+  schedule:
+    interval: weekly
+    time: "10:00"
+    timezone: Europe/London
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: "azul/zulu-openjdk-alpine"
+    update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
     - "scope/backend"
@@ -20,13 +47,18 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/frontend"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   labels:
     - "type/dependencies"
     - "scope/frontend"
+  groups:
+    pnpm-dependencies:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
 
 - package-ecosystem: "github-actions"
   directory: "/"
@@ -34,8 +66,6 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  reviewers:
-    - "kafbat/devops"
   open-pull-requests-limit: 10
   labels:
     - "type/dependencies"

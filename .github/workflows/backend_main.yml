@@ -4,7 +4,11 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "pom.xml"
+      - "build.gradle"
+      - "gradle.properties"
+      - "settings.gradle"
+      - "gradle/libs.versions.toml"
+
       - "contract/**"
       - "api/**"
       - "serde-api/**"
@@ -19,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-test:
     uses: ./.github/workflows/backend_tests.yml
     with:
       event_name: ${{ github.event_name }}

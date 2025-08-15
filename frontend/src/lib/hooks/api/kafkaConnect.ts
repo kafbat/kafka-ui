@@ -19,10 +19,11 @@ interface CreateConnectorProps {
   newConnector: NewConnector;
 }
 
-const connectsKey = (clusterName: ClusterName) => [
+const connectsKey = (clusterName: ClusterName, withStats?: boolean) => [
   'clusters',
   clusterName,
   'connects',
+  withStats,
 ];
 const connectorsKey = (clusterName: ClusterName, search?: string) => {
   const base = ['clusters', clusterName, 'connectors'];
@@ -44,9 +45,9 @@ const connectorTasksKey = (props: UseConnectorProps) => [
   'tasks',
 ];
 
-export function useConnects(clusterName: ClusterName) {
-  return useQuery(connectsKey(clusterName), () =>
-    api.getConnects({ clusterName })
+export function useConnects(clusterName: ClusterName, withStats?: boolean) {
+  return useQuery(connectsKey(clusterName, withStats), () =>
+    api.getConnects({ clusterName, withStats })
   );
 }
 export function useConnectors(clusterName: ClusterName, search?: string) {
@@ -98,7 +99,10 @@ export function useUpdateConnectorState(props: UseConnectorProps) {
     (action: ConnectorAction) => api.updateConnectorState({ ...props, action }),
     {
       onSuccess: () =>
-        client.invalidateQueries(['clusters', props.clusterName, 'connectors']),
+        Promise.all([
+          client.invalidateQueries(connectorsKey(props.clusterName)),
+          client.invalidateQueries(connectorKey(props)),
+        ]),
     }
   );
 }
@@ -159,5 +163,13 @@ export function useDeleteConnector(props: UseConnectorProps) {
 
   return useMutation(() => api.deleteConnector(props), {
     onSuccess: () => client.invalidateQueries(connectorsKey(props.clusterName)),
+  });
+}
+
+export function useResetConnectorOffsets(props: UseConnectorProps) {
+  const client = useQueryClient();
+
+  return useMutation(() => api.resetConnectorOffsets(props), {
+    onSuccess: () => client.invalidateQueries(connectorKey(props)),
   });
 }

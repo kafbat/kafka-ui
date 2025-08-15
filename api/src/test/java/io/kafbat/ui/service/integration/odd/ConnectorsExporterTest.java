@@ -58,7 +58,7 @@ class ConnectorsExporterTest {
         )
     );
 
-    when(kafkaConnectService.getConnects(CLUSTER))
+    when(kafkaConnectService.getConnects(CLUSTER, false))
         .thenReturn(Flux.just(connect));
 
     when(kafkaConnectService.getConnectorNamesWithErrorsSuppress(CLUSTER, connect.getName()))
@@ -88,6 +88,8 @@ class ConnectorsExporterTest {
               .filteredOn(DataEntity::getOddrn, "//kafkaconnect/host/kconnect:8083/connectors/testSink")
               .singleElement()
               .satisfies(sink -> {
+                assertThat(sink.getMetadata()).isNotNull();
+                assertThat(sink.getDataTransformer()).isNotNull();
                 assertThat(sink.getMetadata().get(0).getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(sink.getDataTransformer().getInputs()).contains(
@@ -98,6 +100,8 @@ class ConnectorsExporterTest {
               .filteredOn(DataEntity::getOddrn, "//kafkaconnect/host/kconnect:8083/connectors/testSource")
               .singleElement()
               .satisfies(source -> {
+                assertThat(source.getMetadata()).isNotNull();
+                assertThat(source.getDataTransformer()).isNotNull();
                 assertThat(source.getMetadata().get(0).getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(source.getDataTransformer().getOutputs()).contains(

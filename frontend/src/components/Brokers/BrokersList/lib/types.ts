@@ -5,9 +5,9 @@ export type BrokersTableRow = {
   port: number | undefined;
   host: string | undefined;
   partitionsLeader: number | undefined;
-  partitionsSkew: number | undefined;
   leadersSkew: number | undefined;
-  onlinePartitionCount: number | undefined;
-  offlinePartitionCount: number | undefined;
+  replicas: number | undefined;
+  inSyncReplicas: number | undefined;
+  replicasSkew: number | undefined;
   activeControllers: number | undefined;
 };

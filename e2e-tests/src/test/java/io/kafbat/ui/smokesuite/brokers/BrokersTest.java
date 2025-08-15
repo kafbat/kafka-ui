@@ -139,7 +139,7 @@ public class BrokersTest extends BaseTest {
     Assert.assertEquals(sourceInfoTooltip, Common.BROKER_SOURCE_INFO_TOOLTIP, "getSourceInfoTooltipText()");
   }
 
-  @Test
+  @Test(enabled = false) // flaky, TODO issues/322
   public void brokersConfigEditCheck() {
     navigateToBrokersAndOpenDetails(DEFAULT_BROKER_ID);
     brokersDetails

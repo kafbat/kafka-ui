@@ -29,21 +29,19 @@ class TopicAnalysisServiceTest extends AbstractIntegrationTest {
     createTopic(new NewTopic(topic, 2, (short) 1));
     fillTopic(topic, 1_000);
 
-    var cluster = clustersStorage.getClusterByName(LOCAL).get();
+    var cluster = clustersStorage.getClusterByName(LOCAL).orElseThrow();
     topicAnalysisService.analyze(cluster, topic).block();
 
     Awaitility.await()
         .atMost(Duration.ofSeconds(20))
-        .untilAsserted(() -> {
-          assertThat(topicAnalysisService.getTopicAnalysis(cluster, topic))
-              .hasValueSatisfying(state -> {
-                assertThat(state.getProgress()).isNull();
-                assertThat(state.getResult()).isNotNull();
-                var completedAnalyze = state.getResult();
-                assertThat(completedAnalyze.getTotalStats().getTotalMsgs()).isEqualTo(1_000);
-                assertThat(completedAnalyze.getPartitionStats().size()).isEqualTo(2);
-              });
-        });
+        .untilAsserted(() -> assertThat(topicAnalysisService.getTopicAnalysis(cluster, topic))
+            .hasValueSatisfying(state -> {
+              assertThat(state.getProgress()).isNull();
+              assertThat(state.getResult()).isNotNull();
+              var completedAnalyze = state.getResult();
+              assertThat(completedAnalyze.getTotalStats().getTotalMsgs()).isEqualTo(1_000);
+              assertThat(completedAnalyze.getPartitionStats().size()).isEqualTo(2);
+            }));
   }
 
   private void fillTopic(String topic, int cnt) {
@@ -52,8 +50,8 @@ class TopicAnalysisServiceTest extends AbstractIntegrationTest {
         producer.send(
             new ProducerRecord<>(
                 topic,
-                RandomStringUtils.randomAlphabetic(5),
-                RandomStringUtils.randomAlphabetic(10)));
+                RandomStringUtils.secure().nextAlphabetic(5),
+                RandomStringUtils.secure().nextAlphabetic(10)));
       }
     }
   }

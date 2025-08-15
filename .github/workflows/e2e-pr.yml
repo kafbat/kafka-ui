@@ -3,7 +3,11 @@ on:
   pull_request:
     types: [ "opened", "reopened", "synchronize" ]
     paths:
-      - "pom.xml"
+      - "build.gradle"
+      - "gradle.properties"
+      - "settings.gradle"
+      - "gradle/libs.versions.toml"
+
       - "contract/**"
       - "api/**"
       - "serde-api/**"

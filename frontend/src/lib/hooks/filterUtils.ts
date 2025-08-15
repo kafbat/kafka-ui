@@ -1,8 +1,8 @@
 import { PollingMode } from 'generated-sources';
 
 export const ModeOptions = [
-  { value: PollingMode.EARLIEST, label: 'Oldest' },
   { value: PollingMode.LATEST, label: 'Newest' },
+  { value: PollingMode.EARLIEST, label: 'Oldest' },
   { value: PollingMode.TAILING, label: 'Live' },
   { value: PollingMode.FROM_OFFSET, label: 'From offset' },
   { value: PollingMode.TO_OFFSET, label: 'To offset' },

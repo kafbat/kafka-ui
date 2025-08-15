@@ -71,7 +71,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
         .untilAsserted(() ->
             assertThat(fluxOutput)
               .filteredOn(msg -> msg.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-              .extracting(msg -> msg.getMessage().getContent())
+              .extracting(msg -> msg.getMessage().getValue())
               .hasSameElementsAs(expectedValues)
         );
   }
@@ -96,7 +96,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
         .untilAsserted(() ->
             assertThat(fluxOutput)
               .filteredOn(msg -> msg.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-              .extracting(msg -> msg.getMessage().getContent())
+              .extracting(msg -> msg.getMessage().getValue())
               .hasSameElementsAs(expectedValues)
         );
   }
@@ -106,7 +106,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
       String query) {
     var cluster = applicationContext.getBean(ClustersStorage.class)
         .getClusterByName(LOCAL)
-        .get();
+        .orElseThrow();
 
     return applicationContext.getBean(MessagesService.class)
         .loadMessages(cluster, topicName,
