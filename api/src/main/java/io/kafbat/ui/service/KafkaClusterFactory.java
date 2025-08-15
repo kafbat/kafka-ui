@@ -1,5 +1,11 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.util.KafkaServicesValidation.validateClusterConnection;
+import static io.kafbat.ui.util.KafkaServicesValidation.validateKsql;
+import static io.kafbat.ui.util.KafkaServicesValidation.validatePrometheusStore;
+import static io.kafbat.ui.util.KafkaServicesValidation.validateSchemaRegistry;
+import static io.kafbat.ui.util.KafkaServicesValidation.validateTruststore;
+
 import io.kafbat.ui.client.RetryingKafkaConnectClient;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
@@ -8,23 +14,26 @@ import io.kafbat.ui.emitter.PollingSettings;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
-import io.kafbat.ui.model.MetricsConfig;
+import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
+import io.kafbat.ui.service.metrics.scrape.MetricsScraper;
+import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsRetriever;
 import io.kafbat.ui.sr.ApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.util.KafkaServicesValidation;
 import io.kafbat.ui.util.ReactiveFailover;
 import io.kafbat.ui.util.WebClientConfigurator;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -37,13 +46,21 @@ import reactor.util.function.Tuples;
 public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
+  private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
 
   private final DataSize webClientMaxBuffSize;
+  private final Duration responseTimeout;
+  private final JmxMetricsRetriever jmxMetricsRetriever;
 
-  public KafkaClusterFactory(WebclientProperties webclientProperties) {
+  public KafkaClusterFactory(WebclientProperties webclientProperties,
+                             JmxMetricsRetriever jmxMetricsRetriever) {
     this.webClientMaxBuffSize = Optional.ofNullable(webclientProperties.getMaxInMemoryBufferSize())
         .map(DataSize::parse)
         .orElse(DEFAULT_WEBCLIENT_BUFFER);
+    this.responseTimeout = Optional.ofNullable(webclientProperties.getResponseTimeoutMs())
+        .map(Duration::ofMillis)
+        .orElse(DEFAULT_RESPONSE_TIMEOUT);
+    this.jmxMetricsRetriever = jmxMetricsRetriever;
   }
 
   public KafkaCluster create(ClustersProperties properties,
@@ -53,9 +70,13 @@ public class KafkaClusterFactory {
     builder.name(clusterProperties.getName());
     builder.bootstrapServers(clusterProperties.getBootstrapServers());
     builder.properties(convertProperties(clusterProperties.getProperties()));
+    builder.consumerProperties(convertProperties(clusterProperties.getConsumerProperties()));
+    builder.producerProperties(convertProperties(clusterProperties.getProducerProperties()));
     builder.readOnly(clusterProperties.isReadOnly());
+    builder.exposeMetricsViaPrometheusEndpoint(exposeMetricsViaPrometheusEndpoint(clusterProperties));
     builder.masking(DataMasking.create(clusterProperties.getMasking()));
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));
+    builder.metricsScrapping(MetricsScraper.create(clusterProperties, jmxMetricsRetriever));
 
     if (schemaRegistryConfigured(clusterProperties)) {
       builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
@@ -66,16 +87,25 @@ public class KafkaClusterFactory {
     if (ksqlConfigured(clusterProperties)) {
       builder.ksqlClient(ksqlClient(clusterProperties));
     }
-    if (metricsConfigured(clusterProperties)) {
-      builder.metricsConfig(metricsConfigDataToMetricsConfig(clusterProperties.getMetrics()));
+    if (prometheusStorageConfigured(properties.getDefaultMetricsStorage())) {
+      builder.prometheusStorageClient(
+          prometheusStorageClient(properties.getDefaultMetricsStorage(), clusterProperties.getSsl())
+      );
     }
+    if (prometheusStorageConfigured(clusterProperties)) {
+      builder.prometheusStorageClient(prometheusStorageClient(
+          clusterProperties.getMetrics().getStore(),
+          clusterProperties.getSsl())
+      );
+    }
+
     builder.originalProperties(clusterProperties);
     return builder.build();
   }
 
   public Mono<ClusterConfigValidationDTO> validate(ClustersProperties.Cluster clusterProperties) {
     if (clusterProperties.getSsl() != null) {
-      Optional<String> errMsg = KafkaServicesValidation.validateTruststore(clusterProperties.getSsl());
+      Optional<String> errMsg = validateTruststore(clusterProperties.getSsl());
       if (errMsg.isPresent()) {
         return Mono.just(new ClusterConfigValidationDTO()
             .kafka(new ApplicationPropertyValidationDTO()
@@ -85,38 +115,47 @@ public class KafkaClusterFactory {
     }
 
     return Mono.zip(
-        KafkaServicesValidation.validateClusterConnection(
+        validateClusterConnection(
             clusterProperties.getBootstrapServers(),
             convertProperties(clusterProperties.getProperties()),
             clusterProperties.getSsl()
         ),
         schemaRegistryConfigured(clusterProperties)
-            ? KafkaServicesValidation.validateSchemaRegistry(
-                () -> schemaRegistryClient(clusterProperties)).map(Optional::of)
+            ? validateSchemaRegistry(() -> schemaRegistryClient(clusterProperties)).map(Optional::of)
             : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty()),
 
         ksqlConfigured(clusterProperties)
-            ? KafkaServicesValidation.validateKsql(() -> ksqlClient(clusterProperties)).map(Optional::of)
+            ? validateKsql(() -> ksqlClient(clusterProperties)).map(Optional::of)
             : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty()),
 
         connectClientsConfigured(clusterProperties)
-            ?
-            Flux.fromIterable(clusterProperties.getKafkaConnect())
-                .flatMap(c ->
-                    KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
-                        .map(r -> Tuples.of(c.getName(), r)))
-                .collectMap(Tuple2::getT1, Tuple2::getT2)
-                .map(Optional::of)
-            :
-            Mono.<Optional<Map<String, ApplicationPropertyValidationDTO>>>just(Optional.empty())
+            ? Flux.fromIterable(clusterProperties.getKafkaConnect())
+            .flatMap(c ->
+                KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
+                    .map(r -> Tuples.of(c.getName(), r)))
+            .collectMap(Tuple2::getT1, Tuple2::getT2)
+            .map(Optional::of)
+            : Mono.<Optional<Map<String, ApplicationPropertyValidationDTO>>>just(Optional.empty()),
+
+        prometheusStorageConfigured(clusterProperties)
+            ? validatePrometheusStore(() -> prometheusStorageClient(
+                clusterProperties.getMetrics().getStore(), clusterProperties.getSsl())).map(Optional::of)
+            : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty())
     ).map(tuple -> {
       var validation = new ClusterConfigValidationDTO();
       validation.kafka(tuple.getT1());
       tuple.getT2().ifPresent(validation::schemaRegistry);
       tuple.getT3().ifPresent(validation::ksqldb);
       tuple.getT4().ifPresent(validation::kafkaConnects);
+      tuple.getT5().ifPresent(validation::prometheusStorage);
       return validation;
     });
+  }
+
+  private boolean exposeMetricsViaPrometheusEndpoint(ClustersProperties.Cluster clusterProperties) {
+    return Optional.ofNullable(clusterProperties.getMetrics())
+        .map(m -> m.getPrometheusExpose() == null || m.getPrometheusExpose())
+        .orElse(true);
   }
 
   private Properties convertProperties(Map<String, Object> propertiesMap) {
@@ -125,6 +164,35 @@ public class KafkaClusterFactory {
       properties.putAll(propertiesMap);
     }
     return properties;
+  }
+
+  private ReactiveFailover<PrometheusClientApi> prometheusStorageClient(
+      ClustersProperties.MetricsStorage storage, ClustersProperties.TruststoreConfig ssl) {
+    WebClient webClient = new WebClientConfigurator()
+        .configureSsl(ssl, null)
+        .configureBufferSize(webClientMaxBuffSize)
+        .build();
+    return ReactiveFailover.create(
+        parseUrlList(storage.getPrometheus().getUrl()),
+        url -> new PrometheusClientApi(new io.kafbat.ui.prometheus.ApiClient(webClient).setBasePath(url)),
+        ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
+        "No live Prometheus instances available",
+        ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS
+    );
+  }
+
+  private boolean prometheusStorageConfigured(ClustersProperties.Cluster cluster) {
+    return Optional.ofNullable(cluster.getMetrics())
+        .flatMap(m -> Optional.ofNullable(m.getStore()))
+        .map(this::prometheusStorageConfigured)
+        .orElse(false);
+  }
+
+  private boolean prometheusStorageConfigured(ClustersProperties.MetricsStorage storage) {
+    return Optional.ofNullable(storage)
+        .flatMap(s -> Optional.ofNullable(s.getPrometheus()))
+        .map(p -> StringUtils.hasText(p.getUrl()))
+        .orElse(false);
   }
 
   private boolean connectClientsConfigured(ClustersProperties.Cluster clusterProperties) {
@@ -145,7 +213,8 @@ public class KafkaClusterFactory {
         url -> new RetryingKafkaConnectClient(
             connectCluster.toBuilder().address(url).build(),
             cluster.getSsl(),
-            webClientMaxBuffSize
+            webClientMaxBuffSize,
+            responseTimeout
         ),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No alive connect instances available",
@@ -197,25 +266,4 @@ public class KafkaClusterFactory {
   private List<String> parseUrlList(String url) {
     return Stream.of(url.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList();
   }
-
-  private boolean metricsConfigured(ClustersProperties.Cluster clusterProperties) {
-    return clusterProperties.getMetrics() != null;
-  }
-
-  @Nullable
-  private MetricsConfig metricsConfigDataToMetricsConfig(ClustersProperties.MetricsConfigData metricsConfigData) {
-    if (metricsConfigData == null) {
-      return null;
-    }
-    MetricsConfig.MetricsConfigBuilder builder = MetricsConfig.builder();
-    builder.type(metricsConfigData.getType());
-    builder.port(metricsConfigData.getPort());
-    builder.ssl(Optional.ofNullable(metricsConfigData.getSsl()).orElse(false));
-    builder.username(metricsConfigData.getUsername());
-    builder.password(metricsConfigData.getPassword());
-    builder.keystoreLocation(metricsConfigData.getKeystoreLocation());
-    builder.keystorePassword(metricsConfigData.getKeystorePassword());
-    return builder.build();
-  }
-
 }

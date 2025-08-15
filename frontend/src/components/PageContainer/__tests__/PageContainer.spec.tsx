@@ -1,12 +1,9 @@
 import React from 'react';
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import PageContainer from 'components/PageContainer/PageContainer';
 import { useClusters } from 'lib/hooks/api/clusters';
 import { Cluster, ServerStatus } from 'generated-sources';
-
-const burgerButtonOptions = { name: 'burger' };
 
 jest.mock('components/Version/Version', () => () => <div>Version</div>);
 
@@ -40,21 +37,6 @@ describe('Page Container', () => {
       }
     );
   };
-
-  it('handle burger click correctly', async () => {
-    renderComponent(false, { data: undefined });
-    const burger = within(screen.getByLabelText('Page Header')).getByRole(
-      'button',
-      burgerButtonOptions
-    );
-    const overlay = screen.getByLabelText('Overlay');
-    expect(screen.getByLabelText('Sidebar')).toBeInTheDocument();
-    expect(overlay).toBeInTheDocument();
-    expect(overlay).toHaveStyleRule('visibility: hidden');
-    expect(burger).toHaveStyleRule('display: none');
-    await userEvent.click(burger);
-    expect(overlay).toHaveStyleRule('visibility: visible');
-  });
 
   it('render the inner container', async () => {
     renderComponent(false, { data: undefined });

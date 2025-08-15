@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
-public class AuditIntegrationTest extends AbstractIntegrationTest {
+class AuditIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired
   private WebTestClient webTestClient;

@@ -1,4 +1,10 @@
-import React, { PropsWithChildren, useEffect, useMemo } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  Suspense,
+  useEffect,
+  useMemo,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar from 'components/NavBar/NavBar';
 import * as S from 'components/PageContainer/PageContainer.styled';
@@ -9,22 +15,25 @@ import { GlobalSettingsContext } from 'components/contexts/GlobalSettingsContext
 import { useClusters } from 'lib/hooks/api/clusters';
 import { ResourceType } from 'generated-sources';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
+import { useScreenSize } from 'lib/hooks/useScreenSize';
+import PageLoader from 'components/common/PageLoader/PageLoader';
 
-const PageContainer: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
+const PageContainer: FC<PropsWithChildren> = ({ children }) => {
+  const { isLarge } = useScreenSize();
   const {
     value: isSidebarVisible,
     toggle,
     setFalse: closeSidebar,
-  } = useBoolean(false);
+  } = useBoolean(isLarge);
   const clusters = useClusters();
   const appInfo = React.useContext(GlobalSettingsContext);
   const location = useLocation();
   const navigate = useNavigate();
   const { data: authInfo } = useGetUserInfo();
 
-  React.useEffect(() => {
-    closeSidebar();
-  }, [location, closeSidebar]);
+  useEffect(() => {
+    if (!isLarge) closeSidebar();
+  }, [location.key, isLarge]);
 
   const hasApplicationPermissions = useMemo(() => {
     if (!authInfo?.rbacEnabled) return true;
@@ -43,7 +52,7 @@ const PageContainer: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
   return (
     <>
       <NavBar onBurgerClick={toggle} />
-      <S.Container>
+      <S.Container $isSidebarVisible={isSidebarVisible}>
         <S.Sidebar aria-label="Sidebar" $visible={isSidebarVisible}>
           <Nav />
         </S.Sidebar>
@@ -55,7 +64,7 @@ const PageContainer: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
           aria-hidden="true"
           aria-label="Overlay"
         />
-        {children}
+        <Suspense fallback={<PageLoader fullSize />}>{children}</Suspense>
       </S.Container>
     </>
   );

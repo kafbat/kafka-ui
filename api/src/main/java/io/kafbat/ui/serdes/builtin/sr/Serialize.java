@@ -96,6 +96,7 @@ final class Serialize {
 
   @KafkaClientInternalsDependant("AbstractKafkaAvroSerializer::serializeImpl")
   @SneakyThrows
+  @SuppressWarnings("unchecked")
   static byte[] serializeAvro(AvroSchema schema, int schemaId, String input) {
     var avroObject = JsonAvroConversion.convertJsonToAvro(input, schema.rawSchema());
     try (var out = new ByteArrayOutputStream()) {

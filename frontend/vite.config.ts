@@ -1,13 +1,9 @@
-import {
-  defineConfig,
-  loadEnv,
-  UserConfigExport,
-  splitVendorChunkPlugin,
-} from 'vite';
+import { defineConfig, loadEnv, UserConfigExport } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { ViteEjsPlugin } from 'vite-plugin-ejs';
 import checker from 'vite-plugin-checker';
+import { IncomingMessage } from 'http';
 
 export default defineConfig(({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
@@ -22,7 +18,7 @@ export default defineConfig(({ mode }) => {
     }),
   ];
 
-  const prodPlugins = [...defaultPlugins, splitVendorChunkPlugin()];
+  const prodPlugins = [...defaultPlugins];
 
   const devPlugins = [
     ...defaultPlugins,
@@ -39,11 +35,24 @@ export default defineConfig(({ mode }) => {
       port: 3000,
     },
     build: {
-      outDir: 'build',
+      outDir: 'build/vite/static',
       rollupOptions: {
         output: {
-          manualChunks: {
-            ace: ['ace-builds', 'react-ace'],
+          manualChunks(id: string) {
+            if (id.includes('ace-builds') || id.includes('react-ace')) {
+              return 'ace';
+            }
+
+            // creating a chunk to react routes deps. Reducing the vendor chunk size
+            if (
+              id.includes('react-router-dom') ||
+              id.includes('@remix-run') ||
+              id.includes('react-router')
+            ) {
+              return '@react-router';
+            }
+
+            return null;
           },
         },
       },
@@ -79,6 +88,21 @@ export default defineConfig(({ mode }) => {
     ...defaultConfig.server,
     open: true,
     proxy: {
+      '/login': {
+        target: isProxy,
+        changeOrigin: true,
+        secure: false,
+        bypass: (req: IncomingMessage) => {
+          if (req.method === 'GET') {
+            return req.url;
+          }
+        },
+      },
+      '/logout': {
+        target: isProxy,
+        changeOrigin: true,
+        secure: false,
+      },
       '/api': {
         target: isProxy,
         changeOrigin: true,

@@ -4,6 +4,7 @@ import static io.kafbat.ui.config.ClustersProperties.TruststoreConfig;
 
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
+import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
@@ -62,10 +63,9 @@ public final class KafkaServicesValidation {
 
   public static Mono<ApplicationPropertyValidationDTO> validateClusterConnection(String bootstrapServers,
                                                                                  Properties clusterProps,
-                                                                                 @Nullable
-                                                                                 TruststoreConfig ssl) {
+                                                                                 @Nullable TruststoreConfig ssl) {
     Properties properties = new Properties();
-    SslPropertiesUtil.addKafkaSslProperties(ssl, properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(ssl, properties);
     properties.putAll(clusterProps);
     properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     // editing properties to make validation faster
@@ -73,7 +73,7 @@ public final class KafkaServicesValidation {
     properties.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, 5_000);
     properties.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, 5_000);
     properties.put(AdminClientConfig.CLIENT_ID_CONFIG, "kui-admin-client-validation-" + System.currentTimeMillis());
-    AdminClient adminClient = null;
+    AdminClient adminClient;
     try {
       adminClient = AdminClient.create(properties);
     } catch (Exception e) {
@@ -141,5 +141,18 @@ public final class KafkaServicesValidation {
         .onErrorResume(KafkaServicesValidation::invalid);
   }
 
+  public static Mono<ApplicationPropertyValidationDTO> validatePrometheusStore(
+      Supplier<ReactiveFailover<PrometheusClientApi>> clientSupplier) {
+    ReactiveFailover<PrometheusClientApi> client;
+    try {
+      client = clientSupplier.get();
+    } catch (Exception e) {
+      log.error("Error creating Prometheus client", e);
+      return invalid("Error creating Prometheus client: " + e.getMessage());
+    }
+    return client.mono(c -> c.query("1", null, null))
+        .then(valid())
+        .onErrorResume(KafkaServicesValidation::invalid);
+  }
 
 }

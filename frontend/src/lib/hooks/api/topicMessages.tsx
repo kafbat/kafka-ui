@@ -1,6 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { BASE_PARAMS, MESSAGES_PER_PAGE } from 'lib/constants';
+import {
+  BASE_PARAMS,
+  MESSAGES_PER_PAGE,
+  MessagesFilterKeys,
+} from 'lib/constants';
 import {
   GetSerdesRequest,
   PollingMode,
@@ -13,7 +17,7 @@ import { showServerError } from 'lib/errorHandling';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
-import { MessagesFilterKeys } from 'lib/hooks/useMessagesFilters';
+import { getCursorValue } from 'lib/hooks/useMessagesFilters';
 import { convertStrToPollingMode } from 'lib/hooks/filterUtils';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
@@ -35,7 +39,7 @@ export const useTopicMessages = ({
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
   const abortController = useRef(new AbortController());
-  const prevReqUrl = useRef<string>('');
+  const prevCursor = useRef(0);
 
   // get initial properties
 
@@ -94,23 +98,23 @@ export const useTopicMessages = ({
         default:
       }
 
-      searchParams.getAll(MessagesFilterKeys.partitions).forEach((value) => {
-        requestParams.append(MessagesFilterKeys.partitions, value);
-      });
-
+      const partitions = searchParams.get(MessagesFilterKeys.partitions);
+      if (partitions !== null) {
+        requestParams.append(MessagesFilterKeys.partitions, partitions);
+      }
       const { nextCursor, setNextCursor } = useMessageFiltersStore.getState();
 
       const tempCompareUrl = new URLSearchParams(requestParams);
       tempCompareUrl.delete(MessagesFilterKeys.cursor);
 
-      const tempToString = tempCompareUrl.toString();
+      const currentCursor = getCursorValue(searchParams);
 
-      // filters stay the say and we have cursor set cursor
-      if (nextCursor && tempToString === prevReqUrl.current) {
+      // filters stay the same and we have cursor set cursor
+      if (nextCursor && prevCursor.current < currentCursor) {
         requestParams.set(MessagesFilterKeys.cursor, nextCursor);
       }
 
-      prevReqUrl.current = tempToString;
+      prevCursor.current = currentCursor;
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
         signal: abortController.current.signal,

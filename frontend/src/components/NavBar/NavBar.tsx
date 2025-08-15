@@ -9,7 +9,10 @@ import SunIcon from 'components/common/Icons/SunIcon';
 import MoonIcon from 'components/common/Icons/MoonIcon';
 import { ThemeModeContext } from 'components/contexts/ThemeModeContext';
 import ProductHuntIcon from 'components/common/Icons/ProductHuntIcon';
+import { Button } from 'components/common/Button/Button';
+import MenuIcon from 'components/common/Icons/MenuIcon';
 
+import { UserTimezone } from './UserTimezone/UserTimezone';
 import UserInfo from './UserInfo/UserInfo';
 import * as S from './NavBar.styled';
 
@@ -56,17 +59,9 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
     <S.Navbar role="navigation" aria-label="Page Header">
       <S.NavbarBrand>
         <S.NavbarBrand>
-          <S.NavbarBurger
-            onClick={onBurgerClick}
-            onKeyDown={onBurgerClick}
-            role="button"
-            tabIndex={0}
-            aria-label="burger"
-          >
-            <S.Span role="separator" />
-            <S.Span role="separator" />
-            <S.Span role="separator" />
-          </S.NavbarBurger>
+          <Button buttonType="text" buttonSize="S" onClick={onBurgerClick}>
+            <MenuIcon />
+          </Button>
 
           <S.Hyperlink to="/">
             <Logo />
@@ -79,6 +74,8 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
         </S.NavbarBrand>
       </S.NavbarBrand>
       <S.NavbarSocial>
+        <UserTimezone />
+
         <Select
           options={options}
           value={themeMode}

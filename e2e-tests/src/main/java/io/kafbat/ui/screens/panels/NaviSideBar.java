@@ -13,16 +13,17 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.openqa.selenium.By;
 
 public class NaviSideBar extends BasePage {
 
   protected SelenideElement dashboardMenuItem = $x("//a[@title='Dashboard']");
-  protected String sideMenuOptionElementLocator = ".//ul/li[contains(.,'%s')]";
+  protected String sideMenuOptionElementLocator = ".//ul/a[@title='%s']";
   protected String clusterElementLocator = "//aside/ul/li[contains(.,'%s')]";
 
   private SelenideElement expandCluster(String clusterName) {
     SelenideElement clusterElement = $x(String.format(clusterElementLocator, clusterName)).shouldBe(Condition.visible);
-    if (clusterElement.parent().$$x(".//ul").size() == 0) {
+    if (clusterElement.parent().$$x(".//ul").isEmpty()) {
       WebUtil.clickByActions(clusterElement);
     }
     return clusterElement;
@@ -45,7 +46,7 @@ public class NaviSideBar extends BasePage {
   @Step
   public NaviSideBar openSideMenu(String clusterName, MenuItem menuItem) {
     WebUtil.clickByActions(expandCluster(clusterName).parent()
-        .$x(String.format(sideMenuOptionElementLocator, menuItem.getNaviTitle())));
+        .find(By.linkText(menuItem.getNaviTitle())));
     return this;
   }
 

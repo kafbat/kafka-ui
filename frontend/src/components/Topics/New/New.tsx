@@ -5,10 +5,10 @@ import TopicForm from 'components/Topics/shared/Form/TopicForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { topicFormValidationSchema } from 'lib/yupExtended';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useCreateTopic } from 'lib/hooks/api/topics';
 import { TopicFormData } from 'lib/interfaces/topic';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 enum Filters {
   NAME = 'name',
@@ -49,7 +49,7 @@ const New: React.FC = () => {
 
   return (
     <>
-      <PageHeading
+      <ResourcePageHeading
         text={search ? 'Copy' : 'Create'}
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}

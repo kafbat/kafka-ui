@@ -1,7 +1,12 @@
 package io.kafbat.ui.config;
 
-import io.kafbat.ui.model.MetricsConfig;
+import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
+
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,13 +22,15 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 @Configuration
 @ConfigurationProperties("kafka")
 @Data
+@Validated
 public class ClustersProperties {
 
-  List<Cluster> clusters = new ArrayList<>();
+  List<@Valid Cluster> clusters = new ArrayList<>();
 
   String internalTopicPrefix;
 
@@ -31,26 +38,43 @@ public class ClustersProperties {
 
   PollingProperties polling = new PollingProperties();
 
+  MetricsStorage defaultMetricsStorage = new MetricsStorage();
+
+  CacheProperties cache = new CacheProperties();
+
   @Data
   public static class Cluster {
+    @NotBlank(message = "field name for for cluster could not be blank")
     String name;
+    @NotBlank(message = "field bootstrapServers for for cluster could not be blank")
     String bootstrapServers;
+
+    TruststoreConfig ssl;
+
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
     KeystoreConfig ksqldbServerSsl;
-    List<ConnectCluster> kafkaConnect;
-    MetricsConfigData metrics;
-    Map<String, Object> properties;
-    boolean readOnly = false;
-    List<SerdeConfig> serde;
+
+    List<@Valid ConnectCluster> kafkaConnect;
+
+    List<@Valid SerdeConfig> serde;
     String defaultKeySerde;
     String defaultValueSerde;
-    List<Masking> masking;
+
+    MetricsConfig metrics;
+    Map<String, Object> properties;
+    Map<String, Object> consumerProperties;
+    Map<String, Object> producerProperties;
+    boolean readOnly = false;
+
     Long pollingThrottleRate;
-    TruststoreConfig ssl;
+
+    List<@Valid Masking> masking;
+
     AuditProperties audit;
   }
 
@@ -59,11 +83,12 @@ public class ClustersProperties {
     Integer pollTimeoutMs;
     Integer maxPageSize;
     Integer defaultPageSize;
+    Integer responseTimeoutMs;
   }
 
   @Data
-  @ToString(exclude = "password")
-  public static class MetricsConfigData {
+  @ToString(exclude = {"password", "keystorePassword"})
+  public static class MetricsConfig {
     String type;
     Integer port;
     Boolean ssl;
@@ -71,6 +96,25 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+
+    Boolean prometheusExpose;
+    MetricsStorage store;
+  }
+
+  @Data
+  public static class MetricsStorage {
+    PrometheusStorage prometheus;
+  }
+
+  @Data
+  @ToString(exclude = {"pushGatewayPassword"})
+  public static class PrometheusStorage {
+    String url;
+    String pushGatewayUrl;
+    String pushGatewayUsername;
+    String pushGatewayPassword;
+    String pushGatewayJobName;
+    Boolean remoteWrite;
   }
 
   @Data
@@ -79,7 +123,9 @@ public class ClustersProperties {
   @Builder(toBuilder = true)
   @ToString(exclude = {"password", "keystorePassword"})
   public static class ConnectCluster {
+    @NotBlank
     String name;
+    @NotBlank
     String address;
     String username;
     String password;
@@ -99,10 +145,21 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
+    boolean verifySsl = true;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @ToString(exclude = {"keystorePassword"})
+  public static class KeystoreConfig {
+    String keystoreLocation;
+    String keystorePassword;
   }
 
   @Data
   public static class SerdeConfig {
+    @NotBlank
     String name;
     String className;
     String filePath;
@@ -119,16 +176,8 @@ public class ClustersProperties {
   }
 
   @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @ToString(exclude = {"keystorePassword"})
-  public static class KeystoreConfig {
-    String keystoreLocation;
-    String keystorePassword;
-  }
-
-  @Data
   public static class Masking {
+    @NotNull
     Type type;
     List<String> fields;
     String fieldsNamePattern;
@@ -150,13 +199,22 @@ public class ClustersProperties {
     Integer auditTopicsPartitions;
     Boolean topicAuditEnabled;
     Boolean consoleAuditEnabled;
-    LogLevel level;
+    LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
 
     public enum LogLevel {
       ALL,
       ALTER_ONLY //default
     }
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CacheProperties {
+    boolean enabled = true;
+    Duration connectCacheExpiry = Duration.ofMinutes(1);
+    Duration connectClusterCacheExpiry = Duration.ofHours(24);
   }
 
   @PostConstruct
@@ -171,7 +229,7 @@ public class ClustersProperties {
   private void setMetricsDefaults() {
     for (Cluster cluster : clusters) {
       if (cluster.getMetrics() != null && !StringUtils.hasText(cluster.getMetrics().getType())) {
-        cluster.getMetrics().setType(MetricsConfig.JMX_METRICS_TYPE);
+        cluster.getMetrics().setType(JMX_METRICS_TYPE);
       }
     }
   }
@@ -179,9 +237,12 @@ public class ClustersProperties {
   private void flattenClusterProperties() {
     for (Cluster cluster : clusters) {
       cluster.setProperties(flattenClusterProperties(null, cluster.getProperties()));
+      cluster.setConsumerProperties(flattenClusterProperties(null, cluster.getConsumerProperties()));
+      cluster.setProducerProperties(flattenClusterProperties(null, cluster.getProducerProperties()));
     }
   }
 
+  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();

@@ -62,7 +62,7 @@ public class HexSerde implements BuiltInSerde {
     return input -> {
       input = input.trim();
       // it is a hack to provide ability to sent empty array as a key/value
-      if (input.length() == 0) {
+      if (input.isEmpty()) {
         return new byte[] {};
       }
       return HexFormat.of().parseHex(prepareInputForParse(input));

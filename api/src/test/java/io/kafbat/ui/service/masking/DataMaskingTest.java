@@ -1,6 +1,5 @@
 package io.kafbat.ui.service.masking;
 
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -57,14 +56,14 @@ class DataMaskingTest {
     var parsedJson = (ContainerNode<?>) new JsonMapper().readTree(jsonObjOrArr);
 
     masking.getMaskingFunction(TOPIC, Serde.Target.KEY).apply(jsonObjOrArr);
-    verify(policy1).applyToJsonContainer(eq(parsedJson));
+    verify(policy1).applyToJsonContainer(parsedJson);
     verifyNoInteractions(policy2, policy3);
 
     reset(policy1, policy2, policy3);
 
     masking.getMaskingFunction(TOPIC, Serde.Target.VALUE).apply(jsonObjOrArr);
-    verify(policy2).applyToJsonContainer(eq(parsedJson));
-    verify(policy3).applyToJsonContainer(eq(policy2.applyToJsonContainer(parsedJson)));
+    verify(policy2).applyToJsonContainer(parsedJson);
+    verify(policy3).applyToJsonContainer(policy2.applyToJsonContainer(parsedJson));
     verifyNoInteractions(policy1);
   }
 
@@ -76,13 +75,13 @@ class DataMaskingTest {
   })
   void appliesFirstFoundMaskToStringArgsBasedOnTopicPatterns(String nonJsonObjOrArrString) {
     masking.getMaskingFunction(TOPIC, Serde.Target.KEY).apply(nonJsonObjOrArrString);
-    verify(policy1).applyToString(eq(nonJsonObjOrArrString));
+    verify(policy1).applyToString(nonJsonObjOrArrString);
     verifyNoInteractions(policy2, policy3);
 
     reset(policy1, policy2, policy3);
 
     masking.getMaskingFunction(TOPIC, Serde.Target.VALUE).apply(nonJsonObjOrArrString);
-    verify(policy2).applyToString(eq(nonJsonObjOrArrString));
+    verify(policy2).applyToString(nonJsonObjOrArrString);
     verifyNoInteractions(policy1, policy3);
   }
 

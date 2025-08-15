@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { PollingMode } from 'generated-sources';
 import { useEffect } from 'react';
 import { Option } from 'react-multi-select-component';
-import { ObjectValues } from 'lib/types';
+import { MessagesFilterKeys } from 'lib/constants';
 
 import { convertStrToPollingMode, ModeOptions } from './filterUtils';
 import {
@@ -10,28 +10,7 @@ import {
   selectFilter,
   useMessageFiltersStore,
 } from './useMessageFiltersStore';
-
-/**
- * @description !! Note !!
- * Key value should match
- * */
-export const MessagesFilterKeys = {
-  mode: 'mode',
-  timestamp: 'timestamp',
-  keySerde: 'keySerde',
-  valueSerde: 'valueSerde',
-  limit: 'limit',
-  offset: 'offset',
-  stringFilter: 'stringFilter',
-  partitions: 'partitions',
-  smartFilterId: 'smartFilterId',
-  activeFilterId: 'activeFilterId',
-  activeFilterNPId: 'activeFilterNPId', // not persisted filter name to indicate the refresh
-  cursor: 'cursor',
-  r: 'r', // used tp force refresh of the data
-} as const;
-
-export type MessagesFilterKeysTypes = ObjectValues<typeof MessagesFilterKeys>;
+import { useMessagesFiltersFields } from './useMessagesFiltersFields';
 
 const PER_PAGE = 100;
 
@@ -52,12 +31,46 @@ export function useRefreshData(initSearchParams?: URLSearchParams) {
   };
 }
 
-export function useMessagesFilters() {
+export function getCursorValue(urlSearchParam: URLSearchParams) {
+  const cursor = parseInt(
+    urlSearchParam.get(MessagesFilterKeys.cursor) || '0',
+    10
+  );
+
+  if (Number.isNaN(cursor)) {
+    return 0;
+  }
+
+  return cursor;
+}
+
+export function usePaginateTopics(initSearchParams?: URLSearchParams) {
+  const [, setSearchParams] = useSearchParams(initSearchParams);
+  return () => {
+    setSearchParams((params) => {
+      const cursor = getCursorValue(params) + 1;
+
+      if (cursor) {
+        params.set(MessagesFilterKeys.cursor, cursor.toString());
+      }
+
+      return params;
+    });
+  };
+}
+
+export function useMessagesFilters(topicName: string) {
   const [searchParams, setSearchParams] = useSearchParams();
   const refreshData = useRefreshData(searchParams);
+  const {
+    initMessagesFiltersFields,
+    setMessagesFiltersField,
+    removeMessagesFiltersField,
+  } = useMessagesFiltersFields(topicName);
 
   useEffect(() => {
     setSearchParams((params) => {
+      initMessagesFiltersFields(params);
       params.set(MessagesFilterKeys.limit, PER_PAGE.toString());
 
       if (!params.get(MessagesFilterKeys.mode)) {
@@ -68,6 +81,9 @@ export function useMessagesFilters() {
         params.delete(MessagesFilterKeys.activeFilterNPId);
         params.delete(MessagesFilterKeys.smartFilterId);
       }
+
+      params.delete(MessagesFilterKeys.cursor);
+
       return params;
     });
   }, []);
@@ -92,7 +108,9 @@ export function useMessagesFilters() {
 
   const search = searchParams.get(MessagesFilterKeys.stringFilter) || '';
 
-  const partitions = searchParams.getAll(MessagesFilterKeys.partitions);
+  const partitions = (searchParams.get(MessagesFilterKeys.partitions) || '')
+    .split(',')
+    .filter((v) => v);
 
   const smartFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) ||
@@ -107,8 +125,10 @@ export function useMessagesFilters() {
    * */
   const setMode = (newMode: PollingMode) => {
     setSearchParams((params) => {
+      removeMessagesFiltersField(MessagesFilterKeys.offset);
+      removeMessagesFiltersField(MessagesFilterKeys.timestamp);
+      setMessagesFiltersField(MessagesFilterKeys.mode, newMode);
       params.set(MessagesFilterKeys.mode, newMode);
-
       params.delete(MessagesFilterKeys.offset);
       params.delete(MessagesFilterKeys.timestamp);
       return params;
@@ -118,6 +138,7 @@ export function useMessagesFilters() {
   const setTimeStamp = (newDate: Date | null) => {
     if (newDate === null) {
       setSearchParams((params) => {
+        removeMessagesFiltersField(MessagesFilterKeys.timestamp);
         params.delete(MessagesFilterKeys.timestamp);
         return params;
       });
@@ -125,6 +146,10 @@ export function useMessagesFilters() {
     }
 
     setSearchParams((params) => {
+      setMessagesFiltersField(
+        MessagesFilterKeys.timestamp,
+        newDate.getTime().toString()
+      );
       params.set(MessagesFilterKeys.timestamp, newDate.getTime().toString());
       return params;
     });
@@ -133,12 +158,14 @@ export function useMessagesFilters() {
   const setKeySerde = (newKeySerde: string) => {
     setSearchParams((params) => {
       params.set(MessagesFilterKeys.keySerde, newKeySerde);
+      setMessagesFiltersField(MessagesFilterKeys.keySerde, newKeySerde);
       return params;
     });
   };
 
   const setValueSerde = (newValueSerde: string) => {
     setSearchParams((params) => {
+      setMessagesFiltersField(MessagesFilterKeys.valueSerde, newValueSerde);
       params.set(MessagesFilterKeys.valueSerde, newValueSerde);
       return params;
     });
@@ -146,6 +173,7 @@ export function useMessagesFilters() {
 
   const setOffsetValue = (newOffsetValue: string) => {
     setSearchParams((params) => {
+      setMessagesFiltersField(MessagesFilterKeys.offset, newOffsetValue);
       params.set(MessagesFilterKeys.offset, newOffsetValue);
       return params;
     });
@@ -154,8 +182,10 @@ export function useMessagesFilters() {
   const setSearch = (value: string) => {
     setSearchParams((params) => {
       if (value) {
+        setMessagesFiltersField(MessagesFilterKeys.stringFilter, value);
         params.set(MessagesFilterKeys.stringFilter, value);
       } else {
+        removeMessagesFiltersField(MessagesFilterKeys.stringFilter);
         params.delete(MessagesFilterKeys.stringFilter);
       }
       return params;
@@ -166,9 +196,18 @@ export function useMessagesFilters() {
     setSearchParams((params) => {
       params.delete(MessagesFilterKeys.partitions);
 
-      values.forEach((option) => {
-        params.append(MessagesFilterKeys.partitions, option.value);
-      });
+      if (values.length) {
+        setMessagesFiltersField(
+          MessagesFilterKeys.partitions,
+          values.map((v) => v.value).join(',')
+        );
+        params.append(
+          MessagesFilterKeys.partitions,
+          values.map((v) => v.value).join(',')
+        );
+      } else {
+        removeMessagesFiltersField(MessagesFilterKeys.partitions);
+      }
 
       return params;
     });

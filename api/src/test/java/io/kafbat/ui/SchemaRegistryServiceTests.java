@@ -32,12 +32,12 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   String subject;
 
   @BeforeEach
-  public void setUpBefore() {
+  void setUpBefore() {
     this.subject = UUID.randomUUID().toString();
   }
 
   @Test
-  public void should404WhenGetAllSchemasForUnknownCluster() {
+  void should404WhenGetAllSchemasForUnknownCluster() {
     webTestClient
         .get()
         .uri("/api/clusters/unknown-cluster/schemas")
@@ -46,7 +46,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturn404WhenGetLatestSchemaByNonExistingSubject() {
+  void shouldReturn404WhenGetLatestSchemaByNonExistingSubject() {
     String unknownSchema = "unknown-schema";
     webTestClient
         .get()
@@ -244,7 +244,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnBackwardAsGlobalCompatibilityLevelByDefault() {
+  void shouldReturnBackwardAsGlobalCompatibilityLevelByDefault() {
     webTestClient
         .get()
         .uri("/api/clusters/{clusterName}/schemas/compatibility", LOCAL)
@@ -260,7 +260,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldReturnNotEmptyResponseWhenGetAllSchemas() {
+  void shouldReturnNotEmptyResponseWhenGetAllSchemas() {
     createNewSubjectAndAssert(subject);
 
     webTestClient
@@ -287,7 +287,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   }
 
   @Test
-  public void shouldOkWhenCreateNewSchemaThenGetAndUpdateItsCompatibilityLevel() {
+  void shouldOkWhenCreateNewSchemaThenGetAndUpdateItsCompatibilityLevel() {
     createNewSubjectAndAssert(subject);
 
     //Get the created schema and check its items
@@ -366,7 +366,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
     List<SchemaSubjectDTO> responseBody = listEntityExchangeResult.getResponseBody();
     Assertions.assertNotNull(responseBody);
     Assertions.assertEquals(1, responseBody.size());
-    SchemaSubjectDTO actualSchema = responseBody.get(0);
+    SchemaSubjectDTO actualSchema = responseBody.getFirst();
     Assertions.assertNotNull(actualSchema);
     Assertions.assertEquals(subject, actualSchema.getSubject());
     Assertions.assertEquals("\"string\"", actualSchema.getSchema());

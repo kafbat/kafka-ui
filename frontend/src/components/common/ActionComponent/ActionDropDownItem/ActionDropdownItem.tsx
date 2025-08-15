@@ -27,7 +27,7 @@ const ActionDropdownItem: React.FC<Props> = ({
 
   const isDisabled = !canDoAction;
 
-  const { x, y, reference, floating, strategy, open } = useActionTooltip(
+  const { x, y, refs, strategy, open } = useActionTooltip(
     isDisabled,
     placement
   );
@@ -37,13 +37,13 @@ const ActionDropdownItem: React.FC<Props> = ({
       <DropdownItem
         {...props}
         disabled={disabled || isDisabled}
-        ref={reference}
+        ref={refs.setReference}
       >
         {children}
       </DropdownItem>
       {open && (
         <S.MessageTooltip
-          ref={floating}
+          ref={refs.setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

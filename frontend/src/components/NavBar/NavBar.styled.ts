@@ -15,7 +15,7 @@ export const Navbar = styled.nav(
     left: 0;
     right: 0;
     z-index: 30;
-    background-color: ${theme.menu.backgroundColor.normal};
+    background-color: ${theme.menu.header.backgroundColor};
     min-height: 3.25rem;
   `
 );
@@ -26,6 +26,7 @@ export const NavbarBrand = styled.div`
   align-items: center !important;
   flex-shrink: 0;
   min-height: 3.25rem;
+  padding-left: 8px;
 `;
 
 export const SocialLink = styled.a(
@@ -82,53 +83,6 @@ export const NavbarItem = styled.div`
   padding: 0.5rem 0.75rem;
 `;
 
-export const NavbarBurger = styled.div(
-  ({ theme }) => css`
-    display: block;
-    position: relative;
-    cursor: pointer;
-    height: 3.25rem;
-    width: 3.25rem;
-    margin: 0;
-    padding: 0;
-
-    &:hover {
-      background-color: ${theme.menu.backgroundColor.hover};
-    }
-
-    @media screen and (min-width: 1024px) {
-      display: none;
-    }
-  `
-);
-
-export const Span = styled.span(
-  ({ theme }) => css`
-    display: block;
-    position: absolute;
-    background: ${theme.menu.color.active};
-    height: 1px;
-    left: calc(50% - 8px);
-    transform-origin: center;
-    transition-duration: 86ms;
-    transition-property: background-color, opacity, transform, -webkit-transform;
-    transition-timing-function: ease-out;
-    width: 16px;
-
-    &:first-child {
-      top: calc(50% - 6px);
-    }
-
-    &:nth-child(2) {
-      top: calc(50% - 1px);
-    }
-
-    &:nth-child(3) {
-      top: calc(50% + 4px);
-    }
-  `
-);
-
 export const Hyperlink = styled(Link)(
   ({ theme }) => css`
     position: relative;
@@ -139,8 +93,8 @@ export const Hyperlink = styled(Link)(
     align-items: center;
     gap: 8px;
 
-    margin: 0 0 0 8px;
-    padding: 0.5rem 0.75rem;
+    margin: 0;
+    padding: 0.5rem 0.6rem;
 
     font-family: Inter, sans-serif;
     font-style: normal;

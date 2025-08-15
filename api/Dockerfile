@@ -1,5 +1,7 @@
-#FROM azul/zulu-openjdk-alpine:17-jre-headless
-FROM azul/zulu-openjdk-alpine@sha256:d59f1266db40341318e563fd76c21b2880ffa5d371f0c097c29d33f89c3a0010
+# The tag is ignored when a sha is included but the reason to add it are:
+# 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
+# 2. Helps dependabot during discovery of upgrades
+FROM azul/zulu-openjdk-alpine:21.0.8-jre-headless@sha256:9c7b4b7850bd4cdd78f91b369accc5b55beffa9a073b9a2bb94caa42606b9444
 
 RUN apk add --no-cache \
     # snappy codec
@@ -15,7 +17,7 @@ RUN chown kafkaui /etc/kafkaui
 USER kafkaui
 
 ARG JAR_FILE
-COPY "/target/${JAR_FILE}" "/api.jar"
+COPY $JAR_FILE "/api.jar"
 
 ENV JAVA_OPTS=
 

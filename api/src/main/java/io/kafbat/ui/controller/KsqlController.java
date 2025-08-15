@@ -10,6 +10,7 @@ import io.kafbat.ui.model.KsqlTableResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.KsqlAction;
 import io.kafbat.ui.service.ksql.KsqlServiceV2;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +25,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class KsqlController extends AbstractController implements KsqlApi {
+public class KsqlController extends AbstractController implements KsqlApi, McpTool {
 
   private final KsqlServiceV2 ksqlServiceV2;
 
@@ -53,6 +54,7 @@ public class KsqlController extends AbstractController implements KsqlApi {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Mono<ResponseEntity<Flux<KsqlResponseDTO>>> openKsqlResponsePipe(String clusterName,
                                                                           String pipeId,
                                                                           ServerWebExchange exchange) {

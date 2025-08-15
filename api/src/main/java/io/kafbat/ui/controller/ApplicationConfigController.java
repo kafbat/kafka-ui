@@ -5,8 +5,9 @@ import static io.kafbat.ui.model.rbac.permission.ApplicationConfigAction.VIEW;
 
 import io.kafbat.ui.api.ApplicationConfigApi;
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.mapper.DynamicConfigMapper;
+import io.kafbat.ui.model.AppAuthenticationSettingsDTO;
 import io.kafbat.ui.model.ApplicationConfigDTO;
-import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigValidationDTO;
 import io.kafbat.ui.model.ApplicationInfoDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
@@ -21,8 +22,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.Part;
@@ -38,24 +37,22 @@ import reactor.util.function.Tuples;
 @RequiredArgsConstructor
 public class ApplicationConfigController extends AbstractController implements ApplicationConfigApi {
 
-  private static final PropertiesMapper MAPPER = Mappers.getMapper(PropertiesMapper.class);
-
-  @Mapper
-  interface PropertiesMapper {
-
-    DynamicConfigOperations.PropertiesStructure fromDto(ApplicationConfigPropertiesDTO dto);
-
-    ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
-  }
-
   private final DynamicConfigOperations dynamicConfigOperations;
   private final ApplicationRestarter restarter;
   private final KafkaClusterFactory kafkaClusterFactory;
   private final ApplicationInfoService applicationInfoService;
+  private final DynamicConfigMapper configMapper;
 
   @Override
   public Mono<ResponseEntity<ApplicationInfoDTO>> getApplicationInfo(ServerWebExchange exchange) {
     return Mono.just(applicationInfoService.getApplicationInfo()).map(ResponseEntity::ok);
+  }
+
+  @Override
+  public Mono<ResponseEntity<AppAuthenticationSettingsDTO>> getAuthenticationSettings(
+      ServerWebExchange exchange) {
+    return Mono.just(applicationInfoService.getAuthenticationProperties())
+        .map(ResponseEntity::ok);
   }
 
   @Override
@@ -67,7 +64,7 @@ public class ApplicationConfigController extends AbstractController implements A
     return validateAccess(context)
         .then(Mono.fromSupplier(() -> ResponseEntity.ok(
             new ApplicationConfigDTO()
-                .properties(MAPPER.toDto(dynamicConfigOperations.getCurrentProperties()))
+                .properties(configMapper.toDto(dynamicConfigOperations.getCurrentProperties()))
         )))
         .doOnEach(sig -> audit(context, sig));
   }
@@ -75,14 +72,14 @@ public class ApplicationConfigController extends AbstractController implements A
   @Override
   public Mono<ResponseEntity<Void>> restartWithConfig(Mono<RestartRequestDTO> restartRequestDto,
                                                       ServerWebExchange exchange) {
-    var context =  AccessContext.builder()
+    var context = AccessContext.builder()
         .applicationConfigActions(EDIT)
         .operationName("restartWithConfig")
         .build();
     return validateAccess(context)
         .then(restartRequestDto)
         .doOnNext(restartDto -> {
-          var newConfig = MAPPER.fromDto(restartDto.getConfig().getProperties());
+          var newConfig = configMapper.fromDto(restartDto.getConfig().getProperties());
           dynamicConfigOperations.persist(newConfig);
         })
         .doOnEach(sig -> audit(context, sig))
@@ -101,7 +98,7 @@ public class ApplicationConfigController extends AbstractController implements A
         .then(fileFlux.single())
         .flatMap(file ->
             dynamicConfigOperations.uploadConfigRelatedFile((FilePart) file)
-                .map(path -> new UploadedFileInfoDTO().location(path.toString()))
+                .map(path -> new UploadedFileInfoDTO(path.toString()))
                 .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
@@ -116,7 +113,7 @@ public class ApplicationConfigController extends AbstractController implements A
     return validateAccess(context)
         .then(configDto)
         .flatMap(config -> {
-          DynamicConfigOperations.PropertiesStructure newConfig = MAPPER.fromDto(config.getProperties());
+          DynamicConfigOperations.PropertiesStructure newConfig = configMapper.fromDto(config.getProperties());
           ClustersProperties clustersProperties = newConfig.getKafka();
           return validateClustersConfig(clustersProperties)
               .map(validations -> new ApplicationConfigValidationDTO().clusters(validations));

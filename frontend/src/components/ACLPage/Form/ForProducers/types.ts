@@ -7,5 +7,5 @@ export interface FormValues {
   topicsPrefix?: string;
   transactionalId?: string;
   transactionsIdPrefix?: string;
-  indemponent: boolean;
+  idempotent: boolean;
 }

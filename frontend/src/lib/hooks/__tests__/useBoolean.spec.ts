@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import useBoolean from 'lib/hooks/useBoolean';
 
 describe('useBoolean CustomHook', () => {
@@ -8,8 +8,7 @@ describe('useBoolean CustomHook', () => {
     expect(result.current.value).toBe(initialValue);
     initialValue = false;
     rerender();
-    // because state is in useState
-    expect(result.current.value).not.toBe(initialValue);
+    expect(result.current.value).toBe(initialValue);
   });
 
   it('should check false initial values', () => {
@@ -19,8 +18,7 @@ describe('useBoolean CustomHook', () => {
 
     initialValue = true;
     rerender();
-    // because state is in useState
-    expect(result.current.value).not.toBe(initialValue);
+    expect(result.current.value).toBe(initialValue);
   });
 
   it('should check setTrue function', () => {

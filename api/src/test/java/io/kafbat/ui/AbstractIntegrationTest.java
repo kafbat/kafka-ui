@@ -1,14 +1,18 @@
 package io.kafbat.ui;
 
+import static io.kafbat.ui.util.GithubReleaseInfo.GITHUB_RELEASE_INFO_TIMEOUT;
+
 import io.kafbat.ui.container.KafkaConnectContainer;
 import io.kafbat.ui.container.KsqlDbContainer;
 import io.kafbat.ui.container.SchemaRegistryContainer;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.IsolationLevel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,8 +24,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.TestSocketUtils;
-import org.testcontainers.containers.KafkaContainer;
+import org.springframework.util.ResourceUtils;
 import org.testcontainers.containers.Network;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 
@@ -33,13 +38,13 @@ public abstract class AbstractIntegrationTest {
   public static final String LOCAL = "local";
   public static final String SECOND_LOCAL = "secondLocal";
 
-  private static final boolean IS_ARM =
-      System.getProperty("os.arch").contains("arm") || System.getProperty("os.arch").contains("aarch64");
+  private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
 
-  private static final String CONFLUENT_PLATFORM_VERSION = IS_ARM ? "7.2.1.arm64" : "7.2.1";
+  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(
+      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
 
-  public static final KafkaContainer kafka = new KafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION))
+  public static final ConfluentKafkaContainer kafka = kafkaOriginal
+      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
       .withNetwork(Network.SHARED);
 
   public static final SchemaRegistryContainer schemaRegistry =
@@ -73,6 +78,18 @@ public abstract class AbstractIntegrationTest {
     public void initialize(@NotNull ConfigurableApplicationContext context) {
       System.setProperty("kafka.clusters.0.name", LOCAL);
       System.setProperty("kafka.clusters.0.bootstrapServers", kafka.getBootstrapServers());
+
+      // Add ProtobufFileSerde configuration
+      System.setProperty("kafka.clusters.0.serde.0.name", "ProtobufFile");
+      System.setProperty("kafka.clusters.0.serde.0.topicValuesPattern", "masking-test-.*");
+      try {
+        System.setProperty("kafka.clusters.0.serde.0.properties.protobufFilesDir",
+            ResourceUtils.getFile("classpath:protobuf-serde").getAbsolutePath());
+      } catch (FileNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+      System.setProperty("kafka.clusters.0.serde.0.properties.protobufMessageName", "test.MessageWithAny");
+
       // List unavailable hosts to verify failover
       System.setProperty("kafka.clusters.0.schemaRegistry",
           String.format("http://localhost:%1$s,http://localhost:%1$s,%2$s",
@@ -89,6 +106,12 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.0.audit.topicAuditEnabled", "true");
       System.setProperty("kafka.clusters.0.audit.consoleAuditEnabled", "true");
 
+      System.setProperty("kafka.clusters.0.consumerProperties.request.timeout.ms", "60000");
+      System.setProperty("kafka.clusters.0.consumerProperties.isolation.level",
+          IsolationLevel.READ_COMMITTED.toString());
+      System.setProperty("kafka.clusters.0.producerProperties.request.timeout.ms", "45000");
+      System.setProperty("kafka.clusters.0.producerProperties.max.block.ms", "80000");
+
       System.setProperty("kafka.clusters.1.name", SECOND_LOCAL);
       System.setProperty("kafka.clusters.1.readOnly", "true");
       System.setProperty("kafka.clusters.1.bootstrapServers", kafka.getBootstrapServers());
@@ -98,6 +121,7 @@ public abstract class AbstractIntegrationTest {
 
       System.setProperty("dynamic.config.enabled", "true");
       System.setProperty("config.related.uploads.dir", tmpDir.toString());
+      System.setProperty(GITHUB_RELEASE_INFO_TIMEOUT, String.valueOf(100));
     }
   }
 

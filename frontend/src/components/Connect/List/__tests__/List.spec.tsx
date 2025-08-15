@@ -12,11 +12,13 @@ import { clusterConnectConnectorPath, clusterConnectorsPath } from 'lib/paths';
 import {
   useConnectors,
   useDeleteConnector,
+  useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 
 const mockedUsedNavigate = jest.fn();
 const mockDelete = jest.fn();
+const mockResetOffsets = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -27,6 +29,7 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
   useConnectors: jest.fn(),
   useDeleteConnector: jest.fn(),
   useUpdateConnectorState: jest.fn(),
+  useResetConnectorOffsets: jest.fn(),
 }));
 
 const clusterName = 'local';
@@ -56,23 +59,18 @@ describe('Connectors List', () => {
     it('renders', async () => {
       renderComponent();
       expect(screen.getByRole('table')).toBeInTheDocument();
-      expect(screen.getAllByRole('row').length).toEqual(3);
+      expect(screen.getAllByRole('row').length).toEqual(4);
     });
 
     it('opens broker when row clicked', async () => {
       renderComponent();
-      await userEvent.click(
-        screen.getByRole('row', {
-          name: 'hdfs-source-connector first SOURCE FileStreamSource a b c RUNNING 2 of 2',
-        })
-      );
-      await waitFor(() =>
-        expect(mockedUsedNavigate).toBeCalledWith(
-          clusterConnectConnectorPath(
-            clusterName,
-            'first',
-            'hdfs-source-connector'
-          )
+      screen.debug();
+      expect(screen.getByText('hdfs-source-connector')).toHaveAttribute(
+        'href',
+        clusterConnectConnectorPath(
+          clusterName,
+          'first',
+          'hdfs-source-connector'
         )
       );
     });
@@ -94,7 +92,7 @@ describe('Connectors List', () => {
     });
   });
 
-  describe('when remove connector modal is open', () => {
+  describe('when delete modal is open', () => {
     beforeEach(() => {
       (useConnectors as jest.Mock).mockImplementation(() => ({
         data: connectors,
@@ -104,10 +102,10 @@ describe('Connectors List', () => {
       }));
     });
 
-    it('calls removeConnector on confirm', async () => {
+    it('calls deleteConnector on confirm', async () => {
       renderComponent();
-      const removeButton = screen.getAllByText('Remove Connector')[0];
-      await waitFor(() => userEvent.click(removeButton));
+      const deleteButton = screen.getAllByText('Delete')[0];
+      await waitFor(() => userEvent.click(deleteButton));
 
       const submitButton = screen.getAllByRole('button', {
         name: 'Confirm',
@@ -118,8 +116,43 @@ describe('Connectors List', () => {
 
     it('closes the modal when cancel button is clicked', async () => {
       renderComponent();
-      const removeButton = screen.getAllByText('Remove Connector')[0];
-      await waitFor(() => userEvent.click(removeButton));
+      const deleteButton = screen.getAllByText('Delete')[0];
+      await waitFor(() => userEvent.click(deleteButton));
+
+      const cancelButton = screen.getAllByRole('button', {
+        name: 'Cancel',
+      })[0];
+      await waitFor(() => userEvent.click(cancelButton));
+      expect(cancelButton).not.toBeInTheDocument();
+    });
+  });
+
+  describe('when reset connector offsets modal is open', () => {
+    beforeEach(() => {
+      (useConnectors as jest.Mock).mockImplementation(() => ({
+        data: connectors,
+      }));
+      (useResetConnectorOffsets as jest.Mock).mockImplementation(() => ({
+        mutateAsync: mockResetOffsets,
+      }));
+    });
+
+    it('calls resetConnectorOffsets on confirm', async () => {
+      renderComponent();
+      const resetButton = screen.getAllByText('Reset Offsets')[2];
+      await waitFor(() => userEvent.click(resetButton));
+
+      const submitButton = screen.getAllByRole('button', {
+        name: 'Confirm',
+      })[0];
+      await userEvent.click(submitButton);
+      expect(mockResetOffsets).toHaveBeenCalledWith();
+    });
+
+    it('closes the modal when cancel button is clicked', async () => {
+      renderComponent();
+      const resetButton = screen.getAllByText('Reset Offsets')[2];
+      await waitFor(() => userEvent.click(resetButton));
 
       const cancelButton = screen.getAllByRole('button', {
         name: 'Cancel',

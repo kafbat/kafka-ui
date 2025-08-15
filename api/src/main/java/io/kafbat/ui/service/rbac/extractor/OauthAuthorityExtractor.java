@@ -58,9 +58,8 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH))
             .filter(s -> s.getType().equals("user"))
-            .peek(s -> log.trace("[{}] matches [{}]? [{}]", s.getValue(), principalName,
-                s.getValue().equalsIgnoreCase(principalName)))
-            .anyMatch(s -> s.getValue().equalsIgnoreCase(principalName)))
+            .peek(s -> log.trace("[{}] matches [{}]? [{}]", s.getValue(), principalName,  s.matches(principalName)))
+            .anyMatch(s ->  s.matches(principalName)))
         .map(Role::getName)
         .collect(Collectors.toSet());
 
@@ -76,7 +75,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
     var rolesFieldName = provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME);
 
     if (rolesFieldName == null) {
-      log.warn("Provider [{}] doesn't contain a roles field param name, won't map roles", provider);
+      log.warn("Provider [{}] doesn't contain a roles field param name, won't map roles", provider.getClientName());
       return Collections.emptySet();
     }
 
@@ -94,11 +93,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
             .stream()
             .filter(s -> s.getProvider().equals(Provider.OAUTH))
             .filter(s -> s.getType().equals("role"))
-            .anyMatch(subject -> {
-              var roleName = subject.getValue();
-              return principalRoles.contains(roleName);
-            })
-        )
+            .anyMatch(subject -> principalRoles.stream().anyMatch(subject::matches)))
         .map(Role::getName)
         .collect(Collectors.toSet());
 

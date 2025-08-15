@@ -15,6 +15,7 @@ import com.google.protobuf.SourceContextProto;
 import com.google.protobuf.StructProto;
 import com.google.protobuf.TimestampProto;
 import com.google.protobuf.TypeProto;
+import com.google.protobuf.TypeRegistry;
 import com.google.protobuf.WrappersProto;
 import com.google.protobuf.util.JsonFormat;
 import com.google.type.ColorProto;
@@ -49,6 +50,7 @@ import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.io.ByteArrayInputStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -62,6 +64,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 @Slf4j
@@ -109,7 +112,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
         && configuration.defaultKeyMessageDescriptor() == null
         && configuration.messageDescriptorMap().isEmpty()
         && configuration.keyMessageDescriptorMap().isEmpty()) {
-      throw new ValidationException("Neither default, not per-topic descriptors defined for " + name() + " serde");
+      throw new ValidationException("Neither default, nor per-topic descriptors defined for " + name() + " serde");
     }
     this.defaultMessageDescriptor = configuration.defaultMessageDescriptor();
     this.defaultKeyMessageDescriptor = configuration.defaultKeyMessageDescriptor();
@@ -146,12 +149,18 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    TypeRegistry typeRegistry = TypeRegistry.newBuilder()
+        .add(descriptorPaths.keySet())
+        .build();
+
     return new Serde.Serializer() {
       @SneakyThrows
       @Override
       public byte[] serialize(String input) {
         DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
-        JsonFormat.parser().merge(input, builder);
+        JsonFormat.parser()
+            .usingTypeRegistry(typeRegistry)
+            .merge(input, builder);
         return builder.build().toByteArray();
       }
     };
@@ -371,12 +380,12 @@ public class ProtobufFileSerde implements BuiltInSerde {
     }
 
     private ProtoFile loadKnownProtoFile(String path, Descriptors.FileDescriptor fileDescriptor) {
-      String protoFileString = null;
+      String protoFileString;
       // know type file contains either message or enum
       if (!fileDescriptor.getMessageTypes().isEmpty()) {
-        protoFileString = new ProtobufSchema(fileDescriptor.getMessageTypes().get(0)).canonicalString();
+        protoFileString = new ProtobufSchema(fileDescriptor.getMessageTypes().getFirst()).canonicalString();
       } else if (!fileDescriptor.getEnumTypes().isEmpty()) {
-        protoFileString = new ProtobufSchema(fileDescriptor.getEnumTypes().get(0)).canonicalString();
+        protoFileString = new ProtobufSchema(fileDescriptor.getEnumTypes().getFirst()).canonicalString();
       } else {
         throw new IllegalStateException();
       }
@@ -404,11 +413,11 @@ public class ProtobufFileSerde implements BuiltInSerde {
     @SneakyThrows
     private Map<String, ProtoFile> loadFilesWithLocations() {
       Map<String, ProtoFile> filesByLocations = new HashMap<>();
-      try (var files = Files.walk(baseLocation)) {
+      try (var files = Files.walk(baseLocation, FileVisitOption.FOLLOW_LINKS)) {
         files.filter(p -> !Files.isDirectory(p) && p.toString().endsWith(".proto"))
             .forEach(path -> {
               // relative path will be used as "import" statement
-              String relativePath = baseLocation.relativize(path).toString();
+              String relativePath = removeBackSlashes(baseLocation.relativize(path).toString());
               var protoFileElement = ProtoParser.Companion.parse(
                   Location.get(baseLocation.toString(), relativePath),
                   readFileAsString(path)
@@ -417,6 +426,27 @@ public class ProtobufFileSerde implements BuiltInSerde {
             });
       }
       return filesByLocations;
+    }
+
+    /**
+     * Replaces backslashes in the given file path with forward slashes if the operating system is Windows.
+     *
+     * <p>This method is designed to standardize file paths by converting Windows-style backslashes (`\`)
+     * to Linux/Unix-style forward slashes (`/`) when the application is running on a Windows OS.
+     * On other operating systems, the input path is returned unchanged.</p>
+     *
+     * <p>This is needed because imports in Protobuf use forward slashes (`/`)
+     * which causes a conflict with Windows paths. For example,`language/language.proto`
+     * would be converted to `language\language.proto` in Windows causing a resolution exception</p>
+     *
+     * @param path the file path to standardize; must not be {@code null}.
+     * @return the standardized file path with forward slashes if running on Windows, or the original path otherwise.
+     */
+    private @NotNull String removeBackSlashes(@NotNull final String path) {
+      if (SystemUtils.IS_OS_WINDOWS) {
+        return path.replace("\\", "/");
+      }
+      return path;
     }
   }
 

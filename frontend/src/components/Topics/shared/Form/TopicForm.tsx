@@ -116,6 +116,7 @@ const TopicForm: React.FC<Props> = ({
                   id="topicFormNumberOfPartitions"
                   type="number"
                   placeholder="Number of Partitions"
+                  defaultValue="1"
                   min="1"
                   name="partitions"
                   positiveOnly
@@ -205,7 +206,7 @@ const TopicForm: React.FC<Props> = ({
               id="topicFormRetentionBytesLabel"
               htmlFor="topicFormRetentionBytes"
             >
-              Max size on disk in GB
+              Max partition size in GB
             </InputLabel>
             <Controller
               control={control}

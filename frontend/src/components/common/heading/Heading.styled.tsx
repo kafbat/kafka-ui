@@ -10,7 +10,7 @@ const HeadingBase = styled.h1<HeadingBaseProps>`
   ${({ theme, $level }) => theme.heading?.variants[$level]}
 `;
 
-interface HeadingProps {
+export interface HeadingProps {
   level?: HeadingLevel;
 }
 const Heading: React.FC<PropsWithChildren<HeadingProps>> = ({

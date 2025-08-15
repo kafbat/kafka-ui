@@ -66,13 +66,13 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListFirst25Topics() {
+  void shouldListFirst25Topics() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, false, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -93,12 +93,12 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListFirst25TopicsSortedByNameDescendingOrder() {
+  void shouldListFirst25TopicsSortedByNameDescendingOrder() {
     var internalTopics = IntStream.rangeClosed(1, 100).boxed()
         .map(Objects::toString)
         .map(name -> new TopicDescription(name, false, List.of()))
         .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-            Metrics.empty(), InternalLogDirStats.empty(), "_"))
+            Metrics.empty(), null, null, "_"))
         .collect(Collectors.toMap(InternalTopic::getName, Function.identity()));
     init(internalTopics);
 
@@ -119,13 +119,13 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldCalculateCorrectPageCountForNonDivisiblePageSize() {
+  void shouldCalculateCorrectPageCountForNonDivisiblePageSize() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, false, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -134,17 +134,17 @@ class TopicsServicePaginationTest {
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(1);
-    assertThat(topics.getBody().getTopics().get(0).getName()).isEqualTo("99");
+    assertThat(topics.getBody().getTopics().getFirst().getName()).isEqualTo("99");
   }
 
   @Test
-  public void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
+  void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, false, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -157,13 +157,13 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListBotInternalAndNonInternalTopics() {
+  void shouldListBotInternalAndNonInternalTopics() {
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, Integer.parseInt(name) % 10 == 0, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -177,14 +177,14 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListOnlyNonInternalTopics() {
+  void shouldListOnlyNonInternalTopics() {
 
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, Integer.parseInt(name) % 5 == 0, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -198,14 +198,14 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListOnlyTopicsContainingOne() {
+  void shouldListOnlyTopicsContainingOne() {
 
     init(
         IntStream.rangeClosed(1, 100).boxed()
             .map(Objects::toString)
             .map(name -> new TopicDescription(name, false, List.of()))
             .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
-                Metrics.empty(), InternalLogDirStats.empty(), "_"))
+                Metrics.empty(), null, null, "_"))
             .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
     );
 
@@ -219,7 +219,7 @@ class TopicsServicePaginationTest {
   }
 
   @Test
-  public void shouldListTopicsOrderedByPartitionsCount() {
+  void shouldListTopicsOrderedByPartitionsCount() {
     Map<String, InternalTopic> internalTopics = IntStream.rangeClosed(1, 100).boxed()
         .map(i -> new TopicDescription(UUID.randomUUID().toString(), false,
             IntStream.range(0, i)
@@ -227,7 +227,7 @@ class TopicsServicePaginationTest {
                     new TopicPartitionInfo(p, null, List.of(), List.of()))
                 .collect(Collectors.toList())))
         .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), InternalPartitionsOffsets.empty(),
-            Metrics.empty(), InternalLogDirStats.empty(), "_"))
+            Metrics.empty(), null, null, "_"))
         .collect(Collectors.toMap(InternalTopic::getName, Function.identity()));
 
     init(internalTopics);

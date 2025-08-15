@@ -2,17 +2,21 @@
 
 
 # BACKEND
-/pom.xml                    @kafbat/backend
-
-/contract/         @kafbat/backend
-
-/api/              @kafbat/backend
+gradle/libs.versions.toml   @kafbat/backend
+/build.gradle               @kafbat/backend
+/gradle.properties          @kafbat/backend
+/settings.gradle            @kafbat/backend
+/gradle/                    @kafbat/backend
+/contract/                  @kafbat/backend
+/api/                       @kafbat/backend
+/serde-api/                 @kafbat/backend
+/documentation/compose/     @kafbat/backend
 
 # FRONTEND
-/frontend/        @kafbat/frontend
+/frontend/                  @kafbat/frontend
 
 # TESTS
-/e2e-tests/       @kafbat/qa
+/e2e-tests/                 @kafbat/qa
 
 # INFRA
 /.github/workflows/         @kafbat/devops

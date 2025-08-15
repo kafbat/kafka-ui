@@ -3,6 +3,8 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.RESET_OFFSETS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.VIEW;
 
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
@@ -18,6 +20,7 @@ import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.service.KafkaConnectService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +36,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaConnectController extends AbstractController implements KafkaConnectApi {
+public class KafkaConnectController extends AbstractController implements KafkaConnectApi, McpTool {
   private static final Set<ConnectorActionDTO> RESTART_ACTIONS
       = Set.of(RESTART, RESTART_FAILED_TASKS, RESTART_ALL_TASKS);
   private static final String CONNECTOR_NAME = "connectorName";
@@ -42,10 +45,12 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
   @Override
   public Mono<ResponseEntity<Flux<ConnectDTO>>> getConnects(String clusterName,
+                                                            Boolean withStats,
                                                             ServerWebExchange exchange) {
 
-    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(getCluster(clusterName))
-        .filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
+    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(
+        getCluster(clusterName), withStats != null ? withStats : false
+        ).filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
 
     return Mono.just(ResponseEntity.ok(availableConnects));
   }
@@ -188,11 +193,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          ConnectorActionDTO action,
                                                          ServerWebExchange exchange) {
     ConnectAction[] connectActions;
-    if (RESTART_ACTIONS.contains(action)) {
-      connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.RESTART};
-    } else {
-      connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.EDIT};
-    }
+    connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.OPERATE};
 
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -234,7 +235,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.RESTART)
+        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.OPERATE)
         .operationName("restartConnectorTask")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
@@ -284,5 +285,24 @@ public class KafkaConnectController extends AbstractController implements KafkaC
       case STATUS -> Comparator.comparing(fullConnectorInfoDTO -> fullConnectorInfoDTO.getStatus().getState());
       default -> defaultComparator;
     };
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> resetConnectorOffsets(String clusterName, String connectName,
+      String connectorName,
+      ServerWebExchange exchange) {
+
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .connectActions(connectName, VIEW, RESET_OFFSETS)
+        .operationName("resetConnectorOffsets")
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
+        .build();
+
+    return validateAccess(context).then(
+        kafkaConnectService
+            .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
+            .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
   }
 }

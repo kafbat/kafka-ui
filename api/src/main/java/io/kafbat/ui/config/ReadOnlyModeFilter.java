@@ -25,7 +25,7 @@ public class ReadOnlyModeFilter implements WebFilter {
       Pattern.compile("/api/clusters/(?<clusterName>[^/]++)");
 
   private static final Set<Pattern> SAFE_ENDPOINTS = Set.of(
-      Pattern.compile("/api/clusters/[^/]+/topics/[^/]+/(smartfilters)$")
+      Pattern.compile("/api/clusters/[^/]+/topics/[^/]+/(smartfilters|analysis)$")
   );
 
   private final ClustersStorage clustersStorage;
@@ -33,7 +33,8 @@ public class ReadOnlyModeFilter implements WebFilter {
   @NotNull
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, @NotNull WebFilterChain chain) {
-    var isSafeMethod = exchange.getRequest().getMethod() == HttpMethod.GET;
+    var isSafeMethod =
+        exchange.getRequest().getMethod() == HttpMethod.GET || exchange.getRequest().getMethod() == HttpMethod.OPTIONS;
     if (isSafeMethod) {
       return chain.filter(exchange);
     }

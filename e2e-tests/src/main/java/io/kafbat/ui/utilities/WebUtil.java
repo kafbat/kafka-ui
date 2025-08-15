@@ -1,5 +1,6 @@
 package io.kafbat.ui.utilities;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static io.kafbat.ui.variables.Common.LOG_RESULT;
 
 import com.codeborne.selenide.Condition;
@@ -51,8 +52,13 @@ public class WebUtil {
 
   public static void clearByKeyboard(SelenideElement field) {
     log.debug("\nclearByKeyboard: {{}}", field.getSearchCriteria());
-    field.shouldBe(Condition.enabled).sendKeys(Keys.END);
-    field.sendKeys(Keys.chord(Keys.CONTROL + "a"), Keys.DELETE);
+    field.shouldBe(enabled).sendKeys(Keys.PAGE_DOWN);
+    Selenide.actions()
+        .keyDown(Keys.SHIFT)
+        .sendKeys(Keys.PAGE_UP)
+        .keyUp(Keys.SHIFT)
+        .sendKeys(Keys.DELETE)
+        .perform();
   }
 
   public static boolean isVisible(SelenideElement element, int... timeoutInSeconds) {

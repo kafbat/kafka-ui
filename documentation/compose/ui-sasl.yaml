@@ -18,7 +18,7 @@ services:
       DYNAMIC_CONFIG_ENABLED: true # not necessary for sasl auth, added for tests
 
   kafka:
-    image: confluentinc/cp-kafka:7.2.1
+    image: confluentinc/cp-kafka:7.8.0
     hostname: kafka
     container_name: kafka
     ports:
@@ -46,7 +46,6 @@ services:
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
       KAFKA_SECURITY_PROTOCOL: 'SASL_PLAINTEXT'
       KAFKA_SUPER_USERS: 'User:admin,User:enzo'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
     volumes:
-      - ./scripts/update_run.sh:/tmp/update_run.sh
       - ./jaas:/etc/kafka/jaas
-    command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"

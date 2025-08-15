@@ -7,6 +7,7 @@ import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -54,12 +56,14 @@ public class AccessControlService {
   private final RoleBasedAccessControlProperties properties;
   private final Environment environment;
 
+  @Getter
   private boolean rbacEnabled = false;
+  @Getter
   private Set<ProviderAuthorityExtractor> oauthExtractors = Collections.emptySet();
 
   @PostConstruct
   public void init() {
-    if (CollectionUtils.isEmpty(properties.getRoles())) {
+    if (CollectionUtils.isEmpty(properties.getRoles()) && properties.getDefaultRole() == null) {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
@@ -72,18 +76,19 @@ public class AccessControlService {
             .map(Subject::getProvider)
             .distinct()
             .map(provider -> switch (provider) {
-              case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
-              case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
-              case OAUTH_GITHUB -> new GithubAuthorityExtractor();
-              case OAUTH -> new OauthAuthorityExtractor();
-              default -> null;
-            })
-            .filter(Objects::nonNull)
+                  case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
+                  case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
+                  case OAUTH_GITHUB -> new GithubAuthorityExtractor();
+                  case OAUTH -> new OauthAuthorityExtractor();
+                  default -> null;
+                }
+            ).filter(Objects::nonNull)
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
-    if (!properties.getRoles().isEmpty()
+    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
+    if (hasRolesConfigured
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
         && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
       log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
@@ -107,14 +112,24 @@ public class AccessControlService {
     if (context.cluster() != null && !isClusterAccessible(context.cluster(), user)) {
       return false;
     }
-    return context.isAccessible(getUserPermissions(user));
+    return context.isAccessible(getUserPermissions(user, context.cluster()));
   }
 
-  private List<Permission> getUserPermissions(AuthenticatedUser user) {
-    return properties.getRoles().stream()
-        .filter(filterRole(user))
-        .flatMap(role -> role.getPermissions().stream())
-        .toList();
+  private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
+    List<Role> filteredRoles = properties.getRoles()
+            .stream()
+            .filter(filterRole(user))
+            .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+            .toList();
+
+    // if no roles are found, check if default role is set
+    if (filteredRoles.isEmpty() && properties.getDefaultRole() != null) {
+      return properties.getDefaultRole().getPermissions();
+    }
+
+    return filteredRoles.stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .toList();
   }
 
   public static Mono<AuthenticatedUser> getUser() {
@@ -127,10 +142,12 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
-    return properties.getRoles()
+    boolean isAccessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
+    
+    return isAccessible || properties.getDefaultRole() != null;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {
@@ -188,10 +205,6 @@ public class AccessControlService {
     );
   }
 
-  public Set<ProviderAuthorityExtractor> getOauthExtractors() {
-    return oauthExtractors;
-  }
-
   public List<Role> getRoles() {
     if (!rbacEnabled) {
       return Collections.emptyList();
@@ -199,11 +212,12 @@ public class AccessControlService {
     return Collections.unmodifiableList(properties.getRoles());
   }
 
+  public DefaultRole getDefaultRole() {
+    return properties.getDefaultRole();
+  }
+
   private Predicate<Role> filterRole(AuthenticatedUser user) {
     return role -> user.groups().contains(role.getName());
   }
 
-  public boolean isRbacEnabled() {
-    return rbacEnabled;
-  }
 }

@@ -16,12 +16,11 @@ const contentTest =
   '{"payload":{"author":"DwaywelayTOP","archived":false,"name":"t3_11jshwd","id":"11jshwd"}}';
 jest.mock(
   'components/Topics/Topic/Messages/MessageContent/MessageContent',
-  () => () =>
-    (
-      <tr>
-        <td>{messageContentText}</td>
-      </tr>
-    )
+  () => () => (
+    <tr>
+      <td>{messageContentText}</td>
+    </tr>
+  )
 );
 
 describe('Message component', () => {
@@ -31,7 +30,7 @@ describe('Message component', () => {
     offset: 0,
     key: 'test-key',
     partition: 6,
-    content: '{"data": "test"}',
+    value: '{"data": "test"}',
     headers: { header: 'test' },
   };
   const mockKeyFilters: PreviewFilter = {
@@ -63,10 +62,15 @@ describe('Message component', () => {
 
   it('shows the data in the table row', () => {
     renderComponent();
-    expect(screen.getByText(mockMessage.content as string)).toBeInTheDocument();
+    expect(screen.getByText(mockMessage.value as string)).toBeInTheDocument();
     expect(screen.getByText(mockMessage.key as string)).toBeInTheDocument();
     expect(
-      screen.getByText(formatTimestamp(mockMessage.timestamp))
+      screen.getByText(
+        formatTimestamp({
+          timestamp: mockMessage.timestamp,
+          withMilliseconds: true,
+        })
+      )
     ).toBeInTheDocument();
     expect(screen.getByText(mockMessage.offset.toString())).toBeInTheDocument();
     expect(
@@ -76,10 +80,10 @@ describe('Message component', () => {
 
   it('check the useDataSaver functionality', () => {
     const props = { message: { ...mockMessage } };
-    delete props.message.content;
+    delete props.message.value;
     renderComponent(props);
     expect(
-      screen.queryByText(mockMessage.content as string)
+      screen.queryByText(mockMessage.value as string)
     ).not.toBeInTheDocument();
   });
 
@@ -116,7 +120,7 @@ describe('Message component', () => {
 
   it('should check if Preview filter showing for Value', () => {
     const props = {
-      message: { ...mockMessage, content: contentTest as string },
+      message: { ...mockMessage, value: contentTest as string },
       contentFilters: [mockContentFilters],
     };
     renderComponent(props);

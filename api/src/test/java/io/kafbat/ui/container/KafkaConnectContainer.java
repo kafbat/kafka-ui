@@ -2,9 +2,9 @@ package io.kafbat.ui.container;
 
 import java.time.Duration;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 public class KafkaConnectContainer extends GenericContainer<KafkaConnectContainer> {
   private static final int CONNECT_PORT = 8083;
@@ -18,8 +18,8 @@ public class KafkaConnectContainer extends GenericContainer<KafkaConnectContaine
   }
 
 
-  public KafkaConnectContainer withKafka(KafkaContainer kafka) {
-    String bootstrapServers = kafka.getNetworkAliases().get(0) + ":9092";
+  public KafkaConnectContainer withKafka(ConfluentKafkaContainer kafka) {
+    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9095";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
 
@@ -47,6 +47,6 @@ public class KafkaConnectContainer extends GenericContainer<KafkaConnectContaine
   }
 
   public String getTarget() {
-    return "http://" + getContainerIpAddress() + ":" + getMappedPort(CONNECT_PORT);
+    return "http://" + getHost() + ":" + getMappedPort(CONNECT_PORT);
   }
 }

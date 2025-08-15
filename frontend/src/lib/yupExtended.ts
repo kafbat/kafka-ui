@@ -7,7 +7,7 @@ declare module 'yup' {
     TType extends yup.Maybe<string> = string | undefined,
     TContext = yup.AnyObject,
     TDefault = undefined,
-    TFlags extends yup.Flags = ''
+    TFlags extends yup.Flags = '',
   > extends yup.Schema<TType, TContext, TDefault, TFlags> {
     isJsonObject(message?: string): StringSchema<TType, TContext>;
   }

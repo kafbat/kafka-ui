@@ -2,7 +2,7 @@ package io.kafbat.ui.service;
 
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
-import io.kafbat.ui.util.SslPropertiesUtil;
+import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
 import java.io.Closeable;
 import java.time.Instant;
 import java.util.Map;
@@ -15,6 +15,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @Slf4j
@@ -42,7 +43,7 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
   private Mono<ReactiveAdminClient> createAdminClient(KafkaCluster cluster) {
     return Mono.fromSupplier(() -> {
       Properties properties = new Properties();
-      SslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
+      KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
       properties.putAll(cluster.getProperties());
       properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
       properties.putIfAbsent(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, clientTimeout);
@@ -51,9 +52,10 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
           "kafbat-ui-admin-" + Instant.now().getEpochSecond() + "-" + CLIENT_ID_SEQ.incrementAndGet()
       );
       return AdminClient.create(properties);
-    }).flatMap(ac -> ReactiveAdminClient.create(ac).doOnError(th -> ac.close()))
+    }).subscribeOn(Schedulers.boundedElastic())
+        .flatMap(ac -> ReactiveAdminClient.create(ac).doOnError(th -> ac.close()))
         .onErrorMap(th -> new IllegalStateException(
-            "Error while creating AdminClient for Cluster " + cluster.getName(), th));
+            "Error while creating AdminClient for the cluster " + cluster.getName(), th));
   }
 
   @Override

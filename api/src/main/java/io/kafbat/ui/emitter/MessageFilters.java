@@ -1,12 +1,14 @@
 package io.kafbat.ui.emitter;
 
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.Strings.CS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.NullValue;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
@@ -18,14 +20,15 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import io.kafbat.ui.exception.CelException;
-import io.kafbat.ui.model.MessageFilterTypeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,17 +36,17 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @UtilityClass
 public class MessageFilters {
+
   private static final String CEL_RECORD_VAR_NAME = "record";
   private static final String CEL_RECORD_TYPE_NAME = TopicMessageDTO.class.getSimpleName();
 
   private static final CelCompiler CEL_COMPILER = createCompiler();
-  private static final CelRuntime CEL_RUNTIME = CelRuntimeFactory.standardCelRuntimeBuilder()
-      .build();
+  private static final CelRuntime CEL_RUNTIME = createRuntime();
+  private static final Object CELL_NULL_VALUE = NullValue.NULL_VALUE;
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -52,8 +55,24 @@ public class MessageFilters {
   }
 
   public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
-    return msg -> StringUtils.contains(msg.getKey(), string)
-        || StringUtils.contains(msg.getContent(), string);
+    return msg -> CS.contains(msg.getKey(), string)
+        || CS.contains(msg.getValue(), string) || headersContains(msg, string);
+  }
+
+  private static boolean headersContains(TopicMessageDTO msg, String searchString) {
+    final var headers = msg.getHeaders();
+
+    if (headers == null) {
+      return false;
+    }
+
+    for (final var entry : headers.entrySet()) {
+      if (CS.contains(entry.getKey(), searchString) || CS.contains(entry.getValue(), searchString)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public static Predicate<TopicMessageDTO> celScriptFilter(String script) {
@@ -107,9 +126,9 @@ public class MessageFilters {
       args.put("keyAsText", topicMessage.getKey());
     }
 
-    if (topicMessage.getContent() != null) {
-      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getContent()));
-      args.put("valueAsText", topicMessage.getContent());
+    if (topicMessage.getValue() != null) {
+      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
+      args.put("valueAsText", topicMessage.getValue());
     }
 
     args.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
@@ -143,6 +162,7 @@ public class MessageFilters {
     return CelCompilerFactory.standardCelCompilerBuilder()
         .setOptions(CelOptions.DEFAULT)
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addLibraries(CelExtensions.strings(), CelExtensions.encoders())
         .addVar(CEL_RECORD_VAR_NAME, recordType)
         .setResultType(SimpleType.BOOL)
         .setTypeProvider(new CelTypeProvider() {
@@ -159,6 +179,12 @@ public class MessageFilters {
         .build();
   }
 
+  private static CelRuntime createRuntime() {
+    return CelRuntimeFactory.standardCelRuntimeBuilder()
+        .addLibraries(CelExtensions.strings(), CelExtensions.encoders())
+        .build();
+  }
+
   @Nullable
   private static Object parseToJsonOrReturnAsIs(@Nullable String str) {
     if (str == null) {
@@ -166,10 +192,34 @@ public class MessageFilters {
     }
 
     try {
-      return OBJECT_MAPPER.readValue(str, new TypeReference<Map<String, Object>>() {
-      });
+      //@formatter:off
+      var map = OBJECT_MAPPER.readValue(str, new TypeReference<Map<String, Object>>() {});
+      //@formatter:on
+      return replaceCelNulls(map);
     } catch (JsonProcessingException e) {
       return str;
     }
   }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> replaceCelNulls(Map<String, Object> map) {
+    var result = new LinkedHashMap<String, Object>();
+
+    for (var entry : map.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+
+      if (value == null) {
+        result.put(key, CELL_NULL_VALUE);
+      } else if (value instanceof Map<?, ?>) {
+        var inner = (Map<String, Object>) value;
+        result.put(key, replaceCelNulls(inner));
+      } else {
+        result.put(key, value);
+      }
+    }
+
+    return result;
+  }
+
 }
