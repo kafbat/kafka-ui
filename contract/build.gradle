@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.openapi.validator)
 }
 
-
 def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
 def targetDir = project.layout.buildDirectory.dir("generated").get()
 
@@ -22,7 +21,12 @@ dependencies {
 
 tasks.register('generateUiClient', GenerateTask) {
     generatorName = "java"
-    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    if (useTypeSpec) {
+        dependsOn ":contract-typespec:build"
+        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     outputDir = targetDir.dir("kafbat-ui-client").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -37,7 +41,12 @@ tasks.register('generateUiClient', GenerateTask) {
 
 tasks.register('generateBackendApi', GenerateTask) {
     generatorName = "spring"
-    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    if (useTypeSpec) {
+        dependsOn ":contract-typespec:build"
+        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     outputDir = targetDir.dir("api").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -62,7 +71,11 @@ tasks.register('generateBackendApi', GenerateTask) {
 }
 
 openAPIStyleValidator {
-    inputFile = "${project.projectDir}/src/main/resources/swagger/kafbat-ui-api.yaml"
+    if (useTypeSpec) {
+        inputFile = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputFile = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     validateModelPropertiesDescription = false
     validateModelPropertiesExample = false
     parameterNamingConvention = "UnderscoreCase"
@@ -111,6 +124,23 @@ tasks.register('generateSchemaRegistryClient', GenerateTask) {
                      dateLibrary      : "java8",]
 }
 
+tasks.register('generatePrometheusClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("prometheus-query-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("prometheus-api").asFile.absolutePath
+    generateApiTests = false
+    generateModelTests = false
+    apiPackage = "io.kafbat.ui.prometheus.api"
+    invokerPackage = "io.kafbat.ui.prometheus"
+    modelPackage = "io.kafbat.ui.prometheus.model"
+
+    configOptions = [asyncNative      : "true",
+                     library          : "webclient",
+                     useJakartaEe     : "true",
+                     useBeanValidation: "true",
+                     dateLibrary      : "java8",]
+}
+
 sourceSets {
     main {
         java {
@@ -118,6 +148,7 @@ sourceSets {
             srcDir targetDir.dir("kafka-connect-client/src/main/java")
             srcDir targetDir.dir("kafbat-ui-client/src/main/java")
             srcDir targetDir.dir("kafka-sr-client/src/main/java")
+            srcDir targetDir.dir("prometheus-api/src/main/java")
         }
 
         resources {
@@ -126,5 +157,5 @@ sourceSets {
     }
 }
 
-compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
-processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
+compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generatePrometheusClient
+processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generatePrometheusClient

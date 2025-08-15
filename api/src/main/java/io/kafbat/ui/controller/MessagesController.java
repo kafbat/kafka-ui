@@ -75,7 +75,7 @@ public class MessagesController extends AbstractController implements MessagesAp
         .map(ResponseEntity::ok);
   }
 
-  @Deprecated
+  @Deprecated(forRemoval = true, since = "1.1.0")
   @Override
   public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessages(String clusterName,
                                                                            String topicName,

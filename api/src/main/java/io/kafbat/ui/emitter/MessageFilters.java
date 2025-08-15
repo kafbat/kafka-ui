@@ -1,6 +1,7 @@
 package io.kafbat.ui.emitter;
 
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.Strings.CS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -35,7 +36,6 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @UtilityClass
@@ -55,8 +55,8 @@ public class MessageFilters {
   }
 
   public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
-    return msg -> StringUtils.contains(msg.getKey(), string)
-        || StringUtils.contains(msg.getValue(), string) || headersContains(msg, string);
+    return msg -> CS.contains(msg.getKey(), string)
+        || CS.contains(msg.getValue(), string) || headersContains(msg, string);
   }
 
   private static boolean headersContains(TopicMessageDTO msg, String searchString) {
@@ -67,7 +67,7 @@ public class MessageFilters {
     }
 
     for (final var entry : headers.entrySet()) {
-      if (StringUtils.contains(entry.getKey(), searchString) || StringUtils.contains(entry.getValue(), searchString)) {
+      if (CS.contains(entry.getKey(), searchString) || CS.contains(entry.getValue(), searchString)) {
         return true;
       }
     }

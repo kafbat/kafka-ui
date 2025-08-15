@@ -31,6 +31,52 @@ paths:
                 items:
                   $ref: '#/components/schemas/Cluster'
 
+  /api/clusters/{clusterName}/graphs/descriptions:
+    get:
+      tags:
+        - Graphs
+      summary: getGraphsList
+      operationId: getGraphsList
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: |
+            Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphDescriptions'
+
+  /api/clusters/{clusterName}/graphs/prometheus:
+    post:
+      tags:
+        - Graphs
+      summary: getGraphData
+      operationId: getGraphData
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphDataRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrometheusApiQueryResponse'
+
   /api/clusters/{clusterName}/cache:
     post:
       tags:
@@ -154,6 +200,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClusterMetrics'
+
+  /metrics:
+    get:
+      tags:
+        - PrometheusExpose
+      summary: exposeAllMetrics
+      operationId: exposeAllMetrics
+      responses:
+        200:
+          description: OK
+          content:
+            application/text:
+              schema:
+                type: string
+
+  /metrics/{clusterName}:
+    get:
+      tags:
+        - PrometheusExpose
+      summary: exposeClusterMetrics
+      operationId: exposeClusterMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/text:
+              schema:
+                type: string
 
   /api/clusters/{clusterName}/stats:
     get:
@@ -498,6 +578,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -2485,6 +2566,7 @@ components:
               - KAFKA_ACL_VIEW # get ACLs listing
               - KAFKA_ACL_EDIT # create & delete ACLs
               - CLIENT_QUOTA_MANAGEMENT
+              - GRAPHS_ENABLED
       required:
         - name
         - status
@@ -4147,6 +4229,112 @@ components:
         location:
           type: string
 
+    GraphDataRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+
+    GraphDescriptions:
+      type: object
+      properties:
+        graphs:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphDescription'
+
+    GraphDescription:
+      type: object
+      required: ["id"]
+      properties:
+        id:
+          type: string
+          description: Id that should be used to query data on API level
+        type:
+          type: string
+          enum: ["range", "instant"]
+        defaultPeriod:
+          type: string
+          description: ISO_8601 duration string (for "range" graphs only)
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphParameter'
+
+    GraphParameter:
+      type: object
+      required: ["name"]
+      properties:
+        name:
+          type: string
+
+    PrometheusApiBaseResponse:
+      type: object
+      required: [ status ]
+      properties:
+        status:
+          type: string
+          enum: [ "success", "error" ]
+        error:
+          type: string
+        errorType:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    PrometheusApiQueryResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/PrometheusApiBaseResponse"
+      properties:
+        data:
+          $ref: '#/components/schemas/PrometheusApiQueryResponseData'
+
+    PrometheusApiQueryResponseData:
+      type: object
+      required: [ "resultType" ]
+      properties:
+        resultType:
+          type: string
+          enum: [ "matrix", "vector", "scalar", "string"]
+        result:
+          type: array
+          items: { }
+          description: |
+            Depending on resultType format can vary:
+            "vector":
+              [
+                {
+                  "metric": { "<label_name>": "<label_value>", ... },
+                  "value": [ <unix_time>, "<sample_value>" ],
+                  "histogram": [ <unix_time>, <histogram> ]
+               }, ...
+              ]
+            "matrix":
+              [
+                {
+                  "metric": { "<label_name>": "<label_value>", ... },
+                  "values": [ [ <unix_time>, "<sample_value>" ], ... ],
+                  "histograms": [ [ <unix_time>, <histogram> ], ... ]
+                }, ...
+              ]
+            "scalar":
+              [ <unix_time>, "<scalar_value>" ]
+            "string":
+              [ <unix_time>, "<string_value>" ]
+
     ApplicationConfigValidation:
       type: object
       properties:
@@ -4178,6 +4366,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/ApplicationPropertyValidation'
         ksqldb:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+        prometheusStorage:
           $ref: '#/components/schemas/ApplicationPropertyValidation'
 
     ApplicationConfig:
@@ -4351,6 +4541,8 @@ components:
                   type: integer
                 internalTopicPrefix:
                   type: string
+                defaultMetricsStorage:
+                  $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                 clusters:
                   type: array
                   items:
@@ -4439,6 +4631,10 @@ components:
                             type: string
                           keystorePassword:
                             type: string
+                          prometheusExpose:
+                            type: boolean
+                          store:
+                            $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                       properties:
                         type: object
                         additionalProperties: true
@@ -4520,3 +4716,21 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+    ClusterMetricsStoreConfig:
+      type: object
+      properties:
+        prometheus:
+          type: object
+          properties:
+            url:
+              type: string
+            remoteWrite:
+              type: boolean
+            pushGatewayUrl:
+              type: string
+            pushGatewayUsername:
+              type: string
+            pushGatewayPassword:
+              type: string
+            pushGatewayJobName:
+              type: string

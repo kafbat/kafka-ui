@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 class Mask extends MaskingPolicy {
@@ -54,15 +55,15 @@ class Mask extends MaskingPolicy {
   private JsonNode maskWithFieldsCheck(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.fields().forEachRemaining(f -> {
-        String fieldName = f.getKey();
-        JsonNode fieldVal = f.getValue();
+      for (Map.Entry<String, JsonNode> property : node.properties()) {
+        String fieldName = property.getKey();
+        JsonNode fieldVal = property.getValue();
         if (fieldShouldBeMasked(fieldName)) {
           obj.set(fieldName, maskNodeRecursively(fieldVal));
         } else {
           obj.set(fieldName, maskWithFieldsCheck(fieldVal));
         }
-      });
+      }
       return obj;
     } else if (node.isArray()) {
       ArrayNode arr = ((ArrayNode) node).arrayNode(node.size());
@@ -75,7 +76,9 @@ class Mask extends MaskingPolicy {
   private JsonNode maskNodeRecursively(JsonNode node) {
     if (node.isObject()) {
       ObjectNode obj = ((ObjectNode) node).objectNode();
-      node.fields().forEachRemaining(f -> obj.set(f.getKey(), maskNodeRecursively(f.getValue())));
+      for (Map.Entry<String, JsonNode> property : node.properties()) {
+        obj.set(property.getKey(), maskNodeRecursively(property.getValue()));
+      }
       return obj;
     } else if (node.isArray()) {
       ArrayNode arr = ((ArrayNode) node).arrayNode(node.size());
