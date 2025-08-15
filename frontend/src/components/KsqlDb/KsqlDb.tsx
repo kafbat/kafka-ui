@@ -10,13 +10,13 @@ import {
   clusterKsqlDbTablesRelativePath,
   ClusterNameRoute,
 } from 'lib/paths';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import { ActionButton } from 'components/common/ActionComponent';
 import Navbar from 'components/common/Navigation/Navbar.styled';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import { Action, ResourceType } from 'generated-sources';
 import { useKsqlkDb } from 'lib/hooks/api/ksqlDb';
 import 'ace-builds/src-noconflict/ace';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import TableView from './TableView';
 
@@ -29,7 +29,7 @@ const KsqlDb: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="KSQL DB">
+      <ResourcePageHeading text="KSQL DB">
         <ActionButton
           to={clusterKsqlDbQueryRelativePath}
           buttonType="primary"
@@ -41,7 +41,7 @@ const KsqlDb: React.FC = () => {
         >
           Execute KSQL Request
         </ActionButton>
-      </PageHeading>
+      </ResourcePageHeading>
       <Metrics.Wrapper>
         <Metrics.Section>
           <Metrics.Indicator

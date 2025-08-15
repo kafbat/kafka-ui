@@ -13,13 +13,21 @@ import io.qameta.allure.Step;
 public class KafkaConnectList extends BasePage {
 
   protected SelenideElement createConnectorBtn = $x("//button[contains(text(),'Create Connector')]");
+  protected SelenideElement connectorsTab = $x("//a[contains(text(),'Connectors')]");
 
   public KafkaConnectList() {
     tableElementNameLocator = "//tbody//td[contains(text(),'%s')]";
   }
 
   @Step
+  public KafkaConnectList clickConnectorsTab() {
+    WebUtil.clickByJavaScript(connectorsTab);
+    return this;
+  }
+
+  @Step
   public KafkaConnectList waitUntilScreenReady() {
+    clickConnectorsTab();
     waitUntilSpinnerDisappear();
     getPageTitleFromHeader(KAFKA_CONNECT).shouldBe(Condition.visible);
     return this;

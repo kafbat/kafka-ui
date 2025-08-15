@@ -7,6 +7,7 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.Strings.CI;
 
 import io.kafbat.ui.api.TopicsApi;
 import io.kafbat.ui.mapper.ClusterMapper;
@@ -29,6 +30,7 @@ import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
+import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +48,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class TopicsController extends AbstractController implements TopicsApi {
+public class TopicsController extends AbstractController implements TopicsApi, McpTool {
 
   private static final Integer DEFAULT_PAGE_SIZE = 25;
 
@@ -189,7 +191,7 @@ public class TopicsController extends AbstractController implements TopicsApi {
           List<InternalTopic> filtered = topics.stream()
               .filter(topic -> !topic.isInternal()
                   || showInternal != null && showInternal)
-              .filter(topic -> search == null || StringUtils.containsIgnoreCase(topic.getName(), search))
+              .filter(topic -> search == null || CI.contains(topic.getName(), search))
               .sorted(comparator)
               .toList();
           var totalPages = (filtered.size() / pageSize)

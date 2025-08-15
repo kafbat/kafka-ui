@@ -23,6 +23,7 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { useResetConsumerGroupOffsetsMutation } from 'lib/hooks/api/consumers';
 import { FlexFieldset, StyledForm } from 'components/common/Form/Form.styled';
 import ControlledSelect from 'components/common/Select/ControlledSelect';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './ResetOffsets.styled';
 
@@ -38,6 +39,7 @@ const resetTypeOptions = Object.values(ConsumerGroupOffsetsResetType).map(
 
 const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
   const navigate = useNavigate();
+  const { getDateInCurrentTimezone } = useTimezone();
   const routerParams = useAppParams<ClusterGroupParam>();
   const reset = useResetConsumerGroupOffsetsMutation(routerParams);
   const topicOptions = React.useMemo(
@@ -98,7 +100,7 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
 
   const onSubmit = async (data: ConsumerGroupOffsetsReset) => {
     await reset.mutateAsync(data);
-    navigate('../');
+    navigate(-1);
   };
 
   return (
@@ -142,8 +144,12 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
                   render={({ field: { onChange, onBlur, value, ref } }) => (
                     <S.DatePickerInput
                       ref={ref}
-                      selected={new Date(value as number)}
-                      onChange={(e: Date | null) => onChange(e?.getTime())}
+                      selected={getDateInCurrentTimezone(
+                        new Date(value as number)
+                      )}
+                      onChange={(selectedDate: Date | null) => {
+                        onChange(selectedDate?.getTime());
+                      }}
                       onBlur={onBlur}
                     />
                   )}

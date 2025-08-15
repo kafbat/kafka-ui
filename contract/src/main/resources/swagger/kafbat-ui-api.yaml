@@ -31,6 +31,52 @@ paths:
                 items:
                   $ref: '#/components/schemas/Cluster'
 
+  /api/clusters/{clusterName}/graphs/descriptions:
+    get:
+      tags:
+        - Graphs
+      summary: getGraphsList
+      operationId: getGraphsList
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: |
+            Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphDescriptions'
+
+  /api/clusters/{clusterName}/graphs/prometheus:
+    post:
+      tags:
+        - Graphs
+      summary: getGraphData
+      operationId: getGraphData
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphDataRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrometheusApiQueryResponse'
+
   /api/clusters/{clusterName}/cache:
     post:
       tags:
@@ -154,6 +200,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClusterMetrics'
+
+  /metrics:
+    get:
+      tags:
+        - PrometheusExpose
+      summary: exposeAllMetrics
+      operationId: exposeAllMetrics
+      responses:
+        200:
+          description: OK
+          content:
+            application/text:
+              schema:
+                type: string
+
+  /metrics/{clusterName}:
+    get:
+      tags:
+        - PrometheusExpose
+      summary: exposeClusterMetrics
+      operationId: exposeClusterMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/text:
+              schema:
+                type: string
 
   /api/clusters/{clusterName}/stats:
     get:
@@ -498,6 +578,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -1401,6 +1482,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: withStats
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -1965,6 +2051,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/KafkaAclNamePatternType'
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -2147,7 +2238,7 @@ paths:
         204:
           description: Existing quota deleted
 
-  /api/clusters/{clusterName}/acl/streamApp:
+  /api/clusters/{clusterName}/acl/streamapp:
     post:
       tags:
         - Acls
@@ -2475,8 +2566,8 @@ components:
               - KAFKA_ACL_VIEW # get ACLs listing
               - KAFKA_ACL_EDIT # create & delete ACLs
               - CLIENT_QUOTA_MANAGEMENT
+              - GRAPHS_ENABLED
       required:
-        - id
         - name
         - status
 
@@ -3034,7 +3125,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
           nullable: true
         keySerde:
@@ -3124,7 +3215,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        content:
+        value:
           type: string
         keyFormat:
           #deprecated - wont be filled - use 'keySerde' field instead
@@ -3227,7 +3318,6 @@ components:
           type: integer
           format: int64
       required:
-        - topic
         - partition
         - offsetMax
         - offsetMin
@@ -3429,6 +3519,28 @@ components:
           type: string
         address:
           type: string
+        connectorsCount:
+          type: integer
+          nullable: true
+        failedConnectorsCount:
+          type: integer
+          nullable: true
+        tasksCount:
+          type: integer
+          nullable: true
+        failedTasksCount:
+          type: integer
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        commit:
+          type: string
+          nullable: true
+        clusterId:
+          type: string
+          nullable: true
+
       required:
         - name
 
@@ -3545,21 +3657,21 @@ components:
           type: integer
         state:
           $ref: '#/components/schemas/ConnectorTaskStatus'
-        worker_id:
+        workerId:
           type: string
         trace:
           type: string
       required:
         - id
         - state
-        - worker_id
+        - workerId
 
     ConnectorStatus:
       type: object
       properties:
         state:
           $ref: '#/components/schemas/ConnectorState'
-        worker_id:
+        workerId:
           type: string
       required:
         - state
@@ -3624,7 +3736,7 @@ components:
             - STRING
         required:
           type: boolean
-        default_value:
+        defaultValue:
           type: string
         importance:
           type: string
@@ -3643,7 +3755,7 @@ components:
             - MEDIUM
             - LONG
             - NONE
-        display_name:
+        displayName:
           type: string
         dependents:
           type: array
@@ -3659,7 +3771,7 @@ components:
           type: string
         value:
           type: string
-        recommended_values:
+        recommendedValues:
           type: array
           items:
             type: string
@@ -3683,7 +3795,7 @@ components:
       properties:
         name:
           type: string
-        error_count:
+        errorCount:
           type: integer
         groups:
           type: array
@@ -3769,7 +3881,7 @@ components:
           type: string
         name:
           type: string
-        connector_class:
+        connectorClass:
           type: string
         type:
           $ref: '#/components/schemas/ConnectorType'
@@ -3779,9 +3891,9 @@ components:
             type: string
         status:
           $ref: '#/components/schemas/ConnectorStatus'
-        tasks_count:
+        tasksCount:
           type: integer
-        failed_tasks_count:
+        failedTasksCount:
           type: integer
       required:
         - name
@@ -3947,6 +4059,7 @@ components:
         - MESSAGES_READ
         - MESSAGES_PRODUCE
         - MESSAGES_DELETE
+        - OPERATE
         - RESTART
 
     ResourceType:
@@ -4100,7 +4213,6 @@ components:
     KafkaAclNamePatternType:
       type: string
       enum:
-        - MATCH
         - LITERAL
         - PREFIXED
 
@@ -4116,6 +4228,112 @@ components:
       properties:
         location:
           type: string
+
+    GraphDataRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+
+    GraphDescriptions:
+      type: object
+      properties:
+        graphs:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphDescription'
+
+    GraphDescription:
+      type: object
+      required: ["id"]
+      properties:
+        id:
+          type: string
+          description: Id that should be used to query data on API level
+        type:
+          type: string
+          enum: ["range", "instant"]
+        defaultPeriod:
+          type: string
+          description: ISO_8601 duration string (for "range" graphs only)
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphParameter'
+
+    GraphParameter:
+      type: object
+      required: ["name"]
+      properties:
+        name:
+          type: string
+
+    PrometheusApiBaseResponse:
+      type: object
+      required: [ status ]
+      properties:
+        status:
+          type: string
+          enum: [ "success", "error" ]
+        error:
+          type: string
+        errorType:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    PrometheusApiQueryResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/PrometheusApiBaseResponse"
+      properties:
+        data:
+          $ref: '#/components/schemas/PrometheusApiQueryResponseData'
+
+    PrometheusApiQueryResponseData:
+      type: object
+      required: [ "resultType" ]
+      properties:
+        resultType:
+          type: string
+          enum: [ "matrix", "vector", "scalar", "string"]
+        result:
+          type: array
+          items: { }
+          description: |
+            Depending on resultType format can vary:
+            "vector":
+              [
+                {
+                  "metric": { "<label_name>": "<label_value>", ... },
+                  "value": [ <unix_time>, "<sample_value>" ],
+                  "histogram": [ <unix_time>, <histogram> ]
+               }, ...
+              ]
+            "matrix":
+              [
+                {
+                  "metric": { "<label_name>": "<label_value>", ... },
+                  "values": [ [ <unix_time>, "<sample_value>" ], ... ],
+                  "histograms": [ [ <unix_time>, <histogram> ], ... ]
+                }, ...
+              ]
+            "scalar":
+              [ <unix_time>, "<scalar_value>" ]
+            "string":
+              [ <unix_time>, "<string_value>" ]
 
     ApplicationConfigValidation:
       type: object
@@ -4148,6 +4366,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/ApplicationPropertyValidation'
         ksqldb:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+        prometheusStorage:
           $ref: '#/components/schemas/ApplicationPropertyValidation'
 
     ApplicationConfig:
@@ -4201,6 +4421,43 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+                    resourceServer:
+                      type: object
+                      properties:
+                        jwt:
+                          type: object
+                          properties:
+                            jwkSetUri:
+                              type: string
+                            jwsAlgorithms:
+                              type: array
+                              items:
+                                type: string
+                            issuerUri:
+                              type: string
+                            publicKeyLocation:
+                              type: string
+                            audiences:
+                              type: array
+                              items:
+                                type: string
+                            authorityPrefix:
+                              type: string
+                            authoritiesClaimDelimiter:
+                              type: string
+                            authoritiesClaimName:
+                              type: string
+                            principalClaimName:
+                              type: string
+                        opaquetoken:
+                          type: object
+                          properties:
+                            clientId:
+                              type: string
+                            clientSecret:
+                              type: string
+                            introspectionUri:
+                              type: string
             rbac:
               type: object
               properties:
@@ -4226,6 +4483,8 @@ components:
                               type: string
                             value:
                               type: string
+                            regex:
+                              type: string
                       permissions:
                         type: array
                         items:
@@ -4239,12 +4498,31 @@ components:
                               type: array
                               items:
                                 $ref: '#/components/schemas/Action'
+                defaultRole:
+                  type: object
+                  properties:
+                    permissions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          resource:
+                            $ref: '#/components/schemas/ResourceType'
+                          value:
+                            type: string
+                          actions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Action'
             webclient:
               type: object
               properties:
                 maxInMemoryBufferSize:
                   type: string
                   description: "examples: 20, 12KB, 5MB"
+                responseTimeoutMs:
+                  type: integer
+                  description: "general response timeout in milliseconds for all http requests"
             kafka:
               type: object
               properties:
@@ -4257,10 +4535,14 @@ components:
                       type: integer
                     defaultPageSize:
                       type: integer
+                    responseTimeoutMs:
+                      type: integer
                 adminClientTimeout:
                   type: integer
                 internalTopicPrefix:
                   type: string
+                defaultMetricsStorage:
+                  $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                 clusters:
                   type: array
                   items:
@@ -4349,12 +4631,20 @@ components:
                             type: string
                           keystorePassword:
                             type: string
+                          prometheusExpose:
+                            type: boolean
+                          store:
+                            $ref: '#/components/schemas/ClusterMetricsStoreConfig'
                       properties:
                         type: object
                         additionalProperties: true
+                      consumerProperties:
+                        type: object
+                        additionalProperties: true
+                      producerProperties:
+                        type: object
+                        additionalProperties: true
                       readOnly:
-                        type: boolean
-                      disableLogDirsCollection:
                         type: boolean
                       serde:
                         type: array
@@ -4426,3 +4716,21 @@ components:
                             type: object
                             additionalProperties:
                               type: string
+    ClusterMetricsStoreConfig:
+      type: object
+      properties:
+        prometheus:
+          type: object
+          properties:
+            url:
+              type: string
+            remoteWrite:
+              type: boolean
+            pushGatewayUrl:
+              type: string
+            pushGatewayUsername:
+              type: string
+            pushGatewayPassword:
+              type: string
+            pushGatewayJobName:
+              type: string

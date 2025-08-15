@@ -110,7 +110,7 @@ public class MessagesService {
       var result = predicate.test(
           new TopicMessageDTO()
               .key(execData.getKey())
-              .content(execData.getValue())
+              .value(execData.getValue())
               .headers(execData.getHeaders())
               .offset(execData.getOffset())
               .partition(execData.getPartition())
@@ -179,7 +179,7 @@ public class MessagesService {
           topicDescription.name(),
           msg.getPartition(),
           msg.getKey().orElse(null),
-          msg.getContent().orElse(null),
+          msg.getValue().orElse(null),
           msg.getHeaders()
       );
       CompletableFuture<RecordMetadata> cf = new CompletableFuture<>();
@@ -198,8 +198,13 @@ public class MessagesService {
 
   public static KafkaProducer<byte[], byte[]> createProducer(KafkaCluster cluster,
                                                              Map<String, Object> additionalProps) {
+    return createProducer(cluster.getOriginalProperties(), additionalProps);
+  }
+
+  public static KafkaProducer<byte[], byte[]> createProducer(ClustersProperties.Cluster cluster,
+                                                             Map<String, Object> additionalProps) {
     Properties properties = new Properties();
-    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getSsl(), properties);
     properties.putAll(cluster.getProperties());
     properties.putAll(cluster.getProducerProperties());
     properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());

@@ -1,0 +1,58 @@
+plugins {
+    id "java"
+    alias(libs.plugins.node.gradle)
+}
+
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+node {
+    download = "true" != project.property("local_node")
+    version = project.property("node_version").toString()
+    pnpmVersion = project.property("pnpm_version").toString()
+}
+
+def typeSpecVersion = "1.0.0"
+
+sourceSets {
+    main {
+        resources {
+            srcDirs += ['build/tsp']
+        }
+    }
+}
+
+
+
+def typeSpecs = ["api"]
+
+typeSpecs.each { spec ->
+
+    def tspPath = "\\tsp --output-dir=${project.layout.buildDirectory.get()}/tsp/${spec} compile .\\"
+
+    tasks.register("installDependencies_${spec}", NpmTask) {
+        group = 'build'
+        npmCommand = ['install']
+        workingDir = project.layout.projectDirectory.dir(spec).asFile
+    }
+
+    tasks.register("generateOpenApi_${spec}", NpmTask) {
+        group = 'build'
+        dependsOn "installDependencies_${spec}"
+        npmCommand = ['exec']
+        workingDir = project.layout.projectDirectory.dir(spec).asFile
+        args = ["--package=@typespec/compiler@${typeSpecVersion}", '-c', tspPath]
+    }
+
+    tasks.register("cleanDependencies_${spec}", Delete) {
+        delete layout.projectDirectory.dir(spec).dir("node_modules")
+    }
+
+    clean.dependsOn("cleanDependencies_${spec}")
+    processResources.dependsOn("generateOpenApi_${spec}")
+    build.dependsOn("generateOpenApi_${spec}")
+}

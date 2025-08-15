@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.Assert;
 
@@ -13,6 +14,7 @@ import org.springframework.util.Assert;
 @Data
 public class OAuthProperties {
   private Map<String, OAuth2Provider> client = new HashMap<>();
+  private OAuth2ResourceServerProperties resourceServer = null;
 
   @PostConstruct
   public void init() {

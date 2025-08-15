@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -163,6 +164,10 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   private ActiveDirectoryLdapAuthenticationProvider activeDirectoryProvider(LdapAuthoritiesPopulator populator) {
+    if (StringUtils.isBlank(props.getActiveDirectoryDomain())) {
+      throw new IllegalArgumentException("Active Directory domain is required but not specified");
+    }
+
     ActiveDirectoryLdapAuthenticationProvider provider = new ActiveDirectoryLdapAuthenticationProvider(
         props.getActiveDirectoryDomain(),
         props.getUrls()

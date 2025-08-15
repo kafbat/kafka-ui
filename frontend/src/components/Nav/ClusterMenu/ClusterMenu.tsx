@@ -5,85 +5,96 @@ import MenuTab from 'components/Nav/Menu/MenuTab';
 import MenuItem from 'components/Nav/Menu/MenuItem';
 import {
   clusterACLPath,
-  clusterAclRelativePath,
-  clusterBrokerRelativePath,
   clusterBrokersPath,
+  clusterConnectsPath,
   clusterConnectorsPath,
-  clusterConnectorsRelativePath,
   clusterConsumerGroupsPath,
-  clusterConsumerGroupsRelativePath,
   clusterKsqlDbPath,
-  clusterKsqlDbRelativePath,
   clusterSchemasPath,
-  clusterSchemasRelativePath,
   clusterTopicsPath,
-  clusterTopicsRelativePath,
+  kafkaConnectPath,
 } from 'lib/paths';
 import { useLocation } from 'react-router-dom';
+import { useLocalStorage } from 'lib/hooks/useLocalStorage';
+import { ClusterColorKey } from 'theme/theme';
+import useScrollIntoView from 'lib/hooks/useScrollIntoView';
 
 interface ClusterMenuProps {
   name: Cluster['name'];
   status: Cluster['status'];
   features: Cluster['features'];
-  singleMode?: boolean;
+  opened?: boolean;
 }
 
 const ClusterMenu: FC<ClusterMenuProps> = ({
   name,
   status,
   features,
-  singleMode,
+  opened = false,
 }) => {
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
-  const [isOpen, setIsOpen] = useState(!!singleMode);
+  const [isOpen, setIsOpen] = useState(!!opened);
   const location = useLocation();
+  const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
+    `clusterColor-${name}`,
+    'transparent'
+  );
 
-  const getIsMenuItemActive = (path: string) =>
-    location.pathname.includes(path);
+  const getIsMenuItemActive = (path: string) => {
+    return location.pathname.includes(path);
+  };
+
+  const { ref } = useScrollIntoView<HTMLUListElement>(opened);
 
   return (
-    <ul role="menu">
+    <S.ClusterList role="menu" $colorKey={colorKey} ref={ref}>
       <MenuTab
         title={name}
         status={status}
         isOpen={isOpen}
         toggleClusterMenu={() => setIsOpen((prev) => !prev)}
+        setColorKey={setColorKey}
+        isActive={opened}
       />
       {isOpen && (
         <S.List>
           <MenuItem
-            isActive={getIsMenuItemActive(clusterBrokerRelativePath)}
+            isActive={getIsMenuItemActive(clusterBrokersPath(name))}
             to={clusterBrokersPath(name)}
             title="Brokers"
           />
           <MenuItem
-            isActive={getIsMenuItemActive(clusterTopicsRelativePath)}
+            isActive={getIsMenuItemActive(clusterTopicsPath(name))}
             to={clusterTopicsPath(name)}
             title="Topics"
           />
           <MenuItem
-            isActive={getIsMenuItemActive(clusterConsumerGroupsRelativePath)}
+            isActive={getIsMenuItemActive(clusterConsumerGroupsPath(name))}
             to={clusterConsumerGroupsPath(name)}
             title="Consumers"
           />
           {hasFeatureConfigured(ClusterFeaturesEnum.SCHEMA_REGISTRY) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterSchemasRelativePath)}
+              isActive={getIsMenuItemActive(clusterSchemasPath(name))}
               to={clusterSchemasPath(name)}
               title="Schema Registry"
             />
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_CONNECT) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterConnectorsRelativePath)}
-              to={clusterConnectorsPath(name)}
+              isActive={
+                getIsMenuItemActive(kafkaConnectPath(name)) ||
+                getIsMenuItemActive(clusterConnectorsPath(name)) ||
+                getIsMenuItemActive(clusterConnectsPath(name))
+              }
+              to={kafkaConnectPath(name)}
               title="Kafka Connect"
             />
           )}
           {hasFeatureConfigured(ClusterFeaturesEnum.KSQL_DB) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterKsqlDbRelativePath)}
+              isActive={getIsMenuItemActive(clusterKsqlDbPath(name))}
               to={clusterKsqlDbPath(name)}
               title="KSQL DB"
             />
@@ -91,14 +102,14 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
           {(hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_ACL_VIEW) ||
             hasFeatureConfigured(ClusterFeaturesEnum.KAFKA_ACL_EDIT)) && (
             <MenuItem
-              isActive={getIsMenuItemActive(clusterAclRelativePath)}
+              isActive={getIsMenuItemActive(clusterACLPath(name))}
               to={clusterACLPath(name)}
               title="ACL"
             />
           )}
         </S.List>
       )}
-    </ul>
+    </S.ClusterList>
   );
 };
 

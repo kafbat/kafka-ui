@@ -1,5 +1,7 @@
 package io.kafbat.ui.client;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
@@ -22,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestClientException;
@@ -39,8 +40,9 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
   public RetryingKafkaConnectClient(ClustersProperties.ConnectCluster config,
                                     @Nullable ClustersProperties.TruststoreConfig truststoreConfig,
-                                    DataSize maxBuffSize) {
-    super(new RetryingApiClient(config, truststoreConfig, maxBuffSize));
+                                    DataSize maxBuffSize,
+                                    Duration responseTimeout) {
+    super(new RetryingApiClient(config, truststoreConfig, maxBuffSize, responseTimeout));
   }
 
   private static Retry conflictCodeRetry() {
@@ -57,7 +59,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
       if (e instanceof WebClientResponseException.InternalServerError exception) {
         final var errorMessage = getMessage(exception);
-        return StringUtils.equals(errorMessage,
+        return CI.equals(errorMessage,
             // From https://github.com/apache/kafka/blob/dfc07e0e0c6e737a56a5402644265f634402b864/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/distributed/DistributedHerder.java#L2340
             "Request cannot be completed because a rebalance is expected");
       }
@@ -318,14 +320,16 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
     public RetryingApiClient(ClustersProperties.ConnectCluster config,
                              ClustersProperties.TruststoreConfig truststoreConfig,
-                             DataSize maxBuffSize) {
-      super(buildWebClient(maxBuffSize, config, truststoreConfig), null, null);
+                             DataSize maxBuffSize,
+                             Duration responseTimeout) {
+      super(buildWebClient(maxBuffSize, responseTimeout, config, truststoreConfig), null, null);
       setBasePath(config.getAddress());
       setUsername(config.getUsername());
       setPassword(config.getPassword());
     }
 
     public static WebClient buildWebClient(DataSize maxBuffSize,
+                                           Duration responseTimeout,
                                            ClustersProperties.ConnectCluster config,
                                            ClustersProperties.TruststoreConfig truststoreConfig) {
       return new WebClientConfigurator()
@@ -341,6 +345,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
               config.getPassword()
           )
           .configureBufferSize(maxBuffSize)
+          .configureResponseTimeout(responseTimeout)
           .build();
     }
   }

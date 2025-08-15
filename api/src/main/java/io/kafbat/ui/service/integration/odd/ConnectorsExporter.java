@@ -24,7 +24,7 @@ class ConnectorsExporter {
   private final KafkaConnectService kafkaConnectService;
 
   Flux<DataEntityList> export(KafkaCluster cluster) {
-    return kafkaConnectService.getConnects(cluster)
+    return kafkaConnectService.getConnects(cluster, false)
         .flatMap(connect -> kafkaConnectService.getConnectorNamesWithErrorsSuppress(cluster, connect.getName())
             .flatMap(connectorName -> kafkaConnectService.getConnector(cluster, connect.getName(), connectorName))
             .flatMap(connectorDTO ->
@@ -41,7 +41,7 @@ class ConnectorsExporter {
   }
 
   Flux<DataSource> getConnectDataSources(KafkaCluster cluster) {
-    return kafkaConnectService.getConnects(cluster)
+    return kafkaConnectService.getConnects(cluster, false)
         .map(ConnectorsExporter::toDataSource);
   }
 

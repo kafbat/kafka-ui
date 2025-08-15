@@ -1,9 +1,12 @@
 package io.kafbat.ui.mapper;
 
+import static io.kafbat.ui.util.MetricsUtils.readPointValue;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.BrokerConfigDTO;
 import io.kafbat.ui.model.BrokerDTO;
-import io.kafbat.ui.model.BrokerDiskUsageDTO;
 import io.kafbat.ui.model.BrokerMetricsDTO;
 import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ClusterFeature;
@@ -14,7 +17,6 @@ import io.kafbat.ui.model.ConfigSynonymDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalBroker;
 import io.kafbat.ui.model.InternalBrokerConfig;
-import io.kafbat.ui.model.InternalBrokerDiskUsage;
 import io.kafbat.ui.model.InternalClusterState;
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalReplica;
@@ -31,9 +33,13 @@ import io.kafbat.ui.model.TopicConfigDTO;
 import io.kafbat.ui.model.TopicDTO;
 import io.kafbat.ui.model.TopicDetailsDTO;
 import io.kafbat.ui.model.TopicProducerStateDTO;
-import io.kafbat.ui.service.metrics.RawMetric;
+import io.kafbat.ui.service.metrics.SummarizedMetrics;
+import io.prometheus.metrics.model.snapshots.Label;
+import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ProducerState;
 import org.apache.kafka.common.acl.AccessControlEntry;
@@ -49,25 +55,32 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ClusterMapper {
 
+  @Mapping(target = "defaultCluster", ignore = true)
   ClusterDTO toCluster(InternalClusterState clusterState);
 
+  @Mapping(target = "zooKeeperStatus", ignore = true)
   ClusterStatsDTO toClusterStats(InternalClusterState clusterState);
 
   default ClusterMetricsDTO toClusterMetrics(Metrics metrics) {
     return new ClusterMetricsDTO()
-        .items(metrics.getSummarizedMetrics().map(this::convert).toList());
+        .items(convert(new SummarizedMetrics(metrics).asStream()).toList());
   }
 
-  private MetricDTO convert(RawMetric rawMetric) {
-    return new MetricDTO()
-        .name(rawMetric.name())
-        .labels(rawMetric.labels())
-        .value(rawMetric.value());
+  private Stream<MetricDTO> convert(Stream<MetricSnapshot> metrics) {
+    return metrics
+        .flatMap(m ->
+            m.getDataPoints().stream()
+                .map(p ->
+                        new MetricDTO()
+                            .name(m.getMetadata().getName())
+                            .labels(p.getLabels().stream().collect(toMap(Label::getName, Label::getValue)))
+                            .value(BigDecimal.valueOf(readPointValue(p)))
+                )
+        );
   }
 
-  default BrokerMetricsDTO toBrokerMetrics(List<RawMetric> metrics) {
-    return new BrokerMetricsDTO()
-        .metrics(metrics.stream().map(this::convert).toList());
+  default BrokerMetricsDTO toBrokerMetrics(List<MetricSnapshot> metrics) {
+    return new BrokerMetricsDTO().metrics(convert(metrics.stream()).toList());
   }
 
   @Mapping(target = "isSensitive", source = "sensitive")
@@ -95,6 +108,8 @@ public interface ClusterMapper {
 
   BrokerDTO toBrokerDto(InternalBroker broker);
 
+  @Mapping(target = "keySerde", ignore = true)
+  @Mapping(target = "valueSerde", ignore = true)
   TopicDetailsDTO toTopicDetails(InternalTopic topic);
 
   @Mapping(target = "isReadOnly", source = "readOnly")
@@ -103,21 +118,21 @@ public interface ClusterMapper {
 
   ReplicaDTO toReplica(InternalReplica replica);
 
+  @Mapping(target = "connectorsCount", ignore = true)
+  @Mapping(target = "failedConnectorsCount", ignore = true)
+  @Mapping(target = "tasksCount", ignore = true)
+  @Mapping(target = "failedTasksCount", ignore = true)
+  @Mapping(target = "version", ignore = true)
+  @Mapping(target = "commit", ignore = true)
+  @Mapping(target = "clusterId", ignore = true)
   ConnectDTO toKafkaConnect(ClustersProperties.ConnectCluster connect);
 
   List<ClusterDTO.FeaturesEnum> toFeaturesEnum(List<ClusterFeature> features);
 
   default List<PartitionDTO> map(Map<Integer, InternalPartition> map) {
-    return map.values().stream().map(this::toPartition).toList();
+    return map.values().stream().map(this::toPartition).collect(toList());
   }
 
-  default BrokerDiskUsageDTO map(Integer id, InternalBrokerDiskUsage internalBrokerDiskUsage) {
-    final BrokerDiskUsageDTO brokerDiskUsage = new BrokerDiskUsageDTO();
-    brokerDiskUsage.setBrokerId(id);
-    brokerDiskUsage.segmentCount((int) internalBrokerDiskUsage.getSegmentCount());
-    brokerDiskUsage.segmentSize(internalBrokerDiskUsage.getSegmentSize());
-    return brokerDiskUsage;
-  }
 
   default TopicProducerStateDTO map(int partition, ProducerState state) {
     return new TopicProducerStateDTO()

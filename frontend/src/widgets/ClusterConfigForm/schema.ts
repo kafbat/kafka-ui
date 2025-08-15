@@ -45,6 +45,27 @@ const urlWithAuthSchema = lazy((value) => {
   return mixed().optional();
 });
 
+const serdeSchema = object({
+  name: requiredString,
+  className: requiredString,
+  filePath: requiredString,
+  topicKeysPattern: requiredString,
+  topicValuesPattern: requiredString,
+  properties: array().of(
+    object({
+      key: requiredString,
+      value: requiredString,
+    })
+  ),
+});
+
+const serdesSchema = lazy((value) => {
+  if (Array.isArray(value)) {
+    return array().of(serdeSchema);
+  }
+  return mixed().optional();
+});
+
 const kafkaConnectSchema = object({
   name: requiredString,
   address: requiredString,
@@ -121,8 +142,12 @@ const authPropsSchema = lazy((_, { parent }) => {
     case 'SASL/AWS IAM':
       return object({
         awsProfileName: string(),
+        awsRoleArn: string(),
+        awsRoleSessionName: string(),
+        awsStsRegion: string(),
       });
     case 'SASL/Azure Entra':
+    case 'SASL/GCP IAM':
     case 'mTLS':
     default:
       return mixed().optional();
@@ -145,6 +170,7 @@ const authSchema = lazy((value) => {
           'SASL/LDAP',
           'SASL/AWS IAM',
           'SASL/Azure Entra',
+          'SASL/GCP IAM',
           'mTLS',
         ]),
       securityProtocol: string()
@@ -161,6 +187,7 @@ const authSchema = lazy((value) => {
               'SASL/LDAP',
               'SASL/AWS IAM',
               'SASL/Azure Entra',
+              'SASL/GCP IAM',
             ].includes(v);
           },
           then: (schema) => schema.required('required field'),
@@ -255,6 +282,7 @@ const formSchema = object({
   auth: authSchema,
   schemaRegistry: urlWithAuthSchema,
   ksql: urlWithAuthSchema,
+  serde: serdesSchema,
   kafkaConnect: kafkaConnectsSchema,
   masking: maskingsSchema,
   metrics: metricsSchema,

@@ -1,5 +1,4 @@
 import java.nio.file.Files
-import java.nio.file.Paths
 
 plugins {
     id 'java'
@@ -44,16 +43,13 @@ test {
         useTestNG() {
             useDefaultListeners = true
 
-            def suitePath = Paths.get(project.rootDir.toString(),
-                    "e2e-tests/src/test/resources/" + suiteName + ".xml" as String)
+            def suitePath = project.layout.projectDirectory.dir("src/test/resources/" + suiteName + ".xml").asFile.toPath()
             if (!Files.exists(suitePath)) {
                 throw new GradleException("Suite [" + suitePath.toAbsolutePath() + "] doesn't exist")
             }
             suiteXmlFiles = [suitePath.toFile()]
         }
 
-        systemProperty "headless", e2eHeadlessOff
-        systemProperty "selenoid", e2eSelenoidOff
         systemProperty "allure.results.directory",
                 project.layout.buildDirectory.dir("allure-results").get().getAsFile().getAbsolutePath()
     }

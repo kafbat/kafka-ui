@@ -79,3 +79,15 @@ export const Error = styled.p`
   color: ${({ theme }) => theme.input.error};
   font-size: 12px;
 `;
+
+// Serde
+export const SerdeProperties = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+export const SerdePropertiesActions = styled(IconButtonWrapper)`
+  align-self: stretch;
+  margin-top: 12px;
+  margin-left: 8px;
+`;

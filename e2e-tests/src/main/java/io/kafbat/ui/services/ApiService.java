@@ -177,7 +177,7 @@ public class ApiService extends BaseSource {
 
   @Step
   public String getFirstConnectName(String clusterName) {
-    return Objects.requireNonNull(connectorApi().getConnects(clusterName).blockFirst()).getName();
+    return Objects.requireNonNull(connectorApi().getConnects(clusterName, false).blockFirst()).getName();
   }
 
   @SneakyThrows
@@ -187,7 +187,7 @@ public class ApiService extends BaseSource {
     createMessage.setKeySerde("String");
     createMessage.setValueSerde("String");
     createMessage.setKey(topic.getMessageKey());
-    createMessage.setContent(topic.getMessageValue());
+    createMessage.setValue(topic.getMessageValue());
     try {
       messageApi().sendTopicMessages(clusterName, topic.getName(), createMessage).block();
     } catch (WebClientResponseException ex) {
