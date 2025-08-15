@@ -28,7 +28,8 @@ model LoginForm {
 }
 
 model AuthenticationInfo {
-  rbacEnabled: boolean; // true if role based access control is enabled and granular permission access is required
+  @doc("true if role based access control is enabled and granular permission access is required")
+  rbacEnabled: boolean;
   userInfo?: UserInfo;
 }
 
