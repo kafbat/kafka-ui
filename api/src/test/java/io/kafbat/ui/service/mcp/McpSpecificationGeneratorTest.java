@@ -87,7 +87,7 @@ class McpSpecificationGeneratorTest {
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string"),
                 "topicUpdate", SCHEMA_GENERATOR.generateSchema(TopicUpdateDTO.class)
-            ), List.of("clusterName", "topicName"), false, null, null)
+            ), List.of("clusterName", "topicName", "topicUpdate"), false, null, null)
         )
     );
     assertThat(tools).allMatch(tool ->
