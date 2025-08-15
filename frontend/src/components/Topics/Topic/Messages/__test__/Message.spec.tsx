@@ -65,7 +65,12 @@ describe('Message component', () => {
     expect(screen.getByText(mockMessage.value as string)).toBeInTheDocument();
     expect(screen.getByText(mockMessage.key as string)).toBeInTheDocument();
     expect(
-      screen.getByText(formatTimestamp({ timestamp: mockMessage.timestamp }))
+      screen.getByText(
+        formatTimestamp({
+          timestamp: mockMessage.timestamp,
+          withMilliseconds: true,
+        })
+      )
     ).toBeInTheDocument();
     expect(screen.getByText(mockMessage.offset.toString())).toBeInTheDocument();
     expect(

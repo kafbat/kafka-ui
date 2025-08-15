@@ -187,20 +187,7 @@ public class DynamicConfigOperations {
   }
 
   private String serializeToYaml(PropertiesStructure props) {
-    //representer, that skips fields with null values
-    Representer representer = new Representer(new DumperOptions()) {
-      @Override
-      protected NodeTuple representJavaBeanProperty(Object javaBean,
-                                                    Property property,
-                                                    Object propertyValue,
-                                                    Tag customTag) {
-        if (propertyValue == null) {
-          return null; // if value of property is null, ignore it.
-        } else {
-          return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-        }
-      }
-    };
+    Representer representer = new YamlNullSkipRepresenter(new DumperOptions());
     var propertyUtils = new PropertyUtils();
     propertyUtils.setBeanAccess(BeanAccess.FIELD);
     representer.setPropertyUtils(propertyUtils);
@@ -221,7 +208,7 @@ public class DynamicConfigOperations {
 
   @Data
   @Builder
-  // field name should be in sync with @ConfigurationProperties annotation
+  // the field name should be in sync with @ConfigurationProperties annotation
   public static class PropertiesStructure {
 
     private ClustersProperties kafka;
