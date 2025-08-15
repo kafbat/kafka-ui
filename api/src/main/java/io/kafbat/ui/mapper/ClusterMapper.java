@@ -118,6 +118,13 @@ public interface ClusterMapper {
 
   ReplicaDTO toReplica(InternalReplica replica);
 
+  @Mapping(target = "connectorsCount", ignore = true)
+  @Mapping(target = "failedConnectorsCount", ignore = true)
+  @Mapping(target = "tasksCount", ignore = true)
+  @Mapping(target = "failedTasksCount", ignore = true)
+  @Mapping(target = "version", ignore = true)
+  @Mapping(target = "commit", ignore = true)
+  @Mapping(target = "clusterId", ignore = true)
   ConnectDTO toKafkaConnect(ClustersProperties.ConnectCluster connect);
 
   List<ClusterDTO.FeaturesEnum> toFeaturesEnum(List<ClusterFeature> features);

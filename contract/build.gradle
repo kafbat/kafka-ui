@@ -21,7 +21,12 @@ dependencies {
 
 tasks.register('generateUiClient', GenerateTask) {
     generatorName = "java"
-    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    if (useTypeSpec) {
+        dependsOn ":contract-typespec:build"
+        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     outputDir = targetDir.dir("kafbat-ui-client").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -36,7 +41,12 @@ tasks.register('generateUiClient', GenerateTask) {
 
 tasks.register('generateBackendApi', GenerateTask) {
     generatorName = "spring"
-    inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    if (useTypeSpec) {
+        dependsOn ":contract-typespec:build"
+        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     outputDir = targetDir.dir("api").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -61,7 +71,11 @@ tasks.register('generateBackendApi', GenerateTask) {
 }
 
 openAPIStyleValidator {
-    inputFile = "${project.projectDir}/src/main/resources/swagger/kafbat-ui-api.yaml"
+    if (useTypeSpec) {
+        inputFile = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
+    } else {
+        inputFile = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
+    }
     validateModelPropertiesDescription = false
     validateModelPropertiesExample = false
     parameterNamingConvention = "UnderscoreCase"
