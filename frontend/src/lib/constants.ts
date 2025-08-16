@@ -49,6 +49,7 @@ export const TOPIC_CUSTOM_PARAMS: Record<string, string> = {
 
 export const MILLISECONDS_IN_WEEK = 604_800_000;
 export const MILLISECONDS_IN_DAY = 86_400_000;
+export const MILLISECONDS_IN_HOUR = 3_600_000;
 export const MILLISECONDS_IN_SECOND = 1_000;
 
 export const NOT_SET = -1;
