@@ -4,10 +4,12 @@ export const formatTimestamp = ({
   timestamp,
   format = { hourCycle: 'h23' },
   timezone,
+  withMilliseconds,
 }: {
   timestamp: number | string | Date | undefined;
   format?: Intl.DateTimeFormatOptions;
   timezone?: string;
+  withMilliseconds?: boolean;
 }): string => {
   if (!timestamp) {
     return '';
@@ -29,7 +31,13 @@ export const formatTimestamp = ({
     timeZone: finalTimezone,
   };
 
-  return date.toLocaleString(language || [], formatOptions);
+  let formattedTimestamp = date.toLocaleString(language || [], formatOptions);
+
+  if (withMilliseconds) {
+    formattedTimestamp += `.${date.getMilliseconds()}`;
+  }
+
+  return formattedTimestamp;
 };
 
 export const formatMilliseconds = (input = 0) => {

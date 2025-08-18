@@ -110,6 +110,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                   {formatTimestamp({
                     timestamp,
                     timezone: currentTimezone.value,
+                    withMilliseconds: true,
                   })}
                 </S.MetadataValue>
                 <S.MetadataMeta>Timestamp type: {timestampType}</S.MetadataMeta>

@@ -7,7 +7,7 @@ import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerJwt
 import io.kafbat.ui.model.ApplicationConfigPropertiesAuthOauth2ResourceServerOpaquetokenDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import io.kafbat.ui.model.ApplicationConfigPropertiesKafkaClustersInnerDTO;
-import io.kafbat.ui.model.ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO;
+import io.kafbat.ui.model.RbacPermissionDTO;
 import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Optional;
@@ -32,7 +32,7 @@ public interface DynamicConfigMapper {
   @Mapping(source = "metrics.store", target = "metrics.store", ignore = true)
   ApplicationConfigPropertiesKafkaClustersInnerDTO map(ClustersProperties.Cluster cluster);
 
-  default Permission map(ApplicationConfigPropertiesRbacRolesInnerPermissionsInnerDTO perm) {
+  default Permission map(RbacPermissionDTO perm) {
     Permission permission = new Permission();
     permission.setResource(perm.getResource().getValue());
     permission.setActions(perm.getActions().stream().map(ActionDTO::getValue).toList());
