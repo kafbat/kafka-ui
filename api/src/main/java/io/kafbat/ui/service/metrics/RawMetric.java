@@ -2,6 +2,7 @@ package io.kafbat.ui.service.metrics;
 
 import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
+import io.prometheus.metrics.model.snapshots.PrometheusNaming;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,13 +27,19 @@ public interface RawMetric {
   static Stream<MetricSnapshot> groupIntoSnapshot(Collection<RawMetric> rawMetrics) {
     Map<String, Gauge> map = new LinkedHashMap<>();
     for (RawMetric m : rawMetrics) {
-      var lbls = m.labels().keySet().toArray(String[]::new);
-      var lblVals = Arrays.stream(lbls).map(l -> m.labels().get(l)).toArray(String[]::new);
+      var lbls = m.labels().keySet()
+          .stream()
+          .map(PrometheusNaming::sanitizeLabelName)
+          .toArray(String[]::new);
+      var lblVals = Arrays.stream(lbls)
+          .map(l -> m.labels().get(l))
+          .toArray(String[]::new);
+      var sanitizedName = PrometheusNaming.sanitizeMetricName(m.name());
       var gauge = map.computeIfAbsent(
-          m.name(),
+          sanitizedName,
           n -> Gauge.builder()
-              .name(m.name())
-              .help(m.name())
+              .name(sanitizedName)
+              .help(sanitizedName)
               .labelNames(lbls)
               .build()
       );
