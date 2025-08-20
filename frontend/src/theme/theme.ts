@@ -68,6 +68,7 @@ const Colors = {
   yellow: {
     '10': '#FFEECC',
     '20': '#FFDD57',
+    '30': '#FFD439',
   },
   blue: {
     '10': '#e3f2fd',
@@ -270,7 +271,7 @@ const baseTheme = {
     infoIcon: Colors.neutral[30],
     closeCircleIcon: Colors.neutral[30],
     deleteIcon: Colors.red[20],
-    warningIcon: Colors.yellow[20],
+    warningIcon: Colors.yellow[30],
     warningRedIcon: {
       rectFill: Colors.red[10],
       pathFill: Colors.red[50],
