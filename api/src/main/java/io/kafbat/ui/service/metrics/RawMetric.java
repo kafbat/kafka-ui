@@ -6,8 +6,10 @@ import io.prometheus.metrics.model.snapshots.PrometheusNaming;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface RawMetric {
@@ -26,24 +28,27 @@ public interface RawMetric {
 
   static Stream<MetricSnapshot> groupIntoSnapshot(Collection<RawMetric> rawMetrics) {
     Map<String, Gauge> map = new LinkedHashMap<>();
+    Map<String, String[]> gaugeLabels = new HashMap<>();
     for (RawMetric m : rawMetrics) {
       var lbls = m.labels().keySet()
           .stream()
           .map(PrometheusNaming::sanitizeLabelName)
           .toArray(String[]::new);
-      var lblVals = Arrays.stream(lbls)
+      var lblVals = m.labels().keySet()
+          .stream()
           .map(l -> m.labels().get(l))
           .toArray(String[]::new);
       var sanitizedName = PrometheusNaming.sanitizeMetricName(m.name());
       var gauge = map.computeIfAbsent(
-          sanitizedName,
-          n -> Gauge.builder()
-              .name(sanitizedName)
-              .help(sanitizedName)
-              .labelNames(lbls)
-              .build()
+          sanitizedName, n -> {
+            gaugeLabels.put(n, lbls);
+            return Gauge.builder().name(n).help(n).labelNames(lbls).build();
+          }
       );
-      gauge.labelValues(lblVals).set(m.value().doubleValue());
+      if (Arrays.equals(lbls, gaugeLabels.get(sanitizedName))) {
+        //using labels of first registered gauge, if not fit - skipping
+        gauge.labelValues(lblVals).set(m.value().doubleValue());
+      }
     }
     return map.values().stream().map(Gauge::collect);
   }
