@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class RawMetricTest {
 
   @Test
-  void groupIntoSnapshotChosingFirstGaugeLabels() {
+  void groupIntoSnapshotChoosesFirstGaugeLabels() {
     List<MetricSnapshot> list = RawMetric.groupIntoSnapshot(
         List.of(
             RawMetric.create("name", Map.of("l1", "v1"), BigDecimal.ONE),
