@@ -216,7 +216,7 @@ public class ScrapedClusterState implements AutoCloseable {
       try {
         return new TopicsIndex(topicStates.values().stream().map(
             topicState -> buildInternalTopic(topicState, clustersProperties)
-        ).toList(), fts.getTopicsMinNGram(), fts.getTopicsMaxNGram());
+        ).toList(), fts.isTopicsNgramEnabled(), fts.getTopicsMinNGram(), fts.getTopicsMaxNGram());
       } catch (Exception e) {
         log.error("Error creating topics index", e);
       }

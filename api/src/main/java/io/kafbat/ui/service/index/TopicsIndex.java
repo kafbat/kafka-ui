@@ -9,6 +9,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntPoint;
@@ -28,10 +29,12 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SynonymQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.QueryBuilder;
 
 public class TopicsIndex implements AutoCloseable {
   public static final String FIELD_NAME_RAW = "name_raw";
@@ -48,13 +51,24 @@ public class TopicsIndex implements AutoCloseable {
   private final Analyzer analyzer;
   private final int maxSize;
   private final ReadWriteLock closeLock = new ReentrantReadWriteLock();
+  private final boolean searchNgram;
 
   public TopicsIndex(List<InternalTopic> topics) throws IOException {
-    this(topics, 3, 5);
+    this(topics, true);
   }
 
-  public TopicsIndex(List<InternalTopic> topics, int minNgram, int maxNgram) throws IOException {
-    this.analyzer = new ShortWordNGramAnalyzer(minNgram, maxNgram);
+  public TopicsIndex(List<InternalTopic> topics, boolean ngram) throws IOException {
+    this(topics, ngram, 1, 5);
+  }
+
+  public TopicsIndex(List<InternalTopic> topics, boolean ngram, int minNgram, int maxNgram) throws IOException {
+    if (ngram) {
+      this.analyzer = new ShortWordNGramAnalyzer(minNgram, maxNgram, false);
+    } else {
+      this.analyzer = new ShortWordAnalyzer();
+    }
+
+    this.searchNgram = ngram;
     this.directory = build(topics);
     this.indexReader = DirectoryReader.open(directory);
     this.indexSearcher = new IndexSearcher(indexReader);
@@ -113,13 +127,34 @@ public class TopicsIndex implements AutoCloseable {
                            String sortField, Integer count, float minScore) throws IOException {
     closeLock.readLock().lock();
     try {
-      QueryParser queryParser = new QueryParser(FIELD_NAME, this.analyzer);
-      queryParser.setDefaultOperator(QueryParser.Operator.AND);
       Query nameQuery;
-      try {
-        nameQuery = queryParser.parse(search);
-      } catch (ParseException e) {
-        throw new RuntimeException(e);
+      if (this.searchNgram) {
+        List<String> ngrams = NgramFilter.tokenizeStringSimple(this.analyzer, search);
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String ng : ngrams) {
+          builder.add(new TermQuery(new Term(FIELD_NAME, ng)), BooleanClause.Occur.MUST);
+        }
+        nameQuery = builder.build();
+      } else {
+        QueryParser queryParser = new QueryParser(FIELD_NAME, this.analyzer);
+        queryParser.setDefaultOperator(QueryParser.Operator.AND);
+
+        try {
+          nameQuery = queryParser.parse(search);
+
+          if (!search.contains(" ") && !search.contains("*")) {
+            String wildcardSearch = search + "*";
+            Query wildCardNameQuery = queryParser.parse(wildcardSearch);
+            BooleanQuery.Builder withWildcard = new BooleanQuery.Builder();
+            withWildcard.add(nameQuery, BooleanClause.Occur.SHOULD);
+            withWildcard.add(wildCardNameQuery, BooleanClause.Occur.SHOULD);
+            nameQuery = withWildcard.build();
+          }
+
+
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       }
 
       Query internalFilter = new TermQuery(new Term(FIELD_INTERNAL, "true"));

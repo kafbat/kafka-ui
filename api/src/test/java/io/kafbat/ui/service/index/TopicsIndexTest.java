@@ -1,10 +1,9 @@
 package io.kafbat.ui.service.index;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -28,7 +27,7 @@ class TopicsIndexTest {
                 "audit.clients.state",
                 "audit.clients.repartitioned.status",
                 "reporting.payments.by.clientId",
-                "reporting.payments.by.currencyid"
+                "reporting.payments.by.currencyId"
             )
             .map(s -> InternalTopic.builder().name(s).partitions(Map.of()).build()).toList());
 
@@ -46,22 +45,31 @@ class TopicsIndexTest {
         Map.entry("topic", testTopicsCount),
         Map.entry("8", 1),
         Map.entry("9", 0),
-        Map.entry("tpic", testTopicsCount),
-        Map.entry("dogs red", 1),
-        Map.entry("tpic-1", 1),
-        Map.entry("payments dlq", 1),
-        Map.entry("paymnts dlq", 1),
+        Map.entry("dog red", 1),
+        Map.entry("topic-1", 1),
+        Map.entry("payment dlq", 1),
         Map.entry("stats dlq", 0),
         Map.entry("stat", 3),
-        Map.entry("chnges", 1),
-        Map.entry("comands", 1),
-        Map.entry("id", 1),
-        Map.entry("config_retention:compact", 1)
+        Map.entry("changes", 1),
+        Map.entry("commands", 1),
+        Map.entry("id", 2)
     );
 
     SoftAssertions softly = new SoftAssertions();
     try (TopicsIndex index = new TopicsIndex(topics)) {
       for (Map.Entry<String, Integer> entry : examples.entrySet()) {
+        List<String> resultAll = index.find(entry.getKey(), null, topics.size());
+        softly.assertThat(resultAll.size())
+            .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), resultAll)
+            .isEqualTo(entry.getValue());
+      }
+    }
+
+    HashMap<String, Integer> indexExamples = new HashMap<>(examples);
+    indexExamples.put("config_retention:compact", 1);
+
+    try (TopicsIndex index = new TopicsIndex(topics, false)) {
+      for (Map.Entry<String, Integer> entry : indexExamples.entrySet()) {
         List<String> resultAll = index.find(entry.getKey(), null, topics.size());
         softly.assertThat(resultAll.size())
             .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), resultAll)
