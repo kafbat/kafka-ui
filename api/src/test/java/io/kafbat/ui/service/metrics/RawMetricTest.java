@@ -25,11 +25,10 @@ class RawMetricTest {
     assertThat(list)
         .hasSize(1)
         .element(0)
-        .satisfies(snap -> {
-              assertThat(snap.getDataPoints())
-                  .map(DataPointSnapshot::getLabels)
-                  .containsExactly(Labels.of("l1", "v1"), Labels.of("l1", "v11"));
-            }
+        .satisfies(snap ->
+            assertThat(snap.getDataPoints())
+                .map(DataPointSnapshot::getLabels)
+                .containsExactly(Labels.of("l1", "v1"), Labels.of("l1", "v11"))
         );
   }
 
