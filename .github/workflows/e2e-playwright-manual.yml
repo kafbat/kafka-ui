@@ -1,0 +1,22 @@
+name: "E2E: Playwright Manual run"
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to run on
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/e2e-playwright-run.yml
+    secrets: inherit
+    with:
+      sha: ${{ inputs.sha }}
+
+
