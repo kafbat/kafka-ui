@@ -27,6 +27,6 @@ describe('TimeToRetainBtns', () => {
 
   it('should test the normal view rendering of the component', () => {
     SetUpComponent();
-    expect(screen.getAllByRole('button')).toHaveLength(5);
+    expect(screen.getAllByRole('button')).toHaveLength(8);
   });
 });
