@@ -5,9 +5,12 @@ import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
+import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.HashMap;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
@@ -31,12 +35,21 @@ import reactor.core.publisher.Mono;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
 @Value
-public class ScrapedClusterState {
+@Slf4j
+public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
   Map<Integer, NodeState> nodesStates;
   Map<String, TopicState> topicStates;
   Map<String, ConsumerGroupState> consumerGroupsStates;
+  TopicsIndex topicIndex;
+
+  @Override
+  public void close() throws Exception {
+    if (this.topicIndex != null) {
+      this.topicIndex.close();
+    }
+  }
 
   public record NodeState(int id,
                           Node node,
@@ -71,7 +84,8 @@ public class ScrapedClusterState {
 
   public ScrapedClusterState updateTopics(Map<String, TopicDescription> descriptions,
                                           Map<String, List<ConfigEntry>> configs,
-                                          InternalPartitionsOffsets partitionsOffsets) {
+                                          InternalPartitionsOffsets partitionsOffsets,
+                                          ClustersProperties clustersProperties) {
     var updatedTopicStates = new HashMap<>(topicStates);
     descriptions.forEach((topic, description) -> {
       SegmentStats segmentStats = null;
@@ -93,9 +107,12 @@ public class ScrapedClusterState {
           )
       );
     });
-    return toBuilder()
+
+    ScrapedClusterState state = toBuilder()
         .topicStates(updatedTopicStates)
+        .topicIndex(buildTopicIndex(clustersProperties, updatedTopicStates))
         .build();
+    return state;
   }
 
   public ScrapedClusterState topicDeleted(String topic) {
@@ -107,7 +124,7 @@ public class ScrapedClusterState {
   }
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
-                                                 ReactiveAdminClient ac) {
+                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
@@ -126,7 +143,8 @@ public class ScrapedClusterState {
                 phase1.getT1(),
                 topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
                 phase2.getT3(),
-                phase2.getT4()
+                phase2.getT4(),
+                clustersProperties
             )));
   }
 
@@ -157,7 +175,8 @@ public class ScrapedClusterState {
                                             InternalLogDirStats segmentStats,
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
-                                            Table<String, TopicPartition, Long> consumerOffsets) {
+                                            Table<String, TopicPartition, Long> consumerOffsets,
+                                            ClustersProperties clustersProperties) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->
@@ -184,8 +203,25 @@ public class ScrapedClusterState {
         Instant.now(),
         nodesStates,
         topicStates,
-        consumerGroupsStates
+        consumerGroupsStates,
+        buildTopicIndex(clustersProperties, topicStates)
     );
+  }
+
+  private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
+                                             Map<String, TopicState> topicStates) {
+    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+    TopicsIndex topicsIndex = null;
+    if (fts.isEnabled()) {
+      try {
+        return new TopicsIndex(topicStates.values().stream().map(
+            topicState -> buildInternalTopic(topicState, clustersProperties)
+        ).toList(), fts.isTopicsNgramEnabled(), fts.getTopicsMinNGram(), fts.getTopicsMaxNGram());
+      } catch (Exception e) {
+        log.error("Error creating topics index", e);
+      }
+    }
+    return null;
   }
 
   private static <T> Map<Integer, T> filterTopic(String topicForFilter, Map<TopicPartition, T> tpMap) {
@@ -193,6 +229,18 @@ public class ScrapedClusterState {
         .stream()
         .filter(tp -> tp.getKey().topic().equals(topicForFilter))
         .collect(Collectors.toMap(e -> e.getKey().partition(), Map.Entry::getValue));
+  }
+
+  private static InternalTopic buildInternalTopic(TopicState state, ClustersProperties clustersProperties) {
+    return InternalTopic.from(
+        state.description(),
+        state.configs(),
+        InternalPartitionsOffsets.empty(),
+        null,
+        state.segmentStats(),
+        state.partitionsSegmentStats(),
+        clustersProperties.getInternalTopicPrefix()
+    );
   }
 
 

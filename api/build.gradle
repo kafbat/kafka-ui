@@ -54,6 +54,10 @@ dependencies {
     antlr libs.antlr
     implementation libs.antlr.runtime
 
+    implementation libs.lucene
+    implementation libs.lucene.queryparser
+    implementation libs.lucene.analysis.common
+
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'

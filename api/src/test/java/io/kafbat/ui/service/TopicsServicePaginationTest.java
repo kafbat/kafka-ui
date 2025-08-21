@@ -1,11 +1,14 @@
 package io.kafbat.ui.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.mapper.ClusterMapperImpl;
@@ -34,6 +37,7 @@ import java.util.stream.IntStream;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
@@ -44,17 +48,20 @@ class TopicsServicePaginationTest {
   private final TopicsService topicsService = Mockito.mock(TopicsService.class);
   private final ClustersStorage clustersStorage = Mockito.mock(ClustersStorage.class);
   private final ClusterMapper clusterMapper = new ClusterMapperImpl();
+  private final ClustersProperties clustersProperties = new ClustersProperties();
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
 
   private final TopicsController topicsController =
-      new TopicsController(topicsService, mock(TopicAnalysisService.class), clusterMapper);
+      new TopicsController(topicsService, mock(TopicAnalysisService.class), clusterMapper, clustersProperties);
 
   private void init(Map<String, InternalTopic> topicsInCache) {
 
     when(clustersStorage.getClusterByName(isA(String.class)))
         .thenReturn(Optional.of(buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME)));
-    when(topicsService.getTopicsForPagination(isA(KafkaCluster.class)))
+    when(topicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any()))
         .thenReturn(Mono.just(new ArrayList<>(topicsInCache.values())));
+
+
     when(topicsService.loadTopics(isA(KafkaCluster.class), anyList()))
         .thenAnswer(a -> {
           List<String> lst = a.getArgument(1);

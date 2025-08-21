@@ -27,6 +27,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.connect.InternalConnectorInfo;
+import io.kafbat.ui.service.index.KafkaConnectNgramFilter;
 import io.kafbat.ui.util.ReactiveFailover;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -151,15 +152,27 @@ public class KafkaConnectService {
                             .topics(tuple.getT4().getTopics())
                             .build())))
         .map(kafkaConnectMapper::fullConnectorInfo)
-        .filter(matchesSearchTerm(search));
+        .collectList()
+        .map(lst -> filterConnectors(lst, search))
+        .flatMapMany(Flux::fromIterable);
   }
 
-  private Predicate<FullConnectorInfoDTO> matchesSearchTerm(@Nullable final String search) {
+  private List<FullConnectorInfoDTO> filterConnectors(List<FullConnectorInfoDTO> connectors, String search) {
     if (search == null) {
-      return c -> true;
+      return connectors;
     }
-    return connector -> getStringsForSearch(connector)
-        .anyMatch(string -> CI.contains(string, search));
+    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+    if (fts.isEnabled()) {
+      KafkaConnectNgramFilter filter =
+          new KafkaConnectNgramFilter(connectors, fts.getFilterMinNGram(), fts.getFilterMaxNGram());
+      return filter.find(search);
+    } else {
+      return connectors.stream()
+          .filter(connector -> getStringsForSearch(connector)
+              .anyMatch(string -> CI.contains(string, search)))
+          .toList();
+    }
+
   }
 
   private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {
