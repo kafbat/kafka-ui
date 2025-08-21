@@ -16,6 +16,7 @@ import { CONSUMER_GROUP_STATE_TOOLTIPS, PER_PAGE } from 'lib/constants';
 import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -47,6 +48,7 @@ const List = () => {
             to={encodeURIComponent(`${getValue<string | number>()}`)}
           />
         ),
+        size: 600,
       },
       {
         id: ConsumerGroupOrdering.MEMBERS,
@@ -96,6 +98,8 @@ const List = () => {
     []
   );
 
+  const columnSizingPersister = useLocalStoragePersister('Consumers');
+
   return (
     <>
       <ResourcePageHeading text="Consumers" />
@@ -118,6 +122,8 @@ const List = () => {
             clusterConsumerGroupDetailsPath(clusterName, original.groupId)
           )
         }
+        enableColumnResizing
+        columnSizingPersister={columnSizingPersister}
         disabled={consumerGroups.isFetching}
       />
     </>
