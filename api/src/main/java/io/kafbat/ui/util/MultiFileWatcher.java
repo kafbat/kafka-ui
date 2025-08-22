@@ -11,6 +11,7 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.time.Duration;
@@ -19,8 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.Assert;
 
 @Slf4j
@@ -31,11 +35,11 @@ public final class MultiFileWatcher implements AutoCloseable {
   private final WatchService watchService = FileSystems.getDefault().newWatchService();
   private final Set<Path> watchedFiles = ConcurrentHashMap.newKeySet();
   private final Map<WatchKey, Path> watchDirsByKey = new HashMap<>();
-  private final Runnable reloader;
+  private final Function<Path, Void> reloader;
 
   private long lastTriggerAt = 0;
 
-  public MultiFileWatcher(Collection<Path> filesToWatch, Runnable reloader) throws IOException {
+  public MultiFileWatcher(Collection<Path> filesToWatch, Function<Path, Void> reloader) throws IOException {
     Assert.notNull(reloader, "reloader must not be null");
     this.reloader = reloader;
 
@@ -62,28 +66,28 @@ public final class MultiFileWatcher implements AutoCloseable {
     log.trace("Watching files: {}", watchedFiles.stream().map(Path::toString).toList());
 
     watchedFiles.stream()
-        .map(p -> Optional.ofNullable(p.getParent()).orElse(Path.of(".")))
+//        .map(getParentPath())
         .distinct()
-        .forEach(dir -> {
+        .forEach(file -> {
           try {
-            var key = dir.register(watchService,
+            var key = getParentPath().apply(file).register(watchService,
                 ENTRY_MODIFY,
                 ENTRY_CREATE, ENTRY_DELETE // watch these for atomic replacements
             );
-            watchDirsByKey.put(key, dir);
+            watchDirsByKey.put(key, file);
           } catch (IOException e) {
             throw new UncheckedIOException(e);
           }
         });
 
-    log.trace("Watching directories: {}", watchDirsByKey.values().stream().map(Path::toString).toList());
+    log.trace("Watching directories: {}", watchDirsByKey.values().stream().map(a -> getParentPath().apply(a)).map(Path::toString).toList());
   }
 
   public void watchLoop() {
     while (true) {
       try {
         var key = watchService.take();
-        var dir = watchDirsByKey.get(key);
+        var dir = getParentPath().apply(watchDirsByKey.get(key));
         if (dir == null) {
           continue;
         }
@@ -95,7 +99,8 @@ public final class MultiFileWatcher implements AutoCloseable {
             .anyMatch(this::matchesTarget);
 
         if (hit && shouldTrigger()) {
-          reloader.run();
+          var filePath = watchDirsByKey.get(key); // TODO
+          reloader.apply(filePath);
         }
 
         if (!key.reset()) {
@@ -143,6 +148,11 @@ public final class MultiFileWatcher implements AutoCloseable {
   @Override
   public void close() throws IOException {
     watchService.close();
+  }
+
+  @NotNull
+  private static Function<Path, Path> getParentPath() {
+    return p -> Optional.ofNullable(p.getParent()).orElse(Path.of("."));
   }
 }
 

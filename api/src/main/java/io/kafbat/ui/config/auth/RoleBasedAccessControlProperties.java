@@ -10,6 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class RoleBasedAccessControlProperties {
 
   private final List<Role> roles = new ArrayList<>();
+//  private String haha;
+
 
   @PostConstruct
   public void init() {
