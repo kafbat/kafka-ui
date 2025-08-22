@@ -21,6 +21,9 @@ updates:
         - "patch"
         - "minor"
     other-dependencies:
+      exclude-patterns:
+        - "org.springframework.boot:*"
+        - "io.spring.dependency-management"
       patterns:
         - "*"
       update-types:
