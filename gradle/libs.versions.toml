@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.5.3'
+spring-boot = '3.5.5'
 nimbus-jose-jwt = '10.0.2'
 
 aws-msk-auth = '2.3.0'
@@ -149,8 +149,3 @@ prometheus-metrics-textformats = { module = 'io.prometheus:prometheus-metrics-ex
 prometheus-metrics-exporter-pushgateway  = { module = 'io.prometheus:prometheus-metrics-exporter-pushgateway', version.ref = 'prometheus'}
 
 snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.7'}
-
-# CVE fixes
-reactor-netty-http = {module = 'io.projectreactor.netty:reactor-netty-http', version = '1.2.8'}
-# Fixes https://www.cve.org/CVERecord?id=CVE-2025-55163
-netty-codec-http2 = {module = 'io.netty:netty-codec-http2', version = '4.1.124.Final'}
