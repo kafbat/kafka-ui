@@ -22,7 +22,8 @@ spring:
     user-filter-search-filter: "(&(uid={0})(objectClass=inetOrgPerson))"
     group-filter-search-base: "ou=people,dc=planetexpress,dc=com"
 
-kafka:
+
+kaf1ka:
   clusters:
     - name: local
       bootstrapServers: localhost:9092
@@ -81,7 +82,7 @@ auth:
           type: github
 
 rbac:
-  roles:
+  ro1les:
     - name: "memelords"
       clusters:
         - local
