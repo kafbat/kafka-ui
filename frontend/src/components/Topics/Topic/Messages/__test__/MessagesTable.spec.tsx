@@ -9,6 +9,7 @@ import { TopicMessage, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import useAppParams from 'lib/hooks/useAppParams';
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
+import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 
 export const topicMessagePayload: TopicMessage = {
   partition: 29,
@@ -46,7 +47,9 @@ describe('MessagesTable', () => {
       topicName: 'testTopic',
     }));
     return render(
-      <MessagesTable messages={[]} isFetching={false} {...props} />
+      <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+        <MessagesTable messages={[]} isFetching={false} {...props} />
+      </TopicActionsProvider>
     );
   };
 
