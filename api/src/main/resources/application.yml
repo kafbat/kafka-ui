@@ -7,6 +7,8 @@ management:
       enabled: true
     health:
       enabled: true
+      show-details: always
+      show-components: always
   endpoints:
     web:
       exposure:
@@ -18,4 +20,3 @@ logging:
     io.kafbat.ui: DEBUG
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
-
