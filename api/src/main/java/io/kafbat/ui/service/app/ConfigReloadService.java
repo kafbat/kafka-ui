@@ -8,8 +8,10 @@ import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -19,17 +21,21 @@ import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.env.OriginTrackedMapPropertySource;
+import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.origin.Origin;
 import org.springframework.boot.origin.OriginTrackedValue;
 import org.springframework.boot.origin.TextResourceOrigin;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -42,13 +48,11 @@ public class ConfigReloadService {
   private static final String THREAD_NAME = "config-watcher-thread";
 
   private final ConfigurableEnvironment environment;
-  private final ApplicationContext appContext;
+  private final RoleBasedAccessControlProperties rbacProperties;
+  private final YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
 
   private Thread watcherThread;
   private MultiFileWatcher multiFileWatcher;
-
-  private final ObjectProvider<AccessControlService> accessControlService;
-  private final ObjectProvider<RoleBasedAccessControlProperties> roleBasedAccessControlProperties;
 
   @PostConstruct
   public void init() {
@@ -86,33 +90,34 @@ public class ConfigReloadService {
     log.debug("Auto reload is enabled, will watch for config changes");
 
     try {
-      this.multiFileWatcher = new MultiFileWatcher(propertySourcePaths, path -> {
-        System.out.println(path);
-        var propertySources = environment.getPropertySources();
-
-
-
-        Properties properties = new Properties();
-        try {
-          @Cleanup InputStream inputStream = Files.newInputStream(Paths.get("/tmp/kek.yaml"));
-          properties.load(inputStream);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-
-        PropertySource<?> origin =
-            propertySources.stream().filter(ps -> ps.getName().contains("tmp/kek")).findFirst().get();
-        environment.getPropertySources().replace(origin.getName(), new PropertiesPropertySource(origin.getName(), properties));
-
-        System.out.println();
-        var kekw = appContext.getBean(AccessControlService.class);
-        return null;
-      });
+      this.multiFileWatcher = new MultiFileWatcher(propertySourcePaths, this::reloadFile);
       this.watcherThread = new Thread(multiFileWatcher::watchLoop, THREAD_NAME);
       this.watcherThread.start();
     } catch (IOException e) {
       log.error("Error while registering watch service", e);
     }
+  }
+
+  private void reloadFile(Path path) {
+    log.info("Reloading file {}", path);
+    try {
+      if (path.toString().endsWith(".yml") || path.toString().endsWith(".yaml")) {
+        String name = String.format("Config resource 'file [%s] via location '%s'",
+          path.toAbsolutePath().toString(),
+            path.toAbsolutePath().toString());
+
+        List<PropertySource<?>> load = yamlLoader.load(path.toString(), new FileSystemResource(path));
+        environment.getPropertySources().remove(name);
+        environment.getPropertySources().addFirst(load.getFirst());
+        Binder binder = Binder.get(environment);
+        binder.bind("rbac", RoleBasedAccessControlProperties.class).ifBound(bound ->
+            rbacProperties.setRoles(bound.getRoles())
+        );
+      }
+    } catch (Throwable e) {
+      log.error("Error while reloading file {}", path, e);
+    }
+
   }
 
   @PreDestroy
@@ -127,23 +132,4 @@ public class ConfigReloadService {
       this.watcherThread.interrupt();
     }
   }
-
-  private void reload() {
-    var registry = (DefaultSingletonBeanRegistry) appContext.getAutowireCapableBeanFactory();
-
-    registry.destroySingleton("AccessControlService");
-
-    Binder.get(environment)
-        .bind("rbac", RoleBasedAccessControlProperties.class)
-        .orElseThrow(() -> new IllegalStateException("no rbac config"));
-
-    var newProps = appContext.getBean(AccessControlService.class);
-    newProps.init();
-//    accessControlService.init();
-    System.out.println();
-
-
-  }
-
-
 }

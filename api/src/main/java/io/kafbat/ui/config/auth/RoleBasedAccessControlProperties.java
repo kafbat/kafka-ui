@@ -9,9 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("rbac")
 public class RoleBasedAccessControlProperties {
 
-  private final List<Role> roles = new ArrayList<>();
+  private List<Role> roles = new ArrayList<>();
 //  private String haha;
-
 
   @PostConstruct
   public void init() {
@@ -20,6 +19,11 @@ public class RoleBasedAccessControlProperties {
 
   public List<Role> getRoles() {
     return roles;
+  }
+
+  public void setRoles(List<Role> roles) {
+    this.roles = roles;
+    init();
   }
 
 }
