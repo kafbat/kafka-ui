@@ -1,5 +1,6 @@
 import "@typespec/openapi";
 import "./responses.tsp";
+import "./models.tsp";
 
 namespace Api;
 
