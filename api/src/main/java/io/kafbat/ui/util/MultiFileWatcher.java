@@ -39,7 +39,6 @@ public final class MultiFileWatcher implements AutoCloseable {
     }
 
 
-    var directories = filesToWatch.stream().map(Path::getParent).distinct().toList();
     watchedFiles.addAll(filesToWatch.stream()
         .map(p -> p.toAbsolutePath().normalize())
         .map(Path::toUri)
@@ -53,6 +52,12 @@ public final class MultiFileWatcher implements AutoCloseable {
 
     log.debug("Going to watch {} files", watchedFiles.size());
     log.trace("Watching files: {}", watchedFiles.stream().map(URI::toString).toList());
+
+    var directories = filesToWatch
+        .stream()
+        .map(Path::getParent)
+        .distinct()
+        .toList();
 
     directories
         .forEach(dir -> {

@@ -102,8 +102,7 @@ public class ConfigReloadService {
       Binder binder = Binder.get(environment);
 
       binder.bind("rbac", RoleBasedAccessControlProperties.class)
-          .ifBound(bound -> rbacProperties.setRoles(bound.getRoles())
-      );
+          .ifBound(bound -> rbacProperties.setRoles(bound.getRoles()));
     } catch (Throwable e) {
       log.error("Error while reloading file {}", path, e);
     }
