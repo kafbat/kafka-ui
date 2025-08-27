@@ -1,46 +1,33 @@
 package io.kafbat.ui.service.app;
 
 import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
-import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.MultiFileWatcher;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.origin.Origin;
 import org.springframework.boot.origin.OriginTrackedValue;
 import org.springframework.boot.origin.TextResourceOrigin;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
-//@ConditionalOnProperty(value = "dynamic.config.autoreload", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class ConfigReloadService {
@@ -101,23 +88,25 @@ public class ConfigReloadService {
   private void reloadFile(Path path) {
     log.info("Reloading file {}", path);
     try {
-      if (path.toString().endsWith(".yml") || path.toString().endsWith(".yaml")) {
-        String name = String.format("Config resource 'file [%s] via location '%s'",
-          path.toAbsolutePath().toString(),
-            path.toAbsolutePath().toString());
-
-        List<PropertySource<?>> load = yamlLoader.load(path.toString(), new FileSystemResource(path));
-        environment.getPropertySources().remove(name);
-        environment.getPropertySources().addFirst(load.getFirst());
-        Binder binder = Binder.get(environment);
-        binder.bind("rbac", RoleBasedAccessControlProperties.class).ifBound(bound ->
-            rbacProperties.setRoles(bound.getRoles())
-        );
+      if (!path.toString().endsWith(".yml") && !path.toString().endsWith(".yaml")) {
+        log.trace("Skipping non-YML file {}", path);
       }
+
+      String name = String.format("Config resource 'file [%s] via location '%s'",
+          path.toAbsolutePath(),
+          path.toAbsolutePath()); // TODO extract an obj reference from env
+
+      List<PropertySource<?>> load = yamlLoader.load(path.toString(), new FileSystemResource(path));
+      environment.getPropertySources().remove(name);
+      environment.getPropertySources().addFirst(load.getFirst());
+      Binder binder = Binder.get(environment);
+
+      binder.bind("rbac", RoleBasedAccessControlProperties.class)
+          .ifBound(bound -> rbacProperties.setRoles(bound.getRoles())
+      );
     } catch (Throwable e) {
       log.error("Error while reloading file {}", path, e);
     }
-
   }
 
   @PreDestroy
