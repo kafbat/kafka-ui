@@ -3,6 +3,7 @@ import * as Cell from 'components/Brokers/BrokersList/TableCells/TableCells';
 import { createColumnHelper } from '@tanstack/react-table';
 import { keyBy } from 'lib/functions/keyBy';
 import SkewHeader from 'components/Brokers/BrokersList/SkewHeader/SkewHeader';
+import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 
 import { BrokersTableRow } from './types';
 import { NA_DISK_USAGE } from './constants';
@@ -75,6 +76,6 @@ export const getBrokersTableColumns = () => {
       cell: Cell.Skew,
     }),
     columnHelper.accessor('port', { header: 'Port' }),
-    columnHelper.accessor('host', { header: 'Host' }),
+    columnHelper.accessor('host', { header: 'Host', cell: BreakableTextCell }),
   ];
 };

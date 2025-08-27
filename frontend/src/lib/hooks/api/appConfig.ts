@@ -38,8 +38,9 @@ export function useAppInfo() {
       response = {};
     }
 
+    const url = new URL(data.raw.url);
     return {
-      redirect: data.raw.url.includes('auth'),
+      redirect: url.pathname.includes('auth'),
       response,
     };
   });

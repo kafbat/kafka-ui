@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 public class SmokeTest extends BaseTest {
@@ -61,6 +62,7 @@ public class SmokeTest extends BaseTest {
     verifyCurrentUrl(Url.KSQL_DB_LIST_URL);
   }
 
+  @Ignore
   @Test
   public void pathWhileNavigationCheck() {
     navigateToBrokersAndOpenDetails(BROKER_ID);

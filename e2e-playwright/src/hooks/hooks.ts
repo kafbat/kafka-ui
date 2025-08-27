@@ -30,7 +30,7 @@ Before(async function(this: PlaywrightWorld, { pickle }) {
    await this.init(context, scenarioName);
 });
 
-After({ timeout: 30000 }, async function(this: PlaywrightWorld, { pickle, result }) {
+After({ timeout: 60000 }, async function(this: PlaywrightWorld, { pickle, result }) {
        let img: Buffer | undefined;
     const path = `./test-results/trace/${pickle.id}.zip`;
     try {

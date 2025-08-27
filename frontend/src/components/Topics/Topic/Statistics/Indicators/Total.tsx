@@ -2,6 +2,7 @@ import React from 'react';
 import * as Metrics from 'components/common/Metrics';
 import { TopicAnalysisStats } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 const Total: React.FC<TopicAnalysisStats> = ({
   totalMsgs,
@@ -14,6 +15,8 @@ const Total: React.FC<TopicAnalysisStats> = ({
   approxUniqKeys,
   approxUniqValues,
 }) => {
+  const { currentTimezone } = useTimezone();
+
   return (
     <Metrics.Section title="Messages">
       <Metrics.Indicator label="Total number">{totalMsgs}</Metrics.Indicator>
@@ -21,7 +24,7 @@ const Total: React.FC<TopicAnalysisStats> = ({
         {`${minOffset} - ${maxOffset}`}
       </Metrics.Indicator>
       <Metrics.Indicator label="Timestamp min-max">
-        {`${formatTimestamp(minTimestamp)} - ${formatTimestamp(maxTimestamp)}`}
+        {`${formatTimestamp({ timestamp: minTimestamp, timezone: currentTimezone.value })} - ${formatTimestamp({ timestamp: maxTimestamp, timezone: currentTimezone.value })}`}
       </Metrics.Indicator>
       <Metrics.Indicator label="Null keys">{nullKeys}</Metrics.Indicator>
       <Metrics.Indicator

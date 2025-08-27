@@ -2,6 +2,7 @@ package io.kafbat.ui.service.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsFormatter;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

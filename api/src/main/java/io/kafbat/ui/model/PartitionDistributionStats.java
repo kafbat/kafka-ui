@@ -3,6 +3,7 @@ package io.kafbat.ui.model;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.AccessLevel;
@@ -29,15 +30,19 @@ public class PartitionDistributionStats {
   private final boolean skewCanBeCalculated;
 
   public static PartitionDistributionStats create(Statistics stats) {
-    return create(stats, MIN_PARTITIONS_FOR_SKEW_CALCULATION);
+    return create(
+        stats.topicDescriptions().toList(),
+        MIN_PARTITIONS_FOR_SKEW_CALCULATION
+    );
   }
 
-  static PartitionDistributionStats create(Statistics stats, int minPartitionsForSkewCalculation) {
+  static PartitionDistributionStats create(List<TopicDescription> topicDescriptions,
+                                           int minPartitionsForSkewCalculation) {
     var partitionLeaders = new HashMap<Node, Integer>();
     var partitionsReplicated = new HashMap<Node, Integer>();
     var isr = new HashMap<Node, Integer>();
     int partitionsCnt = 0;
-    for (TopicDescription td : stats.getTopicDescriptions().values()) {
+    for (TopicDescription td : topicDescriptions) {
       for (TopicPartitionInfo tp : td.partitions()) {
         partitionsCnt++;
         tp.replicas().forEach(r -> incr(partitionsReplicated, r));
