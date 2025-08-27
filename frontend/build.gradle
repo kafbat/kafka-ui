@@ -33,3 +33,14 @@ tasks.register('generateContract', PnpmTask) {
   outputs.dir(project.layout.projectDirectory.dir("src/generated-sources"))
   args = ['gen:sources']
 }
+
+tasks.register('buildFrontend', PnpmTask) {
+  dependsOn generateContract
+  inputs.files(fileTree("src/"))
+  outputs.dir(project.layout.buildDirectory.dir("vite/static"))
+  args = ['build']
+  environment = System.getenv() + [
+    "VITE_TAG"   : project.version,
+    "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
+  ]
+}

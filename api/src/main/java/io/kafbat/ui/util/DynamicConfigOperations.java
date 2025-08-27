@@ -65,7 +65,7 @@ public class DynamicConfigOperations {
     return "true".equalsIgnoreCase(ctx.getEnvironment().getProperty(DYNAMIC_CONFIG_ENABLED_ENV_PROPERTY));
   }
 
-  public Path dynamicConfigFilePath() {
+  private Path dynamicConfigFilePath() {
     return Paths.get(
         Optional.ofNullable(ctx.getEnvironment().getProperty(DYNAMIC_CONFIG_PATH_ENV_PROPERTY))
             .orElse(DYNAMIC_CONFIG_PATH_ENV_PROPERTY_DEFAULT)
