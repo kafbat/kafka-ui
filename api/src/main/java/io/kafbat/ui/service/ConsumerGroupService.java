@@ -1,7 +1,5 @@
 package io.kafbat.ui.service;
 
-import static org.apache.commons.lang3.Strings.CI;
-
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -131,16 +128,9 @@ public class ConsumerGroupService {
   }
 
   private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search) {
-    if (search == null || search.isBlank()) {
-      return groups;
-    }
-    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
-    if (fts.isEnabled()) {
-      ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts.getFilterMinNGram(), fts.getFilterMaxNGram());
-      return filter.find(search);
-    } else {
-      return groups.stream().filter(g -> CI.contains(g.groupId(), search)).toList();
-    }
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts.isEnabled(), fts.getConsumers());
+    return filter.find(search, false);
   }
 
   private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,

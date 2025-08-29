@@ -10,6 +10,8 @@ import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.index.FilterTopicIndex;
+import io.kafbat.ui.service.index.LuceneTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
@@ -209,17 +211,20 @@ public class ScrapedClusterState implements AutoCloseable {
   }
 
   private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
-                                             Map<String, TopicState> topicStates) {
-    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
-    TopicsIndex topicsIndex = null;
+                                                   Map<String, TopicState> topicStates) {
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    List<InternalTopic> topics = topicStates.values().stream().map(
+        topicState -> buildInternalTopic(topicState, clustersProperties)
+    ).toList();
+
     if (fts.isEnabled()) {
       try {
-        return new TopicsIndex(topicStates.values().stream().map(
-            topicState -> buildInternalTopic(topicState, clustersProperties)
-        ).toList(), fts.isTopicsNgramEnabled(), fts.getTopicsMinNGram(), fts.getTopicsMaxNGram());
+        return new LuceneTopicsIndex(topics, fts.getTopics());
       } catch (Exception e) {
         log.error("Error creating topics index", e);
       }
+    } else {
+      return new FilterTopicIndex(topics);
     }
     return null;
   }

@@ -214,7 +214,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("getSchemas")
         .build();
 
-    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
 
     return schemaRegistryService
         .getAllSubjectNames(getCluster(clusterName))
@@ -225,9 +225,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
-          SchemasFilter filter =
-              new SchemasFilter(subjects, fts.getFilterMinNGram(), fts.getFilterMaxNGram(), fts.isEnabled());
-
+          SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
           List<String> filteredSubjects = filter.find(search);
 
           var totalPages = (filteredSubjects.size() / pageSize)

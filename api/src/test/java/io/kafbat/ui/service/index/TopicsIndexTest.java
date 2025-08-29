@@ -1,5 +1,6 @@
 package io.kafbat.ui.service.index;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import java.util.ArrayList;
@@ -56,9 +57,9 @@ class TopicsIndexTest {
     );
 
     SoftAssertions softly = new SoftAssertions();
-    try (TopicsIndex index = new TopicsIndex(topics)) {
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {
       for (Map.Entry<String, Integer> entry : examples.entrySet()) {
-        List<String> resultAll = index.find(entry.getKey(), null, topics.size());
+        List<InternalTopic> resultAll = index.find(entry.getKey(), null, topics.size());
         softly.assertThat(resultAll.size())
             .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), resultAll)
             .isEqualTo(entry.getValue());
@@ -68,9 +69,10 @@ class TopicsIndexTest {
     HashMap<String, Integer> indexExamples = new HashMap<>(examples);
     indexExamples.put("config_retention:compact", 1);
 
-    try (TopicsIndex index = new TopicsIndex(topics, false)) {
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics,
+        new ClustersProperties.FtsProperties(false, 1, 4))) {
       for (Map.Entry<String, Integer> entry : indexExamples.entrySet()) {
-        List<String> resultAll = index.find(entry.getKey(), null, topics.size());
+        List<InternalTopic> resultAll = index.find(entry.getKey(), null, topics.size());
         softly.assertThat(resultAll.size())
             .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), resultAll)
             .isEqualTo(entry.getValue());

@@ -1,37 +1,59 @@
 package io.kafbat.ui.service.index;
 
-import java.io.IOException;
+import static org.apache.commons.lang3.Strings.CI;
+
+import com.google.common.cache.CacheBuilder;
+import io.kafbat.ui.config.ClustersProperties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 @Slf4j
 public abstract class NgramFilter<T> {
   private final Analyzer analyzer;
+  private final boolean enabled;
 
-  public NgramFilter(int minGram, int maxGram) {
-    this.analyzer = new ShortWordNGramAnalyzer(minGram, maxGram, false);
+  public NgramFilter(ClustersProperties.FtsProperties properties, boolean enabled) {
+    this.enabled = enabled;
+    this.analyzer = new ShortWordNGramAnalyzer(properties.getNgramMin(), properties.getNgramMax(), false);
   }
 
   protected abstract List<Tuple2<List<String>, T>> getItems();
 
-  private static Map<String, List<String>> cache = new ConcurrentHashMap<>();
+  private static final Map<String, List<String>> cache =  CacheBuilder.newBuilder()
+      .maximumSize(1_000)
+      .<String, List<String>>build()
+      .asMap();
 
   public List<T> find(String search) {
-    try {
-      if (search == null || search.isBlank()) {
-        return getItems().stream().map(Tuple2::getT2).toList();
+    return find(search, true);
+  }
+
+  public List<T> find(String search, boolean sort) {
+    if (search == null || search.isBlank()) {
+      return this.getItems().stream().map(Tuple2::getT2).toList();
+    }
+    if (!enabled) {
+      Stream<T> stream = this.getItems()
+          .stream()
+          .filter(t -> t.getT1().stream().anyMatch(s -> CI.contains(s, search)))
+          .map(Tuple2::getT2);
+      if (sort) {
+        return stream.sorted().toList();
+      } else {
+        return stream.toList();
       }
+    }
+    try {
       List<SearchResult<T>> result = new ArrayList<>();
       List<String> queryTokens = tokenizeString(analyzer, search);
       Map<String, Integer> queryFreq = termFreq(queryTokens);
@@ -42,11 +64,13 @@ public abstract class NgramFilter<T> {
           HashSet<String> itemTokensSet = new HashSet<>(itemTokens);
           if (itemTokensSet.containsAll(queryTokens)) {
             double score = cosineSimilarity(queryFreq, itemTokens);
-            result.add(new SearchResult<T>(item.getT2(), score));
+            result.add(new SearchResult<>(item.getT2(), score));
           }
         }
       }
-      result.sort((o1, o2) -> Double.compare(o2.score, o1.score));
+      if (sort) {
+        result.sort((o1, o2) -> Double.compare(o2.score, o1.score));
+      }
       return result.stream().map(r -> r.item).toList();
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -57,12 +81,12 @@ public abstract class NgramFilter<T> {
   }
 
 
-  public static List<String> tokenizeString(Analyzer analyzer, String text) throws IOException {
+  static List<String> tokenizeString(Analyzer analyzer, String text) {
     return cache.computeIfAbsent(text, (t) -> tokenizeStringSimple(analyzer, text));
   }
 
   @SneakyThrows
-  public static List<String> tokenizeStringSimple(Analyzer analyzer, String text) {
+  static List<String> tokenizeStringSimple(Analyzer analyzer, String text) {
     List<String> tokens = new ArrayList<>();
     try (TokenStream tokenStream = analyzer.tokenStream(null, text)) {
       CharTermAttribute attr = tokenStream.addAttribute(CharTermAttribute.class);

@@ -7,7 +7,7 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
-public class ShortWordAnalyzer extends Analyzer {
+class ShortWordAnalyzer extends Analyzer {
 
   public ShortWordAnalyzer() {}
 

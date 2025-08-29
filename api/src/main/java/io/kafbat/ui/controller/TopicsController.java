@@ -38,7 +38,6 @@ import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -188,19 +187,12 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .flatMap(topics -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
-          ClustersProperties.FtsProperties fts = clustersProperties.getFts();
+          ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
           Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, fts.isEnabled());
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
               ? comparatorForTopic : comparatorForTopic.reversed();
 
-          List<InternalTopic> filtered = fts.isEnabled() ? topics : topics.stream()
-              .filter(topic -> !topic.isInternal()
-                  || showInternal != null && showInternal)
-              .filter(
-                  topic -> search == null || CI.contains(topic.getName(), search)
-              )
-              .sorted(comparator)
-              .toList();
+          List<InternalTopic> filtered = topics.stream().sorted(comparator).toList();
 
           var totalPages = (filtered.size() / pageSize)
               + (filtered.size() % pageSize == 0 ? 0 : 1);

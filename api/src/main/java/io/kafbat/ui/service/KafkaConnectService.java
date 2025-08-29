@@ -158,21 +158,10 @@ public class KafkaConnectService {
   }
 
   private List<FullConnectorInfoDTO> filterConnectors(List<FullConnectorInfoDTO> connectors, String search) {
-    if (search == null) {
-      return connectors;
-    }
-    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
-    if (fts.isEnabled()) {
-      KafkaConnectNgramFilter filter =
-          new KafkaConnectNgramFilter(connectors, fts.getFilterMinNGram(), fts.getFilterMaxNGram());
-      return filter.find(search);
-    } else {
-      return connectors.stream()
-          .filter(connector -> getStringsForSearch(connector)
-              .anyMatch(string -> CI.contains(string, search)))
-          .toList();
-    }
-
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    KafkaConnectNgramFilter filter =
+        new KafkaConnectNgramFilter(connectors, fts.isEnabled(), fts.getConnect());
+    return filter.find(search);
   }
 
   private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {

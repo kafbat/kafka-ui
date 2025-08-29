@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AccessControlEntry;
 import org.apache.kafka.common.acl.AclBinding;
-import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.resource.Resource;
 import org.apache.kafka.common.resource.ResourcePattern;
@@ -84,18 +83,9 @@ public class AclsService {
   }
 
   private List<AclBinding> filter(List<AclBinding> acls, String principalSearch) {
-    if (principalSearch == null) {
-      return acls;
-    }
-    ClustersProperties.FtsProperties fts = clustersProperties.getFts();
-    if (fts.isEnabled()) {
-      AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, fts.getFilterMinNGram(), fts.getFilterMaxNGram());
-      return filter.find(principalSearch);
-    } else {
-      return acls.stream()
-          .filter(acl -> acl.entry().principal().contains(principalSearch))
-          .toList();
-    }
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, fts.isEnabled(), fts.getAcl());
+    return filter.find(principalSearch);
   }
 
   public Mono<String> getAclAsCsvString(KafkaCluster cluster) {

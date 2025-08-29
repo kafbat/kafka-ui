@@ -2,6 +2,7 @@ package io.kafbat.ui.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -13,11 +14,13 @@ import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.mapper.ClusterMapperImpl;
 import io.kafbat.ui.model.InternalLogDirStats;
+import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.SortOrderDTO;
+import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicDTO;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
@@ -45,32 +48,79 @@ class TopicsServicePaginationTest {
 
   private static final String LOCAL_KAFKA_CLUSTER_NAME = "local";
 
-  private final TopicsService topicsService = Mockito.mock(TopicsService.class);
+  private final AdminClientService adminClientService = Mockito.mock(AdminClientService.class);
+  private final ReactiveAdminClient reactiveAdminClient = Mockito.mock(ReactiveAdminClient.class);
   private final ClustersStorage clustersStorage = Mockito.mock(ClustersStorage.class);
-  private final ClusterMapper clusterMapper = new ClusterMapperImpl();
+  private final StatisticsCache statisticsCache = new StatisticsCache(clustersStorage);
   private final ClustersProperties clustersProperties = new ClustersProperties();
+  private final TopicsService topicsService = new TopicsService(
+      adminClientService,
+      statisticsCache,
+      clustersProperties
+  );
+
+  private final TopicsService mockTopicsService = Mockito.mock(TopicsService.class);
+  private final ClusterMapper clusterMapper = new ClusterMapperImpl();
+
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
 
   private final TopicsController topicsController =
-      new TopicsController(topicsService, mock(TopicAnalysisService.class), clusterMapper, clustersProperties);
+      new TopicsController(mockTopicsService, mock(TopicAnalysisService.class), clusterMapper, clustersProperties);
 
   private void init(Map<String, InternalTopic> topicsInCache) {
-
+    KafkaCluster kafkaCluster = buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME);
+    statisticsCache.replace(kafkaCluster, Statistics.empty());
+    statisticsCache.update(
+        kafkaCluster,
+        topicsInCache.entrySet().stream().collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                v -> toTopicDescription(v.getValue())
+            )
+        ),
+        Map.of(),
+        new InternalPartitionsOffsets(Map.of()),
+        clustersProperties
+    );
+    when(adminClientService.get(isA(KafkaCluster.class))).thenReturn(Mono.just(reactiveAdminClient));
+    when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));
     when(clustersStorage.getClusterByName(isA(String.class)))
-        .thenReturn(Optional.of(buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME)));
-    when(topicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any()))
-        .thenReturn(Mono.just(new ArrayList<>(topicsInCache.values())));
+        .thenReturn(Optional.of(kafkaCluster));
+    when(mockTopicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any()))
+        .thenAnswer(a ->
+            topicsService.getTopicsForPagination(
+                a.getArgument(0),
+                a.getArgument(1),
+                a.getArgument(2)
+            )
+        );
 
 
-    when(topicsService.loadTopics(isA(KafkaCluster.class), anyList()))
+    when(mockTopicsService.loadTopics(isA(KafkaCluster.class), anyList()))
         .thenAnswer(a -> {
           List<String> lst = a.getArgument(1);
           return Mono.just(lst.stream().map(topicsInCache::get).collect(Collectors.toList()));
         });
+
     topicsController.setAccessControlService(accessControlService);
     topicsController.setAuditService(mock(AuditService.class));
     topicsController.setClustersStorage(clustersStorage);
   }
+
+  private TopicDescription toTopicDescription(InternalTopic t) {
+    return new TopicDescription(
+        t.getName(), t.isInternal(),
+        t.getPartitions().values().stream().map(p -> toTopicPartitionInfo(p)).toList()
+    );
+  }
+
+  private TopicPartitionInfo toTopicPartitionInfo(InternalPartition p) {
+    return new TopicPartitionInfo(
+        p.getPartition(),
+        null, List.of(), List.of()
+    );
+  }
+
 
   @Test
   void shouldListFirst25Topics() {

@@ -41,7 +41,7 @@ public class ClustersProperties {
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
   CacheProperties cache = new CacheProperties();
-  FtsProperties fts = new FtsProperties();
+  ClusterFtsProperties fts = new ClusterFtsProperties();
 
   @Data
   public static class Cluster {
@@ -222,12 +222,21 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class FtsProperties {
+    boolean ngram = true;
+    int ngramMin = 1;
+    int ngramMax = 4;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ClusterFtsProperties {
     boolean enabled = false;
-    boolean topicsNgramEnabled = false;
-    int topicsMinNGram = 3;
-    int topicsMaxNGram = 5;
-    int filterMinNGram = 1;
-    int filterMaxNGram = 4;
+    FtsProperties topics = new FtsProperties(true, 3, 5);
+    FtsProperties schemas = new FtsProperties(true, 1, 4);
+    FtsProperties consumers = new FtsProperties(true, 1, 4);
+    FtsProperties connect = new FtsProperties(true, 1, 4);
+    FtsProperties acl = new FtsProperties(true, 1, 4);
   }
 
   @PostConstruct

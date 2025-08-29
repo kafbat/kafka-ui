@@ -1,5 +1,6 @@
 package io.kafbat.ui.service.index;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import java.util.Collection;
 import java.util.List;
@@ -10,11 +11,14 @@ public class KafkaConnectNgramFilter extends NgramFilter<FullConnectorInfoDTO> {
   private final List<Tuple2<List<String>, FullConnectorInfoDTO>> connectors;
 
   public KafkaConnectNgramFilter(Collection<FullConnectorInfoDTO> connectors) {
-    this(connectors, 1, 4);
+    this(connectors, true, new ClustersProperties.FtsProperties(true, 1, 4));
   }
 
-  public KafkaConnectNgramFilter(Collection<FullConnectorInfoDTO> connectors, int minNGram, int maxNGram) {
-    super(minNGram, maxNGram);
+  public KafkaConnectNgramFilter(
+      Collection<FullConnectorInfoDTO> connectors,
+      boolean enabled,
+      ClustersProperties.FtsProperties properties) {
+    super(properties, enabled);
     this.connectors = connectors.stream().map(this::getItem).toList();
   }
 
