@@ -2,6 +2,8 @@ package io.kafbat.ui.service.index;
 
 import static org.apache.lucene.search.BoostAttribute.DEFAULT_BOOST;
 
+import io.kafbat.ui.service.index.TopicsIndex.FieldType;
+import java.util.List;
 import java.util.Optional;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.IntPoint;
@@ -12,19 +14,50 @@ import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TermRangeQuery;
 
 public class PrefixQueryParser extends QueryParser {
-  
+
   public PrefixQueryParser(String field, Analyzer analyzer) {
     super(field, analyzer);
   }
 
   @Override
+  protected Query newRangeQuery(String field, String part1, String part2, boolean startInclusive,
+                                boolean endInclusive) {
+    FieldType fieldType = Optional.ofNullable(field)
+        .map(TopicsIndex.FIELD_TYPES::get)
+        .orElse(FieldType.STRING);
+
+    return switch (fieldType) {
+      case STRING, BOOLEAN -> super.newRangeQuery(field, part1, part2, startInclusive, endInclusive);
+      case INT -> IntPoint.newRangeQuery(field, parseInt(part1, true), parseInt(part2, false));
+      case LONG -> LongPoint.newRangeQuery(field, parseLong(part1, true), parseLong(part2, false));
+    };
+  }
+
+  private Integer parseInt(String value, boolean min) {
+    if ("*".equals(value) || value == null) {
+      return min ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+    } else {
+      return Integer.parseInt(value);
+    }
+  }
+
+  private Long parseLong(String value, boolean min) {
+    if ("*".equals(value) || value == null) {
+      return min ? Long.MIN_VALUE : Long.MAX_VALUE;
+    } else {
+      return Long.parseLong(value);
+    }
+  }
+
+  @Override
   protected Query newTermQuery(Term term, float boost) {
 
-    TopicsIndex.FieldType fieldType = Optional.ofNullable(term.field())
+    FieldType fieldType = Optional.ofNullable(term.field())
         .map(TopicsIndex.FIELD_TYPES::get)
-        .orElse(TopicsIndex.FieldType.STRING);
+        .orElse(FieldType.STRING);
 
     Query query =  switch (fieldType) {
       case STRING -> new PrefixQuery(term);

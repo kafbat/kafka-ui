@@ -81,6 +81,8 @@ class LuceneTopicsIndexTest {
     HashMap<String, Integer> indexExamples = new HashMap<>(examples);
     indexExamples.put("config_retention:compact", 1);
     indexExamples.put("partitions:10", 1);
+    indexExamples.put("partitions:{1 TO *]", 1);
+    indexExamples.put("partitions:{* TO 9]", topics.size() - 1);
 
     try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics,
         new ClustersProperties.FtsProperties(false, 1, 4))) {
