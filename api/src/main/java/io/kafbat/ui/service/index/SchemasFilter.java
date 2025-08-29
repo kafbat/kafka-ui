@@ -1,0 +1,23 @@
+package io.kafbat.ui.service.index;
+
+import static org.apache.commons.lang3.Strings.CI;
+
+import io.kafbat.ui.config.ClustersProperties;
+import java.util.Collection;
+import java.util.List;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
+public class SchemasFilter extends NgramFilter<String> {
+  private final List<Tuple2<List<String>, String>> subjects;
+
+  public SchemasFilter(Collection<String> subjects, boolean enabled, ClustersProperties.FtsProperties properties) {
+    super(properties, enabled);
+    this.subjects = subjects.stream().map(g -> Tuples.of(List.of(g), g)).toList();
+  }
+
+  @Override
+  protected List<Tuple2<List<String>, String>> getItems() {
+    return this.subjects;
+  }
+}
