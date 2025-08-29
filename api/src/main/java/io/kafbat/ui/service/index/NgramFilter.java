@@ -38,14 +38,6 @@ public abstract class NgramFilter<T> {
     return find(search, true);
   }
 
-  private List<T> list(Stream<T> stream, boolean sort) {
-    if (sort) {
-      return stream.sorted().toList();
-    } else {
-      return stream.toList();
-    }
-  }
-
   public List<T> find(String search, boolean sort) {
     if (search == null || search.isBlank()) {
       return list(this.getItems().stream().map(Tuple2::getT2), sort);
@@ -77,6 +69,14 @@ public abstract class NgramFilter<T> {
       return result.stream().map(r -> r.item).toList();
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private List<T> list(Stream<T> stream, boolean sort) {
+    if (sort) {
+      return stream.sorted().toList();
+    } else {
+      return stream.toList();
     }
   }
 
