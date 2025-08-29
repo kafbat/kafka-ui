@@ -232,7 +232,7 @@ public class ClustersProperties {
   @AllArgsConstructor
   public static class ClusterFtsProperties {
     boolean enabled = false;
-    FtsProperties topics = new FtsProperties(true, 3, 5);
+    FtsProperties topics = new FtsProperties(false, 3, 5);
     FtsProperties schemas = new FtsProperties(true, 1, 4);
     FtsProperties consumers = new FtsProperties(true, 1, 4);
     FtsProperties connect = new FtsProperties(true, 1, 4);

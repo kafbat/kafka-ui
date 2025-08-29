@@ -130,22 +130,11 @@ public class LuceneTopicsIndex implements TopicsIndex {
         }
         nameQuery = builder.build();
       } else {
-        QueryParser queryParser = new QueryParser(FIELD_NAME, this.analyzer);
+        QueryParser queryParser = new PrefixQueryParser(FIELD_NAME, this.analyzer);
         queryParser.setDefaultOperator(QueryParser.Operator.AND);
 
         try {
           nameQuery = queryParser.parse(search);
-
-          if (!search.contains(" ") && !search.contains("*")) {
-            String wildcardSearch = search + "*";
-            Query wildCardNameQuery = queryParser.parse(wildcardSearch);
-            BooleanQuery.Builder withWildcard = new BooleanQuery.Builder();
-            withWildcard.add(nameQuery, BooleanClause.Occur.SHOULD);
-            withWildcard.add(wildCardNameQuery, BooleanClause.Occur.SHOULD);
-            nameQuery = withWildcard.build();
-          }
-
-
         } catch (Exception e) {
           throw new RuntimeException(e);
         }

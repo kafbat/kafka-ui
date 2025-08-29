@@ -1,17 +1,21 @@
 package io.kafbat.ui.service.index;
 
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
-class TopicsIndexTest {
+class LuceneTopicsIndexTest {
   @Test
   void testFindTopicsByName() throws Exception {
     List<InternalTopic> topics = new ArrayList<>(
@@ -36,6 +40,14 @@ class TopicsIndexTest {
         List.of(
             InternalTopic.builder().name("configurable").partitions(Map.of()).topicConfigs(
                 List.of(InternalTopicConfig.builder().name("retention").value("compact").build())
+            ).build(),
+            InternalTopic.builder().name("multiple_parts").partitionCount(10).partitions(
+                IntStream.range(0, 10).mapToObj(i ->
+                    InternalPartition.builder().partition(i).build()
+                ).collect(Collectors.toMap(
+                    InternalPartition::getPartition,
+                    Function.identity()
+                ))
             ).build()
         )
     );
@@ -68,6 +80,7 @@ class TopicsIndexTest {
 
     HashMap<String, Integer> indexExamples = new HashMap<>(examples);
     indexExamples.put("config_retention:compact", 1);
+    indexExamples.put("partitions:10", 1);
 
     try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics,
         new ClustersProperties.FtsProperties(false, 1, 4))) {
