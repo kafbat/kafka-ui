@@ -38,20 +38,23 @@ public abstract class NgramFilter<T> {
     return find(search, true);
   }
 
+  private List<T> list(Stream<T> stream, boolean sort) {
+    if (sort) {
+      return stream.sorted().toList();
+    } else {
+      return stream.toList();
+    }
+  }
+
   public List<T> find(String search, boolean sort) {
     if (search == null || search.isBlank()) {
-      return this.getItems().stream().map(Tuple2::getT2).toList();
+      return list(this.getItems().stream().map(Tuple2::getT2), sort);
     }
     if (!enabled) {
-      Stream<T> stream = this.getItems()
+      return list(this.getItems()
           .stream()
           .filter(t -> t.getT1().stream().anyMatch(s -> CI.contains(s, search)))
-          .map(Tuple2::getT2);
-      if (sort) {
-        return stream.sorted().toList();
-      } else {
-        return stream.toList();
-      }
+          .map(Tuple2::getT2), sort);
     }
     try {
       List<SearchResult<T>> result = new ArrayList<>();
