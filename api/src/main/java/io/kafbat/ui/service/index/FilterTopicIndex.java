@@ -16,7 +16,7 @@ public class FilterTopicIndex implements TopicsIndex {
 
   @Override
   public List<InternalTopic> find(String search, Boolean showInternal, String sort, Integer count) {
-    if (sort == null || sort.isBlank()) {
+    if (search == null || search.isBlank()) {
       return new ArrayList<>(this.topics);
     }
     Stream<InternalTopic> stream = topics.stream().filter(topic -> !topic.isInternal()
