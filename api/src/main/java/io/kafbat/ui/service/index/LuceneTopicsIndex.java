@@ -119,6 +119,9 @@ public class LuceneTopicsIndex implements TopicsIndex {
 
   public List<InternalTopic> find(String search, Boolean showInternal,
                            String sortField, Integer count, float minScore) {
+    if (search == null || search.isBlank()) {
+      return new ArrayList<>(this.topicMap.values());
+    }
     closeLock.readLock().lock();
     try {
       Query nameQuery;
