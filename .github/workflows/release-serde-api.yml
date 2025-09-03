@@ -1,6 +1,13 @@
 name: "Infra: Release: Serde API"
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+        description: Serde API version to release. Must not be a SNAPSHOT.
+        default: 1.x.0
 
 permissions:
   contents: read
@@ -35,3 +42,4 @@ jobs:
         run: |
           ./gradlew :serde-api:publish \
           -Prelease=true \
+          -Pversion=${{ inputs.version }}
