@@ -42,6 +42,19 @@ public class ClustersProperties {
 
   CacheProperties cache = new CacheProperties();
 
+  AdminClient adminClient = new AdminClient();
+
+  @Data
+  public static class AdminClient {
+    Integer timeout;
+    int describeConsumerGroupsPartitionSize = 50;
+    int describeConsumerGroupsConcurrency = 4;
+    int listConsumerGroupOffsetsPartitionSize = 50;
+    int listConsumerGroupOffsetsConcurrency = 4;
+    int getTopicsConfigPartitionSize = 200;
+    int describeTopicsPartitionSize = 200;
+  }
+
   @Data
   public static class Cluster {
     @NotBlank(message = "field name for for cluster could not be blank")
