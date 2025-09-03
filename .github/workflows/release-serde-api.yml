@@ -41,5 +41,6 @@ jobs:
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           ./gradlew :serde-api:publish \
+          :serde-api:closeAndReleaseSonatypeStagingRepository \
           -Prelease=true \
           -Pversion=${{ inputs.version }}
