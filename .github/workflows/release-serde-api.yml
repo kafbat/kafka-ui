@@ -32,6 +32,6 @@ jobs:
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
 
       - name: Publish to Maven Central
-        # TODO fix me next publish, I'm broken :(
         run: |
-          ./gradlew :serde-api:publish
+          ./gradlew :serde-api:publish \
+          -Prelease=true \
