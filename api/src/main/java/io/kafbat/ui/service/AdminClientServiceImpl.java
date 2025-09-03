@@ -27,8 +27,10 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
 
   private final Map<String, ReactiveAdminClient> adminClientCache = new ConcurrentHashMap<>();
   private final int clientTimeout;
+  private final ClustersProperties clustersProperties;
 
   public AdminClientServiceImpl(ClustersProperties clustersProperties) {
+    this.clustersProperties = clustersProperties;
     this.clientTimeout = Optional.ofNullable(clustersProperties.getAdminClientTimeout())
         .orElse(DEFAULT_CLIENT_TIMEOUT_MS);
   }
@@ -53,7 +55,9 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
       );
       return AdminClient.create(properties);
     }).subscribeOn(Schedulers.boundedElastic())
-        .flatMap(ac -> ReactiveAdminClient.create(ac).doOnError(th -> ac.close()))
+        .flatMap(ac -> ReactiveAdminClient.create(ac, clustersProperties.getAdminClient())
+            .doOnError(th -> ac.close())
+        )
         .onErrorMap(th -> new IllegalStateException(
             "Error while creating AdminClient for the cluster " + cluster.getName(), th));
   }
