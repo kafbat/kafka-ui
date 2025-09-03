@@ -34,8 +34,4 @@ jobs:
       - name: Publish to Maven Central
         # TODO fix me next publish, I'm broken :(
         run: |
-          mvn source:jar javadoc:jar package gpg:sign \
-          -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
-          -Dserver.username=${{ secrets.NEXUS_USERNAME }} \
-          -Dserver.password=${{ secrets.NEXUS_PASSWORD }} \
-          central-publishing:publish -pl serde-api -s settings.xml
+          ./gradlew :serde-api:publish
