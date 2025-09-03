@@ -26,12 +26,12 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      - id: install-secret-key
-        name: Install GPG secret key
-        run: |
-          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
-
       - name: Publish to Maven Central
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           ./gradlew :serde-api:publish \
           -Prelease=true \
