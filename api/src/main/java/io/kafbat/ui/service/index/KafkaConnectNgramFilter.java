@@ -11,13 +11,13 @@ public class KafkaConnectNgramFilter extends NgramFilter<FullConnectorInfoDTO> {
   private final List<Tuple2<List<String>, FullConnectorInfoDTO>> connectors;
 
   public KafkaConnectNgramFilter(Collection<FullConnectorInfoDTO> connectors) {
-    this(connectors, true, new ClustersProperties.FtsProperties(true, 1, 4));
+    this(connectors, true, new ClustersProperties.NgramProperties(1, 4));
   }
 
   public KafkaConnectNgramFilter(
       Collection<FullConnectorInfoDTO> connectors,
       boolean enabled,
-      ClustersProperties.FtsProperties properties) {
+      ClustersProperties.NgramProperties properties) {
     super(properties, enabled);
     this.connectors = connectors.stream().map(this::getItem).toList();
   }

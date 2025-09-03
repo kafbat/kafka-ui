@@ -110,11 +110,10 @@ public class ScrapedClusterState implements AutoCloseable {
       );
     });
 
-    ScrapedClusterState state = toBuilder()
+    return toBuilder()
         .topicStates(updatedTopicStates)
         .topicIndex(buildTopicIndex(clustersProperties, updatedTopicStates))
         .build();
-    return state;
   }
 
   public ScrapedClusterState topicDeleted(String topic) {
@@ -219,14 +218,12 @@ public class ScrapedClusterState implements AutoCloseable {
 
     if (fts.isEnabled()) {
       try {
-        return new LuceneTopicsIndex(topics, fts.getTopics());
+        return new LuceneTopicsIndex(topics);
       } catch (Exception e) {
-        log.error("Error creating topics index", e);
+        log.error("Error creating lucene topics index", e);
       }
-    } else {
-      return new FilterTopicIndex(topics);
     }
-    return null;
+    return new FilterTopicIndex(topics);
   }
 
   private static <T> Map<Integer, T> filterTopic(String topicForFilter, Map<TopicPartition, T> tpMap) {

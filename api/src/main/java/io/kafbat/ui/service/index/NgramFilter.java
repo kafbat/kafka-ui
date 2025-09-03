@@ -22,7 +22,7 @@ public abstract class NgramFilter<T> {
   private final Analyzer analyzer;
   private final boolean enabled;
 
-  public NgramFilter(ClustersProperties.FtsProperties properties, boolean enabled) {
+  public NgramFilter(ClustersProperties.NgramProperties properties, boolean enabled) {
     this.enabled = enabled;
     this.analyzer = new ShortWordNGramAnalyzer(properties.getNgramMin(), properties.getNgramMax(), false);
   }

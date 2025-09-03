@@ -24,6 +24,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -46,26 +47,10 @@ public class LuceneTopicsIndex implements TopicsIndex {
   private final Analyzer analyzer;
   private final int maxSize;
   private final ReadWriteLock closeLock = new ReentrantReadWriteLock();
-  private final boolean searchNgram;
   private final Map<String, InternalTopic> topicMap;
 
   public LuceneTopicsIndex(List<InternalTopic> topics) throws IOException {
-    this(topics, new ClustersProperties.FtsProperties(true, 1, 4));
-  }
-
-  public LuceneTopicsIndex(List<InternalTopic> topics, ClustersProperties.FtsProperties properties) throws IOException {
-    boolean ngram = properties.isNgram();
-    if (ngram) {
-      this.analyzer = new ShortWordNGramAnalyzer(
-          properties.getNgramMin(),
-          properties.getNgramMax(),
-          false
-      );
-    } else {
-      this.analyzer = new ShortWordAnalyzer();
-    }
-
-    this.searchNgram = ngram;
+    this.analyzer = new ShortWordAnalyzer();
     this.topicMap = topics.stream().collect(Collectors.toMap(InternalTopic::getName, Function.identity()));
     this.directory = build(topics);
     this.indexReader = DirectoryReader.open(directory);
@@ -124,24 +109,10 @@ public class LuceneTopicsIndex implements TopicsIndex {
     }
     closeLock.readLock().lock();
     try {
-      Query nameQuery;
-      if (this.searchNgram) {
-        List<String> ngrams = NgramFilter.tokenizeStringSimple(this.analyzer, search);
-        BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String ng : ngrams) {
-          builder.add(new TermQuery(new Term(FIELD_NAME, ng)), BooleanClause.Occur.MUST);
-        }
-        nameQuery = builder.build();
-      } else {
-        QueryParser queryParser = new PrefixQueryParser(FIELD_NAME, this.analyzer);
-        queryParser.setDefaultOperator(QueryParser.Operator.AND);
 
-        try {
-          nameQuery = queryParser.parse(search);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
+      QueryParser queryParser = new PrefixQueryParser(FIELD_NAME, this.analyzer);
+      queryParser.setDefaultOperator(QueryParser.Operator.AND);
+      Query nameQuery = queryParser.parse(search);;
 
       Query internalFilter = new TermQuery(new Term(FIELD_INTERNAL, "true"));
 
@@ -172,6 +143,8 @@ public class LuceneTopicsIndex implements TopicsIndex {
       return topics.stream().map(topicMap::get).filter(Objects::nonNull).toList();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
     } finally {
       this.closeLock.readLock().unlock();
     }

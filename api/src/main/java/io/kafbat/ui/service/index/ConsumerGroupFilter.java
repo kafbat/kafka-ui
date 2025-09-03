@@ -11,13 +11,13 @@ public class ConsumerGroupFilter extends NgramFilter<ConsumerGroupListing> {
   private final List<Tuple2<List<String>, ConsumerGroupListing>> groups;
 
   public ConsumerGroupFilter(Collection<ConsumerGroupListing> groups) {
-    this(groups, true, new ClustersProperties.FtsProperties(true, 1, 4));
+    this(groups, true, new ClustersProperties.NgramProperties(1, 4));
   }
 
   public ConsumerGroupFilter(
       Collection<ConsumerGroupListing> groups,
       boolean enabled,
-      ClustersProperties.FtsProperties properties) {
+      ClustersProperties.NgramProperties properties) {
     super(properties, enabled);
     this.groups = groups.stream().map(g -> Tuples.of(List.of(g.groupId()), g)).toList();
   }
