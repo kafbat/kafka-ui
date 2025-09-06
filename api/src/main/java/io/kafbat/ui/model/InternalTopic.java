@@ -38,6 +38,16 @@ public class InternalTopic {
   private final long segmentSize;
   private final long segmentCount;
 
+
+  public InternalTopic withMetrics(Metrics metrics) {
+    var builder = toBuilder();
+    if (metrics != null) {
+      builder.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(this.name));
+      builder.bytesOutPerSec(metrics.getIoRates().topicBytesOutPerSec().get(this.name));
+    }
+    return builder.build();
+  }
+
   public static InternalTopic from(TopicDescription topicDescription,
                                    List<ConfigEntry> configs,
                                    InternalPartitionsOffsets partitionsOffsets,
@@ -113,8 +123,10 @@ public class InternalTopic {
           topic.segmentSize(stats.getSegmentSize());
         });
 
-    topic.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(topicDescription.name()));
-    topic.bytesOutPerSec(metrics.getIoRates().topicBytesOutPerSec().get(topicDescription.name()));
+    if (metrics != null) {
+      topic.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(topicDescription.name()));
+      topic.bytesOutPerSec(metrics.getIoRates().topicBytesOutPerSec().get(topicDescription.name()));
+    }
 
     topic.topicConfigs(
         configs.stream().map(InternalTopicConfig::from).collect(Collectors.toList()));

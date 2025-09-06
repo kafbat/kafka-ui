@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.SchemasController;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SchemaSubjectDTO;
@@ -43,7 +44,7 @@ class SchemaRegistryPaginationTest {
                 new SchemaRegistryService.SubjectWithCompatibilityLevel(
                     new SchemaSubject().subject(a.getArgument(1)), Compatibility.FULL)));
 
-    this.controller = new SchemasController(schemaRegistryService);
+    this.controller = new SchemasController(schemaRegistryService, new ClustersProperties());
     this.controller.setAccessControlService(new AccessControlServiceMock().getMock());
     this.controller.setAuditService(mock(AuditService.class));
     this.controller.setClustersStorage(clustersStorage);

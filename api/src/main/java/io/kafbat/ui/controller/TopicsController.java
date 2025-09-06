@@ -10,6 +10,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.Strings.CI;
 
 import io.kafbat.ui.api.TopicsApi;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
@@ -37,7 +38,6 @@ import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +55,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   private final TopicsService topicsService;
   private final TopicAnalysisService topicAnalysisService;
   private final ClusterMapper clusterMapper;
+  private final ClustersProperties clustersProperties;
 
   @Override
   public Mono<ResponseEntity<TopicDTO>> createTopic(
@@ -181,23 +182,23 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .operationName("getTopics")
         .build();
 
-    return topicsService.getTopicsForPagination(getCluster(clusterName))
+    return topicsService.getTopicsForPagination(getCluster(clusterName), search, showInternal)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .flatMap(topics -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
+          ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, fts.isEnabled());
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
-              ? getComparatorForTopic(orderBy) : getComparatorForTopic(orderBy).reversed();
-          List<InternalTopic> filtered = topics.stream()
-              .filter(topic -> !topic.isInternal()
-                  || showInternal != null && showInternal)
-              .filter(topic -> search == null || CI.contains(topic.getName(), search))
-              .sorted(comparator)
-              .toList();
+              ? comparatorForTopic : comparatorForTopic.reversed();
+
+          List<InternalTopic> filtered = topics.stream().sorted(comparator).toList();
+
           var totalPages = (filtered.size() / pageSize)
               + (filtered.size() % pageSize == 0 ? 0 : 1);
 
           List<String> topicsPage = filtered.stream()
+              .filter(t -> !t.isInternal() || showInternal != null && showInternal)
               .skip(topicsToSkip)
               .limit(pageSize)
               .map(InternalTopic::getName)
@@ -348,9 +349,12 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   }
 
   private Comparator<InternalTopic> getComparatorForTopic(
-      TopicColumnsToSortDTO orderBy) {
+      TopicColumnsToSortDTO orderBy,
+      boolean ftsEnabled) {
     var defaultComparator = Comparator.comparing(InternalTopic::getName);
-    if (orderBy == null) {
+    if (orderBy == null && ftsEnabled) {
+      return  (o1, o2) -> 0;
+    } else if (orderBy == null) {
       return defaultComparator;
     }
     return switch (orderBy) {

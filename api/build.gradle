@@ -54,6 +54,10 @@ dependencies {
     antlr libs.antlr
     implementation libs.antlr.runtime
 
+    implementation libs.lucene
+    implementation libs.lucene.queryparser
+    implementation libs.lucene.analysis.common
+
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
@@ -68,7 +72,6 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    // CVE Fixes End
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
