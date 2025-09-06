@@ -67,7 +67,7 @@ When('click on Kafka Connect link', async function() {
 });
 
 Then('Kafka Connect heading visible', async function() {
-  await this.locators.connectors.heading.waitFor({ state: 'visible' });
+  await this.locators.connectors.clustersTab.waitFor({ state: 'visible' });
 });
 
 Given('KSQL DB is visible', async function() {

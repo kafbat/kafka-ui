@@ -14,7 +14,7 @@ export default class TopicCreateLocators {
   get minInSyncReplicas(): Locator { return this.page.getByRole('spinbutton', { name: 'Min In Sync Replicas' }); }
   get replicationFactor(): Locator { return this.page.getByRole('spinbutton', { name: 'Replication Factor' }); }
   get timeToRetainData(): Locator { return this.page.getByRole('spinbutton', { name: 'Time to retain data (in ms)' }); }
-  get button12Hours(): Locator { return this.page.getByRole('button', { name: 'hours' }); }
+  get button12Hours(): Locator { return this.page.getByRole('button', { name: '12 hours' }); }
   get button1Day(): Locator { return this.page.getByRole('button', { name: '1 day' }); }
   get button2Day(): Locator { return this.page.getByRole('button', { name: '2 days' }); }
   get button7Day(): Locator { return this.page.getByRole('button', { name: '7 days' }); }
