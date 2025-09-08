@@ -478,7 +478,7 @@ export const theme = {
   },
   dropdown: {
     backgroundColor: Colors.brand[0],
-    borderColor: Colors.brand[5],
+    borderColor: Colors.brand[10],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -765,11 +765,11 @@ export const theme = {
   select: {
     backgroundColor: {
       normal: Colors.neutral[0],
-      hover: Colors.neutral[10],
+      hover: Colors.neutral[5],
       active: Colors.neutral[10],
     },
     color: {
-      normal: Colors.neutral[90],
+      normal: Colors.neutral[70],
       hover: Colors.neutral[90],
       active: Colors.neutral[90],
       disabled: Colors.neutral[30],
@@ -781,8 +781,15 @@ export const theme = {
       disabled: Colors.neutral[10],
     },
     optionList: {
+      borderColor: Colors.neutral[10],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[0],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],
@@ -1359,7 +1366,7 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[70],
     },
     color: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[20],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
       disabled: Colors.neutral[60],
@@ -1371,8 +1378,15 @@ export const darkTheme: ThemeType = {
       disabled: Colors.neutral[70],
     },
     optionList: {
+      borderColor: Colors.neutral[70],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[90],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],
