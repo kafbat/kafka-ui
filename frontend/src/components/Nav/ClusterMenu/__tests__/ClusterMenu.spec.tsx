@@ -22,7 +22,6 @@ describe('ClusterMenu', () => {
     />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');
-  const getMenuItem = () => screen.getByRole('menuitem');
   const getBrokers = () => screen.getByTitle('Brokers');
   const getTopics = () => screen.getByTitle('Topics');
   const getConsumers = () => screen.getByTitle('Consumers');
