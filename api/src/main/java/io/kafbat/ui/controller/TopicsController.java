@@ -362,6 +362,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       case OUT_OF_SYNC_REPLICAS -> Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
       case REPLICATION_FACTOR -> Comparator.comparing(InternalTopic::getReplicationFactor);
       case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
+      case MESSAGES_NUMBER ->  Comparator.comparing(InternalTopic::getMessagesNumber);
       default -> defaultComparator;
     };
   }

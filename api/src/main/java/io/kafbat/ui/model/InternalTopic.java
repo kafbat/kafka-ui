@@ -11,6 +11,7 @@ import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartition;
+import org.jetbrains.annotations.NotNull;
 
 @Data
 @Builder(toBuilder = true)
@@ -143,4 +144,13 @@ public class InternalTopic {
     return topic.build();
   }
 
+  public long getMessagesNumber() {
+    long result = 0;
+    if (partitions != null && !partitions.isEmpty()) {
+      for (InternalPartition partition : partitions.values()) {
+        result += (partition.getOffsetMax() - partition.getOffsetMin());
+      }
+    }
+    return result;
+  }
 }
