@@ -1,21 +1,27 @@
 package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.SchemasApi;
+import io.kafbat.ui.api.model.SchemaColumnsToSort;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.KafkaSrMapper;
 import io.kafbat.ui.mapper.KafkaSrMapperImpl;
 import io.kafbat.ui.model.CompatibilityCheckResponseDTO;
 import io.kafbat.ui.model.CompatibilityLevelDTO;
+import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewSchemaSubjectDTO;
+import io.kafbat.ui.model.SchemaColumnsToSortDTO;
 import io.kafbat.ui.model.SchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaSubjectsResponseDTO;
+import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.service.SchemaRegistryService;
+import io.kafbat.ui.service.SchemaRegistryService.SubjectWithCompatibilityLevel;
 import io.kafbat.ui.service.index.SchemasFilter;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -208,6 +214,8 @@ public class SchemasController extends AbstractController implements SchemasApi,
                                                                     @Valid Integer pageNum,
                                                                     @Valid Integer perPage,
                                                                     @Valid String search,
+                                                                    SchemaColumnsToSortDTO orderBy,
+                                                                    SortOrderDTO sortOrder,
                                                                     ServerWebExchange serverWebExchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -230,15 +238,64 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           var totalPages = (filteredSubjects.size() / pageSize)
               + (filteredSubjects.size() % pageSize == 0 ? 0 : 1);
-          List<String> subjectsToRender = filteredSubjects.stream()
-              .skip(subjectToSkip)
-              .limit(pageSize)
-              .toList();
-          return schemaRegistryService.getAllLatestVersionSchemas(getCluster(clusterName), subjectsToRender)
-              .map(subjs -> subjs.stream().map(kafkaSrMapper::toDto).toList())
+
+          List<String> subjectsToRetrieve;
+          boolean paginate = true;
+          var schemaComparator = getComparatorForSchema(orderBy);
+          final Comparator<SubjectWithCompatibilityLevel> comparator =
+              sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
+                  ? schemaComparator : schemaComparator.reversed();
+          if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
+            if (SortOrderDTO.DESC.equals(sortOrder)) {
+              filteredSubjects.sort(Comparator.reverseOrder());
+            }
+            subjectsToRetrieve = filteredSubjects.stream()
+                .skip(subjectToSkip)
+                .limit(pageSize)
+                .toList();
+            paginate = false;
+          } else {
+            subjectsToRetrieve = filteredSubjects;
+          }
+
+          final boolean shouldPaginate = paginate;
+
+          return schemaRegistryService.getAllLatestVersionSchemas(getCluster(clusterName), subjectsToRetrieve, pageSize)
+              .map(subjs ->
+                  paginateSchemas(subjs, comparator, shouldPaginate, pageSize, subjectToSkip)
+              ).map(subjs -> subjs.stream().map(kafkaSrMapper::toDto).toList())
               .map(subjs -> new SchemaSubjectsResponseDTO().pageCount(totalPages).schemas(subjs));
         }).map(ResponseEntity::ok)
         .doOnEach(sig -> audit(context, sig));
+  }
+
+  private List<SubjectWithCompatibilityLevel> paginateSchemas(
+      List<SubjectWithCompatibilityLevel> subjects,
+      Comparator<SubjectWithCompatibilityLevel> comparator,
+      boolean paginate,
+      int pageSize,
+      int subjectToSkip) {
+    subjects.sort(comparator);
+    if (paginate) {
+      return subjects.subList(subjectToSkip, Math.min(subjectToSkip + pageSize, subjects.size()));
+    } else {
+      return subjects;
+    }
+  }
+
+  private Comparator<SubjectWithCompatibilityLevel> getComparatorForSchema(
+      @Valid SchemaColumnsToSortDTO orderBy) {
+    var defaultComparator = Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
+    if (orderBy == null) {
+      return defaultComparator;
+    }
+    return switch (orderBy) {
+      case SUBJECT -> Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
+      case ID -> Comparator.comparing(SubjectWithCompatibilityLevel::getId);
+      case TYPE -> Comparator.comparing(SubjectWithCompatibilityLevel::getSchemaType);
+      case COMPATIBILITY -> Comparator.comparing(SubjectWithCompatibilityLevel::getCompatibility);
+      default -> defaultComparator;
+    };
   }
 
   @Override
