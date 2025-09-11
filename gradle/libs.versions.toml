@@ -1,6 +1,7 @@
 [versions]
 spring-boot = '3.5.5'
 nimbus-jose-jwt = '10.0.2'
+netty = '4.1.125.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -149,3 +150,9 @@ prometheus-metrics-textformats = { module = 'io.prometheus:prometheus-metrics-ex
 prometheus-metrics-exporter-pushgateway  = { module = 'io.prometheus:prometheus-metrics-exporter-pushgateway', version.ref = 'prometheus'}
 
 snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.7'}
+
+# CVE fixes
+# START Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
+netty-codec = {module = 'io.netty:netty-codec', version.ref = 'netty'}
+netty-codec-http = {module = 'io.netty:netty-codec-http', version.ref = 'netty'}
+# END Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057

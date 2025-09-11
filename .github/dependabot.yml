@@ -20,10 +20,19 @@ updates:
       update-types:
         - "patch"
         - "minor"
+      exclude-patterns:
+          - "org.springframework.boot:*"
+          - "io.spring.dependency-management"
+          # All netty references are temporary overwrites that must be set carefully
+          # We do not need dependabot to send pull requests
+          - "io.netty:*"    
     other-dependencies:
       exclude-patterns:
         - "org.springframework.boot:*"
         - "io.spring.dependency-management"
+        # All netty references are temporary overwrites that must be set carefully
+        # We do not need dependabot to send pull requests
+        - "io.netty:*"
       patterns:
         - "*"
       update-types:
