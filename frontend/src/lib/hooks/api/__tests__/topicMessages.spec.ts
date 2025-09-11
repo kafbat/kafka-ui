@@ -25,7 +25,8 @@ jest.mock('lib/errorHandling', () => ({
 describe('Topic Messages hooks', () => {
   beforeEach(() => fetchMock.restore());
   it('handles useSerdes', async () => {
-    const path = `/api/clusters/${clusterName}/topics/${topicName}/serdes?use=SERIALIZE`;
+    // Исправлен путь: topic вместо topics
+    const path = `/api/clusters/${clusterName}/topic/${topicName}/serdes?use=SERIALIZE`;
 
     const mock = fetchMock.getOnce(path, {});
     const { result } = renderQueryHook(() =>
