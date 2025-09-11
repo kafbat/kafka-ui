@@ -1,9 +1,8 @@
 package io.kafbat.ui.controller;
 
-import static org.apache.commons.lang3.Strings.CI;
-
 import io.kafbat.ui.api.SchemasApi;
 import io.kafbat.ui.api.model.SchemaColumnsToSort;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.KafkaSrMapper;
 import io.kafbat.ui.mapper.KafkaSrMapperImpl;
@@ -20,6 +19,7 @@ import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.service.SchemaRegistryService;
 import io.kafbat.ui.service.SchemaRegistryService.SubjectWithCompatibilityLevel;
+import io.kafbat.ui.service.index.SchemasFilter;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.List;
@@ -27,7 +27,6 @@ import java.util.Map;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,6 +43,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
   private final KafkaSrMapper kafkaSrMapper = new KafkaSrMapperImpl();
 
   private final SchemaRegistryService schemaRegistryService;
+  private final ClustersProperties clustersProperties;
 
   @Override
   protected KafkaCluster getCluster(String clusterName) {
@@ -222,6 +222,8 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("getSchemas")
         .build();
 
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+
     return schemaRegistryService
         .getAllSubjectNames(getCluster(clusterName))
         .flatMapIterable(l -> l)
@@ -230,14 +232,14 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .flatMap(subjects -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
-          List<String> filteredSubjects = new java.util.ArrayList<>(subjects
-              .stream()
-              .filter(subj -> search == null || CI.contains(subj, search))
-              .sorted().toList());
+
+          SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
+          List<String> filteredSubjects = filter.find(search);
+
           var totalPages = (filteredSubjects.size() / pageSize)
               + (filteredSubjects.size() % pageSize == 0 ? 0 : 1);
 
-          List<String> subjectsToRender;
+          List<String> subjectsToRetrieve;
           boolean paginate = true;
           var schemaComparator = getComparatorForSchema(orderBy);
           final Comparator<SubjectWithCompatibilityLevel> comparator =
@@ -247,18 +249,18 @@ public class SchemasController extends AbstractController implements SchemasApi,
             if (SortOrderDTO.DESC.equals(sortOrder)) {
               filteredSubjects.sort(Comparator.reverseOrder());
             }
-            subjectsToRender = filteredSubjects.stream()
+            subjectsToRetrieve = filteredSubjects.stream()
                 .skip(subjectToSkip)
                 .limit(pageSize)
                 .toList();
             paginate = false;
           } else {
-            subjectsToRender = filteredSubjects;
+            subjectsToRetrieve = filteredSubjects;
           }
 
           final boolean shouldPaginate = paginate;
 
-          return schemaRegistryService.getAllLatestVersionSchemas(getCluster(clusterName), subjectsToRender, pageSize)
+          return schemaRegistryService.getAllLatestVersionSchemas(getCluster(clusterName), subjectsToRetrieve, pageSize)
               .map(subjs ->
                   paginateSchemas(subjs, comparator, shouldPaginate, pageSize, subjectToSkip)
               ).map(subjs -> subjs.stream().map(kafkaSrMapper::toDto).toList())

@@ -1,9 +1,11 @@
-name: "E2E: Playwright Manual run"
+name: "E2E: Playwright"
+
 on:
-  workflow_dispatch:
-    sha:
-      required: true
-      type: string
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -30,6 +32,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache-dependency-path: ./e2e-playwright/package-lock.json
+          cache: 'npm'
 
       - name: Install NPM dependencies
         working-directory: ./e2e-playwright

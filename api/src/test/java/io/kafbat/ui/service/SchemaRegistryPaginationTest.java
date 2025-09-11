@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.SchemasController;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SchemaColumnsToSortDTO;
@@ -63,7 +64,7 @@ class SchemaRegistryPaginationTest {
     when(schemaRegistryService.getLatestSchemaVersionBySubject(isA(KafkaCluster.class), isA(String.class)))
         .thenAnswer(a -> Mono.just(subjectsMap.get(a.getArgument(1))));
 
-    this.controller = new SchemasController(schemaRegistryService);
+    this.controller = new SchemasController(schemaRegistryService, new ClustersProperties());
     this.controller.setAccessControlService(new AccessControlServiceMock().getMock());
     this.controller.setAuditService(mock(AuditService.class));
     this.controller.setClustersStorage(clustersStorage);
