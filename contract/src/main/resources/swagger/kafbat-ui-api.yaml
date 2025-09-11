@@ -2748,6 +2748,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Partition"
+        messagesNumber:
+          type: integer
+          format: int64
+          nullable: true
       required:
         - name
 

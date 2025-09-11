@@ -144,11 +144,13 @@ public class InternalTopic {
     return topic.build();
   }
 
-  public long getMessagesNumber() {
-    long result = 0;
-    if (partitions != null && !partitions.isEmpty()) {
-      for (InternalPartition partition : partitions.values()) {
-        result += (partition.getOffsetMax() - partition.getOffsetMin());
+  public Long getMessagesNumber() {
+    Long result = null;
+    if (cleanUpPolicy.equals(CleanupPolicy.DELETE)) {
+      if (partitions != null && !partitions.isEmpty()) {
+        for (InternalPartition partition : partitions.values()) {
+          result += (partition.getOffsetMax() - partition.getOffsetMin());
+        }
       }
     }
     return result;
