@@ -13,7 +13,13 @@ import Search from 'components/common/Search/Search';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import Table, { LinkCell } from 'components/common/NewTable';
 import { ColumnDef } from '@tanstack/react-table';
-import { Action, SchemaSubject, ResourceType } from 'generated-sources';
+import {
+  Action,
+  SchemaSubject,
+  ResourceType,
+  SchemaColumnsToSort,
+  SortOrder,
+} from 'generated-sources';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { useGetSchemas } from 'lib/hooks/api/schemas';
@@ -27,7 +33,7 @@ const List: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const {
-    isFetching,
+    isInitialLoading,
     isError,
     data = { pageCount: 1, schemas: [] as SchemaSubject[] },
   } = useGetSchemas({
@@ -35,6 +41,10 @@ const List: React.FC = () => {
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || '',
+    orderBy: (searchParams.get('sortBy') as SchemaColumnsToSort) ?? undefined,
+    sortOrder:
+      (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
+      undefined,
   });
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
@@ -53,7 +63,12 @@ const List: React.FC = () => {
       },
       { header: 'Id', accessorKey: 'id', size: 120 },
       { header: 'Type', accessorKey: 'schemaType', size: 120 },
-      { header: 'Version', accessorKey: 'version', size: 120 },
+      {
+        header: 'Version',
+        accessorKey: 'version',
+        size: 120,
+        enableSorting: false,
+      },
       {
         header: 'Compatibility',
         accessorKey: 'compatibilityLevel',
@@ -86,7 +101,7 @@ const List: React.FC = () => {
       <ControlPanelWrapper hasInput>
         <Search placeholder="Search by Schema Name" />
       </ControlPanelWrapper>
-      {isFetching || isError ? (
+      {isInitialLoading || isError ? (
         <PageLoader />
       ) : (
         <Table
