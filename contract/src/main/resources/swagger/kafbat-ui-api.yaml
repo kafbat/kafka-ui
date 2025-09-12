@@ -1208,6 +1208,16 @@ paths:
           required: false
           schema:
             type: string
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SchemaColumnsToSort'
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
       responses:
         200:
           description: OK
@@ -2682,6 +2692,15 @@ components:
         - TOTAL_PARTITIONS
         - REPLICATION_FACTOR
         - SIZE
+        - MESSAGES_COUNT
+
+    SchemaColumnsToSort:
+      type: string
+      enum:
+        - SUBJECT
+        - ID
+        - TYPE
+        - COMPATIBILITY
 
     ConnectorColumnsToSort:
       type: string
@@ -2729,6 +2748,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Partition"
+        messagesCount:
+          type: integer
+          format: int64
+          nullable: true
       required:
         - name
 

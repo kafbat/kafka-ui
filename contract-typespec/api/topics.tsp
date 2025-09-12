@@ -1,5 +1,6 @@
 import "@typespec/openapi";
 import "./responses.tsp";
+import "./models.tsp";
 
 namespace Api;
 
@@ -155,6 +156,7 @@ enum TopicColumnsToSort {
   TOTAL_PARTITIONS,
   REPLICATION_FACTOR,
   SIZE,
+  MESSAGES_COUNT
 }
 
 model Topic {
@@ -169,6 +171,7 @@ model Topic {
   bytesInPerSec?: float64;
   bytesOutPerSec?: float64;
   underReplicatedPartitions?: int32;
+  messagesCount?: int64 | null;
   cleanUpPolicy?: CleanUpPolicy;
   partitions?: Partition[];
 }

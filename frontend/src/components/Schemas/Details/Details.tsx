@@ -76,18 +76,18 @@ const Details: React.FC = () => {
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
       >
+        <Button
+          buttonSize="M"
+          buttonType="primary"
+          to={{
+            pathname: clusterSchemaSchemaComparePageRelativePath,
+            search: `leftVersion=${versions[0]?.version}&rightVersion=${versions[0]?.version}`,
+          }}
+        >
+          Compare Versions
+        </Button>
         {!isReadOnly && (
           <>
-            <Button
-              buttonSize="M"
-              buttonType="primary"
-              to={{
-                pathname: clusterSchemaSchemaComparePageRelativePath,
-                search: `leftVersion=${versions[0]?.version}&rightVersion=${versions[0]?.version}`,
-              }}
-            >
-              Compare Versions
-            </Button>
             <ActionButton
               buttonSize="M"
               buttonType="primary"

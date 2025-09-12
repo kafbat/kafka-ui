@@ -41,6 +41,7 @@ public class ClustersProperties {
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
   CacheProperties cache = new CacheProperties();
+  ClusterFtsProperties fts = new ClusterFtsProperties();
 
   @Data
   public static class Cluster {
@@ -215,6 +216,25 @@ public class ClustersProperties {
     boolean enabled = true;
     Duration connectCacheExpiry = Duration.ofMinutes(1);
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class NgramProperties {
+    int ngramMin = 1;
+    int ngramMax = 4;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ClusterFtsProperties {
+    boolean enabled = false;
+    NgramProperties schemas = new NgramProperties(1, 4);
+    NgramProperties consumers = new NgramProperties(1, 4);
+    NgramProperties connect = new NgramProperties(1, 4);
+    NgramProperties acl = new NgramProperties(1, 4);
   }
 
   @PostConstruct

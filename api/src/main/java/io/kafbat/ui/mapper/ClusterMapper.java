@@ -51,6 +51,7 @@ import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 @Mapper(componentModel = "spring")
 public interface ClusterMapper {
@@ -103,6 +104,14 @@ public interface ClusterMapper {
   }
 
   TopicDTO toTopic(InternalTopic topic);
+
+  default <T> JsonNullable<T> toJsonNullable(T value) {
+    if (value == null) {
+      return JsonNullable.undefined();
+    } else {
+      return JsonNullable.of(value);
+    }
+  }
 
   PartitionDTO toPartition(InternalPartition topic);
 

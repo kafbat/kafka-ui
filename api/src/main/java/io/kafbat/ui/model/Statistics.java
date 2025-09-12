@@ -11,7 +11,7 @@ import org.apache.kafka.clients.admin.TopicDescription;
 
 @Value
 @Builder(toBuilder = true)
-public class Statistics {
+public class Statistics implements AutoCloseable {
   ServerStatusDTO status;
   Throwable lastKafkaException;
   String version;
@@ -45,5 +45,12 @@ public class Statistics {
 
   public Statistics withClusterState(UnaryOperator<ScrapedClusterState> stateUpdate) {
     return toBuilder().clusterState(stateUpdate.apply(clusterState)).build();
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (clusterState != null) {
+      clusterState.close();
+    }
   }
 }
