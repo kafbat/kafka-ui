@@ -2692,6 +2692,7 @@ components:
         - TOTAL_PARTITIONS
         - REPLICATION_FACTOR
         - SIZE
+        - MESSAGES_COUNT
 
     SchemaColumnsToSort:
       type: string
@@ -2747,6 +2748,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Partition"
+        messagesCount:
+          type: integer
+          format: int64
+          nullable: true
       required:
         - name
 

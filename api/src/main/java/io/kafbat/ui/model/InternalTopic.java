@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
-import org.apache.kafka.common.TopicPartition;
 
 @Data
 @Builder(toBuilder = true)
@@ -143,4 +142,16 @@ public class InternalTopic {
     return topic.build();
   }
 
+  public @Nullable Long getMessagesCount() {
+    Long result = null;
+    if (cleanUpPolicy.equals(CleanupPolicy.DELETE)) {
+      result = 0L;
+      if (partitions != null && !partitions.isEmpty()) {
+        for (InternalPartition partition : partitions.values()) {
+          result += (partition.getOffsetMax() - partition.getOffsetMin());
+        }
+      }
+    }
+    return result;
+  }
 }
