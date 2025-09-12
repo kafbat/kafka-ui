@@ -7,7 +7,6 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.Strings.CI;
 
 import io.kafbat.ui.api.TopicsApi;
 import io.kafbat.ui.config.ClustersProperties;
@@ -362,6 +361,10 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       case OUT_OF_SYNC_REPLICAS -> Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
       case REPLICATION_FACTOR -> Comparator.comparing(InternalTopic::getReplicationFactor);
       case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
+      case MESSAGES_COUNT ->  Comparator.comparing(
+          InternalTopic::getMessagesCount,
+          Comparator.nullsLast(Long::compareTo)
+      );
       default -> defaultComparator;
     };
   }
