@@ -72,9 +72,9 @@ const TopicTable: React.FC = () => {
         size: 148,
       },
       {
+        id: TopicColumnsToSort.MESSAGES_COUNT,
         header: 'Number of messages',
         accessorKey: 'partitions',
-        enableSorting: false,
         size: 146,
         cell: ({ getValue }) => {
           const partitions = getValue<Topic['partitions']>();
