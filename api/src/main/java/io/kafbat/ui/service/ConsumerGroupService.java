@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,27 +69,46 @@ public class ConsumerGroupService {
   public Mono<List<InternalTopicConsumerGroup>> getConsumerGroupsForTopic(KafkaCluster cluster,
                                                                           String topic) {
     return adminClientService.get(cluster)
-        // 1. getting topic's end offsets
         .flatMap(ac -> ac.listTopicOffsets(topic, OffsetSpec.latest(), false)
-            .flatMap(endOffsets -> {
-              var tps = new ArrayList<>(endOffsets.keySet());
-              // 2. getting all consumer groups
-              return describeConsumerGroups(ac)
-                  .flatMap((List<ConsumerGroupDescription> groups) -> {
-                        // 3. trying to find committed offsets for topic
-                        var groupNames = groups.stream().map(ConsumerGroupDescription::groupId).toList();
-                        return ac.listConsumerGroupOffsets(groupNames, tps).map(offsets ->
-                            groups.stream()
-                                // 4. keeping only groups that relates to topic
-                                .filter(g -> isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId())))
-                                .map(g ->
-                                    // 5. constructing results
-                                    InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets))
-                                .toList()
-                        );
-                      }
-                  );
-            }));
+            .flatMap(endOffsets ->
+                describeConsumerGroups(ac).flatMap(groups ->
+                    filterConsumerGroups(ac, groups, topic, endOffsets)
+                )
+            )
+        );
+  }
+
+  private Mono<List<InternalTopicConsumerGroup>> filterConsumerGroups(
+      ReactiveAdminClient ac,
+      List<ConsumerGroupDescription> groups,
+      String topic,
+      Map<TopicPartition, Long> endOffsets) {
+    List<TopicPartition> partitions = new ArrayList<>(endOffsets.keySet());
+
+    Set<ConsumerGroupState> inactiveStates = Set.of(
+        ConsumerGroupState.DEAD,
+        ConsumerGroupState.EMPTY
+    );
+
+    Map<Boolean, List<ConsumerGroupDescription>> partitioned = groups.stream().collect(
+        Collectors.partitioningBy((g) -> !inactiveStates.contains(g.state()))
+    );
+
+    List<ConsumerGroupDescription> stable = partitioned.get(true).stream()
+        .filter(g -> isConsumerGroupRelatesToTopic(topic, g, false))
+        .toList();
+
+    List<ConsumerGroupDescription> filtered =  new ArrayList<>();
+    filtered.addAll(stable);
+    filtered.addAll(partitioned.get(false));
+
+    List<String> groupIds = filtered.stream().map(ConsumerGroupDescription::groupId).toList();
+    return ac.listConsumerGroupOffsets(groupIds, partitions).map(offsets ->
+        filtered.stream().filter(g ->
+            isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId()))
+        ).map(g ->
+            InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets)
+        ).toList());
   }
 
   private boolean isConsumerGroupRelatesToTopic(String topic,
