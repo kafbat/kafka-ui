@@ -147,6 +147,7 @@ public class InternalTopic {
   public Long getMessagesNumber() {
     Long result = null;
     if (cleanUpPolicy.equals(CleanupPolicy.DELETE)) {
+      result = 0L;
       if (partitions != null && !partitions.isEmpty()) {
         for (InternalPartition partition : partitions.values()) {
           result += (partition.getOffsetMax() - partition.getOffsetMin());
