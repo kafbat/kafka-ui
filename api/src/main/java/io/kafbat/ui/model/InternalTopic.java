@@ -144,7 +144,7 @@ public class InternalTopic {
     return topic.build();
   }
 
-  public Long getMessagesNumber() {
+  public @Nullable Long getMessagesNumber() {
     Long result = null;
     if (cleanUpPolicy.equals(CleanupPolicy.DELETE)) {
       result = 0L;
