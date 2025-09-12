@@ -26,6 +26,7 @@ import io.kafbat.ui.model.TopicCreationDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +49,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -76,7 +78,7 @@ public class TopicsService {
             ac.describeTopics(topics).zipWith(ac.getTopicsConfig(topics, false),
                 (descriptions, configs) ->
                     getPartitionOffsets(descriptions, ac).map(offsets -> {
-                      statisticsCache.update(c, descriptions, configs, offsets);
+                      statisticsCache.update(c, descriptions, configs, offsets, clustersProperties);
                       var stats = statisticsCache.get(c);
                       return createList(
                           topics,
@@ -465,23 +467,19 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster) {
+  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal) {
     Statistics stats = statisticsCache.get(cluster);
-    Map<String, TopicState> topicStates = stats.getClusterState().getTopicStates();
-    return filterExisting(cluster, topicStates.keySet())
-        .map(lst -> lst.stream()
-            .map(topicName ->
-                InternalTopic.from(
-                    topicStates.get(topicName).description(),
-                    topicStates.get(topicName).configs(),
-                    InternalPartitionsOffsets.empty(),
-                    stats.getMetrics(),
-                    Optional.ofNullable(topicStates.get(topicName))
-                        .map(TopicState::segmentStats).orElse(null),
-                    Optional.ofNullable(topicStates.get(topicName))
-                        .map(TopicState::partitionsSegmentStats).orElse(null),
-                    clustersProperties.getInternalTopicPrefix()
-        )).collect(toList()));
+    ScrapedClusterState clusterState = stats.getClusterState();
+
+    try {
+      return Mono.just(
+          clusterState.getTopicIndex().find(search, showInternal, null)
+      ).flatMap(lst -> filterExisting(cluster, lst)).map(lst ->
+        lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
+      );
+    } catch (Exception e) {
+      return Mono.error(e);
+    }
   }
 
   public Mono<Map<TopicPartition, List<ProducerState>>> getActiveProducersState(KafkaCluster cluster, String topic) {
@@ -489,12 +487,12 @@ public class TopicsService {
         .flatMap(ac -> ac.getActiveProducersState(topic));
   }
 
-  private Mono<List<String>> filterExisting(KafkaCluster cluster, Collection<String> topics) {
+  private Mono<List<InternalTopic>> filterExisting(KafkaCluster cluster, Collection<InternalTopic> topics) {
     return adminClientService.get(cluster)
         .flatMap(ac -> ac.listTopics(true))
-        .map(existing -> existing
+        .map(existing -> topics
             .stream()
-            .filter(topics::contains)
+            .filter(s -> existing.contains(s.getName()))
             .collect(toList()));
   }
 

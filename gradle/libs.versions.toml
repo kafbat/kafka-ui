@@ -1,6 +1,7 @@
 [versions]
-spring-boot = '3.5.3'
+spring-boot = '3.5.5'
 nimbus-jose-jwt = '10.0.2'
+netty = '4.1.125.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -42,6 +43,7 @@ testng = '7.10.0'
 bonigarcia-webdrivermanager = '6.1.1'
 aspectj = '1.9.21'
 prometheus = '1.3.6'
+lucene = '10.2.2'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
@@ -150,7 +152,14 @@ prometheus-metrics-exporter-pushgateway  = { module = 'io.prometheus:prometheus-
 
 snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.7'}
 
+
+lucene = {module = 'org.apache.lucene:lucene-core', version.ref = 'lucene'}
+lucene-queryparser = {module = 'org.apache.lucene:lucene-queryparser', version.ref = 'lucene'}
+lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', version.ref = 'lucene'}
+
 # CVE fixes
-reactor-netty-http = {module = 'io.projectreactor.netty:reactor-netty-http', version = '1.2.8'}
-# Fixes https://www.cve.org/CVERecord?id=CVE-2025-55163
-netty-codec-http2 = {module = 'io.netty:netty-codec-http2', version = '4.1.124.Final'}
+# START Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
+netty-codec = {module = 'io.netty:netty-codec', version.ref = 'netty'}
+netty-codec-http = {module = 'io.netty:netty-codec-http', version.ref = 'netty'}
+# END Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
+

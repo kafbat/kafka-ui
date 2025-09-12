@@ -10,6 +10,8 @@ kafka:
     - name: local
       bootstrapServers: localhost:9092
       schemaRegistry: http://localhost:8085
+  fts:
+    enabled: true
 
 dynamic.config.enabled: true
 
