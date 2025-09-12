@@ -47,9 +47,10 @@ public class SchemaRegistryService {
   }
 
   public Mono<List<SubjectWithCompatibilityLevel>> getAllLatestVersionSchemas(KafkaCluster cluster,
-                                                                              List<String> subjects) {
+                                                                              List<String> subjects,
+                                                                              int pageSize) {
     return Flux.fromIterable(subjects)
-        .concatMap(subject -> getLatestSchemaVersionBySubject(cluster, subject))
+        .flatMap(subject -> getLatestSchemaVersionBySubject(cluster, subject), pageSize)
         .collect(Collectors.toList());
   }
 

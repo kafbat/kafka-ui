@@ -6,12 +6,14 @@ import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@Getter
 @ConfigurationProperties("rbac")
 public class RoleBasedAccessControlProperties {
 
-  private final List<Role> roles = new ArrayList<>();
+  private volatile List<Role> roles = new ArrayList<>();
 
   private DefaultRole defaultRole;
 
@@ -23,8 +25,9 @@ public class RoleBasedAccessControlProperties {
     }
   }
 
-  public List<Role> getRoles() {
-    return roles;
+  public void setRoles(List<Role> roles) {
+    this.roles = roles;
+    init();
   }
 
   public void setDefaultRole(DefaultRole defaultRole) {
