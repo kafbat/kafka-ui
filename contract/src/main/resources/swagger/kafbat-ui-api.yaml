@@ -2692,7 +2692,7 @@ components:
         - TOTAL_PARTITIONS
         - REPLICATION_FACTOR
         - SIZE
-        - MESSAGES_NUMBER
+        - MESSAGES_COUNT
 
     SchemaColumnsToSort:
       type: string

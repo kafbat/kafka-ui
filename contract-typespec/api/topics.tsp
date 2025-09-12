@@ -156,7 +156,7 @@ enum TopicColumnsToSort {
   TOTAL_PARTITIONS,
   REPLICATION_FACTOR,
   SIZE,
-  MESSAGES_NUMBER
+  MESSAGES_COUNT
 }
 
 model Topic {
