@@ -171,7 +171,7 @@ model Topic {
   bytesInPerSec?: float64;
   bytesOutPerSec?: float64;
   underReplicatedPartitions?: int32;
-  messagesNumber?: int64 | null;
+  messagesCount?: int64 | null;
   cleanUpPolicy?: CleanUpPolicy;
   partitions?: Partition[];
 }

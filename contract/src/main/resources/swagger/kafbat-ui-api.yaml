@@ -2748,7 +2748,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Partition"
-        messagesNumber:
+        messagesCount:
           type: integer
           format: int64
           nullable: true
