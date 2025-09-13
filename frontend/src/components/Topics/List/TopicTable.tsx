@@ -74,7 +74,7 @@ const TopicTable: React.FC = () => {
       {
         id: TopicColumnsToSort.MESSAGES_COUNT,
         header: 'Number of messages',
-        accessorKey: 'messageCount',
+        accessorKey: 'messagesCount',
         size: 146,
       },
       {
