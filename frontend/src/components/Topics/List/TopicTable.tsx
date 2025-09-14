@@ -75,19 +75,13 @@ const TopicTable: React.FC = () => {
         maxSize: 148,
       },
       {
+        id: TopicColumnsToSort.MESSAGES_COUNT,
         header: 'Number of messages',
-        accessorKey: 'partitions',
-        enableSorting: false,
-        size: 146,
-        cell: ({ getValue }) => {
-          const partitions = getValue<Topic['partitions']>();
-          if (partitions === undefined || partitions.length === 0) {
-            return 0;
-          }
-          return partitions.reduce((memo, { offsetMax, offsetMin }) => {
-            return memo + (offsetMax - offsetMin);
-          }, 0);
+        accessorKey: 'messagesCount',
+        cell: (args) => {
+          return args.getValue() ?? 'N/A';
         },
+        size: 146,
       },
       {
         id: TopicColumnsToSort.SIZE,
