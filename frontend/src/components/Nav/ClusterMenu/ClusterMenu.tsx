@@ -14,7 +14,7 @@ import {
   clusterTopicsPath,
   kafkaConnectPath,
 } from 'lib/paths';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { ClusterColorKey } from 'theme/theme';
 import useScrollIntoView from 'lib/hooks/useScrollIntoView';
@@ -34,8 +34,10 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
 }) => {
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
+
   const [isOpen, setIsOpen] = useState(!!opened);
   const location = useLocation();
+  const navigate = useNavigate();
   const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
     `clusterColor-${name}`,
     'transparent'
@@ -47,13 +49,25 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
 
   const { ref } = useScrollIntoView<HTMLUListElement>(opened);
 
+  const handleClusterNameClick = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+    navigate(clusterBrokersPath(name));
+  };
+
+  const handleToggleMenu = () => {
+    setIsOpen((prev) => !prev);
+  };
+
   return (
     <S.ClusterList role="menu" $colorKey={colorKey} ref={ref}>
       <MenuTab
         title={name}
         status={status}
         isOpen={isOpen}
-        toggleClusterMenu={() => setIsOpen((prev) => !prev)}
+        toggleClusterMenu={handleToggleMenu}
+        onClusterNameClick={handleClusterNameClick}
         setColorKey={setColorKey}
         isActive={opened}
       />

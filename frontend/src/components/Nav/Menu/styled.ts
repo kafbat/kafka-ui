@@ -50,6 +50,7 @@ export const ContentWrapper = styled.div`
   display: flex;
   align-items: center;
   column-gap: 4px;
+  width: 100%;
 `;
 
 export const Title = styled.div`
@@ -84,6 +85,16 @@ export const StatusIcon = styled.circle.attrs({
     fill: ${statusColor[status]};
   `;
 });
+
+export const ChevronClickArea = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 4px;
+`;
 
 export const ChevronWrapper = styled.svg.attrs({
   viewBox: '0 0 10 6',

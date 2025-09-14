@@ -17,6 +17,7 @@ export const internalTopicPayload = {
   segmentSize: 0,
   segmentCount: 1,
   underReplicatedPartitions: 0,
+  messagesCount: 0,
   partitions: [
     {
       partition: 0,
@@ -38,6 +39,7 @@ export const externalTopicPayload = {
   segmentSize: 1263,
   segmentCount: 1,
   underReplicatedPartitions: 0,
+  messagesCount: 0,
   partitions: [
     {
       partition: 0,

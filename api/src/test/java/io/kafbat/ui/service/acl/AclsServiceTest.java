@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.CreateConsumerAclDTO;
 import io.kafbat.ui.model.CreateProducerAclDTO;
 import io.kafbat.ui.model.CreateStreamAppAclDTO;
@@ -34,7 +35,7 @@ class AclsServiceTest {
   private final ReactiveAdminClient adminClientMock = mock(ReactiveAdminClient.class);
   private final AdminClientService adminClientService = mock(AdminClientService.class);
 
-  private final AclsService aclsService = new AclsService(adminClientService);
+  private final AclsService aclsService = new AclsService(adminClientService, new ClustersProperties());
 
   @BeforeEach
   void initMocks() {
