@@ -11,6 +11,11 @@ updates:
   labels:
     - "type/dependencies"
     - "scope/backend"
+  ignore:
+    # Disable dependabot pull requests for Netty
+    # In general, our Netty references are temporary overrides, usually applied to address transitive Spring vulnerabilities, and should be configured with caution
+    # In general, having conflicting Netty versions in the classpath is not recommended
+    - dependency-name: "io.netty:*"
   groups:
     spring-boot-dependencies:
       patterns:
@@ -23,16 +28,10 @@ updates:
       exclude-patterns:
           - "org.springframework.boot:*"
           - "io.spring.dependency-management"
-          # All netty references are temporary overwrites that must be set carefully
-          # We do not need dependabot to send pull requests
-          - "io.netty:*"    
     other-dependencies:
       exclude-patterns:
         - "org.springframework.boot:*"
         - "io.spring.dependency-management"
-        # All netty references are temporary overwrites that must be set carefully
-        # We do not need dependabot to send pull requests
-        - "io.netty:*"
       patterns:
         - "*"
       update-types:

@@ -8,6 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 import ClusterContext from 'components/contexts/ClusterContext';
 import { useTopics } from 'lib/hooks/api/topics';
 import { PER_PAGE } from 'lib/constants';
+import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 
 import { TopicTitleCell } from './TopicTitleCell';
 import ActionsCell from './ActionsCell';
@@ -39,6 +40,7 @@ const TopicTable: React.FC = () => {
         header: 'Topic Name',
         accessorKey: 'name',
         cell: TopicTitleCell,
+        size: 400,
         meta: {
           width: '100%',
         },
@@ -70,6 +72,7 @@ const TopicTable: React.FC = () => {
         accessorKey: 'replicationFactor',
         enableSorting: false,
         size: 148,
+        maxSize: 148,
       },
       {
         id: TopicColumnsToSort.MESSAGES_COUNT,
@@ -97,6 +100,8 @@ const TopicTable: React.FC = () => {
     []
   );
 
+  const columnSizingPersister = useLocalStoragePersister('Topics');
+
   return (
     <Table
       data={topics}
@@ -108,6 +113,8 @@ const TopicTable: React.FC = () => {
       enableRowSelection={
         !isReadOnly ? (row) => !row.original.internal : undefined
       }
+      enableColumnResizing
+      columnSizingPersister={columnSizingPersister}
       emptyMessage="No topics found"
     />
   );
