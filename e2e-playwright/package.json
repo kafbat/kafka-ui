@@ -7,6 +7,7 @@
     "pretest": "npx ts-node src/helper/report/init.ts",
     "test": "cross-env ENV=prod FORCE_COLOR=0 cucumber-js --config=config/cucumber.js",
     "test:stage": "cross-env ENV=stage FORCE_COLOR=0 cucumber-js --config=config/cucumber.js",
+    "test:sp": "cross-env ENV=stage FORCE_COLOR=0 cucumber-js --config=config/cucumber.js --tags @sp",
     "posttest": "npx ts-node src/helper/report/report.ts",
     "test:failed": "cucumber-js -p rerun @rerun.txt",
     "lint": "eslint 'src/**/*.ts' --fix"

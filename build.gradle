@@ -35,6 +35,7 @@ ext {
     release = resolveBooleanProperty("release")
     includeFrontend = resolveBooleanProperty("include-frontend", release)
     buildDockerImages = resolveBooleanProperty("build-docker-images", release)
+    useTypeSpec = resolveBooleanProperty("typespec", true)
     runE2e = resolveBooleanProperty("run-e2e")
 }
 

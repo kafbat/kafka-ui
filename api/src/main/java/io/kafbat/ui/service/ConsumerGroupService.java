@@ -2,12 +2,14 @@ package io.kafbat.ui.service;
 
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SortOrderDTO;
+import io.kafbat.ui.service.index.ConsumerGroupFilter;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
@@ -23,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -39,6 +40,7 @@ public class ConsumerGroupService {
 
   private final AdminClientService adminClientService;
   private final AccessControlService accessControlService;
+  private final ClustersProperties clustersProperties;
 
   private Mono<List<InternalConsumerGroup>> getConsumerGroups(
       ReactiveAdminClient ac,
@@ -112,11 +114,7 @@ public class ConsumerGroupService {
       SortOrderDTO sortOrderDto) {
     return adminClientService.get(cluster).flatMap(ac ->
         ac.listConsumerGroups()
-            .map(listing -> search == null
-                ? listing
-                : listing.stream()
-                .filter(g -> StringUtils.containsIgnoreCase(g.groupId(), search))
-                .toList()
+            .map(listing -> filterGroups(listing, search)
             )
             .flatMapIterable(lst -> lst)
             .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
@@ -127,6 +125,12 @@ public class ConsumerGroupService {
                         .map(page -> new ConsumerGroupsPage(
                             page,
                             (allGroups.size() / perPage) + (allGroups.size() % perPage == 0 ? 0 : 1))))));
+  }
+
+  private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search) {
+    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts.isEnabled(), fts.getConsumers());
+    return filter.find(search, false);
   }
 
   private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,

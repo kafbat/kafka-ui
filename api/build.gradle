@@ -25,6 +25,7 @@ dependencies {
     implementation libs.spring.starter.oauth2.client
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
+
     compileOnly libs.spring.boot.devtools
 
     implementation libs.spring.security.ldap
@@ -33,6 +34,7 @@ dependencies {
 
     implementation libs.apache.avro
     implementation libs.apache.commons
+    implementation libs.apache.commons.text
     implementation libs.apache.commons.pool2
     implementation libs.apache.datasketches
 
@@ -48,8 +50,13 @@ dependencies {
 
     implementation libs.jackson.databind.nullable
     implementation libs.cel
+    implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
+
+    implementation libs.lucene
+    implementation libs.lucene.queryparser
+    implementation libs.lucene.analysis.common
 
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
@@ -65,8 +72,12 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    implementation libs.reactor.netty.http
+    // START Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
+    implementation libs.netty.codec
+    implementation libs.netty.codec.http
+    // END Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
     // CVE Fixes End
+
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
@@ -78,6 +89,13 @@ dependencies {
     implementation (libs.google.oauth.client) {
         because("CVE Fix: It is excluded above because of a vulnerability")
     }
+
+    implementation libs.prometheus.metrics.core
+    implementation libs.prometheus.metrics.textformats
+    implementation (libs.prometheus.metrics.exporter.pushgateway) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("PushGW lib pulls protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project.")
+    }
+    implementation libs.snappy
 
     // Annotation processors
     implementation libs.lombok
@@ -105,11 +123,11 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.prometheus.metrics.core
 }
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-package", "ksql"]
 }
 
 tasks.withType(JavaCompile) {
@@ -131,6 +149,7 @@ sourceSets {
 
 tasks.withType(Checkstyle).configureEach {
     exclude '**/ksql/**'
+    exclude '**/promql/**'
 }
 
 checkstyle {

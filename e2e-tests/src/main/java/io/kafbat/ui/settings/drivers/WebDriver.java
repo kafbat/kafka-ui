@@ -11,8 +11,10 @@ import com.codeborne.selenide.logevents.SelenideLogger;
 import io.kafbat.ui.settings.BaseSource;
 import io.qameta.allure.Step;
 import io.qameta.allure.selenide.AllureSelenide;
+import io.qameta.allure.selenide.LogType;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.chrome.ChromeOptions;
 
@@ -97,6 +99,8 @@ public abstract class WebDriver {
   public static void selenideLoggerSetup() {
     SelenideLogger.addListener("AllureSelenide", new AllureSelenide()
         .savePageSource(true)
-        .screenshots(true));
+        .screenshots(true)
+        .enableLogs(LogType.BROWSER, Level.ALL)
+    );
   }
 }

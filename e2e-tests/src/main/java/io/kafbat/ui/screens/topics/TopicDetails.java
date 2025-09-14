@@ -41,9 +41,13 @@ public class TopicDetails extends BasePage {
   protected SelenideElement addFiltersBtn = $x("//button[text()='Add Filters']");
   protected SelenideElement savedFiltersLink = $x("//div[text()='Saved Filters']");
   protected SelenideElement addFilterCodeModalTitle = $x("//label[text()='Filter code']");
+
   protected SelenideElement addFilterCodeEditor = $x("//div[@id='ace-editor']");
   protected SelenideElement addFilterCodeTextarea = $x("//div[@id='ace-editor']//textarea");
+
+
   protected SelenideElement saveThisFilterCheckBoxAddFilterMdl = $x("//input[@name='saveFilter']");
+
   protected SelenideElement displayNameInputAddFilterMdl = $x("//input[@placeholder='Enter Name']");
   protected SelenideElement cancelBtnAddFilterMdl = $x("//button[text()='Cancel']");
   protected SelenideElement addFilterBtnAddFilterMdl = $x("//button[text()='Add Filter']");
@@ -227,6 +231,8 @@ public class TopicDetails extends BasePage {
     return this;
   }
 
+
+
   @Step
   public String getFilterCodeValue() {
     addFilterCodeEditor.shouldBe(enabled).click();
@@ -237,6 +243,8 @@ public class TopicDetails extends BasePage {
       return value.substring(0, value.length() - 2);
     }
   }
+
+
 
   @Step
   public String getFilterNameValue() {

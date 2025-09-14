@@ -68,7 +68,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run CVE checks
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # infered from @v0.29.0
+        uses: aquasecurity/trivy-action@dc5a429b52fcf669ce959baa2c2dd26090d2a6c4 # infered from @v0.32.0
         with:
           image-ref: "ghcr.io/kafbat/kafka-ui:latest"
           format: "table"
