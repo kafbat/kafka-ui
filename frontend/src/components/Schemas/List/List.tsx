@@ -50,6 +50,7 @@ const List: React.FC = () => {
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
     () => [
       {
+        id: SchemaColumnsToSort.SUBJECT,
         header: 'Subject',
         accessorKey: 'subject',
         // eslint-disable-next-line react/no-unstable-nested-components
@@ -61,10 +62,11 @@ const List: React.FC = () => {
           />
         ),
       },
-      { header: 'Id', accessorKey: 'id', size: 120 },
-      { header: 'Type', accessorKey: 'schemaType', size: 120 },
-      { header: 'Version', accessorKey: 'version', size: 120 },
+      { id: SchemaColumnsToSort.ID, header: 'Id', accessorKey: 'id', size: 120 },
+      { id: SchemaColumnsToSort.TYPE, header: 'Type', accessorKey: 'schemaType', size: 120 },
+      { id: SchemaColumnsToSort.VERSION, header: 'Version', accessorKey: 'version', size: 120 },
       {
+        id: SchemaColumnsToSort.COMPATIBILITY,
         header: 'Compatibility',
         accessorKey: 'compatibilityLevel',
         size: 160,
