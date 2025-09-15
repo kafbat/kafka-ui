@@ -62,9 +62,24 @@ const List: React.FC = () => {
           />
         ),
       },
-      { id: SchemaColumnsToSort.ID, header: 'Id', accessorKey: 'id', size: 120 },
-      { id: SchemaColumnsToSort.TYPE, header: 'Type', accessorKey: 'schemaType', size: 120 },
-      { id: SchemaColumnsToSort.VERSION, header: 'Version', accessorKey: 'version', size: 120 },
+      {
+        id: SchemaColumnsToSort.ID,
+        header: 'Id',
+        accessorKey: 'id',
+        size: 120,
+      },
+      {
+        id: SchemaColumnsToSort.TYPE,
+        header: 'Type',
+        accessorKey: 'schemaType',
+        size: 120,
+      },
+      {
+        id: SchemaColumnsToSort.VERSION,
+        header: 'Version',
+        accessorKey: 'version',
+        size: 120,
+      },
       {
         id: SchemaColumnsToSort.COMPATIBILITY,
         header: 'Compatibility',
