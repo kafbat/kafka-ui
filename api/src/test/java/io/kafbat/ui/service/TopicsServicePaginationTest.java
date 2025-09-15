@@ -1,11 +1,11 @@
 package io.kafbat.ui.service;
 
+import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +13,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.mapper.ClusterMapperImpl;
-import io.kafbat.ui.model.InternalLogDirStats;
+import io.kafbat.ui.model.CleanupPolicy;
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
@@ -27,7 +27,6 @@ import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.audit.AuditService;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +36,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
@@ -70,6 +70,18 @@ class TopicsServicePaginationTest {
   private void init(Map<String, InternalTopic> topicsInCache) {
     KafkaCluster kafkaCluster = buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME);
     statisticsCache.replace(kafkaCluster, Statistics.empty());
+
+    Map<TopicPartition, InternalPartitionsOffsets.Offsets> offsets = topicsInCache.values().stream()
+        .flatMap(t ->
+            t.getPartitions().values().stream()
+                .map(p ->
+                        Map.entry(
+                            new TopicPartition(t.getName(), p.getPartition()),
+                            new InternalPartitionsOffsets.Offsets(p.getOffsetMin(), p.getOffsetMax())
+                        )
+                )
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     statisticsCache.update(
         kafkaCluster,
         topicsInCache.entrySet().stream().collect(
@@ -78,8 +90,11 @@ class TopicsServicePaginationTest {
                 v -> toTopicDescription(v.getValue())
             )
         ),
-        Map.of(),
-        new InternalPartitionsOffsets(Map.of()),
+        topicsInCache.entrySet().stream()
+            .map(t ->
+                Map.entry(t.getKey(), List.of(new ConfigEntry(CLEANUP_POLICY_CONFIG, "delete")))
+            ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+        new InternalPartitionsOffsets(offsets),
         clustersProperties
     );
     when(adminClientService.get(isA(KafkaCluster.class))).thenReturn(Mono.just(reactiveAdminClient));
@@ -299,6 +314,63 @@ class TopicsServicePaginationTest {
         internalTopics.values().stream()
             .map(clusterMapper::toTopic)
             .sorted(Comparator.comparing(TopicDTO::getPartitionCount))
+            .limit(25)
+            .collect(Collectors.toList())
+    );
+
+    var topicsSortedDesc = topicsController
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
+            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, SortOrderDTO.DESC, null).block();
+
+    assertThat(topicsSortedDesc.getBody().getPageCount()).isEqualTo(4);
+    assertThat(topicsSortedDesc.getBody().getTopics()).hasSize(25);
+    assertThat(topicsSortedDesc.getBody().getTopics()).containsExactlyElementsOf(
+        internalTopics.values().stream()
+            .map(clusterMapper::toTopic)
+            .sorted(Comparator.comparing(TopicDTO::getPartitionCount).reversed())
+            .limit(25)
+            .collect(Collectors.toList())
+    );
+  }
+
+  @Test
+  void shouldListTopicsOrderedByMessagesCount() {
+    Map<String, InternalTopic> internalTopics = IntStream.rangeClosed(1, 100).boxed()
+        .map(i -> new TopicDescription(UUID.randomUUID().toString(), false,
+            IntStream.range(0, i)
+                .mapToObj(p ->
+                    new TopicPartitionInfo(p, null, List.of(), List.of()))
+                .collect(Collectors.toList())))
+        .map(topicDescription ->
+            InternalTopic.from(topicDescription, List.of(),
+                new InternalPartitionsOffsets(
+                  topicDescription.partitions().stream()
+                      .map(p -> Map.entry(
+                          new TopicPartition(topicDescription.name(), p.partition()),
+                          new InternalPartitionsOffsets.Offsets(0L, (long) p.partition())
+                      )).collect(Collectors.toMap(
+                          Map.Entry::getKey,
+                          Map.Entry::getValue
+                      ))
+                ),
+            Metrics.empty(), null, null, "_")
+                .toBuilder().cleanUpPolicy(CleanupPolicy.DELETE).build()
+        ).collect(Collectors.toMap(InternalTopic::getName, Function.identity()));
+
+    init(internalTopics);
+
+    var topicsSortedAsc = topicsController
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
+            null, TopicColumnsToSortDTO.MESSAGES_COUNT, null, null).block();
+
+    assertThat(topicsSortedAsc.getBody().getPageCount()).isEqualTo(4);
+    assertThat(topicsSortedAsc.getBody().getTopics()).hasSize(25);
+    assertThat(topicsSortedAsc.getBody().getTopics()).containsExactlyElementsOf(
+        internalTopics.values().stream()
+            .map(clusterMapper::toTopic)
+            .sorted(Comparator.comparing(
+                (t) -> t.getMessagesCount().get()
+            ))
             .limit(25)
             .collect(Collectors.toList())
     );

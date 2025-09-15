@@ -1,5 +1,8 @@
 package io.kafbat.ui.model;
 
+import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
+
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.common.config.TopicConfig;
 
 @Data
 @Builder(toBuilder = true)
@@ -132,7 +136,96 @@ public class InternalTopic {
 
     topic.cleanUpPolicy(
         configs.stream()
-            .filter(config -> config.name().equals("cleanup.policy"))
+            .filter(config -> config.name().equals(CLEANUP_POLICY_CONFIG))
+            .findFirst()
+            .map(ConfigEntry::value)
+            .map(CleanupPolicy::fromString)
+            .orElse(CleanupPolicy.UNKNOWN)
+    );
+
+    return topic.build();
+  }
+
+  public static InternalTopic from(ScrapedClusterState.TopicState topicState,
+                                   @Nullable String internalTopicPrefix) {
+    var topic = InternalTopic.builder();
+    TopicDescription topicDescription = topicState.description();
+
+    internalTopicPrefix = internalTopicPrefix == null || internalTopicPrefix.isEmpty()
+        ? "_"
+        : internalTopicPrefix;
+
+    topic.internal(
+        topicDescription.isInternal() || topicDescription.name().startsWith(internalTopicPrefix)
+    );
+    topic.name(topicDescription.name());
+
+    List<InternalPartition> partitions = topicDescription.partitions().stream()
+        .map(partition -> {
+          var partitionDto = InternalPartition.builder();
+
+          partitionDto.leader(partition.leader() != null ? partition.leader().id() : null);
+          partitionDto.partition(partition.partition());
+          partitionDto.inSyncReplicasCount(partition.isr().size());
+          partitionDto.replicasCount(partition.replicas().size());
+          List<InternalReplica> replicas = partition.replicas().stream()
+              .map(r ->
+                  InternalReplica.builder()
+                      .broker(r.id())
+                      .inSync(partition.isr().contains(r))
+                      .leader(partition.leader() != null && partition.leader().id() == r.id())
+                      .build())
+              .collect(Collectors.toList());
+          partitionDto.replicas(replicas);
+
+          Optional.ofNullable(
+              topicState.startOffsets().get(partition.partition())
+          ).ifPresent(partitionDto::offsetMin);
+
+          Optional.ofNullable(
+              topicState.endOffsets().get(partition.partition())
+          ).ifPresent(partitionDto::offsetMax);
+
+          Optional.ofNullable(topicState.partitionsSegmentStats())
+              .flatMap(s -> Optional.ofNullable(s.get(partition.partition())))
+              .ifPresent(stats -> {
+                partitionDto.segmentCount(stats.getSegmentsCount());
+                partitionDto.segmentSize(stats.getSegmentSize());
+              });
+
+
+          return partitionDto.build();
+        })
+        .toList();
+
+    topic.partitions(partitions.stream().collect(
+        Collectors.toMap(InternalPartition::getPartition, t -> t)));
+
+    var partitionsStats = new PartitionsStats(topicDescription);
+    topic.replicas(partitionsStats.getReplicasCount());
+    topic.partitionCount(partitionsStats.getPartitionsCount());
+    topic.inSyncReplicas(partitionsStats.getInSyncReplicasCount());
+    topic.underReplicatedPartitions(partitionsStats.getUnderReplicatedPartitionCount());
+
+    topic.replicationFactor(
+        topicDescription.partitions().isEmpty()
+            ? 0
+            : topicDescription.partitions().get(0).replicas().size()
+    );
+
+    Optional.ofNullable(topicState.segmentStats())
+        .ifPresent(stats -> {
+          topic.segmentCount(stats.getSegmentsCount());
+          topic.segmentSize(stats.getSegmentSize());
+        });
+
+    topic.topicConfigs(
+        topicState.configs().stream().map(InternalTopicConfig::from).collect(Collectors.toList())
+    );
+
+    topic.cleanUpPolicy(
+        topicState.configs().stream()
+            .filter(config -> config.name().equals(CLEANUP_POLICY_CONFIG))
             .findFirst()
             .map(ConfigEntry::value)
             .map(CleanupPolicy::fromString)

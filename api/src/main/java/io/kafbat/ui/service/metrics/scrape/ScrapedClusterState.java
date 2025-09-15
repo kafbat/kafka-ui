@@ -210,7 +210,7 @@ public class ScrapedClusterState implements AutoCloseable {
   }
 
   private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
-                                                   Map<String, TopicState> topicStates) {
+                                             Map<String, TopicState> topicStates) {
     ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
     List<InternalTopic> topics = topicStates.values().stream().map(
         topicState -> buildInternalTopic(topicState, clustersProperties)
@@ -233,17 +233,8 @@ public class ScrapedClusterState implements AutoCloseable {
         .collect(Collectors.toMap(e -> e.getKey().partition(), Map.Entry::getValue));
   }
 
-  private static InternalTopic buildInternalTopic(TopicState state, ClustersProperties clustersProperties) {
-    return InternalTopic.from(
-        state.description(),
-        state.configs(),
-        InternalPartitionsOffsets.empty(),
-        null,
-        state.segmentStats(),
-        state.partitionsSegmentStats(),
-        clustersProperties.getInternalTopicPrefix()
-    );
+  private static InternalTopic buildInternalTopic(TopicState state,
+                                                  ClustersProperties clustersProperties) {
+    return InternalTopic.from(state, clustersProperties.getInternalTopicPrefix());
   }
-
-
 }
