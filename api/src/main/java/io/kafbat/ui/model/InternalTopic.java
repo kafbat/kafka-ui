@@ -148,7 +148,9 @@ public class InternalTopic {
       result = 0L;
       if (partitions != null && !partitions.isEmpty()) {
         for (InternalPartition partition : partitions.values()) {
-          result += (partition.getOffsetMax() - partition.getOffsetMin());
+          if (partition.getOffsetMin() != null && partition.getOffsetMax() != null) {
+            result += (partition.getOffsetMax() - partition.getOffsetMin());
+          }
         }
       }
     }
