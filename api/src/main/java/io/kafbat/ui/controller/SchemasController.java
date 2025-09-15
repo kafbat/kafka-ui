@@ -247,6 +247,9 @@ public class SchemasController extends AbstractController implements SchemasApi,
               sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
                   ? schemaComparator : schemaComparator.reversed();
           if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
+            if (SortOrderDTO.DESC.equals(sortOrder)) {
+              filteredSubjects.sort(Comparator.nullsFirst(Comparator.reverseOrder()));
+            }
             subjectsToRetrieve = filteredSubjects.stream()
                 .skip(subjectToSkip)
                 .limit(pageSize)
