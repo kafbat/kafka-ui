@@ -242,7 +242,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           List<String> subjectsToRetrieve;
           boolean paginate = true;
-          var schemaComparator = Comparator.nullsFirst(getComparatorForSchema(orderBy));
+          var schemaComparator = getComparatorForSchema(orderBy);
           final Comparator<SubjectWithCompatibilityLevel> comparator =
               sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
                   ? schemaComparator : schemaComparator.reversed();
@@ -286,16 +286,34 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   private Comparator<SubjectWithCompatibilityLevel> getComparatorForSchema(
       @Valid SchemaColumnsToSortDTO orderBy) {
-    var defaultComparator = Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
+    var defaultComparator = Comparator.comparing(
+        SubjectWithCompatibilityLevel::getSubject,
+        Comparator.nullsFirst(Comparator.naturalOrder())
+    );
     if (orderBy == null) {
       return defaultComparator;
     }
     return switch (orderBy) {
-      case SUBJECT -> Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
-      case ID -> Comparator.comparing(SubjectWithCompatibilityLevel::getId);
-      case TYPE -> Comparator.comparing(SubjectWithCompatibilityLevel::getSchemaType);
-      case COMPATIBILITY -> Comparator.comparing(SubjectWithCompatibilityLevel::getCompatibility);
-      case VERSION -> Comparator.nullsLast(Comparator.comparing(SubjectWithCompatibilityLevel::getVersion));
+      case SUBJECT -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getSubject,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case ID -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getId,
+          Comparator.nullsFirst(Integer::compareTo)
+      );
+      case TYPE -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getSchemaType,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case COMPATIBILITY -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getCompatibility,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case VERSION -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getVersion,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
       default -> defaultComparator;
     };
   }
