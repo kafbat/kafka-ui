@@ -1,5 +1,8 @@
 package io.kafbat.ui.model;
 
+import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
+
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +13,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.TopicConfig;
 
 @Data
 @Builder(toBuilder = true)
@@ -132,7 +137,7 @@ public class InternalTopic {
 
     topic.cleanUpPolicy(
         configs.stream()
-            .filter(config -> config.name().equals("cleanup.policy"))
+            .filter(config -> config.name().equals(CLEANUP_POLICY_CONFIG))
             .findFirst()
             .map(ConfigEntry::value)
             .map(CleanupPolicy::fromString)
@@ -140,6 +145,31 @@ public class InternalTopic {
     );
 
     return topic.build();
+  }
+
+  public static InternalTopic from(ScrapedClusterState.TopicState topicState,
+                                   @Nullable String internalTopicPrefix) {
+    Map<TopicPartition, InternalPartitionsOffsets.Offsets> offsets =
+        topicState.description().partitions().stream().map(p -> Map.entry(
+            new TopicPartition(topicState.name(), p.partition()),
+            new InternalPartitionsOffsets.Offsets(
+                topicState.startOffsets().get(p.partition()),
+                topicState.endOffsets().get(p.partition())
+            )
+        )
+    ).filter(e ->
+            e.getValue().getEarliest() != null && e.getValue().getLatest() != null
+    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    return from(
+        topicState.description(),
+        topicState.configs(),
+        new InternalPartitionsOffsets(offsets),
+        null,
+        topicState.segmentStats(),
+        topicState.partitionsSegmentStats(),
+        internalTopicPrefix
+    );
   }
 
   public @Nullable Long getMessagesCount() {
