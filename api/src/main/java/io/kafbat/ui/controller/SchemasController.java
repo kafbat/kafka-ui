@@ -241,7 +241,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           List<String> subjectsToRetrieve;
           boolean paginate = true;
-          var schemaComparator = getComparatorForSchema(orderBy);
+          var schemaComparator = Comparator.nullsFirst(getComparatorForSchema(orderBy));
           final Comparator<SubjectWithCompatibilityLevel> comparator =
               sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
                   ? schemaComparator : schemaComparator.reversed();
