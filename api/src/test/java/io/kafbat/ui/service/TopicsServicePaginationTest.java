@@ -80,6 +80,8 @@ class TopicsServicePaginationTest {
                             new InternalPartitionsOffsets.Offsets(p.getOffsetMin(), p.getOffsetMax())
                         )
                 )
+        ).filter( e ->
+            e.getValue().getEarliest() != null && e.getValue().getLatest() != null
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     statisticsCache.update(

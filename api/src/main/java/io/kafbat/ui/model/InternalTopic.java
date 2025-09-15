@@ -157,6 +157,8 @@ public class InternalTopic {
                 topicState.endOffsets().get(p.partition())
             )
         )
+    ).filter( e ->
+            e.getValue().getEarliest() != null && e.getValue().getLatest() != null
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return from(
