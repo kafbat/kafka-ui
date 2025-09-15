@@ -181,4 +181,5 @@ enum SchemaColumnsToSort {
   ID,
   TYPE,
   COMPATIBILITY,
+  VERSION
 }

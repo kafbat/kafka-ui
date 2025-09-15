@@ -63,12 +63,7 @@ const List: React.FC = () => {
       },
       { header: 'Id', accessorKey: 'id', size: 120 },
       { header: 'Type', accessorKey: 'schemaType', size: 120 },
-      {
-        header: 'Version',
-        accessorKey: 'version',
-        size: 120,
-        enableSorting: false,
-      },
+      { header: 'Version', accessorKey: 'version', size: 120 },
       {
         header: 'Compatibility',
         accessorKey: 'compatibilityLevel',

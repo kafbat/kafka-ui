@@ -294,6 +294,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
       case ID -> Comparator.comparing(SubjectWithCompatibilityLevel::getId);
       case TYPE -> Comparator.comparing(SubjectWithCompatibilityLevel::getSchemaType);
       case COMPATIBILITY -> Comparator.comparing(SubjectWithCompatibilityLevel::getCompatibility);
+      case VERSION -> Comparator.nullsLast(Comparator.comparing(SubjectWithCompatibilityLevel::getVersion));
       default -> defaultComparator;
     };
   }
