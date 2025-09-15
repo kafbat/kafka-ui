@@ -21,6 +21,7 @@ import io.kafbat.ui.service.SchemaRegistryService;
 import io.kafbat.ui.service.SchemaRegistryService.SubjectWithCompatibilityLevel;
 import io.kafbat.ui.service.index.SchemasFilter;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -234,7 +235,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
           SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
-          List<String> filteredSubjects = filter.find(search);
+          List<String> filteredSubjects = new ArrayList<>(filter.find(search));
 
           var totalPages = (filteredSubjects.size() / pageSize)
               + (filteredSubjects.size() % pageSize == 0 ? 0 : 1);
