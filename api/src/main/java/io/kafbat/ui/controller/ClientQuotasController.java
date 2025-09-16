@@ -26,9 +26,21 @@ import reactor.core.publisher.Mono;
 public class ClientQuotasController extends AbstractController implements ClientQuotasApi, McpTool {
 
   private static final Comparator<ClientQuotaRecord> QUOTA_RECORDS_COMPARATOR =
-      Comparator.nullsLast(Comparator.comparing(ClientQuotaRecord::user))
-          .thenComparing(Comparator.nullsLast(Comparator.comparing(ClientQuotaRecord::clientId)))
-          .thenComparing(Comparator.nullsLast(Comparator.comparing(ClientQuotaRecord::ip)));
+          Comparator.nullsLast(
+            Comparator.comparing(ClientQuotaRecord::user, Comparator.nullsLast(String::compareTo))
+          )
+          .thenComparing(Comparator.nullsLast(
+              Comparator.comparing(
+                  ClientQuotaRecord::clientId,
+                  Comparator.nullsLast(String::compareTo)
+              )
+          ))
+          .thenComparing(Comparator.nullsLast(
+              Comparator.comparing(
+                  ClientQuotaRecord::ip,
+                  Comparator.nullsLast(String::compareTo)
+              )
+          ));
 
   private final ClientQuotaService clientQuotaService;
 
