@@ -161,7 +161,7 @@ public class KafkaConnectService {
     ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
     KafkaConnectNgramFilter filter =
         new KafkaConnectNgramFilter(connectors, fts.isEnabled(), fts.getConnect());
-    return filter.find(search);
+    return filter.find(search, false);
   }
 
   private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {
