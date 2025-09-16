@@ -363,7 +363,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
       case MESSAGES_COUNT ->  Comparator.comparing(
           InternalTopic::getMessagesCount,
-          Comparator.nullsLast(Long::compareTo)
+          Comparator.nullsFirst(Long::compareTo)
       );
       default -> defaultComparator;
     };

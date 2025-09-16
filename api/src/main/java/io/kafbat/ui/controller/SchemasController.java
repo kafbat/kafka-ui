@@ -21,6 +21,7 @@ import io.kafbat.ui.service.SchemaRegistryService;
 import io.kafbat.ui.service.SchemaRegistryService.SubjectWithCompatibilityLevel;
 import io.kafbat.ui.service.index.SchemasFilter;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -234,7 +235,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
           SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
-          List<String> filteredSubjects = filter.find(search);
+          List<String> filteredSubjects = new ArrayList<>(filter.find(search));
 
           var totalPages = (filteredSubjects.size() / pageSize)
               + (filteredSubjects.size() % pageSize == 0 ? 0 : 1);
@@ -247,7 +248,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
                   ? schemaComparator : schemaComparator.reversed();
           if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
             if (SortOrderDTO.DESC.equals(sortOrder)) {
-              filteredSubjects.sort(Comparator.reverseOrder());
+              filteredSubjects.sort(Comparator.nullsFirst(Comparator.reverseOrder()));
             }
             subjectsToRetrieve = filteredSubjects.stream()
                 .skip(subjectToSkip)
@@ -285,15 +286,34 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   private Comparator<SubjectWithCompatibilityLevel> getComparatorForSchema(
       @Valid SchemaColumnsToSortDTO orderBy) {
-    var defaultComparator = Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
+    var defaultComparator = Comparator.comparing(
+        SubjectWithCompatibilityLevel::getSubject,
+        Comparator.nullsFirst(Comparator.naturalOrder())
+    );
     if (orderBy == null) {
       return defaultComparator;
     }
     return switch (orderBy) {
-      case SUBJECT -> Comparator.comparing(SubjectWithCompatibilityLevel::getSubject);
-      case ID -> Comparator.comparing(SubjectWithCompatibilityLevel::getId);
-      case TYPE -> Comparator.comparing(SubjectWithCompatibilityLevel::getSchemaType);
-      case COMPATIBILITY -> Comparator.comparing(SubjectWithCompatibilityLevel::getCompatibility);
+      case SUBJECT -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getSubject,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case ID -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getId,
+          Comparator.nullsFirst(Integer::compareTo)
+      );
+      case TYPE -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getSchemaType,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case COMPATIBILITY -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getCompatibility,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case VERSION -> Comparator.comparing(
+          SubjectWithCompatibilityLevel::getVersion,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
       default -> defaultComparator;
     };
   }
