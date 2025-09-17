@@ -28,7 +28,6 @@ describe('ClusterMenu', () => {
   const getKafkaConnect = () => screen.getByTitle('Kafka Connect');
   const getCluster = () => screen.getByText(onlineClusterPayload.name);
 
-  // Хелпер для клика по шеврону - ищем SVG с шевроном
   const clickChevron = async () => {
     const chevronSvg = document.querySelector('svg[viewBox="0 0 10 6"]');
     if (chevronSvg) {
