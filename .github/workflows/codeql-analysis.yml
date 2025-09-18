@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # infered from @v4
         with:
           token: ${{ github.token }}
 
