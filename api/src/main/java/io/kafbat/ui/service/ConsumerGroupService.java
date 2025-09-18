@@ -8,8 +8,11 @@ import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
+import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.SortOrderDTO;
+import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.service.index.ConsumerGroupFilter;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
@@ -19,7 +22,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,6 +46,7 @@ public class ConsumerGroupService {
   private final AdminClientService adminClientService;
   private final AccessControlService accessControlService;
   private final ClustersProperties clustersProperties;
+  private final StatisticsCache statisticsCache;
 
   private Mono<List<InternalConsumerGroup>> getConsumerGroups(
       ReactiveAdminClient ac,
@@ -67,27 +73,63 @@ public class ConsumerGroupService {
   public Mono<List<InternalTopicConsumerGroup>> getConsumerGroupsForTopic(KafkaCluster cluster,
                                                                           String topic) {
     return adminClientService.get(cluster)
-        // 1. getting topic's end offsets
         .flatMap(ac -> ac.listTopicOffsets(topic, OffsetSpec.latest(), false)
-            .flatMap(endOffsets -> {
-              var tps = new ArrayList<>(endOffsets.keySet());
-              // 2. getting all consumer groups
-              return describeConsumerGroups(ac)
-                  .flatMap((List<ConsumerGroupDescription> groups) -> {
-                        // 3. trying to find committed offsets for topic
-                        var groupNames = groups.stream().map(ConsumerGroupDescription::groupId).toList();
-                        return ac.listConsumerGroupOffsets(groupNames, tps).map(offsets ->
-                            groups.stream()
-                                // 4. keeping only groups that relates to topic
-                                .filter(g -> isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId())))
-                                .map(g ->
-                                    // 5. constructing results
-                                    InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets))
-                                .toList()
-                        );
-                      }
-                  );
-            }));
+            .flatMap(endOffsets ->
+                describeConsumerGroups(cluster, ac, true).flatMap(groups ->
+                    filterConsumerGroups(cluster, ac, groups, topic, endOffsets)
+                )
+            )
+        );
+  }
+
+  private Mono<List<InternalTopicConsumerGroup>> filterConsumerGroups(
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      List<ConsumerGroupDescription> groups,
+      String topic,
+      Map<TopicPartition, Long> endOffsets) {
+
+    Set<ConsumerGroupState> inactiveStates = Set.of(
+        ConsumerGroupState.DEAD,
+        ConsumerGroupState.EMPTY
+    );
+
+    Map<Boolean, List<ConsumerGroupDescription>> partitioned = groups.stream().collect(
+        Collectors.partitioningBy((g) -> !inactiveStates.contains(g.state()))
+    );
+
+    List<ConsumerGroupDescription> stable = partitioned.get(true).stream()
+        .filter(g -> isConsumerGroupRelatesToTopic(topic, g, false))
+        .toList();
+
+    List<ConsumerGroupDescription> dead = partitioned.get(false);
+    if (!dead.isEmpty()) {
+      Statistics statistics = statisticsCache.get(cluster);
+      if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+        dead = dead.stream().filter(g ->
+                Optional.ofNullable(consumerGroupsStates.get(g.groupId()))
+                    .map(s ->
+                            s.committedOffsets().keySet().stream().anyMatch(tp -> tp.topic().equals(topic))
+                    ).orElse(false)
+        ).toList();
+      }
+    }
+
+    List<ConsumerGroupDescription> filtered =  new ArrayList<>(stable.size() + dead.size());
+    filtered.addAll(stable);
+    filtered.addAll(dead);
+
+    List<TopicPartition> partitions = new ArrayList<>(endOffsets.keySet());
+
+    List<String> groupIds = filtered.stream().map(ConsumerGroupDescription::groupId).toList();
+    return ac.listConsumerGroupOffsets(groupIds, partitions).map(offsets ->
+        filtered.stream().filter(g ->
+            isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId()))
+        ).map(g ->
+            InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets)
+        ).toList());
   }
 
   private boolean isConsumerGroupRelatesToTopic(String topic,
@@ -208,11 +250,51 @@ public class ConsumerGroupService {
         .limit(perPage);
   }
 
-  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(ReactiveAdminClient ac) {
+  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      boolean cache) {
     return ac.listConsumerGroupNames()
-        .flatMap(ac::describeConsumerGroups)
-        .map(cgs -> new ArrayList<>(cgs.values()));
+        .flatMap(names -> describeConsumerGroups(names, cluster, ac, cache));
   }
+
+  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(
+      List<String> groupNames,
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      boolean cache) {
+
+    Statistics statistics = statisticsCache.get(cluster);
+
+    if (cache && statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      List<ConsumerGroupDescription> result = new ArrayList<>();
+      List<String> notFound = new ArrayList<>();
+      Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+          statistics.getClusterState().getConsumerGroupsStates();
+      for (String groupName : groupNames) {
+        ScrapedClusterState.ConsumerGroupState consumerGroupState = consumerGroupsStates.get(groupName);
+        if (consumerGroupState != null) {
+          result.add(consumerGroupState.description());
+        } else {
+          notFound.add(groupName);
+        }
+      }
+      if (!notFound.isEmpty()) {
+        return ac.describeConsumerGroups(notFound)
+            .map(descriptions -> {
+              result.addAll(descriptions.values());
+              return result;
+            });
+      } else {
+        return Mono.just(result);
+      }
+    } else {
+      return ac.describeConsumerGroups(groupNames)
+          .map(descriptions -> List.copyOf(descriptions.values()));
+    }
+  }
+
+
 
 
   private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(
