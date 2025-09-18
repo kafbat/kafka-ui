@@ -23,8 +23,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
   protected List<FullConnectorInfoDTO> items() {
     return IntStream.range(0, 100).mapToObj(i ->
         new FullConnectorInfoDTO(
-            "connect-"+i,
-            "connector-"+i,
+            "connect-" + i,
+            "connector-" + i,
             "class",
             ConnectorTypeDTO.SINK,
             List.of(),

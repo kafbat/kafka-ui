@@ -13,7 +13,7 @@ import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePattern;
 import org.apache.kafka.common.resource.ResourceType;
 
-public class AclBindingFilterTest extends AbstractNgramFilterTest<AclBinding>{
+public class AclBindingFilterTest extends AbstractNgramFilterTest<AclBinding> {
   @Override
   protected NgramFilter<AclBinding> buildFilter(List<AclBinding> items, boolean enabled,
                                                 ClustersProperties.NgramProperties ngramProperties) {
@@ -24,8 +24,8 @@ public class AclBindingFilterTest extends AbstractNgramFilterTest<AclBinding>{
   protected List<AclBinding> items() {
     return IntStream.range(0, 100).mapToObj(i ->
         new AclBinding(
-            new ResourcePattern(ResourceType.TOPIC, "resource-"+i, PatternType.LITERAL),
-            new AccessControlEntry("principal-"+i, "*", AclOperation.ALL, AclPermissionType.ALLOW)
+            new ResourcePattern(ResourceType.TOPIC, "resource-" + i, PatternType.LITERAL),
+            new AccessControlEntry("principal-" + i, "*", AclOperation.ALL, AclPermissionType.ALLOW)
         )
     ).toList();
   }

@@ -19,7 +19,7 @@ class ConsumerGroupFilterTest extends AbstractNgramFilterTest<ConsumerGroupListi
   @Override
   protected List<ConsumerGroupListing> items() {
     return IntStream.range(0, 100).mapToObj(i ->
-        new ConsumerGroupListing("resource-"+i, true)
+        new ConsumerGroupListing("resource-" + i, true)
     ).toList();
   }
 
