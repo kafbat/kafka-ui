@@ -172,7 +172,7 @@ public class ConsumerGroupService {
   private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search) {
     ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
     ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts.isEnabled(), fts.getConsumers());
-    return filter.find(search, false);
+    return filter.find(search);
   }
 
   private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,
