@@ -37,7 +37,7 @@ antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
 
-allure = '2.29.1'
+allure = '2.30.0'
 selenide = '7.2.3'
 testng = '7.10.0'
 bonigarcia-webdrivermanager = '6.1.1'
@@ -51,7 +51,7 @@ spring-dependency-management = { id = 'io.spring.dependency-management', version
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.4.2' }
 openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.10" }
 openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
-allure = { id = 'io.qameta.allure', version = '2.10.0' }
+allure = { id = 'io.qameta.allure', version = '3.0.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 #jib = { id = 'com.google.cloud.tools.jib', version = '3.4.4' }
