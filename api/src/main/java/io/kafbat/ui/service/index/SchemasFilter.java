@@ -15,6 +15,11 @@ public class SchemasFilter extends NgramFilter<String> {
   }
 
   @Override
+  public List<String> find(String search) {
+    return super.find(search, String::compareTo);
+  }
+
+  @Override
   protected List<Tuple2<List<String>, String>> getItems() {
     return this.subjects;
   }
