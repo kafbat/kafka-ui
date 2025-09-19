@@ -1,7 +1,6 @@
 [versions]
-spring-boot = '3.5.5'
+spring-boot = '3.5.6'
 nimbus-jose-jwt = '10.0.2'
-netty = '4.1.125.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -156,10 +155,3 @@ snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.7'}
 lucene = {module = 'org.apache.lucene:lucene-core', version.ref = 'lucene'}
 lucene-queryparser = {module = 'org.apache.lucene:lucene-queryparser', version.ref = 'lucene'}
 lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', version.ref = 'lucene'}
-
-# CVE fixes
-# START Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
-netty-codec = {module = 'io.netty:netty-codec', version.ref = 'netty'}
-netty-codec-http = {module = 'io.netty:netty-codec-http', version.ref = 'netty'}
-# END Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
-

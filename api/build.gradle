@@ -72,12 +72,6 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    // START Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
-    implementation libs.netty.codec
-    implementation libs.netty.codec.http
-    // END Fixes https://www.cve.org/CVERecord?id=CVE-2025-58056 and https://www.cve.org/CVERecord?id=CVE-2025-58057
-    // CVE Fixes End
-
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
