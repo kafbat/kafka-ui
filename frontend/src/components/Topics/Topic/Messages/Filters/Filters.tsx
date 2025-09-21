@@ -24,7 +24,7 @@ import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import ExportIcon from 'components/common/Icons/ExportIcon'
+import ExportIcon from 'components/common/Icons/ExportIcon';
 
 import * as S from './Filters.styled';
 import {
@@ -300,8 +300,8 @@ const Filters: React.FC<FiltersProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-            >
-	     <ExportIcon/>
+            >       
+              <ExportIcon/>
               Export
             </Button>
             {showFormatSelector && (
