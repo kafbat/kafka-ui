@@ -300,8 +300,8 @@ const Filters: React.FC<FiltersProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-            >       
-              <ExportIcon/>
+            >
+              <ExportIcon />
               Export
             </Button>
             {showFormatSelector && (
