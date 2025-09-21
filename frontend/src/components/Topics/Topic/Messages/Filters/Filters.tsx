@@ -24,6 +24,7 @@ import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import useDataSaver from 'lib/hooks/useDataSaver';
+import ExportIcon from 'components/common/Icons/ExportIcon'
 
 import * as S from './Filters.styled';
 import {
@@ -88,7 +89,7 @@ const Filters: React.FC<FiltersProps> = ({
     smartFilter,
     setSmartFilter,
     refreshData,
-  } = useMessagesFilters(topicName);
+  } = useMessagesFilters();
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
@@ -108,7 +109,7 @@ const Filters: React.FC<FiltersProps> = ({
 
   const savedMessagesJson: MessageData[] = messages.map(
     (message: TopicMessage) => ({
-      Value: message.value,
+      Value: message.content,
       Offset: message.offset,
       Key: message.key,
       Partition: message.partition,
@@ -300,15 +301,7 @@ const Filters: React.FC<FiltersProps> = ({
                 justifyContent: 'center',
               }}
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 18 18"
-                fill="currentColor"
-              >
-                <path d="M4.24 5.8a.75.75 0 001.06-.04l1.95-2.1v6.59a.75.75 0 001.5 0V3.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.101.001L4.2 4.74a.75.75 0 00.04 1.06z" />
-                <path d="M1.75 9a.75.75 0 01.75.75v3c0 .414.336.75.75.75h9.5a.75.75 0 00.75-.75v-3a.75.75 0 011.5 0v3A2.25 2.25 0 0112.75 15h-9.5A2.25 2.25 0 011 12.75v-3A.75.75 0 011.75 9z" />
-              </svg>{' '}
+	     <ExportIcon/>
               Export
             </Button>
             {showFormatSelector && (
