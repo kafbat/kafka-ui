@@ -21,5 +21,4 @@ const ExportIcon: React.FC = () => {
   );
 };
 
-
 export default ExportIcon;
