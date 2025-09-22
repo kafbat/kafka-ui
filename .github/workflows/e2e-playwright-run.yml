@@ -58,10 +58,7 @@ jobs:
       - name: Build with Gradle
         id: build_app
         run: |
-          ./gradlew build \
-          -x :e2e-tests:check \
-          -x :e2e-tests:build \
-          -x test \
+          ./gradlew build -x test \
           -Pbuild-docker-images=true \
           -Pinclude-frontend=true \
           -Pversion=latest

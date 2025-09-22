@@ -16,7 +16,7 @@ gradle/libs.versions.toml   @kafbat/backend
 /frontend/                  @kafbat/frontend
 
 # TESTS
-/e2e-tests/                 @kafbat/qa
+/e2e-playwright/                 @kafbat/qa
 
 # INFRA
 /.github/workflows/         @kafbat/devops

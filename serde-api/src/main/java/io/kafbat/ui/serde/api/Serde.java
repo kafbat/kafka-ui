@@ -126,6 +126,7 @@ public interface Serde extends Closeable {
     /**
      * Serializes input string to bytes. Uses provided headers for additional information.
      * @param input string entered by user into UI text field.<br/> Note: this input is not formatted in any way.
+     * @param headers headers entered by user into UI text field.<br/> Note: this input is not formatted in any way.
      * @return serialized bytes. Can be null if input is null or empty string.
      */
     default byte[] serialize(String input, Headers headers) {
