@@ -127,7 +127,7 @@ class ConsumerGroupServiceTest {
 
     Mockito.when(client.listConsumerGroupOffsets(Mockito.any(), Mockito.any())).thenAnswer(
         a -> {
-          List<String> groupIds = (List<String>) a.getArgument(0);
+          List<String> groupIds = a.getArgument(0);
           var table = ImmutableTable.<String, TopicPartition, Long>builder();
           for (String groupId : groupIds) {
             ScrapedClusterState.ConsumerGroupState state = consumerGroupStates.get(groupId);
