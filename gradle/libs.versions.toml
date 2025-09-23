@@ -25,7 +25,7 @@ cel = '0.3.0'
 # This version should be compatible with the version used by spring-boot-starter-test to avoid conflicts
 # See https://github.com/spring-projects/spring-boot/blob/b6b570ebebb6ea233e00af5e554adcf40256f224/gradle.properties#L16C21-L16C27
 junit = '5.12.2'
-mockito = '5.16.0'
+mockito = '5.20.0'
 okhttp3 = '4.12.0'
 testcontainers = '1.20.6'
 swagger-integration-jakarta = '2.2.28'
