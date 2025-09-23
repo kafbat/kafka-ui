@@ -124,16 +124,14 @@ generateGrammarSource {
     maxHeapSize = "64m"
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
-
-
 
 sourceSets {
     main {
         java {
-            srcDirs += generateGrammarSource.outputDirectory
+
         }
         resources {
             srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
