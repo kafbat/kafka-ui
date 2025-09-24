@@ -61,6 +61,10 @@ const Colors = {
     '55': '#CF1717',
     '60': '#B81414',
   },
+  orange: {
+    '10': '#BF83401A',
+    '100': '#FF9D00',
+  },
   yellow: {
     '10': '#FFEECC',
     '20': '#FFDD57',
@@ -404,6 +408,29 @@ const baseTheme = {
 
 export const theme = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[90],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[5],
+    },
+    statistic: {
+      background: Colors.neutral[0],
+      count: {
+        color: Colors.neutral[90],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   logo: {
     color: Colors.brand[90],
   },
@@ -451,7 +478,7 @@ export const theme = {
   },
   dropdown: {
     backgroundColor: Colors.brand[0],
-    borderColor: Colors.brand[5],
+    borderColor: Colors.brand[10],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -738,11 +765,11 @@ export const theme = {
   select: {
     backgroundColor: {
       normal: Colors.neutral[0],
-      hover: Colors.neutral[10],
+      hover: Colors.neutral[5],
       active: Colors.neutral[10],
     },
     color: {
-      normal: Colors.neutral[90],
+      normal: Colors.neutral[70],
       hover: Colors.neutral[90],
       active: Colors.neutral[90],
       disabled: Colors.neutral[30],
@@ -754,8 +781,15 @@ export const theme = {
       disabled: Colors.neutral[10],
     },
     optionList: {
+      borderColor: Colors.neutral[10],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[0],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],
@@ -929,6 +963,29 @@ export type ClusterColorKey =
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[0],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[95],
+    },
+    statistic: {
+      background: Colors.neutral[90],
+      count: {
+        color: Colors.neutral[0],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   auth_page: {
     backgroundColor: Colors.neutral[90],
     fontFamily: baseTheme.auth_page.fontFamily,
@@ -1309,7 +1366,7 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[70],
     },
     color: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[20],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
       disabled: Colors.neutral[60],
@@ -1321,8 +1378,15 @@ export const darkTheme: ThemeType = {
       disabled: Colors.neutral[70],
     },
     optionList: {
+      borderColor: Colors.neutral[70],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[90],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],

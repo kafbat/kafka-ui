@@ -112,7 +112,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
         && configuration.defaultKeyMessageDescriptor() == null
         && configuration.messageDescriptorMap().isEmpty()
         && configuration.keyMessageDescriptorMap().isEmpty()) {
-      throw new ValidationException("Neither default, not per-topic descriptors defined for " + name() + " serde");
+      throw new ValidationException("Neither default, nor per-topic descriptors defined for " + name() + " serde");
     }
     this.defaultMessageDescriptor = configuration.defaultMessageDescriptor();
     this.defaultKeyMessageDescriptor = configuration.defaultKeyMessageDescriptor();

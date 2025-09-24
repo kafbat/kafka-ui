@@ -45,15 +45,28 @@ export function useGetSchemas({
   page,
   perPage,
   search,
+  orderBy,
+  sortOrder,
 }: GetSchemasRequest) {
   return useQuery<SchemaSubjectsResponse>({
-    queryKey: [SCHEMA_QUERY_KEY, clusterName, page, perPage, search],
+    queryKey: [
+      SCHEMA_QUERY_KEY,
+      clusterName,
+      page,
+      perPage,
+      search,
+      sortOrder,
+      orderBy,
+    ],
+    keepPreviousData: true,
     queryFn: () =>
       schemasApiClient.getSchemas({
         clusterName,
         page,
         perPage,
         search: search || undefined,
+        sortOrder,
+        orderBy,
       }),
   });
 }

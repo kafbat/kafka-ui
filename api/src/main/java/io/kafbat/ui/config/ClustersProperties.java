@@ -1,10 +1,12 @@
 package io.kafbat.ui.config;
 
-import io.kafbat.ui.model.MetricsConfig;
+import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +38,24 @@ public class ClustersProperties {
 
   PollingProperties polling = new PollingProperties();
 
+  MetricsStorage defaultMetricsStorage = new MetricsStorage();
+
+  CacheProperties cache = new CacheProperties();
+  ClusterFtsProperties fts = new ClusterFtsProperties();
+
+  AdminClient adminClient = new AdminClient();
+
+  @Data
+  public static class AdminClient {
+    Integer timeout;
+    int describeConsumerGroupsPartitionSize = 50;
+    int describeConsumerGroupsConcurrency = 4;
+    int listConsumerGroupOffsetsPartitionSize = 50;
+    int listConsumerGroupOffsetsConcurrency = 4;
+    int getTopicsConfigPartitionSize = 200;
+    int describeTopicsPartitionSize = 200;
+  }
+
   @Data
   public static class Cluster {
     @NotBlank(message = "field name for for cluster could not be blank")
@@ -59,7 +79,7 @@ public class ClustersProperties {
     String defaultKeySerde;
     String defaultValueSerde;
 
-    MetricsConfigData metrics;
+    MetricsConfig metrics;
     Map<String, Object> properties;
     Map<String, Object> consumerProperties;
     Map<String, Object> producerProperties;
@@ -81,8 +101,8 @@ public class ClustersProperties {
   }
 
   @Data
-  @ToString(exclude = "password")
-  public static class MetricsConfigData {
+  @ToString(exclude = {"password", "keystorePassword"})
+  public static class MetricsConfig {
     String type;
     Integer port;
     Boolean ssl;
@@ -90,6 +110,25 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+
+    Boolean prometheusExpose;
+    MetricsStorage store;
+  }
+
+  @Data
+  public static class MetricsStorage {
+    PrometheusStorage prometheus;
+  }
+
+  @Data
+  @ToString(exclude = {"pushGatewayPassword"})
+  public static class PrometheusStorage {
+    String url;
+    String pushGatewayUrl;
+    String pushGatewayUsername;
+    String pushGatewayPassword;
+    String pushGatewayJobName;
+    Boolean remoteWrite;
   }
 
   @Data
@@ -183,6 +222,34 @@ public class ClustersProperties {
     }
   }
 
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CacheProperties {
+    boolean enabled = true;
+    Duration connectCacheExpiry = Duration.ofMinutes(1);
+    Duration connectClusterCacheExpiry = Duration.ofHours(24);
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class NgramProperties {
+    int ngramMin = 1;
+    int ngramMax = 4;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ClusterFtsProperties {
+    boolean enabled = false;
+    NgramProperties schemas = new NgramProperties(1, 4);
+    NgramProperties consumers = new NgramProperties(1, 4);
+    NgramProperties connect = new NgramProperties(1, 4);
+    NgramProperties acl = new NgramProperties(1, 4);
+  }
+
   @PostConstruct
   public void validateAndSetDefaults() {
     if (clusters != null) {
@@ -195,7 +262,7 @@ public class ClustersProperties {
   private void setMetricsDefaults() {
     for (Cluster cluster : clusters) {
       if (cluster.getMetrics() != null && !StringUtils.hasText(cluster.getMetrics().getType())) {
-        cluster.getMetrics().setType(MetricsConfig.JMX_METRICS_TYPE);
+        cluster.getMetrics().setType(JMX_METRICS_TYPE);
       }
     }
   }

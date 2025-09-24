@@ -135,3 +135,10 @@ When('TopicCreate 7Day button clicked', async function() {
 When('TopicCreate 4Weeks button clicked', async function() {
   await this.locators.topicsCreate.button4Weeks.click();
 });
+
+When('Topic name started with: {string} RemoveTopic clicked', async function(this: PlaywrightWorld, prefix: string) {
+    const topicName = this.getValue<string>(`topicName-${prefix}`);
+    await this.locators.topics.topicMenu(topicName).click();
+    await this.locators.topics.topicMenuItemRemove.click();
+    await this.locators.topics.topicApproveWindowConfirm.click();
+});

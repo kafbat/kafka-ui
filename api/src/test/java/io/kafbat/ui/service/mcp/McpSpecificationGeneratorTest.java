@@ -8,6 +8,7 @@ import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.SortOrderDTO;
@@ -35,7 +36,8 @@ class McpSpecificationGeneratorTest {
   @Test
   void testConvertController() {
     TopicsController topicsController = new TopicsController(
-        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class)
+        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
+        mock(ClustersProperties.class)
     );
     List<AsyncToolSpecification> specifications =
         MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
@@ -87,7 +89,7 @@ class McpSpecificationGeneratorTest {
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string"),
                 "topicUpdate", SCHEMA_GENERATOR.generateSchema(TopicUpdateDTO.class)
-            ), List.of("clusterName", "topicName"), false, null, null)
+            ), List.of("clusterName", "topicName", "topicUpdate"), false, null, null)
         )
     );
     assertThat(tools).allMatch(tool ->

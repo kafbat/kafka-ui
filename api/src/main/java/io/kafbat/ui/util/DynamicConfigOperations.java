@@ -30,9 +30,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -79,7 +77,7 @@ public class DynamicConfigOperations {
     if (dynamicConfigEnabled()) {
       Path configPath = dynamicConfigFilePath();
       if (!Files.exists(configPath) || !Files.isReadable(configPath)) {
-        log.warn("Dynamic config file {} doesnt exist or not readable", configPath);
+        log.warn("Dynamic config file {} doesnt exist or is not readable", configPath);
         return Optional.empty();
       }
       var propertySource = new CompositePropertySource("dynamicProperties");
@@ -187,20 +185,7 @@ public class DynamicConfigOperations {
   }
 
   private String serializeToYaml(PropertiesStructure props) {
-    //representer, that skips fields with null values
-    Representer representer = new Representer(new DumperOptions()) {
-      @Override
-      protected NodeTuple representJavaBeanProperty(Object javaBean,
-                                                    Property property,
-                                                    Object propertyValue,
-                                                    Tag customTag) {
-        if (propertyValue == null) {
-          return null; // if value of property is null, ignore it.
-        } else {
-          return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-        }
-      }
-    };
+    Representer representer = new YamlNullSkipRepresenter(new DumperOptions());
     var propertyUtils = new PropertyUtils();
     propertyUtils.setBeanAccess(BeanAccess.FIELD);
     representer.setPropertyUtils(propertyUtils);
@@ -221,7 +206,7 @@ public class DynamicConfigOperations {
 
   @Data
   @Builder
-  // field name should be in sync with @ConfigurationProperties annotation
+  // the field name should be in sync with @ConfigurationProperties annotation
   public static class PropertiesStructure {
 
     private ClustersProperties kafka;

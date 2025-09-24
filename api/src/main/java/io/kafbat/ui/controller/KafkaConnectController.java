@@ -45,10 +45,12 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
   @Override
   public Mono<ResponseEntity<Flux<ConnectDTO>>> getConnects(String clusterName,
+                                                            Boolean withStats,
                                                             ServerWebExchange exchange) {
 
-    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(getCluster(clusterName))
-        .filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
+    Flux<ConnectDTO> availableConnects = kafkaConnectService.getConnects(
+        getCluster(clusterName), withStats != null ? withStats : false
+        ).filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
 
     return Mono.just(ResponseEntity.ok(availableConnects));
   }
@@ -273,14 +275,26 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   }
 
   private Comparator<FullConnectorInfoDTO> getConnectorsComparator(ConnectorColumnsToSortDTO orderBy) {
-    var defaultComparator = Comparator.comparing(FullConnectorInfoDTO::getName);
+    var defaultComparator = Comparator.comparing(
+        FullConnectorInfoDTO::getName,
+        Comparator.nullsFirst(Comparator.naturalOrder())
+    );
     if (orderBy == null) {
       return defaultComparator;
     }
     return switch (orderBy) {
-      case CONNECT -> Comparator.comparing(FullConnectorInfoDTO::getConnect);
-      case TYPE -> Comparator.comparing(FullConnectorInfoDTO::getType);
-      case STATUS -> Comparator.comparing(fullConnectorInfoDTO -> fullConnectorInfoDTO.getStatus().getState());
+      case CONNECT -> Comparator.comparing(
+          FullConnectorInfoDTO::getConnect,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case TYPE -> Comparator.comparing(
+          FullConnectorInfoDTO::getType,
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
+      case STATUS -> Comparator.comparing(
+          fullConnectorInfoDTO -> fullConnectorInfoDTO.getStatus().getState(),
+          Comparator.nullsFirst(Comparator.naturalOrder())
+      );
       default -> defaultComparator;
     };
   }

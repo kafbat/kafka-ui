@@ -11,7 +11,7 @@ import io.kafbat.ui.model.InternalBroker;
 import io.kafbat.ui.model.InternalBrokerConfig;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.PartitionDistributionStats;
-import io.kafbat.ui.service.metrics.RawMetric;
+import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +27,6 @@ import org.apache.kafka.common.errors.InvalidRequestException;
 import org.apache.kafka.common.errors.LogDirNotFoundException;
 import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
-import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -72,7 +71,7 @@ public class BrokerService {
         .get(cluster)
         .flatMap(ReactiveAdminClient::describeCluster)
         .map(description -> description.getNodes().stream()
-            .map(node -> new InternalBroker(node, partitionsDistribution, stats))
+            .map(node -> new InternalBroker(node, partitionsDistribution, stats.getMetrics()))
             .collect(Collectors.toList()))
         .flatMapMany(Flux::fromIterable);
   }
@@ -139,8 +138,8 @@ public class BrokerService {
     return getBrokersConfig(cluster, brokerId);
   }
 
-  public Mono<List<RawMetric>> getBrokerMetrics(KafkaCluster cluster, Integer brokerId) {
-    return Mono.justOrEmpty(statisticsCache.get(cluster).getMetrics().getPerBrokerMetrics().get(brokerId));
+  public Mono<List<MetricSnapshot>> getBrokerMetrics(KafkaCluster cluster, Integer brokerId) {
+    return Mono.justOrEmpty(statisticsCache.get(cluster).getMetrics().getPerBrokerScrapedMetrics().get(brokerId));
   }
 
 }

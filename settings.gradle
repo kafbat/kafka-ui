@@ -7,8 +7,8 @@ pluginManagement {
 
 rootProject.name = "kafbat-ui"
 include "contract"
+include "contract-typespec"
 include "serde-api"
 include "api"
 include "frontend"
-include "e2e-tests"
 

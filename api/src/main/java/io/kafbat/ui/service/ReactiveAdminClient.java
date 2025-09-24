@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
@@ -88,7 +89,6 @@ import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
-import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -137,6 +137,10 @@ public class ReactiveAdminClient implements Closeable {
     Collection<Node> nodes;
     @Nullable // null, if ACL is disabled
     Set<AclOperation> authorizedOperations;
+
+    public static ClusterDescription empty() {
+      return new ReactiveAdminClient.ClusterDescription(null, null, List.of(), Set.of());
+    }
   }
 
   @Builder
@@ -163,9 +167,9 @@ public class ReactiveAdminClient implements Closeable {
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = Optional.of(entry.value());
+                      version = Optional.ofNullable(entry.value());
                     }
-                    if (entry.name().equals("delete.topic.enable")) {
+                    if (entry.name().equals("delete.topic.enable") && entry.value() != null) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
@@ -186,9 +190,11 @@ public class ReactiveAdminClient implements Closeable {
     }
   }
 
-  public static Mono<ReactiveAdminClient> create(AdminClient adminClient) {
+  public static Mono<ReactiveAdminClient> create(AdminClient adminClient, ClustersProperties.AdminClient properties) {
     Mono<ConfigRelatedInfo> configRelatedInfoMono = ConfigRelatedInfo.extract(adminClient);
-    return configRelatedInfoMono.map(info -> new ReactiveAdminClient(adminClient, configRelatedInfoMono, info));
+    return configRelatedInfoMono.map(info ->
+        new ReactiveAdminClient(adminClient, configRelatedInfoMono, properties, info)
+    );
   }
 
 
@@ -231,6 +237,7 @@ public class ReactiveAdminClient implements Closeable {
   @Getter(AccessLevel.PACKAGE) // visible for testing
   private final AdminClient client;
   private final Mono<ConfigRelatedInfo> configRelatedInfoMono;
+  private final ClustersProperties.AdminClient properties;
 
   private volatile ConfigRelatedInfo configRelatedInfo;
 
@@ -276,7 +283,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topicNames,
-        200,
+        properties.getGetTopicsConfigPartitionSize(),
         part -> getTopicsConfigImpl(part, includeDocFixed),
         mapMerger()
     );
@@ -344,7 +351,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topics,
-        200,
+        properties.getDescribeTopicsPartitionSize(),
         this::describeTopicsImpl,
         mapMerger()
     );
@@ -513,8 +520,8 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds) {
     return partitionCalls(
         groupIds,
-        25,
-        4,
+        properties.getDescribeConsumerGroupsPartitionSize(),
+        properties.getDescribeConsumerGroupsConcurrency(),
         ids -> toMono(client.describeConsumerGroups(ids).all()),
         mapMerger()
     );
@@ -537,8 +544,8 @@ public class ReactiveAdminClient implements Closeable {
 
     Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> merged = partitionCalls(
         consumerGroups,
-        25,
-        4,
+        properties.getListConsumerGroupOffsetsPartitionSize(),
+        properties.getListConsumerGroupOffsetsConcurrency(),
         call,
         mapMerger()
     );

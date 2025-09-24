@@ -31,6 +31,9 @@ const ListItem: React.FC<Props> = ({ clusterName, name, consumers }) => {
     useDeleteConsumerGroupOffsetsMutation(consumerProps);
 
   const getTotalconsumerLag = () => {
+    if (consumers.every((consumer) => consumer?.consumerLag === null)) {
+      return 'N/A';
+    }
     let count = 0;
     consumers.forEach((consumer) => {
       count += consumer?.consumerLag || 0;
