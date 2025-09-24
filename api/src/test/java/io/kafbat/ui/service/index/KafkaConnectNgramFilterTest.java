@@ -14,25 +14,22 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
 
   @Override
   protected NgramFilter<FullConnectorInfoDTO> buildFilter(List<FullConnectorInfoDTO> items,
-                                                          boolean enabled,
-                                                          ClustersProperties.NgramProperties ngramProperties) {
+      boolean enabled,
+      ClustersProperties.NgramProperties ngramProperties) {
     return new KafkaConnectNgramFilter(items, enabled, ngramProperties);
   }
 
   @Override
   protected List<FullConnectorInfoDTO> items() {
-    return IntStream.range(0, 100).mapToObj(i ->
-        new FullConnectorInfoDTO(
-            "connect-" + i,
-            "connector-" + i,
-            "class",
-            ConnectorTypeDTO.SINK,
-            List.of(),
-            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
-            1,
-            0
-        )
-    ).toList();
+    return IntStream.range(0, 100).mapToObj(i -> new FullConnectorInfoDTO(
+        "connect-" + i,
+        "connector-" + i,
+        "class",
+        ConnectorTypeDTO.SINK,
+        List.of(),
+        new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "worker-1", "reason"),
+        1,
+        0)).toList();
   }
 
   @Override
