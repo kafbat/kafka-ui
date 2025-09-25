@@ -12,7 +12,7 @@ import AjvDraft4 from 'ajv-draft-04';
 import addFormats from 'ajv-formats';
 
 jsf.option('fillProperties', false);
-jsf.option('alwaysFakeOptionals', true);
+jsf.option('alwaysFakeOptionals', false);
 jsf.option('failOnInvalidFormat', false);
 
 const generateValueFromSchema = (preferred?: SerdeDescription) => {
