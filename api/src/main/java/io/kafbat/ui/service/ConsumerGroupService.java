@@ -8,6 +8,7 @@ import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SortOrderDTO;
+import io.kafbat.ui.service.ConsumerGroupService.ConsumerGroupsPage;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
@@ -149,6 +150,8 @@ public class ConsumerGroupService {
                   case EMPTY -> 3;
                   case DEAD -> 4;
                   case UNKNOWN -> 5;
+                  case ASSIGNING -> 6;
+                  case RECONCILING -> 7;
                 };
         var comparator = Comparator.comparingInt(statesPriorities);
         yield loadDescriptionsByListings(ac, groups, comparator, pageNum, perPage, sortOrderDto);
