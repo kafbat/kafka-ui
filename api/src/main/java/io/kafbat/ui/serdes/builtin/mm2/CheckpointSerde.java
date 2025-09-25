@@ -17,7 +17,7 @@ import org.apache.kafka.common.protocol.types.Type;
 @Slf4j
 public class CheckpointSerde implements BuiltInSerde {
 
-  private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   public static final String TOPIC_KEY = "topic";
   public static final String PARTITION_KEY = "partition";
@@ -72,57 +72,58 @@ public class CheckpointSerde implements BuiltInSerde {
 
   @Override
   public Deserializer deserializer(String topic, Target target) {
-    return (recordHeaders, bytes) -> switch (target) {
+    return (recordHeaders, bytes) ->
+        switch (target) {
 
-      case KEY: {
-        Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+          case KEY: {
+            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
 
-        String group = keyStruct.getString(CONSUMER_GROUP_ID_KEY);
-        String t = keyStruct.getString(TOPIC_KEY);
-        int partition = keyStruct.getInt(PARTITION_KEY);
+            String group = keyStruct.getString(CONSUMER_GROUP_ID_KEY);
+            String t = keyStruct.getString(TOPIC_KEY);
+            int partition = keyStruct.getInt(PARTITION_KEY);
 
-        var map = Map.of(
-            CONSUMER_GROUP_ID_KEY, group,
-            TOPIC_KEY, t,
-            PARTITION_KEY, partition
-        );
+            var map = Map.of(
+                CONSUMER_GROUP_ID_KEY, group,
+                TOPIC_KEY, t,
+                PARTITION_KEY, partition
+            );
 
-        try {
-          var result = OBJECT_MAPPER.writeValueAsString(map);
-          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
-        } catch (JsonProcessingException e) {
-          log.error("Error serializing record", e);
-          throw new RuntimeException(e);
-        }
-      }
+            try {
+              var result = OBJECT_MAPPER.writeValueAsString(map);
+              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+            } catch (JsonProcessingException e) {
+              log.error("Error serializing record", e);
+              throw new RuntimeException(e);
+            }
+          }
 
-      case VALUE: {
-        ByteBuffer value = ByteBuffer.wrap(bytes);
-        Struct header = HEADER_SCHEMA.read(value);
-        short version = header.getShort(VERSION_KEY);
-        Schema valueSchema = valueSchema(version);
-        Struct valueStruct = valueSchema.read(value);
+          case VALUE: {
+            ByteBuffer value = ByteBuffer.wrap(bytes);
+            Struct header = HEADER_SCHEMA.read(value);
+            short version = header.getShort(VERSION_KEY);
+            Schema valueSchema = valueSchema(version);
+            Struct valueStruct = valueSchema.read(value);
 
-        long upstreamOffset = valueStruct.getLong(UPSTREAM_OFFSET_KEY);
-        long downstreamOffset = valueStruct.getLong(DOWNSTREAM_OFFSET_KEY);
-        String metadata = valueStruct.getString(METADATA_KEY);
+            long upstreamOffset = valueStruct.getLong(UPSTREAM_OFFSET_KEY);
+            long downstreamOffset = valueStruct.getLong(DOWNSTREAM_OFFSET_KEY);
+            String metadata = valueStruct.getString(METADATA_KEY);
 
-        var map = Map.of(
-            UPSTREAM_OFFSET_KEY, upstreamOffset,
-            DOWNSTREAM_OFFSET_KEY, downstreamOffset,
-            METADATA_KEY, metadata
-        );
+            var map = Map.of(
+                UPSTREAM_OFFSET_KEY, upstreamOffset,
+                DOWNSTREAM_OFFSET_KEY, downstreamOffset,
+                METADATA_KEY, metadata
+            );
 
-        try {
-          var result = OBJECT_MAPPER.writeValueAsString(map);
-          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
-        } catch (JsonProcessingException e) {
-          log.error("Error serializing record", e);
-          throw new RuntimeException(e);
-        }
-      }
+            try {
+              var result = OBJECT_MAPPER.writeValueAsString(map);
+              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+            } catch (JsonProcessingException e) {
+              log.error("Error serializing record", e);
+              throw new RuntimeException(e);
+            }
+          }
 
-    };
+        };
   }
 
   private static Schema valueSchema(short version) {

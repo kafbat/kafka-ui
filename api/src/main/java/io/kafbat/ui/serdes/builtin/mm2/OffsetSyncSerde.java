@@ -17,7 +17,7 @@ import org.apache.kafka.common.protocol.types.Type;
 @Slf4j
 public class OffsetSyncSerde implements BuiltInSerde {
 
-  private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   public static final String TOPIC_KEY = "topic";
   public static final String PARTITION_KEY = "partition";
@@ -62,43 +62,44 @@ public class OffsetSyncSerde implements BuiltInSerde {
 
   @Override
   public Deserializer deserializer(String topic, Target target) {
-    return (recordHeaders, bytes) -> switch (target) {
+    return (recordHeaders, bytes) ->
+        switch (target) {
 
-      case KEY: {
-        Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-        String t = keyStruct.getString(TOPIC_KEY);
-        int partition = keyStruct.getInt(PARTITION_KEY);
+          case KEY: {
+            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+            String t = keyStruct.getString(TOPIC_KEY);
+            int partition = keyStruct.getInt(PARTITION_KEY);
 
-        var map = Map.of(
-            TOPIC_KEY, t,
-            PARTITION_KEY, partition
-        );
+            var map = Map.of(
+                TOPIC_KEY, t,
+                PARTITION_KEY, partition
+            );
 
-        try {
-          var result = OBJECT_MAPPER.writeValueAsString(map);
-          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
-        } catch (JsonProcessingException e) {
-          log.error("Error serializing record", e);
-          throw new RuntimeException(e);
-        }
-      }
+            try {
+              var result = OBJECT_MAPPER.writeValueAsString(map);
+              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+            } catch (JsonProcessingException e) {
+              log.error("Error serializing record", e);
+              throw new RuntimeException(e);
+            }
+          }
 
-      case VALUE: {
-        Struct valueStruct = VALUE_SCHEMA.read(ByteBuffer.wrap(bytes));
-        var map = Map.of(
-            UPSTREAM_OFFSET_KEY, valueStruct.getLong(UPSTREAM_OFFSET_KEY),
-            DOWNSTREAM_OFFSET_KEY, valueStruct.getLong(DOWNSTREAM_OFFSET_KEY)
-        );
+          case VALUE: {
+            Struct valueStruct = VALUE_SCHEMA.read(ByteBuffer.wrap(bytes));
+            var map = Map.of(
+                UPSTREAM_OFFSET_KEY, valueStruct.getLong(UPSTREAM_OFFSET_KEY),
+                DOWNSTREAM_OFFSET_KEY, valueStruct.getLong(DOWNSTREAM_OFFSET_KEY)
+            );
 
-        try {
-          var result = OBJECT_MAPPER.writeValueAsString(map);
-          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
-        } catch (JsonProcessingException e) {
-          log.error("Error serializing record", e);
-          throw new RuntimeException(e);
-        }
-      }
+            try {
+              var result = OBJECT_MAPPER.writeValueAsString(map);
+              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+            } catch (JsonProcessingException e) {
+              log.error("Error serializing record", e);
+              throw new RuntimeException(e);
+            }
+          }
 
-    };
+        };
   }
 }

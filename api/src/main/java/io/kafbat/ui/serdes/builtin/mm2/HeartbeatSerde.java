@@ -17,7 +17,7 @@ import org.apache.kafka.common.protocol.types.Type;
 @Slf4j
 public class HeartbeatSerde implements BuiltInSerde {
 
-  private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   public static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
   public static final String TARGET_CLUSTER_ALIAS_KEY = "targetClusterAlias";
@@ -66,37 +66,38 @@ public class HeartbeatSerde implements BuiltInSerde {
 
   @Override
   public Deserializer deserializer(String topic, Target target) {
-    return (recordHeaders, bytes) -> switch (target) {
+    return (recordHeaders, bytes) ->
+        switch (target) {
 
-      case KEY: {
-        Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-        String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
-        String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
+          case KEY: {
+            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+            String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
+            String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
 
-        var map = Map.of(
-            "sourceClusterAlias", sourceClusterAlias,
-            "targetClusterAlias", targetClusterAlias
-        );
+            var map = Map.of(
+                "sourceClusterAlias", sourceClusterAlias,
+                "targetClusterAlias", targetClusterAlias
+            );
 
-        try {
-          var result = OBJECT_MAPPER.writeValueAsString(map);
-          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
-        } catch (JsonProcessingException e) {
-          log.error("Error serializing record", e);
-          throw new RuntimeException(e);
-        }
-      }
+            try {
+              var result = OBJECT_MAPPER.writeValueAsString(map);
+              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+            } catch (JsonProcessingException e) {
+              log.error("Error serializing record", e);
+              throw new RuntimeException(e);
+            }
+          }
 
-      case VALUE: {
-        ByteBuffer value = ByteBuffer.wrap(bytes);
-        Struct headerStruct = HEADER_SCHEMA.read(value);
-        short version = headerStruct.getShort(VERSION_KEY);
-        Struct valueStruct = valueSchema(version).read(value);
-        long timestamp = valueStruct.getLong(TIMESTAMP_KEY);
-        yield new DeserializeResult(String.valueOf(timestamp), DeserializeResult.Type.STRING, Map.of());
-      }
+          case VALUE: {
+            ByteBuffer value = ByteBuffer.wrap(bytes);
+            Struct headerStruct = HEADER_SCHEMA.read(value);
+            short version = headerStruct.getShort(VERSION_KEY);
+            Struct valueStruct = valueSchema(version).read(value);
+            long timestamp = valueStruct.getLong(TIMESTAMP_KEY);
+            yield new DeserializeResult(String.valueOf(timestamp), DeserializeResult.Type.STRING, Map.of());
+          }
 
-    };
+        };
   }
 
   private static Schema valueSchema(short version) {
