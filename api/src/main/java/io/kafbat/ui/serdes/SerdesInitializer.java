@@ -20,6 +20,7 @@ import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.UInt32Serde;
 import io.kafbat.ui.serdes.builtin.UInt64Serde;
 import io.kafbat.ui.serdes.builtin.UuidBinarySerde;
+import io.kafbat.ui.serdes.builtin.mm2.CheckpointSerde;
 import io.kafbat.ui.serdes.builtin.mm2.HeartbeatSerde;
 import io.kafbat.ui.serdes.builtin.mm2.OffsetSyncSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
@@ -57,6 +58,7 @@ public class SerdesInitializer {
             // mm2 serdes
             .put(HeartbeatSerde.name(), HeartbeatSerde.class)
             .put(OffsetSyncSerde.name(), OffsetSyncSerde.class)
+            .put(CheckpointSerde.name(), CheckpointSerde.class)
             .build(),
         new CustomSerdeLoader()
     );
