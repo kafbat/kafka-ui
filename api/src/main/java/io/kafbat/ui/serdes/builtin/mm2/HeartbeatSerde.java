@@ -1,0 +1,106 @@
+package io.kafbat.ui.serdes.builtin.mm2;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.kafbat.ui.serde.api.DeserializeResult;
+import io.kafbat.ui.serde.api.SchemaDescription;
+import io.kafbat.ui.serdes.BuiltInSerde;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.protocol.types.Field;
+import org.apache.kafka.common.protocol.types.Schema;
+import org.apache.kafka.common.protocol.types.Struct;
+import org.apache.kafka.common.protocol.types.Type;
+
+@Slf4j
+public class HeartbeatSerde implements BuiltInSerde {
+
+  private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  public static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
+  public static final String TARGET_CLUSTER_ALIAS_KEY = "targetClusterAlias";
+  public static final String TIMESTAMP_KEY = "timestamp";
+  public static final String VERSION_KEY = "version";
+  public static final short VERSION = 0;
+
+  public static final Schema VALUE_SCHEMA_V0 = new Schema(
+      new Field(TIMESTAMP_KEY, Type.INT64));
+
+  public static final Schema KEY_SCHEMA = new Schema(
+      new Field(SOURCE_CLUSTER_ALIAS_KEY, Type.STRING),
+      new Field(TARGET_CLUSTER_ALIAS_KEY, Type.STRING));
+
+  public static final Schema HEADER_SCHEMA = new Schema(
+      new Field(VERSION_KEY, Type.INT16));
+
+  public static String name() {
+    return "Heartbeat";
+  }
+
+  @Override
+  public Optional<String> getDescription() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<SchemaDescription> getSchema(String topic, Target type) {
+    return Optional.empty();
+  }
+
+  @Override
+  public boolean canDeserialize(String topic, Target type) {
+    return true;
+  }
+
+  @Override
+  public boolean canSerialize(String topic, Target type) {
+    return false;
+  }
+
+  @Override
+  public Serializer serializer(String topic, Target type) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Deserializer deserializer(String topic, Target target) {
+    return (recordHeaders, bytes) -> switch (target) {
+
+      case KEY: {
+        Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+        String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
+        String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
+
+        var map = Map.of(
+            "sourceClusterAlias", sourceClusterAlias,
+            "targetClusterAlias", targetClusterAlias
+        );
+
+        try {
+          var result = OBJECT_MAPPER.writeValueAsString(map);
+          yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+        } catch (JsonProcessingException e) {
+          log.error("Error serializing record", e);
+          throw new RuntimeException(e);
+        }
+      }
+
+      case VALUE: {
+        ByteBuffer value = ByteBuffer.wrap(bytes);
+        Struct headerStruct = HEADER_SCHEMA.read(value);
+        short version = headerStruct.getShort(VERSION_KEY);
+        Struct valueStruct = valueSchema(version).read(value);
+        long timestamp = valueStruct.getLong(TIMESTAMP_KEY);
+        yield new DeserializeResult(String.valueOf(timestamp), DeserializeResult.Type.STRING, Map.of());
+      }
+
+    };
+  }
+
+  private static Schema valueSchema(short version) {
+    assert version == 0;
+    return VALUE_SCHEMA_V0;
+  }
+}

@@ -20,6 +20,7 @@ import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.UInt32Serde;
 import io.kafbat.ui.serdes.builtin.UInt64Serde;
 import io.kafbat.ui.serdes.builtin.UuidBinarySerde;
+import io.kafbat.ui.serdes.builtin.mm2.HeartbeatSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,6 +52,9 @@ public class SerdesInitializer {
             .put(HexSerde.name(), HexSerde.class)
             .put(UuidBinarySerde.name(), UuidBinarySerde.class)
             .put(ProtobufRawSerde.name(), ProtobufRawSerde.class)
+
+            // mm2 serdes
+            .put(HeartbeatSerde.name(), HeartbeatSerde.class)
             .build(),
         new CustomSerdeLoader()
     );
