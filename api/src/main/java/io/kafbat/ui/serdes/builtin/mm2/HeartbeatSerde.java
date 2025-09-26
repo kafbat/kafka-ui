@@ -83,8 +83,8 @@ public class HeartbeatSerde implements BuiltInSerde {
               var result = OBJECT_MAPPER.writeValueAsString(map);
               yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
             } catch (JsonProcessingException e) {
-              log.error("Error serializing record", e);
-              throw new RuntimeException(e);
+              log.error("Error deserializing record", e);
+              throw new RuntimeException("Error deserializing record", e);
             }
           }
 
