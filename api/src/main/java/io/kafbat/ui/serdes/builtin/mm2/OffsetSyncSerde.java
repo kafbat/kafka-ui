@@ -64,42 +64,43 @@ public class OffsetSyncSerde implements BuiltInSerde {
   public Deserializer deserializer(String topic, Target target) {
     return (recordHeaders, bytes) ->
         switch (target) {
-
-          case KEY: {
-            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-            String t = keyStruct.getString(TOPIC_KEY);
-            int partition = keyStruct.getInt(PARTITION_KEY);
-
-            var map = Map.of(
-                TOPIC_KEY, t,
-                PARTITION_KEY, partition
-            );
-
-            try {
-              var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-            } catch (JsonProcessingException e) {
-              log.error("Error deserializing record", e);
-              throw new RuntimeException("Error deserializing record", e);
-            }
-          }
-
-          case VALUE: {
-            Struct valueStruct = VALUE_SCHEMA.read(ByteBuffer.wrap(bytes));
-            var map = Map.of(
-                UPSTREAM_OFFSET_KEY, valueStruct.getLong(UPSTREAM_OFFSET_KEY),
-                DOWNSTREAM_OFFSET_KEY, valueStruct.getLong(DOWNSTREAM_OFFSET_KEY)
-            );
-
-            try {
-              var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-            } catch (JsonProcessingException e) {
-              log.error("Error deserializing record", e);
-              throw new RuntimeException("Error deserializing record", e);
-            }
-          }
-
+          case KEY -> deserializeKey(bytes);
+          case VALUE -> deserializeValue(bytes);
         };
+  }
+
+  private static DeserializeResult deserializeKey(byte[] bytes) {
+    Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+    String t = keyStruct.getString(TOPIC_KEY);
+    int partition = keyStruct.getInt(PARTITION_KEY);
+
+    var map = Map.of(
+        TOPIC_KEY, t,
+        PARTITION_KEY, partition
+    );
+
+    try {
+      var result = OBJECT_MAPPER.writeValueAsString(map);
+      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
+    } catch (JsonProcessingException e) {
+      log.error("Error deserializing record", e);
+      throw new RuntimeException("Error deserializing record", e);
+    }
+  }
+
+  private static DeserializeResult deserializeValue(byte[] bytes) {
+    Struct valueStruct = VALUE_SCHEMA.read(ByteBuffer.wrap(bytes));
+    var map = Map.of(
+        UPSTREAM_OFFSET_KEY, valueStruct.getLong(UPSTREAM_OFFSET_KEY),
+        DOWNSTREAM_OFFSET_KEY, valueStruct.getLong(DOWNSTREAM_OFFSET_KEY)
+    );
+
+    try {
+      var result = OBJECT_MAPPER.writeValueAsString(map);
+      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
+    } catch (JsonProcessingException e) {
+      log.error("Error deserializing record", e);
+      throw new RuntimeException("Error deserializing record", e);
+    }
   }
 }

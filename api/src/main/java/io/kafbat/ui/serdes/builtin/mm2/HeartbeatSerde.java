@@ -68,36 +68,37 @@ public class HeartbeatSerde implements BuiltInSerde {
   public Deserializer deserializer(String topic, Target target) {
     return (recordHeaders, bytes) ->
         switch (target) {
-
-          case KEY: {
-            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-            String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
-            String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
-
-            var map = Map.of(
-                "sourceClusterAlias", sourceClusterAlias,
-                "targetClusterAlias", targetClusterAlias
-            );
-
-            try {
-              var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-            } catch (JsonProcessingException e) {
-              log.error("Error deserializing record", e);
-              throw new RuntimeException("Error deserializing record", e);
-            }
-          }
-
-          case VALUE: {
-            ByteBuffer value = ByteBuffer.wrap(bytes);
-            Struct headerStruct = HEADER_SCHEMA.read(value);
-            short version = headerStruct.getShort(VERSION_KEY);
-            Struct valueStruct = valueSchema(version).read(value);
-            long timestamp = valueStruct.getLong(TIMESTAMP_KEY);
-            yield new DeserializeResult(String.valueOf(timestamp), DeserializeResult.Type.STRING, Map.of());
-          }
-
+          case KEY -> deserializeKey(bytes);
+          case VALUE -> deserializeValue(bytes);
         };
+  }
+
+  private static DeserializeResult deserializeKey(byte[] bytes) {
+    Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+    String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
+    String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
+
+    var map = Map.of(
+        "sourceClusterAlias", sourceClusterAlias,
+        "targetClusterAlias", targetClusterAlias
+    );
+
+    try {
+      var result = OBJECT_MAPPER.writeValueAsString(map);
+      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
+    } catch (JsonProcessingException e) {
+      log.error("Error deserializing record", e);
+      throw new RuntimeException("Error deserializing record", e);
+    }
+  }
+
+  private static DeserializeResult deserializeValue(byte[] bytes) {
+    ByteBuffer value = ByteBuffer.wrap(bytes);
+    Struct headerStruct = HEADER_SCHEMA.read(value);
+    short version = headerStruct.getShort(VERSION_KEY);
+    Struct valueStruct = valueSchema(version).read(value);
+    long timestamp = valueStruct.getLong(TIMESTAMP_KEY);
+    return new DeserializeResult(String.valueOf(timestamp), DeserializeResult.Type.STRING, Map.of());
   }
 
   private static Schema valueSchema(short version) {

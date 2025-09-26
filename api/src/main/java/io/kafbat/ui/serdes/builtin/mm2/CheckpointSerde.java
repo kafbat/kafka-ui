@@ -74,56 +74,57 @@ public class CheckpointSerde implements BuiltInSerde {
   public Deserializer deserializer(String topic, Target target) {
     return (recordHeaders, bytes) ->
         switch (target) {
-
-          case KEY: {
-            Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-
-            String group = keyStruct.getString(CONSUMER_GROUP_ID_KEY);
-            String t = keyStruct.getString(TOPIC_KEY);
-            int partition = keyStruct.getInt(PARTITION_KEY);
-
-            var map = Map.of(
-                CONSUMER_GROUP_ID_KEY, group,
-                TOPIC_KEY, t,
-                PARTITION_KEY, partition
-            );
-
-            try {
-              var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-            } catch (JsonProcessingException e) {
-              log.error("Error deserializing record", e);
-              throw new RuntimeException("Error deserializing record", e);
-            }
-          }
-
-          case VALUE: {
-            ByteBuffer value = ByteBuffer.wrap(bytes);
-            Struct header = HEADER_SCHEMA.read(value);
-            short version = header.getShort(VERSION_KEY);
-            Schema valueSchema = valueSchema(version);
-            Struct valueStruct = valueSchema.read(value);
-
-            long upstreamOffset = valueStruct.getLong(UPSTREAM_OFFSET_KEY);
-            long downstreamOffset = valueStruct.getLong(DOWNSTREAM_OFFSET_KEY);
-            String metadata = valueStruct.getString(METADATA_KEY);
-
-            var map = Map.of(
-                UPSTREAM_OFFSET_KEY, upstreamOffset,
-                DOWNSTREAM_OFFSET_KEY, downstreamOffset,
-                METADATA_KEY, metadata
-            );
-
-            try {
-              var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-            } catch (JsonProcessingException e) {
-              log.error("Error deserializing record", e);
-              throw new RuntimeException("Error deserializing record", e);
-            }
-          }
-
+          case KEY -> deserializeKey(bytes);
+          case VALUE -> deserializeValue(bytes);
         };
+  }
+
+  private static DeserializeResult deserializeKey(byte[] bytes) {
+    Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
+
+    String group = keyStruct.getString(CONSUMER_GROUP_ID_KEY);
+    String t = keyStruct.getString(TOPIC_KEY);
+    int partition = keyStruct.getInt(PARTITION_KEY);
+
+    var map = Map.of(
+        CONSUMER_GROUP_ID_KEY, group,
+        TOPIC_KEY, t,
+        PARTITION_KEY, partition
+    );
+
+    try {
+      var result = OBJECT_MAPPER.writeValueAsString(map);
+      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
+    } catch (JsonProcessingException e) {
+      log.error("Error deserializing record", e);
+      throw new RuntimeException("Error deserializing record", e);
+    }
+  }
+
+  private static DeserializeResult deserializeValue(byte[] bytes) {
+    ByteBuffer value = ByteBuffer.wrap(bytes);
+    Struct header = HEADER_SCHEMA.read(value);
+    short version = header.getShort(VERSION_KEY);
+    Schema valueSchema = valueSchema(version);
+    Struct valueStruct = valueSchema.read(value);
+
+    long upstreamOffset = valueStruct.getLong(UPSTREAM_OFFSET_KEY);
+    long downstreamOffset = valueStruct.getLong(DOWNSTREAM_OFFSET_KEY);
+    String metadata = valueStruct.getString(METADATA_KEY);
+
+    var map = Map.of(
+        UPSTREAM_OFFSET_KEY, upstreamOffset,
+        DOWNSTREAM_OFFSET_KEY, downstreamOffset,
+        METADATA_KEY, metadata
+    );
+
+    try {
+      var result = OBJECT_MAPPER.writeValueAsString(map);
+      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
+    } catch (JsonProcessingException e) {
+      log.error("Error deserializing record", e);
+      throw new RuntimeException("Error deserializing record", e);
+    }
   }
 
   private static Schema valueSchema(short version) {
