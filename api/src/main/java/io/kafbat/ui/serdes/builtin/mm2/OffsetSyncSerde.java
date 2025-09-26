@@ -77,7 +77,7 @@ public class OffsetSyncSerde implements BuiltInSerde {
 
             try {
               var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
             } catch (JsonProcessingException e) {
               log.error("Error serializing record", e);
               throw new RuntimeException(e);
@@ -93,7 +93,7 @@ public class OffsetSyncSerde implements BuiltInSerde {
 
             try {
               var result = OBJECT_MAPPER.writeValueAsString(map);
-              yield new DeserializeResult(result, DeserializeResult.Type.STRING, Map.of());
+              yield new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
             } catch (JsonProcessingException e) {
               log.error("Error serializing record", e);
               throw new RuntimeException(e);
