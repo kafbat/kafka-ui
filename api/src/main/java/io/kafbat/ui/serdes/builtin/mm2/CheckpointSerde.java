@@ -8,6 +8,7 @@ import io.kafbat.ui.serdes.BuiltInSerde;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
@@ -19,26 +20,25 @@ public class CheckpointSerde implements BuiltInSerde {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static final String TOPIC_KEY = "topic";
-  public static final String PARTITION_KEY = "partition";
-  public static final String CONSUMER_GROUP_ID_KEY = "group";
-  public static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
-  public static final String DOWNSTREAM_OFFSET_KEY = "offset";
-  public static final String METADATA_KEY = "metadata";
-  public static final String VERSION_KEY = "version";
-  public static final short VERSION = 0;
+  private static final String TOPIC_KEY = "topic";
+  private static final String PARTITION_KEY = "partition";
+  private static final String CONSUMER_GROUP_ID_KEY = "group";
+  private static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
+  private static final String DOWNSTREAM_OFFSET_KEY = "offset";
+  private static final String METADATA_KEY = "metadata";
+  private static final String VERSION_KEY = "version";
 
-  public static final Schema VALUE_SCHEMA_V0 = new Schema(
+  private static final Schema VALUE_SCHEMA_V0 = new Schema(
       new Field(UPSTREAM_OFFSET_KEY, Type.INT64),
       new Field(DOWNSTREAM_OFFSET_KEY, Type.INT64),
       new Field(METADATA_KEY, Type.STRING));
 
-  public static final Schema KEY_SCHEMA = new Schema(
+  private static final Schema KEY_SCHEMA = new Schema(
       new Field(CONSUMER_GROUP_ID_KEY, Type.STRING),
       new Field(TOPIC_KEY, Type.STRING),
       new Field(PARTITION_KEY, Type.INT32));
 
-  public static final Schema HEADER_SCHEMA = new Schema(
+  private static final Schema HEADER_SCHEMA = new Schema(
       new Field(VERSION_KEY, Type.INT16));
 
   public static String name() {

@@ -8,6 +8,7 @@ import io.kafbat.ui.serdes.BuiltInSerde;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
@@ -19,20 +20,19 @@ public class HeartbeatSerde implements BuiltInSerde {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
-  public static final String TARGET_CLUSTER_ALIAS_KEY = "targetClusterAlias";
-  public static final String TIMESTAMP_KEY = "timestamp";
-  public static final String VERSION_KEY = "version";
-  public static final short VERSION = 0;
+  private static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
+  private static final String TARGET_CLUSTER_ALIAS_KEY = "targetClusterAlias";
+  private static final String TIMESTAMP_KEY = "timestamp";
+  private static final String VERSION_KEY = "version";
 
-  public static final Schema VALUE_SCHEMA_V0 = new Schema(
+  private static final Schema VALUE_SCHEMA_V0 = new Schema(
       new Field(TIMESTAMP_KEY, Type.INT64));
 
-  public static final Schema KEY_SCHEMA = new Schema(
+  private static final Schema KEY_SCHEMA = new Schema(
       new Field(SOURCE_CLUSTER_ALIAS_KEY, Type.STRING),
       new Field(TARGET_CLUSTER_ALIAS_KEY, Type.STRING));
 
-  public static final Schema HEADER_SCHEMA = new Schema(
+  private static final Schema HEADER_SCHEMA = new Schema(
       new Field(VERSION_KEY, Type.INT16));
 
   public static String name() {

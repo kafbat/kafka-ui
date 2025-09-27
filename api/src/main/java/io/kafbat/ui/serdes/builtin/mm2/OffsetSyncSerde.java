@@ -19,12 +19,12 @@ public class OffsetSyncSerde implements BuiltInSerde {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static final String TOPIC_KEY = "topic";
-  public static final String PARTITION_KEY = "partition";
-  public static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
-  public static final String DOWNSTREAM_OFFSET_KEY = "offset";
-  public static final Schema VALUE_SCHEMA;
-  public static final Schema KEY_SCHEMA;
+  private static final String TOPIC_KEY = "topic";
+  private static final String PARTITION_KEY = "partition";
+  private static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
+  private static final String DOWNSTREAM_OFFSET_KEY = "offset";
+  private static final Schema VALUE_SCHEMA;
+  private static final Schema KEY_SCHEMA;
 
   static {
     VALUE_SCHEMA = new Schema(new Field("upstreamOffset", Type.INT64), new Field("offset", Type.INT64));
