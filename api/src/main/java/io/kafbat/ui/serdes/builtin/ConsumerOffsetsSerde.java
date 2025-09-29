@@ -1,24 +1,13 @@
 package io.kafbat.ui.serdes.builtin;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Optional;
-import lombok.SneakyThrows;
 import org.apache.kafka.common.protocol.types.ArrayOf;
-import org.apache.kafka.common.protocol.types.BoundField;
 import org.apache.kafka.common.protocol.types.CompactArrayOf;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
-import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 // Deserialization logic and message's schemas can be found in
