@@ -45,29 +45,27 @@ abstract class MirrorMakerSerde extends StructSerde implements BuiltInSerde {
   @Override
   public Deserializer deserializer(String topic, Target target) {
     return (recordHeaders, bytes) ->
-        switch (target) {
+        new DeserializeResult(toJson(switch (target) {
           case KEY -> deserializeKey(bytes);
           case VALUE -> deserializeValue(bytes);
-        };
+        }),  DeserializeResult.Type.JSON, Map.of());
   }
 
-  protected DeserializeResult deserializeKey(byte[] bytes) {
-    Struct keyStruct = getKeySchema().read(ByteBuffer.wrap(bytes));
-    return new DeserializeResult(toJson(keyStruct), DeserializeResult.Type.JSON, Map.of());
+  protected Struct deserializeKey(byte[] bytes) {
+    return getKeySchema().read(ByteBuffer.wrap(bytes));
   }
 
-  protected DeserializeResult deserializeValue(byte[] bytes) {
+  protected Struct deserializeValue(byte[] bytes) {
     ByteBuffer wrap = ByteBuffer.wrap(bytes);
     Optional<Schema> valueSchema;
     if (versioned) {
       short version = wrap.getShort();
-      valueSchema = getValueSchema(version);
+      valueSchema = getVersionedValueSchema(version);
     } else {
       valueSchema = getValueSchema();
     }
     if (valueSchema.isPresent()) {
-      Struct valueStruct = valueSchema.get().read(wrap);
-      return new DeserializeResult(toJson(valueStruct), DeserializeResult.Type.JSON, Map.of());
+      return valueSchema.get().read(wrap);
     } else {
       throw new IllegalStateException("Value schema was not present");
     }
@@ -79,8 +77,8 @@ abstract class MirrorMakerSerde extends StructSerde implements BuiltInSerde {
     return Optional.empty();
   }
 
-  protected Optional<Schema> getValueSchema(short version) {
-    return Optional.empty();
+  protected Optional<Schema> getVersionedValueSchema(short version) {
+    throw new UnsupportedOperationException("Versioned value schema is not supported");
   }
 
 }

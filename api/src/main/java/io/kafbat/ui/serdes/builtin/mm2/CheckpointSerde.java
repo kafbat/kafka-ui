@@ -44,7 +44,7 @@ public class CheckpointSerde extends MirrorMakerSerde implements BuiltInSerde {
   }
 
   @Override
-  protected Optional<Schema> getValueSchema(short version) {
+  protected Optional<Schema> getVersionedValueSchema(short version) {
     if (version == 0) {
       return Optional.of(VALUE_SCHEMA_V0);
     } else {

@@ -36,7 +36,8 @@ public class HeartbeatSerde extends MirrorMakerSerde implements BuiltInSerde {
     return KEY_SCHEMA;
   }
 
-  protected Optional<Schema> getValueSchema(short version) {
+  @Override
+  protected Optional<Schema> getVersionedValueSchema(short version) {
     if (version == 0) {
       return Optional.of(VALUE_SCHEMA_V0);
     } else {
