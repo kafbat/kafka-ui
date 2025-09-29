@@ -1,8 +1,6 @@
 package io.kafbat.ui.serdes.builtin.mm2;
 
 import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.SchemaDescription;
-import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.serdes.builtin.StructSerde;
 import java.nio.ByteBuffer;
@@ -16,31 +14,6 @@ import org.apache.kafka.common.protocol.types.Struct;
 abstract class MirrorMakerSerde extends StructSerde implements BuiltInSerde {
 
   protected final boolean versioned;
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
-  }
-
-  @Override
-  public boolean canDeserialize(String topic, Serde.Target type) {
-    return true;
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Serde.Target type) {
-    return false;
-  }
-
-  @Override
-  public Serde.Serializer serializer(String topic, Serde.Target type) {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public Deserializer deserializer(String topic, Target target) {

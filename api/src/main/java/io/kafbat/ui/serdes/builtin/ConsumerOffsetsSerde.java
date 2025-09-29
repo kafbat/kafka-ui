@@ -49,28 +49,8 @@ public class ConsumerOffsetsSerde extends StructSerde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
-  }
-
-  @Override
   public boolean canDeserialize(String topic, Target type) {
     return topic.equals(TOPIC);
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Target type) {
-    return false;
-  }
-
-  @Override
-  public Serializer serializer(String topic, Target type) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
