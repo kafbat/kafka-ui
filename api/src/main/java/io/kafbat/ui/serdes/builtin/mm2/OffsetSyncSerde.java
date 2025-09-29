@@ -1,7 +1,5 @@
 package io.kafbat.ui.serdes.builtin.mm2;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
@@ -16,16 +14,10 @@ import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
-public class OffsetSyncSerde implements BuiltInSerde {
+public class OffsetSyncSerde extends MirrorMakerSerde implements BuiltInSerde {
 
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("mm2-offset-syncs\\..*\\.internal");
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-  private static final String TOPIC_KEY = "topic";
-  private static final String PARTITION_KEY = "partition";
-  private static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
-  private static final String DOWNSTREAM_OFFSET_KEY = "offset";
   private static final Schema VALUE_SCHEMA;
   private static final Schema KEY_SCHEMA;
 
@@ -74,36 +66,13 @@ public class OffsetSyncSerde implements BuiltInSerde {
 
   private static DeserializeResult deserializeKey(byte[] bytes) {
     Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-    String t = keyStruct.getString(TOPIC_KEY);
-    int partition = keyStruct.getInt(PARTITION_KEY);
 
-    var map = Map.of(
-        TOPIC_KEY, t,
-        PARTITION_KEY, partition
-    );
-
-    try {
-      var result = OBJECT_MAPPER.writeValueAsString(map);
-      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-    } catch (JsonProcessingException e) {
-      log.error("Error deserializing record", e);
-      throw new RuntimeException("Error deserializing record", e);
-    }
+    return new DeserializeResult(toJson(keyStruct), DeserializeResult.Type.JSON, Map.of());
   }
 
   private static DeserializeResult deserializeValue(byte[] bytes) {
     Struct valueStruct = VALUE_SCHEMA.read(ByteBuffer.wrap(bytes));
-    var map = Map.of(
-        UPSTREAM_OFFSET_KEY, valueStruct.getLong(UPSTREAM_OFFSET_KEY),
-        DOWNSTREAM_OFFSET_KEY, valueStruct.getLong(DOWNSTREAM_OFFSET_KEY)
-    );
 
-    try {
-      var result = OBJECT_MAPPER.writeValueAsString(map);
-      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-    } catch (JsonProcessingException e) {
-      log.error("Error deserializing record", e);
-      throw new RuntimeException("Error deserializing record", e);
-    }
+    return new DeserializeResult(toJson(valueStruct), DeserializeResult.Type.JSON, Map.of());
   }
 }

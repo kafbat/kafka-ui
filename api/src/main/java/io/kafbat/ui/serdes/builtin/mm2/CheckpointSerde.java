@@ -1,7 +1,5 @@
 package io.kafbat.ui.serdes.builtin.mm2;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
@@ -16,11 +14,9 @@ import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
-public class CheckpointSerde implements BuiltInSerde {
+public class CheckpointSerde extends MirrorMakerSerde implements BuiltInSerde {
 
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile(".*\\.checkpoints\\.internal");
-
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private static final String TOPIC_KEY = "topic";
   private static final String PARTITION_KEY = "partition";
@@ -83,24 +79,7 @@ public class CheckpointSerde implements BuiltInSerde {
 
   private static DeserializeResult deserializeKey(byte[] bytes) {
     Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-
-    String group = keyStruct.getString(CONSUMER_GROUP_ID_KEY);
-    String t = keyStruct.getString(TOPIC_KEY);
-    int partition = keyStruct.getInt(PARTITION_KEY);
-
-    var map = Map.of(
-        CONSUMER_GROUP_ID_KEY, group,
-        TOPIC_KEY, t,
-        PARTITION_KEY, partition
-    );
-
-    try {
-      var result = OBJECT_MAPPER.writeValueAsString(map);
-      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-    } catch (JsonProcessingException e) {
-      log.error("Error deserializing record", e);
-      throw new RuntimeException("Error deserializing record", e);
-    }
+    return new DeserializeResult(toJson(keyStruct), DeserializeResult.Type.JSON, Map.of());
   }
 
   private static DeserializeResult deserializeValue(byte[] bytes) {
@@ -110,23 +89,7 @@ public class CheckpointSerde implements BuiltInSerde {
     Schema valueSchema = valueSchema(version);
     Struct valueStruct = valueSchema.read(value);
 
-    long upstreamOffset = valueStruct.getLong(UPSTREAM_OFFSET_KEY);
-    long downstreamOffset = valueStruct.getLong(DOWNSTREAM_OFFSET_KEY);
-    String metadata = valueStruct.getString(METADATA_KEY);
-
-    var map = Map.of(
-        UPSTREAM_OFFSET_KEY, upstreamOffset,
-        DOWNSTREAM_OFFSET_KEY, downstreamOffset,
-        METADATA_KEY, metadata
-    );
-
-    try {
-      var result = OBJECT_MAPPER.writeValueAsString(map);
-      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-    } catch (JsonProcessingException e) {
-      log.error("Error deserializing record", e);
-      throw new RuntimeException("Error deserializing record", e);
-    }
+    return new DeserializeResult(toJson(valueStruct), DeserializeResult.Type.JSON, Map.of());
   }
 
   private static Schema valueSchema(short version) {

@@ -1,7 +1,5 @@
 package io.kafbat.ui.serdes.builtin.mm2;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
@@ -16,11 +14,9 @@ import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
-public class HeartbeatSerde implements BuiltInSerde {
+public class HeartbeatSerde extends MirrorMakerSerde implements BuiltInSerde {
 
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("heartbeats");
-
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
   private static final String TARGET_CLUSTER_ALIAS_KEY = "targetClusterAlias";
@@ -77,21 +73,8 @@ public class HeartbeatSerde implements BuiltInSerde {
 
   private static DeserializeResult deserializeKey(byte[] bytes) {
     Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-    String sourceClusterAlias = keyStruct.getString(SOURCE_CLUSTER_ALIAS_KEY);
-    String targetClusterAlias = keyStruct.getString(TARGET_CLUSTER_ALIAS_KEY);
 
-    var map = Map.of(
-        "sourceClusterAlias", sourceClusterAlias,
-        "targetClusterAlias", targetClusterAlias
-    );
-
-    try {
-      var result = OBJECT_MAPPER.writeValueAsString(map);
-      return new DeserializeResult(result, DeserializeResult.Type.JSON, Map.of());
-    } catch (JsonProcessingException e) {
-      log.error("Error deserializing record", e);
-      throw new RuntimeException("Error deserializing record", e);
-    }
+    return new DeserializeResult(toJson(keyStruct), DeserializeResult.Type.JSON, Map.of());
   }
 
   private static DeserializeResult deserializeValue(byte[] bytes) {
