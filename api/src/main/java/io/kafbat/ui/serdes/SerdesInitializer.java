@@ -151,6 +151,7 @@ public class SerdesInitializer {
    */
   private void registerTopicRelatedSerde(Map<String, SerdeInstance> serdes) {
     registerConsumerOffsetsSerde(serdes);
+    registerMirrorMakerSerdes(serdes);
   }
 
   private void registerConsumerOffsetsSerde(Map<String, SerdeInstance> serdes) {
@@ -162,6 +163,51 @@ public class SerdesInitializer {
             new ConsumerOffsetsSerde(),
             pattern,
             pattern,
+            null
+        )
+    );
+  }
+
+  private void registerMirrorMakerSerdes(Map<String, SerdeInstance> serdes) {
+    registerHeartbeatSerde(serdes);
+    registerOffsetSyncSerde(serdes);
+    registerCheckpointSerde(serdes);
+  }
+
+  private void registerHeartbeatSerde(Map<String, SerdeInstance> serdes) {
+    serdes.put(
+        HeartbeatSerde.name(),
+        new SerdeInstance(
+            HeartbeatSerde.name(),
+            new HeartbeatSerde(),
+            HeartbeatSerde.TOPIC_NAME_PATTERN,
+            HeartbeatSerde.TOPIC_NAME_PATTERN,
+            null
+        )
+    );
+  }
+
+  private void registerOffsetSyncSerde(Map<String, SerdeInstance> serdes) {
+    serdes.put(
+        OffsetSyncSerde.name(),
+        new SerdeInstance(
+            OffsetSyncSerde.name(),
+            new OffsetSyncSerde(),
+            OffsetSyncSerde.TOPIC_NAME_PATTERN,
+            OffsetSyncSerde.TOPIC_NAME_PATTERN,
+            null
+        )
+    );
+  }
+
+  private void registerCheckpointSerde(Map<String, SerdeInstance> serdes) {
+    serdes.put(
+        CheckpointSerde.name(),
+        new SerdeInstance(
+            CheckpointSerde.name(),
+            new CheckpointSerde(),
+            CheckpointSerde.TOPIC_NAME_PATTERN,
+            CheckpointSerde.TOPIC_NAME_PATTERN,
             null
         )
     );

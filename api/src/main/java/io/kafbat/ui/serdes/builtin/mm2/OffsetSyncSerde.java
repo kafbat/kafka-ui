@@ -8,6 +8,7 @@ import io.kafbat.ui.serdes.BuiltInSerde;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
@@ -16,6 +17,8 @@ import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
 public class OffsetSyncSerde implements BuiltInSerde {
+
+  public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("mm2-offset-syncs\\..*\\.internal");
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

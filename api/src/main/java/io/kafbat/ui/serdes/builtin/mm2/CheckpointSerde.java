@@ -18,6 +18,8 @@ import org.apache.kafka.common.protocol.types.Type;
 @Slf4j
 public class CheckpointSerde implements BuiltInSerde {
 
+  public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile(".*\\.checkpoints\\.internal");
+
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private static final String TOPIC_KEY = "topic";

@@ -18,6 +18,8 @@ import org.apache.kafka.common.protocol.types.Type;
 @Slf4j
 public class HeartbeatSerde implements BuiltInSerde {
 
+  public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("heartbeats");
+
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
