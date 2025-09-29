@@ -169,48 +169,21 @@ public class SerdesInitializer {
   }
 
   private void registerMirrorMakerSerdes(Map<String, SerdeInstance> serdes) {
-    registerHeartbeatSerde(serdes);
-    registerOffsetSyncSerde(serdes);
-    registerCheckpointSerde(serdes);
-  }
-
-  private void registerHeartbeatSerde(Map<String, SerdeInstance> serdes) {
-    serdes.put(
-        HeartbeatSerde.name(),
-        new SerdeInstance(
-            HeartbeatSerde.name(),
-            new HeartbeatSerde(),
-            HeartbeatSerde.TOPIC_NAME_PATTERN,
-            HeartbeatSerde.TOPIC_NAME_PATTERN,
-            null
-        )
+    Map<String,Map.Entry<Pattern, BuiltInSerde>> mmSerdes = Map.of(
+        HeartbeatSerde.name(), Map.entry(HeartbeatSerde.TOPIC_NAME_PATTERN, new HeartbeatSerde()),
+        OffsetSyncSerde.name(), Map.entry(OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
+        CheckpointSerde.name(), Map.entry(CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
     );
-  }
+    for (Map.Entry<String, Map.Entry<Pattern, BuiltInSerde>> serde : mmSerdes.entrySet()) {
+      String name = serde.getKey();
+      Pattern pattern = serde.getValue().getKey();
+      BuiltInSerde serdeInstance = serde.getValue().getValue();
 
-  private void registerOffsetSyncSerde(Map<String, SerdeInstance> serdes) {
-    serdes.put(
-        OffsetSyncSerde.name(),
-        new SerdeInstance(
-            OffsetSyncSerde.name(),
-            new OffsetSyncSerde(),
-            OffsetSyncSerde.TOPIC_NAME_PATTERN,
-            OffsetSyncSerde.TOPIC_NAME_PATTERN,
-            null
-        )
-    );
-  }
-
-  private void registerCheckpointSerde(Map<String, SerdeInstance> serdes) {
-    serdes.put(
-        CheckpointSerde.name(),
-        new SerdeInstance(
-            CheckpointSerde.name(),
-            new CheckpointSerde(),
-            CheckpointSerde.TOPIC_NAME_PATTERN,
-            CheckpointSerde.TOPIC_NAME_PATTERN,
-            null
-        )
-    );
+      serdes.put(
+          name,
+          new SerdeInstance(name, serdeInstance, pattern, pattern, null)
+      );
+    }
   }
 
   private SerdeInstance createFallbackSerde() {

@@ -46,14 +46,15 @@ public class HeartbeatSerdeTest extends MirrorMakerSerdesAbstractTest {
   }
 
   @Test
-  void testDeserializeValue() {
+  void testDeserializeValue() throws JsonProcessingException {
     var value = decodeBase64("AAAAAAGZgCEMZA==");
-    var expected = "1758791273572";
+    var expected = Map.of("timestamp", 1758791273572L);
 
     var result = SERDE.deserializer(TOPIC, Serde.Target.VALUE).deserialize(HEADERS, value);
+    var resultMap = jsonToMap(result.getResult());
 
-    assertEquals(DeserializeResult.Type.STRING, result.getType());
-    assertEquals(expected, result.getResult());
+    assertEquals(DeserializeResult.Type.JSON, result.getType());
+    assertEquals(expected, resultMap);
   }
 
 }

@@ -23,9 +23,7 @@ import org.apache.kafka.common.protocol.types.Type;
 
 // Deserialization logic and message's schemas can be found in
 // kafka.coordinator.group.GroupMetadataManager (readMessageKey, readOffsetMessageValue, readGroupMessageValue)
-public class ConsumerOffsetsSerde implements BuiltInSerde {
-
-  private static final JsonMapper JSON_MAPPER = createMapper();
+public class ConsumerOffsetsSerde extends StructSerde implements BuiltInSerde {
 
   private static final String ASSIGNMENT = "assignment";
   private static final String CLIENT_HOST = "client_host";
@@ -48,24 +46,6 @@ public class ConsumerOffsetsSerde implements BuiltInSerde {
 
   public static String name() {
     return "__consumer_offsets";
-  }
-
-  private static JsonMapper createMapper() {
-    var module = new SimpleModule();
-    module.addSerializer(Struct.class, new JsonSerializer<>() {
-      @Override
-      public void serialize(Struct value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
-        for (BoundField field : value.schema().fields()) {
-          var fieldVal = value.get(field);
-          gen.writeObjectField(field.def.name, fieldVal);
-        }
-        gen.writeEndObject();
-      }
-    });
-    var mapper = new JsonMapper();
-    mapper.registerModule(module);
-    return mapper;
   }
 
   @Override
@@ -304,8 +284,5 @@ public class ConsumerOffsetsSerde implements BuiltInSerde {
     };
   }
 
-  @SneakyThrows
-  private String toJson(Struct s) {
-    return JSON_MAPPER.writeValueAsString(s);
-  }
+
 }

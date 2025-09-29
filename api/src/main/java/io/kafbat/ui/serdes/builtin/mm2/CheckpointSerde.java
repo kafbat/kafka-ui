@@ -2,7 +2,6 @@ package io.kafbat.ui.serdes.builtin.mm2;
 
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.protocol.types.Field;
