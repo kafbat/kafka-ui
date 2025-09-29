@@ -1,16 +1,12 @@
 package io.kafbat.ui.serdes.builtin.mm2;
 
-import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
-import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
-import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
@@ -24,7 +20,6 @@ public class CheckpointSerde extends MirrorMakerSerde implements BuiltInSerde {
   private static final String UPSTREAM_OFFSET_KEY = "upstreamOffset";
   private static final String DOWNSTREAM_OFFSET_KEY = "offset";
   private static final String METADATA_KEY = "metadata";
-  private static final String VERSION_KEY = "version";
 
   private static final Schema VALUE_SCHEMA_V0 = new Schema(
       new Field(UPSTREAM_OFFSET_KEY, Type.INT64),
@@ -36,65 +31,27 @@ public class CheckpointSerde extends MirrorMakerSerde implements BuiltInSerde {
       new Field(TOPIC_KEY, Type.STRING),
       new Field(PARTITION_KEY, Type.INT32));
 
-  private static final Schema HEADER_SCHEMA = new Schema(
-      new Field(VERSION_KEY, Type.INT16));
+  public CheckpointSerde() {
+    super(true);
+  }
 
   public static String name() {
     return "Checkpoint";
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
+  protected Schema getKeySchema() {
+    return KEY_SCHEMA;
   }
 
   @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
-  }
-
-  @Override
-  public boolean canDeserialize(String topic, Target type) {
-    return true;
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Target type) {
-    return false;
-  }
-
-  @Override
-  public Serializer serializer(String topic, Target type) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Deserializer deserializer(String topic, Target target) {
-    return (recordHeaders, bytes) ->
-        switch (target) {
-          case KEY -> deserializeKey(bytes);
-          case VALUE -> deserializeValue(bytes);
-        };
-  }
-
-  private static DeserializeResult deserializeKey(byte[] bytes) {
-    Struct keyStruct = KEY_SCHEMA.read(ByteBuffer.wrap(bytes));
-    return new DeserializeResult(toJson(keyStruct), DeserializeResult.Type.JSON, Map.of());
-  }
-
-  private static DeserializeResult deserializeValue(byte[] bytes) {
-    ByteBuffer value = ByteBuffer.wrap(bytes);
-    Struct header = HEADER_SCHEMA.read(value);
-    short version = header.getShort(VERSION_KEY);
-    Schema valueSchema = valueSchema(version);
-    Struct valueStruct = valueSchema.read(value);
-
-    return new DeserializeResult(toJson(valueStruct), DeserializeResult.Type.JSON, Map.of());
-  }
-
-  private static Schema valueSchema(short version) {
-    assert version == 0;
-    return VALUE_SCHEMA_V0;
+  protected Optional<Schema> getValueSchema(short version) {
+    if (version == 0) {
+      return Optional.of(VALUE_SCHEMA_V0);
+    } else {
+      log.warn("Unsupported version of CheckpointSerde: {}", version);
+      return Optional.empty();
+    }
   }
 
 }
