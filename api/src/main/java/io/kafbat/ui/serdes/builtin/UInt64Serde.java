@@ -16,11 +16,6 @@ public class UInt64Serde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
   public Optional<SchemaDescription> getSchema(String topic, Target type) {
     return Optional.of(
         new SchemaDescription(

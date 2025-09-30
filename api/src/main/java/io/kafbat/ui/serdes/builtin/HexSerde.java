@@ -38,16 +38,6 @@ public class HexSerde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
-  }
-
-  @Override
   public boolean canDeserialize(String topic, Target type) {
     return true;
   }

@@ -15,16 +15,6 @@ public class Base64Serde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
-  }
-
-  @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
     return true;
   }

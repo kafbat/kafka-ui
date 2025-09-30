@@ -150,13 +150,13 @@ public class SerdesInitializer {
    * Registers serdse that should only be used for specific (hard-coded) topics, like ConsumerOffsetsSerde.
    */
   private void registerTopicRelatedSerde(Map<String, SerdeInstance> serdes) {
-    registerConsumerOffsetsSerde(serdes);
-    registerMirrorMakerSerdes(serdes);
+    serdes.putAll(consumerOffsetsSerde(serdes));
+    serdes.putAll(mirrorMakerSerdes(serdes));
   }
 
-  private void registerConsumerOffsetsSerde(Map<String, SerdeInstance> serdes) {
+  private Map<String, SerdeInstance> consumerOffsetsSerde(Map<String, SerdeInstance> serdes) {
     var pattern = Pattern.compile(ConsumerOffsetsSerde.TOPIC);
-    serdes.put(
+    return Map.of(
         ConsumerOffsetsSerde.name(),
         new SerdeInstance(
             ConsumerOffsetsSerde.name(),
@@ -168,22 +168,19 @@ public class SerdesInitializer {
     );
   }
 
-  private void registerMirrorMakerSerdes(Map<String, SerdeInstance> serdes) {
-    Map<String,Map.Entry<Pattern, BuiltInSerde>> mmSerdes = Map.of(
-        HeartbeatSerde.name(), Map.entry(HeartbeatSerde.TOPIC_NAME_PATTERN, new HeartbeatSerde()),
-        OffsetSyncSerde.name(), Map.entry(OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
-        CheckpointSerde.name(), Map.entry(CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
+  private Map<String, SerdeInstance> mirrorMakerSerdes(Map<String, SerdeInstance> serdes) {
+    return Map.of(
+        HeartbeatSerde.name(),
+        mirrorSerde(HeartbeatSerde.name(), HeartbeatSerde.TOPIC_NAME_PATTERN, new HeartbeatSerde()),
+        OffsetSyncSerde.name(),
+        mirrorSerde(HeartbeatSerde.name(), OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
+        CheckpointSerde.name(),
+        mirrorSerde(HeartbeatSerde.name(), CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
     );
-    for (Map.Entry<String, Map.Entry<Pattern, BuiltInSerde>> serde : mmSerdes.entrySet()) {
-      String name = serde.getKey();
-      Pattern pattern = serde.getValue().getKey();
-      BuiltInSerde serdeInstance = serde.getValue().getValue();
+  }
 
-      serdes.put(
-          name,
-          new SerdeInstance(name, serdeInstance, pattern, pattern, null)
-      );
-    }
+  private SerdeInstance mirrorSerde(String name, Pattern pattern, BuiltInSerde serde) {
+    return new SerdeInstance(name, serde, pattern, pattern, null);
   }
 
   private SerdeInstance createFallbackSerde() {

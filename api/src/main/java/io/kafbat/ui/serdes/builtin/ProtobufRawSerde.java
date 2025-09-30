@@ -17,29 +17,10 @@ public class ProtobufRawSerde implements BuiltInSerde {
     return "ProtobufDecodeRaw";
   }
 
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Serde.Target type) {
-    return false;
-  }
 
   @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
     return true;
-  }
-
-  @Override
-  public Serde.Serializer serializer(String topic, Serde.Target type) {
-    throw new UnsupportedOperationException();
   }
 
   @Override

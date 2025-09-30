@@ -121,11 +121,6 @@ public class ProtobufFileSerde implements BuiltInSerde {
     this.keyMessageDescriptorMap = configuration.keyMessageDescriptorMap();
   }
 
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {
     return type == Serde.Target.KEY
         ?

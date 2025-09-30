@@ -175,11 +175,6 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
   public boolean canDeserialize(String topic, Target type) {
     String subject = schemaSubject(topic, type);
     return !checkSchemaExistenceForDeserialize
@@ -213,7 +208,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @SneakyThrows
   private String convertSchema(SchemaMetadata schema, ParsedSchema parsedSchema) {
-    URI basePath = new URI(schemaRegistryUrls.get(0))
+    URI basePath = new URI(schemaRegistryUrls.getFirst())
         .resolve(Integer.toString(schema.getId()));
     SchemaType schemaType = SchemaType.fromString(schema.getSchemaType())
         .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + schema.getSchemaType()));
