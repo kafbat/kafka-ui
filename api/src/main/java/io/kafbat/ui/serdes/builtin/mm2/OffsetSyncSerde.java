@@ -10,7 +10,7 @@ import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
 public class OffsetSyncSerde extends MirrorMakerSerde implements BuiltInSerde {
-
+  public static final String NAME = "OffsetSync";
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("mm2-offset-syncs\\..*\\.internal");
 
   private static final Schema VALUE_SCHEMA;
@@ -29,10 +29,6 @@ public class OffsetSyncSerde extends MirrorMakerSerde implements BuiltInSerde {
 
   public OffsetSyncSerde() {
     super(false);
-  }
-
-  public static String name() {
-    return "OffsetSync";
   }
 
   @Override

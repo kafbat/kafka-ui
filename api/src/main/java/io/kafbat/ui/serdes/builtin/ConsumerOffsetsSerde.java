@@ -13,6 +13,7 @@ import org.apache.kafka.common.protocol.types.Type;
 // Deserialization logic and message's schemas can be found in
 // kafka.coordinator.group.GroupMetadataManager (readMessageKey, readOffsetMessageValue, readGroupMessageValue)
 public class ConsumerOffsetsSerde extends StructSerde implements BuiltInSerde {
+  public static final String NAME = "__consumer_offsets";
 
   private static final String ASSIGNMENT = "assignment";
   private static final String CLIENT_HOST = "client_host";
@@ -32,10 +33,6 @@ public class ConsumerOffsetsSerde extends StructSerde implements BuiltInSerde {
   private static final String SUBSCRIPTION = "subscription";
 
   public static final String TOPIC = "__consumer_offsets";
-
-  public static String name() {
-    return "__consumer_offsets";
-  }
 
   @Override
   public boolean canDeserialize(String topic, Target type) {

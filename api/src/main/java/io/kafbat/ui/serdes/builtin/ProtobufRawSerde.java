@@ -12,16 +12,13 @@ import java.util.Optional;
 import lombok.SneakyThrows;
 
 public class ProtobufRawSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "ProtobufDecodeRaw";
-  }
-
+  public static final String NAME = "ProtobufDecodeRaw";
 
   @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
     return true;
   }
+
 
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {

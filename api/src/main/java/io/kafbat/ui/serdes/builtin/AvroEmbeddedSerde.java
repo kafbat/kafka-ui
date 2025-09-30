@@ -13,10 +13,7 @@ import org.apache.avro.file.SeekableByteArrayInput;
 import org.apache.avro.generic.GenericDatumReader;
 
 public class AvroEmbeddedSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "Avro (Embedded)";
-  }
+  public static final String NAME = "Avro (Embedded)";
 
   @Override
   public boolean canDeserialize(String topic, Target type) {

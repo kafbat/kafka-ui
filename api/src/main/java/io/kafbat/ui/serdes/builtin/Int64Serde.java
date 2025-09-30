@@ -9,10 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Int64Serde implements BuiltInSerde {
-
-  public static String name() {
-    return "Int64";
-  }
+  public static final String NAME = "Int64";
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {

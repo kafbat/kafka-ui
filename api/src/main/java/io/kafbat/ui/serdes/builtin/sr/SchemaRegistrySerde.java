@@ -39,13 +39,9 @@ import org.apache.kafka.common.config.SslConfigs;
 
 
 public class SchemaRegistrySerde implements BuiltInSerde {
-
+  public static final String NAME = "SchemaRegistry";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
-
-  public static String name() {
-    return "SchemaRegistry";
-  }
 
   private static final String SCHEMA_REGISTRY = "schemaRegistry";
 
@@ -303,7 +299,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     throw new ValidationException(
         String.format(
             "Data doesn't contain magic byte and schema id prefix, so it can't be deserialized with %s serde",
-            name())
+            NAME)
     );
   }
 }
