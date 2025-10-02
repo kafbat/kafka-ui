@@ -128,6 +128,7 @@ public class ConsumerGroupsController extends AbstractController implements Cons
       String search,
       ConsumerGroupOrderingDTO orderBy,
       SortOrderDTO sortOrderDto,
+      Boolean fts,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()

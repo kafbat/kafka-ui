@@ -29,6 +29,7 @@ interface SchemasApi {
     @query search?: string,
     @query orderBy?: SchemaColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): SchemaSubjectsResponse;
 
   @delete

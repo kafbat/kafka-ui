@@ -1,6 +1,5 @@
 package io.kafbat.ui.service.index;
 
-import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import java.io.IOException;
@@ -98,7 +97,15 @@ public class LuceneTopicsIndex implements TopicsIndex {
     }
   }
 
-  public List<InternalTopic> find(String search, Boolean showInternal, String sort, Integer count) {
+  public List<InternalTopic> find(String search, Boolean showInternal, String sort,
+                                  boolean fts, Integer count) {
+    if (!fts) {
+      try (FilterTopicIndex filter = new FilterTopicIndex(this.topicMap.values())) {
+        return filter.find(search, showInternal, sort, fts, count);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
     return find(search, showInternal, sort, count, 0.0f);
   }
 

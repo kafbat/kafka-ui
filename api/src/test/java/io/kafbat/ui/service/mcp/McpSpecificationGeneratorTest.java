@@ -79,7 +79,8 @@ class McpSpecificationGeneratorTest {
                 "showInternal", Map.of("type", "boolean"),
                 "search", Map.of("type", "string"),
                 "orderBy", SCHEMA_GENERATOR.generateSchema(TopicColumnsToSortDTO.class),
-                "sortOrder", SCHEMA_GENERATOR.generateSchema(SortOrderDTO.class)
+                "sortOrder", SCHEMA_GENERATOR.generateSchema(SortOrderDTO.class),
+                "fts", Map.of("type", "boolean")
             ), List.of("clusterName"), false, null, null)
         ),
         new McpSchema.Tool(
