@@ -12,6 +12,7 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import TopicTable from 'components/Topics/List/TopicTable';
 import { Action, ResourceType } from 'generated-sources';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import Fts from 'components/common/Fts/Fts';
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
@@ -62,7 +63,10 @@ const ListPage: React.FC = () => {
         )}
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Topic Name" />
+        <Search
+          placeholder="Search by Topic Name"
+          actions={<Fts resourceName="topics" />}
+        />
         <label>
           <Switch
             name="ShowInternalTopics"

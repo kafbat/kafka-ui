@@ -9,6 +9,7 @@ import ClusterContext from 'components/contexts/ClusterContext';
 import { useTopics } from 'lib/hooks/api/topics';
 import { PER_PAGE } from 'lib/constants';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
+import useFts from 'components/common/Fts/useFts';
 
 import { TopicTitleCell } from './TopicTitleCell';
 import ActionsCell from './ActionsCell';
@@ -18,8 +19,11 @@ const TopicTable: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams] = useSearchParams();
   const { isReadOnly } = React.useContext(ClusterContext);
+  const { isFtsEnabled } = useFts('topics');
+
   const { data } = useTopics({
     clusterName,
+    fts: isFtsEnabled,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || undefined,
