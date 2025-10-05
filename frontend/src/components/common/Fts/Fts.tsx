@@ -2,7 +2,7 @@ import React from 'react';
 import FtsIcon from 'components/common/Icons/FtsIcon';
 import styled from 'styled-components';
 
-import useFts from './useFts';
+import useFts, { FtsAvailableResource } from './useFts';
 
 export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
   role: 'button',
@@ -11,7 +11,6 @@ export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
   display: inline-block;
   &:hover {
     cursor: pointer;
-    color: ${({ theme }) => theme.icons.ftsIcon.active};
   }
   color: ${(props) =>
     props.active
@@ -19,7 +18,7 @@ export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
       : props.theme.icons.ftsIcon.normal};
 `;
 
-const Fts = ({ resourceName }: { resourceName: string }) => {
+const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
   const { handleSwitch, isFtsEnabled } = useFts(resourceName);
 
   return (

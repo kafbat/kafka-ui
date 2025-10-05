@@ -1,4 +1,10 @@
-import React, { ComponentRef, ReactNode, useEffect, useRef } from 'react';
+import React, {
+  ComponentRef,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import Input from 'components/common/Input/Input';
 import { useSearchParams } from 'react-router-dom';
@@ -19,10 +25,11 @@ const Search: React.FC<SearchProps> = ({
   disabled = false,
   value,
   onChange,
-  actions,
+  extraActions,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
+  const [showIcon, setShowIcon] = useState(!!value || !!searchParams.get('q'));
 
   useEffect(() => {
     if (ref.current !== null && value) {
@@ -31,6 +38,7 @@ const Search: React.FC<SearchProps> = ({
   }, [value]);
 
   const handleChange = useDebouncedCallback((e) => {
+    setShowIcon(!!e.target.value);
     if (ref.current != null) {
       ref.current.value = e.target.value;
     }
@@ -52,15 +60,15 @@ const Search: React.FC<SearchProps> = ({
       searchParams.set('q', '');
       setSearchParams(searchParams);
     }
+
     if (ref.current != null) {
       ref.current.value = '';
     }
     if (onChange) {
       onChange('');
     }
+    setShowIcon(false);
   };
-
-  const showClearIcon = searchParams.get('q');
 
   return (
     <Input
@@ -74,13 +82,16 @@ const Search: React.FC<SearchProps> = ({
       search
       actions={
         <S.Actions>
-          {showClearIcon && (
-            <S.IconButtonWrapper onClick={clearSearchValue}>
+          {showIcon && (
+            <S.IconButtonWrapper
+              onClick={clearSearchValue}
+              data-testid="search-clear-button"
+            >
               <CloseCircleIcon />
             </S.IconButtonWrapper>
           )}
 
-          {actions}
+          {extraActions}
         </S.Actions>
       }
     />

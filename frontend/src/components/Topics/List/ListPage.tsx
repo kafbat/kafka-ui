@@ -65,7 +65,7 @@ const ListPage: React.FC = () => {
       <ControlPanelWrapper hasInput>
         <Search
           placeholder="Search by Topic Name"
-          actions={<Fts resourceName="topics" />}
+          extraActions={<Fts resourceName="topics" />}
         />
         <label>
           <Switch

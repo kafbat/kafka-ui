@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-type FtsAvailableResource = 'topics';
+export type FtsAvailableResource = 'topics';
 
 const storageName = 'kafbat-ui_fts';
 

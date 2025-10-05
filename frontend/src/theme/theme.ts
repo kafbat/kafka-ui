@@ -1544,8 +1544,8 @@ export const darkTheme: ThemeType = {
     },
     menuIcon: Colors.brand[0],
     ftsIcon: {
-      normal: Colors.neutral[20],
-      active: Colors.brand[70],
+      normal: Colors.neutral[50],
+      active: Colors.brand[10],
     },
   },
   textArea: {
