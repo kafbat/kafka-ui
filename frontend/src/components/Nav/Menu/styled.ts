@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { ServerStatus } from 'generated-sources';
 
 export const ColorPickerWrapper = styled.div`
+  position: absolute;
   display: flex;
   visibility: hidden;
 `;
@@ -13,13 +14,14 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
   ({ theme, $variant, $isActive }) => css`
     font-size: 14px;
     font-weight: ${theme.menu[$isActive ? 'primary' : $variant].fontWeight};
-    min-height: 32px;
+    min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    line-height: 17px;
     user-select: none;
     width: 100%;
-    padding: 6px 8px;
+    padding: 4px 8px;
     cursor: pointer;
     text-decoration: none;
     border-radius: 8px;
@@ -35,6 +37,7 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
       color: ${theme.menu[$variant].color.hover};
 
       ${ColorPickerWrapper} {
+        position: relative;
         visibility: visible;
       }
     }
