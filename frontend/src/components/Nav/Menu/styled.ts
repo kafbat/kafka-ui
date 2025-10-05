@@ -37,7 +37,8 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
       color: ${theme.menu[$variant].color.hover};
 
       ${ColorPickerWrapper} {
-        position: relative;
+        position: absolute;
+        right: 36px;
         visibility: visible;
       }
     }
