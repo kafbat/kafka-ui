@@ -4596,6 +4596,8 @@ components:
                             type: string
                           password:
                             type: string
+                          bearerAuthCustomProviderClass:
+                            type: string
                       schemaRegistrySsl:
                         type: object
                         properties:
