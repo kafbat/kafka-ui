@@ -173,9 +173,9 @@ public class SerdesInitializer {
         HeartbeatSerde.NAME,
         mirrorSerde(HeartbeatSerde.NAME, HeartbeatSerde.TOPIC_NAME_PATTERN, new HeartbeatSerde()),
         OffsetSyncSerde.NAME,
-        mirrorSerde(HeartbeatSerde.NAME, OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
+        mirrorSerde(OffsetSyncSerde.NAME, OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
         CheckpointSerde.NAME,
-        mirrorSerde(HeartbeatSerde.NAME, CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
+        mirrorSerde(CheckpointSerde.NAME, CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
     );
   }
 
