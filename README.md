@@ -159,8 +159,8 @@ Please refer to the [contributing guide](https://ui.docs.kafbat.io/development/c
 
 # Support
 
-As we are fully independent, team members contribute in their free time.
-Your support is crucial for us. If you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat) 
+As we're fully independent, team members contribute in their free time.
+Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat)
 
 # Powered by
 
