@@ -2,6 +2,8 @@ package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.SchemasApi;
 import io.kafbat.ui.exception.ValidationException;
+import io.kafbat.ui.mapper.GcpKafkaSrMapper;
+import io.kafbat.ui.mapper.GcpKafkaSrMapperImpl;
 import io.kafbat.ui.mapper.KafkaSrMapper;
 import io.kafbat.ui.mapper.KafkaSrMapperImpl;
 import io.kafbat.ui.model.CompatibilityCheckResponseDTO;
@@ -12,6 +14,7 @@ import io.kafbat.ui.model.SchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaSubjectsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
+import io.kafbat.ui.service.GcpSchemaRegistryService;
 import io.kafbat.ui.service.SchemaRegistryService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
@@ -34,17 +37,21 @@ public class SchemasController extends AbstractController implements SchemasApi,
   private static final Integer DEFAULT_PAGE_SIZE = 25;
 
   private final KafkaSrMapper kafkaSrMapper = new KafkaSrMapperImpl();
+  private final GcpKafkaSrMapper gcpKafkaSrMapper = new GcpKafkaSrMapperImpl();
 
   private final SchemaRegistryService schemaRegistryService;
+  private final GcpSchemaRegistryService gcpSchemaRegistryService;
 
   @Override
   protected KafkaCluster getCluster(String clusterName) {
     var c = super.getCluster(clusterName);
-    if (c.getSchemaRegistryClient() == null) {
+    if (c.getSchemaRegistryClient() == null && c.getGcpSchemaRegistryClient() == null) {
       throw new ValidationException("Schema Registry is not set for cluster " + clusterName);
     }
     return c;
   }
+
+
 
   @Override
   public Mono<ResponseEntity<CompatibilityCheckResponseDTO>> checkSchemaCompatibility(
@@ -57,13 +64,16 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .build();
 
     return validateAccess(context).then(
-        newSchemaSubjectMono.flatMap(subjectDTO ->
-                schemaRegistryService.checksSchemaCompatibility(
-                    getCluster(clusterName),
-                    subject,
-                    kafkaSrMapper.fromDto(subjectDTO)
-                ))
-            .map(kafkaSrMapper::toDto)
+        newSchemaSubjectMono.flatMap(subjectDTO -> {
+          var cluster = getCluster(clusterName);
+          return cluster.isGcpSchemaRegistryEnabled()
+              ? gcpSchemaRegistryService.checksSchemaCompatibility(
+                  cluster, subject, gcpKafkaSrMapper.fromDto(subjectDTO))
+                  .map(gcpKafkaSrMapper::toDto) :
+              schemaRegistryService.checksSchemaCompatibility(
+                  cluster, subject, kafkaSrMapper.fromDto(subjectDTO))
+                  .map(kafkaSrMapper::toDto);
+        })
             .map(ResponseEntity::ok)
     ).doOnEach(sig -> audit(context, sig));
   }
@@ -73,22 +83,23 @@ public class SchemasController extends AbstractController implements SchemasApi,
       String clusterName, @Valid Mono<NewSchemaSubjectDTO> newSchemaSubjectMono,
       ServerWebExchange exchange) {
     return newSchemaSubjectMono.flatMap(newSubject -> {
-          var context = AccessContext.builder()
-              .cluster(clusterName)
-              .schemaActions(newSubject.getSubject(), SchemaAction.CREATE)
-              .operationName("createNewSchema")
-              .build();
-          return validateAccess(context).then(
+      var context = AccessContext.builder()
+          .cluster(clusterName)
+          .schemaActions(newSubject.getSubject(), SchemaAction.CREATE)
+          .operationName("createNewSchema")
+          .build();
+      var cluster = getCluster(clusterName);
+      return validateAccess(context).then(
+              cluster.isGcpSchemaRegistryEnabled()
+                  ? gcpSchemaRegistryService.registerNewSchema(
+                      cluster, newSubject.getSubject(), gcpKafkaSrMapper.fromDto(newSubject))
+                      .map(gcpKafkaSrMapper::toDto) :
                   schemaRegistryService.registerNewSchema(
-                      getCluster(clusterName),
-                      newSubject.getSubject(),
-                      kafkaSrMapper.fromDto(newSubject)
-                  ))
-              .map(kafkaSrMapper::toDto)
-              .map(ResponseEntity::ok)
-              .doOnEach(sig -> audit(context, sig));
-        }
-    );
+                      cluster, newSubject.getSubject(), kafkaSrMapper.fromDto(newSubject))
+                      .map(kafkaSrMapper::toDto))
+          .map(ResponseEntity::ok)
+          .doOnEach(sig -> audit(context, sig));
+    });
   }
 
   @Override
@@ -100,8 +111,11 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("deleteLatestSchema")
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
-        schemaRegistryService.deleteLatestSchemaSubject(getCluster(clusterName), subject)
+        (cluster.isGcpSchemaRegistryEnabled()
+            ? gcpSchemaRegistryService.deleteLatestSchemaSubject(cluster, subject) :
+            schemaRegistryService.deleteLatestSchemaSubject(cluster, subject))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())
     );
@@ -116,8 +130,11 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("deleteSchema")
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
-        schemaRegistryService.deleteSchemaSubjectEntirely(getCluster(clusterName), subject)
+        (cluster.isGcpSchemaRegistryEnabled()
+            ? gcpSchemaRegistryService.deleteSchemaSubjectEntirely(cluster, subject) :
+            schemaRegistryService.deleteSchemaSubjectEntirely(cluster, subject))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())
     );
@@ -132,8 +149,11 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("deleteSchemaByVersion")
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
-        schemaRegistryService.deleteSchemaSubjectByVersion(getCluster(clusterName), subjectName, version)
+        (cluster.isGcpSchemaRegistryEnabled()
+            ? gcpSchemaRegistryService.deleteSchemaSubjectByVersion(cluster, subjectName, version) :
+            schemaRegistryService.deleteSchemaSubjectByVersion(cluster, subjectName, version))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())
     );
@@ -148,9 +168,10 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("getAllVersionsBySubject")
         .build();
 
-    Flux<SchemaSubjectDTO> schemas =
-        schemaRegistryService.getAllVersionsBySubject(getCluster(clusterName), subjectName)
-            .map(kafkaSrMapper::toDto);
+    var cluster = getCluster(clusterName);
+    Flux<SchemaSubjectDTO> schemas = cluster.isGcpSchemaRegistryEnabled()
+        ? gcpSchemaRegistryService.getAllVersionsBySubject(cluster, subjectName).map(gcpKafkaSrMapper::toDto) :
+        schemaRegistryService.getAllVersionsBySubject(cluster, subjectName).map(kafkaSrMapper::toDto);
 
     return validateAccess(context)
         .thenReturn(ResponseEntity.ok(schemas))
@@ -160,8 +181,12 @@ public class SchemasController extends AbstractController implements SchemasApi,
   @Override
   public Mono<ResponseEntity<CompatibilityLevelDTO>> getGlobalSchemaCompatibilityLevel(
       String clusterName, ServerWebExchange exchange) {
-    return schemaRegistryService.getGlobalSchemaCompatibilityLevel(getCluster(clusterName))
-        .map(c -> new CompatibilityLevelDTO().compatibility(kafkaSrMapper.toDto(c)))
+    var cluster = getCluster(clusterName);
+    return (cluster.isGcpSchemaRegistryEnabled()
+        ? gcpSchemaRegistryService.getGlobalSchemaCompatibilityLevel(cluster)
+            .map(c -> new CompatibilityLevelDTO().compatibility(gcpKafkaSrMapper.toDto(c))) :
+        schemaRegistryService.getGlobalSchemaCompatibilityLevel(cluster)
+            .map(c -> new CompatibilityLevelDTO().compatibility(kafkaSrMapper.toDto(c))))
         .map(ResponseEntity::ok)
         .defaultIfEmpty(ResponseEntity.notFound().build());
   }
@@ -176,9 +201,13 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("getLatestSchema")
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
-        schemaRegistryService.getLatestSchemaVersionBySubject(getCluster(clusterName), subject)
-            .map(kafkaSrMapper::toDto)
+        (cluster.isGcpSchemaRegistryEnabled()
+            ? gcpSchemaRegistryService.getLatestSchemaVersionBySubject(cluster, subject)
+                .map(gcpKafkaSrMapper::toDto) :
+            schemaRegistryService.getLatestSchemaVersionBySubject(cluster, subject)
+                .map(kafkaSrMapper::toDto))
             .map(ResponseEntity::ok)
     ).doOnEach(sig -> audit(context, sig));
   }
@@ -193,10 +222,13 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationParams(Map.of("subject", subject, "version", version))
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
-        schemaRegistryService.getSchemaSubjectByVersion(
-                getCluster(clusterName), subject, version)
-            .map(kafkaSrMapper::toDto)
+        (cluster.isGcpSchemaRegistryEnabled()
+            ? gcpSchemaRegistryService.getSchemaSubjectByVersion(cluster, subject, version)
+                .map(gcpKafkaSrMapper::toDto) :
+            schemaRegistryService.getSchemaSubjectByVersion(cluster, subject, version)
+                .map(kafkaSrMapper::toDto))
             .map(ResponseEntity::ok)
     ).doOnEach(sig -> audit(context, sig));
   }
@@ -212,8 +244,10 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("getSchemas")
         .build();
 
-    return schemaRegistryService
-        .getAllSubjectNames(getCluster(clusterName))
+    var cluster = getCluster(clusterName);
+    return (cluster.isGcpSchemaRegistryEnabled()
+        ? gcpSchemaRegistryService.getAllSubjectNames(cluster) :
+        schemaRegistryService.getAllSubjectNames(cluster))
         .flatMapIterable(l -> l)
         .filterWhen(schema -> accessControlService.isSchemaAccessible(schema, clusterName))
         .collectList()
@@ -230,9 +264,14 @@ public class SchemasController extends AbstractController implements SchemasApi,
               .skip(subjectToSkip)
               .limit(pageSize)
               .toList();
-          return schemaRegistryService.getAllLatestVersionSchemas(getCluster(clusterName), subjectsToRender)
-              .map(subjs -> subjs.stream().map(kafkaSrMapper::toDto).toList())
-              .map(subjs -> new SchemaSubjectsResponseDTO().pageCount(totalPages).schemas(subjs));
+          return (cluster.isGcpSchemaRegistryEnabled()
+              ? gcpSchemaRegistryService.getAllLatestVersionSchemas(cluster, subjectsToRender)
+                  .map(subjs -> subjs.stream()
+                      .map(gcpKafkaSrMapper::toDto).toList()) :
+              schemaRegistryService.getAllLatestVersionSchemas(cluster, subjectsToRender)
+                  .map(subjs -> subjs.stream().map(kafkaSrMapper::toDto).toList()))
+              .map(subjs -> new SchemaSubjectsResponseDTO()
+                  .pageCount(totalPages).schemas(subjs));
         }).map(ResponseEntity::ok)
         .doOnEach(sig -> audit(context, sig));
   }
@@ -247,13 +286,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationName("updateGlobalSchemaCompatibilityLevel")
         .build();
 
+    var cluster = getCluster(clusterName);
     return validateAccess(context).then(
         compatibilityLevelMono
             .flatMap(compatibilityLevelDTO ->
-                schemaRegistryService.updateGlobalSchemaCompatibility(
-                    getCluster(clusterName),
-                    kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())
-                ))
+                cluster.isGcpSchemaRegistryEnabled()
+                    ? gcpSchemaRegistryService.updateGlobalSchemaCompatibility(
+                        cluster, gcpKafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())) :
+                    schemaRegistryService.updateGlobalSchemaCompatibility(
+                        cluster, kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())
     );
@@ -271,15 +312,16 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .operationParams(Map.of("subject", subject))
         .build();
 
-    return compatibilityLevelMono.flatMap(compatibilityLevelDTO ->
-        validateAccess(context).then(
-                schemaRegistryService.updateSchemaCompatibility(
-                    getCluster(clusterName),
-                    subject,
-                    kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())
-                ))
-            .doOnEach(sig -> audit(context, sig))
-            .thenReturn(ResponseEntity.ok().build())
-    );
+    return compatibilityLevelMono.flatMap(compatibilityLevelDTO -> {
+      var cluster = getCluster(clusterName);
+      return validateAccess(context).then(
+              cluster.isGcpSchemaRegistryEnabled()
+                  ? gcpSchemaRegistryService.updateSchemaCompatibility(
+                      cluster, subject, gcpKafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())) :
+                  schemaRegistryService.updateSchemaCompatibility(
+                      cluster, subject, kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())))
+          .doOnEach(sig -> audit(context, sig))
+          .thenReturn(ResponseEntity.ok().build());
+    });
   }
 }

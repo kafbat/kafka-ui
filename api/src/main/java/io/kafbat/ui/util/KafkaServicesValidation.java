@@ -3,6 +3,7 @@ package io.kafbat.ui.util;
 import static io.kafbat.ui.config.ClustersProperties.TruststoreConfig;
 
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
+import io.kafbat.ui.gcp.sr.api.KafkaGcpSrClientApi;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
@@ -100,6 +101,21 @@ public final class KafkaServicesValidation {
     }
     return client
         .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
+        .then(valid())
+        .onErrorResume(KafkaServicesValidation::invalid);
+  }
+
+  public static Mono<ApplicationPropertyValidationDTO> validateGcpSchemaRegistry(
+      Supplier<ReactiveFailover<KafkaGcpSrClientApi>> clientSupplier) {
+    ReactiveFailover<KafkaGcpSrClientApi> client;
+    try {
+      client = clientSupplier.get();
+    } catch (Exception e) {
+      log.error("Error creating Schema Registry client", e);
+      return invalid("Error creating Schema Registry client: " + e.getMessage());
+    }
+    return client
+        .mono(KafkaGcpSrClientApi::getGlobalCompatibilityLevel)
         .then(valid())
         .onErrorResume(KafkaServicesValidation::invalid);
   }

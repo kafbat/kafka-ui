@@ -3,6 +3,7 @@ package io.kafbat.ui.model;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.gcp.sr.api.KafkaGcpSrClientApi;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
@@ -31,6 +32,8 @@ public class KafkaCluster {
   private final DataMasking masking;
   private final PollingSettings pollingSettings;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;
+  private final ReactiveFailover<KafkaGcpSrClientApi> gcpSchemaRegistryClient;
+  private final boolean isGcpSchemaRegistryEnabled;
   private final Map<String, ReactiveFailover<KafkaConnectClientApi>> connectsClients;
   private final ReactiveFailover<KsqlApiClient> ksqlClient;
 }

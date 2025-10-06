@@ -9,7 +9,7 @@ info:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0
 tags:
-    - name: /schemaregistry
+    - name: /gcpschemaregistry
 servers:
     - url: /localhost
 
@@ -17,7 +17,7 @@ paths:
     /subjects:
         get:
             tags:
-              - KafkaSrClient
+              - KafkaGcpSrClient
             summary: get all connectors from Kafka Connect service
             operationId: getAllSubjectNames
             parameters:
@@ -42,7 +42,7 @@ paths:
     /subjects/{subject}:
         delete:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: deleteAllSubjectVersions
             parameters:
                 - name: subject
@@ -64,7 +64,7 @@ paths:
     /subjects/{subject}/versions/{version}:
         get:
             tags:
-              - KafkaSrClient
+              - KafkaGcpSrClient
             operationId: getSubjectVersion
             parameters:
               - name: subject
@@ -94,7 +94,7 @@ paths:
                     description: Invalid version
         delete:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: deleteSubjectVersion
             parameters:
                 - name: subject
@@ -122,7 +122,7 @@ paths:
     /subjects/{subject}/versions:
         get:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: getSubjectVersions
             parameters:
                 - name: subject
@@ -144,7 +144,7 @@ paths:
                     description: Not found
         post:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: registerNewSchema
             parameters:
                 - name: subject
@@ -168,7 +168,7 @@ paths:
     /config:
         get:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: getGlobalCompatibilityLevel
             responses:
                 200:
@@ -181,7 +181,7 @@ paths:
                     description: Not found
         put:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: updateGlobalCompatibilityLevel
             requestBody:
                 content:
@@ -201,7 +201,7 @@ paths:
     /config/{subject}:
         get:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: getSubjectCompatibilityLevel
             parameters:
                 - name: subject
@@ -225,7 +225,7 @@ paths:
                     description: Not found
         put:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: updateSubjectCompatibilityLevel
             parameters:
                 - name: subject
@@ -249,7 +249,7 @@ paths:
                     description: Not found
         delete:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: deleteSubjectCompatibilityLevel
             parameters:
                 - name: subject
@@ -266,7 +266,7 @@ paths:
     /compatibility/subjects/{subject}/versions/{version}:
         post:
             tags:
-                - KafkaSrClient
+                - KafkaGcpSrClient
             operationId: checkSchemaCompatibility
             parameters:
                 - name: subject
@@ -376,13 +376,25 @@ components:
                 - schema
                 - schemaType
 
+#        CompatibilityConfig:
+#            type: object
+#            properties:
+#                compatibilityLevel:
+#                    $ref: '#/components/schemas/Compatibility'
+#            required:
+#                - compatibilityLevel
+
         CompatibilityConfig:
             type: object
             properties:
-                compatibilityLevel:
-                    $ref: '#/components/schemas/Compatibility'
+                alias:
+                  type: string
+                compatibility:
+                  $ref: '#/components/schemas/Compatibility'
+                normalize:
+                  type: boolean
             required:
-                - compatibilityLevel
+                - compatibility
 
         CompatibilityLevelChange:
             type: object
@@ -391,7 +403,6 @@ components:
                     $ref: '#/components/schemas/Compatibility'
             required:
                 - compatibility
-
 
         Compatibility:
             type: string
@@ -403,7 +414,6 @@ components:
                 - FULL
                 - FULL_TRANSITIVE
                 - NONE
-
 
         CompatibilityCheckResponse:
             type: object

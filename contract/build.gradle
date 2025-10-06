@@ -95,6 +95,23 @@ tasks.register('generateSchemaRegistryClient', GenerateTask) {
                      dateLibrary      : "java8",]
 }
 
+tasks.register('generateGcpSchemaRegistryClient', GenerateTask) {
+    generatorName = "java"
+    inputSpec = specDir.file("kafka-gcp-sr-api.yaml").asFile.absolutePath
+    outputDir = targetDir.dir("kafka-gcp-sr-client").asFile.absolutePath
+    generateApiTests = false
+    generateModelTests = false
+    apiPackage = "io.kafbat.ui.gcp.sr.api"
+    invokerPackage = "io.kafbat.ui.gcp.sr"
+    modelPackage = "io.kafbat.ui.gcp.sr.model"
+
+    configOptions = [asyncNative      : "true",
+                     library          : "webclient",
+                     useJakartaEe     : "true",
+                     useBeanValidation: "true",
+                     dateLibrary      : "java8",]
+}
+
 sourceSets {
     main {
         java {
@@ -102,6 +119,7 @@ sourceSets {
             srcDir targetDir.dir("kafka-connect-client/src/main/java")
             srcDir targetDir.dir("kafbat-ui-client/src/main/java")
             srcDir targetDir.dir("kafka-sr-client/src/main/java")
+            srcDir targetDir.dir("kafka-gcp-sr-client/src/main/java")
         }
 
         resources {
@@ -110,5 +128,5 @@ sourceSets {
     }
 }
 
-compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
-processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient
+compileJava.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generateGcpSchemaRegistryClient
+processResources.dependsOn generateUiClient, generateBackendApi, generateConnectClient, generateSchemaRegistryClient, generateGcpSchemaRegistryClient

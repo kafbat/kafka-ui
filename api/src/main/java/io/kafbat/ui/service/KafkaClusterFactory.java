@@ -5,6 +5,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.gcp.sr.api.KafkaGcpSrClientApi;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -68,7 +69,15 @@ public class KafkaClusterFactory {
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));
 
     if (schemaRegistryConfigured(clusterProperties)) {
-      builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
+      var auth = clusterProperties.getSchemaRegistryAuth();
+      if (auth != null && Objects.equals(auth.getBearerAuthCustomProviderClass(),
+          GcpBearerAuthFilter.getGcpBearerAuthCustomProviderClass())) {
+        builder.isGcpSchemaRegistryEnabled(true);
+        builder.gcpSchemaRegistryClient(gcpSchemaRegistryClient(clusterProperties));
+      } else {
+        builder.isGcpSchemaRegistryEnabled(false);
+        builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
+      }
     }
     if (connectClientsConfigured(clusterProperties)) {
       builder.connectsClients(connectClients(clusterProperties));
@@ -101,8 +110,13 @@ public class KafkaClusterFactory {
             clusterProperties.getSsl()
         ),
         schemaRegistryConfigured(clusterProperties)
-            ? KafkaServicesValidation.validateSchemaRegistry(
-                () -> schemaRegistryClient(clusterProperties)).map(Optional::of)
+            ? (clusterProperties.getSchemaRegistryAuth().getBearerAuthCustomProviderClass()
+                != GcpBearerAuthFilter.getGcpBearerAuthCustomProviderClass()
+                ? KafkaServicesValidation.validateSchemaRegistry(
+                    () -> schemaRegistryClient(clusterProperties))
+                : KafkaServicesValidation.validateGcpSchemaRegistry(
+                    () -> gcpSchemaRegistryClient(clusterProperties))
+            ).map(Optional::of)
             : Mono.<Optional<ApplicationPropertyValidationDTO>>just(Optional.empty()),
 
         ksqlConfigured(clusterProperties)
@@ -169,24 +183,34 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
-
     var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
+
+    WebClient webClient = new WebClientConfigurator()
+        .configureBasicAuth(auth.getUsername(), auth.getPassword())
+        .configureBufferSize(webClientMaxBuffSize)
+        .build();
+
+    return ReactiveFailover.create(
+        parseUrlList(clusterProperties.getSchemaRegistry()),
+        url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),
+        ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
+        "No live schemaRegistry instances available",
+        ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS
+    );
+  }
+
+  private ReactiveFailover<KafkaGcpSrClientApi> gcpSchemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
     WebClientConfigurator webClientConfigurator = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
-        .configureBasicAuth(auth.getUsername(), auth.getPassword())
-        .configureBufferSize(webClientMaxBuffSize);
-
-    if (auth.getBearerAuthCustomProviderClass() != null && Objects.equals(auth.getBearerAuthCustomProviderClass(),
-        GcpBearerAuthFilter.getGcpBearerAuthCustomProviderClass())) {
-      webClientConfigurator.filter(new GcpBearerAuthFilter());
-    }
+        .configureBufferSize(webClientMaxBuffSize)
+        .filter(new GcpBearerAuthFilter());
 
     WebClient webClient = webClientConfigurator.build();
 
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
-        url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),
+        url -> new KafkaGcpSrClientApi(new io.kafbat.ui.gcp.sr.ApiClient(webClient, null, null).setBasePath(url)),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No live schemaRegistry instances available",
         ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS

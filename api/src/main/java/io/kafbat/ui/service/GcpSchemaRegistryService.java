@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.kafbat.ui.exception.SchemaCompatibilityException;
 import io.kafbat.ui.exception.SchemaNotFoundException;
 import io.kafbat.ui.exception.ValidationException;
+import io.kafbat.ui.gcp.sr.api.KafkaGcpSrClientApi;
+import io.kafbat.ui.gcp.sr.model.Compatibility;
+import io.kafbat.ui.gcp.sr.model.CompatibilityCheckResponse;
+import io.kafbat.ui.gcp.sr.model.CompatibilityConfig;
+import io.kafbat.ui.gcp.sr.model.CompatibilityLevelChange;
+import io.kafbat.ui.gcp.sr.model.NewSubject;
+import io.kafbat.ui.gcp.sr.model.SchemaSubject;
 import io.kafbat.ui.model.KafkaCluster;
-import io.kafbat.ui.sr.api.KafkaSrClientApi;
-import io.kafbat.ui.sr.model.Compatibility;
-import io.kafbat.ui.sr.model.CompatibilityCheckResponse;
-import io.kafbat.ui.sr.model.CompatibilityConfig;
-import io.kafbat.ui.sr.model.CompatibilityLevelChange;
-import io.kafbat.ui.sr.model.NewSubject;
-import io.kafbat.ui.sr.model.SchemaSubject;
 import io.kafbat.ui.util.ReactiveFailover;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SchemaRegistryService {
+public class GcpSchemaRegistryService {
 
   private static final String LATEST = "latest";
 
@@ -42,8 +42,8 @@ public class SchemaRegistryService {
     Compatibility compatibility;
   }
 
-  private ReactiveFailover<KafkaSrClientApi> api(KafkaCluster cluster) {
-    return cluster.getSchemaRegistryClient();
+  private ReactiveFailover<KafkaGcpSrClientApi> api(KafkaCluster cluster) {
+    return cluster.getGcpSchemaRegistryClient();
   }
 
   public Mono<List<SubjectWithCompatibilityLevel>> getAllLatestVersionSchemas(KafkaCluster cluster,
@@ -93,7 +93,8 @@ public class SchemaRegistryService {
         .mono(c -> c.getSubjectVersion(schemaName, version, false))
         .zipWith(getSchemaCompatibilityInfoOrGlobal(cluster, schemaName))
         .map(t -> new SubjectWithCompatibilityLevel(t.getT1(), t.getT2()))
-        .onErrorResume(WebClientResponseException.NotFound.class, th -> Mono.error(new SchemaNotFoundException()));
+        .onErrorResume(WebClientResponseException.NotFound.class, th -> Mono.error(
+            new SchemaNotFoundException()));
   }
 
   public Mono<Void> deleteSchemaSubjectByVersion(KafkaCluster cluster, String schemaName, Integer version) {
@@ -124,7 +125,8 @@ public class SchemaRegistryService {
         .onErrorMap(WebClientResponseException.Conflict.class,
             th -> new SchemaCompatibilityException())
         .onErrorMap(WebClientResponseException.UnprocessableEntity.class,
-            th -> new ValidationException("Invalid schema. Error from registry: " + th.getResponseBodyAsString()))
+            th -> new ValidationException("Invalid schema. Error from registry: "
+                + th.getResponseBodyAsString()))
         .then(getLatestSchemaVersionBySubject(cluster, subject));
   }
 
@@ -140,7 +142,8 @@ public class SchemaRegistryService {
   public Mono<Void> updateGlobalSchemaCompatibility(KafkaCluster cluster,
                                                     Compatibility compatibility) {
     return api(cluster)
-        .mono(c -> c.updateGlobalCompatibilityLevel(new CompatibilityLevelChange().compatibility(compatibility)))
+        .mono(c -> c.updateGlobalCompatibilityLevel(new CompatibilityLevelChange()
+            .compatibility(compatibility)))
         .then();
   }
 
@@ -148,14 +151,14 @@ public class SchemaRegistryService {
                                                          String schemaName) {
     return api(cluster)
         .mono(c -> c.getSubjectCompatibilityLevel(schemaName, true))
-        .map(CompatibilityConfig::getCompatibilityLevel)
+        .map(CompatibilityConfig::getCompatibility)
         .onErrorResume(error -> Mono.empty());
   }
 
   public Mono<Compatibility> getGlobalSchemaCompatibilityLevel(KafkaCluster cluster) {
     return api(cluster)
-        .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
-        .map(CompatibilityConfig::getCompatibilityLevel);
+      .mono(c -> c.getGlobalCompatibilityLevel())
+      .map(CompatibilityConfig::getCompatibility);
   }
 
   private Mono<Compatibility> getSchemaCompatibilityInfoOrGlobal(KafkaCluster cluster,
@@ -167,7 +170,8 @@ public class SchemaRegistryService {
   public Mono<CompatibilityCheckResponse> checksSchemaCompatibility(KafkaCluster cluster,
                                                                     String schemaName,
                                                                     NewSubject newSchemaSubject) {
-    return api(cluster).mono(c -> c.checkSchemaCompatibility(schemaName, LATEST, true, newSchemaSubject));
+    return api(cluster).mono(c -> c.checkSchemaCompatibility(
+        schemaName, LATEST, true, newSchemaSubject));
   }
 
 }
