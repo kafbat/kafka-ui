@@ -10,7 +10,7 @@ import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
 public class CheckpointSerde extends MirrorMakerSerde implements BuiltInSerde {
-  public static final String NAME = "Checkpoint";
+  public static final String NAME = "mm2-Checkpoint";
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile(".*\\.checkpoints\\.internal");
 
   private static final String TOPIC_KEY = "topic";
