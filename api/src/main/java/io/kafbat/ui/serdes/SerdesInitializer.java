@@ -20,6 +20,9 @@ import io.kafbat.ui.serdes.builtin.StringSerde;
 import io.kafbat.ui.serdes.builtin.UInt32Serde;
 import io.kafbat.ui.serdes.builtin.UInt64Serde;
 import io.kafbat.ui.serdes.builtin.UuidBinarySerde;
+import io.kafbat.ui.serdes.builtin.mm2.CheckpointSerde;
+import io.kafbat.ui.serdes.builtin.mm2.HeartbeatSerde;
+import io.kafbat.ui.serdes.builtin.mm2.OffsetSyncSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,18 +42,23 @@ public class SerdesInitializer {
   public SerdesInitializer() {
     this(
         ImmutableMap.<String, Class<? extends BuiltInSerde>>builder()
-            .put(StringSerde.name(), StringSerde.class)
-            .put(SchemaRegistrySerde.name(), SchemaRegistrySerde.class)
-            .put(ProtobufFileSerde.name(), ProtobufFileSerde.class)
-            .put(Int32Serde.name(), Int32Serde.class)
-            .put(Int64Serde.name(), Int64Serde.class)
-            .put(UInt32Serde.name(), UInt32Serde.class)
-            .put(UInt64Serde.name(), UInt64Serde.class)
-            .put(AvroEmbeddedSerde.name(), AvroEmbeddedSerde.class)
-            .put(Base64Serde.name(), Base64Serde.class)
-            .put(HexSerde.name(), HexSerde.class)
-            .put(UuidBinarySerde.name(), UuidBinarySerde.class)
-            .put(ProtobufRawSerde.name(), ProtobufRawSerde.class)
+            .put(StringSerde.NAME, StringSerde.class)
+            .put(SchemaRegistrySerde.NAME, SchemaRegistrySerde.class)
+            .put(ProtobufFileSerde.NAME, ProtobufFileSerde.class)
+            .put(Int32Serde.NAME, Int32Serde.class)
+            .put(Int64Serde.NAME, Int64Serde.class)
+            .put(UInt32Serde.NAME, UInt32Serde.class)
+            .put(UInt64Serde.NAME, UInt64Serde.class)
+            .put(AvroEmbeddedSerde.NAME, AvroEmbeddedSerde.class)
+            .put(Base64Serde.NAME, Base64Serde.class)
+            .put(HexSerde.NAME, HexSerde.class)
+            .put(UuidBinarySerde.NAME, UuidBinarySerde.class)
+            .put(ProtobufRawSerde.NAME, ProtobufRawSerde.class)
+
+            // mm2 serdes
+            .put(HeartbeatSerde.NAME, HeartbeatSerde.class)
+            .put(OffsetSyncSerde.NAME, OffsetSyncSerde.class)
+            .put(CheckpointSerde.NAME, CheckpointSerde.class)
             .build(),
         new CustomSerdeLoader()
     );
@@ -131,8 +139,8 @@ public class SerdesInitializer {
             .orElse(null),
         Optional.ofNullable(clusterProperties.getDefaultValueSerde())
             .map(name -> Preconditions.checkNotNull(registeredSerdes.get(name), "Default value serde not found"))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(SchemaRegistrySerde.name())))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(ProtobufFileSerde.name())))
+            .or(() -> Optional.ofNullable(registeredSerdes.get(SchemaRegistrySerde.NAME)))
+            .or(() -> Optional.ofNullable(registeredSerdes.get(ProtobufFileSerde.NAME)))
             .orElse(null),
         createFallbackSerde()
     );
@@ -142,21 +150,37 @@ public class SerdesInitializer {
    * Registers serdse that should only be used for specific (hard-coded) topics, like ConsumerOffsetsSerde.
    */
   private void registerTopicRelatedSerde(Map<String, SerdeInstance> serdes) {
-    registerConsumerOffsetsSerde(serdes);
+    serdes.putAll(consumerOffsetsSerde());
+    serdes.putAll(mirrorMakerSerdes());
   }
 
-  private void registerConsumerOffsetsSerde(Map<String, SerdeInstance> serdes) {
+  private Map<String, SerdeInstance> consumerOffsetsSerde() {
     var pattern = Pattern.compile(ConsumerOffsetsSerde.TOPIC);
-    serdes.put(
-        ConsumerOffsetsSerde.name(),
+    return Map.of(
+        ConsumerOffsetsSerde.NAME,
         new SerdeInstance(
-            ConsumerOffsetsSerde.name(),
+            ConsumerOffsetsSerde.NAME,
             new ConsumerOffsetsSerde(),
             pattern,
             pattern,
             null
         )
     );
+  }
+
+  private Map<String, SerdeInstance> mirrorMakerSerdes() {
+    return Map.of(
+        HeartbeatSerde.NAME,
+        mirrorSerde(HeartbeatSerde.NAME, HeartbeatSerde.TOPIC_NAME_PATTERN, new HeartbeatSerde()),
+        OffsetSyncSerde.NAME,
+        mirrorSerde(OffsetSyncSerde.NAME, OffsetSyncSerde.TOPIC_NAME_PATTERN, new OffsetSyncSerde()),
+        CheckpointSerde.NAME,
+        mirrorSerde(CheckpointSerde.NAME, CheckpointSerde.TOPIC_NAME_PATTERN, new CheckpointSerde())
+    );
+  }
+
+  private SerdeInstance mirrorSerde(String name, Pattern pattern, BuiltInSerde serde) {
+    return new SerdeInstance(name, serde, pattern, pattern, null);
   }
 
   private SerdeInstance createFallbackSerde() {

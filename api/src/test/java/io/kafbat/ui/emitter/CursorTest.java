@@ -181,11 +181,11 @@ class CursorTest extends AbstractIntegrationTest {
     Serde s = new StringSerde();
     s.configure(PropertyResolverImpl.empty(), PropertyResolverImpl.empty(), PropertyResolverImpl.empty());
     return new ConsumerRecordDeserializer(
-        StringSerde.name(),
+        StringSerde.NAME,
         s.deserializer(null, Serde.Target.KEY),
-        StringSerde.name(),
+        StringSerde.NAME,
         s.deserializer(null, Serde.Target.VALUE),
-        StringSerde.name(),
+        StringSerde.NAME,
         s.deserializer(null, Serde.Target.KEY),
         s.deserializer(null, Serde.Target.VALUE),
         msg -> msg

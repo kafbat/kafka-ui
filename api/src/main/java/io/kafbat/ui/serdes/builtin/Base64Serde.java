@@ -1,28 +1,13 @@
 package io.kafbat.ui.serdes.builtin;
 
 import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Optional;
 
 public class Base64Serde implements BuiltInSerde {
-
-  public static String name() {
-    return "Base64";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
-  }
+  public static final String NAME = "Base64";
 
   @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
