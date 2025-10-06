@@ -112,8 +112,8 @@ export function isPermitted({
 }
 
 /**
- * @description The logic behind create roles depending on permissions. Since create has extra custom permission logic, that is why
- * it is separated from the others.
+ * @description it the logic behind depending on create roles, since create has extra custom permission logic that is why
+ *  * it is seperated from the others
  *
  * Algorithm: We mapped the cluster name and the resource name, because all the actions in them are
  * constant and limited, and hence faster lookup approach.
