@@ -41,7 +41,7 @@ export function useExecuteKsqlkDbQueryMutation() {
 const getFormattedErrorFromTableData = (
   responseValues: KsqlTableResponse['values']
 ): { title: string; message: string } => {
-  // We expect someting like that
+  // We expect something like that
   // [[
   //   "@type",
   //   "error_code",
@@ -55,7 +55,7 @@ const getFormattedErrorFromTableData = (
   if (!responseValues || !responseValues.length) {
     return {
       title: 'Unknown error',
-      message: 'Recieved empty response',
+      message: 'Received empty response',
     };
   }
 

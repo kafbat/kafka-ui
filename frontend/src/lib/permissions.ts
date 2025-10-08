@@ -54,22 +54,22 @@ const valueMatches = (regexp: string | undefined, val: string | undefined) => {
 };
 
 /**
- * @description it the logic behind depending on the roles whether a certain action
- * is permitted or not the philosophy is inspired from Headless UI libraries where
- * you separate the logic from the renderer besides the Creation process which is handled by isPermittedToCreate
+ * @description The logic behind determining whether a certain action
+ * is permitted or not depending on the roles. The philosophy is inspired by Headless UI libraries where
+ * you separate the logic from the renderer, besides the Creation process which is handled by isPermittedToCreate.
  *
- * Algorithm: we Mapped the cluster name and the resource name , because all the actions in them are
- * constant and limited and hence faster lookup approach
+ * Algorithm: We mapped the cluster name and the resource name, because all the actions in them are
+ * constant and limited, and hence a faster lookup approach.
  *
- * @example you can use this in the hook format where it used in , or if you want to calculate it dynamically
- * you can call this dynamically in your component but the render is on you from that point on
+ * @example You can use this in the hook format where it is used, or if you want to calculate it dynamically,
+ * you can call this dynamically in your component, but the render is on you from that point on.
  *
- * Don't use this anywhere , use the hook version in the component for declarative purposes
+ * Don't use this anywhere; use the hook version in the component for declarative purposes.
  *
- * Array action approach bear in mind they should be from the same resource with the same name restrictions, then the logic it
- * will try to find every element from the given array inside the permissions data
+ * Array action approach: bear in mind they should be from the same resource with the same name restrictions; then the logic
+ * will try to find every element from the given array inside the permissions data.
  *
- * DON'T use the array approach until it is necessary to do so
+ * DON'T use the array approach unless it is necessary to do so.
  *
  * */
 export function isPermitted({
@@ -113,15 +113,15 @@ export function isPermitted({
 
 /**
  * @description it the logic behind depending on create roles, since create has extra custom permission logic that is why
- * it is seperated from the others
+ *  * it is seperated from the others
  *
- * Algorithm: we Mapped the cluster name and the resource name , because all the actions in them are
- * constant and limited and hence faster lookup approach
+ * Algorithm: We mapped the cluster name and the resource name, because all the actions in them are
+ * constant and limited, and hence faster lookup approach.
  *
- * @example you can use this in the hook format where it used in , or if you want to calculate it dynamically
- * you can call this dynamically in your component but the render is on you from that point on
+ * @example You can use this in the hook format where it is used, or if you want to calculate it dynamically,
+ * you can call this dynamically in your component, but the render is on you from that point on.
  *
- * Don't use this anywhere , use the hook version in the component for declarative purposes
+ * Don't use this anywhere; use the hook version in the component for declarative purposes.
  *
  * */
 export function isPermittedToCreate({

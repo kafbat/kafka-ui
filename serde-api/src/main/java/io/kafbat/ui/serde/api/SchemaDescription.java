@@ -12,9 +12,9 @@ public final class SchemaDescription {
 
   /**
    * Constructor for {@code SchemaDescription}.
-   * @param schema schema descriptions.
-   *              If contains json-schema (preferred) UI will use it for validation and sample data generation.
-   * @param additionalProperties additional properties about schema (may be rendered in UI in the future)
+   * @param schema schema description.
+   *              If it contains a JSON schema (preferred), the UI will use it for validation and sample data generation.
+   * @param additionalProperties additional properties about the schema (may be rendered in the UI in the future)
    */
   public SchemaDescription(String schema, Map<String, Object> additionalProperties) {
     this.schema = schema;
@@ -23,15 +23,15 @@ public final class SchemaDescription {
 
   /**
    * Schema description text. Can be null.
-   * @return schema description text. Preferably contains json-schema. Can be null.
+   * @return schema description text. Preferably contains a JSON schema. Can be null.
    */
   public String getSchema() {
     return schema;
   }
 
   /**
-   * Additional properties about schema.
-   * @return additional properties about schema
+   * Additional properties about the schema.
+   * @return additional properties about the schema
    */
   public Map<String, Object> getAdditionalProperties() {
     return additionalProperties;
