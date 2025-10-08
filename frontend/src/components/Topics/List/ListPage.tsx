@@ -13,10 +13,13 @@ import TopicTable from 'components/Topics/List/TopicTable';
 import { Action, ResourceType } from 'generated-sources';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import Fts from 'components/common/Fts/Fts';
+import useFts from 'components/common/Fts/useFts';
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useFts('topics');
 
   // Set the search params to the url based on the localStorage value
   React.useEffect(() => {
