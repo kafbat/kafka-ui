@@ -10,7 +10,7 @@ import org.apache.kafka.common.protocol.types.Type;
 
 @Slf4j
 public class HeartbeatSerde extends MirrorMakerSerde implements BuiltInSerde {
-  public static final String NAME = "Heartbeat";
+  public static final String NAME = "mm2-Heartbeat";
   public static final Pattern TOPIC_NAME_PATTERN = Pattern.compile("heartbeats");
 
   private static final String SOURCE_CLUSTER_ALIAS_KEY = "sourceClusterAlias";
