@@ -31,7 +31,7 @@ const ListPage: React.FC = () => {
       if (stored === null) localStorage.setItem('hideInternalTopics', 'true');
     } else {
       // sync localStorage if URL has it set
-      const raw =  searchParams.get('hideInternal');
+      const raw = searchParams.get('hideInternal');
       const norm = raw === 'true' || raw === 'false' ? raw : 'true'; // default to true if malformed
       localStorage.setItem('hideInternalTopics', norm);
       if (norm !== raw) searchParams.set('hideInternal', norm); // sync URL if malformed
