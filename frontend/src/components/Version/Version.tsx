@@ -24,7 +24,7 @@ const Version: React.FC = () => {
 
   return (
     <S.Wrapper>
-      {!isLatestRelease && (
+      {isLatestRelease === false && (
         <S.OutdatedWarning
           title={`Your app version is outdated. Latest version is ${
             versionTag || 'UNKNOWN'
