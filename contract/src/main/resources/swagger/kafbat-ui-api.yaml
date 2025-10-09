@@ -3725,6 +3725,8 @@ components:
           $ref: '#/components/schemas/ConnectorState'
         workerId:
           type: string
+        trace:
+          type: string
       required:
         - state
 
