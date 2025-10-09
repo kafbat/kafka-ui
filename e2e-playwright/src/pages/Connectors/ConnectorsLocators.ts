@@ -7,10 +7,9 @@ export default class ConnectorsLocators {
       this.page = page;
     }
 
-    get heading(): Locator { return this.page.getByRole('heading', { name: 'Connectors' })};
+    get heading(): Locator { return this.page.getByRole('heading', { name: 'Kafka Connect' })};
     get searchBox(): Locator { return this.page.getByRole('textbox', { name: 'Search by Connect Name' })};
     get createConnectorButton(): Locator { return this.page.getByRole('button', { name: 'Create Schema' })};
-    get searchButton():Locator { return this.page.locator('.sc-eXzmLu > div > .sc-eAKtBH > svg')};
     get rowMenu():Locator { return this.page.getByRole('cell', { name: 'Dropdown Toggle' })};
     get internalMenuButton(): Locator { return this.page.locator('button').filter({ hasText: 'Restart' })};
 
