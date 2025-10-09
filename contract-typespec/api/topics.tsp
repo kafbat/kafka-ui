@@ -21,6 +21,7 @@ interface TopicsApi {
     @query search?: string,
     @query orderBy?: TopicColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): TopicsResponse;
 
   @post

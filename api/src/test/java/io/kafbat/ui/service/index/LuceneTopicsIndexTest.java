@@ -1,11 +1,9 @@
 package io.kafbat.ui.service.index;
 
-import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -75,7 +73,7 @@ class LuceneTopicsIndexTest {
     SoftAssertions softly = new SoftAssertions();
     try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {
       for (Map.Entry<String, Integer> entry : examples.entrySet()) {
-        List<InternalTopic> resultAll = index.find(entry.getKey(), null, topics.size());
+        List<InternalTopic> resultAll = index.find(entry.getKey(), null, true, topics.size());
         softly.assertThat(resultAll.size())
             .withFailMessage("Expected %d results for '%s', but got %s", entry.getValue(), entry.getKey(), resultAll)
             .isEqualTo(entry.getValue());

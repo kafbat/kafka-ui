@@ -39,13 +39,9 @@ import org.apache.kafka.common.config.SslConfigs;
 
 
 public class SchemaRegistrySerde implements BuiltInSerde {
-
+  public static final String NAME = "SchemaRegistry";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
-
-  public static String name() {
-    return "SchemaRegistry";
-  }
 
   private static final String SCHEMA_REGISTRY = "schemaRegistry";
 
@@ -175,11 +171,6 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   }
 
   @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
   public boolean canDeserialize(String topic, Target type) {
     String subject = schemaSubject(topic, type);
     return !checkSchemaExistenceForDeserialize
@@ -213,7 +204,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @SneakyThrows
   private String convertSchema(SchemaMetadata schema, ParsedSchema parsedSchema) {
-    URI basePath = new URI(schemaRegistryUrls.get(0))
+    URI basePath = new URI(schemaRegistryUrls.getFirst())
         .resolve(Integer.toString(schema.getId()));
     SchemaType schemaType = SchemaType.fromString(schema.getSchemaType())
         .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + schema.getSchemaType()));
@@ -308,7 +299,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     throw new ValidationException(
         String.format(
             "Data doesn't contain magic byte and schema id prefix, so it can't be deserialized with %s serde",
-            name())
+            NAME)
     );
   }
 }

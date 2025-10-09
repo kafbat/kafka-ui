@@ -10,15 +10,7 @@ import java.util.Optional;
 
 
 public class UInt64Serde implements BuiltInSerde {
-
-  public static String name() {
-    return "UInt64";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
+  public static final String NAME = "UInt64";
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Target type) {

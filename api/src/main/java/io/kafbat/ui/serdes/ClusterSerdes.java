@@ -64,12 +64,12 @@ public class ClusterSerdes implements Closeable {
 
   public SerdeInstance suggestSerdeForSerialize(String topic, Serde.Target type) {
     return findSerdeByPatternsOrDefault(topic, type, s -> s.canSerialize(topic, type))
-        .orElse(serdes.get(StringSerde.name()));
+        .orElse(serdes.get(StringSerde.NAME));
   }
 
   public SerdeInstance suggestSerdeForDeserialize(String topic, Serde.Target type) {
     return findSerdeByPatternsOrDefault(topic, type, s -> s.canDeserialize(topic, type))
-        .orElse(serdes.get(StringSerde.name()));
+        .orElse(serdes.get(StringSerde.NAME));
   }
 
   @Override

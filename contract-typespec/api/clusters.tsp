@@ -56,7 +56,9 @@ alias ClusterFeature =
   | "KAFKA_ACL_VIEW"
   | "KAFKA_ACL_EDIT"
   | "CLIENT_QUOTA_MANAGEMENT"
-  | "GRAPHS_ENABLED";
+  | "GRAPHS_ENABLED"
+  | "FTS_ENABLED"
+  | "FTS_DEFAULT_ENABLED";
 
 enum ServerStatus {
   ONLINE,

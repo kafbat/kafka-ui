@@ -1,7 +1,9 @@
 package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.PropertyResolver;
+import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import java.util.Optional;
 
 public interface BuiltInSerde extends Serde {
 
@@ -24,4 +26,25 @@ public interface BuiltInSerde extends Serde {
                          PropertyResolver kafkaClusterProperties,
                          PropertyResolver globalProperties) {
   }
+
+  @Override
+  default boolean canSerialize(String topic, Serde.Target type) {
+    return false;
+  }
+
+  @Override
+  default Serde.Serializer serializer(String topic, Serde.Target type) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  default Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
+    return Optional.empty();
+  }
+
+  @Override
+  default Optional<String> getDescription() {
+    return Optional.empty();
+  }
+
 }

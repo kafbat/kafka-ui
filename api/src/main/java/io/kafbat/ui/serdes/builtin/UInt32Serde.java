@@ -10,15 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UInt32Serde implements BuiltInSerde {
-
-  public static String name() {
-    return "UInt32";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
+  public static final String NAME = "UInt32";
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {

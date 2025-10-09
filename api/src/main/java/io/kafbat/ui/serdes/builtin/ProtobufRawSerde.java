@@ -12,35 +12,13 @@ import java.util.Optional;
 import lombok.SneakyThrows;
 
 public class ProtobufRawSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "ProtobufDecodeRaw";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Serde.Target type) {
-    return false;
-  }
+  public static final String NAME = "ProtobufDecodeRaw";
 
   @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
     return true;
   }
 
-  @Override
-  public Serde.Serializer serializer(String topic, Serde.Target type) {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {

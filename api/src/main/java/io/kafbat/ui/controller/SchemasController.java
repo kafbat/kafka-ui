@@ -217,13 +217,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
                                                                     @Valid String search,
                                                                     SchemaColumnsToSortDTO orderBy,
                                                                     SortOrderDTO sortOrder,
+                                                                    Boolean fts,
                                                                     ServerWebExchange serverWebExchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
         .operationName("getSchemas")
         .build();
 
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+    boolean useFts = ftsProperties.use(fts);
 
     return schemaRegistryService
         .getAllSubjectNames(getCluster(clusterName))
@@ -234,7 +236,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
-          SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
+          SchemasFilter filter = new SchemasFilter(subjects, useFts, ftsProperties.getSchemas());
           List<String> filteredSubjects = new ArrayList<>(filter.find(search));
 
           var totalPages = (filteredSubjects.size() / pageSize)

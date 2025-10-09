@@ -28,9 +28,9 @@ public interface TopicsIndex extends AutoCloseable {
       FIELD_CONFIG_PREFIX, FieldType.STRING
   );
 
-  default List<InternalTopic> find(String search, Boolean showInternal, Integer count) {
-    return this.find(search, showInternal, FIELD_NAME, count);
+  default List<InternalTopic> find(String search, Boolean showInternal, boolean fts, Integer count) {
+    return this.find(search, showInternal, FIELD_NAME, fts, count);
   }
 
-  List<InternalTopic> find(String search, Boolean showInternal, String sort, Integer count);
+  List<InternalTopic> find(String search, Boolean showInternal, String sort, boolean fts, Integer count);
 }

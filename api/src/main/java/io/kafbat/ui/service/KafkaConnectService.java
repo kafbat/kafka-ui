@@ -1,7 +1,5 @@
 package io.kafbat.ui.service;
 
-import static org.apache.commons.lang3.Strings.CI;
-
 import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.kafbat.ui.config.ClustersProperties;
@@ -134,7 +132,7 @@ public class KafkaConnectService {
   }
 
   public Flux<FullConnectorInfoDTO> getAllConnectors(final KafkaCluster cluster,
-                                                     @Nullable final String search) {
+                                                     @Nullable final String search, Boolean fts) {
     return getConnects(cluster, false)
         .flatMap(connect ->
             getConnectorNamesWithErrorsSuppress(cluster, connect.getName())
@@ -153,14 +151,17 @@ public class KafkaConnectService {
                             .build())))
         .map(kafkaConnectMapper::fullConnectorInfo)
         .collectList()
-        .map(lst -> filterConnectors(lst, search))
+        .map(lst -> filterConnectors(lst, search, fts))
         .flatMapMany(Flux::fromIterable);
   }
 
-  private List<FullConnectorInfoDTO> filterConnectors(List<FullConnectorInfoDTO> connectors, String search) {
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+  private List<FullConnectorInfoDTO> filterConnectors(
+      List<FullConnectorInfoDTO> connectors,
+      String search,
+      Boolean fts) {
+    boolean useFts = clustersProperties.getFts().use(fts);
     KafkaConnectNgramFilter filter =
-        new KafkaConnectNgramFilter(connectors, fts.isEnabled(), fts.getConnect());
+        new KafkaConnectNgramFilter(connectors, useFts, clustersProperties.getFts().getConnect());
     return filter.find(search);
   }
 

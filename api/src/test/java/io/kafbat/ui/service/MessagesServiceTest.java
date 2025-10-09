@@ -97,8 +97,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             null,
             null,
             100,
-            StringSerde.name(),
-            StringSerde.name()
+            StringSerde.NAME,
+            StringSerde.NAME
         ).filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
         .map(TopicMessageEventDTO::getMessage);
 
@@ -128,7 +128,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     Flux<String> msgsFlux = messagesService.loadMessages(
             cluster, testTopic,
             new ConsumerPosition(mode, testTopic, List.of(), null, null),
-            null, null, pageSize, StringSerde.name(), StringSerde.name())
+            null, null, pageSize, StringSerde.NAME, StringSerde.NAME)
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
             assertThat(evt.getCursor()).isNotNull();
@@ -230,9 +230,9 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     CreateTopicMessageDTO testMessage = new CreateTopicMessageDTO()
         .key(null)
         .partition(0)
-        .keySerde(StringSerde.name())
+        .keySerde(StringSerde.NAME)
         .value(jsonContent)
-        .valueSerde(ProtobufFileSerde.name());
+        .valueSerde(ProtobufFileSerde.NAME);
 
     String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();
     createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));

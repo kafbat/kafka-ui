@@ -71,20 +71,21 @@ public class AclsService {
         .doOnSuccess(v -> log.info("ACL DELETED: [{}]", aclString));
   }
 
-  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch) {
+  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch,
+                                   Boolean fts) {
     return adminClientService.get(cluster)
       .flatMap(c -> c.listAcls(filter))
       .flatMapIterable(acls -> acls)
       .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
       .collectList()
-      .map(lst -> filter(lst, principalSearch))
+      .map(lst -> filter(lst, principalSearch, fts))
       .flatMapMany(Flux::fromIterable)
       .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
   }
 
-  private List<AclBinding> filter(List<AclBinding> acls, String principalSearch) {
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
-    AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, fts.isEnabled(), fts.getAcl());
+  private List<AclBinding> filter(List<AclBinding> acls, String principalSearch, Boolean fts) {
+    boolean useFts = clustersProperties.getFts().use(fts);
+    AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, useFts, clustersProperties.getFts().getAcl());
     return filter.find(principalSearch);
   }
 

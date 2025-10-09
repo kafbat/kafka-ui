@@ -174,6 +174,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
                                                            @Valid String search,
                                                            @Valid TopicColumnsToSortDTO orderBy,
                                                            @Valid SortOrderDTO sortOrder,
+                                                           Boolean fts,
                                                            ServerWebExchange exchange) {
 
     AccessContext context = AccessContext.builder()
@@ -181,13 +182,14 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .operationName("getTopics")
         .build();
 
-    return topicsService.getTopicsForPagination(getCluster(clusterName), search, showInternal)
+    return topicsService.getTopicsForPagination(getCluster(clusterName), search, showInternal, fts)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .flatMap(topics -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
-          ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
-          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, fts.isEnabled());
+          ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+          boolean useFts = ftsProperties.use(fts);
+          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, useFts);
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
               ? comparatorForTopic : comparatorForTopic.reversed();
 

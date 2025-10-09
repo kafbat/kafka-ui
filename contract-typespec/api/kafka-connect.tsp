@@ -47,6 +47,7 @@ interface ConnectorsApi {
     @query search?: string,
     @query orderBy?: ConnectorColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): FullConnectorInfo[];
 }
 
