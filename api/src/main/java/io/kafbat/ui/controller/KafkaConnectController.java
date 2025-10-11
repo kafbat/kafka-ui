@@ -129,6 +129,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
       String search,
       ConnectorColumnsToSortDTO orderBy,
       SortOrderDTO sortOrder,
+      Boolean fts,
       ServerWebExchange exchange
   ) {
     var context = AccessContext.builder()
@@ -140,7 +141,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         ? getConnectorsComparator(orderBy)
         : getConnectorsComparator(orderBy).reversed();
 
-    Flux<FullConnectorInfoDTO> job = kafkaConnectService.getAllConnectors(getCluster(clusterName), search)
+    Flux<FullConnectorInfoDTO> job = kafkaConnectService.getAllConnectors(getCluster(clusterName), search, fts)
         .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(), clusterName))
         .sort(comparator);
 
