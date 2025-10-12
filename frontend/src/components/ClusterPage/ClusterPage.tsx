@@ -61,6 +61,8 @@ const ClusterPage: React.FC = () => {
       hasAclViewConfigured:
         features.includes(ClusterFeaturesEnum.KAFKA_ACL_VIEW) ||
         features.includes(ClusterFeaturesEnum.KAFKA_ACL_EDIT),
+      ftsEnabled: false,
+      ftsDefaultEnabled: false,
     };
   }, [clusterName, data]);
 

@@ -9,6 +9,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
+import useFts from 'components/common/Fts/useFts';
 
 import ActionsCell from './ActionsCell';
 import TopicsCell from './TopicsCell';
@@ -80,9 +81,11 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
 const List: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const [searchParams] = useSearchParams();
+  const { isFtsEnabled } = useFts('connects');
   const { data: connectors } = useConnectors(
     clusterName,
-    searchParams.get('q') || ''
+    searchParams.get('q') || '',
+    isFtsEnabled
   );
 
   const filterPersister = useQueryPersister(kafkaConnectColumns);

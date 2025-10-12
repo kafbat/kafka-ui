@@ -1,6 +1,8 @@
 import React from 'react';
 import FtsIcon from 'components/common/Icons/FtsIcon';
 import styled from 'styled-components';
+import Tooltip from 'components/common/Tooltip/Tooltip';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 import useFts, { FtsAvailableResource } from './useFts';
 
@@ -19,12 +21,25 @@ export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
 `;
 
 const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
+  const { ftsEnabled: isFtsFetureEnabled } = React.useContext(ClusterContext);
   const { handleSwitch, isFtsEnabled } = useFts(resourceName);
 
+  if (!isFtsFetureEnabled) {
+    return null;
+  }
+
   return (
-    <IconWrapper onClick={handleSwitch} active={isFtsEnabled}>
-      <FtsIcon />
-    </IconWrapper>
+    <Tooltip
+      value={
+        <IconWrapper onClick={handleSwitch} active={isFtsEnabled}>
+          <FtsIcon />
+        </IconWrapper>
+      }
+      content="Apply full text search"
+      placement="bottom"
+      showTooltip
+      fullWidth
+    />
   );
 };
 

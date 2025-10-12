@@ -17,11 +17,14 @@ import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isFtsEnabled } = useFts('consumer_groups');
 
   const consumerGroups = useConsumerGroups({
     clusterName,
@@ -32,6 +35,7 @@ const List = () => {
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || '',
+    fts: isFtsEnabled,
   });
 
   const columns = React.useMemo<ColumnDef<ConsumerGroup>[]>(
@@ -104,7 +108,10 @@ const List = () => {
     <>
       <ResourcePageHeading text="Consumers" />
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Consumer Group ID" />
+        <Search
+          placeholder="Search by Consumer Group ID"
+          extraActions={<Fts resourceName="consumer_groups" />}
+        />
       </ControlPanelWrapper>
       <Table
         columns={columns}

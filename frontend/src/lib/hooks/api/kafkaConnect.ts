@@ -25,8 +25,12 @@ const connectsKey = (clusterName: ClusterName, withStats?: boolean) => [
   'connects',
   withStats,
 ];
-const connectorsKey = (clusterName: ClusterName, search?: string) => {
-  const base = ['clusters', clusterName, 'connectors'];
+const connectorsKey = (
+  clusterName: ClusterName,
+  search?: string,
+  fts?: boolean
+) => {
+  const base = ['clusters', clusterName, 'connectors', fts, 'fts'];
   if (search) {
     return [...base, { search }];
   }
@@ -50,10 +54,14 @@ export function useConnects(clusterName: ClusterName, withStats?: boolean) {
     api.getConnects({ clusterName, withStats })
   );
 }
-export function useConnectors(clusterName: ClusterName, search?: string) {
+export function useConnectors(
+  clusterName: ClusterName,
+  search?: string,
+  fts?: boolean
+) {
   return useQuery(
-    connectorsKey(clusterName, search),
-    () => api.getAllConnectors({ clusterName, search }),
+    connectorsKey(clusterName, search, fts),
+    () => api.getAllConnectors({ clusterName, search, fts }),
     {
       select: (data) =>
         [...data].sort((a, b) => {
