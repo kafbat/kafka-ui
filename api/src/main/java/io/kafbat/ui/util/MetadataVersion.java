@@ -1,5 +1,6 @@
 package io.kafbat.ui.util;
 
+import javax.swing.text.html.Option;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -40,9 +41,12 @@ public enum MetadataVersion {
   }
 
   public static Optional<String> findVersion(int featureLevel) {
-    return Arrays.stream(values())
+
+    Optional<String> version = Arrays.stream(values())
         .filter(v -> v.featureLevel == featureLevel)
         .findFirst().map(v -> v.release);
+
+    return version.isPresent()? version : Optional.of("Unknown");
   }
 
 }
