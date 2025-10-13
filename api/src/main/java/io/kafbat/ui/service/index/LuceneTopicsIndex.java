@@ -67,7 +67,6 @@ public class LuceneTopicsIndex implements TopicsIndex {
       for (InternalTopic topic : topics) {
         Document doc = new Document();
 
-
         doc.add(new StringField(FIELD_NAME_RAW, topic.getName(), Field.Store.YES));
         doc.add(new IndexedTextField(FIELD_NAME, topic.getName(), Field.Store.YES));
         doc.add(new IntPoint(FIELD_PARTITIONS, topic.getPartitionCount()));
