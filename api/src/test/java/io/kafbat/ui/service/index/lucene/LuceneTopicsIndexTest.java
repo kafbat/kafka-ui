@@ -1,8 +1,11 @@
-package io.kafbat.ui.service.index;
+package io.kafbat.ui.service.index.lucene;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
+import io.kafbat.ui.service.index.LuceneTopicsIndex;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class LuceneTopicsIndexTest {
   @Test
@@ -81,5 +87,27 @@ class LuceneTopicsIndexTest {
     }
     softly.assertAll();
   }
+
+  @ParameterizedTest
+  @MethodSource("providerOrdered")
+  void testOrders(List<String> orderedTopics, String search) throws Exception {
+    List<InternalTopic> topics = orderedTopics.stream()
+            .map(s -> InternalTopic.builder().name(s).partitions(Map.of()).build()).toList();
+
+
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {
+      List<InternalTopic> resultAll = index.find(search, null, true, topics.size());
+      assertThat(resultAll).isEqualTo(topics);
+    }
+  }
+
+  public static Stream<Arguments> providerOrdered() {
+    return Stream.of(
+        Arguments.of(List.of("sk.long.term.name", "long.sk", "longnamebefore.sk"), "sk"),
+        Arguments.of(List.of("sk_long_term.name", "sk", "sk2", "long-sk", "longnamebeforeSk"), "sk")
+    );
+  }
+
+
 
 }
