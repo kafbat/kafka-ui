@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +25,11 @@ import reactor.util.function.Tuple2;
 public abstract class NgramFilter<T> {
   private final Analyzer analyzer;
   private final boolean enabled;
+  private final boolean distanceScore;
 
-  public NgramFilter(ClustersProperties.NgramProperties properties, boolean enabled) {
+  public NgramFilter(ClustersProperties.NgramProperties properties, boolean enabled, boolean distanceScore) {
     this.enabled = enabled;
+    this.distanceScore = distanceScore;
     this.analyzer = new ShortWordNGramAnalyzer(properties.getNgramMin(), properties.getNgramMax(), false);
   }
 
@@ -52,14 +57,23 @@ public abstract class NgramFilter<T> {
     try {
       List<SearchResult<T>> result = new ArrayList<>();
       List<String> queryTokens = tokenizeString(analyzer, search);
-      Map<String, Integer> queryFreq = termFreq(queryTokens);
+      Map<String, Integer> queryFreq = Map.of();
+
+      if (!distanceScore) {
+        queryFreq = termFreq(queryTokens);
+      }
 
       for (Tuple2<List<String>, T> item : getItems()) {
         for (String field : item.getT1()) {
           List<String> itemTokens = tokenizeString(analyzer, field);
           HashSet<String> itemTokensSet = new HashSet<>(itemTokens);
           if (itemTokensSet.containsAll(queryTokens)) {
-            double score = cosineSimilarity(queryFreq, itemTokens);
+            double score;
+            if (distanceScore) {
+              score = distanceSimilarity(queryTokens, itemTokens);
+            } else {
+              score = cosineSimilarity(queryFreq, itemTokens);
+            }
             result.add(new SearchResult<>(item.getT2(), score));
           }
         }
@@ -74,6 +88,22 @@ public abstract class NgramFilter<T> {
       return result.stream().map(r -> r.item).toList();
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private double distanceSimilarity(List<String> queryTokens, List<String> itemTokens) {
+    int smallest = Integer.MAX_VALUE;
+    for (String queryToken : queryTokens) {
+      int i = itemTokens.indexOf(queryToken);
+      if (i >= 0) {
+        smallest = Math.min(smallest, i);
+      }
+    }
+
+    if (smallest == Integer.MAX_VALUE) {
+      return 1.0;
+    } else {
+      return 1.0 / (1.0 + smallest);
     }
   }
 
