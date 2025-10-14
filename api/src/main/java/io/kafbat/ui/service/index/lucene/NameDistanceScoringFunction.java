@@ -93,11 +93,15 @@ public class NameDistanceScoringFunction extends DoubleValuesSource {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
     NameDistanceScoringFunction that = (NameDistanceScoringFunction) obj;
-    return java.util.Objects.equals(fieldName, that.fieldName) &&
-        java.util.Objects.equals(prefixes, that.prefixes);
+    return java.util.Objects.equals(fieldName, that.fieldName)
+        && java.util.Objects.equals(prefixes, that.prefixes);
   }
 
   @Override

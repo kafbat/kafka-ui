@@ -11,7 +11,7 @@ public class KafkaConnectNgramFilter extends NgramFilter<FullConnectorInfoDTO> {
   private final List<Tuple2<List<String>, FullConnectorInfoDTO>> connectors;
 
   public KafkaConnectNgramFilter(Collection<FullConnectorInfoDTO> connectors) {
-    this(connectors, true, new ClustersProperties.NgramProperties(1, 4));
+    this(connectors, true, new ClustersProperties.NgramProperties(1, 4, true));
   }
 
   public KafkaConnectNgramFilter(

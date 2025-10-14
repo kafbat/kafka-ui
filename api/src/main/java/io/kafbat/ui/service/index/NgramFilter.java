@@ -27,9 +27,9 @@ public abstract class NgramFilter<T> {
   private final boolean enabled;
   private final boolean distanceScore;
 
-  public NgramFilter(ClustersProperties.NgramProperties properties, boolean enabled, boolean distanceScore) {
+  public NgramFilter(ClustersProperties.NgramProperties properties, boolean enabled) {
     this.enabled = enabled;
-    this.distanceScore = distanceScore;
+    this.distanceScore = properties.isDistanceScore();
     this.analyzer = new ShortWordNGramAnalyzer(properties.getNgramMin(), properties.getNgramMax(), false);
   }
 
@@ -75,6 +75,7 @@ public abstract class NgramFilter<T> {
               score = cosineSimilarity(queryFreq, itemTokens);
             }
             result.add(new SearchResult<>(item.getT2(), score));
+            break;
           }
         }
       }
