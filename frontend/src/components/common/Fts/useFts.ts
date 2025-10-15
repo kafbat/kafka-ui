@@ -21,6 +21,7 @@ const useFts = (resourceName: FtsAvailableResource) => {
     if (!isFtsFeatureEnabled) {
       searchParams.delete('fts');
       localStorage.removeItem(storageKey);
+      return;
     }
 
     if (!searchParams.has('fts')) {
