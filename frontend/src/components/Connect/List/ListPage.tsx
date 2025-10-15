@@ -6,6 +6,7 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import Fts from 'components/common/Fts/Fts';
 import useFts from 'components/common/Fts/useFts';
+import { useSearchParams } from 'react-router-dom';
 
 import * as S from './ListPage.styled';
 import List from './List';
@@ -14,7 +15,13 @@ import ConnectorsStatistics from './Statistics/Statistics';
 const ListPage: React.FC = () => {
   useFts('connects');
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const { data, isLoading } = useConnectors(clusterName);
+  const { isFtsEnabled } = useFts('connects');
+  const [searchParams] = useSearchParams();
+  const { data, isLoading } = useConnectors(
+    clusterName,
+    searchParams.get('q') || '',
+    isFtsEnabled
+  );
 
   return (
     <>
@@ -26,7 +33,7 @@ const ListPage: React.FC = () => {
         />
       </S.Search>
       <Suspense fallback={<PageLoader />}>
-        <List />
+        <List connectors={data ?? []} />
       </Suspense>
     </>
   );

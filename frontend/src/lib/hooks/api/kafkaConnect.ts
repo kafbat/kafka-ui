@@ -63,6 +63,7 @@ export function useConnectors(
     connectorsKey(clusterName, search, fts),
     () => api.getAllConnectors({ clusterName, search, fts }),
     {
+      keepPreviousData: true,
       select: (data) =>
         [...data].sort((a, b) => {
           if (a.name < b.name) {
