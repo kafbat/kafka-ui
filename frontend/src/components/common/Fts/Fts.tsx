@@ -21,10 +21,10 @@ export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
 `;
 
 const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
-  const { ftsEnabled: isFtsFetureEnabled } = React.useContext(ClusterContext);
+  const { ftsEnabled: isFtsFeatureEnabled } = React.useContext(ClusterContext);
   const { handleSwitch, isFtsEnabled } = useFts(resourceName);
 
-  if (!isFtsFetureEnabled) {
+  if (!isFtsFeatureEnabled) {
     return null;
   }
 

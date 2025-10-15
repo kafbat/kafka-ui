@@ -30,10 +30,19 @@ const connectorsKey = (
   search?: string,
   fts?: boolean
 ) => {
-  const base = ['clusters', clusterName, 'connectors', fts, 'fts'];
+  let base: Array<string | { search: string } | { fts: boolean }> = [
+    'clusters',
+    clusterName,
+    'connectors',
+  ];
   if (search) {
-    return [...base, { search }];
+    base = [...base, { search }];
   }
+
+  if (fts) {
+    base = [...base, { fts }];
+  }
+
   return base;
 };
 const connectorKey = (props: UseConnectorProps) => [

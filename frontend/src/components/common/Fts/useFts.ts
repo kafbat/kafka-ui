@@ -66,7 +66,7 @@ const useFts = (resourceName: FtsAvailableResource) => {
 
   return {
     handleSwitch,
-    isFtsFetureEnabled: isFtsFeatureEnabled,
+    isFtsFeatureEnabled,
     isFtsEnabled,
   };
 };
