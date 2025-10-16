@@ -1,31 +1,19 @@
 package io.kafbat.ui.serdes.builtin;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.kafbat.ui.serde.api.DeserializeResult;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Optional;
-import lombok.SneakyThrows;
 import org.apache.kafka.common.protocol.types.ArrayOf;
-import org.apache.kafka.common.protocol.types.BoundField;
 import org.apache.kafka.common.protocol.types.CompactArrayOf;
 import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.protocol.types.Schema;
-import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
 // Deserialization logic and message's schemas can be found in
 // kafka.coordinator.group.GroupMetadataManager (readMessageKey, readOffsetMessageValue, readGroupMessageValue)
-public class ConsumerOffsetsSerde implements BuiltInSerde {
-
-  private static final JsonMapper JSON_MAPPER = createMapper();
+public class ConsumerOffsetsSerde extends StructSerde implements BuiltInSerde {
+  public static final String NAME = "__consumer_offsets";
 
   private static final String ASSIGNMENT = "assignment";
   private static final String CLIENT_HOST = "client_host";
@@ -46,51 +34,9 @@ public class ConsumerOffsetsSerde implements BuiltInSerde {
 
   public static final String TOPIC = "__consumer_offsets";
 
-  public static String name() {
-    return "__consumer_offsets";
-  }
-
-  private static JsonMapper createMapper() {
-    var module = new SimpleModule();
-    module.addSerializer(Struct.class, new JsonSerializer<>() {
-      @Override
-      public void serialize(Struct value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
-        for (BoundField field : value.schema().fields()) {
-          var fieldVal = value.get(field);
-          gen.writeObjectField(field.def.name, fieldVal);
-        }
-        gen.writeEndObject();
-      }
-    });
-    var mapper = new JsonMapper();
-    mapper.registerModule(module);
-    return mapper;
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
-  }
-
   @Override
   public boolean canDeserialize(String topic, Target type) {
     return topic.equals(TOPIC);
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Target type) {
-    return false;
-  }
-
-  @Override
-  public Serializer serializer(String topic, Target type) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -304,8 +250,5 @@ public class ConsumerOffsetsSerde implements BuiltInSerde {
     };
   }
 
-  @SneakyThrows
-  private String toJson(Struct s) {
-    return JSON_MAPPER.writeValueAsString(s);
-  }
+
 }
