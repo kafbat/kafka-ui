@@ -11,7 +11,7 @@ public class AclBindingNgramFilter extends NgramFilter<AclBinding> {
   private final List<Tuple2<List<String>, AclBinding>> bindings;
 
   public AclBindingNgramFilter(Collection<AclBinding> bindings) {
-    this(bindings, true, new ClustersProperties.NgramProperties(1, 4));
+    this(bindings, true, new ClustersProperties.NgramProperties(1, 4, true));
   }
 
   public AclBindingNgramFilter(

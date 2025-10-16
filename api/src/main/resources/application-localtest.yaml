@@ -12,6 +12,7 @@ kafka:
       schemaRegistry: http://localhost:8085
   fts:
     enabled: true
+    default-enabled: true
 
 dynamic.config.enabled: true
 

@@ -45,4 +45,61 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
     FullConnectorInfoDTO first = items.getFirst();
     return Map.entry(first.getConnect(), first);
   }
+
+  @Override
+  protected List<FullConnectorInfoDTO> sortedItems() {
+    return List.of(
+        new FullConnectorInfoDTO(
+            "connect-pay",
+            "connector-pay",
+            "class",
+            ConnectorTypeDTO.SINK,
+            List.of(),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            1,
+            0
+        ),
+        new FullConnectorInfoDTO(
+            "pay-connect",
+            "pay-connector",
+            "class",
+            ConnectorTypeDTO.SINK,
+            List.of(),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            1,
+            0
+        )
+    );
+  }
+
+  @Override
+  protected String sortedExample(List<FullConnectorInfoDTO> items) {
+    return "pay";
+  }
+
+  @Override
+  protected List<FullConnectorInfoDTO> sortedResult(List<FullConnectorInfoDTO> items) {
+    return List.of(
+        new FullConnectorInfoDTO(
+            "pay-connect",
+            "pay-connector",
+            "class",
+            ConnectorTypeDTO.SINK,
+            List.of(),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            1,
+            0
+        ),
+        new FullConnectorInfoDTO(
+            "connect-pay",
+            "connector-pay",
+            "class",
+            ConnectorTypeDTO.SINK,
+            List.of(),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            1,
+            0
+        )
+    );
+  }
 }
