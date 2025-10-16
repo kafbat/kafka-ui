@@ -1,64 +1,77 @@
 import React from 'react';
-import { TopicMessage, TopicMessageTimestampTypeEnum } from 'generated-sources';
-import Message, {
-  PreviewFilter,
-  Props,
-} from 'components/Topics/Topic/Messages/Message';
-import { screen } from '@testing-library/react';
+import { ResourceType } from 'generated-sources';
+import Message, { Props } from 'components/Topics/Topic/Messages/Message';
+import { act, screen } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
+import useAppParams from 'lib/hooks/useAppParams';
+import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
+import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAccessContext';
+import { RolesType } from 'lib/permissions';
 
-const messageContentText = 'messageContentText';
+import {
+  mockMessageValue,
+  mockNoRoles,
+  mockMessageKey,
+  mockMessageContentText,
+  mockContentFilters,
+  mockKeyFilters,
+  mockMessage,
+  mockRoles,
+} from './Message.fixtures';
 
-const keyTest = '{"payload":{"subreddit":"learnprogramming"}}';
-const contentTest =
-  '{"payload":{"author":"DwaywelayTOP","archived":false,"name":"t3_11jshwd","id":"11jshwd"}}';
 jest.mock(
   'components/Topics/Topic/Messages/MessageContent/MessageContent',
   () => () => (
     <tr>
-      <td>{messageContentText}</td>
+      <td>{mockMessageContentText}</td>
     </tr>
   )
 );
+jest.mock('lib/hooks/useAppParams');
+
+const mockUseAppParams = jest.mocked(useAppParams);
+const mockOpenSidebarWithMessage = jest.fn();
+const renderComponent = (
+  props: Partial<Props> = {
+    message: mockMessage,
+    keyFilters: [],
+    contentFilters: [],
+  },
+  roles: Map<string, Map<ResourceType, RolesType>> = mockNoRoles
+) =>
+  render(
+    <UserInfoRolesAccessContext.Provider
+      value={{
+        roles,
+        rbacFlag: true,
+        username: 'testUsername',
+      }}
+    >
+      <TopicActionsProvider openSidebarWithMessage={mockOpenSidebarWithMessage}>
+        <table>
+          <tbody>
+            <Message
+              message={props.message || mockMessage}
+              keyFilters={props.keyFilters || []}
+              contentFilters={props.contentFilters || []}
+            />
+          </tbody>
+        </table>
+      </TopicActionsProvider>
+    </UserInfoRolesAccessContext.Provider>
+  );
 
 describe('Message component', () => {
-  const mockMessage: TopicMessage = {
-    timestamp: new Date(),
-    timestampType: TopicMessageTimestampTypeEnum.CREATE_TIME,
-    offset: 0,
-    key: 'test-key',
-    partition: 6,
-    value: '{"data": "test"}',
-    headers: { header: 'test' },
-  };
-  const mockKeyFilters: PreviewFilter = {
-    field: 'sub',
-    path: '$.payload.subreddit',
-  };
-  const mockContentFilters: PreviewFilter = {
-    field: 'author',
-    path: '$.payload.author',
-  };
-  const renderComponent = (
-    props: Partial<Props> = {
-      message: mockMessage,
-      keyFilters: [],
-      contentFilters: [],
-    }
-  ) =>
-    render(
-      <table>
-        <tbody>
-          <Message
-            message={props.message || mockMessage}
-            keyFilters={props.keyFilters || []}
-            contentFilters={props.contentFilters || []}
-          />
-        </tbody>
-      </table>
-    );
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseAppParams.mockReturnValue({
+      clusterName: 'test-cluster',
+      topicName: 'testTopic',
+    });
+  });
 
   it('shows the data in the table row', () => {
     renderComponent();
@@ -87,30 +100,43 @@ describe('Message component', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should check the dropdown being visible during hover', async () => {
+  it('should toggle action dropdown button visibility on hover', async () => {
     renderComponent();
-    const text = 'Save as a file';
     const trElement = screen.getByRole('row');
-    expect(screen.queryByText(text)).not.toBeInTheDocument();
 
-    await userEvent.hover(trElement);
-    expect(screen.getByText(text)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Dropdown Toggle',
+      })
+    ).not.toBeInTheDocument();
 
-    await userEvent.unhover(trElement);
-    expect(screen.queryByText(text)).not.toBeInTheDocument();
+    await act(() => userEvent.hover(trElement));
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Dropdown Toggle',
+      })
+    ).toBeVisible();
+
+    await act(() => userEvent.unhover(trElement));
+    expect(
+      screen.queryByRole('button', {
+        name: 'Dropdown Toggle',
+      })
+    ).not.toBeInTheDocument();
   });
 
   it('should check open Message Content functionality', async () => {
     renderComponent();
     const messageToggleIcon = screen.getByRole('button', { hidden: true });
-    expect(screen.queryByText(messageContentText)).not.toBeInTheDocument();
-    await userEvent.click(messageToggleIcon);
-    expect(screen.getByText(messageContentText)).toBeInTheDocument();
+    expect(screen.queryByText(mockMessageContentText)).not.toBeInTheDocument();
+    await act(() => userEvent.click(messageToggleIcon));
+    expect(screen.getByText(mockMessageContentText)).toBeInTheDocument();
   });
 
   it('should check if Preview filter showing for key', () => {
     const props = {
-      message: { ...mockMessage, key: keyTest as string },
+      message: { ...mockMessage, key: mockMessageKey as string },
       keyFilters: [mockKeyFilters],
     };
     renderComponent(props);
@@ -120,11 +146,95 @@ describe('Message component', () => {
 
   it('should check if Preview filter showing for Value', () => {
     const props = {
-      message: { ...mockMessage, value: contentTest as string },
+      message: { ...mockMessage, value: mockMessageValue as string },
       contentFilters: [mockContentFilters],
     };
     renderComponent(props);
     const keyFiltered = screen.getByText('author: "DwaywelayTOP"');
     expect(keyFiltered).toBeInTheDocument();
   });
+
+  it('shows action options in dropdown on click', async () => {
+    renderComponent();
+    const trElement = screen.getByRole('row');
+
+    await act(() => userEvent.hover(trElement));
+
+    const dropdownToggle = screen.getByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await act(() => userEvent.click(dropdownToggle));
+
+    expect(
+      await screen.findByRole('menuitem', { name: 'Copy to clipboard' })
+    ).toBeVisible();
+    expect(
+      await screen.findByRole('menuitem', { name: 'Save as a file' })
+    ).toBeVisible();
+    expect(
+      await screen.findByRole('menuitem', { name: 'Reproduce message' })
+    ).toBeVisible();
+  });
+
+  it('calls openSidebarWithMessage when "Produce Message" is clicked', async () => {
+    renderComponent(undefined, mockRoles);
+    const trElement = screen.getByRole('row');
+    await act(() => userEvent.hover(trElement));
+
+    const dropdownToggle = screen.getByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await act(() => userEvent.click(dropdownToggle));
+
+    const produceMessageButton = screen.getByRole('menuitem', {
+      name: 'Reproduce message',
+    });
+    await act(() => userEvent.click(produceMessageButton));
+
+    expect(mockOpenSidebarWithMessage).toHaveBeenCalledTimes(1);
+    expect(mockOpenSidebarWithMessage).toHaveBeenCalledWith({
+      timestamp: mockMessage.timestamp,
+      timestampType: mockMessage.timestampType,
+      offset: mockMessage.offset,
+      key: mockMessage.key,
+      partition: mockMessage.partition,
+      value: mockMessage.value,
+      headers: mockMessage.headers,
+      valueSerde: mockMessage.valueSerde,
+      keySerde: mockMessage.keySerde,
+    });
+  });
+
+  test.each([
+    ['has produce message roles', true],
+    ['lacks produce message roles', false],
+  ])(
+    'when user %s for topic, "Reproduce message" button should be enabled: %s',
+    async (_scenario, hasRoles) => {
+      renderComponent(undefined, hasRoles ? mockRoles : mockNoRoles);
+
+      const trElement = screen.getByRole('row');
+      await act(() => userEvent.hover(trElement));
+
+      const dropdownToggle = screen.getByRole('button', {
+        name: 'Dropdown Toggle',
+      });
+      await act(() => userEvent.click(dropdownToggle));
+
+      const produceMessageButton = screen.getByRole('menuitem', {
+        name: 'Reproduce message',
+      });
+      await act(() => userEvent.hover(produceMessageButton));
+
+      if (hasRoles) {
+        expect(produceMessageButton).not.toHaveAttribute(
+          'aria-disabled',
+          'true'
+        );
+      } else {
+        expect(produceMessageButton).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByText(getDefaultActionMessage())).toBeVisible();
+      }
+    }
+  );
 });
