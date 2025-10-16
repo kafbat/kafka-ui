@@ -103,13 +103,13 @@ class TopicsServicePaginationTest {
     when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));
     when(clustersStorage.getClusterByName(isA(String.class)))
         .thenReturn(Optional.of(kafkaCluster));
-    when(mockTopicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any()))
+    when(mockTopicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any(), any()))
         .thenAnswer(a ->
             topicsService.getTopicsForPagination(
                 a.getArgument(0),
                 a.getArgument(1),
-                a.getArgument(2)
-            )
+                a.getArgument(2),
+                a.getArgument(3))
         );
 
 
@@ -151,8 +151,8 @@ class TopicsServicePaginationTest {
     );
 
     var topics = topicsController
-        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, null,
-            null, null, null).block();
+         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, null,
+            null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(25);
@@ -178,7 +178,7 @@ class TopicsServicePaginationTest {
 
     var topics = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, null,
-            TopicColumnsToSortDTO.NAME, SortOrderDTO.DESC, null).block();
+            TopicColumnsToSortDTO.NAME, SortOrderDTO.DESC, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(25);
@@ -204,7 +204,7 @@ class TopicsServicePaginationTest {
     );
 
     var topics = topicsController
-        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 4, 33, null, null, null, null, null).block();
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 4, 33, null, null, null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(1);
@@ -223,7 +223,7 @@ class TopicsServicePaginationTest {
     );
 
     var topics = topicsController
-        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 0, -1, null, null, null, null, null).block();
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 0, -1, null, null, null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(25);
@@ -243,7 +243,7 @@ class TopicsServicePaginationTest {
 
     var topics = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 0, -1, true, null,
-            null, null, null).block();
+            null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(25);
@@ -264,7 +264,7 @@ class TopicsServicePaginationTest {
 
     var topics = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, 4, -1, false, null,
-            null, null, null).block();
+            null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(5);
@@ -285,7 +285,7 @@ class TopicsServicePaginationTest {
 
     var topics = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, "1",
-            null, null, null).block();
+            null, null, null, null).block();
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(1);
     assertThat(topics.getBody().getTopics()).hasSize(20);
@@ -308,7 +308,7 @@ class TopicsServicePaginationTest {
 
     var topicsSortedAsc = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
-            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, null, null).block();
+            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, null, null, null).block();
 
     assertThat(topicsSortedAsc.getBody().getPageCount()).isEqualTo(4);
     assertThat(topicsSortedAsc.getBody().getTopics()).hasSize(25);
@@ -322,7 +322,7 @@ class TopicsServicePaginationTest {
 
     var topicsSortedDesc = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
-            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, SortOrderDTO.DESC, null).block();
+            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, SortOrderDTO.DESC, null, null).block();
 
     assertThat(topicsSortedDesc.getBody().getPageCount()).isEqualTo(4);
     assertThat(topicsSortedDesc.getBody().getTopics()).hasSize(25);
@@ -363,7 +363,7 @@ class TopicsServicePaginationTest {
 
     var topicsSortedAsc = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
-            null, TopicColumnsToSortDTO.MESSAGES_COUNT, null, null).block();
+            null, TopicColumnsToSortDTO.MESSAGES_COUNT, null, null, null).block();
 
     assertThat(topicsSortedAsc.getBody().getPageCount()).isEqualTo(4);
     assertThat(topicsSortedAsc.getBody().getTopics()).hasSize(25);
@@ -379,7 +379,7 @@ class TopicsServicePaginationTest {
 
     var topicsSortedDesc = topicsController
         .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null,
-            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, SortOrderDTO.DESC, null).block();
+            null, TopicColumnsToSortDTO.TOTAL_PARTITIONS, SortOrderDTO.DESC, null, null).block();
 
     assertThat(topicsSortedDesc.getBody().getPageCount()).isEqualTo(4);
     assertThat(topicsSortedDesc.getBody().getTopics()).hasSize(25);

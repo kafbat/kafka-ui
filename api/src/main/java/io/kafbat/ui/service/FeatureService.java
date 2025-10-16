@@ -2,6 +2,7 @@ package io.kafbat.ui.service;
 
 import static io.kafbat.ui.service.ReactiveAdminClient.SupportedFeature.CLIENT_QUOTA_MANAGEMENT;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.acl.AclOperation;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,9 @@ import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FeatureService {
+  private final ClustersProperties clustersProperties;
 
   public Mono<List<ClusterFeature>> getAvailableFeatures(ReactiveAdminClient adminClient,
                                                          KafkaCluster cluster,
@@ -48,6 +52,16 @@ public class FeatureService {
     features.add(aclView(adminClient));
     features.add(aclEdit(adminClient, clusterDescription));
     features.add(quotaManagement(adminClient));
+
+    if (clustersProperties.getFts() != null) {
+      ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+      if (fts.isEnabled()) {
+        features.add(Mono.just(ClusterFeature.FTS_ENABLED));
+        if (fts.isDefaultEnabled()) {
+          features.add(Mono.just(ClusterFeature.FTS_DEFAULT_ENABLED));
+        }
+      }
+    }
 
     return Flux.fromIterable(features).flatMap(m -> m).collectList();
   }

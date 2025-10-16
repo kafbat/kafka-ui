@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
-public class AclsController extends AbstractController implements AclsApi, McpTool {
+public  class AclsController extends AbstractController implements AclsApi, McpTool {
 
   private final AclsService aclsService;
 
@@ -69,6 +69,7 @@ public class AclsController extends AbstractController implements AclsApi, McpTo
                                                           String resourceName,
                                                           KafkaAclNamePatternTypeDTO namePatternTypeDto,
                                                           String search,
+                                                          Boolean fts,
                                                           ServerWebExchange exchange) {
     AccessContext context = AccessContext.builder()
         .cluster(clusterName)
@@ -89,7 +90,7 @@ public class AclsController extends AbstractController implements AclsApi, McpTo
     return validateAccess(context).then(
         Mono.just(
             ResponseEntity.ok(
-                aclsService.listAcls(getCluster(clusterName), filter, search)
+                aclsService.listAcls(getCluster(clusterName), filter, search, fts)
                     .map(ClusterMapper::toKafkaAclDto)))
     ).doOnEach(sig -> audit(context, sig));
   }
