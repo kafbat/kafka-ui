@@ -32,10 +32,9 @@ const useFts = (resourceName: FtsAvailableResource) => {
       } else {
         searchParams.set('fts', value);
       }
+      setSearchParams(searchParams);
     }
-
-    setSearchParams(searchParams);
-  }, [isFtsFeatureEnabled, ftsDefaultEnabled]);
+  }, [isFtsFeatureEnabled, ftsDefaultEnabled, searchParams, storageKey]);
 
   const handleSwitch = () => {
     if (!isFtsFeatureEnabled) {

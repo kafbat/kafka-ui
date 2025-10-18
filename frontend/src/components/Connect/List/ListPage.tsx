@@ -13,7 +13,6 @@ import List from './List';
 import ConnectorsStatistics from './Statistics/Statistics';
 
 const ListPage: React.FC = () => {
-  useFts('connects');
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const { isFtsEnabled } = useFts('connects');
   const [searchParams] = useSearchParams();
