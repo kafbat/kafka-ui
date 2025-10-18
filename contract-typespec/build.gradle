@@ -1,3 +1,5 @@
+import java.nio.file.Paths
+
 plugins {
     id "java"
     alias(libs.plugins.node.gradle)
@@ -32,7 +34,7 @@ def typeSpecs = ["api"]
 
 typeSpecs.each { spec ->
 
-    def tspPath = "\\tsp --output-dir=${project.layout.buildDirectory.get()}/tsp/${spec} compile .\\"
+    def tspPath = "tsp --output-dir=${Paths.get(project.layout.buildDirectory.get().asFile.absolutePath,"tsp",spec)} compile ."
 
     tasks.register("installDependencies_${spec}", NpmTask) {
         group = 'build'
