@@ -154,7 +154,6 @@ Feature: Produce Messages page
     Then Topics TopicName Messages filter name starts with: "Filter" visible is: "true"
     Then Topics TopicName Messages exist is: "true"
 
-
     Given Topics TopicName Messages edit filter button click
     Given Topics TopicName AddFilter filterCode change value is: "3"
     Then Topics TopicName AddFilter EditFilter button click
