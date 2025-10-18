@@ -19,7 +19,7 @@
     "json-schema-faker": "0.5.6",
     "jsonpath-plus": "10.3.0",
     "lossless-json": "2.0.11",
-    "pretty-ms": "7.0.1",
+    "pretty-ms": "9.3.0",
     "react": "18.2.0",
     "react-ace": "11.0.1",
     "react-datepicker": "7.4.0",
