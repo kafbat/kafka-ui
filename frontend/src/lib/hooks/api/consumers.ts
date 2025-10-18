@@ -18,6 +18,7 @@ type UseConsumerGroupsProps = {
   page?: number;
   perPage?: number;
   search: string;
+  fts?: boolean;
 };
 
 type UseConsumerGroupDetailsProps = {

@@ -26,6 +26,8 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { ActionPermissionWrapper } from 'components/common/ActionComponent';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
 
 import * as S from './List.styled';
 
@@ -33,7 +35,8 @@ const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') || '');
-  const { data: aclList } = useAcls({ clusterName, search });
+  const { isFtsEnabled } = useFts('acl');
+  const { data: aclList } = useAcls({ clusterName, search, fts: isFtsEnabled });
   const { deleteResource } = useDeleteAcl(clusterName);
   const modal = useConfirm(true);
   const theme = useTheme();
@@ -211,6 +214,7 @@ const ACList: React.FC = () => {
           placeholder="Search by Principal Name"
           value={search}
           onChange={setSearch}
+          extraActions={<Fts resourceName="acl" />}
         />
       </ControlPanelWrapper>
       <Table
