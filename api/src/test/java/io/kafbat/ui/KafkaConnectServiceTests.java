@@ -13,8 +13,15 @@ import io.kafbat.ui.model.ConnectorPluginDTO;
 import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
+import io.kafbat.ui.model.FullConnectorInfoDTO;
+import io.kafbat.ui.model.InternalTopic;
+import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.TaskIdDTO;
+import io.kafbat.ui.model.TopicCreationDTO;
+import io.kafbat.ui.service.ClustersStorage;
+import io.kafbat.ui.service.StatisticsService;
+import io.kafbat.ui.service.TopicsService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 class KafkaConnectServiceTests extends AbstractIntegrationTest {
@@ -38,13 +46,31 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
       "file", "/tmp/test",
       "test.password", "******"
   );
+  private final String topicName = "test-topic";
 
   @Autowired
   private WebTestClient webTestClient;
-
+  @Autowired
+  private StatisticsService statisticsService;
+  @Autowired
+  private ClustersStorage clustersStorage;
+  @Autowired
+  private TopicsService topicsService;
 
   @BeforeEach
   void setUp() {
+    KafkaCluster kafkaCluster = clustersStorage.getClusterByName(LOCAL).get();
+
+    InternalTopic block = topicsService.getTopicDetails(kafkaCluster, topicName)
+        .onErrorResume(t -> Mono.empty()).block();
+    if (block == null) {
+      topicsService.createTopic(kafkaCluster,
+          new TopicCreationDTO()
+              .name(topicName)
+              .partitions(1)
+              .configs(Map.of())
+      ).block();
+    }
 
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
@@ -53,12 +79,27 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .config(Map.of(
                 "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
                 "tasks.max", "1",
-                "topics", "output-topic",
+                "topics", topicName,
                 "file", "/tmp/test",
                 "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
 
+    webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
+        .bodyValue(new NewConnectorDTO()
+            .name(connectorName+"source")
+            .config(Map.of(
+                "connector.class", "org.apache.kafka.connect.file.FileStreamSourceConnector",
+                "tasks.max", "1",
+                "topic", topicName,
+                "file", "/tmp/test",
+                "test.password", "test-credentials")))
+        .exchange()
+        .expectStatus().isOk();
+
+    // Force cache refresh
+    statisticsService.updateCache(kafkaCluster).block();
   }
 
   @AfterEach
@@ -66,6 +107,11 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
     webTestClient.delete()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
             connectName, connectorName)
+        .exchange()
+        .expectStatus().isOk();
+    webTestClient.delete()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
+            connectName, connectorName+"source")
         .exchange()
         .expectStatus().isOk();
   }
@@ -469,5 +515,14 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .exchange()
         .expectStatus().isBadRequest();
 
+  }
+
+  @Test
+  void shouldReturnConnectorsByTopic() {
+    var path = "/api/clusters/{clusterName}/topics/{topicName}/connectors";
+    webTestClient.get()
+        .uri(path, LOCAL, topicName)
+        .exchange()
+        .expectStatus().isOk();
   }
 }

@@ -11,6 +11,7 @@ import static java.util.stream.Collectors.toList;
 import io.kafbat.ui.api.TopicsApi;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.mapper.ClusterMapper;
+import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import io.kafbat.ui.model.PartitionsIncreaseDTO;
@@ -28,6 +29,8 @@ import io.kafbat.ui.model.TopicProducerStateDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.mcp.McpTool;
@@ -55,6 +58,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   private final TopicAnalysisService topicAnalysisService;
   private final ClusterMapper clusterMapper;
   private final ClustersProperties clustersProperties;
+  private final KafkaConnectService kafkaConnectService;
 
   @Override
   public Mono<ResponseEntity<TopicDTO>> createTopic(
@@ -369,5 +373,21 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       );
       default -> defaultComparator;
     };
+  }
+
+  @Override
+  public Mono<ResponseEntity<Flux<FullConnectorInfoDTO>>> getTopicConnectors(String clusterName,
+                                                                             String topicName,
+                                                                             ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getAllConnectors")
+        .build();
+
+    Flux<FullConnectorInfoDTO> job = kafkaConnectService.getTopicConnectors(getCluster(clusterName), topicName)
+        .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(), clusterName));
+
+    return Mono.just(ResponseEntity.ok(job))
+        .doOnEach(sig -> audit(context, sig));
   }
 }
