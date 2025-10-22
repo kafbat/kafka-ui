@@ -245,11 +245,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           List<String> subjectsToRetrieve;
           boolean paginate = true;
+
           var schemaComparator = Optional.ofNullable(orderBy).map(this::getComparatorForSchema);
-          final Optional<Comparator<SubjectWithCompatibilityLevel>> comparator =
-              sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
-                  ? schemaComparator : schemaComparator.map(Comparator::reversed);
+          var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
+              ? schemaComparator : schemaComparator.map(Comparator::reversed);
+
           if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
+            if (orderBy != null) {
+              filteredSubjects.sort(Comparator.nullsFirst(Comparator.naturalOrder()));
+            }
             if (SortOrderDTO.DESC.equals(sortOrder)) {
               filteredSubjects.sort(Comparator.nullsFirst(Comparator.reverseOrder()));
             }
