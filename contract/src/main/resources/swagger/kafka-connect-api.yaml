@@ -26,7 +26,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterInfo'      
+                $ref: '#/components/schemas/ClusterInfo'
 
   /connectors:
     get:
@@ -40,15 +40,25 @@ paths:
           required: false
           schema:
             type: string
+        - name: expand
+          in: query
+          style: form
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ConnectorExpand'
+
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/ExpandedConnector'
     post:
       tags:
         - KafkaConnectClient
@@ -179,7 +189,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConnectorOffsetsError'
-                
+
     get:
       tags:
         - KafkaConnectClient
@@ -437,12 +447,12 @@ components:
     ClusterInfo:
       type: object
       properties:
-        version: 
+        version:
           type: string
         commit:
           type: string
         kafka_cluster_id:
-          type: string  
+          type: string
 
     ConnectorConfig:
       type: object
@@ -490,6 +500,14 @@ components:
               enum:
                 - source
                 - sink
+
+    ExpandedConnector:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ConnectorStatus'
+        info:
+          $ref: '#/components/schemas/Connector'
 
     TaskStatus:
       type: object
@@ -646,6 +664,11 @@ components:
           items:
             type: string
 
+    ConnectorExpand:
+      type: string
+      enum:
+        - info
+        - status
 
 security:
   - basicAuth: []

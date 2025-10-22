@@ -66,8 +66,12 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context)
-        .thenReturn(ResponseEntity.ok(kafkaConnectService.getConnectorNames(getCluster(clusterName), connectName)))
-        .doOnEach(sig -> audit(context, sig));
+        .thenReturn(
+            ResponseEntity.ok(
+              kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
+                  .flatMapMany(m -> Flux.fromIterable(m.keySet()))
+            )
+        ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
