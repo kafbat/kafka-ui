@@ -88,7 +88,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .bodyValue(new NewConnectorDTO()
-            .name(connectorName+"source")
+            .name(connectorName + "source")
             .config(Map.of(
                 "connector.class", "org.apache.kafka.connect.file.FileStreamSourceConnector",
                 "tasks.max", "1",
@@ -111,7 +111,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .expectStatus().isOk();
     webTestClient.delete()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
-            connectName, connectorName+"source")
+            connectName, connectorName + "source")
         .exchange()
         .expectStatus().isOk();
   }
