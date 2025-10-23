@@ -38,15 +38,15 @@ import reactor.core.publisher.Mono;
 class KafkaConnectServiceTests extends AbstractIntegrationTest {
   private final String connectName = "kafka-connect";
   private final String connectorName = UUID.randomUUID().toString();
+  private final String topicName = "test-topic";
   private final Map<String, Object> config = Map.of(
       "name", connectorName,
       "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
       "tasks.max", "1",
-      "topics", "output-topic",
+      "topics", topicName,
       "file", "/tmp/test",
       "test.password", "******"
   );
-  private final String topicName = "test-topic";
 
   @Autowired
   private WebTestClient webTestClient;
@@ -84,20 +84,6 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
-
-    webTestClient.post()
-        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
-        .bodyValue(new NewConnectorDTO()
-            .name(connectorName + "source")
-            .config(Map.of(
-                "connector.class", "org.apache.kafka.connect.file.FileStreamSourceConnector",
-                "tasks.max", "1",
-                "topic", topicName,
-                "file", "/tmp/test",
-                "test.password", "test-credentials")))
-        .exchange()
-        .expectStatus().isOk();
-
     // Force cache refresh
     statisticsService.updateCache(kafkaCluster).block();
   }
@@ -107,11 +93,6 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
     webTestClient.delete()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
             connectName, connectorName)
-        .exchange()
-        .expectStatus().isOk();
-    webTestClient.delete()
-        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
-            connectName, connectorName + "source")
         .exchange()
         .expectStatus().isOk();
   }
@@ -241,7 +222,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .bodyValue(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "another-topic",
+            "topics", topicName,
             "file", "/tmp/new"
             )
         )
@@ -258,7 +239,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "another-topic",
+            "topics", topicName,
             "file", "/tmp/new",
             "name", connectorName
         ));
@@ -348,7 +329,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "output-topic",
+            "topics", topicName,
             "file", "/tmp/test",
             "name", connectorName,
             "test.password", "******"
@@ -377,7 +358,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "output-topic",
+            "topics", topicName,
             "file", "/tmp/test",
             "test.password", "******",
             "name", connectorName
