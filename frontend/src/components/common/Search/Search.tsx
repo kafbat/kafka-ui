@@ -32,10 +32,11 @@ const Search: React.FC<SearchProps> = ({
   const ref = useRef<ComponentRef<'input'>>(null);
 
   useEffect(() => {
-    if (ref.current !== null && value) {
-      ref.current.value = value;
+    const qParam = searchParams.get('q') || '';
+    if (ref.current !== null) {
+      ref.current.value = qParam;
     }
-  }, [value]);
+  }, [searchParams]);
 
   const handleChange = useDebouncedCallback((e) => {
     if (ref.current != null) {
