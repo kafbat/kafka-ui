@@ -10,7 +10,7 @@ End-to-End UI test automation using **Playwright**, **Cucumber.js**, and **TypeS
 
 ```bash
 Local run:
-Run kafbat (docker compose -f ./documentation/compose/e2e-tests.yaml up -d)
+Run Kafbat (docker compose -f ./documentation/compose/e2e-tests.yaml up -d)
 npm install
 npx playwright install
 
@@ -24,7 +24,7 @@ npm run debug
 npm run test:failed
 
 
-Gihub action CI example
+GitHub Actions CI example
 name: CI
 
 on:
@@ -53,4 +53,4 @@ jobs:
 
       - name: 🚀 Run tests with ENV=prod
         run: ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test
-        
+```
