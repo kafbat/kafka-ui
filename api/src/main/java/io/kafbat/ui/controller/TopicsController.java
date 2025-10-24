@@ -381,13 +381,16 @@ public class TopicsController extends AbstractController implements TopicsApi, M
                                                                              ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .operationName("getAllConnectors")
+        .topicActions(topicName, VIEW)
+        .operationName("getTopicConnectors")
+        .operationParams(topicName)
         .build();
 
     Flux<FullConnectorInfoDTO> job = kafkaConnectService.getTopicConnectors(getCluster(clusterName), topicName)
         .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(), clusterName));
 
-    return Mono.just(ResponseEntity.ok(job))
+    return validateAccess(context)
+        .then(Mono.just(ResponseEntity.ok(job)))
         .doOnEach(sig -> audit(context, sig));
   }
 }
