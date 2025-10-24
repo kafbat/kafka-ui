@@ -2,18 +2,13 @@ package io.kafbat.ui.serdes.builtin;
 
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 
 public class StringSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "String";
-  }
+  public static final String NAME = "String";
 
   private Charset encoding = StandardCharsets.UTF_8;
 
@@ -24,16 +19,6 @@ public class StringSerde implements BuiltInSerde {
     serdeProperties.getProperty("encoding", String.class)
         .map(Charset::forName)
         .ifPresent(e -> StringSerde.this.encoding = e);
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
   }
 
   @Override

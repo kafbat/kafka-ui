@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.connect.model.Connector;
+import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorTopics;
+import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
@@ -34,11 +37,11 @@ class ConnectorsExporterTest {
     connect.setName("testConnect");
     connect.setAddress("http://kconnect:8083");
 
-    ConnectorDTO sinkConnector = new ConnectorDTO();
-    sinkConnector.setName("testSink");
-    sinkConnector.setType(ConnectorTypeDTO.SINK);
-    sinkConnector.setConnect(connect.getName());
-    sinkConnector.setConfig(
+    ConnectorDTO sinkConnectorDto = new ConnectorDTO();
+    sinkConnectorDto.setName("testSink");
+    sinkConnectorDto.setType(ConnectorTypeDTO.SINK);
+    sinkConnectorDto.setConnect(connect.getName());
+    sinkConnectorDto.setConfig(
         Map.of(
             "connector.class", "FileStreamSink",
             "file", "filePathHere",
@@ -46,11 +49,11 @@ class ConnectorsExporterTest {
         )
     );
 
-    ConnectorDTO sourceConnector = new ConnectorDTO();
-    sourceConnector.setName("testSource");
-    sourceConnector.setConnect(connect.getName());
-    sourceConnector.setType(ConnectorTypeDTO.SOURCE);
-    sourceConnector.setConfig(
+    ConnectorDTO sourceConnectorDto = new ConnectorDTO();
+    sourceConnectorDto.setName("testSource");
+    sourceConnectorDto.setConnect(connect.getName());
+    sourceConnectorDto.setType(ConnectorTypeDTO.SOURCE);
+    sourceConnectorDto.setConfig(
         Map.of(
             "connector.class", "FileStreamSource",
             "file", "filePathHere",
@@ -58,22 +61,49 @@ class ConnectorsExporterTest {
         )
     );
 
+    ExpandedConnector sinkConnector = new ExpandedConnector()
+        .status(
+            new ConnectorStatus()
+                .name(sinkConnectorDto.getName())
+                .tasks(List.of())
+        )
+        .info(
+            new Connector()
+                .name(sinkConnectorDto.getName())
+                .type(Connector.TypeEnum.SINK)
+                .config(sinkConnectorDto.getConfig())
+                .tasks(List.of())
+        );
+
+    ExpandedConnector sourceConnector = new ExpandedConnector()
+        .status(
+            new ConnectorStatus()
+                .name(sourceConnectorDto.getName())
+                .tasks(List.of())
+        )
+        .info(
+            new Connector()
+                .name(sourceConnectorDto.getName())
+                .type(Connector.TypeEnum.SOURCE)
+                .config(sourceConnectorDto.getConfig())
+                .tasks(List.of())
+        );
+
+    Map<String, ExpandedConnector> connectors = Map.of(
+        sinkConnectorDto.getName(), sinkConnector,
+        sourceConnectorDto.getName(), sourceConnector
+    );
+
     when(kafkaConnectService.getConnects(CLUSTER, false))
         .thenReturn(Flux.just(connect));
 
-    when(kafkaConnectService.getConnectorNamesWithErrorsSuppress(CLUSTER, connect.getName()))
-        .thenReturn(Flux.just(sinkConnector.getName(), sourceConnector.getName()));
+    when(kafkaConnectService.getConnectorsWithErrorsSuppress(CLUSTER, connect.getName()))
+        .thenReturn(Mono.just(connectors));
 
-    when(kafkaConnectService.getConnector(CLUSTER, connect.getName(), sinkConnector.getName()))
-        .thenReturn(Mono.just(sinkConnector));
-
-    when(kafkaConnectService.getConnector(CLUSTER, connect.getName(), sourceConnector.getName()))
-        .thenReturn(Mono.just(sourceConnector));
-
-    when(kafkaConnectService.getConnectorTopics(CLUSTER, connect.getName(), sourceConnector.getName()))
+    when(kafkaConnectService.getConnectorTopics(CLUSTER, connect.getName(), sourceConnectorDto.getName()))
         .thenReturn(Mono.just(new ConnectorTopics().topics(List.of("outputTopic"))));
 
-    when(kafkaConnectService.getConnectorTopics(CLUSTER, connect.getName(), sinkConnector.getName()))
+    when(kafkaConnectService.getConnectorTopics(CLUSTER, connect.getName(), sinkConnectorDto.getName()))
         .thenReturn(Mono.just(new ConnectorTopics().topics(List.of("inputTopic"))));
 
     StepVerifier.create(exporter.export(CLUSTER))
@@ -90,7 +120,7 @@ class ConnectorsExporterTest {
               .satisfies(sink -> {
                 assertThat(sink.getMetadata()).isNotNull();
                 assertThat(sink.getDataTransformer()).isNotNull();
-                assertThat(sink.getMetadata().get(0).getMetadata())
+                assertThat(sink.getMetadata().getFirst().getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(sink.getDataTransformer().getInputs()).contains(
                     "//kafka/cluster/localhost:9092/topics/inputTopic");
@@ -102,7 +132,7 @@ class ConnectorsExporterTest {
               .satisfies(source -> {
                 assertThat(source.getMetadata()).isNotNull();
                 assertThat(source.getDataTransformer()).isNotNull();
-                assertThat(source.getMetadata().get(0).getMetadata())
+                assertThat(source.getMetadata().getFirst().getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(source.getDataTransformer().getOutputs()).contains(
                     "//kafka/cluster/localhost:9092/topics/outputTopic");

@@ -142,9 +142,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 .value("testValue")
-                .valueSerde(StringSerde.name())
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
@@ -158,9 +158,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("123")
-                .keySerde(Int32Serde.name())
+                .keySerde(Int32Serde.NAME)
                 .value("21474836470")
-                .valueSerde(Int64Serde.name())
+                .valueSerde(Int64Serde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("123");
@@ -174,9 +174,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 .value("testValue")
-                .valueSerde(StringSerde.name())
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
@@ -190,9 +190,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 .value(null)
-                .valueSerde(StringSerde.name())
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
@@ -208,9 +208,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("\"some string\"")
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value("123")
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("\"some string\"");
@@ -226,9 +226,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
@@ -243,9 +243,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 .value(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
@@ -261,9 +261,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
 
         )
         .doAssert(polled -> {
@@ -278,10 +278,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withValueSchema(AVRO_SCHEMA_2)
         .withMsgToSend(
             new CreateTopicMessageDTO()
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // f2 has type int instead of string
                 .value("{ \"f1\": 111, \"f2\": 123 }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -294,9 +294,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
@@ -311,10 +311,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // f2 field has type object instead of int
                 .value("{ \"f1\" : \"test str\", \"f2\" : {} }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -327,9 +327,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(PROTOBUF_SCHEMA_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
@@ -344,10 +344,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // 'f2' field has type object instead of string
                 .value("{ \"f1\": 12, \"f2\": {}, \"schema\": \"some txt\" }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -360,9 +360,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
@@ -385,9 +385,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(PROTOBUF_SCHEMA_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
@@ -409,9 +409,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(JSON_SCHEMA_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
                 .headers(Map.of("header1", "value1"))
         )
         .doAssert(polled -> {
@@ -435,9 +435,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(JSON_SCHEMA_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
                 .value(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .valueSerde(SchemaRegistrySerde.NAME)
                 .headers(Collections.singletonMap("header123", null))
         )
         .doAssert(polled -> assertThat(polled.getHeaders().get("header123")).isNull());
@@ -450,9 +450,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name()) // any serde
+                .keySerde(StringSerde.NAME) // any serde
                 .value(null)
-                .valueSerde(StringSerde.name()) // any serde
+                .valueSerde(StringSerde.NAME) // any serde
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();

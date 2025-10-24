@@ -26,7 +26,6 @@ import io.kafbat.ui.model.TopicCreationDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +48,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -467,13 +465,14 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal) {
+  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal,
+                                                          Boolean fts) {
     Statistics stats = statisticsCache.get(cluster);
     ScrapedClusterState clusterState = stats.getClusterState();
-
+    boolean useFts = clustersProperties.getFts().use(fts);
     try {
       return Mono.just(
-          clusterState.getTopicIndex().find(search, showInternal, null)
+          clusterState.getTopicIndex().find(search, showInternal, useFts, null)
       ).flatMap(lst -> filterExisting(cluster, lst)).map(lst ->
         lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
       );

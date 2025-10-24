@@ -20,6 +20,7 @@ interface ConsumerGroupsApi {
     @query search?: string,
     @query orderBy?: ConsumerGroupOrdering,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): ConsumerGroupsPageResponse;
 
   @get

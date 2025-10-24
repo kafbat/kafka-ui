@@ -378,6 +378,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -1046,6 +1051,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -1218,6 +1228,12 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+
       responses:
         200:
           description: OK
@@ -1534,6 +1550,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -2066,6 +2087,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -2577,6 +2603,8 @@ components:
               - KAFKA_ACL_EDIT # create & delete ACLs
               - CLIENT_QUOTA_MANAGEMENT
               - GRAPHS_ENABLED
+              - FTS_ENABLED
+              - FTS_DEFAULT_ENABLED
       required:
         - name
         - status

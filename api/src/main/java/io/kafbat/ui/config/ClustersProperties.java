@@ -227,7 +227,6 @@ public class ClustersProperties {
   @AllArgsConstructor
   public static class CacheProperties {
     boolean enabled = true;
-    Duration connectCacheExpiry = Duration.ofMinutes(1);
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
   }
 
@@ -243,11 +242,23 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class ClusterFtsProperties {
-    boolean enabled = false;
+    boolean enabled = true;
+    boolean defaultEnabled = false;
     NgramProperties schemas = new NgramProperties(1, 4);
     NgramProperties consumers = new NgramProperties(1, 4);
     NgramProperties connect = new NgramProperties(1, 4);
     NgramProperties acl = new NgramProperties(1, 4);
+
+    public boolean use(Boolean request) {
+      if (enabled) {
+        if (Boolean.TRUE.equals(request)) {
+          return true;
+        } else if (request == null && defaultEnabled) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   @PostConstruct
