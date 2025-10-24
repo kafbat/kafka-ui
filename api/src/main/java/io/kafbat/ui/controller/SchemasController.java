@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -244,11 +245,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           List<String> subjectsToRetrieve;
           boolean paginate = true;
-          var schemaComparator = getComparatorForSchema(orderBy);
-          final Comparator<SubjectWithCompatibilityLevel> comparator =
-              sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
-                  ? schemaComparator : schemaComparator.reversed();
+
+          var schemaComparator = Optional.ofNullable(orderBy).map(this::getComparatorForSchema);
+          var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
+              ? schemaComparator : schemaComparator.map(Comparator::reversed);
+
           if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
+            if (orderBy != null) {
+              filteredSubjects.sort(Comparator.nullsFirst(Comparator.naturalOrder()));
+            }
             if (SortOrderDTO.DESC.equals(sortOrder)) {
               filteredSubjects.sort(Comparator.nullsFirst(Comparator.reverseOrder()));
             }
@@ -274,11 +279,13 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   private List<SubjectWithCompatibilityLevel> paginateSchemas(
       List<SubjectWithCompatibilityLevel> subjects,
-      Comparator<SubjectWithCompatibilityLevel> comparator,
+      Optional<Comparator<SubjectWithCompatibilityLevel>> comparator,
       boolean paginate,
       int pageSize,
       int subjectToSkip) {
-    subjects.sort(comparator);
+
+    comparator.ifPresent(subjects::sort);
+
     if (paginate) {
       return subjects.subList(subjectToSkip, Math.min(subjectToSkip + pageSize, subjects.size()));
     } else {

@@ -79,7 +79,7 @@ class SchemaRegistryPaginationTest {
                     .toList()
     );
     var schemasFirst25 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            null, null, null, null, null, null, null).block();
+            null, null, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
     assertThat(schemasFirst25).isNotNull();
     assertThat(schemasFirst25.getBody()).isNotNull();
     assertThat(schemasFirst25.getBody().getPageCount()).isEqualTo(4);
@@ -88,7 +88,7 @@ class SchemaRegistryPaginationTest {
             .isSortedAccordingTo(Comparator.comparing(SchemaSubjectDTO::getSubject));
 
     var schemasFirst10 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            null, 10, null, null, null, null, null).block();
+            null, 10, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemasFirst10).isNotNull();
     assertThat(schemasFirst10.getBody()).isNotNull();
@@ -123,7 +123,7 @@ class SchemaRegistryPaginationTest {
                         .toList()
     );
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            0, -1, null, null, null, null, null).block();
+            0, -1, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemas).isNotNull();
     assertThat(schemas.getBody()).isNotNull();
@@ -142,7 +142,7 @@ class SchemaRegistryPaginationTest {
     );
 
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            4, 33, null, null, null, null, null).block();
+            4, 33, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemas).isNotNull();
     assertThat(schemas.getBody()).isNotNull();
