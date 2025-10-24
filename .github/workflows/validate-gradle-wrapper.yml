@@ -1,0 +1,18 @@
+# Docs: https://github.com/gradle/actions/blob/main/docs/wrapper-validation.md
+name: "Validate Gradle Wrapper"
+
+on:
+  push:
+    paths:
+      - gradle/wrapper/gradle-wrapper.jar
+  pull_request:
+    paths:
+      - gradle/wrapper/gradle-wrapper.jar
+
+jobs:
+  validation:
+    name: "Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@182e4d39a69c621df8047e4504c7be47bacfd8d6 # https://github.com/gradle/actions/releases/tag/v4.4.3
