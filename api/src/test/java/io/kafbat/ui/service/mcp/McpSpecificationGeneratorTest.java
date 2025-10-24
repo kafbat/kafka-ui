@@ -14,6 +14,7 @@ import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
+import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
@@ -37,12 +38,12 @@ class McpSpecificationGeneratorTest {
   void testConvertController() {
     TopicsController topicsController = new TopicsController(
         mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
-        mock(ClustersProperties.class)
+        mock(ClustersProperties.class), mock(KafkaConnectService.class)
     );
     List<AsyncToolSpecification> specifications =
         MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
 
-    assertThat(specifications).hasSize(14);
+    assertThat(specifications).hasSize(15);
     List<McpSchema.Tool> tools = List.of(
         new McpSchema.Tool(
             "recreateTopic",
