@@ -52,6 +52,7 @@ describe('ClusterPage', () => {
   const renderComponent = async (pathname: string, payload: Cluster[] = []) => {
     (useClusters as jest.Mock).mockImplementation(() => ({
       data: payload,
+      isFetched: true,
     }));
     await render(
       <WithRoute path={`${clusterPath()}/*`}>

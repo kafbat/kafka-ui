@@ -47,6 +47,7 @@ export function useGetSchemas({
   search,
   orderBy,
   sortOrder,
+  fts,
 }: GetSchemasRequest) {
   return useQuery<SchemaSubjectsResponse>({
     queryKey: [
@@ -57,6 +58,7 @@ export function useGetSchemas({
       search,
       sortOrder,
       orderBy,
+      fts,
     ],
     keepPreviousData: true,
     queryFn: () =>
@@ -67,6 +69,7 @@ export function useGetSchemas({
         search: search || undefined,
         sortOrder,
         orderBy,
+        fts,
       }),
   });
 }

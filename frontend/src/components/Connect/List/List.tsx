@@ -1,11 +1,7 @@
 import React from 'react';
-import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterNameRoute } from 'lib/paths';
 import Table, { TagCell } from 'components/common/NewTable';
 import { FullConnectorInfo } from 'generated-sources';
-import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { ColumnDef } from '@tanstack/react-table';
-import { useSearchParams } from 'react-router-dom';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import BreakableTextCell from 'components/common/NewTable/BreakableTextCell';
@@ -77,14 +73,9 @@ const kafkaConnectColumns: ColumnDef<FullConnectorInfo, string>[] = [
   },
 ];
 
-const List: React.FC = () => {
-  const { clusterName } = useAppParams<ClusterNameRoute>();
-  const [searchParams] = useSearchParams();
-  const { data: connectors } = useConnectors(
-    clusterName,
-    searchParams.get('q') || ''
-  );
+type ConnectorsListProps = { connectors: FullConnectorInfo[] | undefined };
 
+const List: React.FC<ConnectorsListProps> = ({ connectors }) => {
   const filterPersister = useQueryPersister(kafkaConnectColumns);
   const columnSizingPersister = useLocalStoragePersister('KafkaConnect');
 

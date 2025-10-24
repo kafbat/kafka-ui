@@ -307,6 +307,10 @@ const baseTheme = {
     filterIcon: {
       normal: Colors.brand[70],
     },
+    ftsIcon: {
+      normal: Colors.neutral[30],
+      active: Colors.brand[70],
+    },
   },
   textArea: {
     borderColor: {
@@ -1539,6 +1543,10 @@ export const darkTheme: ThemeType = {
       normal: Colors.neutral[5],
     },
     menuIcon: Colors.brand[0],
+    ftsIcon: {
+      normal: Colors.neutral[50],
+      active: Colors.brand[10],
+    },
   },
   textArea: {
     ...baseTheme.textArea,
