@@ -60,12 +60,19 @@ class TopicsServicePaginationTest {
   );
 
   private final TopicsService mockTopicsService = Mockito.mock(TopicsService.class);
+  private final KafkaConnectService kafkaConnectService = Mockito.mock(KafkaConnectService.class);
   private final ClusterMapper clusterMapper = new ClusterMapperImpl();
 
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
 
   private final TopicsController topicsController =
-      new TopicsController(mockTopicsService, mock(TopicAnalysisService.class), clusterMapper, clustersProperties);
+      new TopicsController(
+          mockTopicsService,
+          mock(TopicAnalysisService.class),
+          clusterMapper,
+          clustersProperties,
+          kafkaConnectService
+      );
 
   private void init(Map<String, InternalTopic> topicsInCache) {
     KafkaCluster kafkaCluster = buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME);

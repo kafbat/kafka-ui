@@ -72,28 +72,25 @@ Kafbat UI wraps major functions of Apache Kafka with an intuitive user interface
 ![Interface](documentation/images/Interface.gif)
 
 ## Topics
-Kafbat UI makes it easy for you to create topics in your browser by several clicks,
-pasting your own parameters, and viewing topics in the list.
+Kafbat UI makes it easy for you to create topics in your browser with just a few clicks, by pasting your own parameters, and viewing topics in the list.
 
 ![Create Topic](documentation/images/Create_topic_kafka-ui.gif)
 
-It's possible to jump from connectors view to corresponding topics and from a topic to consumers (back and forth) for more convenient navigation.
-connectors, overview topic settings.
+You can jump from the connectors view to corresponding topics and from a topic to consumers (back and forth) for more convenient navigation, including connectors and overview topic settings.
 
 ![Connector_Topic_Consumer](documentation/images/Connector_Topic_Consumer.gif)
 
 ### Messages
-Let's say we want to produce messages for our topic. With the Kafbat UI we can send or write data/messages to the Kafka topics without effort by specifying parameters, and viewing messages in the list.
+Suppose you want to produce messages for your topic. With Kafbat UI, you can easily send or write data/messages to Kafka topics by specifying parameters and viewing messages in the list.
 
 ![Produce Message](documentation/images/Create_message_kafka-ui.gif)
 
 ## Schema registry
-There are 3 supported types of schemas: Avro®, JSON Schema, and Protobuf schemas.
+There are three supported types of schemas: Avro®, JSON Schema, and Protobuf schemas.
 
 ![Create Schema Registry](documentation/images/Create_schema.gif)
 
-Before producing avro/protobuf encoded messages, you have to add a schema for the topic in Schema Registry. Now all these steps are easy to do
-with a few clicks in a user-friendly interface.
+Before producing Avro/Protobuf encoded messages, you need to add a schema for the topic in the Schema Registry. All these steps are now easy to do with just a few clicks in a user-friendly interface.
 
 ![Avro Schema Topic](documentation/images/Schema_Topic.gif)
 
@@ -111,7 +108,7 @@ docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true ghcr.io/kafbat/kafka-
 
 Then access the web UI at [http://localhost:8080](http://localhost:8080)
 
-The command is sufficient to try things out. When you're done trying things out, you can proceed with a [persistent installation](https://ui.docs.kafbat.io/quick-start/persistent-start)
+This command is sufficient to try things out. When you're done, you can proceed with a [persistent installation](https://ui.docs.kafbat.io/quick-start/persistent-start).
 
 ## Persistent installation
 
@@ -146,24 +143,24 @@ Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/conf
 
 ## Building from sources
 
-[Quick start](https://ui.docs.kafbat.io/development/building/prerequisites) with building
+[Quick start](https://ui.docs.kafbat.io/development/building/prerequisites) for building from source
 
 ## Liveliness and readiness probes
-Liveliness and readiness endpoint is at `/actuator/health`.<br/>
-Info endpoint (build info) is located at `/actuator/info`.
+The liveness and readiness endpoint is at `/actuator/health`.<br/>
+The info endpoint (build info) is located at `/actuator/info`.
 
 # Configuration options
 
-All the environment variables/config properties could be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
+All environment variables and configuration properties can be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
 # Contributing
 
-Please refer to [contributing guide](https://ui.docs.kafbat.io/development/contributing), we'll guide you from there.
+Please refer to the [contributing guide](https://ui.docs.kafbat.io/development/contributing); we'll guide you from there.
 
 # Support
 
 As we're fully independent, team members contribute in their free time.
-Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat) 
+Your support is crucial for us, if you wish to sponsor us, take a look [here](https://github.com/sponsors/kafbat)
 
 # Powered by
 
