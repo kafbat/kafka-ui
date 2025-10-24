@@ -14,7 +14,7 @@ apache-commons-compress = '1.26.0'
 assertj = '3.25.3'
 avro = '1.11.4'
 byte-buddy = '1.14.19'
-confluent = '7.9.2'
+confluent = '8.0.1'
 confluent-ccs = '7.9.0-ccs'
 
 mapstruct = '1.6.2'
