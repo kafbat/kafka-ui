@@ -43,7 +43,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@1a7989f3955e0c69f0e0ccc14aee54a387a0fd31 # infered from @v3
+        uses: github/codeql-action/init@d88a5540c3fd916f4e15b7744d287a124278e065 # infered from @v3
         with:
           languages: ${{ matrix.language }}
 
@@ -55,7 +55,7 @@ jobs:
           cache: 'gradle'
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@bed2a47f201e917459bc40343380c570a730ff06 # infered from @v3
+        uses: github/codeql-action/autobuild@d88a5540c3fd916f4e15b7744d287a124278e065 # infered from @v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@86b04fb0e47484f7282357688f21d5d0e32175fe # infered from @v3
+        uses: github/codeql-action/analyze@d88a5540c3fd916f4e15b7744d287a124278e065 # infered from @v3
