@@ -4,6 +4,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.model.ClusterInfo;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTask;
+import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorDTO;
@@ -14,16 +15,28 @@ import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTaskStatusDTO;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.TaskDTO;
+import io.kafbat.ui.model.TaskIdDTO;
 import io.kafbat.ui.model.TaskStatusDTO;
 import io.kafbat.ui.model.connect.InternalConnectorInfo;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface KafkaConnectMapper {
   NewConnector toClient(io.kafbat.ui.model.NewConnectorDTO newConnector);
+
+  default ClusterInfo toClient(KafkaConnectState state) {
+    ClusterInfo clusterInfo = new ClusterInfo();
+    clusterInfo.setVersion(state.getVersion());
+    return clusterInfo;
+  }
 
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "connect", ignore = true)
@@ -42,6 +55,39 @@ public interface KafkaConnectMapper {
   ConnectorPluginConfigValidationResponseDTO fromClient(
       io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse
           connectorPluginConfigValidationResponse);
+
+  default InternalConnectorInfo fromClient(String connect, ExpandedConnector connector, @Nullable List<String> topics) {
+    Objects.requireNonNull(connector.getInfo());
+    Objects.requireNonNull(connector.getStatus());
+    List<TaskDTO> tasks = List.of();
+
+    if (connector.getInfo().getTasks() != null
+        && connector.getStatus().getTasks() != null
+    ) {
+      Map<Integer, TaskIdDTO> taskIds = connector.getInfo().getTasks()
+          .stream().map(t -> new TaskIdDTO().task(t.getTask()).connector(t.getConnector()))
+          .collect(Collectors.toMap(
+              TaskIdDTO::getTask,
+              t -> t
+          ));
+
+      tasks = connector.getStatus().getTasks().stream()
+          .map(s ->
+              new TaskDTO().status(fromClient(s)).id(taskIds.get(s.getId()))
+          ).toList();
+    }
+
+    ConnectorDTO connectorDto = fromClient(connector.getInfo())
+        .connect(connect)
+        .status(fromClient(connector.getStatus().getConnector()));
+
+    return InternalConnectorInfo.builder()
+        .connector(connectorDto)
+        .config(connector.getInfo().getConfig())
+        .tasks(tasks)
+        .topics(topics)
+        .build();
+  }
 
   default ConnectDTO toKafkaConnect(
       ClustersProperties.ConnectCluster connect,
@@ -114,4 +160,23 @@ public interface KafkaConnectMapper {
         .tasksCount(tasks.size())
         .failedTasksCount(failedTasksCount);
   }
+
+  default KafkaConnectState toScrapeState(ConnectDTO connect, List<InternalConnectorInfo> connectors) {
+    return KafkaConnectState.builder()
+        .name(connect.getName())
+        .version(connect.getVersion().orElse("Unknown"))
+        .connectors(connectors.stream().map(this::toScrapeState).toList())
+        .build();
+  }
+
+  default KafkaConnectState.ConnectorState toScrapeState(InternalConnectorInfo connector) {
+    return new KafkaConnectState.ConnectorState(
+        connector.getConnector().getName(),
+        connector.getConnector().getType(),
+        connector.getConnector().getStatus(),
+        connector.getTopics()
+    );
+  }
+
+
 }

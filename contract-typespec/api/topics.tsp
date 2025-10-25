@@ -144,6 +144,15 @@ interface TopicsApi {
     @path topicName: string,
     @body partitionsIncrease: PartitionsIncrease,
   ): PartitionsIncreaseResponse | ApiNotFoundResponse;
+
+  @get
+  @route("/{topicName}/connectors")
+  @operationId("getTopicConnectors")
+  @summary("getTopicConnectors")
+  connectors(
+    @path clusterName: string,
+    @path topicName: string
+  ) : FullConnectorInfo[]
 }
 
 model TopicsResponse {
