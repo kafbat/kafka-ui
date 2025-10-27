@@ -6,6 +6,7 @@ import type {
   PaginationState,
   Row,
   SortingState,
+  VisibilityState,
 } from '@tanstack/react-table';
 import {
   flexRender,
@@ -60,6 +61,9 @@ export interface TableProps<TData> {
 
   filterPersister?: Persister;
   resetPaginationOnFilter?: boolean;
+
+  // Columns visibility
+  columnVisibility?: VisibilityState;
 
   // Placeholder for empty table
   emptyMessage?: React.ReactNode;
@@ -158,6 +162,7 @@ function Table<TData>({
   setRowId,
   filterPersister,
   resetPaginationOnFilter = true,
+  columnVisibility,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -209,6 +214,7 @@ function Table<TData>({
       columnFilters: filterPersister?.getPrevState() ?? [],
       rowSelection,
       columnSizing: columnSizingPersister?.columnSizing ?? {},
+      columnVisibility,
     },
     getRowId: (originalRow, index) => {
       if (setRowId) {
