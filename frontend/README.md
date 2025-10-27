@@ -16,7 +16,7 @@ Web UI for managing Apache Kafka clusters
 
 ## Getting started
 
-Go to react app folder
+Go to the React app folder
 ```sh
 cd ./frontend
 ```
@@ -42,7 +42,7 @@ Install dependencies
 pnpm install
 ```
 
-Generate API clients from OpenAPI document
+Generate API clients from the OpenAPI document
 ```sh
 pnpm gen:sources
 ```
@@ -50,7 +50,7 @@ pnpm gen:sources
 ## Start application
 ### Proxying API Requests in Development
 
-Create or update existing `.env.local` file with
+Create or update the existing `.env.local` file with
 ```
 VITE_DEV_PROXY= https://api.server # your API server
 ```
@@ -62,14 +62,14 @@ pnpm dev
 
 ### Docker way
 
-Have to be run from root directory.
+Must be run from the root directory.
 
 Start Kafbat UI with your Kafka clusters:
 ```sh
 docker-compose -f ./documentation/compose/kafbat-ui.yaml up
 ```
 
-Make sure that none of the `.env*` files contain `DEV_PROXY` variable
+Make sure that none of the `.env*` files contain the `DEV_PROXY` variable
 
 Run the application
 ```sh
