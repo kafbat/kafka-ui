@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import * as C from 'components/common/Tag/Tag.styled';
 import * as Metrics from 'components/common/Metrics';
 import { Button } from 'components/common/Button/Button';
-import Modal from 'components/common/Modal';
+import { Modal } from 'components/common/Modal';
 import getTagColor from 'components/common/Tag/getTagColor';
 import { RouterParamsClusterConnectConnector } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -25,9 +25,9 @@ const Overview: React.FC = () => {
 
   const { running, failed } = getTaskMetrics(tasks);
 
-  const canShowTrace = (connector: Connector) =>
-    connector.status.state === ConnectorState.FAILED &&
-    !!connector.status.trace;
+  const canShowTrace = (connectorData: Connector) =>
+    connectorData.status.state === ConnectorState.FAILED &&
+    !!connectorData.status.trace;
 
   const handleStateClick = () => {
     if (canShowTrace(connector)) {
