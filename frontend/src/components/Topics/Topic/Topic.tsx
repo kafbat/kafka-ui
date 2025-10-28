@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import {
+  clusterTopicConnectorsRelativePath,
   clusterTopicConsumerGroupsRelativePath,
   clusterTopicEditRelativePath,
   clusterTopicMessagesRelativePath,
@@ -22,6 +23,7 @@ import {
   useClearTopicMessages,
   useDeleteTopic,
   useRecreateTopic,
+  useTopicConnectors,
   useTopicDetails,
 } from 'lib/hooks/api/topics';
 import {
@@ -43,6 +45,7 @@ import Settings from './Settings/Settings';
 import TopicConsumerGroups from './ConsumerGroups/TopicConsumerGroups';
 import Statistics from './Statistics/Statistics';
 import Edit from './Edit/Edit';
+import Connectors from './Connectors/Connectors';
 import SendMessage from './SendMessage/SendMessage';
 
 const Topic: React.FC = () => {
@@ -70,6 +73,10 @@ const Topic: React.FC = () => {
   const deleteTopic = useDeleteTopic(clusterName);
   const recreateTopic = useRecreateTopic({ clusterName, topicName });
   const { data } = useTopicDetails({ clusterName, topicName });
+  const { data: connectors = [] } = useTopicConnectors({
+    clusterName,
+    topicName,
+  });
 
   const { isReadOnly, isTopicDeletionAllowed } =
     React.useContext(ClusterContext);
@@ -84,6 +91,7 @@ const Topic: React.FC = () => {
     await clearMessages.mutateAsync(topicName);
   };
   const canCleanup = data?.cleanUpPolicy === CleanUpPolicy.DELETE;
+  const isConnectorsAvailable = connectors.length > 0;
 
   return (
     <>
@@ -225,6 +233,19 @@ const Topic: React.FC = () => {
         >
           Statistics
         </ActionNavLink>
+        {isConnectorsAvailable && (
+          <ActionNavLink
+            to={clusterTopicConnectorsRelativePath}
+            className={({ isActive }) => (isActive ? 'is-active' : '')}
+            permission={{
+              resource: ResourceType.TOPIC,
+              action: Action.ANALYSIS_VIEW,
+              value: topicName,
+            }}
+          >
+            Connectors
+          </ActionNavLink>
+        )}
       </Navbar>
       <TopicActionsProvider openSidebarWithMessage={openSidebarWithMessage}>
         <Suspense fallback={<PageLoader />}>
@@ -246,6 +267,12 @@ const Topic: React.FC = () => {
               path={clusterTopicStatisticsRelativePath}
               element={<Statistics />}
             />
+            {isConnectorsAvailable && (
+              <Route
+                path={clusterTopicConnectorsRelativePath}
+                element={<Connectors connectors={connectors} />}
+              />
+            )}
             <Route path={clusterTopicEditRelativePath} element={<Edit />} />
           </Routes>
         </Suspense>
