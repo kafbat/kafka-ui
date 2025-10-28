@@ -44,12 +44,12 @@ public class McpConfig {
     // Configure server capabilities with resource support
     var capabilities = McpSchema.ServerCapabilities.builder()
         .resources(false, true)
-        .tools(true) // Tool support with list changes notifications
+        .tools(true) // Tools support with list changes notifications
         .prompts(false) // Prompt support with list changes notifications
         .logging() // Logging support
         .build();
 
-    // Create the server with both tool and resource capabilities
+    // Create the server with both tools and resource capabilities
     return McpServer.async(transport)
         .serverInfo("Kafka UI MCP", "0.0.1")
         .capabilities(capabilities)

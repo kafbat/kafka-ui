@@ -7,7 +7,7 @@ import {
   ResourceType,
 } from 'generated-sources';
 import { CellContext } from '@tanstack/react-table';
-import { ClusterNameRoute } from 'lib/paths';
+import { RouteParamsClusterTopic } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
 import { Dropdown } from 'components/common/Dropdown';
 import {
@@ -24,7 +24,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   row,
 }) => {
   const { connect, name, status } = row.original;
-  const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const { isReadOnly } = useContext(ClusterContext);
   const mutationsNumber = useIsMutating();
   const isMutating = mutationsNumber > 0;
@@ -33,16 +33,19 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     clusterName,
     connectName: connect,
     connectorName: name,
+    topicName,
   });
   const stateMutation = useUpdateConnectorState({
     clusterName,
     connectName: connect,
     connectorName: name,
+    topicName,
   });
   const resetConnectorOffsetsMutation = useResetConnectorOffsets({
     clusterName,
     connectName: connect,
     connectorName: name,
+    topicName,
   });
   const handleDelete = () => {
     confirm(
@@ -54,7 +57,7 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
       }
     );
   };
-  // const stateMutation = useUpdateConnectorState(routerProps);
+
   const resumeConnectorHandler = () =>
     stateMutation.mutateAsync(ConnectorAction.RESUME);
   const restartConnectorHandler = () =>

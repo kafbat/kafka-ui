@@ -708,6 +708,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/TopicSerdeSuggestion'
 
+  /api/clusters/{clusterName}/topics/{topicName}/connectors:
+    get:
+      operationId: getTopicConnectors
+      summary: getTopicConnectors
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FullConnectorInfo'
+      tags:
+        - Topics
+
   /api/smartfilters/testexecutions:
     put:
       tags:
@@ -3647,6 +3674,10 @@ components:
               $ref: '#/components/schemas/ConnectorStatus'
             connect:
               type: string
+            topics:
+              type: array
+              items:
+                type: string
           required:
             - type
             - status

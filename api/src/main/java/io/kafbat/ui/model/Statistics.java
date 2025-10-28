@@ -1,8 +1,10 @@
 package io.kafbat.ui.model;
 
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import lombok.Builder;
@@ -19,6 +21,7 @@ public class Statistics implements AutoCloseable {
   ReactiveAdminClient.ClusterDescription clusterDescription;
   Metrics metrics;
   ScrapedClusterState clusterState;
+  Map<String, KafkaConnectState> connectStates;
 
   public static Statistics empty() {
     return builder()
@@ -28,6 +31,7 @@ public class Statistics implements AutoCloseable {
         .clusterDescription(ReactiveAdminClient.ClusterDescription.empty())
         .metrics(Metrics.empty())
         .clusterState(ScrapedClusterState.empty())
+        .connectStates(Map.of())
         .build();
   }
 
