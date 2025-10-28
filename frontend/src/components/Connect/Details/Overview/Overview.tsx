@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import * as C from 'components/common/Tag/Tag.styled';
 import * as Metrics from 'components/common/Metrics';
 import { Button } from 'components/common/Button/Button';
+import Modal from 'components/common/Modal';
 import getTagColor from 'components/common/Tag/getTagColor';
 import { RouterParamsClusterConnectConnector } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useConnector, useConnectorTasks } from 'lib/hooks/api/kafkaConnect';
-import { ConnectorState } from 'generated-sources';
+import { ConnectorState, Connector } from 'generated-sources';
 
 import getTaskMetrics from './getTaskMetrics';
 import * as S from './Overview.styled';
@@ -24,10 +25,12 @@ const Overview: React.FC = () => {
 
   const { running, failed } = getTaskMetrics(tasks);
 
-  const hasTraceInfo = connector.status.trace;
+  const canShowTrace = (connector: Connector) =>
+    connector.status.state === ConnectorState.FAILED &&
+    !!connector.status.trace;
 
   const handleStateClick = () => {
-    if (connector.status.state === ConnectorState.FAILED && hasTraceInfo) {
+    if (canShowTrace(connector)) {
       setShowTraceModal(true);
     }
   };
@@ -50,13 +53,7 @@ const Overview: React.FC = () => {
           <Metrics.Indicator label="State">
             <C.Tag
               color={getTagColor(connector.status.state)}
-              style={{
-                cursor:
-                  connector.status.state === ConnectorState.FAILED &&
-                  hasTraceInfo
-                    ? 'pointer'
-                    : 'default',
-              }}
+              clickable={canShowTrace(connector)}
               onClick={handleStateClick}
             >
               {connector.status.state}
@@ -74,38 +71,30 @@ const Overview: React.FC = () => {
       </Metrics.Wrapper>
 
       {showTraceModal && (
-        <S.ModalOverlay onClick={() => setShowTraceModal(false)}>
-          <S.ModalContent
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <S.ModalHeader>
-              <div>
-                <S.ModalTitle>Connector Error Details</S.ModalTitle>
-                {connector.status.workerId && (
-                  <S.WorkerInfo>
-                    Worker: {connector.status.workerId}
-                  </S.WorkerInfo>
-                )}
-              </div>
-            </S.ModalHeader>
+        <Modal
+          isOpen={showTraceModal}
+          onClose={() => setShowTraceModal(false)}
+          title="Connector Error Details"
+          footer={
+            <Button
+              buttonType="primary"
+              buttonSize="M"
+              onClick={() => setShowTraceModal(false)}
+            >
+              Close
+            </Button>
+          }
+        >
+          {connector.status.workerId && (
+            <S.WorkerInfo>Worker: {connector.status.workerId}</S.WorkerInfo>
+          )}
 
+          {connector.status.trace && (
             <S.TraceContent>
-              {connector.status.trace ? (
-                <div>{connector.status.trace}</div>
-              ) : null}
+              <div>{connector.status.trace}</div>
             </S.TraceContent>
-
-            <S.ModalFooter>
-              <Button
-                buttonType="primary"
-                buttonSize="M"
-                onClick={() => setShowTraceModal(false)}
-              >
-                Close
-              </Button>
-            </S.ModalFooter>
-          </S.ModalContent>
-        </S.ModalOverlay>
+          )}
+        </Modal>
       )}
     </>
   );
