@@ -19,6 +19,8 @@ import {
   TopicCreation,
   TopicDetails,
   TopicUpdate,
+  GetTopicConnectorsRequest,
+  FullConnectorInfo,
 } from 'generated-sources';
 import { showServerError, showSuccessAlert } from 'lib/errorHandling';
 import { ClusterName } from 'lib/interfaces/cluster';
@@ -45,6 +47,8 @@ export const topicKeys = {
     [...topicKeys.details(props), 'consumerGroups'] as const,
   statistics: (props: GetTopicDetailsRequest) =>
     [...topicKeys.details(props), 'statistics'] as const,
+  connectors: (props: GetTopicConnectorsRequest) =>
+    [...topicKeys.details(props), 'connectors'] as const,
 };
 
 export function useTopics(props: GetTopicsRequest) {
@@ -78,6 +82,17 @@ export function useTopicConfig(
 export function useTopicConsumerGroups(props: GetTopicDetailsRequest) {
   return useQuery(topicKeys.consumerGroups(props), () =>
     consumerGroupsApiClient.getTopicConsumerGroups(props)
+  );
+}
+
+export function useTopicConnectors(
+  props: GetTopicConnectorsRequest,
+  queryOptions?: UseQueryOptions<FullConnectorInfo[]>
+) {
+  return useQuery<FullConnectorInfo[]>(
+    topicKeys.connectors(props),
+    () => api.getTopicConnectors(props),
+    queryOptions
   );
 }
 

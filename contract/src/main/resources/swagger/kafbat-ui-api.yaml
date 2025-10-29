@@ -3674,6 +3674,10 @@ components:
               $ref: '#/components/schemas/ConnectorStatus'
             connect:
               type: string
+            topics:
+              type: array
+              items:
+                type: string
           required:
             - type
             - status

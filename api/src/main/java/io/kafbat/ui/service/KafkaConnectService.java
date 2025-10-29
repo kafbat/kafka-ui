@@ -226,8 +226,9 @@ public class KafkaConnectService {
   public Mono<ConnectorDTO> getConnector(KafkaCluster cluster, String connectName,
                                          String connectorName) {
     return api(cluster, connectName)
-        .mono(client -> client.getConnector(connectorName)
-            .map(kafkaConnectMapper::fromClient)
+        .mono(client ->
+            Mono.zip(client.getConnector(connectorName), getConnectorTopics(cluster, connectName, connectorName))
+            .map(t -> kafkaConnectMapper.fromClient(t.getT1(), t.getT2()))
             .flatMap(connector ->
                 client.getConnectorStatus(connector.getName())
                     // status request can return 404 if tasks not assigned yet
