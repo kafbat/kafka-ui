@@ -2,8 +2,10 @@ package io.kafbat.ui.mapper;
 
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.model.ClusterInfo;
+import io.kafbat.ui.connect.model.Connector;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTask;
+import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.model.ConnectDTO;
@@ -41,6 +43,14 @@ public interface KafkaConnectMapper {
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "connect", ignore = true)
   ConnectorDTO fromClient(io.kafbat.ui.connect.model.Connector connector);
+
+  default ConnectorDTO fromClient(Connector connector, ConnectorTopics topics) {
+    ConnectorDTO connectorDto = this.fromClient(connector);
+    if (topics != null) {
+      return connectorDto.topics(topics.getTopics());
+    }
+    return connectorDto;
+  }
 
   ConnectorStatusDTO fromClient(ConnectorStatusConnector connectorStatus);
 
@@ -177,6 +187,4 @@ public interface KafkaConnectMapper {
         connector.getTopics()
     );
   }
-
-
 }

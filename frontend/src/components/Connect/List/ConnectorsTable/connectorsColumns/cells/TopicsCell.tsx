@@ -6,7 +6,7 @@ import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 import { ClusterNameRoute, clusterTopicPath } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
 
-import * as S from './List.styled';
+import * as S from './TopicsCell.styled';
 
 const TopicsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   row,
