@@ -18,9 +18,7 @@ const columns: ColumnDef<{ topicName: string }>[] = [
 const Topics = () => {
   const routerProps = useAppParams<RouterParamsClusterConnectConnector>();
 
-  const { data: raw } = useConnector(routerProps);
-
-  const connector = { ...raw, topics: ['wikimedia.recentchange.connect'] };
+  const { data: connector } = useConnector(routerProps);
 
   const tableData = (connector?.topics ?? []).map((topicName) => ({
     topicName,
