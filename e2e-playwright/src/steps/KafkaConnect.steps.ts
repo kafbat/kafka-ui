@@ -2,7 +2,7 @@
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expectVisibility } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
-import { expect } from "@playwright/test";
+import { clickMenuThenItem } from "../services/commonFunctions";
 
 setDefaultTimeout(60 * 1000 * 2);
 
@@ -26,29 +26,11 @@ Given('KafkaConnect satus is: {string}, type is: {string}', async function(this:
 });
 
 Given('KafkaConnect row menu menu item {string} is clicked', async function(this: PlaywrightWorld, menuItem: string) {
-        const { page } = this;
-    const rowMenu = this.locators.connectors.rowMenu;
-    const rowMenuItem = this.locators.connectors.rowMenuItem(menuItem);
-
-    async function attemptClick() {
-      await expect(rowMenu).toBeVisible({ timeout: 5000 });
-      await expect(rowMenu).toBeEnabled({ timeout: 5000 });
-      await rowMenu.scrollIntoViewIfNeeded();
-
-      await rowMenu.click();
-
-      await expect(rowMenuItem).toBeVisible({ timeout: 5000 });
-      await rowMenuItem.click();
-    }
-
-    try {
-      await attemptClick();
-    } catch (firstErr) {
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-
-      await attemptClick();
-    }
+  await clickMenuThenItem(
+    this.page,
+    this.locators.connectors.rowMenu,
+    this.locators.connectors.rowMenuItem(menuItem)
+  );
 });
 
 When('KafkaConnect connector named: {string} clicked', async function(this: PlaywrightWorld, name: string) {
@@ -64,29 +46,11 @@ Given('KafkaConnect connector page status is: {string}', async function(this: Pl
 });
 
 When('KafkaConnect connector menu item {string} clicked', async function(this: PlaywrightWorld, menuItem: string) {
-    const { page } = this;
-    const menuButton = this.locators.connectors.internalMenuButton;
-    const menuItemLocator = this.locators.connectors.internalMenuButtonItem(menuItem);
-
-    async function attemptClick() {
-      await expect(menuButton).toBeVisible({ timeout: 5000 });
-      await expect(menuButton).toBeEnabled({ timeout: 5000 });
-
-      await menuButton.click();
-
-      await expect(menuItemLocator).toBeVisible({ timeout: 5000 });
-      await menuItemLocator.click();
-    }
-
-    try {
-      await attemptClick();
-    } catch (firstErr) {
-      await page.reload({ waitUntil: 'domcontentloaded' });
-
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-
-      await attemptClick();
-    }
+    await clickMenuThenItem(
+    this.page,
+    this.locators.connectors.internalMenuButton,
+    this.locators.connectors.internalMenuButtonItem(menuItem)
+  );
 });
 
 Given('KafkaConnect connector page state is: {string}', async function(this: PlaywrightWorld, state: string) {
