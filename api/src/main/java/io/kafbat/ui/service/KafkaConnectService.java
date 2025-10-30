@@ -237,13 +237,8 @@ public class KafkaConnectService {
                     .map(connectorStatus -> {
                       var status = connectorStatus.getConnector();
                       var sanitizedConfig = kafkaConfigSanitizer.sanitizeConnectorConfig(connector.getConfig());
-                      ConnectorDTO result = new ConnectorDTO()
-                          .connect(connectName)
-                          .status(kafkaConnectMapper.fromClient(status))
-                          .type(connector.getType())
-                          .tasks(connector.getTasks())
-                          .name(connector.getName())
-                          .config(sanitizedConfig);
+                      ConnectorDTO result = connector.config(sanitizedConfig)
+                          .status(kafkaConnectMapper.fromClient(status));
 
                       if (connectorStatus.getTasks() != null) {
                         boolean isAnyTaskFailed = connectorStatus.getTasks().stream()
