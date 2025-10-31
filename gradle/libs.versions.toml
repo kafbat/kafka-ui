@@ -8,7 +8,7 @@ azure-identity = '1.15.4'
 apache-commons-lang3 = '3.18.0'
 apache-commons-text = '1.13.1'
 apache-commons-pool2 = '2.12.1'
-apache-datasketches = '3.1.0'
+apache-datasketches = '8.0.0'
 apache-commons-compress = '1.26.0'
 
 assertj = '3.25.3'
