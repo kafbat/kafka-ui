@@ -3,14 +3,17 @@ import {
   Connector,
   ConnectorAction,
   NewConnector,
+  Topic,
 } from 'generated-sources';
 import { kafkaConnectApiClient as api } from 'lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { showSuccessAlert } from 'lib/errorHandling';
+import { topicKeys } from 'lib/hooks/api/topics';
 
 interface UseConnectorProps {
   clusterName: ClusterName;
+  topicName?: Topic['name'];
   connectName: Connect['name'];
   connectorName: Connector['name'];
 }
@@ -120,6 +123,13 @@ export function useUpdateConnectorState(props: UseConnectorProps) {
         Promise.all([
           client.invalidateQueries(connectorsKey(props.clusterName)),
           client.invalidateQueries(connectorKey(props)),
+          props.topicName &&
+            client.invalidateQueries(
+              topicKeys.connectors({
+                clusterName: props.clusterName,
+                topicName: props.topicName,
+              })
+            ),
         ]),
     }
   );

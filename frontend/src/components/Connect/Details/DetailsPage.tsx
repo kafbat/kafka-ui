@@ -5,6 +5,8 @@ import {
   clusterConnectConnectorConfigPath,
   clusterConnectConnectorConfigRelativePath,
   clusterConnectConnectorPath,
+  clusterConnectConnectorTopicsPath,
+  clusterConnectConnectorTopicsRelativePath,
   clusterConnectorsPath,
   RouterParamsClusterConnectConnector,
 } from 'lib/paths';
@@ -16,6 +18,7 @@ import Overview from './Overview/Overview';
 import Tasks from './Tasks/Tasks';
 import Config from './Config/Config';
 import Actions from './Actions/Actions';
+import Topics from './Topics/Topics';
 
 const DetailsPage: React.FC = () => {
   const { clusterName, connectName, connectorName } =
@@ -53,6 +56,16 @@ const DetailsPage: React.FC = () => {
         >
           Config
         </NavLink>
+        <NavLink
+          to={clusterConnectConnectorTopicsPath(
+            clusterName,
+            connectName,
+            connectorName
+          )}
+          className={({ isActive }) => (isActive ? 'is-active' : '')}
+        >
+          Topics
+        </NavLink>
       </Navbar>
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -60,6 +73,10 @@ const DetailsPage: React.FC = () => {
           <Route
             path={clusterConnectConnectorConfigRelativePath}
             element={<Config />}
+          />
+          <Route
+            path={clusterConnectConnectorTopicsRelativePath}
+            element={<Topics />}
           />
         </Routes>
       </Suspense>

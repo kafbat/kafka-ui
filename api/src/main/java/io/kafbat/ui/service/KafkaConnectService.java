@@ -226,35 +226,21 @@ public class KafkaConnectService {
   public Mono<ConnectorDTO> getConnector(KafkaCluster cluster, String connectName,
                                          String connectorName) {
     return api(cluster, connectName)
-        .mono(client -> client.getConnector(connectorName)
-            .map(kafkaConnectMapper::fromClient)
-            .flatMap(connector ->
-                client.getConnectorStatus(connector.getName())
-                    // status request can return 404 if tasks not assigned yet
-                    .onErrorResume(WebClientResponseException.NotFound.class,
+        .mono(client ->
+            Mono.zip(
+                client.getConnector(connectorName),
+                getConnectorTopics(cluster, connectName, connectorName),
+                client.getConnectorStatus(connectorName).onErrorResume(WebClientResponseException.NotFound.class,
                         e -> emptyStatus(connectorName))
-                    .map(connectorStatus -> {
-                      var status = connectorStatus.getConnector();
-                      var sanitizedConfig = kafkaConfigSanitizer.sanitizeConnectorConfig(connector.getConfig());
-                      ConnectorDTO result = new ConnectorDTO()
-                          .connect(connectName)
-                          .status(kafkaConnectMapper.fromClient(status))
-                          .type(connector.getType())
-                          .tasks(connector.getTasks())
-                          .name(connector.getName())
-                          .config(sanitizedConfig);
-
-                      if (connectorStatus.getTasks() != null) {
-                        boolean isAnyTaskFailed = connectorStatus.getTasks().stream()
-                            .map(TaskStatus::getState)
-                            .anyMatch(TaskStatus.StateEnum.FAILED::equals);
-
-                        if (isAnyTaskFailed) {
-                          result.getStatus().state(ConnectorStateDTO.TASK_FAILED);
-                        }
-                      }
-                      return result;
-                    })
+            )
+            .map(t ->
+                kafkaConnectMapper.fromClient(
+                    t.getT1(),
+                    connectName,
+                    t.getT2(),
+                    kafkaConfigSanitizer.sanitizeConnectorConfig(t.getT1().getConfig()),
+                    t.getT3()
+                )
             )
         );
   }
@@ -280,7 +266,7 @@ public class KafkaConnectService {
         .mono(c ->
             requestBody
                 .flatMap(body -> c.setConnectorConfig(connectorName, body))
-                .map(kafkaConnectMapper::fromClient));
+                .map(connector -> kafkaConnectMapper.fromClient(connector)));
   }
 
   public Mono<Void> deleteConnector(

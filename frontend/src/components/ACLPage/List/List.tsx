@@ -28,6 +28,8 @@ import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { ActionPermissionWrapper } from 'components/common/ActionComponent';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
+import ClusterContext from 'components/contexts/ClusterContext';
+
 
 import * as S from './List.styled';
 
@@ -38,6 +40,7 @@ const ACList: React.FC = () => {
   const { isFtsEnabled } = useFts('acl');
   const { data: aclList } = useAcls({ clusterName, search, fts: isFtsEnabled });
   const { deleteResource } = useDeleteAcl(clusterName);
+  const { isReadOnly } = React.useContext(ClusterContext);
   const modal = useConfirm(true);
   const theme = useTheme();
   const {
@@ -201,6 +204,7 @@ const ACList: React.FC = () => {
           buttonType="primary"
           buttonSize="M"
           onClick={openFrom}
+          disabled={isReadOnly}
           permission={{
             resource: ResourceType.ACL,
             action: Action.EDIT,

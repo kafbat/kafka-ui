@@ -225,6 +225,7 @@ model Connector {
   type: ConnectorType;
   status: ConnectorStatus;
   connect: string;
+  topics?: string[];
 }
 
 enum ConnectorAction {
