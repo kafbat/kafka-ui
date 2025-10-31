@@ -15,6 +15,7 @@ import {
   useResetConnectorOffsets,
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
+import { FullConnectorInfo } from 'generated-sources';
 
 const mockedUsedNavigate = jest.fn();
 const mockDelete = jest.fn();
@@ -34,11 +35,14 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
 
 const clusterName = 'local';
 
-const renderComponent = (contextValue: ContextProps = initialValue) =>
+const renderComponent = (
+  contextValue: ContextProps = initialValue,
+  data: FullConnectorInfo[] = connectors
+) =>
   render(
     <ClusterContext.Provider value={contextValue}>
       <WithRoute path={clusterConnectorsPath()}>
-        <List />
+        <List connectors={data} />
       </WithRoute>
     </ClusterContext.Provider>,
     { initialEntries: [clusterConnectorsPath(clusterName)] }
@@ -47,9 +51,6 @@ const renderComponent = (contextValue: ContextProps = initialValue) =>
 describe('Connectors List', () => {
   describe('when the connectors are loaded', () => {
     beforeEach(() => {
-      (useConnectors as jest.Mock).mockImplementation(() => ({
-        data: connectors,
-      }));
       const restartConnector = jest.fn();
       (useUpdateConnectorState as jest.Mock).mockImplementation(() => ({
         mutateAsync: restartConnector,
@@ -84,7 +85,7 @@ describe('Connectors List', () => {
     });
 
     it('renders empty table', async () => {
-      renderComponent();
+      renderComponent(undefined, []);
       expect(screen.getByRole('table')).toBeInTheDocument();
       expect(
         screen.getByRole('row', { name: 'No connectors found' })

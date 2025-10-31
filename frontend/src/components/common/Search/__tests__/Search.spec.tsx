@@ -2,7 +2,7 @@ import Search from 'components/common/Search/Search';
 import React from 'react';
 import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
-import { screen } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { useSearchParams } from 'react-router-dom';
 
 jest.mock('use-debounce', () => ({
@@ -42,10 +42,17 @@ describe('Search', () => {
     expect(screen.queryByPlaceholderText('Search')).toBeInTheDocument();
   });
 
-  it('Clear button is visible', () => {
+  it('Clear button is not visible by default', async () => {
     render(<Search placeholder={placeholder} />);
 
-    const clearButton = screen.getByRole('button');
+    const clearButton = screen.queryByTestId('search-clear-button');
+    expect(clearButton).not.toBeInTheDocument();
+  });
+
+  it('Clear button is visible if value passed', async () => {
+    render(<Search placeholder={placeholder} value="text" />);
+
+    const clearButton = screen.queryByTestId('search-clear-button');
     expect(clearButton).toBeInTheDocument();
   });
 
@@ -53,12 +60,16 @@ describe('Search', () => {
     render(<Search placeholder={placeholder} />);
 
     const searchField = screen.getAllByRole('textbox')[0];
-    await userEvent.type(searchField, 'some text');
-    expect(searchField).toHaveValue('some text');
+    fireEvent.change(searchField, { target: { value: 'hello' } });
+    expect(searchField).toHaveValue('hello');
 
-    const clearButton = screen.getByRole('button');
-    await userEvent.click(clearButton);
+    let clearButton = screen.queryByTestId('search-clear-button');
+    expect(clearButton).toBeInTheDocument();
+    await userEvent.click(clearButton!);
 
     expect(searchField).toHaveValue('');
+
+    clearButton = screen.queryByTestId('search-clear-button');
+    expect(clearButton).not.toBeInTheDocument();
   });
 });

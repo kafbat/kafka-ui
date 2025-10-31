@@ -17,16 +17,19 @@ import {
 export function useAcls({
   clusterName,
   search,
+  fts,
 }: {
   clusterName: ClusterName;
   search?: string;
+  fts?: boolean;
 }) {
   return useQuery(
-    ['clusters', clusterName, 'acls', { search }],
+    ['clusters', clusterName, 'acls', { search, fts }],
     () =>
       api.listAcls({
         clusterName,
         search,
+        fts,
       }),
     {
       keepPreviousData: true,

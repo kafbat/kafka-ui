@@ -21,6 +21,8 @@ const defaultContextValues = {
   hasKafkaConnectConfigured: true,
   hasSchemaRegistryConfigured: true,
   isTopicDeletionAllowed: true,
+  ftsEnabled: false,
+  ftsDefaultEnabled: false,
 };
 
 jest.mock('lib/hooks/api/topics', () => ({

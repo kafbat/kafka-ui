@@ -3,11 +3,13 @@ package io.kafbat.ui.mapper;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.model.ClusterInfo;
 import io.kafbat.ui.connect.model.Connector;
+import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.ConnectorTopics;
 import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.connect.model.NewConnector;
+import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorDTO;
 import io.kafbat.ui.model.ConnectorPluginConfigValidationResponseDTO;
@@ -42,14 +44,36 @@ public interface KafkaConnectMapper {
 
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "connect", ignore = true)
-  ConnectorDTO fromClient(io.kafbat.ui.connect.model.Connector connector);
+  ConnectorDTO fromClient(Connector connector);
 
-  default ConnectorDTO fromClient(Connector connector, ConnectorTopics topics) {
-    ConnectorDTO connectorDto = this.fromClient(connector);
+  default ConnectorDTO fromClient(Connector connector,
+                                  String connect,
+                                  ConnectorTopics topics,
+                                  Map<String, Object> sanitizedConfigs,
+                                  ConnectorStatus status) {
+    ConnectorDTO result = this.fromClient(connector);
+    result.connect(connect);
     if (topics != null) {
-      return connectorDto.topics(topics.getTopics());
+      result = result.topics(topics.getTopics());
     }
-    return connectorDto;
+    if (sanitizedConfigs != null) {
+      result = result.config(sanitizedConfigs);
+    }
+    if (status != null && status.getConnector() != null) {
+      result = result.status(fromClient(status.getConnector()));
+
+      if (status.getTasks() != null) {
+        boolean isAnyTaskFailed = status.getTasks().stream()
+            .map(TaskStatus::getState)
+            .anyMatch(TaskStatus.StateEnum.FAILED::equals);
+
+        if (isAnyTaskFailed) {
+          result.getStatus().state(ConnectorStateDTO.TASK_FAILED);
+        }
+      }
+    }
+
+    return result;
   }
 
   ConnectorStatusDTO fromClient(ConnectorStatusConnector connectorStatus);
