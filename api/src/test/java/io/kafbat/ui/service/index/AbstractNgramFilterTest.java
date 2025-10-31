@@ -6,6 +6,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -30,6 +31,16 @@ abstract class AbstractNgramFilterTest<T> {
     assertThat(resultNoCompare).isNotEmpty().contains(example.getValue());
   }
 
+  @Test
+  public void testOrder() {
+    List<T> items = sortedItems();
+    NgramFilter<T> filter = buildFilter(items, true, ngramProperties);
+    List<T> result = filter.find(sortedExample(items));
+    assertThat(result).isEqualTo(sortedResult(items));
+  }
+
+
+
   protected abstract NgramFilter<T> buildFilter(List<T> items,
                                                 boolean enabled,
                                                 ClustersProperties.NgramProperties ngramProperties);
@@ -39,4 +50,10 @@ abstract class AbstractNgramFilterTest<T> {
   protected abstract Comparator<T> comparator();
 
   protected abstract Map.Entry<String, T> example(List<T> items);
+
+  protected abstract List<T> sortedItems();
+
+  protected abstract String sortedExample(List<T> items);
+
+  protected abstract List<T> sortedResult(List<T> items);
 }
