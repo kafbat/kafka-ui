@@ -21,20 +21,19 @@ class ShortWordNGramAnalyzerTest {
   public static Stream<Arguments> provider() {
     return Stream.of(
         Arguments.of("hello.world.text", List.of(
-            "he","hel","hell","el","ell","ello","ll","llo","lo","hello",
-            "wo","wor","worl","or","orl","orld","rl","rld","ld","world","te",
-            "tex","text","ex","ext","xt"
+            "he", "hel", "hell", "el", "ell", "ello", "ll", "llo", "lo", "hello",
+            "wo", "wor", "worl", "or", "orl", "orld", "rl", "rld", "ld", "world", "te",
+            "tex", "text", "ex", "ext", "xt"
         )),
         Arguments.of("helloWorldText", List.of(
-            "he","hel","hell","el","ell","ello","ll","llo","lo","hello",
-            "wo","wor","worl","or","orl","orld","rl","rld","ld","world","te",
-            "tex","text","ex","ext","xt"
-
+            "he", "hel", "hell", "el", "ell", "ello", "ll", "llo", "lo", "hello",
+            "wo", "wor", "worl", "or", "orl", "orld", "rl", "rld", "ld", "world", "te",
+            "tex", "text", "ex", "ext", "xt"
         )),
         Arguments.of("hello:world:text", List.of(
-            "he","hel","hell","el","ell","ello","ll","llo","lo","hello",
-            "wo","wor","worl","or","orl","orld","rl","rld","ld","world","te",
-            "tex","text","ex","ext","xt"
+            "he", "hel", "hell", "el", "ell", "ello", "ll", "llo", "lo", "hello",
+            "wo", "wor", "worl", "or", "orl", "orld", "rl", "rld", "ld", "world", "te",
+            "tex", "text", "ex", "ext", "xt"
         ))
     );
   }
