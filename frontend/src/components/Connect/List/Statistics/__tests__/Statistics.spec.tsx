@@ -25,7 +25,7 @@ describe('Kafka Connect Connectors Statistics', () => {
   function renderComponent({ data = [], isLoading }: RenderComponentProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useConnectorsMock.mockReturnValue({ data, isLoading } as any);
-    render(<ConnectorsStatistics />);
+    render(<ConnectorsStatistics connectors={data} isLoading={isLoading} />);
   }
 
   describe('when data loading', () => {

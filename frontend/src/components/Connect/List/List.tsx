@@ -1,19 +1,12 @@
 import React from 'react';
-
-import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterNameRoute } from 'lib/paths';
-import { useConnectors } from 'lib/hooks/api/kafkaConnect';
-import { useSearchParams } from 'react-router-dom';
 import { ConnectorsTable } from 'components/Connect/List/ConnectorsTable/ConnectorsTable';
+import { FullConnectorInfo } from 'generated-sources';
 
-const List: React.FC = () => {
-  const { clusterName } = useAppParams<ClusterNameRoute>();
-  const [searchParams] = useSearchParams();
-  const { data: connectors = [] } = useConnectors(
-    clusterName,
-    searchParams.get('q') || ''
-  );
+interface ConnectorsListProps {
+  connectors: FullConnectorInfo[];
+}
 
+const List: React.FC<ConnectorsListProps> = ({ connectors }) => {
   return <ConnectorsTable connectors={connectors} />;
 };
 

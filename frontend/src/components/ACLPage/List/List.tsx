@@ -30,7 +30,6 @@ import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import ClusterContext from 'components/contexts/ClusterContext';
 
-
 import * as S from './List.styled';
 
 const ACList: React.FC = () => {
