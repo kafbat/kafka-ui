@@ -74,8 +74,10 @@ public class LuceneTopicsIndex implements TopicsIndex {
         doc.add(new LongPoint(FIELD_SIZE, topic.getSegmentSize()));
         if (topic.getTopicConfigs() != null && !topic.getTopicConfigs().isEmpty()) {
           for (InternalTopicConfig topicConfig : topic.getTopicConfigs()) {
-            doc.add(new StringField(FIELD_CONFIG_PREFIX + "_" + topicConfig.getName(), topicConfig.getValue(),
-                Field.Store.NO));
+            if (topicConfig.getName() != null || topicConfig.getValue() != null) {
+              doc.add(new StringField(FIELD_CONFIG_PREFIX + "_" + topicConfig.getName(), topicConfig.getValue(),
+                  Field.Store.NO));
+            }
           }
         }
         doc.add(new StringField(FIELD_INTERNAL, String.valueOf(topic.isInternal()), Field.Store.NO));
