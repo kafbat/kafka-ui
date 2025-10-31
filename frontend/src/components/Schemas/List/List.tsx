@@ -24,6 +24,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { useGetSchemas } from 'lib/hooks/api/schemas';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
@@ -32,6 +34,7 @@ const List: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isFtsEnabled } = useFts('schemas');
   const {
     isInitialLoading,
     isError,
@@ -45,6 +48,7 @@ const List: React.FC = () => {
     sortOrder:
       (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
       undefined,
+    fts: isFtsEnabled,
   });
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
@@ -111,7 +115,10 @@ const List: React.FC = () => {
         )}
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Schema Name" />
+        <Search
+          placeholder="Search by Schema Name"
+          extraActions={<Fts resourceName="schemas" />}
+        />
       </ControlPanelWrapper>
       {isInitialLoading || isError ? (
         <PageLoader />

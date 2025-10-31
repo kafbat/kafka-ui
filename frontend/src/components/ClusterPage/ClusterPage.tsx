@@ -42,7 +42,7 @@ const ClusterPage: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const appInfo = React.useContext(GlobalSettingsContext);
 
-  const { data } = useClusters();
+  const { data, isFetched } = useClusters();
   const contextValue = React.useMemo(() => {
     const cluster = data?.find(({ name }) => name === clusterName);
     const features = cluster?.features || [];
@@ -61,8 +61,16 @@ const ClusterPage: React.FC = () => {
       hasAclViewConfigured:
         features.includes(ClusterFeaturesEnum.KAFKA_ACL_VIEW) ||
         features.includes(ClusterFeaturesEnum.KAFKA_ACL_EDIT),
+      ftsEnabled: features.includes(ClusterFeaturesEnum.FTS_ENABLED),
+      ftsDefaultEnabled: features.includes(
+        ClusterFeaturesEnum.FTS_DEFAULT_ENABLED
+      ),
     };
   }, [clusterName, data]);
+
+  if (!isFetched) {
+    return <PageLoader />;
+  }
 
   return (
     <Suspense fallback={<PageLoader />}>
