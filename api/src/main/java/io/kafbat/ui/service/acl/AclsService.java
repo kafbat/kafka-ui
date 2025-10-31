@@ -75,10 +75,7 @@ public class AclsService {
                                    Boolean fts) {
     return adminClientService.get(cluster)
       .flatMap(c -> c.listAcls(filter))
-      .flatMapIterable(acls -> acls)
-      .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
-      .collectList()
-      .map(lst -> filter(lst, principalSearch, fts))
+      .map(lst -> filter(new ArrayList<>(lst), principalSearch, fts))
       .flatMapMany(Flux::fromIterable)
       .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
   }

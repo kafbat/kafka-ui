@@ -50,6 +50,12 @@ class ShortWordAnalyzerTest {
             Tuples.of("hello", 0, 5),
             Tuples.of("world", 5, 10),
             Tuples.of("text", 10, 14)
+        )),
+        Arguments.of("hello:world:text", List.of(
+            Tuples.of("hello:world:text", 0, 16),
+            Tuples.of("hello", 0, 5),
+            Tuples.of("world", 6, 11),
+            Tuples.of("text", 12, 16)
         ))
     );
   }
