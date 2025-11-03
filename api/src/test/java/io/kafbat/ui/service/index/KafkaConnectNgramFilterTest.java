@@ -52,7 +52,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             "class",
             ConnectorTypeDTO.SINK,
             List.of(),
-            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
             0
         ),
@@ -62,7 +62,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             "class",
             ConnectorTypeDTO.SINK,
             List.of(),
-            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
             0
         )
@@ -83,20 +83,17 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             "class",
             ConnectorTypeDTO.SINK,
             List.of(),
-            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
-        ),
+            0),
         new FullConnectorInfoDTO(
             "connect-pay",
             "connector-pay",
             "class",
             ConnectorTypeDTO.SINK,
             List.of(),
-            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "reason"),
+            new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
-        )
-    );
+            0));
   }
 }
