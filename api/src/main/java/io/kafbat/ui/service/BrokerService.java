@@ -73,7 +73,8 @@ public class BrokerService {
         .map(description -> description.getNodes().stream()
             .map(node -> new InternalBroker(node, partitionsDistribution, stats.getMetrics()))
             .collect(Collectors.toList()))
-        .flatMapMany(Flux::fromIterable);
+        .flatMapMany(Flux::fromIterable)
+        .doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
   public Mono<Void> updateBrokerLogDir(KafkaCluster cluster,
