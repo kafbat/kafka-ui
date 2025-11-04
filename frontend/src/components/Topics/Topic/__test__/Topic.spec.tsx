@@ -77,6 +77,8 @@ describe('Details', () => {
           hasKafkaConnectConfigured: true,
           hasSchemaRegistryConfigured: true,
           isTopicDeletionAllowed: true,
+          ftsEnabled: false,
+          ftsDefaultEnabled: false,
         }}
       >
         <WithRoute path={getNonExactPath(clusterTopicPath())}>

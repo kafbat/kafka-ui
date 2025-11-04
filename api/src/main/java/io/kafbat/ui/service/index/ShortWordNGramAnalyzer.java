@@ -8,7 +8,7 @@ import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
 import org.apache.lucene.analysis.ngram.NGramTokenFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
-class ShortWordNGramAnalyzer extends Analyzer {
+public class ShortWordNGramAnalyzer extends Analyzer {
   private final int minGram;
   private final int maxGram;
   private final boolean preserveOriginal;
