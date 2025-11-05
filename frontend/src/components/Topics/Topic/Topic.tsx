@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import {
+  clusterTopicConnectorsRelativePath,
   clusterTopicConsumerGroupsRelativePath,
   clusterTopicEditRelativePath,
   clusterTopicMessagesRelativePath,
@@ -22,13 +23,21 @@ import {
   useClearTopicMessages,
   useDeleteTopic,
   useRecreateTopic,
+  useTopicConnectors,
   useTopicDetails,
 } from 'lib/hooks/api/topics';
-import { Action, CleanUpPolicy, ResourceType } from 'generated-sources';
+import {
+  Action,
+  CleanUpPolicy,
+  ResourceType,
+  TopicMessage,
+} from 'generated-sources';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import SlidingSidebar from 'components/common/SlidingSidebar';
 import useBoolean from 'lib/hooks/useBoolean';
+import { useProduceMessage } from 'lib/hooks/useProduceMessage';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 
 import Messages from './Messages/Messages';
 import Overview from './Overview/Overview';
@@ -36,6 +45,7 @@ import Settings from './Settings/Settings';
 import TopicConsumerGroups from './ConsumerGroups/TopicConsumerGroups';
 import Statistics from './Statistics/Statistics';
 import Edit from './Edit/Edit';
+import Connectors from './Connectors/Connectors';
 import SendMessage from './SendMessage/SendMessage';
 
 const Topic: React.FC = () => {
@@ -44,12 +54,29 @@ const Topic: React.FC = () => {
     setFalse: closeSidebar,
     setTrue: openSidebar,
   } = useBoolean(false);
+
+  const { messageData, setMessage, clearMessage } = useProduceMessage();
+
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
+
+  const openSidebarWithMessage = (message: TopicMessage) => {
+    setMessage(message);
+    openSidebar();
+  };
+
+  const handleCloseSidebar = () => {
+    clearMessage();
+    closeSidebar();
+  };
 
   const navigate = useNavigate();
   const deleteTopic = useDeleteTopic(clusterName);
   const recreateTopic = useRecreateTopic({ clusterName, topicName });
   const { data } = useTopicDetails({ clusterName, topicName });
+  const { data: connectors = [] } = useTopicConnectors({
+    clusterName,
+    topicName,
+  });
 
   const { isReadOnly, isTopicDeletionAllowed } =
     React.useContext(ClusterContext);
@@ -64,6 +91,7 @@ const Topic: React.FC = () => {
     await clearMessages.mutateAsync(topicName);
   };
   const canCleanup = data?.cleanUpPolicy === CleanUpPolicy.DELETE;
+  const isConnectorsAvailable = connectors.length > 0;
 
   return (
     <>
@@ -205,36 +233,61 @@ const Topic: React.FC = () => {
         >
           Statistics
         </ActionNavLink>
+        {isConnectorsAvailable && (
+          <ActionNavLink
+            to={clusterTopicConnectorsRelativePath}
+            className={({ isActive }) => (isActive ? 'is-active' : '')}
+            permission={{
+              resource: ResourceType.TOPIC,
+              action: Action.ANALYSIS_VIEW,
+              value: topicName,
+            }}
+          >
+            Connectors
+          </ActionNavLink>
+        )}
       </Navbar>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route index element={<Overview />} />
-          <Route
-            path={clusterTopicMessagesRelativePath}
-            element={<Messages />}
-          />
-          <Route
-            path={clusterTopicSettingsRelativePath}
-            element={<Settings />}
-          />
-          <Route
-            path={clusterTopicConsumerGroupsRelativePath}
-            element={<TopicConsumerGroups />}
-          />
-          <Route
-            path={clusterTopicStatisticsRelativePath}
-            element={<Statistics />}
-          />
-          <Route path={clusterTopicEditRelativePath} element={<Edit />} />
-        </Routes>
-      </Suspense>
+      <TopicActionsProvider openSidebarWithMessage={openSidebarWithMessage}>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route index element={<Overview />} />
+            <Route
+              path={clusterTopicMessagesRelativePath}
+              element={<Messages />}
+            />
+            <Route
+              path={clusterTopicSettingsRelativePath}
+              element={<Settings />}
+            />
+            <Route
+              path={clusterTopicConsumerGroupsRelativePath}
+              element={<TopicConsumerGroups />}
+            />
+            <Route
+              path={clusterTopicStatisticsRelativePath}
+              element={<Statistics />}
+            />
+            {isConnectorsAvailable && (
+              <Route
+                path={clusterTopicConnectorsRelativePath}
+                element={<Connectors connectors={connectors} />}
+              />
+            )}
+            <Route path={clusterTopicEditRelativePath} element={<Edit />} />
+          </Routes>
+        </Suspense>
+      </TopicActionsProvider>
       <SlidingSidebar
         open={isSidebarOpen}
-        onClose={closeSidebar}
+        onClose={handleCloseSidebar}
         title="Produce Message"
       >
         <Suspense fallback={<PageLoader />}>
-          <SendMessage closeSidebar={closeSidebar} />
+          <SendMessage
+            key={messageData ? 'with-message' : 'empty'}
+            closeSidebar={closeSidebar}
+            messageData={messageData}
+          />
         </Suspense>
       </SlidingSidebar>
     </>

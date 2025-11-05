@@ -156,6 +156,7 @@ export const clusterTopicSettingsRelativePath = 'settings';
 export const clusterTopicMessagesRelativePath = 'messages';
 export const clusterTopicConsumerGroupsRelativePath = 'consumer-groups';
 export const clusterTopicStatisticsRelativePath = 'statistics';
+export const clusterTopicConnectorsRelativePath = 'connectors';
 export const clusterTopicEditRelativePath = 'edit';
 export const clusterTopicPath = (
   clusterName: ClusterName = RouteParams.clusterName,
@@ -215,6 +216,7 @@ export const clusterConnectConnectorRelativePath = `${clusterConnectsRelativePat
 export const clusterConnectorNewRelativePath = 'create-new';
 const clusterConnectConnectorTasksRelativePath = 'tasks';
 export const clusterConnectConnectorConfigRelativePath = 'config';
+export const clusterConnectConnectorTopicsRelativePath = 'topics';
 
 export const clusterConnectsPath = (
   clusterName: ClusterName = RouteParams.clusterName
@@ -280,6 +282,16 @@ export const clusterConnectConnectorConfigPath = (
     connectName,
     connectorName
   )}/${clusterConnectConnectorConfigRelativePath}`;
+export const clusterConnectConnectorTopicsPath = (
+  clusterName: ClusterName = RouteParams.clusterName,
+  connectName: Connect['name'] = RouteParams.connectName,
+  connectorName: Connector['name'] = RouteParams.connectorName
+) =>
+  `${clusterConnectConnectorPath(
+    clusterName,
+    connectName,
+    connectorName
+  )}/${clusterConnectConnectorTopicsRelativePath}`;
 
 export type RouterParamsClusterConnectConnector = {
   clusterName: ClusterName;

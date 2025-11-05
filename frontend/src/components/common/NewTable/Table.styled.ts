@@ -129,6 +129,7 @@ export const Th = styled.th<ThProps>(
   width: ${expander ? '5px' : 'auto'};
   white-space: nowrap;
   position: relative;
+  user-select: none;
 
   & > ${TableHeaderContent} {
     cursor: default;
@@ -143,13 +144,6 @@ export const Th = styled.th<ThProps>(
   }
 `
 );
-
-export const TableHeaderFilter = styled.div`
-  padding: 4px;
-  position: absolute;
-  right: 0px;
-  z-index: 10000;
-`;
 
 interface RowProps {
   clickable?: boolean;

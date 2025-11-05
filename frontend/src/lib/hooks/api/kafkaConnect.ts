@@ -3,14 +3,17 @@ import {
   Connector,
   ConnectorAction,
   NewConnector,
+  Topic,
 } from 'generated-sources';
 import { kafkaConnectApiClient as api } from 'lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { showSuccessAlert } from 'lib/errorHandling';
+import { topicKeys } from 'lib/hooks/api/topics';
 
 interface UseConnectorProps {
   clusterName: ClusterName;
+  topicName?: Topic['name'];
   connectName: Connect['name'];
   connectorName: Connector['name'];
 }
@@ -25,11 +28,24 @@ const connectsKey = (clusterName: ClusterName, withStats?: boolean) => [
   'connects',
   withStats,
 ];
-const connectorsKey = (clusterName: ClusterName, search?: string) => {
-  const base = ['clusters', clusterName, 'connectors'];
+const connectorsKey = (
+  clusterName: ClusterName,
+  search?: string,
+  fts?: boolean
+) => {
+  let base: Array<string | { search: string } | { fts: boolean }> = [
+    'clusters',
+    clusterName,
+    'connectors',
+  ];
   if (search) {
-    return [...base, { search }];
+    base = [...base, { search }];
   }
+
+  if (fts) {
+    base = [...base, { fts }];
+  }
+
   return base;
 };
 const connectorKey = (props: UseConnectorProps) => [
@@ -50,11 +66,16 @@ export function useConnects(clusterName: ClusterName, withStats?: boolean) {
     api.getConnects({ clusterName, withStats })
   );
 }
-export function useConnectors(clusterName: ClusterName, search?: string) {
+export function useConnectors(
+  clusterName: ClusterName,
+  search?: string,
+  fts?: boolean
+) {
   return useQuery(
-    connectorsKey(clusterName, search),
-    () => api.getAllConnectors({ clusterName, search }),
+    connectorsKey(clusterName, search, fts),
+    () => api.getAllConnectors({ clusterName, search, fts }),
     {
+      keepPreviousData: true,
       select: (data) =>
         [...data].sort((a, b) => {
           if (a.name < b.name) {
@@ -102,6 +123,13 @@ export function useUpdateConnectorState(props: UseConnectorProps) {
         Promise.all([
           client.invalidateQueries(connectorsKey(props.clusterName)),
           client.invalidateQueries(connectorKey(props)),
+          props.topicName &&
+            client.invalidateQueries(
+              topicKeys.connectors({
+                clusterName: props.clusterName,
+                topicName: props.topicName,
+              })
+            ),
         ]),
     }
   );

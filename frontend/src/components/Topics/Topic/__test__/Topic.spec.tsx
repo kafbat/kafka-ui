@@ -21,6 +21,7 @@ import {
   useDeleteTopic,
   useRecreateTopic,
   useTopicDetails,
+  useTopicConnectors,
 } from 'lib/hooks/api/topics';
 
 const mockNavigate = jest.fn();
@@ -33,6 +34,7 @@ jest.mock('lib/hooks/api/topics', () => ({
   useDeleteTopic: jest.fn(),
   useRecreateTopic: jest.fn(),
   useClearTopicMessages: jest.fn(),
+  useTopicConnectors: jest.fn(),
 }));
 
 const clearTopicMessages = jest.fn();
@@ -75,6 +77,8 @@ describe('Details', () => {
           hasKafkaConnectConfigured: true,
           hasSchemaRegistryConfigured: true,
           isTopicDeletionAllowed: true,
+          ftsEnabled: false,
+          ftsDefaultEnabled: false,
         }}
       >
         <WithRoute path={getNonExactPath(clusterTopicPath())}>
@@ -97,6 +101,9 @@ describe('Details', () => {
     }));
     (useClearTopicMessages as jest.Mock).mockImplementation(() => ({
       mutateAsync: clearTopicMessages,
+    }));
+    (useTopicConnectors as jest.Mock).mockImplementation(() => ({
+      data: [],
     }));
   });
   describe('Action Bar', () => {
@@ -132,7 +139,7 @@ describe('Details', () => {
 
     describe('when clear messages modal is open', () => {
       beforeEach(async () => {
-        await renderComponent();
+        renderComponent();
         const confirmButton = screen.getAllByText('Clear messages')[0];
         await userEvent.click(confirmButton);
       });

@@ -217,6 +217,7 @@ enum ConnectorState {
 model ConnectorStatus {
   state: ConnectorState;
   workerId?: string;
+  trace?: string;
 }
 
 model Connector {
@@ -225,6 +226,7 @@ model Connector {
   type: ConnectorType;
   status: ConnectorStatus;
   connect: string;
+  topics?: string[];
 }
 
 enum ConnectorAction {

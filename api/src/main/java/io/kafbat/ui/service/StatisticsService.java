@@ -8,8 +8,10 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import reactor.core.publisher.Mono;
 public class StatisticsService {
 
   private final AdminClientService adminClientService;
+  private final KafkaConnectService kafkaConnectService;
   private final FeatureService featureService;
   private final StatisticsCache cache;
   private final ClustersProperties clustersProperties;
@@ -38,19 +41,23 @@ public class StatisticsService {
                     .then(
                         Mono.zip(
                             featureService.getAvailableFeatures(ac, cluster, description),
-                            loadClusterState(description, ac)
+                            loadClusterState(description, ac),
+                            loadKafkaConnects(cluster)
                         ).flatMap(t ->
                             scrapeMetrics(cluster, t.getT2(), description)
-                                .map(metrics -> createStats(description, t.getT1(), t.getT2(), metrics, ac)))))
-            .doOnError(e ->
-                log.error("Failed to collect cluster {} info", cluster.getName(), e))
+                                .map(metrics -> createStats(description, t.getT1(), t.getT2(), t.getT3(), metrics, ac))
+                        )
+                    )
+            ).doOnError(e ->
+                log.error("Failed to collect cluster {} info", cluster.getName(), e)
+            ).doOnError(e -> adminClientService.invalidate(cluster, e))
             .onErrorResume(t -> Mono.just(Statistics.statsUpdateError(t))));
   }
 
   private Statistics createStats(ClusterDescription description,
                                  List<ClusterFeature> features,
                                  ScrapedClusterState scrapedClusterState,
-                                 Metrics metrics,
+                                 List<KafkaConnectState> connects, Metrics metrics,
                                  ReactiveAdminClient ac) {
     return Statistics.builder()
         .status(ServerStatusDTO.ONLINE)
@@ -59,6 +66,11 @@ public class StatisticsService {
         .metrics(metrics)
         .features(features)
         .clusterState(scrapedClusterState)
+        .connectStates(
+            connects.stream().collect(
+                Collectors.toMap(KafkaConnectState::getName, c -> c)
+            )
+        )
         .build();
   }
 
@@ -72,6 +84,10 @@ public class StatisticsService {
                                       ClusterDescription clusterDescription) {
     return cluster.getMetricsScrapping()
         .scrape(clusterState, clusterDescription.getNodes());
+  }
+
+  private Mono<List<KafkaConnectState>> loadKafkaConnects(KafkaCluster cluster) {
+    return kafkaConnectService.scrapeAllConnects(cluster).collectList();
   }
 
 }

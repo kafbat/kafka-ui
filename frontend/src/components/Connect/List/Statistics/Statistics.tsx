@@ -1,17 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { FC, useMemo } from 'react';
 import * as Statistics from 'components/common/Statistics';
 import { FullConnectorInfo } from 'generated-sources';
 
 import { computeStatistics } from './models/computeStatistics';
 
-type Props = {
+interface ConnectorsStatisticsProps {
   connectors: FullConnectorInfo[];
   isLoading: boolean;
-};
-const ConnectorsStatistics = ({ connectors, isLoading }: Props) => {
-  const statistics = useMemo(() => {
-    return computeStatistics(connectors);
-  }, [connectors]);
+}
+const ConnectorsStatistics: FC<ConnectorsStatisticsProps> = ({
+  connectors,
+  isLoading,
+}) => {
+  const statistics = useMemo(() => computeStatistics(connectors), [connectors]);
 
   return (
     <Statistics.Container role="group">
