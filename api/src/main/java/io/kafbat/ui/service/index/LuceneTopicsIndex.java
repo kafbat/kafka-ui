@@ -81,7 +81,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
               doc.add(new StringField(FIELD_CONFIG_PREFIX + "_" + topicConfig.getName(), topicConfig.getValue(),
                   Field.Store.NO));
             } else {
-              log.warn(
+              log.info(
                   "Topic configuration item '{}' on internal topic '{}' has an unexpected value of null"
                   + "; skipping processing", topicConfig.getName(), topic.getName()
               );
