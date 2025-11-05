@@ -246,8 +246,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     // Transform topic name from {env}.{topic_name} to {topic_name}
     // Example: "development.integration_events.connection_management.entities.connection" 
     // becomes "integration_events.connection_management.entities.connection"
-    String transformedTopic = topic.contains(".") ? 
-        topic.substring(topic.indexOf(".") + 1) : topic;
+    String transformedTopic = topic.contains(".")
+        ? topic.substring(topic.indexOf(".") + 1)
+        : topic;
     
     // Apply the schema naming template with the transformed topic name
     return String.format(type == Target.KEY ? keySchemaNameTemplate : valueSchemaNameTemplate, transformedTopic);

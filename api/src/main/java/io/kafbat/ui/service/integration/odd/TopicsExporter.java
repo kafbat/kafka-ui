@@ -106,8 +106,9 @@ class TopicsExporter {
     // Transform topic name from {env}.{topic_name} to {topic_name}
     // Example: "development.integration_events.connection_management.entities.connection" 
     // becomes "integration_events.connection_management.entities.connection"
-    String transformedTopic = topic.contains(".") ? 
-        topic.substring(topic.indexOf(".") + 1) : topic;
+    String transformedTopic = topic.contains(".")
+        ? topic.substring(topic.indexOf(".") + 1)
+        : topic;
     String subject = transformedTopic + (isKey ? "-key" : "-value");
     return getSubjWithResolvedRefs(cluster, subject)
         .map(t -> DataSetFieldsExtractors.extract(t.getT1(), t.getT2(), topicOddrn, isKey))
