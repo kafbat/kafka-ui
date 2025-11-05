@@ -71,6 +71,26 @@ class SchemaRegistrySerdeTest {
   }
 
   @Test
+  @SneakyThrows
+  void transformsEnvironmentPrefixedTopicNames() {
+    // Test with environment-prefixed topic name
+    String topic = "development.integration_events.connection_management.entities.connection";
+    String expectedSubject = "integration_events.connection_management.entities.connection-key";
+    
+    int schemaId = registryClient.register(expectedSubject, new AvroSchema("{ \"type\": \"int\" }"));
+    int registeredVersion = registryClient.getLatestSchemaMetadata(expectedSubject).getVersion();
+
+    var schemaOptional = serde.getSchema(topic, Serde.Target.KEY);
+    assertThat(schemaOptional).isPresent();
+
+    SchemaDescription schemaDescription = schemaOptional.get();
+    assertThat(schemaDescription.getAdditionalProperties())
+        .containsEntry("subject", expectedSubject)
+        .containsEntry("schemaId", schemaId)
+        .containsEntry("latestVersion", registeredVersion);
+  }
+
+  @Test
   void serializeTreatsInputAsJsonAvroSchemaPayload() throws RestClientException, IOException {
     AvroSchema schema = new AvroSchema(
         "{"
