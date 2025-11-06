@@ -49,7 +49,8 @@ public class StatisticsService {
                         )
                     )
             ).doOnError(e ->
-                log.error("Failed to collect cluster {} info", cluster.getName(), e))
+                log.error("Failed to collect cluster {} info", cluster.getName(), e)
+            ).doOnError(e -> adminClientService.invalidate(cluster, e))
             .onErrorResume(t -> Mono.just(Statistics.statsUpdateError(t))));
   }
 
