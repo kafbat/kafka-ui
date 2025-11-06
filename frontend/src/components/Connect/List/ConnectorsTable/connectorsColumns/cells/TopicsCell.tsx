@@ -1,7 +1,6 @@
 import React from 'react';
 import { FullConnectorInfo } from 'generated-sources';
 import { CellContext } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
 import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 import { ClusterNameRoute, clusterTopicPath } from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -13,31 +12,18 @@ const TopicsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
 }) => {
   const { topics } = row.original;
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const navigate = useNavigate();
-
-  const navigateToTopic = (
-    e: React.KeyboardEvent | React.MouseEvent,
-    topic: string
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigate(clusterTopicPath(clusterName, topic));
-  };
 
   return (
     <S.TagsWrapper>
-      {topics?.map((t) => (
-        <MultiLineTag key={t} color="green">
-          <span
-            role="link"
-            onClick={(e) => navigateToTopic(e, t)}
-            onKeyDown={(e) => navigateToTopic(e, t)}
-            tabIndex={0}
-          >
-            {t}
-          </span>
-        </MultiLineTag>
-      ))}
+      {topics?.map((t) => {
+        const href = clusterTopicPath(clusterName, t);
+
+        return (
+          <MultiLineTag key={t} color="green">
+            <a href={href}>{t}</a>
+          </MultiLineTag>
+        );
+      })}
     </S.TagsWrapper>
   );
 };
