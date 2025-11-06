@@ -26,6 +26,34 @@ interface SendMessageProps {
   messageData?: Partial<MessageFormData> | null;
 }
 
+// JSON formatting utility with comprehensive error handling
+const formatJsonString = (input: string): { formatted: string; error: string | null } => {
+  if (!input || input.trim() === '') {
+    return { formatted: input, error: null };
+  }
+  
+  try {
+    const parsed = JSON.parse(input);
+    const formatted = JSON.stringify(parsed, null, 2);
+    return { formatted, error: null };
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : 'Invalid JSON format';
+    return { formatted: input, error: errorMessage };
+  }
+};
+
+// JSON validation utility for optional validation
+const validateJsonField = (value: string, fieldName: string, validateJson: boolean): boolean | string => {
+  if (!validateJson || !value || value.trim() === '') return true;
+  
+  try {
+    JSON.parse(value);
+    return true;
+  } catch (e) {
+    return `Invalid JSON in ${fieldName} field: ${e instanceof Error ? e.message : 'Parse error'}`;
+  }
+};
+
 const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
   messageData = null,
@@ -38,6 +66,13 @@ const SendMessage: React.FC<SendMessageProps> = ({
     use: SerdeUsage.SERIALIZE,
   });
   const sendMessage = useSendMessage({ clusterName, topicName });
+  
+  // Formatting state management
+  const [formatKey, setFormatKey] = React.useState<boolean>(false);
+  const [formatValue, setFormatValue] = React.useState<boolean>(false);
+  const [formatHeaders, setFormatHeaders] = React.useState<boolean>(false);
+  const [validateJson, setValidateJson] = React.useState<boolean>(false);
+
   const defaultValues = React.useMemo(() => getDefaultValues(serdes), [serdes]);
   const partitionOptions = React.useMemo(
     () => getPartitionOptions(topic?.partitions || []),
@@ -59,10 +94,39 @@ const SendMessage: React.FC<SendMessageProps> = ({
     formState: { isSubmitting },
     control,
     setValue,
+    watch,
   } = useForm<MessageFormData>({
     mode: 'onChange',
     defaultValues: formDefaults,
   });
+
+  // Format toggle handler with error handling and user feedback
+  const handleFormatToggle = React.useCallback((field: 'key' | 'content' | 'headers') => {
+    const currentValue = watch(field) || '';
+    const { formatted, error } = formatJsonString(currentValue);
+    
+    if (error) {
+      showAlert('error', {
+        id: `format-error-${field}`,
+        title: 'Format Error',
+        message: `Cannot format ${field}: ${error}`,
+      });
+    } else {
+      setValue(field, formatted);
+      // Update formatting state
+      switch (field) {
+        case 'key': 
+          setFormatKey(true); 
+          break;
+        case 'content': 
+          setFormatValue(true); 
+          break;
+        case 'headers': 
+          setFormatHeaders(true); 
+          break;
+      }
+    }
+  }, [watch, setValue]);
 
   const submit = async ({
     keySerde,
@@ -75,9 +139,21 @@ const SendMessage: React.FC<SendMessageProps> = ({
   }: MessageFormData) => {
     let errors: string[] = [];
 
+    // JSON validation if enabled
+    if (validateJson) {
+      const keyValidation = validateJsonField(key || '', 'key', validateJson);
+      const contentValidation = validateJsonField(content || '', 'content', validateJson);
+      const headersValidation = validateJsonField(headers || '', 'headers', validateJson);
+
+      if (typeof keyValidation === 'string') errors.push(keyValidation);
+      if (typeof contentValidation === 'string') errors.push(contentValidation);
+      if (typeof headersValidation === 'string') errors.push(headersValidation);
+    }
+
+    // Existing schema validation
     if (keySerde) {
       const selectedKeySerde = serdes.key?.find((k) => k.name === keySerde);
-      errors = validateBySchema(key, selectedKeySerde?.schema, 'key');
+      errors = [...errors, ...validateBySchema(key, selectedKeySerde?.schema, 'key')];
     }
 
     if (valueSerde) {
@@ -111,6 +187,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
       });
       return;
     }
+    
     try {
       await sendMessage.mutateAsync({
         key: key || null,
@@ -190,6 +267,14 @@ const SendMessage: React.FC<SendMessageProps> = ({
               />
             </S.FlexItem>
           </S.Flex>
+          <S.ValidationSection>
+            <Switch 
+              name="validateJson" 
+              onChange={setValidateJson} 
+              checked={validateJson} 
+            />
+            <InputLabel>Validate JSON before submission</InputLabel>
+          </S.ValidationSection>
           <div>
             <Controller
               control={control}
@@ -201,9 +286,22 @@ const SendMessage: React.FC<SendMessageProps> = ({
             <InputLabel>Keep contents</InputLabel>
           </div>
         </S.Columns>
+        
         <S.Columns>
-          <div>
-            <InputLabel>Key</InputLabel>
+          <S.FieldGroup>
+            <S.FieldHeader>
+              <InputLabel>Key</InputLabel>
+              <S.FormatButton
+                buttonSize="S"
+                buttonType={formatKey ? "primary" : "secondary"}
+                onClick={() => handleFormatToggle('key')}
+                aria-label="Format JSON for key field"
+                type="button"
+                disabled={isSubmitting}
+              >
+                Format JSON
+              </S.FormatButton>
+            </S.FieldHeader>
             <Controller
               control={control}
               name="key"
@@ -211,15 +309,40 @@ const SendMessage: React.FC<SendMessageProps> = ({
                 <Editor
                   readOnly={isSubmitting}
                   name={name}
-                  onChange={onChange}
+                  onChange={(newValue) => {
+                    onChange(newValue);
+                    // Reset format state when user manually edits
+                    if (formatKey && newValue !== value) {
+                      setFormatKey(false);
+                    }
+                  }}
                   value={value}
                   height="40px"
+                  mode={formatKey ? "json5" : undefined}
+                  setOptions={{
+                    showLineNumbers: formatKey,
+                    tabSize: 2,
+                    useWorker: false
+                  }}
                 />
               )}
             />
-          </div>
-          <div>
-            <InputLabel>Value</InputLabel>
+          </S.FieldGroup>
+          
+          <S.FieldGroup>
+            <S.FieldHeader>
+              <InputLabel>Value</InputLabel>
+              <S.FormatButton
+                buttonSize="S"
+                buttonType={formatValue ? "primary" : "secondary"}
+                onClick={() => handleFormatToggle('content')}
+                aria-label="Format JSON for value field"
+                type="button"
+                disabled={isSubmitting}
+              >
+                Format JSON
+              </S.FormatButton>
+            </S.FieldHeader>
             <Controller
               control={control}
               name="content"
@@ -227,32 +350,72 @@ const SendMessage: React.FC<SendMessageProps> = ({
                 <Editor
                   readOnly={isSubmitting}
                   name={name}
-                  onChange={onChange}
+                  onChange={(newValue) => {
+                    onChange(newValue);
+                    // Reset format state when user manually edits
+                    if (formatValue && newValue !== value) {
+                      setFormatValue(false);
+                    }
+                  }}
                   value={value}
                   height="280px"
+                  mode={formatValue ? "json5" : undefined}
+                  setOptions={{
+                    showLineNumbers: formatValue,
+                    tabSize: 2,
+                    useWorker: false
+                  }}
                 />
               )}
             />
-          </div>
+          </S.FieldGroup>
         </S.Columns>
+        
         <S.Columns>
-          <div>
-            <InputLabel>Headers</InputLabel>
-            <Controller
-              control={control}
-              name="headers"
-              render={({ field: { name, onChange, value } }) => (
-                <Editor
-                  readOnly={isSubmitting}
-                  name={name}
-                  onChange={onChange}
-                  value={value || '{}'}
-                  height="40px"
-                />
-              )}
-            />
-          </div>
+          <S.FieldGroup>
+            <S.FieldHeader>
+              <InputLabel>Headers</InputLabel>
+              <S.FormatButton
+                buttonSize="S"
+                buttonType={formatHeaders ? "primary" : "secondary"}
+                onClick={() => handleFormatToggle('headers')}
+                aria-label="Format JSON for headers field"
+                type="button"
+                disabled={isSubmitting}
+              >
+                Format JSON
+              </S.FormatButton>
+            </S.FieldHeader>
+            <S.ResizableEditorWrapper>
+              <Controller
+                control={control}
+                name="headers"
+                render={({ field: { name, onChange, value } }) => (
+                  <Editor
+                    readOnly={isSubmitting}
+                    name={name}
+                    onChange={(newValue) => {
+                      onChange(newValue);
+                      // Reset format state when user manually edits
+                      if (formatHeaders && newValue !== value) {
+                        setFormatHeaders(false);
+                      }
+                    }}
+                    value={value || '{}'}
+                    height="40px"
+                    mode={formatHeaders ? "json5" : undefined}
+                    setOptions={{
+                      showLineNumbers: formatHeaders,
+                      tabSize: 2,
+                      useWorker: false
+                    }}
+                  />
+                )}
+              />
+            </S.ResizableEditorWrapper>
+          </S.FieldGroup>
         </S.Columns>
+        
         <Button
           buttonSize="M"
           buttonType="primary"
