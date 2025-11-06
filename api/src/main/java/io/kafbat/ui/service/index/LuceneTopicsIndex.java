@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -40,6 +41,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 
+@Slf4j
 public class LuceneTopicsIndex implements TopicsIndex {
   public static final String FIELD_NAME_RAW = "name_raw";
 
@@ -74,9 +76,15 @@ public class LuceneTopicsIndex implements TopicsIndex {
         doc.add(new LongPoint(FIELD_SIZE, topic.getSegmentSize()));
         if (topic.getTopicConfigs() != null && !topic.getTopicConfigs().isEmpty()) {
           for (InternalTopicConfig topicConfig : topic.getTopicConfigs()) {
-            if (topicConfig.getName() != null || topicConfig.getValue() != null) {
+            final String topicConfigValue = topicConfig.getValue();
+            if (topicConfigValue != null) {
               doc.add(new StringField(FIELD_CONFIG_PREFIX + "_" + topicConfig.getName(), topicConfig.getValue(),
                   Field.Store.NO));
+            } else {
+              log.info(
+                  "Topic configuration item '{}' on internal topic '{}' has an unexpected value of null"
+                  + "; skipping processing", topicConfig.getName(), topic.getName()
+              );
             }
           }
         }
