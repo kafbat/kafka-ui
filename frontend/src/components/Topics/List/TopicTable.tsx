@@ -72,9 +72,9 @@ const TopicTable: React.FC = () => {
         },
       },
       {
+        id: TopicColumnsToSort.REPLICATION_FACTOR,
         header: 'Replication Factor',
         accessorKey: 'replicationFactor',
-        enableSorting: false,
         size: 148,
         maxSize: 148,
       },
