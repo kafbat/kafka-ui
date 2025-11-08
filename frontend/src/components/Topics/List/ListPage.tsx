@@ -14,6 +14,8 @@ import { Action, ResourceType } from 'generated-sources';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import Fts from 'components/common/Fts/Fts';
 import useFts from 'components/common/Fts/useFts';
+import { exportTableCSV, TableProvider } from 'components/common/NewTable';
+import { Button } from 'components/common/Button/Button';
 
 const ListPage: React.FC = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
@@ -49,40 +51,60 @@ const ListPage: React.FC = () => {
   };
 
   return (
-    <>
-      <ResourcePageHeading text="Topics">
-        {!isReadOnly && (
-          <ActionButton
-            buttonType="primary"
-            buttonSize="M"
-            to={clusterTopicNewRelativePath}
-            permission={{
-              resource: ResourceType.TOPIC,
-              action: Action.CREATE,
-            }}
-          >
-            <PlusIcon /> Add a Topic
-          </ActionButton>
-        )}
-      </ResourcePageHeading>
-      <ControlPanelWrapper hasInput>
-        <Search
-          placeholder="Search by Topic Name"
-          extraActions={<Fts resourceName="topics" />}
-        />
-        <label>
-          <Switch
-            name="ShowInternalTopics"
-            checked={!searchParams.has('hideInternal')}
-            onChange={handleSwitch}
-          />
-          Show Internal Topics
-        </label>
-      </ControlPanelWrapper>
-      <Suspense fallback={<PageLoader />}>
-        <TopicTable />
-      </Suspense>
-    </>
+    <TableProvider>
+      {({ table }) => {
+        const handleExportClick = () => {
+          exportTableCSV(table, { prefix: 'topics' });
+        };
+
+        return (
+          <>
+            <ResourcePageHeading text="Topics">
+              <>
+                {!isReadOnly && (
+                  <ActionButton
+                    buttonType="primary"
+                    buttonSize="M"
+                    to={clusterTopicNewRelativePath}
+                    permission={{
+                      resource: ResourceType.TOPIC,
+                      action: Action.CREATE,
+                    }}
+                  >
+                    <PlusIcon /> Add a Topic
+                  </ActionButton>
+                )}
+
+                <Button
+                  buttonType="primary"
+                  buttonSize="M"
+                  onClick={handleExportClick}
+                >
+                  Export CSV
+                </Button>
+              </>
+            </ResourcePageHeading>
+            <ControlPanelWrapper hasInput>
+              <Search
+                placeholder="Search by Topic Name"
+                extraActions={<Fts resourceName="topics" />}
+              />
+              <label>
+                <Switch
+                  name="ShowInternalTopics"
+                  checked={!searchParams.has('hideInternal')}
+                  onChange={handleSwitch}
+                />
+                Show Internal Topics
+              </label>
+            </ControlPanelWrapper>
+            <Suspense fallback={<PageLoader />}>
+              <TopicTable />
+            </Suspense>
+          </>
+        );
+      }}
+    </TableProvider>
   );
 };
 

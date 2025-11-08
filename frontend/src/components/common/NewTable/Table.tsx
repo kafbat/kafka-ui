@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -32,6 +32,7 @@ import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import ColumnFilter, { type Persister } from './ColumnFilter';
 import { ColumnSizingPersister } from './ColumnResizer/lib/persister/types';
+import { useTableInstance } from './Provider';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -167,6 +168,8 @@ function Table<TData>({
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
 
+  const ctx = useTableInstance<TData>();
+
   const [rowSelection, setRowSelection] = React.useState({});
 
   const onSortingChange = React.useCallback(
@@ -261,6 +264,10 @@ function Table<TData>({
       },
     },
   });
+
+  useEffect(() => {
+    ctx?.setTable(table);
+  }, [table]);
 
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders();

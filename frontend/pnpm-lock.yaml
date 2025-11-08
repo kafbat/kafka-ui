@@ -90,6 +90,9 @@ importers:
       react-hot-toast:
         specifier: 2.4.1
         version: 2.4.1(csstype@3.1.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-innertext:
+        specifier: ^1.1.5
+        version: 1.1.5(@types/react@18.2.79)(react@18.2.0)
       react-is:
         specifier: 18.2.0
         version: 18.2.0
@@ -3738,6 +3741,12 @@ packages:
     peerDependencies:
       react: '>=16'
       react-dom: '>=16'
+
+  react-innertext@1.1.5:
+    resolution: {integrity: sha512-PWAqdqhxhHIv80dT9znP2KvS+hfkbRovFp4zFYHFFlOoQLRiawIic81gKb3U1wEyJZgMwgs3JoLtwryASRWP3Q==}
+    peerDependencies:
+      '@types/react': '>=0.0.0 <=99'
+      react: '>=0.0.0 <=99'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -8702,6 +8711,11 @@ snapshots:
       react-dom: 18.2.0(react@18.2.0)
     transitivePeerDependencies:
       - csstype
+
+  react-innertext@1.1.5(@types/react@18.2.79)(react@18.2.0):
+    dependencies:
+      '@types/react': 18.2.79
+      react: 18.2.0
 
   react-is@16.13.1: {}
 

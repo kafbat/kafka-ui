@@ -10,6 +10,7 @@ import { useTopics } from 'lib/hooks/api/topics';
 import { PER_PAGE } from 'lib/constants';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import useFts from 'components/common/Fts/useFts';
+import { formatBytes } from 'components/common/BytesFormatted/utils';
 
 import { TopicTitleCell } from './TopicTitleCell';
 import ActionsCell from './ActionsCell';
@@ -93,6 +94,9 @@ const TopicTable: React.FC = () => {
         accessorKey: 'segmentSize',
         size: 100,
         cell: SizeCell,
+        meta: {
+          csvFn: (row: Topic) => formatBytes(row.segmentSize, 0),
+        },
       },
       {
         id: 'actions',

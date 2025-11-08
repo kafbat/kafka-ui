@@ -68,6 +68,7 @@ export const getBrokersTableColumns = () => {
     }),
     columnHelper.accessor('replicasSkew', {
       header: SkewHeader,
+      meta: { csv: 'Replicas skew' },
       cell: Cell.Skew,
     }),
     columnHelper.accessor('partitionsLeader', { header: 'Leaders' }),

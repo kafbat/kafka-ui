@@ -10,7 +10,12 @@ import {
 import useAppParams from 'lib/hooks/useAppParams';
 import { clusterConsumerGroupDetailsPath, ClusterNameRoute } from 'lib/paths';
 import { ColumnDef } from '@tanstack/react-table';
-import Table, { LinkCell, TagCell } from 'components/common/NewTable';
+import Table, {
+  exportTableCSV,
+  LinkCell,
+  TableProvider,
+  TagCell,
+} from 'components/common/NewTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CONSUMER_GROUP_STATE_TOOLTIPS, PER_PAGE } from 'lib/constants';
 import { useConsumerGroups } from 'lib/hooks/api/consumers';
@@ -19,6 +24,7 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
+import { Button } from 'components/common/Button/Button';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -53,6 +59,9 @@ const List = () => {
           />
         ),
         size: 600,
+        meta: {
+          csvFn: (row) => row.groupId,
+        },
       },
       {
         id: ConsumerGroupOrdering.MEMBERS,
@@ -80,6 +89,9 @@ const List = () => {
         accessorKey: 'coordinator.id',
         enableSorting: false,
         size: 104,
+        meta: {
+          csvFn: (row) => String(row.coordinator?.id) || '-',
+        },
       },
       {
         id: ConsumerGroupOrdering.STATE,
@@ -97,6 +109,9 @@ const List = () => {
           );
         },
         size: 124,
+        meta: {
+          csvFn: (row) => String(row.state),
+        },
       },
     ],
     []
@@ -105,35 +120,53 @@ const List = () => {
   const columnSizingPersister = useLocalStoragePersister('Consumers');
 
   return (
-    <>
-      <ResourcePageHeading text="Consumers" />
-      <ControlPanelWrapper hasInput>
-        <Search
-          placeholder="Search by Consumer Group ID"
-          extraActions={<Fts resourceName="consumer_groups" />}
-        />
-      </ControlPanelWrapper>
-      <Table
-        columns={columns}
-        pageCount={consumerGroups.data?.pageCount || 0}
-        data={consumerGroups.data?.consumerGroups || []}
-        emptyMessage={
-          consumerGroups.isSuccess
-            ? 'No active consumer groups found'
-            : 'Loading...'
-        }
-        serverSideProcessing
-        enableSorting
-        onRowClick={({ original }) =>
-          navigate(
-            clusterConsumerGroupDetailsPath(clusterName, original.groupId)
-          )
-        }
-        enableColumnResizing
-        columnSizingPersister={columnSizingPersister}
-        disabled={consumerGroups.isFetching}
-      />
-    </>
+    <TableProvider>
+      {({ table }) => {
+        const handleExportClick = () => {
+          exportTableCSV(table, { prefix: 'consumers' });
+        };
+
+        return (
+          <>
+            <ResourcePageHeading text="Consumers">
+              <Button
+                buttonType="primary"
+                buttonSize="M"
+                onClick={handleExportClick}
+              >
+                Export CSV
+              </Button>
+            </ResourcePageHeading>
+            <ControlPanelWrapper hasInput>
+              <Search
+                placeholder="Search by Consumer Group ID"
+                extraActions={<Fts resourceName="consumer_groups" />}
+              />
+            </ControlPanelWrapper>
+            <Table
+              columns={columns}
+              pageCount={consumerGroups.data?.pageCount || 0}
+              data={consumerGroups.data?.consumerGroups || []}
+              emptyMessage={
+                consumerGroups.isSuccess
+                  ? 'No active consumer groups found'
+                  : 'Loading...'
+              }
+              serverSideProcessing
+              enableSorting
+              onRowClick={({ original }) =>
+                navigate(
+                  clusterConsumerGroupDetailsPath(clusterName, original.groupId)
+                )
+              }
+              enableColumnResizing
+              columnSizingPersister={columnSizingPersister}
+              disabled={consumerGroups.isFetching}
+            />
+          </>
+        );
+      }}
+    </TableProvider>
   );
 };
 
