@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -77,6 +77,8 @@ export interface TableProps<TData> {
   onMouseLeave?: () => void;
 
   setRowId?: (originalRow: TData) => string;
+
+  onFilterRows?: (rows: TData[]) => void;
 }
 
 type UpdaterFn<T> = (previousState: T) => T;
@@ -163,6 +165,7 @@ function Table<TData>({
   filterPersister,
   resetPaginationOnFilter = true,
   columnVisibility,
+  onFilterRows,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -272,6 +275,14 @@ function Table<TData>({
     }
     return colSizes;
   }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
+  useEffect(() => {
+    if (onFilterRows) {
+      const filteredRows = table.getFilteredRowModel().rows;
+      const filteredData = filteredRows.map((row) => row.original);
+      onFilterRows(filteredData);
+    }
+  }, [table.getState().columnFilters]);
 
   const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
     // If row selection is enabled do not handle row click.
