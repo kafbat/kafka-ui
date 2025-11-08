@@ -6,6 +6,7 @@ import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import EditIcon from 'components/common/Icons/EditIcon';
 import CancelIcon from 'components/common/Icons/CancelIcon';
+import { JSONPath } from 'jsonpath-plus';
 
 import * as S from './PreviewModal.styled';
 import { PreviewFilter } from './Message';
@@ -33,8 +34,14 @@ const PreviewModal: React.FC<InfoModalProps> = ({
       newErrors.push('field');
     }
 
-    if (path === '') {
+    if (path.trim() === '') {
       newErrors.push('path');
+    } else {
+      try {
+        JSONPath({ path, json: {} });
+      } catch {
+        newErrors.push('invalidPath');
+      }
     }
 
     if (newErrors?.length) {
@@ -111,6 +118,7 @@ const PreviewModal: React.FC<InfoModalProps> = ({
         />
         <FormError>
           {errors.includes('path') && 'Json path is required'}
+          {errors.includes('invalidPath') && 'Invalid JSONPath syntax'}
         </FormError>
       </div>
       <S.ButtonWrapper>
