@@ -274,9 +274,11 @@ function Table<TData>({
     const colSizes: { [key: string]: number } = {};
     for (let i = 0; i < headers.length; i += 1) {
       const header = headers[i]!;
+
       colSizes[`--header-${header.id}-size`] = header.getSize();
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
     }
+
     return colSizes;
   }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 

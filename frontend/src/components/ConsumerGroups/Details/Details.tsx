@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
   clusterConsumerGroupResetRelativePath,
@@ -10,14 +10,11 @@ import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
 import * as Metrics from 'components/common/Metrics';
 import { Tag } from 'components/common/Tag/Tag.styled';
-import groupBy from 'lib/functions/groupBy';
-import { Table } from 'components/common/table/Table/Table.styled';
 import getTagColor from 'components/common/Tag/getTagColor';
 import { Dropdown } from 'components/common/Dropdown';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import { Action, ConsumerGroupState, ResourceType } from 'generated-sources';
 import { ActionDropdownItem } from 'components/common/ActionComponent';
-import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
 import {
   useConsumerGroupDetails,
   useDeleteConsumerGroupMutation,
@@ -26,17 +23,15 @@ import Tooltip from 'components/common/Tooltip/Tooltip';
 import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
-import ListItem from './ListItem';
+import { TopicsTable } from './TopicsTable/TopicsTable';
 
 const Details: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const searchValue = searchParams.get('q') || '';
   const { isReadOnly } = React.useContext(ClusterContext);
   const routeParams = useAppParams<ClusterGroupParam>();
   const { clusterName, consumerGroupID } = routeParams;
 
-  const consumerGroup = useConsumerGroupDetails(routeParams);
+  const { data: consumerGroup } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
 
   const onDelete = async () => {
@@ -48,18 +43,7 @@ const Details: React.FC = () => {
     navigate(clusterConsumerGroupResetRelativePath);
   };
 
-  const partitionsByTopic = groupBy(
-    consumerGroup.data?.partitions || [],
-    'topic'
-  );
-  const filteredPartitionsByTopic = Object.keys(partitionsByTopic).filter(
-    (el) => el.includes(searchValue)
-  );
-  const currentPartitionsByTopic = searchValue.length
-    ? filteredPartitionsByTopic
-    : Object.keys(partitionsByTopic);
-
-  const hasAssignedTopics = consumerGroup?.data?.topics !== 0;
+  const hasAssignedTopics = consumerGroup?.topics !== 0;
 
   return (
     <div>
@@ -103,56 +87,40 @@ const Details: React.FC = () => {
           <Metrics.Indicator label="State">
             <Tooltip
               value={
-                <Tag color={getTagColor(consumerGroup.data?.state)}>
-                  {consumerGroup.data?.state}
+                <Tag color={getTagColor(consumerGroup?.state)}>
+                  {consumerGroup?.state}
                 </Tag>
               }
               content={
                 CONSUMER_GROUP_STATE_TOOLTIPS[
-                  consumerGroup.data?.state || ConsumerGroupState.UNKNOWN
+                  consumerGroup?.state || ConsumerGroupState.UNKNOWN
                 ]
               }
               placement="bottom-start"
             />
           </Metrics.Indicator>
           <Metrics.Indicator label="Members">
-            {consumerGroup.data?.members}
+            {consumerGroup?.members}
           </Metrics.Indicator>
           <Metrics.Indicator label="Assigned Topics">
-            {consumerGroup.data?.topics}
+            {consumerGroup?.topics}
           </Metrics.Indicator>
           <Metrics.Indicator label="Assigned Partitions">
-            {consumerGroup.data?.partitions?.length}
+            {consumerGroup?.partitions?.length}
           </Metrics.Indicator>
           <Metrics.Indicator label="Coordinator ID">
-            {consumerGroup.data?.coordinator?.id}
+            {consumerGroup?.coordinator?.id}
           </Metrics.Indicator>
           <Metrics.Indicator label="Total lag">
-            {consumerGroup.data?.consumerLag}
+            {consumerGroup?.consumerLag}
           </Metrics.Indicator>
         </Metrics.Section>
       </Metrics.Wrapper>
       <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
         <Search placeholder="Search by Topic Name" />
       </ControlPanelWrapper>
-      <Table isFullwidth>
-        <thead>
-          <tr>
-            <TableHeaderCell title="Topic" />
-            <TableHeaderCell title="Consumer Lag" />
-          </tr>
-        </thead>
-        <tbody>
-          {currentPartitionsByTopic.map((key) => (
-            <ListItem
-              clusterName={clusterName}
-              consumers={partitionsByTopic[key]}
-              name={key}
-              key={key}
-            />
-          ))}
-        </tbody>
-      </Table>
+
+      <TopicsTable partitions={consumerGroup?.partitions ?? []} />
     </div>
   );
 };
