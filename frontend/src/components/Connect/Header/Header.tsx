@@ -5,13 +5,47 @@ import ClusterContext from 'components/contexts/ClusterContext';
 import { ResourceType, Action } from 'generated-sources';
 import { useConnects } from 'lib/hooks/api/kafkaConnect';
 import useAppParams from 'lib/hooks/useAppParams';
-import { clusterConnectorNewPath, ClusterNameRoute } from 'lib/paths';
+import {
+  clusterConnectorNewPath,
+  clusterConnectorsRelativePath,
+  ClusterNameRoute,
+  kafkaConnectClustersRelativePath,
+} from 'lib/paths';
 import React from 'react';
+import { exportTableCSV, useTableInstance } from 'components/common/NewTable';
+import { Button } from 'components/common/Button/Button';
+
+type ConnectPage =
+  | typeof kafkaConnectClustersRelativePath
+  | typeof clusterConnectorsRelativePath;
+
+const getCsvPrefix = (page: ConnectPage) => {
+  let prefix = 'kafka-connect';
+
+  if (page === clusterConnectorsRelativePath) {
+    prefix += '-connectors';
+  }
+
+  if (page === kafkaConnectClustersRelativePath) {
+    prefix += '-clusters';
+  }
+
+  return prefix;
+};
 
 const Header = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
-  const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { '*': currentPath, clusterName } = useAppParams<
+    ClusterNameRoute & { ['*']: ConnectPage }
+  >();
   const { data: connects = [] } = useConnects(clusterName, true);
+
+  const { table } = useTableInstance();
+
+  const handleExportClick = () => {
+    exportTableCSV(table, { prefix: getCsvPrefix(currentPath) });
+  };
+
   return (
     <ResourcePageHeading text="Kafka Connect">
       {!isReadOnly && (
@@ -35,6 +69,10 @@ const Header = () => {
           placement="left"
         />
       )}
+
+      <Button buttonType="primary" buttonSize="M" onClick={handleExportClick}>
+        Export CSV
+      </Button>
     </ResourcePageHeading>
   );
 };

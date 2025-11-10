@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo, Context } from 'react';
 import type { Table } from '@tanstack/react-table';
 
 export type TableContextValue<T> = {
@@ -9,6 +9,14 @@ export type TableContextValue<T> = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const TableContext = createContext<TableContextValue<any> | null>(null);
 
-export const useTableInstance = <T>() => {
-  return useContext(TableContext) as TableContextValue<T> | null;
+export const useTableInstance = <D>() => {
+  const ctx = useContext<TableContextValue<D>>(
+    TableContext as Context<TableContextValue<D>>
+  );
+
+  if (ctx === null) {
+    throw new Error('useTableInstance must be used  within a provider');
+  }
+
+  return useMemo(() => ctx, [ctx]);
 };
