@@ -8,6 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import { FullConnectorInfo } from 'generated-sources';
+import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
 
 import * as S from './ListPage.styled';
 import List from './List';
@@ -26,8 +27,8 @@ const ListPage: React.FC = () => {
   );
 
   return (
-    <>
-      <ConnectorsStatistics connectors={connectors} isLoading={isLoading} />
+    <FilteredConnectorsProvider>
+      <ConnectorsStatistics isLoading={isLoading} />
       <S.Search hasInput>
         <Search
           placeholder="Search by Connect Name, Status or Type"
@@ -37,7 +38,7 @@ const ListPage: React.FC = () => {
       <Suspense fallback={<PageLoader />}>
         <List connectors={connectors} />
       </Suspense>
-    </>
+    </FilteredConnectorsProvider>
   );
 };
 
