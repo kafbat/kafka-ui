@@ -16,6 +16,7 @@ import {
   useUpdateConnectorState,
 } from 'lib/hooks/api/kafkaConnect';
 import { FullConnectorInfo } from 'generated-sources';
+import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
 
 const mockedUsedNavigate = jest.fn();
 const mockDelete = jest.fn();
@@ -42,7 +43,9 @@ const renderComponent = (
   render(
     <ClusterContext.Provider value={contextValue}>
       <WithRoute path={clusterConnectorsPath()}>
-        <List connectors={data} />
+        <FilteredConnectorsProvider>
+          <List connectors={data} />
+        </FilteredConnectorsProvider>
       </WithRoute>
     </ClusterContext.Provider>,
     { initialEntries: [clusterConnectorsPath(clusterName)] }

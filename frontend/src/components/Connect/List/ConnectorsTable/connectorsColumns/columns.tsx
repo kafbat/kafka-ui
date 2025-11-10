@@ -19,7 +19,7 @@ export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
     header: 'Connect',
     accessorKey: 'connect',
     cell: BreakableTextCell,
-    filterFn: 'arrIncludesSome',
+    filterFn: 'includesSome',
     meta: { filterVariant: 'multi-select' },
     enableResizing: true,
   },

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { FullConnectorInfo } from 'generated-sources';
 import Table from 'components/common/NewTable';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 import { VisibilityState } from '@tanstack/react-table';
+import { useFilteredConnectorsDispatch } from 'components/Connect/model/FilteredConnectorsProvider';
 
 import { connectorsColumns } from './connectorsColumns/columns';
 
@@ -21,10 +22,15 @@ export const ConnectorsTable = ({
   columnSizingPersistKey = 'KafkaConnect',
   columnVisibility,
 }: ConnectorsTableProps) => {
+  const dispath = useFilteredConnectorsDispatch();
   const filterPersister = useQueryPersister(connectorsColumns);
   const columnSizingPersister = useLocalStoragePersister(
     columnSizingPersistKey
   );
+
+  const onFilterRows = useCallback((rows: FullConnectorInfo[]) => {
+    dispath({ type: 'updated', connectors: rows });
+  }, []);
 
   return (
     <Table
@@ -37,6 +43,7 @@ export const ConnectorsTable = ({
       setRowId={setRowId}
       filterPersister={filterPersister}
       columnVisibility={columnVisibility}
+      onFilterRows={onFilterRows}
     />
   );
 };

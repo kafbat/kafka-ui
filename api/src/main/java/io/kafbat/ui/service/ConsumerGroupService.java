@@ -152,11 +152,12 @@ public class ConsumerGroupService {
       int pageNum,
       int perPage,
       @Nullable String search,
+      Boolean fts,
       ConsumerGroupOrderingDTO orderBy,
       SortOrderDTO sortOrderDto) {
     return adminClientService.get(cluster).flatMap(ac ->
         ac.listConsumerGroups()
-            .map(listing -> filterGroups(listing, search)
+            .map(listing -> filterGroups(listing, search, fts)
             )
             .flatMapIterable(lst -> lst)
             .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
@@ -169,9 +170,11 @@ public class ConsumerGroupService {
                             (allGroups.size() / perPage) + (allGroups.size() % perPage == 0 ? 0 : 1))))));
   }
 
-  private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search) {
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
-    ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts.isEnabled(), fts.getConsumers());
+  private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search,
+                                                        Boolean useFts) {
+    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+    boolean fts = ftsProperties.use(useFts);
+    ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts, ftsProperties.getConsumers());
     return filter.find(search);
   }
 
