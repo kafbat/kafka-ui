@@ -16,7 +16,7 @@ export type ExportCsvOptions = {
 };
 
 export const exportTableCSV = <T extends RowData>(
-  table: Table<T> | null,
+  table: Table<T> | null | undefined,
   options: ExportCsvOptions = {}
 ) => {
   if (!table) return;
@@ -81,7 +81,7 @@ export const exportTableCSV = <T extends RowData>(
 
           return escapeCsv(String(cellValue ?? ''));
         } catch (error) {
-          // If cell rendering fails, fall back to raw value
+          // eslint-disable-next-line no-console
           console.warn('CSV export: cell renderer failed', error);
         }
       }

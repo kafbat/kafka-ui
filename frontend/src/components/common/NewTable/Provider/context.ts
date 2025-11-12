@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, Context } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { Table } from '@tanstack/react-table';
 
 export type TableContextValue<T> = {
@@ -10,13 +10,7 @@ export type TableContextValue<T> = {
 export const TableContext = createContext<TableContextValue<any> | null>(null);
 
 export const useTableInstance = <D>() => {
-  const ctx = useContext<TableContextValue<D>>(
-    TableContext as Context<TableContextValue<D>>
-  );
-
-  if (ctx === null) {
-    throw new Error('useTableInstance must be used  within a provider');
-  }
+  const ctx = useContext<TableContextValue<D> | null>(TableContext);
 
   return useMemo(() => ctx, [ctx]);
 };
