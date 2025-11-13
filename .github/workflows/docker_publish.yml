@@ -48,7 +48,7 @@ jobs:
 
       - name: Login to docker.io
         if: matrix.registry == 'docker.io'
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # infered from @v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # infered from @v3
         with:
           registry: ${{ matrix.registry }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -56,7 +56,7 @@ jobs:
 
       - name: Login to ghcr.io
         if: matrix.registry == 'ghcr.io'
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # infered from @v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # infered from @v3
         with:
           registry: ${{ matrix.registry }}
           username: ${{ github.actor }}
