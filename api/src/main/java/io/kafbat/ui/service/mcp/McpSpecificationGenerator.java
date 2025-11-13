@@ -93,12 +93,7 @@ public class McpSpecificationGenerator {
   private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {
     HttpStatusCode statusCode = response.getStatusCode();
     if (statusCode.is2xxSuccessful() || statusCode.is1xxInformational()) {
-      Object body = response.getBody();
-      // Handle Flux response bodies by collecting them into a list
-      if (body instanceof Flux<?> flux) {
-        return flux.collectList().map(this::callToolResult);
-      }
-      return Mono.just(this.callToolResult(body));
+      return toCallResult(response.getBody());
     } else {
       try {
         return Mono.just(toErrorResult(objectMapper.writeValueAsString(response.getBody())));
