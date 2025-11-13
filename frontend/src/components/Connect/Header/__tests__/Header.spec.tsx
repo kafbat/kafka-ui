@@ -12,6 +12,13 @@ jest.mock('lib/hooks/api/kafkaConnect', () => ({
   useConnects: jest.fn(),
 }));
 
+jest.mock('components/common/NewTable', () => ({
+  useTableInstance: () => ({
+    table: null,
+  }),
+  exportTableCSV: jest.fn(),
+}));
+
 describe('Kafka Connect header', () => {
   beforeEach(() => {
     (useConnects as jest.Mock).mockImplementation(() => ({
