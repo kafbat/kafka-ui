@@ -24,6 +24,19 @@ interface TopicsApi {
     @query fts?: boolean
   ): TopicsResponse;
 
+  @get
+  @operationId("getTopicsCsv")
+  @summary("getTopics")
+  @route("csv")
+  getTopicsCsv(
+    @path clusterName: string,
+    @query showInternal?: boolean,
+    @query search?: string,
+    @query orderBy?: TopicColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
+
   @post
   @operationId("createTopic")
   @summary("createTopic")
