@@ -467,8 +467,7 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal,
-                                                          Boolean fts) {
+  public Mono<List<InternalTopic>> getTopics(KafkaCluster cluster, String search, Boolean showInternal, Boolean fts) {
     Statistics stats = statisticsCache.get(cluster);
     ScrapedClusterState clusterState = stats.getClusterState();
     boolean useFts = clustersProperties.getFts().use(fts);

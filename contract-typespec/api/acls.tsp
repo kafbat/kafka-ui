@@ -24,7 +24,14 @@ interface AclApi {
   @summary("getAclAsCsv")
   @get
   @operationId("getAclAsCsv")
-  getAclAsCsv(@path clusterName: string): string;
+  getAclAsCsv(
+    @path clusterName: string,
+    @query resourceType?: KafkaAclResourceType,
+    @query resourceName?: string,
+    @query namePatternType?: KafkaAclNamePatternType,
+    @query search?: string,
+    @query fts?: boolean
+  ): CsvResponse;
 
   @route("/csv")
   @summary("syncAclsCsv")
