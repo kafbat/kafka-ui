@@ -105,12 +105,7 @@ public class JmxMetricsRetriever implements Closeable {
     if (isSslJmxEndpoint(scrapeProperties)) {
       var truststoreConfig = scrapeProperties.getTruststoreConfig();
       var keystoreConfig = scrapeProperties.getKeystoreConfig();
-      JmxSslSocketFactory.setSslContextThreadLocal(
-          truststoreConfig != null ? truststoreConfig.getTruststoreLocation() : null,
-          truststoreConfig != null ? truststoreConfig.getTruststorePassword() : null,
-          keystoreConfig != null ? keystoreConfig.getKeystoreLocation() : null,
-          keystoreConfig != null ? keystoreConfig.getKeystorePassword() : null
-      );
+      JmxSslSocketFactory.setSslContextThreadLocal(truststoreConfig, keystoreConfig);
       JmxSslSocketFactory.editJmxConnectorEnv(env);
     }
 
@@ -144,4 +139,3 @@ public class JmxMetricsRetriever implements Closeable {
   }
 
 }
-
