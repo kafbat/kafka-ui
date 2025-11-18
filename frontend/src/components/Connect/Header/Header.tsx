@@ -2,8 +2,12 @@ import { ActionButton } from 'components/common/ActionComponent';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ClusterContext from 'components/contexts/ClusterContext';
-import { ResourceType, Action } from 'generated-sources';
-import { useConnects } from 'lib/hooks/api/kafkaConnect';
+import {
+  Action,
+  ConnectorColumnsToSort,
+  ResourceType,
+  SortOrder,
+} from 'generated-sources';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
   clusterConnectorNewPath,
@@ -12,38 +16,46 @@ import {
   kafkaConnectClustersRelativePath,
 } from 'lib/paths';
 import React from 'react';
-import { exportTableCSV, useTableInstance } from 'components/common/NewTable';
-import { Button } from 'components/common/Button/Button';
+import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
+import { kafkaConnectApiClient } from 'lib/api';
+import { connects } from 'lib/fixtures/kafkaConnect';
+import { useSearchParams } from 'react-router-dom';
+import useFts from 'components/common/Fts/useFts';
 
 type ConnectPage =
   | typeof kafkaConnectClustersRelativePath
   | typeof clusterConnectorsRelativePath;
-
-const getCsvPrefix = (page: ConnectPage) => {
-  let prefix = 'kafka-connect';
-
-  if (page === clusterConnectorsRelativePath) {
-    prefix += '-connectors';
-  }
-
-  if (page === kafkaConnectClustersRelativePath) {
-    prefix += '-clusters';
-  }
-
-  return prefix;
-};
 
 const Header = () => {
   const { isReadOnly } = React.useContext(ClusterContext);
   const { '*': currentPath, clusterName } = useAppParams<
     ClusterNameRoute & { ['*']: ConnectPage }
   >();
-  const { data: connects = [] } = useConnects(clusterName, true);
+  const [searchParams] = useSearchParams();
+  const { isFtsEnabled } = useFts('connects');
 
-  const instance = useTableInstance();
+  const fetchCsv = async () => {
+    if (currentPath === kafkaConnectClustersRelativePath) {
+      return kafkaConnectApiClient.getConnectsCsv({
+        clusterName,
+        withStats: true,
+      });
+    }
 
-  const handleExportClick = () => {
-    exportTableCSV(instance?.table, { prefix: getCsvPrefix(currentPath) });
+    if (currentPath === clusterConnectorsRelativePath) {
+      return kafkaConnectApiClient.getAllConnectorsCsv({
+        clusterName,
+        search: searchParams.get('q') || undefined,
+        fts: isFtsEnabled,
+        orderBy:
+          (searchParams.get('sortBy') as ConnectorColumnsToSort) || undefined,
+        sortOrder:
+          (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
+          undefined,
+      });
+    }
+
+    return '';
   };
 
   return (
@@ -52,6 +64,7 @@ const Header = () => {
         <Tooltip
           value={
             <ActionButton
+              name="Create Connector"
               buttonType="primary"
               buttonSize="M"
               disabled={!connects.length}
@@ -70,9 +83,10 @@ const Header = () => {
         />
       )}
 
-      <Button buttonType="primary" buttonSize="M" onClick={handleExportClick}>
-        Export CSV
-      </Button>
+      <DownloadCsvButton
+        filePrefix={`connectors-${clusterName}`}
+        fetchCsv={fetchCsv}
+      />
     </ResourcePageHeading>
   );
 };

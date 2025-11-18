@@ -10,12 +10,7 @@ import {
 import useAppParams from 'lib/hooks/useAppParams';
 import { clusterConsumerGroupDetailsPath, ClusterNameRoute } from 'lib/paths';
 import { ColumnDef } from '@tanstack/react-table';
-import Table, {
-  exportTableCSV,
-  LinkCell,
-  TableProvider,
-  TagCell,
-} from 'components/common/NewTable';
+import Table, { LinkCell, TagCell } from 'components/common/NewTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CONSUMER_GROUP_STATE_TOOLTIPS, PER_PAGE } from 'lib/constants';
 import { useConsumerGroups } from 'lib/hooks/api/consumers';
@@ -24,7 +19,8 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
-import { Button } from 'components/common/Button/Button';
+import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
+import { consumerGroupsApiClient } from 'lib/api';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -32,16 +28,20 @@ const List = () => {
   const navigate = useNavigate();
   const { isFtsEnabled } = useFts('consumer_groups');
 
-  const consumerGroups = useConsumerGroups({
+  const params = {
     clusterName,
     orderBy: (searchParams.get('sortBy') as ConsumerGroupOrdering) || undefined,
     sortOrder:
       (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
       undefined,
-    page: Number(searchParams.get('page') || 1),
-    perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || '',
     fts: isFtsEnabled,
+  };
+
+  const consumerGroups = useConsumerGroups({
+    ...params,
+    page: Number(searchParams.get('page') || 1),
+    perPage: Number(searchParams.get('perPage') || PER_PAGE),
   });
 
   const columns = React.useMemo<ColumnDef<ConsumerGroup>[]>(
@@ -119,54 +119,45 @@ const List = () => {
 
   const columnSizingPersister = useLocalStoragePersister('Consumers');
 
-  return (
-    <TableProvider>
-      {({ table }) => {
-        const handleExportClick = () => {
-          exportTableCSV(table, { prefix: 'consumers' });
-        };
+  const fetchCsv = async () => {
+    return consumerGroupsApiClient.getConsumerGroupsCsv(params);
+  };
 
-        return (
-          <>
-            <ResourcePageHeading text="Consumers">
-              <Button
-                buttonType="primary"
-                buttonSize="M"
-                onClick={handleExportClick}
-              >
-                Export CSV
-              </Button>
-            </ResourcePageHeading>
-            <ControlPanelWrapper hasInput>
-              <Search
-                placeholder="Search by Consumer Group ID"
-                extraActions={<Fts resourceName="consumer_groups" />}
-              />
-            </ControlPanelWrapper>
-            <Table
-              columns={columns}
-              pageCount={consumerGroups.data?.pageCount || 0}
-              data={consumerGroups.data?.consumerGroups || []}
-              emptyMessage={
-                consumerGroups.isSuccess
-                  ? 'No active consumer groups found'
-                  : 'Loading...'
-              }
-              serverSideProcessing
-              enableSorting
-              onRowClick={({ original }) =>
-                navigate(
-                  clusterConsumerGroupDetailsPath(clusterName, original.groupId)
-                )
-              }
-              enableColumnResizing
-              columnSizingPersister={columnSizingPersister}
-              disabled={consumerGroups.isFetching}
-            />
-          </>
-        );
-      }}
-    </TableProvider>
+  return (
+    <>
+      <ResourcePageHeading text="Consumers">
+        <DownloadCsvButton
+          filePrefix={`consumers-${clusterName}`}
+          fetchCsv={fetchCsv}
+        />
+      </ResourcePageHeading>
+      <ControlPanelWrapper hasInput>
+        <Search
+          placeholder="Search by Consumer Group ID"
+          extraActions={<Fts resourceName="consumer_groups" />}
+        />
+      </ControlPanelWrapper>
+      <Table
+        columns={columns}
+        pageCount={consumerGroups.data?.pageCount || 0}
+        data={consumerGroups.data?.consumerGroups || []}
+        emptyMessage={
+          consumerGroups.isSuccess
+            ? 'No active consumer groups found'
+            : 'Loading...'
+        }
+        serverSideProcessing
+        enableSorting
+        onRowClick={({ original }) =>
+          navigate(
+            clusterConsumerGroupDetailsPath(clusterName, original.groupId)
+          )
+        }
+        enableColumnResizing
+        columnSizingPersister={columnSizingPersister}
+        disabled={consumerGroups.isFetching}
+      />
+    </>
   );
 };
 

@@ -10,18 +10,26 @@ import Switch from 'components/common/Switch/Switch';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import TopicTable from 'components/Topics/List/TopicTable';
-import { Action, ResourceType } from 'generated-sources';
+import {
+  Action,
+  GetTopicsRequest,
+  ResourceType,
+  SortOrder,
+  TopicColumnsToSort,
+} from 'generated-sources';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import Fts from 'components/common/Fts/Fts';
 import useFts from 'components/common/Fts/useFts';
-import { exportTableCSV, TableProvider } from 'components/common/NewTable';
-import { Button } from 'components/common/Button/Button';
+import useAppParams from 'lib/hooks/useAppParams';
+import { ClusterName } from 'lib/interfaces/cluster';
+import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
+import { topicsApiClient } from 'lib/api';
 
 const ListPage: React.FC = () => {
+  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const { isReadOnly } = React.useContext(ClusterContext);
   const [searchParams, setSearchParams] = useSearchParams();
-
-  useFts('topics');
+  const { isFtsEnabled } = useFts('topics');
 
   // Set the search params to the url based on the localStorage value
   React.useEffect(() => {
@@ -50,61 +58,63 @@ const ListPage: React.FC = () => {
     setSearchParams(searchParams);
   };
 
+  const params: GetTopicsRequest = {
+    clusterName,
+    showInternal: !searchParams.has('hideInternal'),
+    search: searchParams.get('q') || undefined,
+    orderBy: (searchParams.get('sortBy') as TopicColumnsToSort) || undefined,
+    sortOrder:
+      (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
+      undefined,
+    fts: isFtsEnabled,
+  };
+
+  const fetchCsv = async () => {
+    return topicsApiClient.getTopicsCsv(params);
+  };
+
   return (
-    <TableProvider>
-      {({ table }) => {
-        const handleExportClick = () => {
-          exportTableCSV(table, { prefix: 'topics' });
-        };
+    <>
+      <ResourcePageHeading text="Topics">
+        <>
+          {!isReadOnly && (
+            <ActionButton
+              buttonType="primary"
+              buttonSize="M"
+              to={clusterTopicNewRelativePath}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.CREATE,
+              }}
+            >
+              <PlusIcon /> Add a Topic
+            </ActionButton>
+          )}
 
-        return (
-          <>
-            <ResourcePageHeading text="Topics">
-              <>
-                {!isReadOnly && (
-                  <ActionButton
-                    buttonType="primary"
-                    buttonSize="M"
-                    to={clusterTopicNewRelativePath}
-                    permission={{
-                      resource: ResourceType.TOPIC,
-                      action: Action.CREATE,
-                    }}
-                  >
-                    <PlusIcon /> Add a Topic
-                  </ActionButton>
-                )}
-
-                <Button
-                  buttonType="primary"
-                  buttonSize="M"
-                  onClick={handleExportClick}
-                >
-                  Export CSV
-                </Button>
-              </>
-            </ResourcePageHeading>
-            <ControlPanelWrapper hasInput>
-              <Search
-                placeholder="Search by Topic Name"
-                extraActions={<Fts resourceName="topics" />}
-              />
-              <label>
-                <Switch
-                  name="ShowInternalTopics"
-                  checked={!searchParams.has('hideInternal')}
-                  onChange={handleSwitch}
-                />
-                Show Internal Topics
-              </label>
-            </ControlPanelWrapper>
-            <Suspense fallback={<PageLoader />}>
-              <TopicTable />
-            </Suspense>
-          </>
-        );
-      }}
-    </TableProvider>
+          <DownloadCsvButton
+            filePrefix={`topics-${clusterName}`}
+            fetchCsv={fetchCsv}
+          />
+        </>
+      </ResourcePageHeading>
+      <ControlPanelWrapper hasInput>
+        <Search
+          placeholder="Search by Topic Name"
+          extraActions={<Fts resourceName="topics" />}
+        />
+        <label>
+          <Switch
+            name="ShowInternalTopics"
+            checked={!searchParams.has('hideInternal')}
+            onChange={handleSwitch}
+          />
+          Show Internal Topics
+        </label>
+      </ControlPanelWrapper>
+      <Suspense fallback={<PageLoader />}>
+        <TopicTable params={params} />
+      </Suspense>
+    </>
   );
 };
 
