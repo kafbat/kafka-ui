@@ -1,12 +1,15 @@
 package io.kafbat.ui.model;
 
 import com.google.common.base.Throwables;
+import io.kafbat.ui.api.model.ClusterController;
+import io.kafbat.ui.api.model.ControllerType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.apache.kafka.common.Node;
+import org.jetbrains.annotations.Nullable;
 
 @Data
 public class InternalClusterState {
@@ -27,6 +30,7 @@ public class InternalClusterState {
   private BigDecimal bytesInPerSec;
   private BigDecimal bytesOutPerSec;
   private Boolean readOnly;
+  private ClusterController controller;
 
   public InternalClusterState(KafkaCluster cluster, Statistics statistics) {
     name = cluster.getName();
@@ -38,9 +42,7 @@ public class InternalClusterState {
         .orElse(null);
     topicCount = (int) statistics.topicDescriptions().count();
     brokerCount = statistics.getClusterDescription().getNodes().size();
-    activeControllers = Optional.ofNullable(statistics.getClusterDescription().getController())
-        .map(Node::id)
-        .orElse(null);
+    activeControllers = getActiveControllers(statistics);
     version = statistics.getVersion();
 
     diskUsage = statistics.getClusterState().getNodesStates().values().stream()
@@ -78,6 +80,18 @@ public class InternalClusterState {
     outOfSyncReplicasCount = partitionsStats.getOutOfSyncReplicasCount();
     underReplicatedPartitionCount = partitionsStats.getUnderReplicatedPartitionCount();
     readOnly = cluster.isReadOnly();
+    controller = statistics.getController();
+  }
+
+  @Nullable
+  private static Integer getActiveControllers(Statistics statistics) {
+    if (ClusterController.KRAFT == statistics.getController()) {
+      return statistics.getQuorumLeaderId();
+    }
+
+    return Optional.ofNullable(statistics.getClusterDescription().getController())
+        .map(Node::id)
+        .orElse(null);
   }
 
 }
