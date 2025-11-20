@@ -66,11 +66,6 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 <details>
     <summary>Click here for the feature overview</summary>
 
-# The Interface
-Kafbat UI wraps major functions of Apache Kafka with an intuitive user interface.
-
-![Interface](documentation/images/Interface.gif)
-
 ## Topics
 Kafbat UI makes it easy for you to create topics in your browser with just a few clicks, by pasting your own parameters, and viewing topics in the list.
 
