@@ -254,7 +254,9 @@ public class ClustersProperties {
       if (enabled) {
         if (Boolean.TRUE.equals(request)) {
           return true;
-        } else return request == null && defaultEnabled;
+        } else {
+          return request == null && defaultEnabled;
+        }
       }
       return false;
     }
