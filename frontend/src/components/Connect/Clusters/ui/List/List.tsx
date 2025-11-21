@@ -25,7 +25,7 @@ export const columns = [
     cell: ({ getValue }) => getValue(),
     enableSorting: true,
     meta: { filterVariant: 'multi-select' },
-    filterFn: 'arrIncludesSome',
+    filterFn: 'includesSome',
   }),
   helper.display({
     header: 'Connectors',
