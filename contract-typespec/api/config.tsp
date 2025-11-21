@@ -146,7 +146,7 @@ model ApplicationConfig {
         ssl?: {
           truststoreLocation?: string;
           truststorePassword?: string;
-          verifySsl?: boolean = true;
+          verify?: boolean = true;
         };
         schemaRegistry?: string;
         schemaRegistryAuth?: {
