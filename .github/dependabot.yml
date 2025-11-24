@@ -7,8 +7,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
+    cooldown: "P1D"
   open-pull-requests-limit: 10
-  cooldown: "P1D"
   labels:
     - "type/dependencies"
     - "scope/backend"
@@ -45,8 +45,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
+    cooldown: "P1D"
   open-pull-requests-limit: 10
-  cooldown: "P1D"
   ignore:
   - dependency-name: "azul/zulu-openjdk-alpine"
     update-types: ["version-update:semver-major"]
@@ -60,8 +60,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
+    cooldown: "P3D"
   open-pull-requests-limit: 10
-  cooldown: "P3D"
   versioning-strategy: increase-if-necessary
   labels:
     - "type/dependencies"
@@ -80,8 +80,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
+    cooldown: "P1D"
   open-pull-requests-limit: 10
-  cooldown: "P1D"
   labels:
     - "type/dependencies"
     - "scope/infra"
