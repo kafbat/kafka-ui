@@ -155,7 +155,7 @@ model ApplicationConfig {
           truststoreType?: StoreType;
           truststoreLocation?: string;
           truststorePassword?: string;
-          verifySsl?: boolean = true;
+          verify?: boolean = true;
         };
         kafkaSsl?: KeystoreConfig;
         schemaRegistry?: string;

@@ -22,7 +22,7 @@ public final class KafkaClientSslPropertiesUtil {
       sink.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol.name());
     }
 
-    if (truststoreConfig != null && !truststoreConfig.isVerifySsl()) {
+    if (truststoreConfig != null && !truststoreConfig.isVerify()) {
       sink.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
     }
 
