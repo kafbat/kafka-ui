@@ -239,7 +239,7 @@ const Topic: React.FC = () => {
             className={({ isActive }) => (isActive ? 'is-active' : '')}
             permission={{
               resource: ResourceType.TOPIC,
-              action: Action.ANALYSIS_VIEW,
+              action: Action.VIEW,
               value: topicName,
             }}
           >
