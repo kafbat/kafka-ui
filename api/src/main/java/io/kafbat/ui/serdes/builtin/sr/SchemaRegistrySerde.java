@@ -24,6 +24,7 @@ import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
+import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.net.URI;
@@ -76,7 +77,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystoreLocation", String.class).orElse(null),
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true)
         ),
         kafkaClusterProperties.getProperty("schemaRegistryKeySchemaNameTemplate", String.class).orElse("%s-key"),
         kafkaClusterProperties.getProperty("schemaRegistrySchemaNameTemplate", String.class).orElse("%s-value"),
@@ -102,7 +104,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             serdeProperties.getProperty("keystoreLocation", String.class).orElse(null),
             serdeProperties.getProperty("keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null)
+            kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
+            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true)
         ),
         serdeProperties.getProperty("keySchemaNameTemplate", String.class).orElse("%s-key"),
         serdeProperties.getProperty("schemaNameTemplate", String.class).orElse("%s-value"),
@@ -132,7 +135,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                                                                  @Nullable String keyStoreLocation,
                                                                  @Nullable String keyStorePassword,
                                                                  @Nullable String trustStoreLocation,
-                                                                 @Nullable String trustStorePassword) {
+                                                                 @Nullable String trustStorePassword,
+                                                                 boolean verifySsl) {
     Map<String, String> configs = new HashMap<>();
     if (username != null && password != null) {
       configs.put(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
@@ -143,6 +147,13 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     } else if (password != null) {
       throw new ValidationException(
           "You specified password but do not specified username");
+    }
+
+    if (!verifySsl) {
+      configs.put(
+          SchemaRegistryClientConfig.CLIENT_NAMESPACE + SslConfigs.SSL_TRUSTMANAGER_ALGORITHM_CONFIG,
+          SkipSecurityProvider.NAME
+      );
     }
 
     // We require at least a truststore. The logic is done similar to SchemaRegistryService.securedWebClientOnTLS
