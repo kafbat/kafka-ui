@@ -25,6 +25,10 @@ artifacts {
 
 if (release) {
     signing {
+        useInMemoryPgpKeys(
+                System.getenv("GPG_PRIVATE_KEY"),
+                System.getenv("GPG_PASSPHRASE")
+        )
         sign(publishing.publications)
     }
 }
@@ -33,10 +37,10 @@ publishing {
     if (release) {
         repositories {
             maven {
-                url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+                url "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2"
                 credentials {
-                    username sonatypeUsername
-                    password sonatypePassword
+                    username System.getenv("NEXUS_USERNAME")
+                    password System.getenv("NEXUS_PASSWORD")
                 }
             }
         }
