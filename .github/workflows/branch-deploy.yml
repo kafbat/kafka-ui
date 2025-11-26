@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # infered from @v4
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # https://github.com/actions/checkout/releases/tag/v6.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
