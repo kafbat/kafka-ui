@@ -5,10 +5,15 @@ export const TagsWrapper = styled.div`
   flex-wrap: wrap;
   word-break: break-word;
   white-space: pre-wrap;
-  span {
-    color: rgb(76, 76, 255) !important;
-    &:hover {
-      color: rgb(23, 23, 207) !important;
+
+  div {
+    a {
+      color: rgb(76, 76, 255) !important;
+      text-decoration: none;
+
+      &:hover {
+        color: rgb(23, 23, 207) !important;
+      }
     }
   }
 `;
