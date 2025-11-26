@@ -5,7 +5,8 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { useNavigate } from 'react-router-dom';
 import { clusterConnectorsPath } from 'lib/paths';
-import { createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 
 import ConnectorsCell from './Cells/ConnectorsCell';
 import NameCell from './Cells/NameCell';
@@ -13,11 +14,18 @@ import TasksCell from './Cells/TasksCell';
 
 const helper = createColumnHelper<Connect>();
 export const columns = [
-  helper.accessor('name', { cell: NameCell, size: 600 }),
+  helper.accessor('name', {
+    cell: NameCell,
+    size: 600,
+    meta: { filterVariant: 'text' },
+    filterFn: 'includesString',
+  }),
   helper.accessor('version', {
     header: 'Version',
     cell: ({ getValue }) => getValue(),
     enableSorting: true,
+    meta: { filterVariant: 'multi-select' },
+    filterFn: 'includesSome',
   }),
   helper.display({
     header: 'Connectors',
@@ -40,6 +48,7 @@ const List = ({ connects }: Props) => {
   const navigate = useNavigate();
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
 
+  const filterPersister = useQueryPersister(columns as ColumnDef<Connect>[]);
   return (
     <Table
       data={connects}
@@ -49,6 +58,7 @@ const List = ({ connects }: Props) => {
       }}
       emptyMessage="No kafka connect clusters"
       enableSorting
+      filterPersister={filterPersister}
     />
   );
 };
