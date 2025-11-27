@@ -19,7 +19,8 @@ export const UserTimezone = () => {
     return TIMEZONES.filter(
       (timezone) =>
         timezone.value.toLowerCase().includes(searchLower) ||
-        timezone.offset.toLowerCase().includes(searchLower)
+        timezone.offset.toLowerCase().includes(searchLower) ||
+        timezone.label.toLowerCase().includes(searchLower)
     );
   }, [searchValue]);
 
