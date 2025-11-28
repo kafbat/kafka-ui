@@ -7,6 +7,7 @@ import Table, {
   LinkCell,
   TagCell,
 } from 'components/common/NewTable';
+import { TableProvider } from 'components/common/NewTable/Provider';
 import { screen } from '@testing-library/dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import userEvent from '@testing-library/user-event';
@@ -101,12 +102,14 @@ interface Props extends TableProps<Datum> {
 const renderComponent = (props: Partial<Props> = {}) => {
   render(
     <WithRoute path="/*">
-      <Table
-        columns={columns}
-        data={data}
-        renderSubComponent={ExpandedRow}
-        {...props}
-      />
+      <TableProvider>
+        <Table
+          columns={columns}
+          data={data}
+          renderSubComponent={ExpandedRow}
+          {...props}
+        />
+      </TableProvider>
     </WithRoute>,
     { initialEntries: [props.path || ''] }
   );

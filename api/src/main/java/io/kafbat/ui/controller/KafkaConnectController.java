@@ -17,6 +17,7 @@ import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TaskDTO;
+import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.service.KafkaConnectService;
@@ -54,6 +55,13 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         ).filterWhen(dto -> accessControlService.isConnectAccessible(dto, clusterName));
 
     return Mono.just(ResponseEntity.ok(availableConnects));
+  }
+
+  @Override
+  public Mono<ResponseEntity<String>> getConnectsCsv(String clusterName, Boolean withStats,
+                                                     ServerWebExchange exchange) {
+    return getConnects(clusterName, withStats, exchange)
+        .flatMap(this::responseToCsv);
   }
 
   @Override
@@ -155,6 +163,15 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     return Mono.just(ResponseEntity.ok(sorted))
         .doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<String>> getAllConnectorsCsv(String clusterName, String search,
+                                                          ConnectorColumnsToSortDTO orderBy,
+                                                          SortOrderDTO sortOrder, Boolean fts,
+                                                          ServerWebExchange exchange) {
+    return getAllConnectors(clusterName, search, orderBy, sortOrder, fts, exchange)
+        .flatMap(this::responseToCsv);
   }
 
   @Override

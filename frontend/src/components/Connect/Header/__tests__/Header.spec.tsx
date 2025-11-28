@@ -52,11 +52,11 @@ describe('Kafka Connect header', () => {
       (useConnects as jest.Mock).mockImplementation(() => ({
         data: [],
       }));
-      renderComponent({ isReadOnly: false });
+      renderComponent({ isReadOnly: true });
 
       const btn = screen.queryByRole('button', { name: 'Create Connector' });
 
-      expect(btn).toBeDisabled();
+      expect(btn).not.toBeInTheDocument();
     });
   });
 });
