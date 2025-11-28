@@ -2,13 +2,15 @@ import React, { useMemo } from 'react';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
-import Table from 'components/common/NewTable';
+import Table, {
+  exportTableCSV,
+  TableProvider,
+} from 'components/common/NewTable';
 import { clusterBrokerPath } from 'lib/paths';
 import { useBrokers } from 'lib/hooks/api/brokers';
 import { useClusterStats } from 'lib/hooks/api/clusters';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
-import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
-import { brokersApiClient } from 'lib/api';
+import { Button } from 'components/common/Button/Button';
 
 import { getBrokersTableColumns, getBrokersTableRows } from './lib';
 import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
@@ -45,40 +47,49 @@ const BrokersList: React.FC = () => {
 
   const columns = useMemo(() => getBrokersTableColumns(), []);
 
-  const fetchCsv = async () => {
-    return brokersApiClient.getBrokersCsv({ clusterName });
-  };
-
   return (
-    <>
-      <ResourcePageHeading text="Brokers">
-        <DownloadCsvButton
-          fetchCsv={fetchCsv}
-          filePrefix={`brokers-${clusterName}`}
-        />
-      </ResourcePageHeading>
+    <TableProvider>
+      {({ table }) => {
+        const handleExportClick = () => {
+          exportTableCSV(table, { prefix: 'brokers' });
+        };
 
-      <BrokersMetrics
-        brokerCount={brokerCount}
-        inSyncReplicasCount={inSyncReplicasCount}
-        outOfSyncReplicasCount={outOfSyncReplicasCount}
-        version={version}
-        activeControllers={activeControllers}
-        offlinePartitionCount={offlinePartitionCount}
-        onlinePartitionCount={onlinePartitionCount}
-        underReplicatedPartitionCount={underReplicatedPartitionCount}
-      />
+        return (
+          <>
+            <ResourcePageHeading text="Brokers">
+              <Button
+                buttonType="primary"
+                buttonSize="M"
+                onClick={handleExportClick}
+              >
+                Export CSV
+              </Button>
+            </ResourcePageHeading>
 
-      <Table
-        columns={columns}
-        data={rows}
-        enableSorting
-        onRowClick={({ original: { brokerId } }) =>
-          navigate(clusterBrokerPath(clusterName, brokerId))
-        }
-        emptyMessage="No clusters are online"
-      />
-    </>
+            <BrokersMetrics
+              brokerCount={brokerCount}
+              inSyncReplicasCount={inSyncReplicasCount}
+              outOfSyncReplicasCount={outOfSyncReplicasCount}
+              version={version}
+              activeControllers={activeControllers}
+              offlinePartitionCount={offlinePartitionCount}
+              onlinePartitionCount={onlinePartitionCount}
+              underReplicatedPartitionCount={underReplicatedPartitionCount}
+            />
+
+            <Table
+              columns={columns}
+              data={rows}
+              enableSorting
+              onRowClick={({ original: { brokerId } }) =>
+                navigate(clusterBrokerPath(clusterName, brokerId))
+              }
+              emptyMessage="No clusters are online"
+            />
+          </>
+        );
+      }}
+    </TableProvider>
   );
 };
 
