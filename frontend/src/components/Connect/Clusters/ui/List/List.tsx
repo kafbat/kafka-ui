@@ -14,7 +14,9 @@ import TasksCell, { getTasksCountText } from './Cells/TasksCell';
 
 const helper = createColumnHelper<Connect>();
 export const columns = [
-  helper.accessor('name', { header: 'Name', cell: NameCell,
+  helper.accessor('name', {
+    header: 'Name',
+    cell: NameCell,
     size: 600,
     meta: { filterVariant: 'text' },
     filterFn: 'includesString',
