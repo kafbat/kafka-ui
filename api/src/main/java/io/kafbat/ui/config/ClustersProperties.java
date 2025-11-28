@@ -169,7 +169,7 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
-    boolean verifySsl = true;
+    boolean verify = true;
   }
 
   @Data
@@ -264,8 +264,8 @@ public class ClustersProperties {
       if (enabled) {
         if (Boolean.TRUE.equals(request)) {
           return true;
-        } else if (request == null && defaultEnabled) {
-          return true;
+        } else {
+          return request == null && defaultEnabled;
         }
       }
       return false;
@@ -297,7 +297,6 @@ public class ClustersProperties {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();
@@ -316,8 +315,8 @@ public class ClustersProperties {
 
   private void validateClusterNames() {
     // if only one cluster provided it is ok not to set name
-    if (clusters.size() == 1 && !StringUtils.hasText(clusters.get(0).getName())) {
-      clusters.get(0).setName("Default");
+    if (clusters.size() == 1 && !StringUtils.hasText(clusters.getFirst().getName())) {
+      clusters.getFirst().setName("Default");
       return;
     }
 
