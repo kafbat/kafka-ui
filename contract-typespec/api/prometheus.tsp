@@ -13,11 +13,13 @@ interface PrometheusExposeApi {
     @get
     @summary("exposeAllMetrics")
     @operationId("exposeAllMetrics")
-    exposeAllMetrics(): string;
+    // Return nothing (the controller handles the stream manually)
+    exposeAllMetrics(): void;
 
     @get
     @route("/{clusterName}")
     @summary("exposeClusterMetrics")
     @operationId("exposeClusterMetrics")
-    exposeClusterMetrics(@path clusterName: string): string;
+    // Also return nothing
+    exposeClusterMetrics(@path clusterName: string): void;
 }
