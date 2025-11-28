@@ -1,6 +1,5 @@
 import "@typespec/openapi";
 import "./models.tsp";
-import "./responses.tsp";
 
 namespace Api;
 
@@ -13,11 +12,11 @@ interface PrometheusExposeApi {
     @get
     @summary("exposeAllMetrics")
     @operationId("exposeAllMetrics")
-    exposeAllMetrics(): void;
+    exposeAllMetrics(): string;
 
     @get
     @route("/{clusterName}")
     @summary("exposeClusterMetrics")
     @operationId("exposeClusterMetrics")
-    exposeClusterMetrics(@path clusterName: string): void;
+    exposeClusterMetrics(@path clusterName: string): string;
 }
