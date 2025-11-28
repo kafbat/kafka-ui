@@ -40,10 +40,10 @@ const Header = () => {
   >();
   const { data: connects = [] } = useConnects(clusterName, true);
 
-  const { table } = useTableInstance();
+  const instance = useTableInstance();
 
   const handleExportClick = () => {
-    exportTableCSV(table, { prefix: getCsvPrefix(currentPath) });
+    exportTableCSV(instance?.table, { prefix: getCsvPrefix(currentPath) });
   };
 
   return (
