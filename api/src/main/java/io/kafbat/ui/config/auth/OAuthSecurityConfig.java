@@ -11,6 +11,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
@@ -36,6 +38,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Configuration
@@ -84,8 +87,14 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public ReactiveOAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService(AccessControlService acs) {
+  public ReactiveOAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService(
+      AccessControlService acs,
+      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService) {
     final OidcReactiveOAuth2UserService delegate = new OidcReactiveOAuth2UserService();
+
+    // Use our custom OAuth2 user service which may have proxy support
+    delegate.setOauth2UserService(oauth2UserService);
+
     return request -> delegate.loadUser(request)
         .flatMap(user -> {
           var provider = getProviderByProviderId(request.getClientRegistration().getRegistrationId());
@@ -100,8 +109,17 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService(AccessControlService acs) {
+  public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService(
+      AccessControlService acs,
+      @Autowired(required = false) @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
     final DefaultReactiveOAuth2UserService delegate = new DefaultReactiveOAuth2UserService();
+
+    // If proxy-configured WebClient is available, use it
+    if (oauth2WebClient != null) {
+      delegate.setWebClient(oauth2WebClient);
+      log.debug("OAuth2 user service configured with custom WebClient (proxy support)");
+    }
+
     return request -> delegate.loadUser(request)
         .flatMap(user -> {
           var provider = getProviderByProviderId(request.getClientRegistration().getRegistrationId());
