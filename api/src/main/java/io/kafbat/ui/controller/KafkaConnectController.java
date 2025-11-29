@@ -3,8 +3,6 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
-import static io.kafbat.ui.model.rbac.permission.ConnectAction.RESET_OFFSETS;
-import static io.kafbat.ui.model.rbac.permission.ConnectAction.VIEW;
 
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
@@ -19,6 +17,7 @@ import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
@@ -29,6 +28,7 @@ import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -41,6 +41,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   private static final Set<ConnectorActionDTO> RESTART_ACTIONS
       = Set.of(RESTART, RESTART_FAILED_TASKS, RESTART_ALL_TASKS);
   private static final String CONNECTOR_NAME = "connectorName";
+  private static final String ACCESS_DENIED = "Access denied";
 
   private final KafkaConnectService kafkaConnectService;
 
@@ -97,16 +98,23 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          String connectorName,
                                                          ServerWebExchange exchange) {
 
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW)
+        .connectorActions(connectorResource, ConnectorAction.VIEW)
         .operationName("getConnector")
         .build();
 
-    return validateAccess(context).then(
-        kafkaConnectService.getConnector(getCluster(clusterName), connectName, connectorName)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+    // Use hierarchical permission check
+    return accessControlService.isConnectorAccessible(connectName, connectorName, clusterName, ConnectorAction.VIEW)
+        .flatMap(hasAccess -> {
+          if (!hasAccess) {
+            return Mono.error(new AccessDeniedException(ACCESS_DENIED));
+          }
+          return kafkaConnectService.getConnector(getCluster(clusterName), connectName, connectorName)
+              .map(ResponseEntity::ok);
+        })
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -114,17 +122,23 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                     String connectorName,
                                                     ServerWebExchange exchange) {
 
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.DELETE)
+        .connectorActions(connectorResource, ConnectorAction.DELETE)
         .operationName("deleteConnector")
-        .operationParams(Map.of(CONNECTOR_NAME, connectName))
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
-    return validateAccess(context).then(
-        kafkaConnectService.deleteConnector(getCluster(clusterName), connectName, connectorName)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+    return accessControlService.isConnectorAccessible(connectName, connectorName, clusterName, ConnectorAction.DELETE)
+        .flatMap(hasAccess -> {
+          if (!hasAccess) {
+            return Mono.error(new AccessDeniedException(ACCESS_DENIED));
+          }
+          return kafkaConnectService.deleteConnector(getCluster(clusterName), connectName, connectorName)
+              .map(ResponseEntity::ok);
+        })
+        .doOnEach(sig -> audit(context, sig));
   }
 
 
@@ -182,17 +196,24 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                                Mono<Map<String, Object>> requestBody,
                                                                ServerWebExchange exchange) {
 
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.EDIT)
+        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.EDIT)
         .operationName("setConnectorConfig")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
-    return validateAccess(context).then(
-            kafkaConnectService
-                .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
-                .map(ResponseEntity::ok))
+    return accessControlService.isConnectorAccessible(connectName, connectorName, clusterName,
+            ConnectorAction.VIEW, ConnectorAction.EDIT)
+        .flatMap(hasAccess -> {
+          if (!hasAccess) {
+            return Mono.error(new AccessDeniedException(ACCESS_DENIED));
+          }
+          return kafkaConnectService
+              .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
+              .map(ResponseEntity::ok);
+        })
         .doOnEach(sig -> audit(context, sig));
   }
 
@@ -201,21 +222,25 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          String connectorName,
                                                          ConnectorActionDTO action,
                                                          ServerWebExchange exchange) {
-    ConnectAction[] connectActions;
-    connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.OPERATE};
-
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, connectActions)
+        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.OPERATE)
         .operationName("updateConnectorState")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
-    return validateAccess(context).then(
-        kafkaConnectService
-            .updateConnectorState(getCluster(clusterName), connectName, connectorName, action)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+    return accessControlService.isConnectorAccessible(connectName, connectorName, clusterName,
+            ConnectorAction.VIEW, ConnectorAction.OPERATE)
+        .flatMap(hasAccess -> {
+          if (!hasAccess) {
+            return Mono.error(new AccessDeniedException(ACCESS_DENIED));
+          }
+          return kafkaConnectService
+              .updateConnectorState(getCluster(clusterName), connectName, connectorName, action)
+              .map(ResponseEntity::ok);
+        })
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -311,17 +336,24 @@ public class KafkaConnectController extends AbstractController implements KafkaC
       String connectorName,
       ServerWebExchange exchange) {
 
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, VIEW, RESET_OFFSETS)
+        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.RESET_OFFSETS)
         .operationName("resetConnectorOffsets")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
-    return validateAccess(context).then(
-        kafkaConnectService
-            .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
-            .map(ResponseEntity::ok))
+    return accessControlService.isConnectorAccessible(connectName, connectorName, clusterName,
+            ConnectorAction.VIEW, ConnectorAction.RESET_OFFSETS)
+        .flatMap(hasAccess -> {
+          if (!hasAccess) {
+            return Mono.error(new AccessDeniedException(ACCESS_DENIED));
+          }
+          return kafkaConnectService
+              .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
+              .map(ResponseEntity::ok);
+        })
         .doOnEach(sig -> audit(context, sig));
   }
 }
