@@ -12,6 +12,7 @@ import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
@@ -21,6 +22,7 @@ import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -204,6 +206,63 @@ public class AccessControlService {
             .connectActions(connectName, ConnectAction.VIEW)
             .build()
     );
+  }
+
+  public Mono<Boolean> isConnectorAccessible(String connectName, String connectorName,
+                                             String clusterName, ConnectorAction... actions) {
+    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
+
+    // First check for specific connector permissions
+    var connectorContext = AccessContext.builder()
+        .cluster(clusterName)
+        .connectorActions(connectorResource, actions)
+        .build();
+
+    return isAccessible(connectorContext)
+        .flatMap(hasConnectorAccess -> {
+          if (hasConnectorAccess) {
+            return Mono.just(true);
+          }
+
+          // Fall back to checking connect-level permissions
+          // Map connector actions to corresponding connect actions
+          ConnectAction[] connectActions = mapToConnectActions(actions);
+          if (connectActions.length == 0) {
+            return Mono.just(false);
+          }
+
+          var connectContext = AccessContext.builder()
+              .cluster(clusterName)
+              .connectActions(connectName, connectActions)
+              .build();
+
+          return isAccessible(connectContext);
+        });
+  }
+
+  private ConnectAction[] mapToConnectActions(ConnectorAction[] connectorActions) {
+    return Arrays.stream(connectorActions)
+        .map(action -> {
+          switch (action) {
+            case VIEW:
+              return ConnectAction.VIEW;
+            case EDIT:
+              return ConnectAction.EDIT;
+            case CREATE:
+              return ConnectAction.CREATE;
+            case DELETE:
+              return ConnectAction.DELETE;
+            case OPERATE:
+              return ConnectAction.OPERATE;
+            case RESET_OFFSETS:
+              return ConnectAction.RESET_OFFSETS;
+            default:
+              return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .distinct()
+        .toArray(ConnectAction[]::new);
   }
 
   public List<Role> getRoles() {

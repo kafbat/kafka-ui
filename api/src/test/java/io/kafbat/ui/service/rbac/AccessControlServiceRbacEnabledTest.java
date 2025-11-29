@@ -20,7 +20,13 @@ import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
+import io.kafbat.ui.model.rbac.Permission;
+import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.Subject;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
+import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -294,6 +300,162 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
     assertThat(roles).hasSize(2)
         .anyMatch(role -> role.getName().equals(DEV_ROLE))
         .anyMatch(role -> role.getName().equals(ADMIN_ROLE));
+  }
+
+  @Test
+  void isConnectorAccessible_withDirectConnectorPermission() {
+    withSecurityContext(() -> {
+      // Create a role with direct connector permission
+      Role connectorRole = new Role();
+      connectorRole.setName("connector_role");
+      connectorRole.setClusters(List.of(DEV_CLUSTER));
+
+      Subject subject = new Subject();
+      subject.setType("group");
+      subject.setProvider(Provider.LDAP);
+      subject.setValue("connector_role");
+      connectorRole.setSubjects(List.of(subject));
+
+      Permission connectorPermission = new Permission();
+      connectorPermission.setResource(Resource.CONNECTOR.name());
+      connectorPermission.setActions(List.of("VIEW"));
+      connectorPermission.setValue(CONNECT_NAME + "/test-connector");
+
+      connectorRole.setPermissions(List.of(connectorPermission));
+      connectorRole.validate();
+
+      // Mock the role retrieval
+      RoleBasedAccessControlProperties props = mock(RoleBasedAccessControlProperties.class);
+      when(props.getRoles()).thenReturn(List.of(connectorRole));
+      when(user.groups()).thenReturn(List.of("connector_role"));
+
+      ReflectionTestUtils.setField(accessControlService, "properties", props);
+      ReflectionTestUtils.setField(accessControlService, "rbacEnabled", true);
+
+      Mono<Boolean> accessible = accessControlService.isConnectorAccessible(
+          CONNECT_NAME, "test-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      StepVerifier.create(accessible)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void isConnectorAccessible_fallsBackToConnectPermission() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(DEV_ROLE));
+
+      // DEV_ROLE has CONNECT.VIEW permission for CONNECT_NAME
+      // Should allow access to any connector under that connect
+      Mono<Boolean> accessible = accessControlService.isConnectorAccessible(
+          CONNECT_NAME, "any-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      StepVerifier.create(accessible)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void isConnectorAccessible_deniedWhenNoPermissions() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(DEV_ROLE));
+
+      // DEV_ROLE doesn't have permissions for "OTHER_CONNECT"
+      Mono<Boolean> accessible = accessControlService.isConnectorAccessible(
+          "OTHER_CONNECT", "some-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      StepVerifier.create(accessible)
+          .expectNext(false)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void isConnectorAccessible_withPatternMatching() {
+    withSecurityContext(() -> {
+      // Create a role with pattern-based connector permission
+      Role patternRole = new Role();
+      patternRole.setName("pattern_role");
+      patternRole.setClusters(List.of(DEV_CLUSTER));
+
+      Subject subject = new Subject();
+      subject.setType("group");
+      subject.setProvider(Provider.LDAP);
+      subject.setValue("pattern_role");
+      patternRole.setSubjects(List.of(subject));
+
+      Permission connectorPermission = new Permission();
+      connectorPermission.setResource(Resource.CONNECTOR.name());
+      connectorPermission.setActions(List.of("VIEW", "EDIT"));
+      connectorPermission.setValue(".*-connect/prod-.*");  // Matches any connect ending with -connect and connectors starting with prod-
+
+      patternRole.setPermissions(List.of(connectorPermission));
+      patternRole.validate();
+
+      // Mock the role retrieval
+      RoleBasedAccessControlProperties props = mock(RoleBasedAccessControlProperties.class);
+      when(props.getRoles()).thenReturn(List.of(patternRole));
+      when(user.groups()).thenReturn(List.of("pattern_role"));
+
+      ReflectionTestUtils.setField(accessControlService, "properties", props);
+      ReflectionTestUtils.setField(accessControlService, "rbacEnabled", true);
+
+      // Should match "dev-connect/prod-connector"
+      Mono<Boolean> accessible1 = accessControlService.isConnectorAccessible(
+          "dev-connect", "prod-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      StepVerifier.create(accessible1)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+
+      // Should not match "dev-connect/test-connector"
+      Mono<Boolean> accessible2 = accessControlService.isConnectorAccessible(
+          "dev-connect", "test-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      StepVerifier.create(accessible2)
+          .expectNext(false)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void isConnectorAccessible_multipleActions() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(DEV_ROLE));
+
+      // DEV_ROLE only has VIEW permission for CONNECT
+      // Should not allow EDIT, DELETE operations
+      Mono<Boolean> viewAccessible = accessControlService.isConnectorAccessible(
+          CONNECT_NAME, "some-connector", DEV_CLUSTER, ConnectorAction.VIEW);
+
+      Mono<Boolean> editAccessible = accessControlService.isConnectorAccessible(
+          CONNECT_NAME, "some-connector", DEV_CLUSTER, ConnectorAction.EDIT);
+
+      Mono<Boolean> deleteAccessible = accessControlService.isConnectorAccessible(
+          CONNECT_NAME, "some-connector", DEV_CLUSTER, ConnectorAction.DELETE);
+
+      StepVerifier.create(viewAccessible)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+
+      StepVerifier.create(editAccessible)
+          .expectNext(false)
+          .expectComplete()
+          .verify();
+
+      StepVerifier.create(deleteAccessible)
+          .expectNext(false)
+          .expectComplete()
+          .verify();
+    });
   }
 
 }

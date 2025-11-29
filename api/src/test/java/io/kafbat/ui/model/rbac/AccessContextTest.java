@@ -10,6 +10,7 @@ import io.kafbat.ui.model.rbac.AccessContext.ResourceAccess;
 import io.kafbat.ui.model.rbac.AccessContext.SingleResourceAccess;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
@@ -109,6 +110,73 @@ class AccessContextTest {
               permission(Resource.CONNECT, null, List.of("restart"))
           )
       );
+
+      assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void allowsAccessForConnectorWithSpecificNameIfUserHasPermission() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess("my-connect/my-connector", Resource.CONNECTOR,
+              List.of(ConnectorAction.VIEW, ConnectorAction.OPERATE));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, "my-connect/my-connector", ConnectorAction.VIEW, ConnectorAction.OPERATE)));
+
+      assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void allowsAccessForConnectorWithWildcardPatternIfUserHasPermission() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess("prod-connect/customer-connector", Resource.CONNECTOR,
+              List.of(ConnectorAction.VIEW));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, "prod-connect/.*", ConnectorAction.VIEW, ConnectorAction.EDIT)));
+
+      assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void deniesAccessForConnectorIfUserLacksRequiredPermission() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess("my-connect/my-connector", Resource.CONNECTOR,
+              List.of(ConnectorAction.DELETE));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, "my-connect/my-connector", ConnectorAction.VIEW, ConnectorAction.EDIT)));
+
+      assertThat(allowed).isFalse();
+    }
+
+    @Test
+    void allowsAccessForConnectorWithMultipleWildcardPatterns() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess("staging-connect/debezium-mysql-connector", Resource.CONNECTOR,
+              List.of(ConnectorAction.RESET_OFFSETS));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, ".*/debezium-.*", ConnectorAction.RESET_OFFSETS),
+              permission(Resource.CONNECTOR, "staging-.*/.*", ConnectorAction.VIEW)));
+
+      assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void testConnectorActionHierarchy() {
+      // Test that EDIT includes VIEW permission
+      SingleResourceAccess sra =
+          new SingleResourceAccess("test-connect/test-connector", Resource.CONNECTOR,
+              List.of(ConnectorAction.VIEW));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, "test-connect/.*", ConnectorAction.EDIT)));
 
       assertThat(allowed).isTrue();
     }

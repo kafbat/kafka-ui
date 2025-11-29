@@ -20,7 +20,7 @@ import {
 } from 'lib/paths';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { Dropdown } from 'components/common/Dropdown';
-import { ActionDropdownItem } from 'components/common/ActionComponent';
+import { ActionDropdownItemWithFallback } from 'components/common/ActionComponent';
 import ChevronDownIcon from 'components/common/Icons/ChevronDownIcon';
 
 import * as S from './Action.styled';
@@ -75,6 +75,8 @@ const Actions: React.FC = () => {
       () => resetConnectorOffsetsMutation.mutateAsync()
     );
 
+  const connectorPath = `${routerProps.connectName}/${routerProps.connectorName}`;
+
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
@@ -87,99 +89,155 @@ const Actions: React.FC = () => {
         }
       >
         {connector?.status.state === ConnectorState.RUNNING && (
-          <ActionDropdownItem
+          <ActionDropdownItemWithFallback
             onClick={pauseConnectorHandler}
-            permission={{
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: routerProps.connectName,
-            }}
+            permission={[
+              {
+                resource: ResourceType.CONNECTOR,
+                action: Action.OPERATE,
+                value: connectorPath,
+              },
+              {
+                resource: ResourceType.CONNECT,
+                action: Action.OPERATE,
+                value: routerProps.connectName,
+              },
+            ]}
           >
             Pause
-          </ActionDropdownItem>
+          </ActionDropdownItemWithFallback>
         )}
         {connector?.status.state === ConnectorState.RUNNING && (
-          <ActionDropdownItem
+          <ActionDropdownItemWithFallback
             onClick={stopConnectorHandler}
-            permission={{
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: routerProps.connectName,
-            }}
+            permission={[
+              {
+                resource: ResourceType.CONNECTOR,
+                action: Action.OPERATE,
+                value: connectorPath,
+              },
+              {
+                resource: ResourceType.CONNECT,
+                action: Action.OPERATE,
+                value: routerProps.connectName,
+              },
+            ]}
           >
             Stop
-          </ActionDropdownItem>
+          </ActionDropdownItemWithFallback>
         )}
         {(connector?.status.state === ConnectorState.PAUSED ||
           connector?.status.state === ConnectorState.STOPPED) && (
-          <ActionDropdownItem
+          <ActionDropdownItemWithFallback
             onClick={resumeConnectorHandler}
-            permission={{
+            permission={[
+              {
+                resource: ResourceType.CONNECTOR,
+                action: Action.OPERATE,
+                value: connectorPath,
+              },
+              {
+                resource: ResourceType.CONNECT,
+                action: Action.OPERATE,
+                value: routerProps.connectName,
+              },
+            ]}
+          >
+            Resume
+          </ActionDropdownItemWithFallback>
+        )}
+        <ActionDropdownItemWithFallback
+          onClick={restartConnectorHandler}
+          permission={[
+            {
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            },
+            {
               resource: ResourceType.CONNECT,
               action: Action.OPERATE,
               value: routerProps.connectName,
-            }}
-          >
-            Resume
-          </ActionDropdownItem>
-        )}
-        <ActionDropdownItem
-          onClick={restartConnectorHandler}
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: routerProps.connectName,
-          }}
+            },
+          ]}
         >
           Restart Connector
-        </ActionDropdownItem>
-        <ActionDropdownItem
+        </ActionDropdownItemWithFallback>
+        <ActionDropdownItemWithFallback
           onClick={restartAllTasksHandler}
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: routerProps.connectName,
-          }}
+          permission={[
+            {
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            },
+            {
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            },
+          ]}
         >
           Restart All Tasks
-        </ActionDropdownItem>
-        <ActionDropdownItem
+        </ActionDropdownItemWithFallback>
+        <ActionDropdownItemWithFallback
           onClick={restartFailedTasksHandler}
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: routerProps.connectName,
-          }}
+          permission={[
+            {
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            },
+            {
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            },
+          ]}
         >
           Restart Failed Tasks
-        </ActionDropdownItem>
+        </ActionDropdownItemWithFallback>
       </Dropdown>
       <Dropdown>
-        <ActionDropdownItem
+        <ActionDropdownItemWithFallback
           onClick={resetConnectorOffsetsHandler}
           disabled={
             isMutating || connector?.status.state !== ConnectorState.STOPPED
           }
           danger
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.RESET_OFFSETS,
-            value: routerProps.connectName,
-          }}
+          permission={[
+            {
+              resource: ResourceType.CONNECTOR,
+              action: Action.RESET_OFFSETS,
+              value: connectorPath,
+            },
+            {
+              resource: ResourceType.CONNECT,
+              action: Action.RESET_OFFSETS,
+              value: routerProps.connectName,
+            },
+          ]}
         >
           Reset Offsets
-        </ActionDropdownItem>
-        <ActionDropdownItem
+        </ActionDropdownItemWithFallback>
+        <ActionDropdownItemWithFallback
           onClick={deleteConnectorHandler}
           danger
-          permission={{
-            resource: ResourceType.CONNECT,
-            action: Action.DELETE,
-            value: routerProps.connectName,
-          }}
+          permission={[
+            {
+              resource: ResourceType.CONNECTOR,
+              action: Action.DELETE,
+              value: connectorPath,
+            },
+            {
+              resource: ResourceType.CONNECT,
+              action: Action.DELETE,
+              value: routerProps.connectName,
+            },
+          ]}
         >
           Delete
-        </ActionDropdownItem>
+        </ActionDropdownItemWithFallback>
       </Dropdown>
     </S.ConnectorActionsWrapperStyled>
   );
