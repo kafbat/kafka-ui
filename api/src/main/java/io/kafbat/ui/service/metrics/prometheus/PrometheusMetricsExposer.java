@@ -29,7 +29,7 @@ public final class PrometheusMetricsExposer {
 
   static {
     PROMETHEUS_EXPOSE_ENDPOINT_HEADERS = new HttpHeaders();
-    PROMETHEUS_EXPOSE_ENDPOINT_HEADERS.set(CONTENT_TYPE, "text/plain; version=0.0.4; charset=utf-8");
+    PROMETHEUS_EXPOSE_ENDPOINT_HEADERS.set(CONTENT_TYPE, PrometheusTextFormatWriter.CONTENT_TYPE);
   }
 
   private PrometheusMetricsExposer() {
