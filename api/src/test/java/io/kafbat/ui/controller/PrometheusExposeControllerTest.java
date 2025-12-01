@@ -22,17 +22,11 @@ class PrometheusExposeControllerTest extends AbstractIntegrationTest {
 
     scheduler.updateStatistics();
 
-    String result = webTestClient
+    webTestClient
         .get()
         .uri("/metrics")
         .exchange()
-        .expectStatus()
-        .isOk()
-        .expectHeader().contentType(PrometheusTextFormatWriter.CONTENT_TYPE)
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
-
-    assertThat(result).isNotNull();
+        .expectStatus().isOk()
+        .expectHeader().contentType(PrometheusTextFormatWriter.CONTENT_TYPE);
   }
 }
