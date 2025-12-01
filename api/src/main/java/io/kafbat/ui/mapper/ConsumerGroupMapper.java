@@ -1,16 +1,25 @@
 package io.kafbat.ui.mapper;
 
+import io.kafbat.ui.api.model.ConsumerGroupLag;
+import io.kafbat.ui.api.model.ConsumerGroupState;
 import io.kafbat.ui.model.BrokerDTO;
 import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupDetailsDTO;
+import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupStateDTO;
 import io.kafbat.ui.model.ConsumerGroupTopicPartitionDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
 
@@ -74,6 +83,16 @@ public class ConsumerGroupMapper {
     }
     details.setPartitions(new ArrayList<>(partitionMap.values()));
     return details;
+  }
+
+  public static ConsumerGroupLagDTO toDto(ScrapedClusterState.ConsumerGroupState state) {
+
+    Set<TopicPartition> topicPartitions = Stream.concat(
+        state.description().members().stream()
+            .flatMap(m -> m.assignment().topicPartitions().stream()),
+        state.committedOffsets().keySet().stream()
+    ).collect(Collectors.toSet());
+
   }
 
   private static <T extends ConsumerGroupDTO> T convertToConsumerGroup(

@@ -24,6 +24,16 @@ interface ConsumerGroupsApi {
   ): ConsumerGroupsPageResponse;
 
   @get
+  @route("/lag")
+  @operationId("getConsumerGroupsLag")
+  @summary("getConsumerGroupsLag")
+  getConsumerGroupsLag(
+    @path clusterName: string,
+    @query ids: Array<string>,
+    @query lastUpdate?: int64,
+  ): ConsumerGroupsLagResponse;
+
+  @get
   @route("/{id}")
   @operationId("getConsumerGroup")
   @summary("getConsumerGroup")
@@ -122,6 +132,16 @@ model ConsumerGroupOffsetsReset {
   partitions?: int32[];
   resetToTimestamp?: int64;
   partitionsOffsets?: PartitionOffset[];
+}
+
+model ConsumerGroupsLagResponse {
+    updateTimestamp: int64;
+    consumerGroups: Record<ConsumerGroupLag>;
+}
+
+model ConsumerGroupLag {
+    lag: int64;
+    topics: Record<int64>;
 }
 
 enum ConsumerGroupOffsetsResetType {

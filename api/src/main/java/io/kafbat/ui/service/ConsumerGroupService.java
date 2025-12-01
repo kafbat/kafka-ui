@@ -2,8 +2,10 @@ package io.kafbat.ui.service;
 
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
+import io.kafbat.ui.api.model.ConsumerGroupLag;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
+import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
@@ -16,6 +18,7 @@ import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -139,6 +142,68 @@ public class ConsumerGroupService {
         .stream()
         .anyMatch(m -> m.assignment().topicPartitions().stream().anyMatch(tp -> tp.topic().equals(topic)));
     return hasActiveMembersForTopic || hasCommittedOffsets;
+  }
+
+  public Mono<Map<String, ConsumerGroupLagDTO>> getConsumerGroupsLag(KafkaCluster cluster, List<String> groupNames, Optional<Long> lastUpdate) {
+    Statistics statistics = statisticsCache.get(cluster);
+
+    if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      boolean select = lastUpdate
+          .map(t -> statistics.getClusterState().getScrapeFinishedAt().isAfter(Instant.ofEpochMilli(t)))
+          .orElse(true);
+
+      if (select) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+
+        return Mono.just(groupNames.stream()
+            .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(g -> Map.entry(g.group(), buildConsumerGroup(g)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
+      }
+
+    }
+
+    return Mono.just(Map.of());
+  }
+
+  private ConsumerGroupLagDTO buildConsumerGroup(ScrapedClusterState.ConsumerGroupState state) {
+    List<Map.Entry<TopicPartition, Optional<Long>>> topicPartitions = Stream.concat(
+        state.description().members().stream()
+            .flatMap(m ->
+                m.assignment().topicPartitions().stream()
+                    .map(t -> Map.entry(t, Optional.empty()))
+            ),
+        state.committedOffsets().entrySet().stream()
+            .map(o -> Map.entry(o.getKey(), Optional.ofNullable(o.getValue())))
+    ).collect(
+        Collectors.groupingBy(
+            Map.Entry::getKey,
+            Collectors.<Map.Entry<TopicPartition, Optional<Long>>, Map.Entry<TopicPartition, Optional<Long>>>reducing(
+                Map.entry(new TopicPartition("", 0), Optional.empty()),
+                e -> e,
+                (a, b) -> {
+                  if (a.getValue().isPresent() && b.getValue().isEmpty()) {
+                    return a;
+                  } else if (a.getValue().isEmpty() && b.getValue().isPresent()) {
+                    return b;
+                  } else if ((a.getValue().isPresent() && b.getValue().isPresent())) {
+                    Long aOffset = a.getValue().get();
+                    Long bOffset = b.getValue().get();
+                    if (aOffset.compareTo(bOffset) > 0) {
+                      return a;
+                    } else {
+                      return b;
+                    }
+                  }
+                  return a;
+                }
+            )
+        )
+    );
   }
 
   public record ConsumerGroupsPage(List<InternalConsumerGroup> consumerGroups, int totalPages) {
