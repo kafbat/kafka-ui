@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
@@ -62,10 +63,14 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   /**
    * WebClient configured to use system proxy properties (-Dhttps.proxyHost, -Dhttps.proxyPort).
+   * Created as a bean to ensure system properties are read after context initialization.
    */
-  private final WebClient proxyAwareWebClient = WebClient.builder()
-      .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
-      .build();
+  @Bean(name = "oauthWebClient")
+  public WebClient oauthWebClient() {
+    return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
+        .build();
+  }
 
   @Bean
   public SecurityWebFilterChain configure(
@@ -102,26 +107,26 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
-      authorizationCodeTokenResponseClient() {
+      authorizationCodeTokenResponseClient(@Qualifier("oauthWebClient") WebClient webClient) {
     var client = new WebClientReactiveAuthorizationCodeTokenResponseClient();
-    client.setWebClient(proxyAwareWebClient);
+    client.setWebClient(webClient);
     return client;
   }
 
   @Bean
   @Primary
-  public ReactiveJwtDecoder jwtDecoder() {
+  public ReactiveJwtDecoder jwtDecoder(@Qualifier("oauthWebClient") WebClient webClient) {
     String jwkSetUri = getJwkSetUri();
     if (jwkSetUri == null) {
       return token -> Mono.error(new IllegalStateException("JWT decoder not configured"));
     }
     log.info("Configuring JWT decoder with JWKS URI: {}", jwkSetUri);
-    return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(proxyAwareWebClient).build();
+    return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(webClient).build();
   }
 
   @Bean
   @Primary
-  public ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector() {
+  public ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector(@Qualifier("oauthWebClient") WebClient webClient) {
     var config = getOpaqueTokenConfig();
     if (config == null) {
       return token -> Mono.error(new IllegalStateException("Opaque token introspector not configured"));
@@ -129,7 +134,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     log.info("Configuring opaque token introspector with URI: {}", config.getIntrospectionUri());
     return new SpringReactiveOpaqueTokenIntrospector(
         config.getIntrospectionUri(),
-        proxyAwareWebClient.mutate()
+        webClient.mutate()
             .defaultHeaders(h -> h.setBasicAuth(config.getClientId(), config.getClientSecret()))
             .build());
   }
@@ -156,9 +161,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService(AccessControlService acs) {
+  public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService(
+      AccessControlService acs, @Qualifier("oauthWebClient") WebClient webClient) {
     final DefaultReactiveOAuth2UserService delegate = new DefaultReactiveOAuth2UserService();
-    delegate.setWebClient(proxyAwareWebClient);
+    delegate.setWebClient(webClient);
 
     return request -> delegate.loadUser(request)
         .flatMap(user -> {
