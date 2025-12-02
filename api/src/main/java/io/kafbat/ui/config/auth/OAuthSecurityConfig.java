@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
@@ -18,12 +17,17 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeReactiveAuthenticationManager;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
@@ -35,6 +39,10 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -52,9 +60,24 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   private final OAuthProperties properties;
 
+  /**
+   * WebClient configured to use system proxy properties (-Dhttps.proxyHost, -Dhttps.proxyPort).
+   */
+  private final WebClient proxyAwareWebClient = WebClient.builder()
+      .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
+      .build();
+
   @Bean
-  public SecurityWebFilterChain configure(ServerHttpSecurity http, OAuthLogoutSuccessHandler logoutHandler) {
+  public SecurityWebFilterChain configure(
+      ServerHttpSecurity http,
+      OAuthLogoutSuccessHandler logoutHandler,
+      ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
+      ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService
+  ) {
     log.info("Configuring OAUTH2 authentication.");
+
+    var oidcAuthManager =
+        new OidcAuthorizationCodeReactiveAuthenticationManager(tokenResponseClient, oidcUserService);
 
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
@@ -62,28 +85,53 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(Customizer.withDefaults())
+        .oauth2Login(oauth2 -> oauth2.authenticationManager(oidcAuthManager))
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
-    if (properties.getResourceServer() != null) {
-      OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
-      if (resourceServer.getJwt() != null) {
-        builder.oauth2ResourceServer((c) -> c.jwt((j) -> j.jwkSetUri(resourceServer.getJwt().getJwkSetUri())));
-      } else if (resourceServer.getOpaquetoken() != null) {
-        OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
-        builder.oauth2ResourceServer(
-            (c) -> c.opaqueToken(
-              (o) -> o.introspectionUri(opaquetoken.getIntrospectionUri())
-                  .introspectionClientCredentials(opaquetoken.getClientId(), opaquetoken.getClientSecret())
-            )
-        );
-      }
+    if (getJwkSetUri() != null) {
+      builder.oauth2ResourceServer(c -> c.jwt(Customizer.withDefaults()));
+    } else if (getOpaqueTokenConfig() != null) {
+      builder.oauth2ResourceServer(c -> c.opaqueToken(Customizer.withDefaults()));
     }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
+  }
+
+  @Bean
+  public ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
+      authorizationCodeTokenResponseClient() {
+    var client = new WebClientReactiveAuthorizationCodeTokenResponseClient();
+    client.setWebClient(proxyAwareWebClient);
+    return client;
+  }
+
+  @Bean
+  @Primary
+  public ReactiveJwtDecoder jwtDecoder() {
+    String jwkSetUri = getJwkSetUri();
+    if (jwkSetUri == null) {
+      return token -> Mono.error(new IllegalStateException("JWT decoder not configured"));
+    }
+    log.info("Configuring JWT decoder with JWKS URI: {}", jwkSetUri);
+    return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(proxyAwareWebClient).build();
+  }
+
+  @Bean
+  @Primary
+  public ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector() {
+    var config = getOpaqueTokenConfig();
+    if (config == null) {
+      return token -> Mono.error(new IllegalStateException("Opaque token introspector not configured"));
+    }
+    log.info("Configuring opaque token introspector with URI: {}", config.getIntrospectionUri());
+    return new SpringReactiveOpaqueTokenIntrospector(
+        config.getIntrospectionUri(),
+        proxyAwareWebClient.mutate()
+            .defaultHeaders(h -> h.setBasicAuth(config.getClientId(), config.getClientSecret()))
+            .build());
   }
 
   @Bean
@@ -110,13 +158,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   @Bean
   public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService(AccessControlService acs) {
     final DefaultReactiveOAuth2UserService delegate = new DefaultReactiveOAuth2UserService();
-
-    // Configure WebClient to use system proxy properties (if set)
-    delegate.setWebClient(
-        WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(
-                HttpClient.create().proxyWithSystemProperties()))
-            .build());
+    delegate.setWebClient(proxyAwareWebClient);
 
     return request -> delegate.loadUser(request)
         .flatMap(user -> {
@@ -147,7 +189,19 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
   }
 
-  @Nullable
+  private String getJwkSetUri() {
+    var rs = properties.getResourceServer();
+    return rs != null && rs.getJwt() != null ? rs.getJwt().getJwkSetUri() : null;
+  }
+
+  private OAuth2ResourceServerProperties.Opaquetoken getOpaqueTokenConfig() {
+    var rs = properties.getResourceServer();
+    if (rs == null || rs.getOpaquetoken() == null) {
+      return null;
+    }
+    return rs.getOpaquetoken().getIntrospectionUri() != null ? rs.getOpaquetoken() : null;
+  }
+
   private ProviderAuthorityExtractor getExtractor(final OAuthProperties.OAuth2Provider provider,
                                                   AccessControlService acs) {
     Optional<ProviderAuthorityExtractor> extractor = acs.getOauthExtractors()

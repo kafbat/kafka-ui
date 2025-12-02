@@ -27,6 +27,7 @@ cel = '0.3.0'
 junit = '5.12.2'
 mockito = '5.20.0'
 okhttp3 = '4.12.0'
+wiremock = '3.9.1'
 testcontainers = '1.20.6'
 swagger-integration-jakarta = '2.2.28'
 jakarta-annotation-api = '2.1.1'
@@ -108,6 +109,8 @@ mockito-jupiter = { module = 'org.mockito:mockito-junit-jupiter', version.ref = 
 okhttp3 = { module = 'com.squareup.okhttp3:okhttp', version.ref = 'okhttp3' }
 okhttp3-mockwebserver = { module = 'com.squareup.okhttp3:mockwebserver', version.ref = 'okhttp3' }
 okhttp3-logging-intercepter = { module = 'com.squareup.okhttp3:logging-interceptor', version.ref = 'okhttp3' }
+
+wiremock = { module = 'org.wiremock:wiremock-standalone', version.ref = 'wiremock' }
 
 opendatadiscovery-oddrn = { module = 'org.opendatadiscovery:oddrn-generator-java', version.ref = 'odd-oddrn-generator' }
 opendatadiscovery-client = { module = 'org.opendatadiscovery:ingestion-contract-client', version.ref = 'odd-oddrn-client' }
