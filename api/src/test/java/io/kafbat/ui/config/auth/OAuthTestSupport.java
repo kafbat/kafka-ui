@@ -100,9 +100,12 @@ public final class OAuthTestSupport {
     if (enableProxy) {
       System.setProperty("http.proxyHost", "localhost");
       System.setProperty("http.proxyPort", String.valueOf(proxyServer.port()));
+      // Override default nonProxyHosts ("localhost|127.*|[::1]") to allow proxying localhost for tests
+      System.setProperty("http.nonProxyHosts", "none");
     } else {
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
+      System.clearProperty("http.nonProxyHosts");
     }
     proxyEnabled = enableProxy;
   }
@@ -110,6 +113,7 @@ public final class OAuthTestSupport {
   public static void stopServers() {
     System.clearProperty("http.proxyHost");
     System.clearProperty("http.proxyPort");
+    System.clearProperty("http.nonProxyHosts");
     if (proxyServer != null) {
       proxyServer.stop();
       proxyServer = null;
