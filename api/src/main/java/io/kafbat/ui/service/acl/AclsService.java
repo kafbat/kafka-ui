@@ -86,12 +86,6 @@ public class AclsService {
     return filter.find(principalSearch);
   }
 
-  public Mono<String> getAclAsCsvString(KafkaCluster cluster) {
-    return adminClientService.get(cluster)
-        .flatMap(c -> c.listAcls(ResourcePatternFilter.ANY))
-        .map(AclCsv::transformToCsvString);
-  }
-
   public Mono<Void> syncAclWithAclCsv(KafkaCluster cluster, String csv) {
     return adminClientService.get(cluster)
         .flatMap(ac -> ac.listAcls(ResourcePatternFilter.ANY).flatMap(existingAclList -> {
