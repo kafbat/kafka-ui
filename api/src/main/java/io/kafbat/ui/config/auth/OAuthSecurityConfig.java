@@ -62,7 +62,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   private final OAuthProperties properties;
 
   /**
-   * WebClient configured to use system proxy properties (-Dhttps.proxyHost, -Dhttps.proxyPort).
+   * WebClient configured to use system proxy properties (http.proxyHost/https.proxyHost,
+   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts).
    * Created as a bean to ensure system properties are read after context initialization.
    */
   @Bean(name = "oauthWebClient")

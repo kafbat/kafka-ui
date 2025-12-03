@@ -96,6 +96,7 @@ public final class OAuthTestSupport {
       initialized = true;
     }
 
+    // Intentionally outside the initialized block - different tests may toggle proxy on/off
     // Set or clear proxy system properties based on enableProxy
     if (enableProxy) {
       System.setProperty("http.proxyHost", "localhost");
@@ -132,7 +133,9 @@ public final class OAuthTestSupport {
     }
     if (proxyServer != null) {
       proxyServer.resetAll();
-      // Re-stub proxy forwarding after reset
+    }
+    // Re-stub proxy forwarding after reset
+    if (proxyServer != null && oauthServer != null) {
       proxyServer.stubFor(WireMock.any(urlMatching(".*"))
           .willReturn(aResponse().proxiedFrom("http://localhost:" + oauthServer.port())));
     }
