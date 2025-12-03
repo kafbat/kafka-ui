@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.5.7'
+spring-boot = '3.5.8'
 nimbus-jose-jwt = '10.0.2'
 
 aws-msk-auth = '2.3.0'
