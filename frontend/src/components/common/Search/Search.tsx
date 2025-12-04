@@ -32,10 +32,11 @@ const Search: React.FC<SearchProps> = ({
   const [showIcon, setShowIcon] = useState(!!value || !!searchParams.get('q'));
 
   useEffect(() => {
-    if (ref.current !== null && value) {
-      ref.current.value = value;
+    const qParam = searchParams.get('q') || '';
+    if (ref.current !== null) {
+      ref.current.value = qParam;
     }
-  }, [value]);
+  }, [searchParams]);
 
   const handleChange = useDebouncedCallback((e) => {
     setShowIcon(!!e.target.value);
