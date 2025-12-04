@@ -38,11 +38,11 @@ describe('ListPage Component', () => {
       const switchInput = screen.getByLabelText('Show Internal Topics');
       expect(switchInput).toBeInTheDocument();
 
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
-      await userEvent.click(switchInput);
       expect(global.localStorage.getItem('hideInternalTopics')).toBeTruthy();
       await userEvent.click(switchInput);
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
+      expect(global.localStorage.getItem('hideInternalTopics')).toBeFalsy();
+      await userEvent.click(switchInput);
+      expect(global.localStorage.getItem('hideInternalTopics')).toBeTruthy();
     });
 
     it('renders the TopicsTable', () => {
