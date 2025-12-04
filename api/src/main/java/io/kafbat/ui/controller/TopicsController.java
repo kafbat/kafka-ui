@@ -29,7 +29,6 @@ import io.kafbat.ui.model.TopicProducerStateDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
-import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
@@ -186,7 +185,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .operationName("getTopics")
         .build();
 
-    return topicsService.getTopicsForPagination(getCluster(clusterName), search, showInternal, fts)
+    return topicsService.getTopics(getCluster(clusterName), search, showInternal, fts)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .flatMap(topics -> {
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
@@ -216,6 +215,28 @@ public class TopicsController extends AbstractController implements TopicsApi, M
                       .pageCount(totalPages));
         })
         .map(ResponseEntity::ok)
+        .doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<String>> getTopicsCsv(String clusterName, Boolean showInternal,
+                                                   String search, TopicColumnsToSortDTO orderBy,
+                                                   SortOrderDTO sortOrder, Boolean fts,
+                                                   ServerWebExchange exchange) {
+
+    AccessContext context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getTopicsCsv")
+        .build();
+
+    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+    Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, ftsProperties.use(fts));
+
+    return topicsService
+        .getTopics(getCluster(clusterName), search, showInternal, fts)
+        .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
+        .map(topics -> topics.stream().sorted(comparatorForTopic).toList())
+        .flatMap(topics -> responseToCsv(ResponseEntity.ok(Flux.fromIterable(topics))))
         .doOnEach(sig -> audit(context, sig));
   }
 

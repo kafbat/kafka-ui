@@ -1,37 +1,26 @@
 import React from 'react';
-import { SortOrder, Topic, TopicColumnsToSort } from 'generated-sources';
+import { GetTopicsRequest, Topic, TopicColumnsToSort } from 'generated-sources';
 import { ColumnDef } from '@tanstack/react-table';
 import Table, { SizeCell } from 'components/common/NewTable';
-import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterName } from 'lib/interfaces/cluster';
 import { useSearchParams } from 'react-router-dom';
 import ClusterContext from 'components/contexts/ClusterContext';
 import { useTopics } from 'lib/hooks/api/topics';
 import { PER_PAGE } from 'lib/constants';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
-import useFts from 'components/common/Fts/useFts';
+import { formatBytes } from 'components/common/BytesFormatted/utils';
 
 import { TopicTitleCell } from './TopicTitleCell';
 import ActionsCell from './ActionsCell';
 import BatchActionsbar from './BatchActionsBar';
 
-const TopicTable: React.FC = () => {
-  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+const TopicTable: React.FC<{ params: GetTopicsRequest }> = ({ params }) => {
   const [searchParams] = useSearchParams();
   const { isReadOnly } = React.useContext(ClusterContext);
-  const { isFtsEnabled } = useFts('topics');
 
   const { data } = useTopics({
-    clusterName,
-    fts: isFtsEnabled,
+    ...params,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
-    search: searchParams.get('q') || undefined,
-    showInternal: !searchParams.has('hideInternal'),
-    orderBy: (searchParams.get('sortBy') as TopicColumnsToSort) || undefined,
-    sortOrder:
-      (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
-      undefined,
   });
 
   const topics = data?.topics || [];
@@ -93,6 +82,9 @@ const TopicTable: React.FC = () => {
         accessorKey: 'segmentSize',
         size: 100,
         cell: SizeCell,
+        meta: {
+          csvFn: (row: Topic) => formatBytes(row.segmentSize, 0),
+        },
       },
       {
         id: 'actions',
