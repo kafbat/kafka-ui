@@ -4,11 +4,16 @@
 # We include the SHA to ensure image immutability
 FROM azul/zulu-openjdk-alpine:25.0.1-jre-headless@sha256:5499f0c1453d7e7111501b28b21f173b1ec88a48719b7d5b060b0e6461c315b3
 
-RUN apk add --no-cache \
+RUN apk add --update --no-cache \
     # snappy codec
     gcompat \
     # configuring timezones
-    tzdata
+    tzdata \
+    # Temporary fixes for CVE-2024-58251 and CVE-2025-46394
+   busybox=1.36.1-r31 \
+   busybox-binsh=1.36.1-r31 \
+   ssl_client=1.36.1-r31
+
 RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
 
 # creating folder for dynamic config usage (certificates uploads, etc)
