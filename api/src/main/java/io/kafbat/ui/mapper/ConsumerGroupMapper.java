@@ -85,16 +85,6 @@ public class ConsumerGroupMapper {
     return details;
   }
 
-  public static ConsumerGroupLagDTO toDto(ScrapedClusterState.ConsumerGroupState state) {
-
-    Set<TopicPartition> topicPartitions = Stream.concat(
-        state.description().members().stream()
-            .flatMap(m -> m.assignment().topicPartitions().stream()),
-        state.committedOffsets().keySet().stream()
-    ).collect(Collectors.toSet());
-
-  }
-
   private static <T extends ConsumerGroupDTO> T convertToConsumerGroup(
       InternalConsumerGroup c, T consumerGroup) {
     consumerGroup.setGroupId(c.getGroupId());

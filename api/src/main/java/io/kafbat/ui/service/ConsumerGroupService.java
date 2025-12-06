@@ -2,7 +2,6 @@ package io.kafbat.ui.service;
 
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
-import io.kafbat.ui.api.model.ConsumerGroupLag;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
 import io.kafbat.ui.model.ConsumerGroupLagDTO;
@@ -41,6 +40,8 @@ import org.apache.kafka.common.ConsumerGroupState;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 @Service
 @RequiredArgsConstructor
@@ -144,8 +145,14 @@ public class ConsumerGroupService {
     return hasActiveMembersForTopic || hasCommittedOffsets;
   }
 
-  public Mono<Map<String, ConsumerGroupLagDTO>> getConsumerGroupsLag(KafkaCluster cluster, List<String> groupNames, Optional<Long> lastUpdate) {
+  public Mono<Tuple2<Map<String, ConsumerGroupLagDTO>, Optional<Long>>> getConsumerGroupsLag(
+      KafkaCluster cluster, Collection<String> groupNames, Optional<Long> lastUpdate) {
     Statistics statistics = statisticsCache.get(cluster);
+
+    Map<TopicPartition, Long> endOffsets = statistics.getClusterState().getTopicStates().entrySet().stream()
+        .flatMap(e -> e.getValue().endOffsets().entrySet().stream().map(p ->
+            Map.entry(new TopicPartition(e.getKey(), p.getKey()), p.getValue()))
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
       boolean select = lastUpdate
@@ -156,54 +163,72 @@ public class ConsumerGroupService {
         Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
             statistics.getClusterState().getConsumerGroupsStates();
 
-        return Mono.just(groupNames.stream()
-            .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(g -> Map.entry(g.group(), buildConsumerGroup(g)))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        return Mono.just(
+            Tuples.of(
+                groupNames.stream()
+                    .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(g -> Map.entry(g.group(), buildConsumerGroup(g, endOffsets)))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                Optional.of(statistics.getClusterState().getScrapeFinishedAt().toEpochMilli())
+            )
         );
       }
 
     }
 
-    return Mono.just(Map.of());
+    return Mono.just(Tuples.of(Map.of(), lastUpdate));
   }
 
-  private ConsumerGroupLagDTO buildConsumerGroup(ScrapedClusterState.ConsumerGroupState state) {
-    List<Map.Entry<TopicPartition, Optional<Long>>> topicPartitions = Stream.concat(
+  private ConsumerGroupLagDTO buildConsumerGroup(
+      ScrapedClusterState.ConsumerGroupState state,
+      Map<TopicPartition, Long> endOffsets
+  ) {
+    var topicPartitions = Stream.concat(
         state.description().members().stream()
             .flatMap(m ->
                 m.assignment().topicPartitions().stream()
-                    .map(t -> Map.entry(t, Optional.empty()))
+                    .map(t -> Map.entry(t, Optional.<Long>empty()))
             ),
         state.committedOffsets().entrySet().stream()
             .map(o -> Map.entry(o.getKey(), Optional.ofNullable(o.getValue())))
     ).collect(
         Collectors.groupingBy(
             Map.Entry::getKey,
-            Collectors.<Map.Entry<TopicPartition, Optional<Long>>, Map.Entry<TopicPartition, Optional<Long>>>reducing(
-                Map.entry(new TopicPartition("", 0), Optional.empty()),
-                e -> e,
-                (a, b) -> {
-                  if (a.getValue().isPresent() && b.getValue().isEmpty()) {
-                    return a;
-                  } else if (a.getValue().isEmpty() && b.getValue().isPresent()) {
-                    return b;
-                  } else if ((a.getValue().isPresent() && b.getValue().isPresent())) {
-                    Long aOffset = a.getValue().get();
-                    Long bOffset = b.getValue().get();
-                    if (aOffset.compareTo(bOffset) > 0) {
-                      return a;
-                    } else {
-                      return b;
-                    }
-                  }
-                  return a;
-                }
+            Collectors.mapping(Map.Entry::getValue,
+                Collectors.<Optional<Long>>reducing(
+                    Optional.empty(),
+                    (a, b) -> Stream.of(a, b)
+                        .flatMap(Optional::stream)
+                        .max(Long::compare)
+                )
             )
         )
     );
+
+    Map<TopicPartition, Long> tpOffsets = new HashMap<>();
+
+    for (Map.Entry<TopicPartition, Optional<Long>> entry : topicPartitions.entrySet()) {
+      Optional<Long> maybeOffset = Optional.ofNullable(endOffsets.get(entry.getKey()));
+      tpOffsets.put(
+          entry.getKey(),
+          maybeOffset.map(offset ->
+              entry.getValue().map(o -> offset - o).orElse(offset)
+          ).orElse(0L)
+      );
+    }
+
+    Map<String, Long> topicsLags = tpOffsets.entrySet().stream().collect(
+        Collectors.groupingBy(
+            (e) -> e.getKey().topic(),
+            Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+        )
+    );
+
+    long lag = topicsLags.values().stream().mapToLong(v -> v).sum();
+
+    return new ConsumerGroupLagDTO(lag, topicsLags);
   }
 
   public record ConsumerGroupsPage(List<InternalConsumerGroup> consumerGroups, int totalPages) {

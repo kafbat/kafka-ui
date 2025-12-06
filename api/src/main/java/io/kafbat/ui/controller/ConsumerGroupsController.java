@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 @RestController
 @RequiredArgsConstructor
@@ -112,11 +113,18 @@ public class ConsumerGroupsController extends AbstractController implements Cons
 
     Mono<ResponseEntity<ConsumerGroupsLagResponseDTO>> result =
         consumerGroupService.getConsumerGroupsLag(getCluster(clusterName), groupNames, Optional.ofNullable(lastUpdate))
-            .flatMapMany(m -> Flux.fromIterable(m.entrySet()))
-            .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.getKey(), clusterName))
-            .collectList()
-            .map(l -> l.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
-            .map(m -> new ConsumerGroupsLagResponseDTO(Instant.now().toEpochMilli(), m))
+            .flatMap(t ->
+               Flux.fromIterable(t.getT1().entrySet())
+                .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.getKey(), clusterName))
+                .collectList()
+                .map(l -> l.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                .map(l -> Tuples.of(t.getT2(), l))
+            )
+            .map(t ->
+                new ConsumerGroupsLagResponseDTO(
+                    t.getT1().orElse(0L), t.getT2()
+                )
+            )
             .map(ResponseEntity::ok)
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 
