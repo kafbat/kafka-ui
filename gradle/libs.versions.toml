@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.5.7'
+spring-boot = '3.5.8'
 nimbus-jose-jwt = '10.0.2'
 
 aws-msk-auth = '2.3.0'
@@ -13,9 +13,9 @@ apache-commons-compress = '1.26.0'
 
 assertj = '3.25.3'
 avro = '1.11.4'
-byte-buddy = '1.14.19'
-confluent = '7.9.2'
-confluent-ccs = '7.9.0-ccs'
+byte-buddy = '1.18.1'
+confluent = '7.9.5'
+confluent-ccs = '7.9.5-ccs'
 
 mapstruct = '1.6.2'
 lombok = '1.18.42'

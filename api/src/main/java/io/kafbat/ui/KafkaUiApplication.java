@@ -1,10 +1,11 @@
 package io.kafbat.ui;
 
+import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.DynamicConfigOperations;
+import java.security.Security;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -17,8 +18,10 @@ public class KafkaUiApplication {
     startApplication(args);
   }
 
-  public static ConfigurableApplicationContext startApplication(String[] args) {
-    return new SpringApplicationBuilder(KafkaUiApplication.class)
+  public static void startApplication(String[] args) {
+    Security.addProvider(new SkipSecurityProvider());
+
+    new SpringApplicationBuilder(KafkaUiApplication.class)
         .initializers(DynamicConfigOperations.dynamicConfigPropertiesInitializer())
         .build()
         .run(args);
