@@ -1,5 +1,8 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateConsumerLag;
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateLag;
+
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
@@ -185,7 +188,7 @@ public class ConsumerGroupService {
       ScrapedClusterState.ConsumerGroupState state,
       Map<TopicPartition, Long> endOffsets
   ) {
-    var topicPartitions = Stream.concat(
+    var commitedTopicPartitions = Stream.concat(
         state.description().members().stream()
             .flatMap(m ->
                 m.assignment().topicPartitions().stream()
@@ -207,24 +210,18 @@ public class ConsumerGroupService {
         )
     );
 
-    Map<TopicPartition, Long> tpOffsets = new HashMap<>();
-
-    for (Map.Entry<TopicPartition, Optional<Long>> entry : topicPartitions.entrySet()) {
-      Optional<Long> maybeOffset = Optional.ofNullable(endOffsets.get(entry.getKey()));
-      tpOffsets.put(
-          entry.getKey(),
-          maybeOffset.map(offset ->
-              entry.getValue().map(o -> offset - o).orElse(offset)
-          ).orElse(0L)
-      );
-    }
-
-    Map<String, Long> topicsLags = tpOffsets.entrySet().stream().collect(
-        Collectors.groupingBy(
-            (e) -> e.getKey().topic(),
-            Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
-        )
-    );
+    Map<String, Long> topicsLags = commitedTopicPartitions.entrySet().stream()
+        .map(e ->
+          Map.entry(
+              e.getKey(),
+              calculateLag(e.getValue(), Optional.ofNullable(endOffsets.get(e.getKey()))).orElse(0L)
+          )
+        ).collect(
+            Collectors.groupingBy(
+              (e) -> e.getKey().topic(),
+              Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+            )
+        );
 
     long lag = topicsLags.values().stream().mapToLong(v -> v).sum();
 

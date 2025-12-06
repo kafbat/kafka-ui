@@ -15,13 +15,21 @@ public class ConsumerGroupUtil {
     if (!offsets.isEmpty()) {
       consumerLag = offsets.entrySet().stream()
           .mapToLong(e ->
-              Optional.ofNullable(endOffsets)
-                  .map(o -> o.get(e.getKey()))
-                  .map(o -> o - e.getValue())
-                  .orElse(0L)
+              calculateLag(
+                  Optional.ofNullable(e.getValue()),
+                  Optional.ofNullable(endOffsets.get(e.getKey()))
+              ).orElse(0L)
           ).sum();
     }
 
+    return consumerLag;
+  }
+
+  public static Optional<Long> calculateLag(Optional<Long> commitedOffset, Optional<Long> endOffset) {
+    Optional<Long> consumerLag = Optional.empty();
+    if (endOffset.isPresent()) {
+      consumerLag = commitedOffset.map(o -> endOffset.get() - o);
+    }
     return consumerLag;
   }
 }
