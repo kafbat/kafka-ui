@@ -68,7 +68,7 @@ model ApplicationConfig {
   properties: {
     auth?: {
       type: string;
-      oauth2: {
+      oauth2?: {
         client?: Record<{
             provider: string;
             clientId: string;
