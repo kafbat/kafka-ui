@@ -18,9 +18,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -41,8 +39,6 @@ import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserSer
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -78,7 +74,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       ServerHttpSecurity http,
       OAuthLogoutSuccessHandler logoutHandler,
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
-      ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService
+      ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
+      @Qualifier("oauthWebClient") WebClient webClient
   ) {
     log.info("Configuring OAUTH2 authentication.");
 
@@ -95,10 +92,23 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
-    if (getJwkSetUri() != null) {
-      builder.oauth2ResourceServer(c -> c.jwt(Customizer.withDefaults()));
-    } else if (getOpaqueTokenConfig() != null) {
-      builder.oauth2ResourceServer(c -> c.opaqueToken(Customizer.withDefaults()));
+    if (properties.getResourceServer() != null) {
+      OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
+      if (resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null) {
+        builder.oauth2ResourceServer(c -> c.jwt(j ->
+            j.jwtDecoder(NimbusReactiveJwtDecoder.withJwkSetUri(resourceServer.getJwt().getJwkSetUri())
+                .webClient(webClient)
+                .build())));
+      } else if (resourceServer.getOpaquetoken() != null
+          && resourceServer.getOpaquetoken().getIntrospectionUri() != null) {
+        OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
+        builder.oauth2ResourceServer(c -> c.opaqueToken(o ->
+            o.introspector(new SpringReactiveOpaqueTokenIntrospector(
+                opaquetoken.getIntrospectionUri(),
+                webClient.mutate()
+                    .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
+                    .build()))));
+      }
     }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
@@ -112,32 +122,6 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     var client = new WebClientReactiveAuthorizationCodeTokenResponseClient();
     client.setWebClient(webClient);
     return client;
-  }
-
-  @Bean
-  @Primary
-  public ReactiveJwtDecoder jwtDecoder(@Qualifier("oauthWebClient") WebClient webClient) {
-    String jwkSetUri = getJwkSetUri();
-    if (jwkSetUri == null) {
-      return token -> Mono.error(new IllegalStateException("JWT decoder not configured"));
-    }
-    log.info("Configuring JWT decoder with JWKS URI: {}", jwkSetUri);
-    return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(webClient).build();
-  }
-
-  @Bean
-  @Primary
-  public ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector(@Qualifier("oauthWebClient") WebClient webClient) {
-    var config = getOpaqueTokenConfig();
-    if (config == null) {
-      return token -> Mono.error(new IllegalStateException("Opaque token introspector not configured"));
-    }
-    log.info("Configuring opaque token introspector with URI: {}", config.getIntrospectionUri());
-    return new SpringReactiveOpaqueTokenIntrospector(
-        config.getIntrospectionUri(),
-        webClient.mutate()
-            .defaultHeaders(h -> h.setBasicAuth(config.getClientId(), config.getClientSecret()))
-            .build());
   }
 
   @Bean
@@ -194,19 +178,6 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   @Bean
   public ServerLogoutSuccessHandler defaultOidcLogoutHandler(final ReactiveClientRegistrationRepository repository) {
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
-  }
-
-  private String getJwkSetUri() {
-    var rs = properties.getResourceServer();
-    return rs != null && rs.getJwt() != null ? rs.getJwt().getJwkSetUri() : null;
-  }
-
-  private OAuth2ResourceServerProperties.Opaquetoken getOpaqueTokenConfig() {
-    var rs = properties.getResourceServer();
-    if (rs == null || rs.getOpaquetoken() == null) {
-      return null;
-    }
-    return rs.getOpaquetoken().getIntrospectionUri() != null ? rs.getOpaquetoken() : null;
   }
 
   private ProviderAuthorityExtractor getExtractor(final OAuthProperties.OAuth2Provider provider,

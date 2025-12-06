@@ -260,20 +260,4 @@ public final class OAuthTestSupport {
       return createOAuthProperties();
     }
   }
-
-  @TestConfiguration
-  public static class JwtTestConfig extends AbstractTestConfig {
-    @Override
-    public OAuthProperties authProperties() {
-      return createOAuthPropertiesWithJwt();
-    }
-  }
-
-  @TestConfiguration
-  public static class OpaqueTokenTestConfig extends AbstractTestConfig {
-    @Override
-    public OAuthProperties authProperties() {
-      return createOAuthPropertiesWithOpaqueToken();
-    }
-  }
 }
