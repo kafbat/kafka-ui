@@ -325,8 +325,8 @@ class ConsumerGroupServiceTest {
   }
 
   public static Stream<Arguments> consumerGroupsLags() {
-    String topic = "topic_"+ UUID.randomUUID();
-    String anotherTopic = "another_topic_"+ UUID.randomUUID();
+    String topic = "topic_" + UUID.randomUUID();
+    String anotherTopic = "another_topic_" + UUID.randomUUID();
     return Stream.of(
         Arguments.of(
             topic,
