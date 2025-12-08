@@ -34,7 +34,6 @@ updates:
         - "org.testcontainers:*"
         - "org.junit.jupiter:*"
         - "org.assertj:*"
-        - "com.gorylenko.gradle-git-properties"
         - "com.bmuschko.docker-remote-api"
         - "org.mockito:*"
         # Bouncy Castle is only used for testing purposes
