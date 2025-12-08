@@ -39,7 +39,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -107,9 +106,7 @@ public class AccessControlService {
     if (!rbacEnabled) {
       return Mono.just(true);
     }
-    return getUser()
-        .map(user -> isAccessible(user, context))
-        .switchIfEmpty(Mono.just(false));
+    return getUser().map(user -> isAccessible(user, context));
   }
 
   private boolean isAccessible(AuthenticatedUser user, AccessContext context) {
@@ -139,23 +136,9 @@ public class AccessControlService {
   public static Mono<AuthenticatedUser> getUser() {
     return ReactiveSecurityContextHolder.getContext()
         .map(SecurityContext::getAuthentication)
-        .flatMap(authentication -> {
-          Object principal = authentication.getPrincipal();
-          if (principal instanceof RbacUser rbacUser) {
-            return Mono.just(new AuthenticatedUser(rbacUser.name(), rbacUser.groups()));
-          } else if (principal instanceof Jwt jwt) {
-            String username = jwt.getClaimAsString("preferred_username");
-            if (username == null) {
-              username = jwt.getSubject();
-            }
-            List<String> roles = jwt.getClaimAsStringList("roles");
-            if (roles == null) {
-              roles = Collections.emptyList();
-            }
-            return Mono.just(new AuthenticatedUser(username, roles));
-          }
-          return Mono.empty();
-        });
+        .filter(authentication -> authentication.getPrincipal() instanceof RbacUser)
+        .map(authentication -> ((RbacUser) authentication.getPrincipal()))
+        .map(user -> new AuthenticatedUser(user.name(), user.groups()));
   }
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
