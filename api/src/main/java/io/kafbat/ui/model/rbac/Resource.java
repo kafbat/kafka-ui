@@ -37,7 +37,7 @@ public enum Resource {
 
   CONNECT(ConnectAction.values(), ConnectAction.ALIASES),
 
-  CONNECTOR(ConnectorAction.values(), ConnectorAction.ALIASES),
+  CONNECTOR(ConnectorAction.values()),
 
   KSQL(KsqlAction.values()),
 

@@ -1,6 +1,5 @@
 package io.kafbat.ui.model.rbac.permission;
 
-import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.EnumUtils;
 import org.jetbrains.annotations.Nullable;
@@ -24,14 +23,6 @@ public enum ConnectorAction implements PermissibleAction {
   }
 
   public static final Set<ConnectorAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, OPERATE, RESET_OFFSETS);
-
-  public static final Map<String, PermissibleAction> ALIASES = Map.of(
-      "restart", OPERATE,
-      "pause", OPERATE,
-      "resume", OPERATE,
-      "restart_task", OPERATE,
-      "state_update", OPERATE
-  );
 
   @Nullable
   public static ConnectorAction fromString(String name) {

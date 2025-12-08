@@ -12,7 +12,6 @@ import io.kafbat.ui.model.rbac.Permission;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
-import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
@@ -22,7 +21,6 @@ import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import jakarta.annotation.PostConstruct;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +39,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -108,7 +107,9 @@ public class AccessControlService {
     if (!rbacEnabled) {
       return Mono.just(true);
     }
-    return getUser().map(user -> isAccessible(user, context));
+    return getUser()
+        .map(user -> isAccessible(user, context))
+        .switchIfEmpty(Mono.just(false));
   }
 
   private boolean isAccessible(AuthenticatedUser user, AccessContext context) {
@@ -138,9 +139,23 @@ public class AccessControlService {
   public static Mono<AuthenticatedUser> getUser() {
     return ReactiveSecurityContextHolder.getContext()
         .map(SecurityContext::getAuthentication)
-        .filter(authentication -> authentication.getPrincipal() instanceof RbacUser)
-        .map(authentication -> ((RbacUser) authentication.getPrincipal()))
-        .map(user -> new AuthenticatedUser(user.name(), user.groups()));
+        .flatMap(authentication -> {
+          Object principal = authentication.getPrincipal();
+          if (principal instanceof RbacUser rbacUser) {
+            return Mono.just(new AuthenticatedUser(rbacUser.name(), rbacUser.groups()));
+          } else if (principal instanceof Jwt jwt) {
+            String username = jwt.getClaimAsString("preferred_username");
+            if (username == null) {
+              username = jwt.getSubject();
+            }
+            List<String> roles = jwt.getClaimAsStringList("roles");
+            if (roles == null) {
+              roles = Collections.emptyList();
+            }
+            return Mono.just(new AuthenticatedUser(username, roles));
+          }
+          return Mono.empty();
+        });
   }
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
@@ -206,63 +221,6 @@ public class AccessControlService {
             .connectActions(connectName, ConnectAction.VIEW)
             .build()
     );
-  }
-
-  public Mono<Boolean> isConnectorAccessible(String connectName, String connectorName,
-                                             String clusterName, ConnectorAction... actions) {
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
-
-    // First check for specific connector permissions
-    var connectorContext = AccessContext.builder()
-        .cluster(clusterName)
-        .connectorActions(connectorResource, actions)
-        .build();
-
-    return isAccessible(connectorContext)
-        .flatMap(hasConnectorAccess -> {
-          if (hasConnectorAccess) {
-            return Mono.just(true);
-          }
-
-          // Fall back to checking connect-level permissions
-          // Map connector actions to corresponding connect actions
-          ConnectAction[] connectActions = mapToConnectActions(actions);
-          if (connectActions.length == 0) {
-            return Mono.just(false);
-          }
-
-          var connectContext = AccessContext.builder()
-              .cluster(clusterName)
-              .connectActions(connectName, connectActions)
-              .build();
-
-          return isAccessible(connectContext);
-        });
-  }
-
-  private ConnectAction[] mapToConnectActions(ConnectorAction[] connectorActions) {
-    return Arrays.stream(connectorActions)
-        .map(action -> {
-          switch (action) {
-            case VIEW:
-              return ConnectAction.VIEW;
-            case EDIT:
-              return ConnectAction.EDIT;
-            case CREATE:
-              return ConnectAction.CREATE;
-            case DELETE:
-              return ConnectAction.DELETE;
-            case OPERATE:
-              return ConnectAction.OPERATE;
-            case RESET_OFFSETS:
-              return ConnectAction.RESET_OFFSETS;
-            default:
-              return null;
-          }
-        })
-        .filter(Objects::nonNull)
-        .distinct()
-        .toArray(ConnectAction[]::new);
   }
 
   public List<Role> getRoles() {

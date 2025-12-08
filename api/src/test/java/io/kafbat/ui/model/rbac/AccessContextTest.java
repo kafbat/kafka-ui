@@ -122,7 +122,8 @@ class AccessContextTest {
 
       var allowed = sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, "my-connect/my-connector", ConnectorAction.VIEW, ConnectorAction.OPERATE)));
+              permission(Resource.CONNECTOR, "my-connect/my-connector",
+                  ConnectorAction.VIEW, ConnectorAction.OPERATE)));
 
       assertThat(allowed).isTrue();
     }
@@ -195,6 +196,57 @@ class AccessContextTest {
       p.validate();
       p.transform();
       return p;
+    }
+  }
+
+  @Nested
+  class FallbackResourceAccessTest {
+
+    @Test
+    void returnsTrueIfPrimaryIsAccessible() {
+      ResourceAccess primary = mock(ResourceAccess.class);
+      when(primary.isAccessible(any())).thenReturn(true);
+
+      ResourceAccess fallback = mock(ResourceAccess.class);
+      when(fallback.isAccessible(any())).thenReturn(false);
+
+      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
+      assertThat(fra.isAccessible(List.of())).isTrue();
+    }
+
+    @Test
+    void returnsTrueIfFallbackIsAccessible() {
+      ResourceAccess primary = mock(ResourceAccess.class);
+      when(primary.isAccessible(any())).thenReturn(false);
+
+      ResourceAccess fallback = mock(ResourceAccess.class);
+      when(fallback.isAccessible(any())).thenReturn(true);
+
+      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
+      assertThat(fra.isAccessible(List.of())).isTrue();
+    }
+
+    @Test
+    void returnsFalseIfBothAreNotAccessible() {
+      ResourceAccess primary = mock(ResourceAccess.class);
+      when(primary.isAccessible(any())).thenReturn(false);
+
+      ResourceAccess fallback = mock(ResourceAccess.class);
+      when(fallback.isAccessible(any())).thenReturn(false);
+
+      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
+      assertThat(fra.isAccessible(List.of())).isFalse();
+    }
+
+    @Test
+    void delegatesResourceIdToPrimary() {
+      ResourceAccess primary = mock(ResourceAccess.class);
+      when(primary.resourceId()).thenReturn("primary-id");
+
+      ResourceAccess fallback = mock(ResourceAccess.class);
+
+      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
+      assertThat(fra.resourceId()).isEqualTo("primary-id");
     }
   }
 

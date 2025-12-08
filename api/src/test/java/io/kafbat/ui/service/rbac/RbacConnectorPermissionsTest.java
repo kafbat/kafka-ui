@@ -15,6 +15,7 @@ import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -81,7 +82,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
     try (MockedStatic<ReactiveSecurityContextHolder> ctxHolder = Mockito.mockStatic(
         ReactiveSecurityContextHolder.class)) {
       // Mock static method to get security context
-      ctxHolder.when(ReactiveSecurityContextHolder::getContext).thenReturn(Mono.just(securityContext));
+      ctxHolder.when(ReactiveSecurityContextHolder::getContext)
+          .thenReturn(Mono.just(securityContext));
       runnable.run();
     }
   }
@@ -95,7 +97,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectorActions(ConnectorAction.buildResourcePath(CONNECT_NAME, CONNECTOR_NAME), ConnectorAction.VIEW)
+          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
+          .operationParams(Map.of("connectorName", CONNECTOR_NAME))
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -105,8 +108,7 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
   }
 
   /**
-   * Test that a user without specific connector-level permission
-   * but with connect-level permission is denied access.
+   * Test that a user without specific connector-level permission is denied access.
    */
   @Test
   void validateAccess_withoutConnectorLevelPermission_denied() {
@@ -114,7 +116,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectorActions(ConnectorAction.buildResourcePath(CONNECT_NAME, ANOTHER_CONNECTOR_NAME), ConnectorAction.VIEW)
+          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
+          .operationParams(Map.of("connectorName", ANOTHER_CONNECTOR_NAME))
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -132,7 +135,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
       when(user.groups()).thenReturn(List.of(ADMIN_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectorActions(CONNECT_NAME + "/any-connector-name", ConnectorAction.VIEW)
+          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
+          .operationParams(Map.of("connectorName", "any-connector-name"))
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -150,7 +154,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectorActions(ConnectorAction.buildResourcePath(CONNECT_NAME, CONNECTOR_NAME), ConnectorAction.DELETE)
+          .connectActions(CONNECT_NAME, ConnectAction.DELETE)
+          .operationParams(Map.of("connectorName", CONNECTOR_NAME))
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -160,32 +165,19 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
   }
 
   /**
-   * Test that a user with connect-level permission can still access
-   * if no connector-level permissions are defined (backwards compatibility).
+   * Test that fallback to connect-level permission works.
+   * Admin has CONNECT.OPERATE permission, which should allow access.
    */
   @Test
-  void isConnectorAccessible_withConnectPermission_fallback() {
+  void validateAccess_fallsBackToConnectPermission() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(ADMIN_ROLE_NAME));
-      Mono<Boolean> accessible = accessControlService.isConnectorAccessible(
-          CONNECT_NAME, "any-connector", CLUSTER_NAME, ConnectorAction.OPERATE);
-      StepVerifier.create(accessible)
-          .expectNext(true)
-          .verifyComplete();
-    });
-  }
-
-  /**
-   * Test that hierarchical permission checking works - EDIT includes VIEW.
-   */
-  @Test
-  void validateAccess_connectorActionHierarchy() {
-    withSecurityContext(() -> {
-      when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
-      // Dev role has EDIT permission on my-connector, which should include VIEW
+      // Admin has CONNECT.OPERATE but checking a connector not in wildcard
+      // The fallback to connect-level should allow access
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectorActions(ConnectorAction.buildResourcePath(CONNECT_NAME, CONNECTOR_NAME), ConnectorAction.VIEW)
+          .connectActions(CONNECT_NAME, ConnectAction.OPERATE)
+          .operationParams(Map.of("connectorName", "any-connector"))
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -216,7 +208,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
         ConnectorAction.EDIT.name(),
         ConnectorAction.DELETE.name()
     ));
-    specificConnectorPermission.setValue(ConnectorAction.buildResourcePath(CONNECT_NAME, CONNECTOR_NAME));
+    specificConnectorPermission.setValue(
+        ConnectorAction.buildResourcePath(CONNECT_NAME, CONNECTOR_NAME));
 
     List<Permission> permissions = List.of(specificConnectorPermission);
     role.setPermissions(permissions);
@@ -248,7 +241,8 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
         ConnectorAction.DELETE.name(),
         ConnectorAction.RESET_OFFSETS.name()
     ));
-    wildcardConnectorPermission.setValue(CONNECT_NAME + ConnectorAction.CONNECTOR_RESOURCE_DELIMITER + ".*");
+    wildcardConnectorPermission.setValue(
+        CONNECT_NAME + ConnectorAction.CONNECTOR_RESOURCE_DELIMITER + ".*");
 
     // Also have connect-level permissions for backwards compatibility
     Permission connectPermission = new Permission();
