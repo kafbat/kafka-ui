@@ -3,6 +3,8 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.RESET_OFFSETS;
+import static io.kafbat.ui.model.rbac.permission.ConnectAction.VIEW;
 
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
@@ -17,7 +19,6 @@ import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
-import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
@@ -96,10 +97,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          String connectorName,
                                                          ServerWebExchange exchange) {
 
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectorActions(connectorResource, ConnectorAction.VIEW)
         .connectActions(connectName, ConnectAction.VIEW)
         .operationName("getConnector")
         .build();
@@ -115,13 +114,11 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                     String connectorName,
                                                     ServerWebExchange exchange) {
 
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectorActions(connectorResource, ConnectorAction.DELETE)
         .connectActions(connectName, ConnectAction.DELETE)
         .operationName("deleteConnector")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
+        .operationParams(Map.of(CONNECTOR_NAME, connectName))
         .build();
 
     return validateAccess(context).then(
@@ -185,20 +182,18 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                                Mono<Map<String, Object>> requestBody,
                                                                ServerWebExchange exchange) {
 
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.EDIT)
         .connectActions(connectName, ConnectAction.VIEW, ConnectAction.EDIT)
         .operationName("setConnectorConfig")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
-        kafkaConnectService
-            .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+            kafkaConnectService
+                .setConnectorConfig(getCluster(clusterName), connectName, connectorName, requestBody)
+                .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
@@ -206,11 +201,12 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          String connectorName,
                                                          ConnectorActionDTO action,
                                                          ServerWebExchange exchange) {
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
+    ConnectAction[] connectActions;
+    connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.OPERATE};
+
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.OPERATE)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.OPERATE)
+        .connectActions(connectName, connectActions)
         .operationName("updateConnectorState")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
@@ -315,11 +311,9 @@ public class KafkaConnectController extends AbstractController implements KafkaC
       String connectorName,
       ServerWebExchange exchange) {
 
-    String connectorResource = ConnectorAction.buildResourcePath(connectName, connectorName);
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectorActions(connectorResource, ConnectorAction.VIEW, ConnectorAction.RESET_OFFSETS)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.RESET_OFFSETS)
+        .connectActions(connectName, VIEW, RESET_OFFSETS)
         .operationName("resetConnectorOffsets")
         .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
@@ -327,7 +321,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService
             .resetConnectorOffsets(getCluster(clusterName), connectName, connectorName)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+            .map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
   }
 }
