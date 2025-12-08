@@ -17,7 +17,6 @@ import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -223,7 +222,7 @@ public record AccessContext(String cluster,
       for (ResourceAccess resource : resources) {
         if (resource.resourceType() == Resource.CONNECT && resource instanceof SingleResourceAccess sra) {
           String connectName = sra.name();
-          String connectorPath = connectName + "/" + connectorName;
+          String connectorPath = ConnectorAction.buildResourcePath(connectName, connectorName);
           ConnectorAction[] connectorActions = mapConnectToConnectorActions(sra.requestedActions());
 
           ResourceAccess connectorAccess = new SingleResourceAccess(
