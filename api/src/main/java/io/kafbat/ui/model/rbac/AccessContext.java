@@ -208,8 +208,15 @@ public record AccessContext(String cluster,
     }
 
     public AccessContext build() {
-      List<ResourceAccess> finalResources = applyConnectorFallback(accessedResources);
+      List<ResourceAccess> finalResources = shouldApplyConnectorFallback()
+          ? applyConnectorFallback(accessedResources)
+          : accessedResources;
       return new AccessContext(cluster, finalResources, operationName, operationParams);
+    }
+
+    private boolean shouldApplyConnectorFallback() {
+      return extractConnectorName() != null
+          && accessedResources.stream().anyMatch(r -> r.resourceType() == Resource.CONNECT);
     }
 
     private List<ResourceAccess> applyConnectorFallback(List<ResourceAccess> resources) {
