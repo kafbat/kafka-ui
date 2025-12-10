@@ -24,6 +24,7 @@ import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { exportTableCSV, TableProvider } from 'components/common/NewTable';
 import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -63,11 +64,11 @@ const Details: React.FC = () => {
                 backText="Consumers"
               >
                 <Button
-                  buttonType="primary"
+                  buttonType="secondary"
                   buttonSize="M"
                   onClick={handleExportClick}
                 >
-                  Export CSV
+                  <ExportIcon /> Export CSV
                 </Button>
 
                 {!isReadOnly && (

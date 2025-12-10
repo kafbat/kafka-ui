@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
 
 type CsvFetcher = () => Promise<string>;
 
@@ -41,11 +42,17 @@ export function DownloadCsvButton({
   return (
     <Button
       disabled={isDownloading}
-      buttonType="primary"
+      buttonType="secondary"
       buttonSize="M"
       onClick={handleDownload}
     >
-      {isDownloading ? 'Downloading...' : 'Export CSV'}
+      {isDownloading ? (
+        'Downloading...'
+      ) : (
+        <>
+          <ExportIcon /> Export CSV
+        </>
+      )}
     </Button>
   );
 }

@@ -11,6 +11,7 @@ import { useBrokers } from 'lib/hooks/api/brokers';
 import { useClusterStats } from 'lib/hooks/api/clusters';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
 
 import { getBrokersTableColumns, getBrokersTableRows } from './lib';
 import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
@@ -58,11 +59,11 @@ const BrokersList: React.FC = () => {
           <>
             <ResourcePageHeading text="Brokers">
               <Button
-                buttonType="primary"
+                buttonType="secondary"
                 buttonSize="M"
                 onClick={handleExportClick}
               >
-                Export CSV
+                <ExportIcon /> Export CSV
               </Button>
             </ResourcePageHeading>
 

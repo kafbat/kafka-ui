@@ -28,9 +28,16 @@ export const exportTableCSV = <T extends RowData>(
     dateFormat = (d: Date) => d.toISOString().slice(0, 10),
   } = options;
 
-  const rowsToExport = table.getSelectedRowModel().rows.length
-    ? table.getSelectedRowModel().rows
-    : table.getRowModel().rows;
+  const selected = table.getSelectedRowModel().rows;
+  const paginated = table.getRowModel().rows;
+  const all = table.getPrePaginationRowModel().rows;
+
+  // eslint-disable-next-line no-nested-ternary
+  const rowsToExport = selected.length
+    ? selected
+    : all.length
+      ? all
+      : paginated;
 
   if (!rowsToExport.length) return;
 

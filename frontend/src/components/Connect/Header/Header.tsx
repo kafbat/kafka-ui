@@ -14,6 +14,7 @@ import {
 import React from 'react';
 import { exportTableCSV, useTableInstance } from 'components/common/NewTable';
 import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
 
 type ConnectPage =
   | typeof kafkaConnectClustersRelativePath
@@ -70,8 +71,8 @@ const Header = () => {
         />
       )}
 
-      <Button buttonType="primary" buttonSize="M" onClick={handleExportClick}>
-        Export CSV
+      <Button buttonType="secondary" buttonSize="M" onClick={handleExportClick}>
+        <ExportIcon /> Export CSV
       </Button>
     </ResourcePageHeading>
   );
