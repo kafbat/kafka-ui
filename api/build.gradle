@@ -119,6 +119,7 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.wiremock
     testImplementation libs.prometheus.metrics.core
 }
 
