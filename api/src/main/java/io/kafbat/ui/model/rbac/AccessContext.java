@@ -9,6 +9,7 @@ import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.KsqlAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
@@ -78,6 +79,37 @@ public record AccessContext(String cluster,
           .collect(Collectors.toSet());
 
       return allowedActions.containsAll(requestedActions);
+    }
+  }
+
+  /**
+   * A ResourceAccess that checks primary first, then falls back to fallback if primary fails.
+   * This enables OR semantics: access is granted if EITHER primary OR fallback is accessible.
+   */
+  record FallbackResourceAccess(
+      ResourceAccess primary,
+      ResourceAccess fallback
+  ) implements ResourceAccess {
+
+    @Override
+    public Object resourceId() {
+      return primary.resourceId();
+    }
+
+    @Override
+    public Resource resourceType() {
+      return primary.resourceType();
+    }
+
+    @Override
+    public Collection<PermissibleAction> requestedActions() {
+      return primary.requestedActions();
+    }
+
+    @Override
+    public boolean isAccessible(List<Permission> userPermissions) {
+      return primary.isAccessible(userPermissions)
+          || fallback.isAccessible(userPermissions);
     }
   }
 
@@ -176,7 +208,69 @@ public record AccessContext(String cluster,
     }
 
     public AccessContext build() {
-      return new AccessContext(cluster, accessedResources, operationName, operationParams);
+      List<ResourceAccess> finalResources = shouldApplyConnectorFallback()
+          ? applyConnectorFallback(accessedResources)
+          : accessedResources;
+      return new AccessContext(cluster, finalResources, operationName, operationParams);
+    }
+
+    private boolean shouldApplyConnectorFallback() {
+      return extractConnectorName() != null
+          && accessedResources.stream().anyMatch(r -> r.resourceType() == Resource.CONNECT);
+    }
+
+    private List<ResourceAccess> applyConnectorFallback(List<ResourceAccess> resources) {
+      String connectorName = extractConnectorName();
+      if (connectorName == null) {
+        return resources;
+      }
+
+      List<ResourceAccess> result = new ArrayList<>();
+      for (ResourceAccess resource : resources) {
+        if (resource.resourceType() == Resource.CONNECT && resource instanceof SingleResourceAccess sra) {
+          String connectName = sra.name();
+          String connectorPath = ConnectorAction.buildResourcePath(connectName, connectorName);
+          ConnectorAction[] connectorActions = mapConnectToConnectorActions(sra.requestedActions());
+
+          ResourceAccess connectorAccess = new SingleResourceAccess(
+              connectorPath, Resource.CONNECTOR, List.of(connectorActions));
+
+          result.add(new FallbackResourceAccess(connectorAccess, resource));
+        } else {
+          result.add(resource);
+        }
+      }
+      return result;
+    }
+
+    @Nullable
+    private String extractConnectorName() {
+      if (operationParams instanceof Map<?, ?> map) {
+        Object value = map.get("connectorName");
+        if (value instanceof String s) {
+          return s;
+        }
+      }
+      return null;
+    }
+
+    private ConnectorAction[] mapConnectToConnectorActions(Collection<PermissibleAction> actions) {
+      return actions.stream()
+          .filter(a -> a instanceof ConnectAction)
+          .map(a -> mapSingleAction((ConnectAction) a))
+          .distinct()
+          .toArray(ConnectorAction[]::new);
+    }
+
+    private ConnectorAction mapSingleAction(ConnectAction action) {
+      return switch (action) {
+        case VIEW -> ConnectorAction.VIEW;
+        case EDIT -> ConnectorAction.EDIT;
+        case CREATE -> ConnectorAction.CREATE;
+        case DELETE -> ConnectorAction.DELETE;
+        case OPERATE -> ConnectorAction.OPERATE;
+        case RESET_OFFSETS -> ConnectorAction.RESET_OFFSETS;
+      };
     }
   }
 }
