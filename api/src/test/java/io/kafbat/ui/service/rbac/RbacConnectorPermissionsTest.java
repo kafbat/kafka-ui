@@ -3,7 +3,6 @@ package io.kafbat.ui.service.rbac;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.config.auth.RbacUser;
 import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
 import io.kafbat.ui.model.rbac.AccessContext;
@@ -18,17 +17,15 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -37,9 +34,8 @@ import reactor.test.StepVerifier;
  * Tests the hierarchical permission system where connector-level permissions
  * take precedence over connect-level permissions.
  */
-@ActiveProfiles("rbac")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
+@ExtendWith(MockitoExtension.class)
+class RbacConnectorPermissionsTest {
 
   public static final String DEV_ROLE_NAME = "dev_role";
   public static final String ADMIN_ROLE_NAME = "admin_role";
@@ -48,8 +44,7 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
   public static final String CONNECTOR_NAME = "my-connector";
   public static final String ANOTHER_CONNECTOR_NAME = "another-connector";
 
-  @Autowired
-  AccessControlService accessControlService;
+  private AccessControlService accessControlService;
 
   @Mock
   SecurityContext securityContext;
@@ -60,9 +55,11 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
   @Mock
   RbacUser user;
 
+  @Mock
+  org.springframework.core.env.Environment environment;
+
   @BeforeEach
   void setUp() {
-    // Mock roles
     List<Role> roles = List.of(
         getDevRole(),
         getAdminRole()
@@ -70,10 +67,9 @@ class RbacConnectorPermissionsTest extends AbstractIntegrationTest {
     RoleBasedAccessControlProperties properties = mock();
     when(properties.getRoles()).thenReturn(roles);
 
-    ReflectionTestUtils.setField(accessControlService, "properties", properties);
-    ReflectionTestUtils.setField(accessControlService, "rbacEnabled", true);
+    accessControlService = new AccessControlService(null, properties, environment);
+    accessControlService.init();
 
-    // Mock security context
     when(securityContext.getAuthentication()).thenReturn(authentication);
     when(authentication.getPrincipal()).thenReturn(user);
   }
