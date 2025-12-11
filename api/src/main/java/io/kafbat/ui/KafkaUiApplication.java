@@ -4,7 +4,7 @@ import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.security.Security;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
+import org.springframework.boot.ldap.autoconfigure.LdapAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;

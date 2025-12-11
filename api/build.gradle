@@ -26,6 +26,9 @@ dependencies {
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.security.oauth2.resource.server
     implementation libs.spring.boot.security.oauth2.client
+    implementation libs.spring.boot.webflux
+    implementation libs.spring.boot.web.server
+    implementation libs.spring.boot.ldap
     implementation libs.spring.boot.actuator
 
     compileOnly libs.spring.boot.devtools
