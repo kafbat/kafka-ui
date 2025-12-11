@@ -6,7 +6,7 @@ import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.sr.model.SchemaReference;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import reactor.core.publisher.Mono;
 
 // logic copied from AbstractSchemaProvider:resolveReferences

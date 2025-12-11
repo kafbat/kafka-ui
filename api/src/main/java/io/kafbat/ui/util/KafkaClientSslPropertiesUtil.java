@@ -2,7 +2,7 @@ package io.kafbat.ui.util;
 
 import io.kafbat.ui.config.ClustersProperties;
 import java.util.Properties;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import org.apache.kafka.common.config.SslConfigs;
 
 public final class KafkaClientSslPropertiesUtil {

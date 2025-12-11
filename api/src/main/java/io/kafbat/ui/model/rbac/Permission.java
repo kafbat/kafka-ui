@@ -7,7 +7,7 @@ import io.kafbat.ui.model.ActionDTO;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import java.util.List;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
