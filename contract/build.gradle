@@ -9,6 +9,36 @@ plugins {
 def specDir = project.layout.projectDirectory.dir("src/main/resources/swagger/")
 def targetDir = project.layout.buildDirectory.dir("generated").get()
 
+def patchGeneratedApiClients = { File rootDir ->
+    fileTree(rootDir) {
+        include "**/ApiClient.java"
+    }.forEach { file ->
+        def original = file.getText("UTF-8")
+        def updated = original
+                .replaceAll(
+                        /(?s)public ApiClient addDefaultHeader\(String name, String value\) \{\s+if \(defaultHeaders.containsKey\(name\)\) \{\s+defaultHeaders.remove\(name\);\s+}\s+defaultHeaders.add\(name, value\);\s+return this;\s+}/,
+                        """public ApiClient addDefaultHeader(String name, String value) {
+        defaultHeaders.set(name, value);
+        return this;
+    }""")
+                .replaceAll(
+                        /(?s)protected void addHeadersToRequest\(HttpHeaders headers, WebClient.RequestBodySpec requestBuilder\) \{\s+for \(Entry<String, List<String>> entry : headers.entrySet\(\)\) \{\s+List<String> values = entry.getValue\(\);\s+for\(String value : values\) \{\s+if \(value != null\) \{\s+requestBuilder.header\(entry.getKey\(\), value\);\s+}\s+}\s+}\s+}/,
+                        """protected void addHeadersToRequest(HttpHeaders headers, WebClient.RequestBodySpec requestBuilder) {
+        headers.forEach((key, values) -> {
+            for(String value : values) {
+                if (value != null) {
+                    requestBuilder.header(key, value);
+                }
+            }
+        });
+    }""")
+
+        if (updated != original) {
+            file.write(updated, "UTF-8")
+        }
+    }
+}
+
 dependencies {
     implementation libs.spring.starter.webflux
     implementation libs.spring.starter.validation
@@ -122,6 +152,12 @@ tasks.register('generateSchemaRegistryClient', GenerateTask) {
                      useJakartaEe     : "true",
                      useBeanValidation: "true",
                      dateLibrary      : "java8",]
+}
+
+tasks.withType(GenerateTask).configureEach {
+    doLast {
+        patchGeneratedApiClients(targetDir.asFile)
+    }
 }
 
 tasks.register('generatePrometheusClient', GenerateTask) {
