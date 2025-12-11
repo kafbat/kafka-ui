@@ -67,6 +67,8 @@ spring-boot-configuration-processor = { module = 'org.springframework.boot:sprin
 
 spring-security-ldap = { module = 'org.springframework.security:spring-security-ldap' }
 spring-security-oauth2-resource-server = { module = 'org.springframework.security:spring-security-oauth2-resource-server'}
+spring-boot-security-oauth2-resource-server = { module = 'org.springframework.boot:spring-boot-security-oauth2-resource-server', version.ref = 'spring-boot' }
+spring-boot-security-oauth2-client = { module = 'org.springframework.boot:spring-boot-security-oauth2-client', version.ref = 'spring-boot' }
 
 swagger-integration-jakarta = { module = 'io.swagger.core.v3:swagger-integration-jakarta', version.ref = 'swagger-integration-jakarta' }
 lombok = { module = 'org.projectlombok:lombok', version.ref = 'lombok' }
