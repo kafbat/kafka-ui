@@ -64,7 +64,7 @@ describe('TopicTable Components', () => {
         }}
       >
         <WithRoute path={clusterTopicsPath()}>
-          <TopicTable />
+          <TopicTable params={{ search: '', clusterName: '' }} />
         </WithRoute>
       </ClusterContext.Provider>,
       {
