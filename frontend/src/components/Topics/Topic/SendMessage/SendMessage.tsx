@@ -245,20 +245,22 @@ const SendMessage: React.FC<SendMessageProps> = ({
             />
           </div>
         </S.Columns>
-        <S.KeepContentsWrapper>
-          <Controller
-            control={control}
-            name="keepContents"
-            render={({ field: { name, onChange, value } }) => (
-              <Switch name={name} onChange={onChange} checked={value} />
-            )}
-          />
-          <InputLabel>Keep contents after producing a message</InputLabel>
-          <Tooltip
-            value={<InfoIcon />}
-            content="When enabled, the form will remain populated after sending a message."
-          />
-        </S.KeepContentsWrapper>
+        <S.Columns>
+          <S.Flex>
+            <Controller
+              control={control}
+              name="keepContents"
+              render={({ field: { name, onChange, value } }) => (
+                <Switch name={name} onChange={onChange} checked={value} />
+              )}
+            />
+            <InputLabel>Keep contents after producing a message</InputLabel>
+            <Tooltip
+              value={<InfoIcon />}
+              content="When enabled, the form will remain populated after sending a message."
+            />
+          </S.Flex>
+        </S.Columns>
         <Button
           buttonSize="M"
           buttonType="primary"

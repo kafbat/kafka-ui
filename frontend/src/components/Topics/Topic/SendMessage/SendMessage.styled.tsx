@@ -34,10 +34,3 @@ export const FlexItem = styled.div`
     width: 100%;
   }
 `;
-
-export const KeepContentsWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-`;
