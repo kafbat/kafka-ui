@@ -35,13 +35,6 @@ export const FlexItem = styled.div`
   }
 `;
 
-export const ButtonRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 16px;
-`;
-
 export const KeepContentsWrapper = styled.div`
   display: flex;
   align-items: center;
