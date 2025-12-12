@@ -29,7 +29,7 @@ import io.kafbat.ui.service.MessagesService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
