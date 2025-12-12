@@ -58,6 +58,8 @@ dependencies {
     implementation libs.lucene.queryparser
     implementation libs.lucene.analysis.common
 
+    implementation libs.fastcsv
+
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
