@@ -216,19 +216,20 @@ public class ReactiveAdminClient implements Closeable {
   // NOTE: if KafkaFuture returns null, that Mono will be empty(!), since Reactor does not support nullable results
   // (see MonoSink.success(..) javadoc for details)
   public static <T> Mono<T> toMono(KafkaFuture<T> future) {
-    return Mono.<T>create(sink -> future.whenComplete((res, ex) -> {
-          if (ex != null) {
-            // KafkaFuture doc is unclear about what exception wrapper will be used
-            // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
-            if (ex instanceof CompletionException || ex instanceof ExecutionException) {
-              sink.error(ex.getCause()); //unwrapping exception
-            } else {
-              sink.error(ex);
-            }
-          } else {
-            sink.success(res);
-          }
-        })).doOnCancel(() -> future.cancel(true))
+    return Mono.<T>create(sink ->
+            future.whenComplete((res, ex) -> {
+              if (ex != null) {
+                // KafkaFuture doc is unclear about what exception wrapper will be used
+                // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
+                if (ex instanceof CompletionException || ex instanceof ExecutionException) {
+                  sink.error(ex.getCause()); //unwrapping exception
+                } else {
+                  sink.error(ex);
+                }
+              } else {
+                sink.success(res);
+              }
+            })).doOnCancel(() -> future.cancel(true))
         // AdminClient is using single thread for kafka communication
         // and by default all downstream operations (like map(..)) on created Mono will be executed on this thread.
         // If some of downstream operation are blocking (by mistake) this can lead to
