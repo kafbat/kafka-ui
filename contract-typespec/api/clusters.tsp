@@ -46,7 +46,7 @@ model Cluster {
   readOnly?: boolean;
   version?: string;
   features?: ClusterFeature[];
-  controller: ControllerType;
+  controller?: ControllerType;
 }
 
 alias ClusterFeature =
