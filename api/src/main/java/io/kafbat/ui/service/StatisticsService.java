@@ -1,8 +1,9 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.api.model.ControllerType.KRAFT;
+import static io.kafbat.ui.api.model.ControllerType.ZOOKEEPER;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
-import io.kafbat.ui.api.model.ClusterController;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.KafkaCluster;
@@ -95,7 +96,7 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(quorumInfo.isPresent() ? ClusterController.KRAFT : ClusterController.ZOOKEEPER);
+        .controller(quorumInfo.isPresent() ? KRAFT : ZOOKEEPER);
 
     quorumInfo.ifPresent(i -> stats.quorumLeaderId(i.leaderId()));
 
