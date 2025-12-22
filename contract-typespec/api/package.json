@@ -16,5 +16,12 @@
         "build": "tsp compile ."
     },
     "private": true,
-    "packageManager": "pnpm@10.26.1"
+    "packageManager": "pnpm@10.26.1",
+    "pnpm": {
+        "overrides": {
+            "js-yaml": ">=4.1.1",
+            "uglify-js": ">=2.6.0",
+            "tmp": ">=0.2.4"
+        }
+    }
 }
