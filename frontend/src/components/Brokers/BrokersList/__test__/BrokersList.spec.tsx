@@ -5,9 +5,12 @@ import { clusterBrokerPath, clusterBrokersPath } from 'lib/paths';
 import BrokersList from 'components/Brokers/BrokersList/BrokersList';
 import userEvent from '@testing-library/user-event';
 import { useBrokers } from 'lib/hooks/api/brokers';
-import { useClusterStats } from 'lib/hooks/api/clusters';
+import { useClusters, useClusterStats } from 'lib/hooks/api/clusters';
 import { brokersPayload } from 'lib/fixtures/brokers';
-import { clusterStatsPayload } from 'lib/fixtures/clusters';
+import {
+  clusterStatsPayload,
+  onlineClusterPayload,
+} from 'lib/fixtures/clusters';
 
 const mockedUsedNavigate = jest.fn();
 
@@ -21,6 +24,7 @@ jest.mock('lib/hooks/api/brokers', () => ({
 }));
 jest.mock('lib/hooks/api/clusters', () => ({
   useClusterStats: jest.fn(),
+  useClusters: jest.fn(),
 }));
 
 describe('BrokersList Component', () => {
@@ -47,6 +51,9 @@ describe('BrokersList Component', () => {
         }));
         (useClusterStats as jest.Mock).mockImplementation(() => ({
           data: clusterStatsPayload,
+        }));
+        (useClusters as jest.Mock).mockImplementation(() => ({
+          data: [onlineClusterPayload],
         }));
       });
       it('renders', async () => {
@@ -136,6 +143,9 @@ describe('BrokersList Component', () => {
           (useClusterStats as jest.Mock).mockImplementation(() => ({
             data: clusterStatsPayload,
           }));
+          (useClusters as jest.Mock).mockImplementation(() => ({
+            data: [onlineClusterPayload],
+          }));
         });
 
         it(`Indicates correct active cluster`, async () => {
@@ -166,6 +176,9 @@ describe('BrokersList Component', () => {
         }));
         (useClusterStats as jest.Mock).mockImplementation(() => ({
           data: { ...clusterStatsPayload, diskUsage: undefined },
+        }));
+        (useClusters as jest.Mock).mockImplementation(() => ({
+          data: [onlineClusterPayload],
         }));
       });
 
