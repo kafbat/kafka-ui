@@ -5,6 +5,8 @@ import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
 import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
+import Tooltip from 'components/common/Tooltip/Tooltip';
+import InfoIcon from 'components/common/Icons/InfoIcon';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
@@ -190,16 +192,6 @@ const SendMessage: React.FC<SendMessageProps> = ({
               />
             </S.FlexItem>
           </S.Flex>
-          <div>
-            <Controller
-              control={control}
-              name="keepContents"
-              render={({ field: { name, onChange, value } }) => (
-                <Switch name={name} onChange={onChange} checked={value} />
-              )}
-            />
-            <InputLabel>Keep contents</InputLabel>
-          </div>
         </S.Columns>
         <S.Columns>
           <div>
@@ -252,6 +244,22 @@ const SendMessage: React.FC<SendMessageProps> = ({
               )}
             />
           </div>
+        </S.Columns>
+        <S.Columns>
+          <S.Flex>
+            <Controller
+              control={control}
+              name="keepContents"
+              render={({ field: { name, onChange, value } }) => (
+                <Switch name={name} onChange={onChange} checked={value} />
+              )}
+            />
+            <InputLabel>Keep contents after producing a message</InputLabel>
+            <Tooltip
+              value={<InfoIcon />}
+              content="When enabled, the form will remain populated after sending a message."
+            />
+          </S.Flex>
         </S.Columns>
         <Button
           buttonSize="M"
