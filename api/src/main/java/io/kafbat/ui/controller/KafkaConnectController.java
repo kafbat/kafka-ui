@@ -101,6 +101,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .cluster(clusterName)
         .connectActions(connectName, ConnectAction.VIEW)
         .operationName("getConnector")
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
@@ -118,7 +119,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .cluster(clusterName)
         .connectActions(connectName, ConnectAction.DELETE)
         .operationName("deleteConnector")
-        .operationParams(Map.of(CONNECTOR_NAME, connectName))
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
@@ -167,6 +168,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .cluster(clusterName)
         .connectActions(connectName, ConnectAction.VIEW)
         .operationName("getConnectorConfig")
+        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
