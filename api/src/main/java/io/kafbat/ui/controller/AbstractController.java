@@ -7,8 +7,6 @@ import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.CsvWriterService;
 import io.kafbat.ui.service.audit.AuditService;
 import io.kafbat.ui.service.rbac.AccessControlService;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +42,18 @@ public abstract class AbstractController {
   }
 
   @Autowired
+  public void setAuditService(AuditService auditService) {
+    this.auditService = auditService;
+  }
+
+  @Autowired
   public void setAccessControlService(AccessControlService accessControlService) {
     this.accessControlService = accessControlService;
   }
 
   @Autowired
-  public void setAuditService(AuditService auditService) {
-    this.auditService = auditService;
+  public void setCsvWriterService(CsvWriterService csvWriterService) {
+    this.csvWriterService = csvWriterService;
   }
 
   public <T extends Flux<R>, R> Mono<ResponseEntity<String>> responseToCsv(ResponseEntity<T> response) {

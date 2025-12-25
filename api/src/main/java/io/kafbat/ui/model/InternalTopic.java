@@ -3,6 +3,7 @@ package io.kafbat.ui.model;
 import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
 
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import io.kafbat.ui.util.annotation.CsvIgnore;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,6 @@ import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.config.TopicConfig;
 
 @Data
 @Builder(toBuilder = true)
@@ -28,9 +28,11 @@ public class InternalTopic {
   private final int inSyncReplicas;
   private final int replicationFactor;
   private final int underReplicatedPartitions;
+  @CsvIgnore
   private final Map<Integer, InternalPartition> partitions;
 
   // topic configs
+  @CsvIgnore
   private final List<InternalTopicConfig> topicConfigs;
   private final CleanupPolicy cleanUpPolicy;
 
