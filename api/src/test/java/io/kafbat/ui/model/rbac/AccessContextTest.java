@@ -49,6 +49,10 @@ class AccessContextTest {
   @Nested
   class SingleResourceAccessTest {
 
+    public static final String CONNECT_NAME = "my-connect";
+    public static final String CONNECTOR_NAME = "my-connector";
+    public static final String FULL_CONNECTOR_NAME = String.join("/", CONNECT_NAME, CONNECTOR_NAME);
+
     @Test
     void allowsAccessForResourceWithNameIfUserHasAllNeededPermissions() {
       SingleResourceAccess sra =
@@ -115,71 +119,119 @@ class AccessContextTest {
     }
 
     @Test
-    void allowsAccessForConnectorWithSpecificNameIfUserHasPermission() {
-      SingleResourceAccess sra =
-          new SingleResourceAccess("my-connect/my-connector", Resource.CONNECTOR,
-              List.of(ConnectorAction.VIEW, ConnectorAction.OPERATE));
+    void allowsAccessForConnectorWithSpecificNameIfUserHasPermissionToConnectOrConnector() {
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW, ConnectorAction.OPERATE),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW, ConnectAction.OPERATE))
+      );
 
-      var allowed = sra.isAccessible(
+      assertThat(sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, "my-connect/my-connector",
-                  ConnectorAction.VIEW, ConnectorAction.OPERATE)));
+              permission(
+                  Resource.CONNECTOR, FULL_CONNECTOR_NAME,
+                  ConnectorAction.VIEW, ConnectorAction.OPERATE
+              )
+          )
+      )).isTrue();
 
-      assertThat(allowed).isTrue();
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW, ConnectAction.OPERATE)
+          )
+      )).isTrue();
+
     }
 
     @Test
     void allowsAccessForConnectorWithWildcardPatternIfUserHasPermission() {
-      SingleResourceAccess sra =
-          new SingleResourceAccess("prod-connect/customer-connector", Resource.CONNECTOR,
-              List.of(ConnectorAction.VIEW));
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW))
+      );
 
-      var allowed = sra.isAccessible(
+      assertThat(sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, "prod-connect/.*", ConnectorAction.VIEW, ConnectorAction.EDIT)));
+              permission(
+                  Resource.CONNECTOR, CONNECT_NAME + "/.*",
+                  ConnectorAction.VIEW, ConnectorAction.EDIT
+              )
+          )
+      )).isTrue();
 
-      assertThat(allowed).isTrue();
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW, ConnectAction.EDIT)))
+      ).isTrue();
     }
 
     @Test
     void deniesAccessForConnectorIfUserLacksRequiredPermission() {
-      SingleResourceAccess sra =
-          new SingleResourceAccess("my-connect/my-connector", Resource.CONNECTOR,
-              List.of(ConnectorAction.DELETE));
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.DELETE),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.DELETE))
+      );
 
-      var allowed = sra.isAccessible(
+      assertThat(sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, "my-connect/my-connector", ConnectorAction.VIEW, ConnectorAction.EDIT)));
+              permission(
+                  Resource.CONNECTOR, FULL_CONNECTOR_NAME,
+                  ConnectorAction.VIEW, ConnectorAction.EDIT
+              )
+          )
+      )).isFalse();
 
-      assertThat(allowed).isFalse();
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(
+                  Resource.CONNECT, CONNECT_NAME,
+                  ConnectAction.VIEW, ConnectAction.EDIT
+              )
+          )
+      )).isFalse();
+
     }
 
     @Test
     void allowsAccessForConnectorWithMultipleWildcardPatterns() {
-      SingleResourceAccess sra =
-          new SingleResourceAccess("staging-connect/debezium-mysql-connector", Resource.CONNECTOR,
-              List.of(ConnectorAction.RESET_OFFSETS));
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.RESET_OFFSETS),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.RESET_OFFSETS))
+      );
 
-      var allowed = sra.isAccessible(
+      assertThat(sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, ".*/debezium-.*", ConnectorAction.RESET_OFFSETS),
-              permission(Resource.CONNECTOR, "staging-.*/.*", ConnectorAction.VIEW)));
+              permission(Resource.CONNECTOR, ".*/my-.*", ConnectorAction.RESET_OFFSETS),
+              permission(Resource.CONNECTOR, "my-.*/.*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
 
-      assertThat(allowed).isTrue();
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, "my-.*", ConnectorAction.RESET_OFFSETS),
+              permission(Resource.CONNECT, ".*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
     }
 
     @Test
     void testConnectorActionHierarchy() {
       // Test that EDIT includes VIEW permission
-      SingleResourceAccess sra =
-          new SingleResourceAccess("test-connect/test-connector", Resource.CONNECTOR,
-              List.of(ConnectorAction.VIEW));
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW))
+      );
 
-      var allowed = sra.isAccessible(
+      assertThat(sra.isAccessible(
           List.of(
-              permission(Resource.CONNECTOR, "test-connect/.*", ConnectorAction.EDIT)));
+              permission(Resource.CONNECTOR, CONNECT_NAME + "/.*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
 
-      assertThat(allowed).isTrue();
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW)
+          )
+      )).isTrue();
     }
 
     private Permission permission(Resource res, @Nullable String namePattern, PermissibleAction... actions) {
@@ -196,57 +248,6 @@ class AccessContextTest {
       p.validate();
       p.transform();
       return p;
-    }
-  }
-
-  @Nested
-  class FallbackResourceAccessTest {
-
-    @Test
-    void returnsTrueIfPrimaryIsAccessible() {
-      ResourceAccess primary = mock(ResourceAccess.class);
-      when(primary.isAccessible(any())).thenReturn(true);
-
-      ResourceAccess fallback = mock(ResourceAccess.class);
-      when(fallback.isAccessible(any())).thenReturn(false);
-
-      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
-      assertThat(fra.isAccessible(List.of())).isTrue();
-    }
-
-    @Test
-    void returnsTrueIfFallbackIsAccessible() {
-      ResourceAccess primary = mock(ResourceAccess.class);
-      when(primary.isAccessible(any())).thenReturn(false);
-
-      ResourceAccess fallback = mock(ResourceAccess.class);
-      when(fallback.isAccessible(any())).thenReturn(true);
-
-      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
-      assertThat(fra.isAccessible(List.of())).isTrue();
-    }
-
-    @Test
-    void returnsFalseIfBothAreNotAccessible() {
-      ResourceAccess primary = mock(ResourceAccess.class);
-      when(primary.isAccessible(any())).thenReturn(false);
-
-      ResourceAccess fallback = mock(ResourceAccess.class);
-      when(fallback.isAccessible(any())).thenReturn(false);
-
-      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
-      assertThat(fra.isAccessible(List.of())).isFalse();
-    }
-
-    @Test
-    void delegatesResourceIdToPrimary() {
-      ResourceAccess primary = mock(ResourceAccess.class);
-      when(primary.resourceId()).thenReturn("primary-id");
-
-      ResourceAccess fallback = mock(ResourceAccess.class);
-
-      var fra = new AccessContext.FallbackResourceAccess(primary, fallback);
-      assertThat(fra.resourceId()).isEqualTo("primary-id");
     }
   }
 

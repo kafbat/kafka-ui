@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.security.access.AccessDeniedException;
 
 public record AccessContext(String cluster,
@@ -35,26 +37,33 @@ public record AccessContext(String cluster,
 
     Resource resourceType();
 
-    Collection<PermissibleAction> requestedActions();
+    Collection<? extends PermissibleAction> requestedActions();
 
     boolean isAccessible(List<Permission> userPermissions);
+
+    @Nullable
+    ResourceAccess fallback();
   }
 
   record SingleResourceAccess(@Nullable String name,
                               Resource resourceType,
-                              Collection<PermissibleAction> requestedActions) implements ResourceAccess {
+                              Collection<? extends PermissibleAction> requestedActions,
+                              @Nullable ResourceAccess fallback) implements ResourceAccess {
 
-    SingleResourceAccess(@Nullable String name,
-                         Resource resourceType,
-                         Collection<PermissibleAction> requestedActions) {
+    SingleResourceAccess {
       Preconditions.checkArgument(!requestedActions.isEmpty(), "actions not present");
-      this.name = name;
-      this.resourceType = resourceType;
-      this.requestedActions = requestedActions;
     }
 
-    SingleResourceAccess(Resource type, List<PermissibleAction> requestedActions) {
-      this(null, type, requestedActions);
+    SingleResourceAccess(@Nullable String name, Resource type, List<? extends PermissibleAction> requestedActions) {
+      this(name, type, requestedActions, null);
+    }
+
+    SingleResourceAccess(Resource type, List<? extends PermissibleAction> requestedActions, ResourceAccess fallback) {
+      this(null, type, requestedActions, fallback);
+    }
+
+    SingleResourceAccess(Resource type, List<? extends PermissibleAction> requestedActions) {
+      this(null, type, requestedActions, null);
     }
 
     @Override
@@ -78,38 +87,8 @@ public record AccessContext(String cluster,
           .flatMap(p -> p.getParsedActions().stream())
           .collect(Collectors.toSet());
 
-      return allowedActions.containsAll(requestedActions);
-    }
-  }
-
-  /**
-   * A ResourceAccess that checks primary first, then falls back to fallback if primary fails.
-   * This enables OR semantics: access is granted if EITHER primary OR fallback is accessible.
-   */
-  record FallbackResourceAccess(
-      ResourceAccess primary,
-      ResourceAccess fallback
-  ) implements ResourceAccess {
-
-    @Override
-    public Object resourceId() {
-      return primary.resourceId();
-    }
-
-    @Override
-    public Resource resourceType() {
-      return primary.resourceType();
-    }
-
-    @Override
-    public Collection<PermissibleAction> requestedActions() {
-      return primary.requestedActions();
-    }
-
-    @Override
-    public boolean isAccessible(List<Permission> userPermissions) {
-      return primary.isAccessible(userPermissions)
-          || fallback.isAccessible(userPermissions);
+      return allowedActions.containsAll(requestedActions)
+          || Optional.ofNullable(fallback).map(e -> e.isAccessible(userPermissions)).orElse(false);
     }
   }
 
@@ -162,6 +141,18 @@ public record AccessContext(String cluster,
       return this;
     }
 
+    public AccessContextBuilder connectorActions(String connect, String connector, ConnectorAction... actions) {
+      accessedResources.add(
+          new SingleResourceAccess(String.join("/", connect, connector), Resource.CONNECTOR, List.of(actions),
+              new SingleResourceAccess(
+                  connect, Resource.CONNECT,
+                  Stream.of(actions).map(ConnectorAction::getConnectAction).toList()
+              )
+          )
+      );
+      return this;
+    }
+
     public AccessContextBuilder schemaActions(String schema, SchemaAction... actions) {
       accessedResources.add(new SingleResourceAccess(schema, Resource.SCHEMA, List.of(actions)));
       return this;
@@ -208,69 +199,7 @@ public record AccessContext(String cluster,
     }
 
     public AccessContext build() {
-      List<ResourceAccess> finalResources = shouldApplyConnectorFallback()
-          ? applyConnectorFallback(accessedResources)
-          : accessedResources;
-      return new AccessContext(cluster, finalResources, operationName, operationParams);
-    }
-
-    private boolean shouldApplyConnectorFallback() {
-      return extractConnectorName() != null
-          && accessedResources.stream().anyMatch(r -> r.resourceType() == Resource.CONNECT);
-    }
-
-    private List<ResourceAccess> applyConnectorFallback(List<ResourceAccess> resources) {
-      String connectorName = extractConnectorName();
-      if (connectorName == null) {
-        return resources;
-      }
-
-      List<ResourceAccess> result = new ArrayList<>();
-      for (ResourceAccess resource : resources) {
-        if (resource.resourceType() == Resource.CONNECT && resource instanceof SingleResourceAccess sra) {
-          String connectName = sra.name();
-          String connectorPath = ConnectorAction.buildResourcePath(connectName, connectorName);
-          ConnectorAction[] connectorActions = mapConnectToConnectorActions(sra.requestedActions());
-
-          ResourceAccess connectorAccess = new SingleResourceAccess(
-              connectorPath, Resource.CONNECTOR, List.of(connectorActions));
-
-          result.add(new FallbackResourceAccess(connectorAccess, resource));
-        } else {
-          result.add(resource);
-        }
-      }
-      return result;
-    }
-
-    @Nullable
-    private String extractConnectorName() {
-      if (operationParams instanceof Map<?, ?> map) {
-        Object value = map.get("connectorName");
-        if (value instanceof String s) {
-          return s;
-        }
-      }
-      return null;
-    }
-
-    private ConnectorAction[] mapConnectToConnectorActions(Collection<PermissibleAction> actions) {
-      return actions.stream()
-          .filter(a -> a instanceof ConnectAction)
-          .map(a -> mapSingleAction((ConnectAction) a))
-          .distinct()
-          .toArray(ConnectorAction[]::new);
-    }
-
-    private ConnectorAction mapSingleAction(ConnectAction action) {
-      return switch (action) {
-        case VIEW -> ConnectorAction.VIEW;
-        case EDIT -> ConnectorAction.EDIT;
-        case CREATE -> ConnectorAction.CREATE;
-        case DELETE -> ConnectorAction.DELETE;
-        case OPERATE -> ConnectorAction.OPERATE;
-        case RESET_OFFSETS -> ConnectorAction.RESET_OFFSETS;
-      };
+      return new AccessContext(cluster, accessedResources, operationName, operationParams);
     }
   }
 }

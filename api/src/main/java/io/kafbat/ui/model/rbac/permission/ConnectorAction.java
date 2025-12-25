@@ -6,23 +6,30 @@ import org.jetbrains.annotations.Nullable;
 
 public enum ConnectorAction implements PermissibleAction {
 
-  VIEW,
-  EDIT(VIEW),
-  CREATE(VIEW),
-  OPERATE(VIEW),
-  DELETE(VIEW),
-  RESET_OFFSETS(VIEW),
+  VIEW(ConnectAction.VIEW),
+  EDIT(ConnectAction.VIEW, VIEW),
+  CREATE(ConnectAction.CREATE, VIEW),
+  OPERATE(ConnectAction.OPERATE, VIEW),
+  DELETE(ConnectAction.DELETE, VIEW),
+  RESET_OFFSETS(ConnectAction.RESET_OFFSETS, VIEW),
   ;
 
   public static final String CONNECTOR_RESOURCE_DELIMITER = "/";
 
+  private final ConnectAction connectAction;
   private final ConnectorAction[] dependantActions;
 
-  ConnectorAction(ConnectorAction... dependantActions) {
+
+  ConnectorAction(ConnectAction connectAction, ConnectorAction... dependantActions) {
+    this.connectAction = connectAction;
     this.dependantActions = dependantActions;
   }
 
   public static final Set<ConnectorAction> ALTER_ACTIONS = Set.of(CREATE, EDIT, DELETE, OPERATE, RESET_OFFSETS);
+
+  public ConnectAction getConnectAction() {
+    return connectAction;
+  }
 
   @Nullable
   public static ConnectorAction fromString(String name) {

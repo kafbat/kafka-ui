@@ -15,6 +15,7 @@ import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,8 +94,7 @@ class RbacConnectorPermissionsTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
-          .operationParams(Map.of("connectorName", CONNECTOR_NAME))
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.VIEW)
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -112,8 +112,7 @@ class RbacConnectorPermissionsTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
-          .operationParams(Map.of("connectorName", ANOTHER_CONNECTOR_NAME))
+          .connectorActions(CONNECT_NAME, "not-" + CONNECTOR_NAME, ConnectorAction.VIEW)
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -131,8 +130,7 @@ class RbacConnectorPermissionsTest {
       when(user.groups()).thenReturn(List.of(ADMIN_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectActions(CONNECT_NAME, ConnectAction.VIEW)
-          .operationParams(Map.of("connectorName", "any-connector-name"))
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.VIEW)
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -150,8 +148,7 @@ class RbacConnectorPermissionsTest {
       when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectActions(CONNECT_NAME, ConnectAction.DELETE)
-          .operationParams(Map.of("connectorName", CONNECTOR_NAME))
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.DELETE)
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
@@ -172,8 +169,7 @@ class RbacConnectorPermissionsTest {
       // The fallback to connect-level should allow access
       AccessContext context = AccessContext.builder()
           .cluster(CLUSTER_NAME)
-          .connectActions(CONNECT_NAME, ConnectAction.OPERATE)
-          .operationParams(Map.of("connectorName", "any-connector"))
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.OPERATE)
           .build();
       Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
       StepVerifier.create(validateAccessMono)
