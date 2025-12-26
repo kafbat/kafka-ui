@@ -17,7 +17,7 @@ import {
 } from 'lib/hooks/api/kafkaConnect';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { useIsMutating } from '@tanstack/react-query';
-import ActionDropdownItemWithFallback from 'components/common/ActionComponent/ActionDropDownItem/ActionDropdownItemWithFallback';
+import { ActionDropdownItem } from 'components/common/ActionComponent';
 import ClusterContext from 'components/contexts/ClusterContext';
 
 const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
@@ -88,156 +88,140 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
     <Dropdown>
       {(status.state === ConnectorState.PAUSED ||
         status.state === ConnectorState.STOPPED) && (
-        <ActionDropdownItemWithFallback
+        <ActionDropdownItem
           onClick={resumeConnectorHandler}
           disabled={isMutating}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: `${connect}/${name}`,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: connect,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: connect,
+          }}
         >
           Resume
-        </ActionDropdownItemWithFallback>
+        </ActionDropdownItem>
       )}
       {status.state === ConnectorState.RUNNING && (
-        <ActionDropdownItemWithFallback
+        <ActionDropdownItem
           onClick={pauseConnectorHandler}
           disabled={isMutating}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: `${connect}/${name}`,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: connect,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: connect,
+          }}
         >
           Pause
-        </ActionDropdownItemWithFallback>
+        </ActionDropdownItem>
       )}
       {status.state === ConnectorState.RUNNING && (
-        <ActionDropdownItemWithFallback
+        <ActionDropdownItem
           onClick={stopConnectorHandler}
           disabled={isMutating}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: `${connect}/${name}`,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: connect,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: connect,
+          }}
         >
           Stop
-        </ActionDropdownItemWithFallback>
+        </ActionDropdownItem>
       )}
-      <ActionDropdownItemWithFallback
+      <ActionDropdownItem
         onClick={restartConnectorHandler}
         disabled={isMutating || isReadOnly}
-        permission={[
-          {
-            resource: ResourceType.CONNECTOR,
-            action: Action.OPERATE,
-            value: `${connect}/${name}`,
-          },
-          {
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: connect,
-          },
-        ]}
+        permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
+          resource: ResourceType.CONNECT,
+          action: Action.OPERATE,
+          value: connect,
+        }}
       >
         Restart Connector
-      </ActionDropdownItemWithFallback>
-      <ActionDropdownItemWithFallback
+      </ActionDropdownItem>
+      <ActionDropdownItem
         onClick={restartAllTasksHandler}
         disabled={isMutating}
-        permission={[
-          {
-            resource: ResourceType.CONNECTOR,
-            action: Action.OPERATE,
-            value: `${connect}/${name}`,
-          },
-          {
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: connect,
-          },
-        ]}
+        permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
+          resource: ResourceType.CONNECT,
+          action: Action.OPERATE,
+          value: connect,
+        }}
       >
         Restart All Tasks
-      </ActionDropdownItemWithFallback>
-      <ActionDropdownItemWithFallback
+      </ActionDropdownItem>
+      <ActionDropdownItem
         onClick={restartFailedTasksHandler}
         disabled={isMutating}
-        permission={[
-          {
-            resource: ResourceType.CONNECTOR,
-            action: Action.OPERATE,
-            value: `${connect}/${name}`,
-          },
-          {
-            resource: ResourceType.CONNECT,
-            action: Action.OPERATE,
-            value: connect,
-          },
-        ]}
+        permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
+          resource: ResourceType.CONNECT,
+          action: Action.OPERATE,
+          value: connect,
+        }}
       >
         Restart Failed Tasks
-      </ActionDropdownItemWithFallback>
-      <ActionDropdownItemWithFallback
+      </ActionDropdownItem>
+      <ActionDropdownItem
         onClick={resetOffsetsHandler}
         disabled={isMutating || status.state !== ConnectorState.STOPPED}
         danger
-        permission={[
-          {
-            resource: ResourceType.CONNECTOR,
-            action: Action.RESET_OFFSETS,
-            value: `${connect}/${name}`,
-          },
-          {
-            resource: ResourceType.CONNECT,
-            action: Action.RESET_OFFSETS,
-            value: connect,
-          },
-        ]}
+        permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.RESET_OFFSETS,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
+          resource: ResourceType.CONNECT,
+          action: Action.RESET_OFFSETS,
+          value: connect,
+        }}
       >
         Reset Offsets
-      </ActionDropdownItemWithFallback>
-      <ActionDropdownItemWithFallback
+      </ActionDropdownItem>
+      <ActionDropdownItem
         onClick={handleDelete}
         danger
-        permission={[
-          {
-            resource: ResourceType.CONNECTOR,
-            action: Action.DELETE,
-            value: `${connect}/${name}`,
-          },
-          {
-            resource: ResourceType.CONNECT,
-            action: Action.DELETE,
-            value: connect,
-          },
-        ]}
+        permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.DELETE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
+          resource: ResourceType.CONNECT,
+          action: Action.DELETE,
+          value: connect,
+        }}
       >
         Delete
-      </ActionDropdownItemWithFallback>
+      </ActionDropdownItem>
     </Dropdown>
   );
 };

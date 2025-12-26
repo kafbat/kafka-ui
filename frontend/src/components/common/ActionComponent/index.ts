@@ -3,7 +3,6 @@ import ActionButton from './ActionButton/ActionButton';
 import ActionCanButton from './ActionButton/ActionCanButton/ActionCanButton';
 import ActionNavLink from './ActionNavLink/ActionNavLink';
 import ActionDropdownItem from './ActionDropDownItem/ActionDropdownItem';
-import ActionDropdownItemWithFallback from './ActionDropDownItem/ActionDropdownItemWithFallback';
 import ActionPermissionWrapper from './ActionPermissionWrapper/ActionPermissionWrapper';
 
 export {
@@ -12,6 +11,5 @@ export {
   ActionCanButton,
   ActionButton,
   ActionDropdownItem,
-  ActionDropdownItemWithFallback,
   ActionPermissionWrapper,
 };

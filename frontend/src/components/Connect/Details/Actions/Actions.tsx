@@ -20,7 +20,7 @@ import {
 } from 'lib/paths';
 import { useConfirm } from 'lib/hooks/useConfirm';
 import { Dropdown } from 'components/common/Dropdown';
-import { ActionDropdownItemWithFallback } from 'components/common/ActionComponent';
+import { ActionDropdownItem } from 'components/common/ActionComponent';
 import ChevronDownIcon from 'components/common/Icons/ChevronDownIcon';
 
 import * as S from './Action.styled';
@@ -89,155 +89,139 @@ const Actions: React.FC = () => {
         }
       >
         {connector?.status.state === ConnectorState.RUNNING && (
-          <ActionDropdownItemWithFallback
+          <ActionDropdownItem
             onClick={pauseConnectorHandler}
-            permission={[
-              {
-                resource: ResourceType.CONNECTOR,
-                action: Action.OPERATE,
-                value: connectorPath,
-              },
-              {
-                resource: ResourceType.CONNECT,
-                action: Action.OPERATE,
-                value: routerProps.connectName,
-              },
-            ]}
+            permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            }}
           >
             Pause
-          </ActionDropdownItemWithFallback>
+          </ActionDropdownItem>
         )}
         {connector?.status.state === ConnectorState.RUNNING && (
-          <ActionDropdownItemWithFallback
+          <ActionDropdownItem
             onClick={stopConnectorHandler}
-            permission={[
-              {
-                resource: ResourceType.CONNECTOR,
-                action: Action.OPERATE,
-                value: connectorPath,
-              },
-              {
-                resource: ResourceType.CONNECT,
-                action: Action.OPERATE,
-                value: routerProps.connectName,
-              },
-            ]}
+            permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            }}
           >
             Stop
-          </ActionDropdownItemWithFallback>
+          </ActionDropdownItem>
         )}
         {(connector?.status.state === ConnectorState.PAUSED ||
           connector?.status.state === ConnectorState.STOPPED) && (
-          <ActionDropdownItemWithFallback
+          <ActionDropdownItem
             onClick={resumeConnectorHandler}
-            permission={[
-              {
-                resource: ResourceType.CONNECTOR,
-                action: Action.OPERATE,
-                value: connectorPath,
-              },
-              {
-                resource: ResourceType.CONNECT,
-                action: Action.OPERATE,
-                value: routerProps.connectName,
-              },
-            ]}
+            permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
+              resource: ResourceType.CONNECT,
+              action: Action.OPERATE,
+              value: routerProps.connectName,
+            }}
           >
             Resume
-          </ActionDropdownItemWithFallback>
+          </ActionDropdownItem>
         )}
-        <ActionDropdownItemWithFallback
+        <ActionDropdownItem
           onClick={restartConnectorHandler}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: connectorPath,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: routerProps.connectName,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: routerProps.connectName,
+          }}
         >
           Restart Connector
-        </ActionDropdownItemWithFallback>
-        <ActionDropdownItemWithFallback
+        </ActionDropdownItem>
+        <ActionDropdownItem
           onClick={restartAllTasksHandler}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: connectorPath,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: routerProps.connectName,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: routerProps.connectName,
+          }}
         >
           Restart All Tasks
-        </ActionDropdownItemWithFallback>
-        <ActionDropdownItemWithFallback
+        </ActionDropdownItem>
+        <ActionDropdownItem
           onClick={restartFailedTasksHandler}
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.OPERATE,
-              value: connectorPath,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.OPERATE,
-              value: routerProps.connectName,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.OPERATE,
+            value: routerProps.connectName,
+          }}
         >
           Restart Failed Tasks
-        </ActionDropdownItemWithFallback>
+        </ActionDropdownItem>
       </Dropdown>
       <Dropdown>
-        <ActionDropdownItemWithFallback
+        <ActionDropdownItem
           onClick={resetConnectorOffsetsHandler}
           disabled={
             isMutating || connector?.status.state !== ConnectorState.STOPPED
           }
           danger
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.RESET_OFFSETS,
-              value: connectorPath,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.RESET_OFFSETS,
-              value: routerProps.connectName,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.RESET_OFFSETS,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.RESET_OFFSETS,
+            value: routerProps.connectName,
+          }}
         >
           Reset Offsets
-        </ActionDropdownItemWithFallback>
-        <ActionDropdownItemWithFallback
+        </ActionDropdownItem>
+        <ActionDropdownItem
           onClick={deleteConnectorHandler}
           danger
-          permission={[
-            {
-              resource: ResourceType.CONNECTOR,
-              action: Action.DELETE,
-              value: connectorPath,
-            },
-            {
-              resource: ResourceType.CONNECT,
-              action: Action.DELETE,
-              value: routerProps.connectName,
-            },
-          ]}
+          permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.DELETE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
+            resource: ResourceType.CONNECT,
+            action: Action.DELETE,
+            value: routerProps.connectName,
+          }}
         >
           Delete
-        </ActionDropdownItemWithFallback>
+        </ActionDropdownItem>
       </Dropdown>
     </S.ConnectorActionsWrapperStyled>
   );
