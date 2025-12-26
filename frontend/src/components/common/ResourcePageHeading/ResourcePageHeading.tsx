@@ -7,6 +7,7 @@ type ResourcePageHeadingProps = ComponentProps<typeof PageHeading>;
 
 const ResourcePageHeading: FC<ResourcePageHeadingProps> = (props) => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+
   return <PageHeading {...props} title={clusterName} />;
 };
 
