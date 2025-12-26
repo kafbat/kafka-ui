@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 class MapFieldSchema implements FieldSchema {
   private final @Nullable FieldSchema itemSchema;

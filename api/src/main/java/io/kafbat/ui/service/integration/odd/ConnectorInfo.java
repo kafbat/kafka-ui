@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import org.apache.commons.collections.CollectionUtils;
 import org.opendatadiscovery.oddrn.JdbcUrlParser;
 import org.opendatadiscovery.oddrn.model.HivePath;
