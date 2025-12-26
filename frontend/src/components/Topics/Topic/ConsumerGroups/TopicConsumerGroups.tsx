@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { clusterConsumerGroupsPath, RouteParamsClusterTopic } from 'lib/paths';
 import { ConsumerGroup } from 'generated-sources';
 import useAppParams from 'lib/hooks/useAppParams';
