@@ -25,7 +25,6 @@ updates:
       patterns:
         - "org.springframework.boot:*"
         - "io.spring.dependency-management"
-        - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
         # We defined this dependency explicitly because Spring uses an older version
         - "com.nimbusds:nimbus-jose-jwt"
     testing:
