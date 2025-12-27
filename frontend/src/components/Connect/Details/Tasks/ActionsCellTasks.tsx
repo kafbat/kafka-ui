@@ -17,6 +17,8 @@ const ActionsCellTasks: React.FC<CellContext<Task, unknown>> = ({ row }) => {
     restartMutation.mutateAsync(taskId);
   };
 
+  const connectorPath = `${routerProps.connectName}/${routerProps.connectorName}`;
+
   return (
     <Dropdown>
       <ActionDropdownItem
@@ -24,6 +26,11 @@ const ActionsCellTasks: React.FC<CellContext<Task, unknown>> = ({ row }) => {
         danger
         confirm="Are you sure you want to restart the task?"
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: connectorPath,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.OPERATE,
           value: routerProps.connectName,

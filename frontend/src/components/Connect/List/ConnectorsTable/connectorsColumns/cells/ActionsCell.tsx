@@ -92,6 +92,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           onClick={resumeConnectorHandler}
           disabled={isMutating}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
             action: Action.OPERATE,
             value: connect,
@@ -105,6 +110,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           onClick={pauseConnectorHandler}
           disabled={isMutating}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
             action: Action.OPERATE,
             value: connect,
@@ -118,6 +128,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
           onClick={stopConnectorHandler}
           disabled={isMutating}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: `${connect}/${name}`,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
             action: Action.OPERATE,
             value: connect,
@@ -130,6 +145,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         onClick={restartConnectorHandler}
         disabled={isMutating || isReadOnly}
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.OPERATE,
           value: connect,
@@ -141,6 +161,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         onClick={restartAllTasksHandler}
         disabled={isMutating}
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.OPERATE,
           value: connect,
@@ -152,6 +177,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         onClick={restartFailedTasksHandler}
         disabled={isMutating}
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.OPERATE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.OPERATE,
           value: connect,
@@ -164,6 +194,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         disabled={isMutating || status.state !== ConnectorState.STOPPED}
         danger
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.RESET_OFFSETS,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.RESET_OFFSETS,
           value: connect,
@@ -175,6 +210,11 @@ const ActionsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         onClick={handleDelete}
         danger
         permission={{
+          resource: ResourceType.CONNECTOR,
+          action: Action.DELETE,
+          value: `${connect}/${name}`,
+        }}
+        fallbackPermission={{
           resource: ResourceType.CONNECT,
           action: Action.DELETE,
           value: connect,
