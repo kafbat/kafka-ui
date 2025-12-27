@@ -2,6 +2,7 @@ import {
   passedTime,
   calculateTimer,
   formatMilliseconds,
+  timeAgo,
 } from 'lib/dateTimeHelpers';
 
 const startedAt = 1664891890889;
@@ -47,5 +48,62 @@ describe('calculate timer', () => {
 
   it('return when startedAt > new Date()', () => {
     expect(calculateTimer(1664891890889199)).toBe('00:00');
+  });
+});
+
+describe('timeAgo', () => {
+  it('returns empty string for undefined timestamp', () => {
+    expect(timeAgo(undefined)).toBe('');
+  });
+
+  it('returns empty string for invalid date', () => {
+    expect(timeAgo('invalid-date')).toBe('');
+  });
+
+  it('returns "just now" for timestamps within 1 second', () => {
+    const now = new Date();
+    expect(timeAgo(now)).toBe('just now');
+  });
+
+  it('returns seconds ago for timestamps within a minute', () => {
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+    expect(timeAgo(thirtySecondsAgo)).toBe('30 seconds ago');
+  });
+
+  it('returns "1 minute ago" for timestamps around 1 minute old', () => {
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    expect(timeAgo(oneMinuteAgo)).toBe('1 minute ago');
+  });
+
+  it('returns minutes ago for timestamps within an hour', () => {
+    const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
+    expect(timeAgo(twentyMinutesAgo)).toBe('20 minutes ago');
+  });
+
+  it('returns "1 hour ago" for timestamps around 1 hour old', () => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    expect(timeAgo(oneHourAgo)).toBe('1 hour ago');
+  });
+
+  it('returns hours ago for timestamps within a day', () => {
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    expect(timeAgo(threeHoursAgo)).toBe('3 hours ago');
+  });
+
+  it('returns "1 day ago" for timestamps around 1 day old', () => {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    expect(timeAgo(oneDayAgo)).toBe('1 day ago');
+  });
+
+  it('returns days ago for timestamps within 30 days', () => {
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    expect(timeAgo(fiveDaysAgo)).toBe('5 days ago');
+  });
+
+  it('returns formatted date for timestamps older than 30 days', () => {
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const result = timeAgo(sixtyDaysAgo);
+    // Should return a locale date string, not "X days ago"
+    expect(result).not.toContain('days ago');
   });
 });
