@@ -7,6 +7,16 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+configurations.all {
+    resolutionStrategy {
+        capabilitiesResolution {
+            withCapability("org.lz4:lz4-java") {
+                select(libs.lz4.yawk.get().toString())
+            }
+        }
+    }
+}
+
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
@@ -74,10 +84,11 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
+    implementation libs.lz4.yawk
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
-    implementation libs.lz4
+
 
     // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {
