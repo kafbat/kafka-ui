@@ -5,7 +5,9 @@ import { TagCell } from 'components/common/NewTable';
 
 import { KafkaConnectLinkCell } from './cells/KafkaConnectLinkCell';
 import TopicsCell from './cells/TopicsCell';
-import RunningTasksCell from './cells/RunningTasksCell';
+import RunningTasksCell, {
+  getRunningTasksCountText,
+} from './cells/RunningTasksCell';
 import ActionsCell from './cells/ActionsCell';
 
 export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
@@ -43,7 +45,10 @@ export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
     accessorKey: 'topics',
     cell: TopicsCell,
     enableColumnFilter: true,
-    meta: { filterVariant: 'multi-select' },
+    meta: {
+      filterVariant: 'multi-select',
+      csvFn: (row) => (row.topics ? row.topics.join(', ') : '-'),
+    },
     filterFn: 'arrIncludesSome',
     enableResizing: true,
   },
@@ -51,14 +56,16 @@ export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
     header: 'Status',
     accessorKey: 'status.state',
     cell: TagCell,
-    meta: { filterVariant: 'multi-select' },
+    meta: { filterVariant: 'multi-select', csvFn: (row) => row.status.state },
     filterFn: 'arrIncludesSome',
   },
   {
     id: 'running_task',
+    accessorKey: 'tasksCount',
     header: 'Running Tasks',
     cell: RunningTasksCell,
     size: 120,
+    meta: { csvFn: (row) => getRunningTasksCountText(row).text },
   },
   {
     header: '',

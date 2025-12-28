@@ -22,6 +22,8 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
+import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
+import { consumerGroupsApiClient } from 'lib/api';
 import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
@@ -34,16 +36,20 @@ const List = () => {
   const navigate = useNavigate();
   const { isFtsEnabled } = useFts('consumer_groups');
 
-  const consumerGroups = useConsumerGroups({
+  const params = {
     clusterName,
     orderBy: (searchParams.get('sortBy') as ConsumerGroupOrdering) || undefined,
     sortOrder:
       (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
       undefined,
-    page: Number(searchParams.get('page') || 1),
-    perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || '',
     fts: isFtsEnabled,
+  };
+
+  const consumerGroups = useConsumerGroups({
+    ...params,
+    page: Number(searchParams.get('page') || 1),
+    perPage: Number(searchParams.get('perPage') || PER_PAGE),
   });
 
   const [pollingIntervalSec] = useLocalStorage(
@@ -86,6 +92,9 @@ const List = () => {
         />
       ),
       size: 600,
+      meta: {
+        csvFn: (row) => row.groupId,
+      },
     },
     {
       id: ConsumerGroupOrdering.MEMBERS,
@@ -133,6 +142,9 @@ const List = () => {
       accessorKey: 'coordinator.id',
       enableSorting: false,
       size: 104,
+      meta: {
+        csvFn: (row) => String(row.coordinator?.id) || '-',
+      },
     },
     {
       id: ConsumerGroupOrdering.STATE,
@@ -150,14 +162,26 @@ const List = () => {
         );
       },
       size: 124,
+      meta: {
+        csvFn: (row) => String(row.state),
+      },
     },
   ];
 
   const columnSizingPersister = useLocalStoragePersister('Consumers');
 
+  const fetchCsv = async () => {
+    return consumerGroupsApiClient.getConsumerGroupsCsv(params);
+  };
+
   return (
     <>
-      <ResourcePageHeading text="Consumers" />
+      <ResourcePageHeading text="Consumers">
+        <DownloadCsvButton
+          filePrefix={`consumers-${clusterName}`}
+          fetchCsv={fetchCsv}
+        />
+      </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search
           placeholder="Search by Consumer Group ID"

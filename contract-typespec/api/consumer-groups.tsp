@@ -34,6 +34,20 @@ interface ConsumerGroupsApi {
   ): ConsumerGroupsLagResponse;
 
   @get
+  @route("/csv")
+  @operationId("getConsumerGroupsCsv")
+  @summary("getConsumerGroupsPage")
+  getConsumerGroupsCsv(
+    @path clusterName: string,
+    @query page?: int32,
+    @query perPage?: int32,
+    @query search?: string,
+    @query orderBy?: ConsumerGroupOrdering,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
+
+  @get
   @route("/{id}")
   @operationId("getConsumerGroup")
   @summary("getConsumerGroup")
