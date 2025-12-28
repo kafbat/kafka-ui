@@ -4,10 +4,10 @@ import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 
 const options = [
   { value: 0, label: 'Off' },
-  { value: 2, label: '2' },
-  { value: 5, label: '5' },
-  { value: 10, label: '10' },
-  { value: 15, label: '15' },
+  { value: 2, label: '2 sec' },
+  { value: 5, label: '5 sec' },
+  { value: 10, label: '10 sec' },
+  { value: 15, label: '15 sec' },
 ];
 
 type RefreshRateSelectProps = {

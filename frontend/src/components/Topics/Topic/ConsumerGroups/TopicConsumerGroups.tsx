@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { clusterConsumerGroupsPath, RouteParamsClusterTopic } from 'lib/paths';
 import { ConsumerGroup } from 'generated-sources';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -8,7 +8,7 @@ import Table, { LinkCell, TagCell } from 'components/common/NewTable';
 import Search from 'components/common/Search/Search';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
-import { computeLagTrends } from 'lib/consumerGroups';
+import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { LagContainer } from 'components/ConsumerGroups/styled';
 import { useGetConsumerGroupsLag } from 'lib/hooks/api/consumers';
 
@@ -32,19 +32,29 @@ const TopicConsumerGroups: React.FC = () => {
   );
 
   const [pollingIntervalSec] = useLocalStorage('topics-refresh-rate', 0);
+  const prevLagRef = useRef<Record<string, number | undefined>>({});
+  const [lagTrends, setLagTrends] = useState<Record<string, LagTrend>>({});
+
   const { data: consumerGroupsLag } = useGetConsumerGroupsLag({
     clusterName,
     ids: consumerGroups.map((cg) => cg.groupId),
     pollingIntervalSec,
+    onSuccess: (groupsLag) => {
+      const nextTrends = computeLagTrends(
+        prevLagRef.current,
+        groupsLag.consumerGroups ?? {},
+        (cg) => cg?.topics?.[topicName],
+        pollingIntervalSec > 0
+      );
+
+      setLagTrends(nextTrends);
+    },
   });
 
-  const prevLagRef = useRef<Record<string, number | undefined>>({});
-
-  const lagTrends = computeLagTrends(
-    prevLagRef.current,
-    consumerGroupsLag,
-    pollingIntervalSec > 0
-  );
+  useEffect(() => {
+    prevLagRef.current = {};
+    setLagTrends({});
+  }, [topicName]);
 
   const columns: ColumnDef<ConsumerGroup>[] = [
     {
@@ -73,7 +83,8 @@ const TopicConsumerGroups: React.FC = () => {
       // eslint-disable-next-line react/no-unstable-nested-components
       cell: ({ row }) => {
         const { groupId } = row.original;
-        const lag = consumerGroupsLag?.consumerGroups?.[groupId]?.lag;
+        const lag =
+          consumerGroupsLag?.consumerGroups?.[groupId]?.topics?.[topicName];
         const trend = lagTrends[groupId];
 
         if (lag == null) return 'N/A';

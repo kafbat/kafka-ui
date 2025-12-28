@@ -63,13 +63,10 @@ const List = () => {
     onSuccess: (data) => {
       const nextTrends = computeLagTrends(
         prevLagRef.current,
-        data,
+        data.consumerGroups ?? {},
+        (cg) => cg?.lag,
         pollingIntervalSec > 0
       );
-
-      Object.entries(data.consumerGroups ?? {}).forEach(([id, cg]) => {
-        prevLagRef.current[id] = cg?.lag;
-      });
 
       setLagTrends(nextTrends);
     },
