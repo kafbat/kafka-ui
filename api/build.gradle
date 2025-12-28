@@ -11,7 +11,7 @@ configurations.all {
     resolutionStrategy {
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
-                select(libs.lz4.get().toString())
+                select(libs.lz4.yawk.get().toString())
             }
         }
     }
@@ -86,7 +86,7 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    implementation libs.lz4
+    implementation libs.lz4.yawk
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
