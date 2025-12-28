@@ -22,7 +22,7 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
-import { computeLagTrends } from 'lib/consumerGroups';
+import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 
@@ -51,19 +51,29 @@ const List = () => {
     0
   );
 
+  const prevLagRef = useRef<Record<string, number | undefined>>({});
+  const [lagTrends, setLagTrends] = React.useState<Record<string, LagTrend>>(
+    {}
+  );
+
   const { data: consumerGroupsLag } = useGetConsumerGroupsLag({
     clusterName,
     ids: consumerGroups.data?.consumerGroups?.map((cg) => cg.groupId) || [],
     pollingIntervalSec,
+    onSuccess: (data) => {
+      const nextTrends = computeLagTrends(
+        prevLagRef.current,
+        data,
+        pollingIntervalSec > 0
+      );
+
+      Object.entries(data.consumerGroups ?? {}).forEach(([id, cg]) => {
+        prevLagRef.current[id] = cg?.lag;
+      });
+
+      setLagTrends(nextTrends);
+    },
   });
-
-  const prevLagRef = useRef<Record<string, number | undefined>>({});
-
-  const lagTrends = computeLagTrends(
-    prevLagRef.current,
-    consumerGroupsLag,
-    pollingIntervalSec > 0
-  );
 
   const columns: ColumnDef<ConsumerGroup>[] = [
     {

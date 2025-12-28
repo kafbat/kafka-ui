@@ -412,8 +412,8 @@ const baseTheme = {
     },
   },
   lag: {
-    up: Colors.green[70],
-    down: Colors.orange[20],
+    down: Colors.green[70],
+    up: Colors.orange[20],
     same: Colors.neutral[90],
     none: Colors.neutral[90],
   },

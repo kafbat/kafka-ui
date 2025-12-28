@@ -126,12 +126,14 @@ interface UseGetConsumerGroupsLagProps {
   clusterName: string;
   ids: string[];
   pollingIntervalSec?: number;
+  onSuccess?: (data: ConsumerGroupsLagResponse) => void;
 }
 
 export function useGetConsumerGroupsLag({
   clusterName,
   pollingIntervalSec = 0,
   ids,
+  onSuccess,
 }: UseGetConsumerGroupsLagProps) {
   const pollingEnabled = pollingIntervalSec > 0;
   const lastUpdateRef = useRef<number | undefined>(undefined);
@@ -155,6 +157,8 @@ export function useGetConsumerGroupsLag({
     {
       enabled: ids.length > 0,
       refetchInterval: pollingEnabled ? pollingIntervalSec * 1000 : false,
+      refetchOnWindowFocus: false,
+
       select: (data) => {
         const filtered: Record<string, ConsumerGroupLag | undefined> = {};
         ids.forEach((id) => {
@@ -166,6 +170,8 @@ export function useGetConsumerGroupsLag({
           consumerGroups: filtered,
         } satisfies ConsumerGroupsLagResponse;
       },
+
+      onSuccess,
     }
   );
 }
