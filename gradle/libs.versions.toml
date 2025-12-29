@@ -141,5 +141,5 @@ lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', v
 
 fastcsv = {module = 'de.siegmar:fastcsv', version = '4.1.0'}
 
-# CVE-2025-12183, CVE-2025-12183 fixes
+# CVE-2025-12183 fix
 lz4-yawk = {module = 'at.yawk.lz4:lz4-java', version = '1.10.1'}
