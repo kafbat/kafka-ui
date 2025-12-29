@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import Table from 'components/common/NewTable';
