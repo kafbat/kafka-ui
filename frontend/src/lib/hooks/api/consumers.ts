@@ -1,13 +1,16 @@
 import { consumerGroupsApiClient as api } from 'lib/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import {
   ConsumerGroup,
+  ConsumerGroupLag,
   ConsumerGroupOffsetsReset,
   ConsumerGroupOrdering,
+  ConsumerGroupsLagResponse,
   SortOrder,
 } from 'generated-sources';
 import { showSuccessAlert } from 'lib/errorHandling';
+import { useEffect, useRef } from 'react';
 
 export type ConsumerGroupID = ConsumerGroup['groupId'];
 
@@ -118,3 +121,57 @@ export const useDeleteConsumerGroupOffsetsMutation = ({
     }
   );
 };
+
+interface UseGetConsumerGroupsLagProps {
+  clusterName: string;
+  ids: string[];
+  pollingIntervalSec?: number;
+  onSuccess?: (data: ConsumerGroupsLagResponse) => void;
+}
+
+export function useGetConsumerGroupsLag({
+  clusterName,
+  pollingIntervalSec = 0,
+  ids,
+  onSuccess,
+}: UseGetConsumerGroupsLagProps) {
+  const pollingEnabled = pollingIntervalSec > 0;
+  const lastUpdateRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    lastUpdateRef.current = undefined;
+  }, [clusterName, ids.join(',')]);
+
+  return useQuery(
+    ['clusters', clusterName, 'consumerGroupsLag', ids],
+    async () => {
+      const response = await api.getConsumerGroupsLag({
+        clusterName,
+        ids,
+        lastUpdate: lastUpdateRef.current,
+      });
+
+      lastUpdateRef.current = response.updateTimestamp;
+      return response;
+    },
+    {
+      enabled: ids.length > 0,
+      refetchInterval: pollingEnabled ? pollingIntervalSec * 1000 : false,
+      refetchOnWindowFocus: false,
+
+      select: (data) => {
+        const filtered: Record<string, ConsumerGroupLag | undefined> = {};
+        ids.forEach((id) => {
+          filtered[id] = data.consumerGroups?.[id];
+        });
+
+        return {
+          updateTimestamp: data.updateTimestamp,
+          consumerGroups: filtered,
+        } satisfies ConsumerGroupsLagResponse;
+      },
+
+      onSuccess,
+    }
+  );
+}
