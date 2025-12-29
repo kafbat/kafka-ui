@@ -12,25 +12,20 @@ export interface AdvancedFilter {
 
 interface MessageFiltersState {
   filters: AdvancedFiltersType;
-  notPersistedFilter: AdvancedFilter | undefined;
   save: (filter: AdvancedFilter) => void;
   nextCursor: string | undefined;
   setNextCursor: (str: string | undefined) => void;
   replace: (filterId: string, filter: AdvancedFilter) => void;
-  commit: (filter: AdvancedFilter | undefined) => void;
   remove: (id: string) => void;
   removeAll: () => void;
 }
 
 export const selectFilter =
   (id?: string) =>
-  ({ filters, notPersistedFilter }: MessageFiltersState) => {
+  ({ filters }: MessageFiltersState) => {
     if (!id) return undefined;
 
     if (filters[id]) return filters[id];
-
-    if (notPersistedFilter?.id === id) return notPersistedFilter;
-
     return undefined;
   };
 
@@ -56,18 +51,10 @@ export const useMessageFiltersStore = create<MessageFiltersState>()(
 
           return { filters: newFilters };
         }),
-      commit: (filter) =>
-        set(() => ({
-          notPersistedFilter: filter,
-        })),
       remove: (id) =>
         set((state) => {
           const filters = { ...state.filters };
           delete filters[id];
-
-          if (state.notPersistedFilter?.id === id) {
-            return { filters, notPersistedFilter: undefined };
-          }
 
           return { filters };
         }),
