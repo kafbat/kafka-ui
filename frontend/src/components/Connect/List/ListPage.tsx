@@ -31,6 +31,7 @@ const ListPage: React.FC = () => {
       <ConnectorsStatistics isLoading={isLoading} />
       <S.Search hasInput>
         <Search
+          key={clusterName}
           placeholder="Search by Connect Name, Status or Type"
           extraActions={<Fts resourceName="connects" />}
         />
