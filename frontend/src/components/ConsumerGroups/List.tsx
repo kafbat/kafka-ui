@@ -184,6 +184,7 @@ const List = () => {
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search
+          key={clusterName}
           placeholder="Search by Consumer Group ID"
           extraActions={<Fts resourceName="consumer_groups" />}
         />

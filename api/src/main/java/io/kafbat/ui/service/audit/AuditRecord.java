@@ -34,7 +34,8 @@ record AuditRecord(String timestamp,
 
   record AuditResource(Resource type, @Nullable Object id, boolean alter, List<String> accessType) {
 
-    private static AuditResource create(Collection<PermissibleAction> actions, Resource type, @Nullable Object id) {
+    private static AuditResource create(Collection<? extends PermissibleAction> actions,
+                                        Resource type, @Nullable Object id) {
       boolean isAlter = actions.stream().anyMatch(PermissibleAction::isAlter);
       return new AuditResource(type, id, isAlter, actions.stream().map(PermissibleAction::name).toList());
     }
