@@ -41,6 +41,7 @@ dependencies {
     implementation libs.spring.security.ldap
 
     implementation (libs.kafka.clients) {
+        // TODO: Remove once client would fix CVE
         exclude group: "org.lz4", module: "lz4-java"
     }
 
