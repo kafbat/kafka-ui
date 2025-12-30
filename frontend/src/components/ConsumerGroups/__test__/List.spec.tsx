@@ -1,12 +1,16 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
-import { useConsumerGroups } from 'lib/hooks/api/consumers';
+import {
+  useConsumerGroups,
+  useGetConsumerGroupsLag,
+} from 'lib/hooks/api/consumers';
 import List from 'components/ConsumerGroups/List';
 
 // Mock hooks
 jest.mock('lib/hooks/api/consumers', () => ({
   useConsumerGroups: jest.fn(),
+  useGetConsumerGroupsLag: jest.fn(),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -16,6 +20,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockUseConsumerGroups = useConsumerGroups as jest.Mock;
+const mockUseConsumerGroupsLag = useGetConsumerGroupsLag as jest.Mock;
 
 describe('ConsumerGroups List', () => {
   beforeEach(() => {
@@ -40,6 +45,14 @@ describe('ConsumerGroups List', () => {
           },
         ],
         pageCount: 1,
+      },
+      isSuccess: true,
+      isFetching: false,
+    }));
+
+    mockUseConsumerGroupsLag.mockImplementation(() => ({
+      data: {
+        consumerGroups: { group1: { lag: 0 }, group2: { lag: null } },
       },
       isSuccess: true,
       isFetching: false,

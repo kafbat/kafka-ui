@@ -11,7 +11,7 @@ import { FullConnectorInfo } from 'generated-sources';
 import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
 
 import * as S from './ListPage.styled';
-import List from './List';
+import { ConnectorsTable } from './ConnectorsTable/ConnectorsTable';
 import ConnectorsStatistics from './Statistics/Statistics';
 
 const emptyConnectors: FullConnectorInfo[] = [];
@@ -31,12 +31,13 @@ const ListPage: React.FC = () => {
       <ConnectorsStatistics isLoading={isLoading} />
       <S.Search hasInput>
         <Search
+          key={clusterName}
           placeholder="Search by Connect Name, Status or Type"
           extraActions={<Fts resourceName="connects" />}
         />
       </S.Search>
       <Suspense fallback={<PageLoader />}>
-        <List connectors={connectors} />
+        <ConnectorsTable connectors={connectors} />
       </Suspense>
     </FilteredConnectorsProvider>
   );
