@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import Table from 'components/common/NewTable';
@@ -35,9 +35,12 @@ import * as S from './List.styled';
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get('q') || '');
   const { isFtsEnabled } = useFts('acl');
-  const { data: aclList } = useAcls({ clusterName, search, fts: isFtsEnabled });
+  const { data: aclList } = useAcls({
+    clusterName,
+    search: searchParams.get('q') ?? '',
+    fts: isFtsEnabled,
+  });
   const { deleteResource } = useDeleteAcl(clusterName);
   const { isReadOnly } = React.useContext(ClusterContext);
   const modal = useConfirm(true);
@@ -51,14 +54,13 @@ const ACList: React.FC = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    if (search) {
-      params.set('q', search);
+    if (searchParams.get('q')) {
       params.set('page', '1'); // reset to first page on new search
     } else {
       params.delete('q');
     }
     setSearchParams(params, { replace: true });
-  }, [search]);
+  }, [searchParams.get('q')]);
 
   const handleDeleteClick = (acl: KafkaAcl | null) => {
     if (acl) {
@@ -214,9 +216,8 @@ const ACList: React.FC = () => {
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search
+          key={clusterName}
           placeholder="Search by Principal Name"
-          value={search}
-          onChange={setSearch}
           extraActions={<Fts resourceName="acl" />}
         />
       </ControlPanelWrapper>

@@ -35,6 +35,7 @@ const Colors = {
     '40': '#5CD685',
     '50': '#33CC66',
     '60': '#29A352',
+    '70': '#34C759',
   },
   brand: {
     '0': '#FFFFFF',
@@ -63,6 +64,7 @@ const Colors = {
   },
   orange: {
     '10': '#BF83401A',
+    '20': '#FF8D28',
     '100': '#FF9D00',
   },
   yellow: {
@@ -408,6 +410,12 @@ const baseTheme = {
     fileInput: {
       color: Colors.neutral[85],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[90],
+    none: Colors.neutral[90],
   },
 };
 

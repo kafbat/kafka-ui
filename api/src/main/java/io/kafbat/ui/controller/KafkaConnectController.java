@@ -3,8 +3,6 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
-import static io.kafbat.ui.model.rbac.permission.ConnectAction.RESET_OFFSETS;
-import static io.kafbat.ui.model.rbac.permission.ConnectAction.VIEW;
 
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
@@ -20,6 +18,7 @@ import io.kafbat.ui.model.TaskDTO;
 import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
@@ -107,7 +106,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW)
         .operationName("getConnector")
         .build();
 
@@ -124,9 +123,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.DELETE)
+        .connectorActions(connectName, connectorName, ConnectorAction.DELETE)
         .operationName("deleteConnector")
-        .operationParams(Map.of(CONNECTOR_NAME, connectName))
         .build();
 
     return validateAccess(context).then(
@@ -182,7 +180,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW)
         .operationName("getConnectorConfig")
         .build();
 
@@ -201,9 +199,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.EDIT)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW, ConnectorAction.EDIT)
         .operationName("setConnectorConfig")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
@@ -218,14 +215,10 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                          String connectorName,
                                                          ConnectorActionDTO action,
                                                          ServerWebExchange exchange) {
-    ConnectAction[] connectActions;
-    connectActions = new ConnectAction[] {ConnectAction.VIEW, ConnectAction.OPERATE};
-
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, connectActions)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW, ConnectorAction.OPERATE)
         .operationName("updateConnectorState")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
@@ -242,9 +235,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
                                                                ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW)
         .operationName("getConnectorTasks")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).thenReturn(
@@ -261,9 +253,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, ConnectAction.VIEW, ConnectAction.OPERATE)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW, ConnectorAction.OPERATE)
         .operationName("restartConnectorTask")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
@@ -324,15 +315,16 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   }
 
   @Override
-  public Mono<ResponseEntity<Void>> resetConnectorOffsets(String clusterName, String connectName,
+  public Mono<ResponseEntity<Void>> resetConnectorOffsets(
+      String clusterName,
+      String connectName,
       String connectorName,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
         .cluster(clusterName)
-        .connectActions(connectName, VIEW, RESET_OFFSETS)
+        .connectorActions(connectName, connectorName, ConnectorAction.VIEW, ConnectorAction.RESET_OFFSETS)
         .operationName("resetConnectorOffsets")
-        .operationParams(Map.of(CONNECTOR_NAME, connectorName))
         .build();
 
     return validateAccess(context).then(
