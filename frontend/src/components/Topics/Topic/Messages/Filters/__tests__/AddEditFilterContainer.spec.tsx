@@ -49,14 +49,6 @@ describe('AddEditFilterContainer component', () => {
       expect(screen.getByText(/add filter/i)).toBeInTheDocument();
     });
 
-    it('should display the checkbox is there and works', async () => {
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toBeInTheDocument();
-      expect(checkbox).not.toBeChecked();
-      await userEvent.click(checkbox);
-      expect(checkbox).toBeChecked();
-    });
-
     it('should check whether the submit Button is disabled when the form is pristine and disabled if dirty', async () => {
       const submitButtonElem = screen.getByText(/add filter/i);
       expect(submitButtonElem).toBeDisabled();

@@ -16,7 +16,7 @@ export interface FilterModalProps {
   filterName?: string;
   setFilterName: (filterId: string) => void;
   smartFilter?: AdvancedFilter;
-  setSmartFilter: (filter: AdvancedFilter | null, persisted?: boolean) => void;
+  setSmartFilter: (filter: AdvancedFilter | null) => void;
 }
 
 const FiltersSideBar: React.FC<FilterModalProps> = ({
