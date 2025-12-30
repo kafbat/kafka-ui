@@ -97,23 +97,25 @@ export const timeAgo = (
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
+  const language = navigator.language || navigator.languages[0];
+  const rtf = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
+
   if (diffSeconds < 60) {
-    return diffSeconds <= 1 ? 'just now' : `${diffSeconds} seconds ago`;
+    return rtf.format(-diffSeconds, 'second');
   }
 
   if (diffMinutes < 60) {
-    return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
+    return rtf.format(-diffMinutes, 'minute');
   }
 
   if (diffHours < 24) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    return rtf.format(-diffHours, 'hour');
   }
 
   if (diffDays < 30) {
-    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+    return rtf.format(-diffDays, 'day');
   }
 
   // Fall back to formatted date for older timestamps
-  const language = navigator.language || navigator.languages[0];
   return date.toLocaleDateString(language);
 };
