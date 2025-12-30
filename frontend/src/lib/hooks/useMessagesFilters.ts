@@ -82,11 +82,6 @@ export function useMessagesFilters(topicName: string) {
         params.set(MessagesFilterKeys.mode, defaultModeValue);
       }
 
-      if (params.get(MessagesFilterKeys.activeFilterNPId)) {
-        params.delete(MessagesFilterKeys.activeFilterNPId);
-        params.delete(MessagesFilterKeys.smartFilterId);
-      }
-
       params.delete(MessagesFilterKeys.cursor);
 
       return params;
@@ -118,9 +113,7 @@ export function useMessagesFilters(topicName: string) {
     .filter((v) => v);
 
   const smartFilterId =
-    searchParams.get(MessagesFilterKeys.activeFilterId) ||
-    searchParams.get(MessagesFilterKeys.activeFilterNPId) ||
-    '';
+    searchParams.get(MessagesFilterKeys.activeFilterId) || '';
 
   const smartFilter = useMessageFiltersStore(selectFilter(smartFilterId));
 
@@ -218,15 +211,11 @@ export function useMessagesFilters(topicName: string) {
     });
   };
 
-  const setSmartFilter = (
-    newFilter: AdvancedFilter | null,
-    persisted = true
-  ) => {
+  const setSmartFilter = (newFilter: AdvancedFilter | null) => {
     if (newFilter === null) {
       setSearchParams((params) => {
         params.delete(MessagesFilterKeys.smartFilterId);
         params.delete(MessagesFilterKeys.activeFilterId);
-        params.delete(MessagesFilterKeys.activeFilterNPId);
         return params;
       });
       return;
@@ -242,22 +231,15 @@ export function useMessagesFilters(topicName: string) {
     // setting something that is not in the state
     if (!filter) return;
 
-    if (persisted) {
-      setMessagesFiltersField(MessagesFilterKeys.activeFilterId, filter.id);
-      setMessagesFiltersField(
-        MessagesFilterKeys.smartFilterId,
-        filter.filterCode
-      );
-    }
+    setMessagesFiltersField(MessagesFilterKeys.activeFilterId, filter.id);
+    setMessagesFiltersField(
+      MessagesFilterKeys.smartFilterId,
+      filter.filterCode
+    );
 
     setSearchParams((params) => {
       params.set(MessagesFilterKeys.smartFilterId, filter.filterCode); // hash code, i.e. 3de77452
-      params.set(
-        persisted
-          ? MessagesFilterKeys.activeFilterId // slug, i.e myFilter
-          : MessagesFilterKeys.activeFilterNPId, // text, i.e has(record.keyAsText)
-        id
-      );
+      params.set(MessagesFilterKeys.activeFilterId, id); // sllug name, i.e. MyFancyFilter
       return params;
     });
   };
