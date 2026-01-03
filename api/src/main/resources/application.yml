@@ -15,8 +15,9 @@ management:
 springdoc:
   path: /swagger 
   api-docs:
-    enabled: true
+    enabled: ${AUTH_OPENAPI_ENABLED:false}
   swagger-ui:
+    enabled: ${AUTH_OPENAPI_ENABLED:false}
     url: /openapi/kafbat-ui-api.yaml
     urls:
       - name: kafbat-ui
