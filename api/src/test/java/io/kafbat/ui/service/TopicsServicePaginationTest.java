@@ -134,7 +134,7 @@ class TopicsServicePaginationTest {
   private TopicDescription toTopicDescription(InternalTopic t) {
     return new TopicDescription(
         t.getName(), t.isInternal(),
-        t.getPartitions().values().stream().map(p -> toTopicPartitionInfo(p)).toList()
+        t.getPartitions().values().stream().map(this::toTopicPartitionInfo).toList()
     );
   }
 

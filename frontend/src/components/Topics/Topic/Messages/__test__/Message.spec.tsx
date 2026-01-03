@@ -6,7 +6,7 @@ import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
 import useAppParams from 'lib/hooks/useAppParams';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
-import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { timeAgo } from 'lib/dateTimeHelpers';
 import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
 import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAccessContext';
 import { RolesType } from 'lib/permissions';
@@ -78,12 +78,7 @@ describe('Message component', () => {
     expect(screen.getByText(mockMessage.value as string)).toBeInTheDocument();
     expect(screen.getByText(mockMessage.key as string)).toBeInTheDocument();
     expect(
-      screen.getByText(
-        formatTimestamp({
-          timestamp: mockMessage.timestamp,
-          withMilliseconds: true,
-        })
-      )
+      screen.getByText(timeAgo(mockMessage.timestamp))
     ).toBeInTheDocument();
     expect(screen.getByText(mockMessage.offset.toString())).toBeInTheDocument();
     expect(

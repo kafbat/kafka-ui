@@ -4156,6 +4156,7 @@ components:
         - CONSUMER
         - SCHEMA
         - CONNECT
+        - CONNECTOR
         - KSQL
         - ACL
         - AUDIT

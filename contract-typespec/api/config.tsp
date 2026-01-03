@@ -294,6 +294,7 @@ enum ResourceType {
   CONSUMER,
   SCHEMA,
   CONNECT,
+  CONNECTOR,
   KSQL,
   ACL,
   AUDIT,
