@@ -22,6 +22,11 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
           timestampType={TopicMessageTimestampTypeEnum.CREATE_TIME}
           keySerde="SchemaRegistry"
           valueSerde="Avro"
+          valueDeserializeProperties={{
+            type: 'AVRO',
+            name: 'MessageType',
+            schemaId: 1,
+          }}
           {...props}
         />
       </tbody>
@@ -36,13 +41,17 @@ describe('MessageContent screen', () => {
     render(setupWrapper());
   });
 
-  describe('Checking keySerde and valueSerde', () => {
+  describe('Checking keySerde, valueSerde and valueType', () => {
     it('keySerde in document', () => {
       expect(screen.getByText('SchemaRegistry')).toBeInTheDocument();
     });
 
     it('valueSerde in document', () => {
       expect(screen.getByText('Avro')).toBeInTheDocument();
+    });
+
+    it('valueType in document', () => {
+      expect(screen.getByText('Value Type')).toBeInTheDocument();
     });
   });
 
