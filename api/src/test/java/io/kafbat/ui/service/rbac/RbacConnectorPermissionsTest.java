@@ -14,8 +14,6 @@ import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +41,6 @@ class RbacConnectorPermissionsTest {
   public static final String CLUSTER_NAME = "local";
   public static final String CONNECT_NAME = "kafka-connect";
   public static final String CONNECTOR_NAME = "my-connector";
-  public static final String ANOTHER_CONNECTOR_NAME = "another-connector";
 
   private AccessControlService accessControlService;
 

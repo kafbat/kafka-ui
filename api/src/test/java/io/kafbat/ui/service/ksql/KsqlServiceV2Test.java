@@ -100,7 +100,7 @@ class KsqlServiceV2Test extends AbstractIntegrationTest {
   private static KafkaCluster cluster() {
     return KafkaCluster.builder()
         .ksqlClient(ReactiveFailover.create(
-            List.of(ksqlClient()), th -> true, "", ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS))
+            List.of(ksqlClient()), _ -> true, "", ReactiveFailover.DEFAULT_RETRY_GRACE_PERIOD_MS))
         .build();
   }
 
