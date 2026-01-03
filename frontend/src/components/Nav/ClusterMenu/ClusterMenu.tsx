@@ -45,8 +45,6 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
     `clusterColor-${name}`,
     'transparent'
   );
-
-
   const getIsMenuItemActive = (path: string) => {
     return location.pathname.includes(path);
   };
