@@ -77,6 +77,14 @@ public class SeekOperations {
       case FROM_OFFSET, TO_OFFSET -> fixOffsets(offsetsInfo, requireNonNull(position.offsets()));
       case FROM_TIMESTAMP, TO_TIMESTAMP ->
           offsetsForTimestamp(consumer, position.pollingMode(), offsetsInfo, requireNonNull(position.timestamp()));
+      case TIMESTAMP_RANGE -> {
+        if (position.timestamp() == null) {
+          // If timestamp is not provided, start from beginning (like EARLIEST)
+          yield consumer.beginningOffsets(offsetsInfo.getNonEmptyPartitions());
+        }
+        // If timestamp is provided, seek to that timestamp (acts like FROM_TIMESTAMP)
+        yield offsetsForTimestamp(consumer, PollingModeDTO.FROM_TIMESTAMP, offsetsInfo, position.timestamp());
+      }
     };
   }
 

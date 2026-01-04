@@ -121,7 +121,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   void pollNothingOnEmptyTopic() {
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null),
+        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null, null),
         100,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -131,7 +131,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null),
+        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null, null),
         100,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -156,7 +156,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   void pollFullTopicFromBeginning() {
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null, null),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -166,7 +166,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(LATEST, TOPIC, List.of(), null, null),
+        new ConsumerPosition(LATEST, TOPIC, List.of(), null, null, null),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -190,7 +190,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(FROM_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null,
+        new ConsumerPosition(FROM_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null, null,
             new ConsumerPosition.Offsets(null, targetOffsets)),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
@@ -201,7 +201,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null,
+        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null, null,
             new ConsumerPosition.Offsets(null, targetOffsets)),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
@@ -233,7 +233,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(FROM_TIMESTAMP, TOPIC, List.of(), targetTimestamp, null),
+        new ConsumerPosition(FROM_TIMESTAMP, TOPIC, List.of(), targetTimestamp, null, null),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -251,7 +251,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(TO_TIMESTAMP, TOPIC, List.of(), targetTimestamp, null),
+        new ConsumerPosition(TO_TIMESTAMP, TOPIC, List.of(), targetTimestamp, null, null),
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
@@ -278,7 +278,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null,
+        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(targetOffsets.keySet()), null, null,
             new ConsumerPosition.Offsets(null, targetOffsets)),
         numMessages,
         RECORD_DESERIALIZER,
@@ -307,7 +307,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
     var backwardEmitter = new BackwardEmitter(
         this::createConsumer,
-        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(offsets.keySet()), null,
+        new ConsumerPosition(TO_OFFSET, TOPIC, List.copyOf(offsets.keySet()), null, null,
             new ConsumerPosition.Offsets(null, offsets)),
         100,
         RECORD_DESERIALIZER,

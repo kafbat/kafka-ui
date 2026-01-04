@@ -13,6 +13,7 @@ public record ConsumerPosition(PollingModeDTO pollingMode,
                                String topic,
                                List<TopicPartition> partitions, //all partitions if list is empty
                                @Nullable Long timestamp,
+                               @Nullable Long endTimestamp,
                                @Nullable Offsets offsets) {
 
   public record Offsets(@Nullable Long offset, //should be applied to all partitions
@@ -27,6 +28,7 @@ public record ConsumerPosition(PollingModeDTO pollingMode,
                                         String topic,
                                         @Nullable List<Integer> partitions,
                                         @Nullable Long timestamp,
+                                        @Nullable Long endTimestamp,
                                         @Nullable Long offset) {
     @Nullable var offsets = parseAndValidateOffsets(pollingMode, offset);
 
@@ -45,6 +47,7 @@ public record ConsumerPosition(PollingModeDTO pollingMode,
         topic,
         topicPartitions,
         validateTimestamp(pollingMode, timestamp),
+        validateEndTimestamp(pollingMode, timestamp, endTimestamp),
         offsets
     );
   }
@@ -56,6 +59,18 @@ public record ConsumerPosition(PollingModeDTO pollingMode,
       }
     }
     return ts;
+  }
+
+  private static Long validateEndTimestamp(PollingModeDTO pollingMode,
+                                           @Nullable Long startTs,
+                                           @Nullable Long endTs) {
+    if (pollingMode == PollingModeDTO.TIMESTAMP_RANGE) {
+      // Both can be null - will act like EARLIEST mode
+      if (startTs != null && endTs != null && endTs < startTs) {
+        throw new ValidationException("endTimestamp must be greater than or equal to timestamp");
+      }
+    }
+    return endTs;
   }
 
   private static Offsets parseAndValidateOffsets(PollingModeDTO pollingMode,

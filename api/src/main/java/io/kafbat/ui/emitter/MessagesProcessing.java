@@ -24,19 +24,39 @@ import org.apache.kafka.common.utils.Bytes;
 import reactor.core.publisher.FluxSink;
 
 @Slf4j
-@RequiredArgsConstructor
 class MessagesProcessing {
 
   private final ConsumingStats consumingStats = new ConsumingStats();
   private long sentMessages = 0;
+  private boolean endTimestampReached = false;
 
   private final ConsumerRecordDeserializer deserializer;
   private final Predicate<TopicMessageDTO> filter;
   private final boolean ascendingSortBeforeSend;
   private final @Nullable Integer limit;
+  private final @Nullable Long endTimestamp;
+
+  MessagesProcessing(ConsumerRecordDeserializer deserializer,
+                     Predicate<TopicMessageDTO> filter,
+                     boolean ascendingSortBeforeSend,
+                     @Nullable Integer limit) {
+    this(deserializer, filter, ascendingSortBeforeSend, limit, null);
+  }
+
+  MessagesProcessing(ConsumerRecordDeserializer deserializer,
+                     Predicate<TopicMessageDTO> filter,
+                     boolean ascendingSortBeforeSend,
+                     @Nullable Integer limit,
+                     @Nullable Long endTimestamp) {
+    this.deserializer = deserializer;
+    this.filter = filter;
+    this.ascendingSortBeforeSend = ascendingSortBeforeSend;
+    this.limit = limit;
+    this.endTimestamp = endTimestamp;
+  }
 
   boolean limitReached() {
-    return limit != null && sentMessages >= limit;
+    return (limit != null && sentMessages >= limit) || endTimestampReached;
   }
 
   void send(FluxSink<TopicMessageEventDTO> sink,
@@ -45,6 +65,10 @@ class MessagesProcessing {
     sortForSending(polled, ascendingSortBeforeSend)
         .forEach(rec -> {
           if (!limitReached() && !sink.isCancelled()) {
+            if (endTimestamp != null && rec.timestamp() > endTimestamp) {
+              endTimestampReached = true;
+              return;
+            }
             TopicMessageDTO topicMessage = deserializer.deserialize(rec);
             try {
               if (filter.test(topicMessage)) {

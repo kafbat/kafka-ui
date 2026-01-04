@@ -53,7 +53,7 @@ class CursorTest extends AbstractIntegrationTest {
 
   @Test
   void backwardEmitter() {
-    var consumerPosition = new ConsumerPosition(PollingModeDTO.LATEST, TOPIC, List.of(), null, null);
+    var consumerPosition = new ConsumerPosition(PollingModeDTO.LATEST, TOPIC, List.of(), null, null, null);
     var emitter = createBackwardEmitter(consumerPosition);
     waitMgsgEmitted(emitter, PAGE_SIZE);
     var cursor = assertCursor(
@@ -72,7 +72,7 @@ class CursorTest extends AbstractIntegrationTest {
 
   @Test
   void forwardEmitter() {
-    var consumerPosition = new ConsumerPosition(PollingModeDTO.EARLIEST, TOPIC, List.of(), null, null);
+    var consumerPosition = new ConsumerPosition(PollingModeDTO.EARLIEST, TOPIC, List.of(), null, null, null);
     var emitter = createForwardEmitter(consumerPosition);
     waitMgsgEmitted(emitter, PAGE_SIZE);
     var cursor = assertCursor(

@@ -519,7 +519,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
         TopicMessageDTO polled = messagesService.loadMessages(
                 targetCluster,
                 topic,
-                new ConsumerPosition(PollingModeDTO.EARLIEST, topic, List.of(), null, null),
+                new ConsumerPosition(PollingModeDTO.EARLIEST, topic, List.of(), null, null, null),
                 null,
                 null,
                 1,

@@ -8,6 +8,7 @@ export const ModeOptions = [
   { value: PollingMode.TO_OFFSET, label: 'To offset' },
   { value: PollingMode.FROM_TIMESTAMP, label: 'Since time' },
   { value: PollingMode.TO_TIMESTAMP, label: 'To time' },
+  { value: PollingMode.TIMESTAMP_RANGE, label: 'Time range' },
 ];
 
 export function convertStrToPollingMode(
