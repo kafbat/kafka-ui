@@ -85,7 +85,7 @@ public class InternalClusterState {
   @Nullable
   private static Integer getActiveControllers(Statistics statistics) {
     if (ControllerType.KRAFT == statistics.getController()) {
-      return statistics.getQuorumLeaderId();
+      return statistics.getQuorumInfo().leaderId();
     }
 
     return Optional.ofNullable(statistics.getClusterDescription().getController())

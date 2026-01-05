@@ -24,7 +24,7 @@ public class Statistics implements AutoCloseable {
   ScrapedClusterState clusterState;
   Map<String, KafkaConnectState> connectStates;
   ControllerType controller;
-  Integer quorumLeaderId;
+  InternalQuorumInfo quorumInfo;
 
   public static Statistics empty() {
     return builder()

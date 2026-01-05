@@ -5,6 +5,7 @@ import static io.kafbat.ui.api.model.ControllerType.ZOOKEEPER;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.mapper.QuorumInfoMapper;
 import io.kafbat.ui.model.ClusterFeature;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
@@ -33,6 +34,7 @@ public class StatisticsService {
   private final FeatureService featureService;
   private final StatisticsCache cache;
   private final ClustersProperties clustersProperties;
+  private final QuorumInfoMapper quorumInfoMapper;
 
   public Mono<Statistics> updateCache(KafkaCluster c) {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
@@ -98,7 +100,7 @@ public class StatisticsService {
         )
         .controller(quorumInfo.isPresent() ? KRAFT : ZOOKEEPER);
 
-    quorumInfo.ifPresent(i -> stats.quorumLeaderId(i.leaderId()));
+    quorumInfo.ifPresent(i -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(i)));
 
     return stats.build();
   }
