@@ -14,6 +14,12 @@ interface BrokersApi {
   getBrokers(@path clusterName: string): Broker[];
 
   @get
+  @operationId("getBrokersCsv")
+  @summary("getBrokersCsv")
+  @route("/csv")
+  getBrokersCsv(@path clusterName: string): CsvResponse;
+
+  @get
   @route("/{id}/configs")
   @operationId("getBrokerConfig")
   @summary("getBrokerConfig")

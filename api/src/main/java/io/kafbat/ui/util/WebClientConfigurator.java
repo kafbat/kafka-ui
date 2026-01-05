@@ -47,7 +47,7 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
                                             @Nullable ClustersProperties.KeystoreConfig keystoreConfig) {
-    if (truststoreConfig != null && !truststoreConfig.isVerifySsl()) {
+    if (truststoreConfig != null && !truststoreConfig.isVerify()) {
       return configureNoSsl();
     }
 
@@ -130,14 +130,13 @@ public class WebClientConfigurator {
     return this;
   }
 
-  public WebClientConfigurator configureObjectMapper(ObjectMapper mapper) {
+  public void configureObjectMapper(ObjectMapper mapper) {
     builder.codecs(codecs -> {
       codecs.defaultCodecs()
           .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
       codecs.defaultCodecs()
           .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, MediaType.APPLICATION_JSON));
     });
-    return this;
   }
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {

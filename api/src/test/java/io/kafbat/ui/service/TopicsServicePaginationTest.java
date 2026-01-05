@@ -110,9 +110,9 @@ class TopicsServicePaginationTest {
     when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));
     when(clustersStorage.getClusterByName(isA(String.class)))
         .thenReturn(Optional.of(kafkaCluster));
-    when(mockTopicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any(), any()))
+    when(mockTopicsService.getTopics(isA(KafkaCluster.class), any(), any(), any()))
         .thenAnswer(a ->
-            topicsService.getTopicsForPagination(
+            topicsService.getTopics(
                 a.getArgument(0),
                 a.getArgument(1),
                 a.getArgument(2),
@@ -134,7 +134,7 @@ class TopicsServicePaginationTest {
   private TopicDescription toTopicDescription(InternalTopic t) {
     return new TopicDescription(
         t.getName(), t.isInternal(),
-        t.getPartitions().values().stream().map(p -> toTopicPartitionInfo(p)).toList()
+        t.getPartitions().values().stream().map(this::toTopicPartitionInfo).toList()
     );
   }
 

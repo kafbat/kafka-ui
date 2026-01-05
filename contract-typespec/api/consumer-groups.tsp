@@ -24,6 +24,30 @@ interface ConsumerGroupsApi {
   ): ConsumerGroupsPageResponse;
 
   @get
+  @route("/lag")
+  @operationId("getConsumerGroupsLag")
+  @summary("getConsumerGroupsLag")
+  getConsumerGroupsLag(
+    @path clusterName: string,
+    @query ids: Array<string>,
+    @query lastUpdate?: int64,
+  ): ConsumerGroupsLagResponse;
+
+  @get
+  @route("/csv")
+  @operationId("getConsumerGroupsCsv")
+  @summary("getConsumerGroupsPage")
+  getConsumerGroupsCsv(
+    @path clusterName: string,
+    @query page?: int32,
+    @query perPage?: int32,
+    @query search?: string,
+    @query orderBy?: ConsumerGroupOrdering,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
+
+  @get
   @route("/{id}")
   @operationId("getConsumerGroup")
   @summary("getConsumerGroup")
@@ -122,6 +146,16 @@ model ConsumerGroupOffsetsReset {
   partitions?: int32[];
   resetToTimestamp?: int64;
   partitionsOffsets?: PartitionOffset[];
+}
+
+model ConsumerGroupsLagResponse {
+    updateTimestamp: int64;
+    consumerGroups: Record<ConsumerGroupLag>;
+}
+
+model ConsumerGroupLag {
+    lag: int64;
+    topics: Record<int64>;
 }
 
 enum ConsumerGroupOffsetsResetType {

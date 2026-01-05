@@ -2,7 +2,6 @@ package io.kafbat.ui.service.index;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kafbat.ui.model.InternalConsumerGroup;
 import java.util.List;
 import java.util.Map;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
