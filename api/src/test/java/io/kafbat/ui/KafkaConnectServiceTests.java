@@ -13,7 +13,6 @@ import io.kafbat.ui.model.ConnectorPluginDTO;
 import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
-import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
@@ -62,7 +61,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
     KafkaCluster kafkaCluster = clustersStorage.getClusterByName(LOCAL).get();
 
     InternalTopic block = topicsService.getTopicDetails(kafkaCluster, topicName)
-        .onErrorResume(t -> Mono.empty()).block();
+        .onErrorResume(_ -> Mono.empty()).block();
     if (block == null) {
       topicsService.createTopic(kafkaCluster,
           new TopicCreationDTO()

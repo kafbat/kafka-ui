@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -172,24 +171,6 @@ public final class OAuthTestSupport {
     clients.put(REGISTRATION_ID, provider);
     when(props.getClient()).thenReturn(clients);
     when(props.getResourceServer()).thenReturn(null);
-    return props;
-  }
-
-  public static OAuthProperties createOAuthPropertiesWithJwt() {
-    OAuthProperties props = createOAuthProperties();
-    OAuth2ResourceServerProperties rs = new OAuth2ResourceServerProperties();
-    rs.getJwt().setJwkSetUri(oauthBaseUrl() + JWKS_PATH);
-    when(props.getResourceServer()).thenReturn(rs);
-    return props;
-  }
-
-  public static OAuthProperties createOAuthPropertiesWithOpaqueToken() {
-    OAuthProperties props = createOAuthProperties();
-    OAuth2ResourceServerProperties rs = new OAuth2ResourceServerProperties();
-    rs.getOpaquetoken().setIntrospectionUri(oauthBaseUrl() + INTROSPECT_PATH);
-    rs.getOpaquetoken().setClientId(CLIENT_ID);
-    rs.getOpaquetoken().setClientSecret(CLIENT_SECRET);
-    when(props.getResourceServer()).thenReturn(rs);
     return props;
   }
 

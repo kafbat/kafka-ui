@@ -62,7 +62,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   static final List<Record> SENT_RECORDS = new ArrayList<>();
   static final ConsumerRecordDeserializer RECORD_DESERIALIZER = createRecordsDeserializer();
   static final Cursor.Tracking CURSOR_MOCK = Mockito.mock(Cursor.Tracking.class);
-  static final Predicate<TopicMessageDTO> NOOP_FILTER = m -> true;
+  static final Predicate<TopicMessageDTO> NOOP_FILTER = _ -> true;
 
   @BeforeAll
   static void generateMsgs() throws Exception {
@@ -330,7 +330,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
             .expectNextCount(expectedValues.size())
             .expectRecordedMatches(r -> r.containsAll(expectedValues))
             .consumeRecordedWith(r -> log.info("Collected collection: {}", r)),
-        v -> {
+        _ -> {
         }
     );
   }
