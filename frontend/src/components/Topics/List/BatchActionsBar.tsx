@@ -61,7 +61,7 @@ const BatchActionsbar: React.FC<BatchActionsbarProps> = ({
         } catch (e) {
           // do nothing;
         } finally {
-          client.invalidateQueries(topicKeys.all(clusterName));
+          client.invalidateQueries({ queryKey: topicKeys.all(clusterName) });
         }
       }
     );

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Search from 'components/common/Search/Search';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import {
@@ -62,21 +62,24 @@ const List = () => {
     {}
   );
 
-  const { data: consumerGroupsLag } = useGetConsumerGroupsLag({
+  const { data: consumerGroupsLag, isSuccess } = useGetConsumerGroupsLag({
     clusterName,
     ids: consumerGroups.data?.consumerGroups?.map((cg) => cg.groupId) || [],
     pollingIntervalSec,
-    onSuccess: (data) => {
+  });
+
+  useEffect(() => {
+    if (isSuccess && !!consumerGroupsLag) {
       const nextTrends = computeLagTrends(
         prevLagRef.current,
-        data.consumerGroups ?? {},
+        consumerGroupsLag.consumerGroups ?? {},
         (cg) => cg?.lag,
         pollingIntervalSec > 0
       );
 
       setLagTrends(nextTrends);
-    },
-  });
+    }
+  }, [consumerGroupsLag, isSuccess]);
 
   const columns: ColumnDef<ConsumerGroup>[] = [
     {

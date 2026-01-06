@@ -26,7 +26,7 @@ import { ClusterName } from 'lib/interfaces/cluster';
 
 export function useGetLatestSchema(
   param: GetLatestSchemaRequest,
-  options?: UseQueryOptions<SchemaSubject>
+  options?: Partial<UseQueryOptions<SchemaSubject>>
 ) {
   return useQuery<SchemaSubject>({
     queryKey: [
@@ -60,7 +60,7 @@ export function useGetSchemas({
       orderBy,
       fts,
     ],
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
     queryFn: () =>
       schemasApiClient.getSchemas({
         clusterName,
@@ -162,10 +162,9 @@ export function useUpdateGlobalSchemaCompatibilityLevel(
       }),
     onSuccess: () => {
       return Promise.all([
-        queryClient.invalidateQueries([
-          GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
-          clusterName,
-        ]),
+        queryClient.invalidateQueries({
+          queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
+        }),
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey[0] === SCHEMA_QUERY_KEY &&

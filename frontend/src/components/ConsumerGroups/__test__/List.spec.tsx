@@ -50,13 +50,13 @@ describe('ConsumerGroups List', () => {
       isFetching: false,
     }));
 
-    mockUseConsumerGroupsLag.mockImplementation(() => ({
+    mockUseConsumerGroupsLag.mockReturnValue({
       data: {
         consumerGroups: { group1: { lag: 0 }, group2: { lag: null } },
       },
       isSuccess: true,
       isFetching: false,
-    }));
+    });
   });
 
   it('renders consumer lag values correctly', () => {

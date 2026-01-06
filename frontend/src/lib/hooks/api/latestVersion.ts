@@ -11,9 +11,9 @@ const fetchLatestVersionInfo = async () => {
 };
 
 export function useLatestVersion() {
-  return useQuery(
-    ['versionInfo'],
-    fetchLatestVersionInfo,
-    QUERY_REFETCH_OFF_OPTIONS
-  );
+  return useQuery({
+    queryKey: ['versionInfo'],
+    queryFn: fetchLatestVersionInfo,
+    ...QUERY_REFETCH_OFF_OPTIONS,
+  });
 }

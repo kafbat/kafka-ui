@@ -23,19 +23,19 @@ export function useKsqlkDb(clusterName: ClusterName) {
       {
         queryKey: ['clusters', clusterName, 'ksqlDb', 'tables'],
         queryFn: () => api.listTables({ clusterName }),
-        suspense: false,
       },
       {
         queryKey: ['clusters', clusterName, 'ksqlDb', 'streams'],
         queryFn: () => api.listStreams({ clusterName }),
-        suspense: false,
       },
     ],
   });
 }
 
 export function useExecuteKsqlkDbQueryMutation() {
-  return useMutation((props: ExecuteKsqlRequest) => api.executeKsql(props));
+  return useMutation({
+    mutationFn: (props: ExecuteKsqlRequest) => api.executeKsql(props),
+  });
 }
 
 const getFormattedErrorFromTableData = (

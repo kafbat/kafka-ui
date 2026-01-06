@@ -187,15 +187,13 @@ export const useTopicMessages = ({
 export function useSerdes(props: GetSerdesRequest) {
   const { clusterName, topicName, use } = props;
 
-  return useQuery(
-    ['clusters', clusterName, 'topics', topicName, 'serdes', use],
-    () => messagesApiClient.getSerdes(props),
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchInterval: false,
-    }
-  );
+  return useQuery({
+    queryKey: ['clusters', clusterName, 'topics', topicName, 'serdes', use],
+    queryFn: () => messagesApiClient.getSerdes(props),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+  });
 }
 
 export function useRegisterSmartFilter({
@@ -205,11 +203,13 @@ export function useRegisterSmartFilter({
   clusterName: ClusterName;
   topicName: TopicName;
 }) {
-  return useMutation((payload: { filterCode: string }) => {
-    return messagesApiClient.registerFilter({
-      clusterName,
-      topicName,
-      messageFilterRegistration: { filterCode: payload.filterCode },
-    });
+  return useMutation({
+    mutationFn: (payload: { filterCode: string }) => {
+      return messagesApiClient.registerFilter({
+        clusterName,
+        topicName,
+        messageFilterRegistration: { filterCode: payload.filterCode },
+      });
+    },
   });
 }
