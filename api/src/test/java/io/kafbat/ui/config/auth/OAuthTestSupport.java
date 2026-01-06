@@ -164,11 +164,12 @@ public final class OAuthTestSupport {
   }
 
   public static OAuthProperties createOAuthProperties() {
-    OAuthProperties props = mock(OAuthProperties.class);
     OAuthProperties.OAuth2Provider provider = mock(OAuthProperties.OAuth2Provider.class);
     when(provider.getProvider()).thenReturn(REGISTRATION_ID);
+    when(provider.getJwkSetUri()).thenReturn(oauthBaseUrl() + JWKS_PATH);
     Map<String, OAuthProperties.OAuth2Provider> clients = new HashMap<>();
     clients.put(REGISTRATION_ID, provider);
+    OAuthProperties props = mock(OAuthProperties.class);
     when(props.getClient()).thenReturn(clients);
     when(props.getResourceServer()).thenReturn(null);
     return props;
