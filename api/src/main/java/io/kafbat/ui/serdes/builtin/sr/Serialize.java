@@ -112,12 +112,11 @@ final class Serialize {
         );
         out.write(((ByteBuffer) avroObject).array());
       } else {
-        boolean useLogicalTypeConverters = true;
         BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(out, null);
         DatumWriter<Object> writer =
-            (DatumWriter<Object>) AvroSchemaUtils.getDatumWriter(avroObject, rawSchema, useLogicalTypeConverters);
+            (DatumWriter<Object>) AvroSchemaUtils.getDatumWriter(avroObject, rawSchema, true);
 
-        var data = ((GenericDatumWriter<?>)writer).getData();
+        var data = ((GenericDatumWriter<?>) writer).getData();
         data.addLogicalTypeConversion(new TimeConversions.TimestampNanosConversion());
         data.addLogicalTypeConversion(new TimeConversions.LocalTimestampNanosConversion());
 
