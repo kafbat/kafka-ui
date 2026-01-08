@@ -44,7 +44,9 @@ export const formatDuration = (value: string | number | undefined): string => {
     }
 
     // Find the largest unit that fits
-    const matchedUnitIndex = timeUnits.findIndex(({ ms: unitMs }) => ms >= unitMs);
+    const matchedUnitIndex = timeUnits.findIndex(
+      ({ ms: unitMs }) => ms >= unitMs
+    );
 
     if (matchedUnitIndex === -1) {
       // Less than 1 second - show in milliseconds
