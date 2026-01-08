@@ -3,6 +3,7 @@ import { PollingMode } from 'generated-sources';
 import { useEffect } from 'react';
 import { Option } from 'react-multi-select-component';
 import { MessagesFilterKeys } from 'lib/constants';
+import { ClusterName } from 'lib/interfaces/cluster';
 
 import { convertStrToPollingMode, ModeOptions } from './filterUtils';
 import {
@@ -11,6 +12,7 @@ import {
   useMessageFiltersStore,
 } from './useMessageFiltersStore';
 import { useMessagesFiltersFields } from './useMessagesFiltersFields';
+import useAppParams from './useAppParams';
 
 const PER_PAGE = 100;
 
@@ -62,11 +64,14 @@ export function usePaginateTopics(initSearchParams?: URLSearchParams) {
 export function useMessagesFilters(topicName: string) {
   const [searchParams, setSearchParams] = useSearchParams();
   const refreshData = useRefreshData(searchParams);
+  const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+
+  const storageKey = `${topicName}:${clusterName}`;
   const {
     initMessagesFiltersFields,
     setMessagesFiltersField,
     removeMessagesFiltersField,
-  } = useMessagesFiltersFields(topicName);
+  } = useMessagesFiltersFields(storageKey);
 
   useEffect(() => {
     setSearchParams((params) => {
@@ -75,11 +80,6 @@ export function useMessagesFilters(topicName: string) {
 
       if (!params.get(MessagesFilterKeys.mode)) {
         params.set(MessagesFilterKeys.mode, defaultModeValue);
-      }
-
-      if (params.get(MessagesFilterKeys.activeFilterNPId)) {
-        params.delete(MessagesFilterKeys.activeFilterNPId);
-        params.delete(MessagesFilterKeys.smartFilterId);
       }
 
       params.delete(MessagesFilterKeys.cursor);
@@ -113,9 +113,7 @@ export function useMessagesFilters(topicName: string) {
     .filter((v) => v);
 
   const smartFilterId =
-    searchParams.get(MessagesFilterKeys.activeFilterId) ||
-    searchParams.get(MessagesFilterKeys.activeFilterNPId) ||
-    '';
+    searchParams.get(MessagesFilterKeys.activeFilterId) || '';
 
   const smartFilter = useMessageFiltersStore(selectFilter(smartFilterId));
 
@@ -213,15 +211,11 @@ export function useMessagesFilters(topicName: string) {
     });
   };
 
-  const setSmartFilter = (
-    newFilter: AdvancedFilter | null,
-    persisted = true
-  ) => {
+  const setSmartFilter = (newFilter: AdvancedFilter | null) => {
     if (newFilter === null) {
       setSearchParams((params) => {
         params.delete(MessagesFilterKeys.smartFilterId);
         params.delete(MessagesFilterKeys.activeFilterId);
-        params.delete(MessagesFilterKeys.activeFilterNPId);
         return params;
       });
       return;
@@ -237,14 +231,15 @@ export function useMessagesFilters(topicName: string) {
     // setting something that is not in the state
     if (!filter) return;
 
+    setMessagesFiltersField(MessagesFilterKeys.activeFilterId, filter.id);
+    setMessagesFiltersField(
+      MessagesFilterKeys.smartFilterId,
+      filter.filterCode
+    );
+
     setSearchParams((params) => {
-      params.set(MessagesFilterKeys.smartFilterId, filter.filterCode);
-      params.set(
-        persisted
-          ? MessagesFilterKeys.activeFilterId
-          : MessagesFilterKeys.activeFilterNPId,
-        id
-      );
+      params.set(MessagesFilterKeys.smartFilterId, filter.filterCode); // hash code, i.e. 3de77452
+      params.set(MessagesFilterKeys.activeFilterId, id); // sllug name, i.e. MyFancyFilter
       return params;
     });
   };

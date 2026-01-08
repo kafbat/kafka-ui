@@ -13,24 +13,26 @@ type MessagesFilterFieldsType = Pick<
   | 'keySerde'
   | 'valueSerde'
   | 'stringFilter'
+  | 'activeFilterId'
+  | 'smartFilterId'
 >;
 
-export function useMessagesFiltersFields(topicName: string) {
+export function useMessagesFiltersFields(resourceName: string) {
   const [messageFilters, setMessageFilters] = useLocalStorage<{
-    [topicName: string]: MessagesFilterFieldsType;
+    [resourceName: string]: MessagesFilterFieldsType;
   }>('message-filters-fields', {});
 
   const removeMessagesFilterFields = () => {
     setMessageFilters((prev) => {
-      const { [topicName]: topicFilters, ...rest } = prev || {};
+      const { [resourceName]: topicFilters, ...rest } = prev || {};
       return rest;
     });
   };
 
   const removeMessagesFiltersField = (key: keyof MessagesFilterFieldsType) => {
     setMessageFilters((prev) => {
-      const { [key]: value, ...rest } = prev[topicName] || {};
-      return { ...prev, [topicName]: rest };
+      const { [key]: value, ...rest } = prev[resourceName] || {};
+      return { ...prev, [resourceName]: rest };
     });
   };
 
@@ -40,12 +42,12 @@ export function useMessagesFiltersFields(topicName: string) {
   ) => {
     setMessageFilters((prev) => ({
       ...prev,
-      [topicName]: { ...prev[topicName], [key]: value },
+      [resourceName]: { ...prev[resourceName], [key]: value },
     }));
   };
 
   const initMessagesFiltersFields = (params: URLSearchParams) => {
-    const topicMessagesFilters = messageFilters[topicName];
+    const topicMessagesFilters = messageFilters[resourceName];
 
     const setTopicMessageFiltersFromLocalStorage = (
       key: keyof MessagesFilterFieldsType
@@ -74,6 +76,8 @@ export function useMessagesFiltersFields(topicName: string) {
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.keySerde);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.valueSerde);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.stringFilter);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.activeFilterId);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.smartFilterId);
     } else {
       removeMessagesFilterFields();
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.mode);
@@ -82,7 +86,8 @@ export function useMessagesFiltersFields(topicName: string) {
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.partitions);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.keySerde);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.valueSerde);
-      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.stringFilter);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.activeFilterId);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.smartFilterId);
     }
   };
 
