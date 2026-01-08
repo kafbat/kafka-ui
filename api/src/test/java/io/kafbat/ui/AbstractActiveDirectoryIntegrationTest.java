@@ -27,7 +27,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 @ActiveProfiles("rbac-ad")
 @AutoConfigureWebTestClient(timeout = "60000")
 public abstract class AbstractActiveDirectoryIntegrationTest {
-  private static final String SESSION = "SESSION";
+  public static final String SESSION = "SESSION";
 
   protected static void checkUserPermissions(WebTestClient client) {
     AuthenticationInfoDTO info = authenticationInfo(client, FIRST_USER_WITH_GROUP);
@@ -52,7 +52,7 @@ public abstract class AbstractActiveDirectoryIntegrationTest {
     );
   }
 
-  protected static String session(WebTestClient client, String name) {
+  public static String session(WebTestClient client, String name) {
     return Objects.requireNonNull(
             client
                 .post()

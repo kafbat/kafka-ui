@@ -5,6 +5,7 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_VIEW;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.CREATE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
+import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
 
@@ -29,6 +30,7 @@ import io.kafbat.ui.model.TopicProducerStateDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
@@ -156,11 +158,17 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   public Mono<ResponseEntity<TopicDetailsDTO>> getTopicDetails(
       String clusterName, String topicName, ServerWebExchange exchange) {
 
-    var context = AccessContext.builder()
+    var contextBuilder = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, VIEW)
-        .operationName("getTopicDetails")
-        .build();
+        .operationName("getTopicDetails");
+
+    if (auditService.isAuditTopic(getCluster(clusterName), topicName)) {
+      contextBuilder.auditActions(AuditAction.VIEW);
+    } else {
+      contextBuilder.topicActions(topicName, VIEW);
+    }
+
+    var context = contextBuilder.build();
 
     return validateAccess(context).then(
         topicsService.getTopicDetails(getCluster(clusterName), topicName)
