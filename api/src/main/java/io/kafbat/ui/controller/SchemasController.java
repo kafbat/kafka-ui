@@ -1,14 +1,12 @@
 package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.SchemasApi;
-import io.kafbat.ui.api.model.SchemaColumnsToSort;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.KafkaSrMapper;
 import io.kafbat.ui.mapper.KafkaSrMapperImpl;
 import io.kafbat.ui.model.CompatibilityCheckResponseDTO;
 import io.kafbat.ui.model.CompatibilityLevelDTO;
-import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewSchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaColumnsToSortDTO;
