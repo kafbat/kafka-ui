@@ -60,7 +60,10 @@ class RbacConnectorPermissionsTest {
   void setUp() {
     List<Role> roles = List.of(
         getDevRole(),
-        getAdminRole()
+        getAdminRole(),
+        getWildcardConnectRole(),
+        getWildcardConnectorRole(),
+        getFullWildcardRole()
     );
     RoleBasedAccessControlProperties properties = mock();
     when(properties.getRoles()).thenReturn(roles);
@@ -176,6 +179,84 @@ class RbacConnectorPermissionsTest {
   }
 
   /**
+   * Test that isConnectAccessible returns true when user has connector VIEW permission
+   * but no direct connect permission (Issue #1612).
+   */
+  @Test
+  void isConnectAccessible_withOnlyConnectorPermission_returnsTrue() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
+      // Dev role only has connector permission, no connect permission
+      Mono<Boolean> result = accessControlService.isConnectAccessible(CONNECT_NAME, CLUSTER_NAME);
+      StepVerifier.create(result)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
+   * Test that isConnectAccessible returns false when user has no matching connector permission.
+   */
+  @Test
+  void isConnectAccessible_withNoMatchingConnectorPermission_returnsFalse() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(DEV_ROLE_NAME));
+      // Dev role has connector permission for kafka-connect, not other-connect
+      Mono<Boolean> result = accessControlService.isConnectAccessible("other-connect", CLUSTER_NAME);
+      StepVerifier.create(result)
+          .expectNext(false)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
+   * Test isConnectAccessible with wildcard connect pattern (any connect, specific connector).
+   */
+  @Test
+  void isConnectAccessible_withWildcardConnectPattern_returnsTrue() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of("wildcard_connect_role"));
+      Mono<Boolean> result = accessControlService.isConnectAccessible("any-connect", CLUSTER_NAME);
+      StepVerifier.create(result)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
+   * Test isConnectAccessible with wildcard connector pattern (connect/.*).
+   */
+  @Test
+  void isConnectAccessible_withWildcardConnectorPattern_returnsTrue() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of("wildcard_connector_role"));
+      Mono<Boolean> result = accessControlService.isConnectAccessible(CONNECT_NAME, CLUSTER_NAME);
+      StepVerifier.create(result)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
+   * Test isConnectAccessible with full wildcard pattern (any connect, any connector).
+   */
+  @Test
+  void isConnectAccessible_withFullWildcardPattern_returnsTrue() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of("full_wildcard_role"));
+      Mono<Boolean> result = accessControlService.isConnectAccessible("any-connect", CLUSTER_NAME);
+      StepVerifier.create(result)
+          .expectNext(true)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
    * Dev role with specific connector-level permissions.
    */
   public static Role getDevRole() {
@@ -245,6 +326,84 @@ class RbacConnectorPermissionsTest {
 
     List<Permission> permissions = List.of(wildcardConnectorPermission, connectPermission);
     role.setPermissions(permissions);
+    role.validate();
+    return role;
+  }
+
+  /**
+   * Role with wildcard connect pattern (any connect, specific connector).
+   * Allows user to view specific connector on any connect cluster.
+   */
+  public static Role getWildcardConnectRole() {
+    Role role = new Role();
+    role.setName("wildcard_connect_role");
+    role.setClusters(List.of(CLUSTER_NAME));
+
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider(Provider.LDAP);
+    sub.setValue("wildcard.connect.group");
+    role.setSubjects(List.of(sub));
+
+    // Pattern: .*/specific-connector (any connect, specific connector)
+    Permission permission = new Permission();
+    permission.setResource(Resource.CONNECTOR.name());
+    permission.setActions(List.of(ConnectorAction.VIEW.name()));
+    permission.setValue(".*/specific-connector");
+
+    role.setPermissions(List.of(permission));
+    role.validate();
+    return role;
+  }
+
+  /**
+   * Role with wildcard connector pattern - pattern: connect-name/.*
+   * Allows user to view any connector on a specific connect cluster.
+   */
+  public static Role getWildcardConnectorRole() {
+    Role role = new Role();
+    role.setName("wildcard_connector_role");
+    role.setClusters(List.of(CLUSTER_NAME));
+
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider(Provider.LDAP);
+    sub.setValue("wildcard.connector.group");
+    role.setSubjects(List.of(sub));
+
+    // Pattern: kafka-connect/.* (specific connect, any connector)
+    Permission permission = new Permission();
+    permission.setResource(Resource.CONNECTOR.name());
+    permission.setActions(List.of(ConnectorAction.VIEW.name()));
+    permission.setValue(CONNECT_NAME + "/.*");
+
+    role.setPermissions(List.of(permission));
+    role.validate();
+    return role;
+  }
+
+  /**
+   * Role with full wildcard pattern (any connect, any connector).
+   * Allows user to view any connector on any connect cluster.
+   */
+  public static Role getFullWildcardRole() {
+    Role role = new Role();
+    role.setName("full_wildcard_role");
+    role.setClusters(List.of(CLUSTER_NAME));
+
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider(Provider.LDAP);
+    sub.setValue("full.wildcard.group");
+    role.setSubjects(List.of(sub));
+
+    // Pattern: .*/.*  (any connect, any connector)
+    Permission permission = new Permission();
+    permission.setResource(Resource.CONNECTOR.name());
+    permission.setActions(List.of(ConnectorAction.VIEW.name()));
+    permission.setValue(".*/.*");
+
+    role.setPermissions(List.of(permission));
     role.validate();
     return role;
   }
