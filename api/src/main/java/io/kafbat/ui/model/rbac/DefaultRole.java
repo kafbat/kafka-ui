@@ -1,7 +1,5 @@
 package io.kafbat.ui.model.rbac;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

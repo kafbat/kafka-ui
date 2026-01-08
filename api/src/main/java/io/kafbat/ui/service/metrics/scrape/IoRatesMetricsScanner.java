@@ -1,7 +1,6 @@
 package io.kafbat.ui.service.metrics.scrape;
 
 import static org.apache.commons.lang3.Strings.CI;
-import static org.apache.commons.lang3.Strings.CS;
 
 import io.kafbat.ui.model.Metrics;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
