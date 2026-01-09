@@ -78,7 +78,7 @@ const BrokersList: React.FC = () => {
               offlinePartitionCount={offlinePartitionCount}
               onlinePartitionCount={onlinePartitionCount}
               underReplicatedPartitionCount={underReplicatedPartitionCount}
-        controller={cluster?.controller}
+              controller={cluster?.controller}
             />
 
             <Table
