@@ -62,6 +62,7 @@ import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.ProducerState;
+import org.apache.kafka.clients.admin.QuorumInfo;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -153,7 +154,7 @@ public class ReactiveAdminClient implements Closeable {
     private static Mono<ConfigRelatedInfo> extract(AdminClient ac) {
       return ReactiveAdminClient.describeClusterImpl(ac, Set.of())
           .flatMap(desc -> {
-            // choosing node from which we will get configs (starting with controller)
+            // choosing the node which we will get configs from (starting with the controller)
             var targetNodeId = Optional.ofNullable(desc.controller)
                 .map(Node::id)
                 .orElse(desc.getNodes().iterator().next().id());
@@ -183,7 +184,11 @@ public class ReactiveAdminClient implements Closeable {
                   final String finalVersion = version.orElse(DEFAULT_UNKNOWN_VERSION);
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
                   return SupportedFeature.forVersion(ac, version)
-                      .map(features -> new ConfigRelatedInfo(finalVersion, features, finalTopicDeletionEnabled));
+                      .map(features -> new ConfigRelatedInfo(
+                          finalVersion,
+                          features,
+                          finalTopicDeletionEnabled
+                      ));
                 });
           })
           .cache(UPDATE_DURATION);
@@ -211,19 +216,20 @@ public class ReactiveAdminClient implements Closeable {
   // NOTE: if KafkaFuture returns null, that Mono will be empty(!), since Reactor does not support nullable results
   // (see MonoSink.success(..) javadoc for details)
   public static <T> Mono<T> toMono(KafkaFuture<T> future) {
-    return Mono.<T>create(sink -> future.whenComplete((res, ex) -> {
-      if (ex != null) {
-        // KafkaFuture doc is unclear about what exception wrapper will be used
-        // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
-        if (ex instanceof CompletionException || ex instanceof ExecutionException) {
-          sink.error(ex.getCause()); //unwrapping exception
-        } else {
-          sink.error(ex);
-        }
-      } else {
-        sink.success(res);
-      }
-    })).doOnCancel(() -> future.cancel(true))
+    return Mono.<T>create(sink ->
+            future.whenComplete((res, ex) -> {
+              if (ex != null) {
+                // KafkaFuture doc is unclear about what exception wrapper will be used
+                // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
+                if (ex instanceof CompletionException || ex instanceof ExecutionException) {
+                  sink.error(ex.getCause()); //unwrapping exception
+                } else {
+                  sink.error(ex);
+                }
+              } else {
+                sink.success(res);
+              }
+            })).doOnCancel(() -> future.cancel(true))
         // AdminClient is using single thread for kafka communication
         // and by default all downstream operations (like map(..)) on created Mono will be executed on this thread.
         // If some of downstream operation are blocking (by mistake) this can lead to
@@ -427,9 +433,12 @@ public class ReactiveAdminClient implements Closeable {
     return describeClusterImpl(client, getClusterFeatures());
   }
 
-  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client, Set<SupportedFeature> features) {
+  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client,
+                                                              Set<SupportedFeature> features
+  ) {
     boolean includeAuthorizedOperations =
         features.contains(SupportedFeature.DESCRIBE_CLUSTER_INCLUDE_AUTHORIZED_OPERATIONS);
+
     DescribeClusterResult result = client.describeCluster(
         new DescribeClusterOptions().includeAuthorizedOperations(includeAuthorizedOperations));
     var allOfFuture = KafkaFuture.allOf(
@@ -437,10 +446,10 @@ public class ReactiveAdminClient implements Closeable {
     return toMono(allOfFuture).then(
         Mono.fromCallable(() ->
             new ClusterDescription(
-              result.controller().get(),
-              result.clusterId().get(),
-              result.nodes().get(),
-              result.authorizedOperations().get()
+                result.controller().get(),
+                result.clusterId().get(),
+                result.nodes().get(),
+                result.authorizedOperations().get()
             )
         )
     );
@@ -616,8 +625,8 @@ public class ReactiveAdminClient implements Closeable {
 
   @VisibleForTesting
   static Set<TopicPartition> filterPartitionsWithLeaderCheck(Collection<TopicDescription> topicDescriptions,
-                                                              Predicate<TopicPartition> partitionPredicate,
-                                                              boolean failOnUnknownLeader) {
+                                                             Predicate<TopicPartition> partitionPredicate,
+                                                             boolean failOnUnknownLeader) {
     var goodPartitions = new HashSet<TopicPartition>();
     for (TopicDescription description : topicDescriptions) {
       var goodTopicPartitions = new ArrayList<TopicPartition>();
@@ -713,6 +722,10 @@ public class ReactiveAdminClient implements Closeable {
 
   public Mono<Void> alterClientQuota(ClientQuotaAlteration alteration) {
     return toMono(client.alterClientQuotas(List.of(alteration)).all());
+  }
+
+  public Mono<QuorumInfo> describeMetadataQuorum() {
+    return toMono(client.describeMetadataQuorum().quorumInfo());
   }
 
 
