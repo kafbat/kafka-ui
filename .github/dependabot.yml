@@ -60,6 +60,11 @@ updates:
     lucene:
       patterns:
         - "org.apache.lucene:*"
+    # This dependency is in the 0.x stage and may introduce breaking changes in minor/patch releases
+    # We group it separately to avoid blocking updates in the 'others' group
+    modelcontextprotocol:
+      patterns:
+        - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
     others:
       patterns:
         - "*"
