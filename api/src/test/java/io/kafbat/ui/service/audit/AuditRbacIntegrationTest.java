@@ -63,12 +63,7 @@ public class AuditRbacIntegrationTest {
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/topics", LOCAL)
         .cookie(SESSION, session(webTestClient, FIRST_USER_WITH_GROUP))
-        .bodyValue(
-            new TopicCreationDTO()
-                .replicationFactor(1)
-                .partitions(1)
-                .name(topicName)
-        )
+        .bodyValue(new TopicCreationDTO().replicationFactor(1).partitions(1).name(topicName))
         .exchange()
         .expectStatus()
         .isOk();
