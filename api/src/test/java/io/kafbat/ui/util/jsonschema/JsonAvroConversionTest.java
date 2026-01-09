@@ -385,12 +385,20 @@ class JsonAvroConversionTest {
                      "type": { "type": "long", "logicalType": "timestamp-micros" }
                    },
                    {
+                     "name": "lt_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                   },
+                   {
                      "name": "lt_local_timestamp_millis",
                      "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                    },
                    {
                      "name": "lt_local_timestamp_micros",
                      "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                   },
+                   {
+                     "name": "lt_local_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                    }
                  ]
               }"""
@@ -405,8 +413,10 @@ class JsonAvroConversionTest {
             "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
             "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
             "lt_timestamp_micros": "2007-12-13T10:15:30.123456Z",
+            "lt_timestamp_nanos": "2007-12-13T10:15:30.123456789Z",
             "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456"
+            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456",
+            "lt_local_timestamp_nanos": "2017-12-13T10:15:30.123456789"
           }
           """;
 
@@ -427,10 +437,14 @@ class JsonAvroConversionTest {
           .isEqualTo(Instant.parse("2007-12-03T10:15:30.123Z"));
       assertThat(record.get("lt_timestamp_micros"))
           .isEqualTo(Instant.parse("2007-12-13T10:15:30.123456Z"));
+      assertThat(record.get("lt_timestamp_nanos"))
+          .isEqualTo(Instant.parse("2007-12-13T10:15:30.123456789Z"));
       assertThat(record.get("lt_local_timestamp_millis"))
           .isEqualTo(LocalDateTime.parse("2017-12-03T10:15:30.123"));
       assertThat(record.get("lt_local_timestamp_micros"))
           .isEqualTo(LocalDateTime.parse("2017-12-13T10:15:30.123456"));
+      assertThat(record.get("lt_local_timestamp_nanos"))
+          .isEqualTo(LocalDateTime.parse("2017-12-13T10:15:30.123456789"));
     }
   }
 
@@ -583,12 +597,20 @@ class JsonAvroConversionTest {
                      "type": { "type": "long", "logicalType": "timestamp-micros" }
                    },
                    {
+                     "name": "lt_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                   },
+                   {
                      "name": "lt_local_timestamp_millis",
                      "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                    },
                    {
                      "name": "lt_local_timestamp_micros",
                      "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                   },
+                   {
+                     "name": "lt_local_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                    }
                  ]
               }"""
@@ -602,8 +624,10 @@ class JsonAvroConversionTest {
       inputRecord.put("lt_time_micros", LocalTime.parse("10:15:30.123456"));
       inputRecord.put("lt_timestamp_millis", Instant.parse("2007-12-03T10:15:30.123Z"));
       inputRecord.put("lt_timestamp_micros", Instant.parse("2007-12-13T10:15:30.123456Z"));
+      inputRecord.put("lt_timestamp_nanos", Instant.parse("2007-12-13T10:15:30.123456789Z"));
       inputRecord.put("lt_local_timestamp_millis", LocalDateTime.parse("2017-12-03T10:15:30.123"));
       inputRecord.put("lt_local_timestamp_micros", LocalDateTime.parse("2017-12-13T10:15:30.123456"));
+      inputRecord.put("lt_local_timestamp_nanos", LocalDateTime.parse("2017-12-13T10:15:30.123456789"));
 
       String expectedJson = """
           {
@@ -614,8 +638,10 @@ class JsonAvroConversionTest {
             "lt_time_micros": "10:15:30.123456",
             "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
             "lt_timestamp_micros": "2007-12-13T10:15:30.123456Z",
+            "lt_timestamp_nanos": "2007-12-13T10:15:30.123456789Z",
             "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456"
+            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456",
+            "lt_local_timestamp_nanos": "2017-12-13T10:15:30.123456789"
           }
           """;
 
