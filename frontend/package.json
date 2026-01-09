@@ -30,7 +30,7 @@
     "react-innertext": "1.1.5",
     "react-is": "18.2.0",
     "react-multi-select-component": "4.3.4",
-    "react-router-dom": "6.23.0",
+    "react-router-dom": "7.11.0",
     "sass": "1.66.1",
     "styled-components": "6.1.8",
     "use-debounce": "10.0.0",
