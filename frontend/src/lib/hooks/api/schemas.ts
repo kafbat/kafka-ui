@@ -3,6 +3,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryOptions,
+  useSuspenseQuery,
 } from '@tanstack/react-query';
 import {
   GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
@@ -26,9 +27,9 @@ import { ClusterName } from 'lib/interfaces/cluster';
 
 export function useGetLatestSchema(
   param: GetLatestSchemaRequest,
-  options?: UseQueryOptions<SchemaSubject>
+  options?: Omit<UseQueryOptions<SchemaSubject>, 'queryKey' | 'queryFn'>
 ) {
-  return useQuery<SchemaSubject>({
+  return useSuspenseQuery<SchemaSubject>({
     queryKey: [
       SCHEMA_QUERY_KEY,
       LATEST_SCHEMA_QUERY_KEY,
@@ -60,7 +61,7 @@ export function useGetSchemas({
       orderBy,
       fts,
     ],
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
     queryFn: () =>
       schemasApiClient.getSchemas({
         clusterName,
@@ -78,7 +79,7 @@ export function useGetSchemasVersions({
   clusterName,
   subject,
 }: GetAllVersionsBySubjectRequest) {
-  return useQuery<Array<SchemaSubject>>({
+  return useSuspenseQuery<Array<SchemaSubject>>({
     queryKey: [SCHEMAS_VERSION_QUERY_KEY, clusterName, subject],
     queryFn: () =>
       schemasApiClient.getAllVersionsBySubject({
@@ -89,7 +90,7 @@ export function useGetSchemasVersions({
 }
 
 export function useGetGlobalCompatibilityLayer(clusterName: ClusterName) {
-  return useQuery<CompatibilityLevel>({
+  return useSuspenseQuery<CompatibilityLevel>({
     queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
     queryFn: () =>
       schemasApiClient.getGlobalSchemaCompatibilityLevel({
@@ -162,10 +163,9 @@ export function useUpdateGlobalSchemaCompatibilityLevel(
       }),
     onSuccess: () => {
       return Promise.all([
-        queryClient.invalidateQueries([
-          GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
-          clusterName,
-        ]),
+        queryClient.invalidateQueries({
+          queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
+        }),
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey[0] === SCHEMA_QUERY_KEY &&

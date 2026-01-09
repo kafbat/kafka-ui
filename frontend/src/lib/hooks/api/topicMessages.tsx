@@ -14,7 +14,7 @@ import {
   TopicMessageEventTypeEnum,
 } from 'generated-sources';
 import { showServerError } from 'lib/errorHandling';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { messagesApiClient } from 'lib/api';
 import { useSearchParams } from 'react-router-dom';
 import { getCursorValue } from 'lib/hooks/useMessagesFilters';
@@ -187,15 +187,13 @@ export const useTopicMessages = ({
 export function useSerdes(props: GetSerdesRequest) {
   const { clusterName, topicName, use } = props;
 
-  return useQuery(
-    ['clusters', clusterName, 'topics', topicName, 'serdes', use],
-    () => messagesApiClient.getSerdes(props),
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchInterval: false,
-    }
-  );
+  return useSuspenseQuery({
+    queryKey: ['clusters', clusterName, 'topics', topicName, 'serdes', use],
+    queryFn: () => messagesApiClient.getSerdes(props),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+  });
 }
 
 export function useRegisterSmartFilter({
@@ -205,11 +203,13 @@ export function useRegisterSmartFilter({
   clusterName: ClusterName;
   topicName: TopicName;
 }) {
-  return useMutation((payload: { filterCode: string }) => {
-    return messagesApiClient.registerFilter({
-      clusterName,
-      topicName,
-      messageFilterRegistration: { filterCode: payload.filterCode },
-    });
+  return useMutation({
+    mutationFn: (payload: { filterCode: string }) => {
+      return messagesApiClient.registerFilter({
+        clusterName,
+        topicName,
+        messageFilterRegistration: { filterCode: payload.filterCode },
+      });
+    },
   });
 }

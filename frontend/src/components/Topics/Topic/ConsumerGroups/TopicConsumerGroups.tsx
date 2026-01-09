@@ -35,21 +35,24 @@ const TopicConsumerGroups: React.FC = () => {
   const prevLagRef = useRef<Record<string, number | undefined>>({});
   const [lagTrends, setLagTrends] = useState<Record<string, LagTrend>>({});
 
-  const { data: consumerGroupsLag } = useGetConsumerGroupsLag({
+  const { data: consumerGroupsLag, isSuccess } = useGetConsumerGroupsLag({
     clusterName,
     ids: consumerGroups.map((cg) => cg.groupId),
     pollingIntervalSec,
-    onSuccess: (groupsLag) => {
+  });
+
+  useEffect(() => {
+    if (isSuccess && !!consumerGroupsLag) {
       const nextTrends = computeLagTrends(
         prevLagRef.current,
-        groupsLag.consumerGroups ?? {},
+        consumerGroupsLag.consumerGroups ?? {},
         (cg) => cg?.topics?.[topicName],
         pollingIntervalSec > 0
       );
 
       setLagTrends(nextTrends);
-    },
-  });
+    }
+  }, []);
 
   useEffect(() => {
     prevLagRef.current = {};

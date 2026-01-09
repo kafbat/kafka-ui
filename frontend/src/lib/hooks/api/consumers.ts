@@ -1,5 +1,10 @@
 import { consumerGroupsApiClient as api } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import {
   ConsumerGroup,
@@ -31,19 +36,19 @@ type UseConsumerGroupDetailsProps = {
 
 export function useConsumerGroups(props: UseConsumerGroupsProps) {
   const { clusterName, ...rest } = props;
-  return useQuery(
-    ['clusters', clusterName, 'consumerGroups', rest],
-    () => api.getConsumerGroupsPage(props),
-    { suspense: false, keepPreviousData: true }
-  );
+  return useQuery({
+    queryKey: ['clusters', clusterName, 'consumerGroups', rest],
+    queryFn: () => api.getConsumerGroupsPage(props),
+    placeholderData: (previousData) => previousData,
+  });
 }
 
 export function useConsumerGroupDetails(props: UseConsumerGroupDetailsProps) {
   const { clusterName, consumerGroupID } = props;
-  return useQuery(
-    ['clusters', clusterName, 'consumerGroups', consumerGroupID],
-    () => api.getConsumerGroup({ clusterName, id: consumerGroupID })
-  );
+  return useSuspenseQuery({
+    queryKey: ['clusters', clusterName, 'consumerGroups', consumerGroupID],
+    queryFn: () => api.getConsumerGroup({ clusterName, id: consumerGroupID }),
+  });
 }
 
 export const useDeleteConsumerGroupMutation = ({
@@ -51,21 +56,18 @@ export const useDeleteConsumerGroupMutation = ({
   consumerGroupID,
 }: UseConsumerGroupDetailsProps) => {
   const queryClient = useQueryClient();
-  return useMutation(
-    () => api.deleteConsumerGroup({ clusterName, id: consumerGroupID }),
-    {
-      onSuccess: () => {
-        showSuccessAlert({
-          message: `Consumer ${consumerGroupID} group deleted`,
-        });
-        queryClient.invalidateQueries([
-          'clusters',
-          clusterName,
-          'consumerGroups',
-        ]);
-      },
-    }
-  );
+  return useMutation({
+    mutationFn: () =>
+      api.deleteConsumerGroup({ clusterName, id: consumerGroupID }),
+    onSuccess: () => {
+      showSuccessAlert({
+        message: `Consumer ${consumerGroupID} group deleted`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['clusters', clusterName, 'consumerGroups'],
+      });
+    },
+  });
 };
 
 export const useResetConsumerGroupOffsetsMutation = ({
@@ -73,26 +75,22 @@ export const useResetConsumerGroupOffsetsMutation = ({
   consumerGroupID,
 }: UseConsumerGroupDetailsProps) => {
   const queryClient = useQueryClient();
-  return useMutation(
-    (props: ConsumerGroupOffsetsReset) =>
+  return useMutation({
+    mutationFn: (props: ConsumerGroupOffsetsReset) =>
       api.resetConsumerGroupOffsets({
         clusterName,
         id: consumerGroupID,
         consumerGroupOffsetsReset: props,
       }),
-    {
-      onSuccess: () => {
-        showSuccessAlert({
-          message: `Consumer ${consumerGroupID} group offsets reset`,
-        });
-        queryClient.invalidateQueries([
-          'clusters',
-          clusterName,
-          'consumerGroups',
-        ]);
-      },
-    }
-  );
+    onSuccess: () => {
+      showSuccessAlert({
+        message: `Consumer ${consumerGroupID} group offsets reset`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['clusters', clusterName, 'consumerGroups'],
+      });
+    },
+  });
 };
 
 export const useDeleteConsumerGroupOffsetsMutation = ({
@@ -100,40 +98,34 @@ export const useDeleteConsumerGroupOffsetsMutation = ({
   consumerGroupID,
 }: UseConsumerGroupDetailsProps) => {
   const queryClient = useQueryClient();
-  return useMutation(
-    (topicName: string) =>
+  return useMutation({
+    mutationFn: (topicName: string) =>
       api.deleteConsumerGroupOffsets({
         clusterName,
         id: consumerGroupID,
         topicName,
       }),
-    {
-      onSuccess: (_, topicName) => {
-        showSuccessAlert({
-          message: `Consumer ${consumerGroupID} group offsets in topic ${topicName} deleted`,
-        });
-        queryClient.invalidateQueries([
-          'clusters',
-          clusterName,
-          'consumerGroups',
-        ]);
-      },
-    }
-  );
+    onSuccess: (_, topicName) => {
+      showSuccessAlert({
+        message: `Consumer ${consumerGroupID} group offsets in topic ${topicName} deleted`,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['clusters', clusterName, 'consumerGroups'],
+      });
+    },
+  });
 };
 
 interface UseGetConsumerGroupsLagProps {
   clusterName: string;
   ids: string[];
   pollingIntervalSec?: number;
-  onSuccess?: (data: ConsumerGroupsLagResponse) => void;
 }
 
 export function useGetConsumerGroupsLag({
   clusterName,
   pollingIntervalSec = 0,
   ids,
-  onSuccess,
 }: UseGetConsumerGroupsLagProps) {
   const pollingEnabled = pollingIntervalSec > 0;
   const lastUpdateRef = useRef<number | undefined>(undefined);
@@ -142,9 +134,9 @@ export function useGetConsumerGroupsLag({
     lastUpdateRef.current = undefined;
   }, [clusterName, ids.join(',')]);
 
-  return useQuery(
-    ['clusters', clusterName, 'consumerGroupsLag', ids],
-    async () => {
+  return useQuery({
+    queryKey: ['clusters', clusterName, 'consumerGroupsLag', ids],
+    queryFn: async () => {
       const response = await api.getConsumerGroupsLag({
         clusterName,
         ids,
@@ -154,24 +146,20 @@ export function useGetConsumerGroupsLag({
       lastUpdateRef.current = response.updateTimestamp;
       return response;
     },
-    {
-      enabled: ids.length > 0,
-      refetchInterval: pollingEnabled ? pollingIntervalSec * 1000 : false,
-      refetchOnWindowFocus: false,
+    enabled: ids.length > 0,
+    refetchInterval: pollingEnabled ? pollingIntervalSec * 1000 : false,
+    refetchOnWindowFocus: false,
 
-      select: (data) => {
-        const filtered: Record<string, ConsumerGroupLag | undefined> = {};
-        ids.forEach((id) => {
-          filtered[id] = data.consumerGroups?.[id];
-        });
+    select: (data) => {
+      const filtered: Record<string, ConsumerGroupLag | undefined> = {};
+      ids.forEach((id) => {
+        filtered[id] = data.consumerGroups?.[id];
+      });
 
-        return {
-          updateTimestamp: data.updateTimestamp,
-          consumerGroups: filtered,
-        } satisfies ConsumerGroupsLagResponse;
-      },
-
-      onSuccess,
-    }
-  );
+      return {
+        updateTimestamp: data.updateTimestamp,
+        consumerGroups: filtered,
+      } satisfies ConsumerGroupsLagResponse;
+    },
+  });
 }
