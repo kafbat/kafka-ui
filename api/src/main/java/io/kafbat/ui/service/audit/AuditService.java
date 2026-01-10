@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -129,27 +130,43 @@ public class AuditService implements Closeable {
   /**
    * return true if topic created/existing and producing can be enabled.
    */
-  private static boolean createTopicIfNeeded(KafkaCluster cluster,
-                                             Supplier<ReactiveAdminClient> acSupplier,
-                                             String auditTopicName,
-                                             ClustersProperties.AuditProperties auditProps) {
+  @VisibleForTesting
+  static boolean createTopicIfNeeded(KafkaCluster cluster,
+                                     Supplier<ReactiveAdminClient> acSupplier,
+                                     String auditTopicName,
+                                     ClustersProperties.AuditProperties auditProps) {
+    boolean strictTopicInit = Optional.ofNullable(auditProps.getStrictTopicInit()).orElse(false);
+
     ReactiveAdminClient ac;
     try {
       ac = acSupplier.get();
     } catch (Exception e) {
+      if (strictTopicInit) {
+        throw new RuntimeException(
+            "Error while connecting to the cluster to create the audit topic '%s'".formatted(auditTopicName), e);
+      }
+
       printAuditInitError(cluster, "Error while connecting to the cluster", e);
       return false;
     }
-    boolean topicExists;
+
     try {
-      topicExists = ac.listTopics(true).block(TOPIC_BLOCK_TIMEOUT).contains(auditTopicName);
+      boolean topicExists = Objects.requireNonNull(ac.listTopics(true).block(TOPIC_BLOCK_TIMEOUT))
+          .contains(auditTopicName);
+
+      if (topicExists) {
+        return true;
+      }
     } catch (Exception e) {
+      if (strictTopicInit) {
+        throw new RuntimeException(
+            "Error while checking the existence of the audit topic '%s'".formatted(auditTopicName), e);
+      }
+
       printAuditInitError(cluster, "Error checking audit topic existence", e);
       return false;
     }
-    if (topicExists) {
-      return true;
-    }
+
     try {
       int topicPartitions =
           Optional.ofNullable(auditProps.getAuditTopicsPartitions())
@@ -164,6 +181,10 @@ public class AuditService implements Closeable {
       log.info("Audit topic created for cluster '{}'", cluster.getName());
       return true;
     } catch (Exception e) {
+      if (strictTopicInit) {
+        throw new RuntimeException("Error creating the audit topic '%s'".formatted(auditTopicName), e);
+      }
+
       printAuditInitError(cluster, "Error creating topic '%s'".formatted(auditTopicName), e);
       return false;
     }
