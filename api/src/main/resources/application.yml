@@ -13,16 +13,16 @@ management:
         include: "info,health,prometheus"
 
 springdoc:
-  path: /swagger 
+  path: /swagger
   api-docs:
-    enabled: ${AUTH_OPENAPI_ENABLED:false}
+    enabled: ${SWAGGER_UI_ENABLED:false}
   swagger-ui:
-    enabled: ${AUTH_OPENAPI_ENABLED:false}
+    enabled: ${SWAGGER_UI_ENABLED:false}
     url: /openapi/kafbat-ui-api.yaml
     urls:
       - name: kafbat-ui
         url: /openapi/kafbat-ui-api.yaml
-    config-url: null 
+    config-url: null
   override-with-generic-response: true
 
 logging:
