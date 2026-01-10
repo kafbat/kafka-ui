@@ -7,7 +7,6 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.google.common.annotations.VisibleForTesting;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.util.MetricsUtils;
-import io.prometheus.metrics.expositionformats.OpenMetricsTextFormatWriter;
 import io.prometheus.metrics.expositionformats.PrometheusTextFormatWriter;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.MetricSnapshots;

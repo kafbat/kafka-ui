@@ -1,25 +1,16 @@
 package io.kafbat.ui.mapper;
 
-import io.kafbat.ui.api.model.ConsumerGroupLag;
-import io.kafbat.ui.api.model.ConsumerGroupState;
 import io.kafbat.ui.model.BrokerDTO;
 import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupDetailsDTO;
-import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupStateDTO;
 import io.kafbat.ui.model.ConsumerGroupTopicPartitionDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
-import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
 

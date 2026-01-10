@@ -15,7 +15,6 @@ import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TaskDTO;
-import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConnectorAction;
