@@ -141,13 +141,9 @@ public class AuditService implements Closeable {
     try {
       ac = acSupplier.get();
     } catch (Exception e) {
-      if (strictTopicInit) {
-        throw new RuntimeException(
-            "Error while connecting to the cluster to create the audit topic '%s'".formatted(auditTopicName), e);
-      }
-
-      printAuditInitError(cluster, "Error while connecting to the cluster", e);
-      return false;
+      return handleTopicInitException(strictTopicInit,
+          "Error while connecting to the cluster to create the audit topic '%s'".formatted(auditTopicName), e,
+          cluster.getName());
     }
 
     try {
@@ -158,13 +154,8 @@ public class AuditService implements Closeable {
         return true;
       }
     } catch (Exception e) {
-      if (strictTopicInit) {
-        throw new RuntimeException(
-            "Error while checking the existence of the audit topic '%s'".formatted(auditTopicName), e);
-      }
-
-      printAuditInitError(cluster, "Error checking audit topic existence", e);
-      return false;
+      return handleTopicInitException(strictTopicInit,
+          "Error while checking the existence of the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
 
     try {
@@ -181,23 +172,27 @@ public class AuditService implements Closeable {
       log.info("Audit topic created for cluster '{}'", cluster.getName());
       return true;
     } catch (Exception e) {
-      if (strictTopicInit) {
-        throw new RuntimeException("Error creating the audit topic '%s'".formatted(auditTopicName), e);
-      }
-
-      printAuditInitError(cluster, "Error creating topic '%s'".formatted(auditTopicName), e);
-      return false;
+      return handleTopicInitException(strictTopicInit,
+          "Error creating the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
   }
 
-  private static void printAuditInitError(KafkaCluster cluster, String errorMsg, Exception cause) {
+  private static boolean handleTopicInitException(
+      boolean strictTopicInit,
+      String errorMsg,
+      Exception cause,
+      String cluster
+  ) {
+    if (strictTopicInit) {
+      throw new RuntimeException(errorMsg, cause);
+    }
+
     log.error("-----------------------------------------------------------------");
-    log.error(
-        "Error initializing Audit for cluster '{}'. Audit will be disabled. See error below: ",
-        cluster.getName()
-    );
+    log.error("Error initializing Audit for cluster '{}'. Audit will be disabled. See error below: ", cluster);
     log.error("{}", errorMsg, cause);
     log.error("-----------------------------------------------------------------");
+
+    return false;
   }
 
   private Mono<AuthenticatedUser> extractUser(Signal<?> sig) {
