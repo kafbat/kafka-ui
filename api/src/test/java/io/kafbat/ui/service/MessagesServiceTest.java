@@ -74,7 +74,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
   void loadMessagesReturnsExceptionWhenTopicNotFound() {
     StepVerifier.create(messagesService
             .loadMessages(cluster, NON_EXISTING_TOPIC,
-                new ConsumerPosition(PollingModeDTO.TAILING, NON_EXISTING_TOPIC, List.of(), null, null),
+                new ConsumerPosition(PollingModeDTO.TAILING, NON_EXISTING_TOPIC, List.of(), null, null, null),
                 null, null, 1, "String", "String"))
         .expectError(TopicNotFoundException.class)
         .verify();
@@ -93,7 +93,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     Flux<TopicMessageDTO> msgsFlux = messagesService.loadMessages(
             cluster,
             testTopic,
-            new ConsumerPosition(PollingModeDTO.EARLIEST, testTopic, List.of(), null, null),
+            new ConsumerPosition(PollingModeDTO.EARLIEST, testTopic, List.of(), null, null, null),
             null,
             null,
             100,
@@ -127,7 +127,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     var cursorIdCatcher = new AtomicReference<String>();
     Flux<String> msgsFlux = messagesService.loadMessages(
             cluster, testTopic,
-            new ConsumerPosition(mode, testTopic, List.of(), null, null),
+            new ConsumerPosition(mode, testTopic, List.of(), null, null, null),
             null, null, pageSize, StringSerde.NAME, StringSerde.NAME)
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
