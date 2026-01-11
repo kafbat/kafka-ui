@@ -167,7 +167,7 @@ class AuditServiceTest {
       }
 
       @Test
-      void throwExceptionIfStrictTopicInitEnabled() {
+      void throwExceptionIfRequireAuditTopic() {
         var auditProps = clustersProperties.getAudit();
         auditProps.setRequireAuditTopic(true);
         clustersProperties.setAudit(auditProps);
