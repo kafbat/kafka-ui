@@ -5,15 +5,40 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { useTopicConfig } from 'lib/hooks/api/topics';
 import { CellContext, ColumnDef } from '@tanstack/react-table';
 import { TopicConfig } from 'generated-sources';
+import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
+import { formatDuration } from 'components/common/DurationFormatted/utils';
+import { formatBytes } from 'components/common/BytesFormatted/utils';
 
 import * as S from './Settings.styled';
 
-const ValueCell: React.FC<CellContext<TopicConfig, unknown>> = ({
+const getFormattedValue = (
+  value: string,
+  unit: 'ms' | 'bytes' | undefined
+): string | null => {
+  if (!unit) return null;
+
+  const numValue = parseInt(value, 10);
+  if (Number.isNaN(numValue)) return null;
+
+  if (unit === 'ms') {
+    // Don't show formatted for negative values (they mean unbounded)
+    if (numValue < 0) return null;
+    return formatDuration(numValue);
+  }
+
+  if (unit === 'bytes') {
+    if (numValue <= 0) return null;
+    return formatBytes(numValue);
+  }
+
+  return null;
+};
+
+const KeyCell: React.FC<CellContext<TopicConfig, unknown>> = ({
   row,
   renderValue,
 }) => {
-  const { defaultValue } = row.original;
-  const { value } = row.original;
+  const { defaultValue, value } = row.original;
   const hasCustomValue = !!defaultValue && value !== defaultValue;
 
   return (
@@ -21,14 +46,52 @@ const ValueCell: React.FC<CellContext<TopicConfig, unknown>> = ({
   );
 };
 
+const ValueCell: React.FC<CellContext<TopicConfig, unknown>> = ({ row }) => {
+  const { name, value, defaultValue, isSensitive } = row.original;
+  const hasCustomValue = !!defaultValue && value !== defaultValue;
+
+  if (isSensitive) {
+    return (
+      <S.Value $hasCustomValue={hasCustomValue} title="Sensitive Value">
+        **********
+      </S.Value>
+    );
+  }
+
+  const unit = getConfigUnit(name);
+  const formattedValue = getFormattedValue(value ?? '', unit);
+
+  return (
+    <S.ValueWrapper>
+      <S.Value $hasCustomValue={hasCustomValue}>{value}</S.Value>
+      {formattedValue && <S.FormattedValue>{formattedValue}</S.FormattedValue>}
+    </S.ValueWrapper>
+  );
+};
+
 const DefaultValueCell: React.FC<CellContext<TopicConfig, unknown>> = ({
   row,
-  getValue,
 }) => {
-  const defaultValue = getValue<TopicConfig['defaultValue']>();
-  const { value } = row.original;
+  const { name, value, defaultValue, isSensitive } = row.original;
   const hasCustomValue = !!defaultValue && value !== defaultValue;
-  return <S.DefaultValue>{hasCustomValue && defaultValue}</S.DefaultValue>;
+
+  if (!hasCustomValue) {
+    return <S.DefaultValue />;
+  }
+
+  if (isSensitive) {
+    return <S.DefaultValue title="Sensitive Value">**********</S.DefaultValue>;
+  }
+
+  const unit = getConfigUnit(name);
+  const formattedValue = getFormattedValue(defaultValue ?? '', unit);
+
+  return (
+    <S.ValueWrapper>
+      <S.DefaultValue>{defaultValue}</S.DefaultValue>
+      {formattedValue && <S.FormattedValue>{formattedValue}</S.FormattedValue>}
+    </S.ValueWrapper>
+  );
 };
 
 const Settings: React.FC = () => {
@@ -40,7 +103,7 @@ const Settings: React.FC = () => {
       {
         header: 'Key',
         accessorKey: 'name',
-        cell: ValueCell,
+        cell: KeyCell,
       },
       {
         header: 'Value',
