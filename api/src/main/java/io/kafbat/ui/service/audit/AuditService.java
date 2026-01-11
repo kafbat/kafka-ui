@@ -135,13 +135,13 @@ public class AuditService implements Closeable {
                                      Supplier<ReactiveAdminClient> acSupplier,
                                      String auditTopicName,
                                      ClustersProperties.AuditProperties auditProps) {
-    boolean strictTopicInit = Optional.ofNullable(auditProps.getStrictTopicInit()).orElse(false);
+    boolean requireAuditTopic = Optional.ofNullable(auditProps.getRequireAuditTopic()).orElse(false);
 
     ReactiveAdminClient ac;
     try {
       ac = acSupplier.get();
     } catch (Exception e) {
-      return handleTopicInitException(strictTopicInit,
+      return handleTopicInitException(requireAuditTopic,
           "Error while connecting to the cluster to create the audit topic '%s'".formatted(auditTopicName), e,
           cluster.getName());
     }
@@ -154,7 +154,7 @@ public class AuditService implements Closeable {
         return true;
       }
     } catch (Exception e) {
-      return handleTopicInitException(strictTopicInit,
+      return handleTopicInitException(requireAuditTopic,
           "Error while checking the existence of the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
 
@@ -172,18 +172,18 @@ public class AuditService implements Closeable {
       log.info("Audit topic created for cluster '{}'", cluster.getName());
       return true;
     } catch (Exception e) {
-      return handleTopicInitException(strictTopicInit,
+      return handleTopicInitException(requireAuditTopic,
           "Error creating the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
   }
 
   private static boolean handleTopicInitException(
-      boolean strictTopicInit,
+      boolean requireAuditTopic,
       String errorMsg,
       Exception cause,
       String cluster
   ) {
-    if (strictTopicInit) {
+    if (requireAuditTopic) {
       throw new RuntimeException(errorMsg, cause);
     }
 

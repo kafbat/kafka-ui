@@ -169,7 +169,7 @@ class AuditServiceTest {
       @Test
       void throwExceptionIfStrictTopicInitEnabled() {
         var auditProps = clustersProperties.getAudit();
-        auditProps.setStrictTopicInit(true);
+        auditProps.setRequireAuditTopic(true);
         clustersProperties.setAudit(auditProps);
 
         var exp = assertThrows(RuntimeException.class,
