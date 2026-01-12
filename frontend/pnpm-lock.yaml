@@ -35,8 +35,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       '@szhsin/react-menu':
-        specifier: 3.5.3
-        version: 3.5.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: 4.5.1
+        version: 4.5.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@tanstack/react-query':
         specifier: 4.36.1
         version: 4.36.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1243,8 +1243,8 @@ packages:
   '@swc/types@0.1.6':
     resolution: {integrity: sha512-/JLo/l2JsT/LRd80C3HfbmVpxOAJ11FO2RCEslFrgzLltoP9j8XIbsyDcfCt2WWyX+CM96rBoNM+IToAkFOugg==}
 
-  '@szhsin/react-menu@3.5.3':
-    resolution: {integrity: sha512-jxo8oaRwxmVjUzkyOi/ZJiXaZiuFPMIxFzyJdUKfnhBLYiEOVTU9M2CiPuEkirILoareR2GJj2K3y8a81CBPlw==}
+  '@szhsin/react-menu@4.5.1':
+    resolution: {integrity: sha512-kRTS7Pq0YdkucQexXVy5HkpzKsJdXbAhpmzve0wPokpsaG+4Ca3cphEn6WkRCWXfn1gZXosxcZCeb34ocmUPDw==}
     peerDependencies:
       react: '>=16.14.0'
       react-dom: '>=16.14.0'
@@ -3805,8 +3805,8 @@ packages:
     peerDependencies:
       react: '>=16.8'
 
-  react-transition-state@1.1.5:
-    resolution: {integrity: sha512-ITY2mZqc2dWG2eitJkYNdcSFW8aKeOlkL2A/vowRrLL8GH3J6Re/SpD/BLvQzrVOTqjsP0b5S9N10vgNNzwMUQ==}
+  react-transition-state@2.3.1:
+    resolution: {integrity: sha512-Z48el73x+7HUEM131dof9YpcQ5IlM4xB+pKWH/lX3FhxGfQaNTZa16zb7pWkC/y5btTZzXfCtglIJEGc57giOw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -5661,12 +5661,11 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@szhsin/react-menu@3.5.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@szhsin/react-menu@4.5.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      react-transition-state: 1.1.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-transition-state: 2.3.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 
   '@tanstack/match-sorter-utils@8.15.1':
     dependencies:
@@ -8786,7 +8785,7 @@ snapshots:
       '@remix-run/router': 1.16.0
       react: 18.2.0
 
-  react-transition-state@1.1.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  react-transition-state@2.3.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
