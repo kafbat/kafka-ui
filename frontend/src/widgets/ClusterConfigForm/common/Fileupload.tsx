@@ -50,7 +50,7 @@ const Fileupload: React.FC<{ name: string; label: string }> = ({
         </S.FlexRow>
       ) : (
         <S.FileUploadInputWrapper>
-          {upload.isLoading ? (
+          {upload.isPending ? (
             <p>Uploading...</p>
           ) : (
             <input type="file" onChange={handleFileChange} />

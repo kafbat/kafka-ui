@@ -4,6 +4,7 @@ import React, {
   PropsWithChildren,
   ReactElement,
   useMemo,
+  Suspense,
 } from 'react';
 import {
   MemoryRouter,
@@ -24,6 +25,7 @@ import {
   QueryClient,
   QueryClientProvider,
   UseQueryResult,
+  UseSuspenseQueryResult,
 } from '@tanstack/react-query';
 import { ConfirmContextProvider } from 'components/contexts/ConfirmContext';
 import ConfirmationModal from 'components/common/ConfirmationModal/ConfirmationModal';
@@ -50,7 +52,11 @@ interface WithRouteProps {
 
 export const expectQueryWorks = async (
   mock: fetchMock.FetchMockStatic,
-  result: { current: UseQueryResult<unknown, unknown> }
+  result: {
+    current:
+      | UseQueryResult<unknown, unknown>
+      | UseSuspenseQueryResult<unknown, unknown>;
+  }
 ) => {
   await waitFor(() => expect(result.current.isFetched).toBeTruthy());
   expect(mock.calls()).toHaveLength(1);
@@ -122,10 +128,12 @@ const customRender = (
           <TestUserInfoProvider data={userInfo}>
             <ConfirmContextProvider>
               <MemoryRouter initialEntries={initialEntries}>
-                <div>
-                  {children}
-                  <ConfirmationModal />
-                </div>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <div>
+                    {children}
+                    <ConfirmationModal />
+                  </div>
+                </Suspense>
               </MemoryRouter>
             </ConfirmContextProvider>
           </TestUserInfoProvider>
@@ -136,7 +144,19 @@ const customRender = (
   return render(ui, { wrapper: AllTheProviders, ...renderOptions });
 };
 
-const customRenderHook = (hook: () => UseQueryResult<unknown, unknown>) =>
-  renderHook(hook, { wrapper: TestQueryClientProvider });
+const customRenderHook = (
+  hook: () =>
+    | UseQueryResult<unknown, unknown>
+    | UseSuspenseQueryResult<unknown, unknown>
+) => {
+  const SuspenseWrapper: FC<PropsWithChildren<unknown>> = ({ children }) => {
+    return (
+      <TestQueryClientProvider>
+        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+      </TestQueryClientProvider>
+    );
+  };
+  return renderHook(hook, { wrapper: SuspenseWrapper });
+};
 
 export { customRender as render, customRenderHook as renderQueryHook };
