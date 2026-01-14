@@ -508,7 +508,7 @@ export const theme = {
         default: 'transparent',
         hover: Colors.neutral[20],
       },
-    }
+    },
   },
   ksqlDb: {
     query: {

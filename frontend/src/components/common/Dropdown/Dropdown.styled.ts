@@ -83,9 +83,10 @@ export const SmallButton = styled.div`
   justify-content: center;
 
   &:hover {
-    background-color: ${({ theme: { dropdown } }) => dropdown.button.backgroundColor.hover};
+    background-color: ${({ theme: { dropdown } }) =>
+      dropdown.button.backgroundColor.hover};
   }
-`
+`;
 
 export const DangerItem = styled.div`
   color: ${({ theme: { dropdown } }) => dropdown.item.color.danger};
