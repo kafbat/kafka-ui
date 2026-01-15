@@ -37,8 +37,34 @@ export interface AddEditFilterContainerProps {
 
 interface AddMessageFilters extends Omit<AdvancedFilter, 'filterCode'> {}
 
-function submitValidation(id: string, currentFilterId: string): boolean {
+function codeToName(code: string) {
+  if (code.length > 32) {
+    return code.substring(0, 32);
+  }
+  return code;
+}
+
+function submitValidation(
+  id: string,
+  code: string,
+  currentFilterId: string
+): boolean {
   const filter = selectFilter(id)(useMessageFiltersStore.getState());
+
+  if (id === '') {
+    const name = codeToName(code);
+    const filters = Object.keys(useMessageFiltersStore.getState().filters);
+
+    if (filters.includes(name)) {
+      showAlert('error', {
+        id: '',
+        title: 'Validation Error',
+        message: `The name “${name}” already exists. Please enter a unique name.`,
+      });
+    }
+
+    return true;
+  }
 
   if (filter && filter.id !== currentFilterId) {
     showAlert('error', {
@@ -58,7 +84,7 @@ function getLabelName(values: AddMessageFilters) {
   }
 
   if (values.value.length > 32) {
-    return values.value.substring(0, 32);
+    return codeToName(values.value);
   }
 
   return values.value;
@@ -79,8 +105,11 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
   const replace = useMessageFiltersStore((state) => state.replace);
 
   const methods = useForm<AddMessageFilters>({
-    mode: 'onChange',
-    resolver: yupResolver(validationSchema),
+    mode: 'onTouched',
+    resolver: yupResolver(validationSchema, { context: ['name name'] }),
+    context: {
+      value: ['name'],
+    },
     defaultValues: {
       id: currentFilter?.id,
       value: currentFilter?.value,
@@ -96,7 +125,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
 
   const onSubmit = async (values: AddMessageFilters) => {
     try {
-      if (submitValidation(values.id, filterId)) {
+      if (submitValidation(values.id, values.value, filterId)) {
         return;
       }
 
