@@ -1,6 +1,5 @@
 package io.kafbat.ui.service;
 
-import static io.kafbat.ui.util.ConsumerGroupUtil.calculateConsumerLag;
 import static io.kafbat.ui.util.ConsumerGroupUtil.calculateLag;
 
 import com.google.common.collect.Streams;

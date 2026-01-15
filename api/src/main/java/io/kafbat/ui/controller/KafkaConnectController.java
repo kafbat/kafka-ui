@@ -15,7 +15,6 @@ import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TaskDTO;
-import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
 import io.kafbat.ui.model.rbac.permission.ConnectorAction;
@@ -155,7 +154,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         : maybeComparator.map(Comparator::reversed);
 
     Flux<FullConnectorInfoDTO> connectors = kafkaConnectService.getAllConnectors(getCluster(clusterName), search, fts)
-        .filterWhen(dto -> accessControlService.isConnectAccessible(dto.getConnect(), clusterName));
+        .filterWhen(dto -> accessControlService.isConnectorAccessible(dto.getConnect(), dto.getName(), clusterName));
 
     Flux<FullConnectorInfoDTO> sorted = comparator.map(connectors::sort).orElse(connectors);
 
