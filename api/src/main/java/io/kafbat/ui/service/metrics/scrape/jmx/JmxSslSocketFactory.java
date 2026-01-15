@@ -14,7 +14,6 @@ import javax.net.ssl.SSLContext;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.security.ssl.SslFactory;
 import org.springframework.boot.ssl.SslBundle;
 
 /*
