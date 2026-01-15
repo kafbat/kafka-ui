@@ -19,10 +19,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.authentication.DelegatingReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginReactiveAuthenticationManager;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
@@ -75,6 +77,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       OAuthLogoutSuccessHandler logoutHandler,
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
       ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
+      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
       @Qualifier("oauthWebClient") WebClient webClient
   ) {
     log.info("Configuring OAUTH2 authentication.");
@@ -87,13 +90,19 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .webClient(webClient)
             .build());
 
+    var oauth2AuthManager =
+        new OAuth2LoginReactiveAuthenticationManager(tokenResponseClient, oauth2UserService);
+
+    var delegatingAuthManager =
+        new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
+
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.authenticationManager(oidcAuthManager))
+        .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
