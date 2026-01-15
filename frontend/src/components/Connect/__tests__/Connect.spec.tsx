@@ -3,6 +3,7 @@ import { render, WithRoute } from 'lib/testHelpers';
 import { screen } from '@testing-library/react';
 import Connect from 'components/Connect/Connect';
 import { getNonExactPath, kafkaConnectPath } from 'lib/paths';
+import { useConnects } from 'lib/hooks/api/kafkaConnect';
 
 const ConnectCompText = {
   new: 'New Page',
@@ -19,15 +20,23 @@ jest.mock('components/Connect/List/ListPage', () => () => (
 jest.mock('components/Connect/Details/DetailsPage', () => () => (
   <div>{ConnectCompText.details}</div>
 ));
+jest.mock('lib/hooks/api/kafkaConnect', () => ({
+  useConnects: jest.fn(),
+}));
 
 describe('Connect', () => {
-  const renderComponent = (pathname: string, routePath: string) =>
-    render(
+  const renderComponent = (pathname: string, routePath: string) => {
+    const useConnectsMock = useConnects as jest.Mock;
+    useConnectsMock.mockReturnValue({
+      data: [],
+    });
+    return render(
       <WithRoute path={getNonExactPath(routePath)}>
         <Connect />
       </WithRoute>,
       { initialEntries: [pathname] }
     );
+  };
 
   it('renders header', () => {
     renderComponent(kafkaConnectPath('my-cluster'), kafkaConnectPath());
