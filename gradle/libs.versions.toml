@@ -1,21 +1,21 @@
 [versions]
-spring-boot = '3.5.7'
-nimbus-jose-jwt = '10.0.2'
+spring-boot = '3.5.9'
+nimbus-jose-jwt = '10.6'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
 
-apache-commons-lang3 = '3.18.0'
-apache-commons-text = '1.13.1'
-apache-commons-pool2 = '2.12.1'
+apache-commons-lang3 = '3.20.0'
+apache-commons-text = '1.15.0'
+apache-commons-pool2 = '2.13.0'
 apache-datasketches = '3.1.0'
-apache-commons-compress = '1.26.0'
+apache-commons-compress = '1.28.0'
 
 assertj = '3.25.3'
 avro = '1.11.4'
 byte-buddy = '1.18.1'
-confluent = '7.9.2'
-confluent-ccs = '7.9.0-ccs'
+confluent = '7.9.5'
+confluent-ccs = '7.9.5-ccs'
 
 mapstruct = '1.6.2'
 lombok = '1.18.42'
@@ -27,16 +27,17 @@ cel = '0.3.0'
 junit = '5.12.2'
 mockito = '5.20.0'
 okhttp3 = '4.12.0'
+wiremock = '3.9.1'
 testcontainers = '1.20.6'
 swagger-integration-jakarta = '2.2.28'
 jakarta-annotation-api = '2.1.1'
-jackson-databind-nullable = '0.2.6'
+jackson-databind-nullable = '0.2.8'
 antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
 
 prometheus = '1.3.6'
-lucene = '10.2.2'
+lucene = '10.3.2'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
@@ -109,6 +110,8 @@ okhttp3 = { module = 'com.squareup.okhttp3:okhttp', version.ref = 'okhttp3' }
 okhttp3-mockwebserver = { module = 'com.squareup.okhttp3:mockwebserver', version.ref = 'okhttp3' }
 okhttp3-logging-intercepter = { module = 'com.squareup.okhttp3:logging-interceptor', version.ref = 'okhttp3' }
 
+wiremock = { module = 'org.wiremock:wiremock-standalone', version.ref = 'wiremock' }
+
 opendatadiscovery-oddrn = { module = 'org.opendatadiscovery:oddrn-generator-java', version.ref = 'odd-oddrn-generator' }
 opendatadiscovery-client = { module = 'org.opendatadiscovery:ingestion-contract-client', version.ref = 'odd-oddrn-client' }
 
@@ -135,3 +138,8 @@ snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.7'}
 lucene = {module = 'org.apache.lucene:lucene-core', version.ref = 'lucene'}
 lucene-queryparser = {module = 'org.apache.lucene:lucene-queryparser', version.ref = 'lucene'}
 lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', version.ref = 'lucene'}
+
+fastcsv = {module = 'de.siegmar:fastcsv', version = '4.1.0'}
+
+# CVE-2025-12183 fix
+lz4-yawk = {module = 'at.yawk.lz4:lz4-java', version = '1.10.1'}

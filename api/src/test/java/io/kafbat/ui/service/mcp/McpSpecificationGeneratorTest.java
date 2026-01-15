@@ -43,7 +43,7 @@ class McpSpecificationGeneratorTest {
     List<AsyncToolSpecification> specifications =
         MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
 
-    assertThat(specifications).hasSize(15);
+    assertThat(specifications).hasSize(16);
     List<McpSchema.Tool> tools = List.of(
         new McpSchema.Tool(
             "recreateTopic",

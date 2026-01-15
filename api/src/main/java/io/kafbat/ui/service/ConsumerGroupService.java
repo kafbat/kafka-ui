@@ -1,9 +1,12 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateLag;
+
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
+import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
@@ -16,6 +19,7 @@ import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -23,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.ToIntFunction;
@@ -38,6 +43,8 @@ import org.apache.kafka.common.ConsumerGroupState;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +75,31 @@ public class ConsumerGroupService {
                       })
                       .collect(Collectors.toList()));
         });
+  }
+
+  public Mono<ConsumerGroupsPage> getConsumerGroups(
+      KafkaCluster cluster,
+      OptionalInt pageNum,
+      OptionalInt perPage,
+      @Nullable String search,
+      Boolean fts,
+      ConsumerGroupOrderingDTO orderBy,
+      SortOrderDTO sortOrderDto) {
+    return adminClientService.get(cluster).flatMap(ac ->
+        ac.listConsumerGroups()
+            .map(listing -> filterGroups(listing, search, fts))
+            .flatMapIterable(lst -> lst)
+            .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
+            .collectList()
+            .flatMap(allGroups ->
+                loadSortedDescriptions(ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
+                    .flatMap(descriptions -> getConsumerGroups(ac, descriptions)
+                        .map(page ->
+                            ConsumerGroupsPage.from(page, allGroups.size(), pageNum, perPage)
+                        )
+                    )
+            )
+    );
   }
 
   public Mono<List<InternalTopicConsumerGroup>> getConsumerGroupsForTopic(KafkaCluster cluster,
@@ -141,34 +173,101 @@ public class ConsumerGroupService {
     return hasActiveMembersForTopic || hasCommittedOffsets;
   }
 
+  public Mono<Tuple2<Map<String, ConsumerGroupLagDTO>, Optional<Long>>> getConsumerGroupsLag(
+      KafkaCluster cluster, Collection<String> groupNames, Optional<Long> lastUpdate) {
+    Statistics statistics = statisticsCache.get(cluster);
+
+    Map<TopicPartition, Long> endOffsets = statistics.getClusterState().getTopicStates().entrySet().stream()
+        .flatMap(e -> e.getValue().endOffsets().entrySet().stream().map(p ->
+            Map.entry(new TopicPartition(e.getKey(), p.getKey()), p.getValue()))
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      boolean select = lastUpdate
+          .map(t -> statistics.getClusterState().getScrapeFinishedAt().isAfter(Instant.ofEpochMilli(t)))
+          .orElse(true);
+
+      if (select) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+
+        return Mono.just(
+            Tuples.of(
+                groupNames.stream()
+                    .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(g -> Map.entry(g.group(), buildConsumerGroup(g, endOffsets)))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                Optional.of(statistics.getClusterState().getScrapeFinishedAt().toEpochMilli())
+            )
+        );
+      }
+
+    }
+
+    return Mono.just(Tuples.of(Map.of(), lastUpdate));
+  }
+
+  private ConsumerGroupLagDTO buildConsumerGroup(
+      ScrapedClusterState.ConsumerGroupState state,
+      Map<TopicPartition, Long> endOffsets
+  ) {
+    var commitedTopicPartitions = Stream.concat(
+        state.description().members().stream()
+            .flatMap(m ->
+                m.assignment().topicPartitions().stream()
+                    .map(t -> Map.entry(t, Optional.<Long>empty()))
+            ),
+        state.committedOffsets().entrySet().stream()
+            .map(o -> Map.entry(o.getKey(), Optional.ofNullable(o.getValue())))
+    ).collect(
+        Collectors.groupingBy(
+            Map.Entry::getKey,
+            Collectors.mapping(Map.Entry::getValue,
+                Collectors.<Optional<Long>>reducing(
+                    Optional.empty(),
+                    (a, b) -> Stream.of(a, b)
+                        .flatMap(Optional::stream)
+                        .max(Long::compare)
+                )
+            )
+        )
+    );
+
+    Map<String, Long> topicsLags = commitedTopicPartitions.entrySet().stream()
+        .map(e ->
+          Map.entry(
+              e.getKey(),
+              calculateLag(e.getValue(), Optional.ofNullable(endOffsets.get(e.getKey()))).orElse(0L)
+          )
+        ).collect(
+            Collectors.groupingBy(
+              (e) -> e.getKey().topic(),
+              Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+            )
+        );
+
+    long lag = topicsLags.values().stream().mapToLong(v -> v).sum();
+
+    return new ConsumerGroupLagDTO(lag, topicsLags);
+  }
+
   public record ConsumerGroupsPage(List<InternalConsumerGroup> consumerGroups, int totalPages) {
+    public static ConsumerGroupsPage from(List<InternalConsumerGroup> groups,
+                                          int totalSize,
+                                          OptionalInt pageNum,
+                                          OptionalInt perPage) {
+      return new ConsumerGroupsPage(groups,
+          (totalSize / perPage.orElse(totalSize)) + (totalSize % perPage.orElse(totalSize) == 0 ? 0 : 1)
+      );
+    }
   }
 
   private record GroupWithDescr(InternalConsumerGroup icg, ConsumerGroupDescription cgd) {
   }
 
-  public Mono<ConsumerGroupsPage> getConsumerGroupsPage(
-      KafkaCluster cluster,
-      int pageNum,
-      int perPage,
-      @Nullable String search,
-      Boolean fts,
-      ConsumerGroupOrderingDTO orderBy,
-      SortOrderDTO sortOrderDto) {
-    return adminClientService.get(cluster).flatMap(ac ->
-        ac.listConsumerGroups()
-            .map(listing -> filterGroups(listing, search, fts)
-            )
-            .flatMapIterable(lst -> lst)
-            .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
-            .collectList()
-            .flatMap(allGroups ->
-                loadSortedDescriptions(ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
-                    .flatMap(descriptions -> getConsumerGroups(ac, descriptions)
-                        .map(page -> new ConsumerGroupsPage(
-                            page,
-                            (allGroups.size() / perPage) + (allGroups.size() % perPage == 0 ? 0 : 1))))));
-  }
+
 
   private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search,
                                                         Boolean useFts) {
@@ -180,8 +279,8 @@ public class ConsumerGroupService {
 
   private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,
                                                                       List<ConsumerGroupListing> groups,
-                                                                      int pageNum,
-                                                                      int perPage,
+                                                                      OptionalInt pageNum,
+                                                                      OptionalInt perPage,
                                                                       ConsumerGroupOrderingDTO orderBy,
                                                                       SortOrderDTO sortOrderDto) {
     return switch (orderBy) {
@@ -232,8 +331,8 @@ public class ConsumerGroupService {
   private Mono<List<ConsumerGroupDescription>> loadDescriptionsByListings(ReactiveAdminClient ac,
                                                                           List<ConsumerGroupListing> listings,
                                                                           Comparator<ConsumerGroupListing> comparator,
-                                                                          int pageNum,
-                                                                          int perPage,
+                                                                          OptionalInt pageNum,
+                                                                          OptionalInt perPage,
                                                                           SortOrderDTO sortOrderDto) {
     List<String> sortedGroups = sortAndPaginate(listings, comparator, pageNum, perPage, sortOrderDto)
         .map(ConsumerGroupListing::groupId)
@@ -244,13 +343,19 @@ public class ConsumerGroupService {
 
   private <T> Stream<T> sortAndPaginate(Collection<T> collection,
                                         Comparator<T> comparator,
-                                        int pageNum,
-                                        int perPage,
+                                        OptionalInt pageNum,
+                                        OptionalInt perPage,
                                         SortOrderDTO sortOrderDto) {
-    return collection.stream()
-        .sorted(sortOrderDto == SortOrderDTO.ASC ? comparator : comparator.reversed())
-        .skip((long) (pageNum - 1) * perPage)
-        .limit(perPage);
+    Stream<T> sorted = collection.stream()
+        .sorted(sortOrderDto == SortOrderDTO.ASC ? comparator : comparator.reversed());
+
+    if (pageNum.isPresent() && perPage.isPresent()) {
+      return sorted
+          .skip((long) (pageNum.getAsInt() - 1) * perPage.getAsInt())
+          .limit(perPage.getAsInt());
+    } else {
+      return sorted;
+    }
   }
 
   private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(
@@ -304,8 +409,8 @@ public class ConsumerGroupService {
       ReactiveAdminClient ac,
       List<ConsumerGroupListing> groups,
       Comparator<GroupWithDescr> comparator,
-      int pageNum,
-      int perPage,
+      OptionalInt pageNum,
+      OptionalInt perPage,
       SortOrderDTO sortOrderDto) {
     var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
 

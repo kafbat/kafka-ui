@@ -8,13 +8,14 @@ import { clusterConnectorsPath } from 'lib/paths';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useQueryPersister } from 'components/common/NewTable/ColumnFilter';
 
-import ConnectorsCell from './Cells/ConnectorsCell';
+import ConnectorsCell, { getConnectorsCountText } from './Cells/ConnectorsCell';
 import NameCell from './Cells/NameCell';
-import TasksCell from './Cells/TasksCell';
+import TasksCell, { getTasksCountText } from './Cells/TasksCell';
 
 const helper = createColumnHelper<Connect>();
 export const columns = [
   helper.accessor('name', {
+    header: 'Name',
     cell: NameCell,
     size: 600,
     meta: { filterVariant: 'text' },
@@ -27,17 +28,19 @@ export const columns = [
     meta: { filterVariant: 'multi-select' },
     filterFn: 'includesSome',
   }),
-  helper.display({
+  helper.accessor('connectorsCount', {
     header: 'Connectors',
     id: 'connectors',
     cell: (props) => <ConnectorsCell connect={props.row.original} />,
     size: 100,
+    meta: { csvFn: (row) => getConnectorsCountText(row).text },
   }),
-  helper.display({
+  helper.accessor('tasksCount', {
     header: 'Running tasks',
     id: 'tasks',
     cell: (props) => <TasksCell connect={props.row.original} />,
     size: 100,
+    meta: { csvFn: (row) => getTasksCountText(row).text },
   }),
 ];
 

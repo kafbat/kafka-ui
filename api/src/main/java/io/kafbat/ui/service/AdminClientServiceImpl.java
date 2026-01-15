@@ -3,7 +3,6 @@ package io.kafbat.ui.service;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
-import java.io.Closeable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;

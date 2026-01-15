@@ -46,6 +46,7 @@ model Cluster {
   readOnly?: boolean;
   version?: string;
   features?: ClusterFeature[];
+  controller?: ControllerType;
 }
 
 alias ClusterFeature =
@@ -97,4 +98,9 @@ model BrokerDiskUsage {
   brokerId: int32;
   segmentSize?: int64;
   segmentCount?: int32;
+}
+
+enum ControllerType {
+    ZOOKEEPER,
+    KRAFT
 }

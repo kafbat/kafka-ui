@@ -46,6 +46,16 @@ public class ClustersProperties {
 
   AdminClient adminClient = new AdminClient();
 
+  Csv csv = new Csv();
+
+  @Data
+  public static class Csv {
+    String lineDelimeter = "crlf";
+    char quoteCharacter = '"';
+    String quoteStrategy = "required";
+    char fieldSeparator = ',';
+  }
+
   @Data
   public static class AdminClient {
     Integer timeout;

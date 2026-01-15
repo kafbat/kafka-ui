@@ -10,6 +10,9 @@ kafka:
     - name: local
       bootstrapServers: localhost:9092
       schemaRegistry: http://localhost:8085
+      kafka-connect:
+        - name: test
+          address: http://localhost:8083
   fts:
     enabled: true
     default-enabled: true

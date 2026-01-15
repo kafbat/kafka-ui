@@ -3,8 +3,6 @@ import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeader
 import { ConsumerGroupTopicPartition, SortOrder } from 'generated-sources';
 import React from 'react';
 
-import { ContentBox, TopicContentWrapper } from './TopicContent.styled';
-
 interface Props {
   consumers: ConsumerGroupTopicPartition[];
 }
@@ -129,40 +127,34 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
   }, [orderBy, sortOrder, consumers]);
 
   return (
-    <TopicContentWrapper>
-      <td colSpan={3}>
-        <ContentBox>
-          <Table isFullwidth>
-            <thead>
-              <tr>
-                {TABLE_HEADERS_MAP.map((header) => (
-                  <TableHeaderCell
-                    key={header.orderBy}
-                    title={header.title}
-                    orderBy={orderBy}
-                    sortOrder={sortOrder}
-                    orderValue={header.orderBy}
-                    handleOrderBy={handleOrder}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedConsumers.map((consumer) => (
-                <tr key={consumer.partition}>
-                  <td>{consumer.partition}</td>
-                  <td>{consumer.consumerId}</td>
-                  <td>{consumer.host}</td>
-                  <td>{consumer.consumerLag}</td>
-                  <td>{consumer.currentOffset}</td>
-                  <td>{consumer.endOffset}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </ContentBox>
-      </td>
-    </TopicContentWrapper>
+    <Table isFullwidth>
+      <thead>
+        <tr>
+          {TABLE_HEADERS_MAP.map((header) => (
+            <TableHeaderCell
+              key={header.orderBy}
+              title={header.title}
+              orderBy={orderBy}
+              sortOrder={sortOrder}
+              orderValue={header.orderBy}
+              handleOrderBy={handleOrder}
+            />
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sortedConsumers.map((consumer) => (
+          <tr key={consumer.partition}>
+            <td>{consumer.partition}</td>
+            <td>{consumer.consumerId}</td>
+            <td>{consumer.host}</td>
+            <td>{consumer.consumerLag}</td>
+            <td>{consumer.currentOffset}</td>
+            <td>{consumer.endOffset}</td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
   );
 };
 

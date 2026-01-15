@@ -75,7 +75,7 @@ model ApplicationConfig {
   properties: {
     auth?: {
       type: string;
-      oauth2: {
+      oauth2?: {
         client?: Record<{
             provider: string;
             clientId: string;
@@ -302,6 +302,7 @@ enum ResourceType {
   CONSUMER,
   SCHEMA,
   CONNECT,
+  CONNECTOR,
   KSQL,
   ACL,
   AUDIT,

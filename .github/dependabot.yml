@@ -16,28 +16,58 @@ updates:
     # In general, our Netty references are temporary overrides, usually applied to address transitive Spring vulnerabilities, and should be configured with caution
     # In general, having conflicting Netty versions in the classpath is not recommended
     - dependency-name: "io.netty:*"
+    # We will handle major upgrades manually
+    - dependency-name: "*"
+      update-types:
+        - "version-update:semver-major"
   groups:
     spring-boot-dependencies:
       patterns:
         - "org.springframework.boot:*"
         - "io.spring.dependency-management"
-      # We will handle major upgrades manually
-      update-types:
-        - "patch"
-        - "minor"
-      exclude-patterns:
-          - "org.springframework.boot:*"
-          - "io.spring.dependency-management"
-    other-dependencies:
-      exclude-patterns:
-        - "org.springframework.boot:*"
-        - "io.spring.dependency-management"
+        # We defined this dependency explicitly because Spring uses an older version
+        - "com.nimbusds:nimbus-jose-jwt"
+    testing:
+      # TODO: Consider using dependency-type when https://github.com/dependabot/dependabot-core/issues/13122 is supported
+      patterns:
+        - "org.testcontainers:*"
+        - "org.junit.jupiter:*"
+        - "org.assertj:*"
+        - "com.bmuschko.docker-remote-api"
+        - "org.mockito:*"
+        # Bouncy Castle is only used for testing purposes
+        - "org.bouncycastle:bcpkix-jdk18on"
+    api-build-tools:
+      patterns:
+        - "org.openapitools:*"
+        - "com.github.java-json-tools:*"
+        - "com.github.victools:*"
+    # Update Apache Commons libraries together as these dependencies rarely introduce breaking changes
+    apache-commons:
+      patterns:
+        - "org.apache.commons:*"
+    kafka:
+      patterns:
+        - "org.apache.kafka:*"
+        - "io.confluent:*"
+    schema-tools:
+      patterns:
+        - "com.github.victools:jsonschema-generator"
+        - "com.github.java-json-tools:json-schema-validator"
+        - "org.openapitools.openapistylevalidator"
+        - "org.openapi.generator"
+        - "io.swagger.core.v3:*"
+    lucene:
+      patterns:
+        - "org.apache.lucene:*"
+    # This dependency is in the 0.x stage and may introduce breaking changes in minor/patch releases
+    # We group it separately to avoid blocking updates in the 'others' group
+    modelcontextprotocol:
+      patterns:
+        - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
+    others:
       patterns:
         - "*"
-      update-types:
-        - "patch"
-        - "minor"
-
 - package-ecosystem: docker
   directory: "/api"
   schedule:
@@ -46,6 +76,7 @@ updates:
     timezone: Europe/London
   open-pull-requests-limit: 10
   ignore:
+    # We handle Major Java updates manually
   - dependency-name: "azul/zulu-openjdk-alpine"
     update-types: ["version-update:semver-major"]
   labels:
@@ -78,6 +109,10 @@ updates:
     time: "10:00"
     timezone: Europe/London
   open-pull-requests-limit: 10
+  groups:
+    github-actions:
+      patterns:
+        - "*"
   labels:
     - "type/dependencies"
     - "scope/infra"

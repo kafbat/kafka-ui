@@ -6,7 +6,6 @@ import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricMetadata;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
-import java.util.Map;
 import java.util.Optional;
 
 public class MetricsUtils {

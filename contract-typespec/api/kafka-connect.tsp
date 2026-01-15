@@ -15,6 +15,12 @@ interface ConnectInstancesApi {
   getConnects(@path clusterName: string, @query withStats?: boolean): Connect[];
 
   @get
+  @operationId("getConnectsCsv")
+  @summary("getConnects")
+  @route("/csv")
+  getConnectsCsv(@path clusterName: string, @query withStats?: boolean): CsvResponse;
+
+  @get
   @route("/{connectName}/plugins")
   @summary("get connector plugins")
   @operationId("getConnectorPlugins")
@@ -49,6 +55,18 @@ interface ConnectorsApi {
     @query sortOrder?: SortOrder,
     @query fts?: boolean
   ): FullConnectorInfo[];
+
+  @get
+  @operationId("getAllConnectorsCsv")
+  @summary("getAllConnectorsCsv")
+  @route("/csv")
+  getAllConnectorsCsv(
+    @path clusterName: string,
+    @query search?: string,
+    @query orderBy?: ConnectorColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
 }
 
 // /api/clusters/{clusterName}/connects/{connectName}/connectors

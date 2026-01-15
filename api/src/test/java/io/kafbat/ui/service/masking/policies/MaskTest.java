@@ -43,7 +43,7 @@ class MaskTest {
             parse("{ \"outer\": { \"f1\": \"James\", \"name\": \"Xxxxnnn-\"}}")
         ),
         Arguments.of(
-            (FieldsSelector) (fieldName -> true),
+            (FieldsSelector) (_ -> true),
             parse("{ \"outer\": { \"f1\": \"James\", \"name\": \"Bond777!\"}}"),
             parse("{ \"outer\": { \"f1\": \"Xxxxx\", \"name\": \"Xxxxnnn-\"}}")
         )
@@ -57,7 +57,7 @@ class MaskTest {
       "null, xxxx"
   })
   void testApplyToString(String original, String expected) {
-    Mask policy = new Mask(fieldName -> true, PATTERN);
+    Mask policy = new Mask(_ -> true, PATTERN);
     assertThat(policy.applyToString(original)).isEqualTo(expected);
   }
 

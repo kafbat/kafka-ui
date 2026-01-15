@@ -32,7 +32,9 @@ def typeSpecs = ["api"]
 
 typeSpecs.each { spec ->
 
-    def tspPath = "\\tsp --output-dir=${project.layout.buildDirectory.get()}/tsp/${spec} compile .\\"
+    def buildDir = project.layout.buildDirectory.get().asFile
+    def outputDir = new File(buildDir, "tsp${File.separator}${spec}")
+    def tspPath = "tsp --output-dir=\"${outputDir}\" compile ."
 
     tasks.register("installDependencies_${spec}", NpmTask) {
         group = 'build'

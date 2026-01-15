@@ -5,7 +5,7 @@ import MessageToggleIcon from 'components/common/Icons/MessageToggleIcon';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import { Dropdown, DropdownItem } from 'components/common/Dropdown';
 import { ActionDropdownItem } from 'components/common/ActionComponent';
-import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { JSONPath } from 'jsonpath-plus';
 import Ellipsis from 'components/common/Ellipsis/Ellipsis';
 import WarningRedIcon from 'components/common/Icons/WarningRedIcon';
@@ -130,13 +130,14 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <div>
-            {formatTimestamp({
+          <Tooltip
+            value={timeAgo(timestamp)}
+            content={formatTimestamp({
               timestamp,
               timezone: currentTimezone.value,
               withMilliseconds: true,
             })}
-          </div>
+          />
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>

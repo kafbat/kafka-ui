@@ -23,7 +23,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: release-drafter/release-drafter@3f0f87098bd6b5c5b9a36d49c41d998ea58f9348 # infered from @v6
+      - uses: release-drafter/release-drafter@3f0f87098bd6b5c5b9a36d49c41d998ea58f9348 # https://github.com/release-drafter/release-drafter/releases/tag/v6.1.0
         with:
           config-name: release_drafter.yaml
           disable-autolabeler: true

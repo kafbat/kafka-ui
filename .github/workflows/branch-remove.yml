@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ (github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public') || (github.event.action == 'closed' && (contains(github.event.pull_request.labels.*.name, 'status/feature_testing') || contains(github.event.pull_request.labels.*.name, 'status/feature_testing_public'))) }}
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
         with:
           token: ${{ github.token }}
       - name: clone
