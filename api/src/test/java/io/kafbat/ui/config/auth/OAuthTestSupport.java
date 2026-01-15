@@ -163,6 +163,24 @@ public final class OAuthTestSupport {
         .build();
   }
 
+  /**
+   * Creates a GitHub-style client registration WITHOUT "openid" scope.
+   * This tests the non-OIDC OAuth2 flow where no ID token is returned.
+   */
+  public static ClientRegistration githubStyleClientRegistration() {
+    return ClientRegistration.withRegistrationId("github")
+        .clientId(CLIENT_ID)
+        .clientSecret(CLIENT_SECRET)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+        .scope("read:user")  // No "openid" scope - this is key for non-OIDC
+        .authorizationUri(oauthBaseUrl() + AUTHORIZE_PATH)
+        .tokenUri(oauthBaseUrl() + TOKEN_PATH)
+        .userInfoUri(oauthBaseUrl() + USERINFO_PATH)
+        .userNameAttributeName("login")
+        .build();
+  }
+
   public static OAuthProperties createOAuthProperties() {
     OAuthProperties props = mock(OAuthProperties.class);
     OAuthProperties.OAuth2Provider provider = mock(OAuthProperties.OAuth2Provider.class);
