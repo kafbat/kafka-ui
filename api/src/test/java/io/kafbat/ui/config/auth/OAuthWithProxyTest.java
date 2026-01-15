@@ -141,4 +141,53 @@ class OAuthWithProxyTest {
     }
   }
 
+  /**
+   * Tests non-OIDC OAuth2 flow (GitHub-style) where no "openid" scope is present.
+   * This verifies that DelegatingReactiveAuthenticationManager correctly falls back
+   * to OAuth2LoginReactiveAuthenticationManager when OidcAuthorizationCodeReactiveAuthenticationManager
+   * returns empty (due to missing "openid" scope).
+   */
+  @Nested
+  @SpringBootTest(
+      classes = {OAuthSecurityConfig.class, OAuthTestSupport.BaseTestConfig.class},
+      properties = {"spring.main.allow-bean-definition-overriding=true", "auth.type=OAUTH2"})
+  @ContextConfiguration(initializers = OAuthTestSupport.WithProxyInitializer.class)
+  @DirtiesContext
+  @ActiveProfiles("test")
+  class GitHubStyleOAuth2 {
+
+    @Autowired
+    ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> userService;
+
+    @BeforeEach
+    void setup() {
+      OAuthTestSupport.resetServers();
+      // GitHub-style userinfo response (uses "login" as username attribute)
+      OAuthTestSupport.getOAuthServer().stubFor(get(urlPathEqualTo(USERINFO_PATH))
+          .willReturn(aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+              .withBody("{\"login\":\"octocat\",\"id\":1,\"name\":\"The Octocat\"}")));
+    }
+
+    @Test
+    void nonOidcUserInfoRequestSucceeds() {
+      var token = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "gh-token",
+          Instant.now(), Instant.now().plus(Duration.ofHours(1)));
+      // Use GitHub-style registration (no "openid" scope)
+      var request = new OAuth2UserRequest(OAuthTestSupport.githubStyleClientRegistration(), token);
+
+      StepVerifier.create(userService.loadUser(request))
+          .assertNext(user -> {
+            // GitHub uses "login" as the username attribute
+            assertThat(user.getName()).isEqualTo("octocat");
+            assertThat(user.getAttributes()).containsEntry("login", "octocat");
+            assertThat(user.getAttributes()).containsEntry("name", "The Octocat");
+          })
+          .verifyComplete();
+
+      OAuthTestSupport.getOAuthServer().verify(getRequestedFor(urlPathEqualTo(USERINFO_PATH)));
+    }
+  }
+
 }
