@@ -173,7 +173,8 @@ class AuditServiceTest {
         clustersProperties.setAudit(auditProps);
 
         var exp = assertThrows(RuntimeException.class,
-            () -> createTopicIfNeeded(cluster, () -> { throw new RuntimeException(); }, AUDIT_TOPIC, auditProps));
+            () -> createTopicIfNeeded(cluster, () -> {
+              throw new RuntimeException(); }, AUDIT_TOPIC, auditProps));
 
         assertEquals("Error while connecting to the cluster to create the audit topic '" + AUDIT_TOPIC + "'",
             exp.getMessage());
