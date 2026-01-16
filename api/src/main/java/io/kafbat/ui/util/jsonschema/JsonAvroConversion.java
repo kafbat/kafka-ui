@@ -205,9 +205,7 @@ public class JsonAvroConversion {
         ObjectNode node = MAPPER.createObjectNode();
         for (Schema.Field field : avroSchema.getFields()) {
           var fieldVal = rec.get(field.name());
-          if (fieldVal != null) {
-            node.set(field.name(), convertAvroToJson(fieldVal, field.schema()));
-          }
+          node.set(field.name(), convertAvroToJson(fieldVal, field.schema()));
         }
         yield node;
       }
@@ -274,22 +272,11 @@ public class JsonAvroConversion {
   }
 
   // select name for a key field that represents type name of union.
-  // For records selects short name, if it is possible.
+  // Always returns fully qualified name for Avro JSON encoding compatibility.
   private static String selectUnionTypeFieldName(Schema unionSchema,
                                                  Schema chosenType,
                                                  int chosenTypeIdx) {
-    var types = unionSchema.getTypes();
-    if (types.size() == 2 && types.contains(NULL_SCHEMA)) {
-      return chosenType.getName();
-    }
-    for (int i = 0; i < types.size(); i++) {
-      if (i != chosenTypeIdx && chosenType.getName().equals(types.get(i).getName())) {
-        // there is another type inside union with the same name
-        // so, we have to use fullname
-        return chosenType.getFullName();
-      }
-    }
-    return chosenType.getName();
+    return chosenType.getFullName();
   }
 
   private static Object processLogicalType(JsonNode node, Schema schema) {
