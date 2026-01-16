@@ -1,12 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
-import useAppParams from 'lib/hooks/useAppParams';
-import { clusterSchemaPath, RouteParamsClusterTopic } from 'lib/paths';
 
 import * as S from './MessageContent.styled';
 
@@ -22,9 +19,6 @@ export interface MessageContentProps {
   contentSize?: number;
   keySerde?: string;
   valueSerde?: string;
-  keyDeserializeProperties?: { [key: string]: unknown };
-  valueDeserializeProperties?: { [key: string]: unknown };
-  topicName?: string;
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
@@ -37,12 +31,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
   contentSize,
   keySerde,
   valueSerde,
-  keyDeserializeProperties,
-  valueDeserializeProperties,
-  topicName,
 }) => {
   const { currentTimezone } = useTimezone();
-  const { clusterName } = useAppParams<RouteParamsClusterTopic>();
 
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
   const activeTabContent = () => {
@@ -146,46 +136,6 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 </S.MetadataMeta>
               </span>
             </S.Metadata>
-
-            {keyDeserializeProperties?.schemaId != null && (
-              <S.Metadata>
-                <S.MetadataLabel>Key Schema ID</S.MetadataLabel>
-                <span>
-                  <S.MetadataValue>
-                    <Link
-                      to={clusterSchemaPath(clusterName, `${topicName}-key`)}
-                    >
-                      {String(keyDeserializeProperties.schemaId)}
-                    </Link>
-                  </S.MetadataValue>
-                  {keyDeserializeProperties.type != null && (
-                    <S.MetadataMeta>
-                      Type: {String(keyDeserializeProperties.type)}
-                    </S.MetadataMeta>
-                  )}
-                </span>
-              </S.Metadata>
-            )}
-
-            {valueDeserializeProperties?.schemaId != null && (
-              <S.Metadata>
-                <S.MetadataLabel>Value Schema ID</S.MetadataLabel>
-                <span>
-                  <S.MetadataValue>
-                    <Link
-                      to={clusterSchemaPath(clusterName, `${topicName}-value`)}
-                    >
-                      {String(valueDeserializeProperties.schemaId)}
-                    </Link>
-                  </S.MetadataValue>
-                  {valueDeserializeProperties.type != null && (
-                    <S.MetadataMeta>
-                      Type: {String(valueDeserializeProperties.type)}
-                    </S.MetadataMeta>
-                  )}
-                </span>
-              </S.Metadata>
-            )}
           </S.MetadataWrapper>
         </S.Section>
       </td>
