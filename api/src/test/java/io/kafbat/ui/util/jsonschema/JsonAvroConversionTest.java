@@ -641,7 +641,7 @@ class JsonAvroConversionTest {
 
       var r = new GenericData.Record(schema);
       r.put("f_union", null);
-      assertJsonsEqual(" {}", convertAvroToJson(r, schema));
+      assertJsonsEqual(" { \"f_union\" : null }", convertAvroToJson(r, schema));
 
       r = new GenericData.Record(schema);
       r.put("f_union", 123);
@@ -652,9 +652,9 @@ class JsonAvroConversionTest {
       var innerRec = new GenericData.Record(schema);
       innerRec.put("f_union", 123);
       r.put("f_union", innerRec);
-      // short type name can be set since there is NO clash with other types name
+      // always use fully qualified type name for Avro JSON encoding compatibility
       assertJsonsEqual(
-          " { \"f_union\" : { \"TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
+          " { \"f_union\" : { \"com.test.TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
           convertAvroToJson(r, schema)
       );
     }
@@ -687,13 +687,30 @@ class JsonAvroConversionTest {
               }"""
       );
 
+      var nestedClassSchema = schema.getField("nestedClass").schema();
+
       var r = new GenericData.Record(schema);
+      var nestedClassRec = new GenericData.Record(nestedClassSchema);
+      nestedClassRec.put("inner_obj_field", 999);
+      r.put("nestedClass", nestedClassRec);
       var innerRec = new GenericData.Record(schema);
       innerRec.put("f_union", 123);
+      innerRec.put("nestedClass", nestedClassRec);
       r.put("f_union", innerRec);
       // full type name should be set since there is a clash with other type name
+      // null fields are now included in output
       assertJsonsEqual(
-          " { \"f_union\" : { \"com.test.TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
+          """
+          {
+            "nestedClass": { "inner_obj_field": 999 },
+            "f_union": {
+              "com.test.TestAvroRecord": {
+                "nestedClass": { "inner_obj_field": 999 },
+                "f_union": { "int": 123 }
+              }
+            }
+          }
+          """,
           convertAvroToJson(r, schema)
       );
     }
@@ -725,16 +742,74 @@ class JsonAvroConversionTest {
     inputRecord.put("enum_nullable_union",
         new GenericData.EnumSymbol(
             schema.getField("enum_nullable_union").schema().getTypes().get(1), "SPADES"));
+    // uses fully qualified type name for Avro JSON encoding compatibility
     String expectedJsonWithEnum = """
           {
-            "enum_nullable_union": { "Suit": "SPADES"}\s
+            "enum_nullable_union": { "com.test.Suit": "SPADES"}
           }
-         \s""";
+          """;
     assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema));
 
     GenericData.Record inputNullRecord  = new GenericData.Record(schema);
     inputNullRecord.put("enum_nullable_union", null);
-    assertJsonsEqual("{}", convertAvroToJson(inputNullRecord, schema));
+    // null fields are now included in output
+    assertJsonsEqual("{ \"enum_nullable_union\": null }", convertAvroToJson(inputNullRecord, schema));
+  }
+
+  @Test
+  void nullFieldsAreIncludedInOutput() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "io.kafbat.test",
+               "name": "TestMessage",
+               "fields": [
+                 {"name": "id", "type": "string"},
+                 {"name": "nullable_field", "type": ["null", "string"], "default": null},
+                 {"name": "nested_record", "type": ["null", {
+                   "type": "record",
+                   "name": "NestedRecord",
+                   "fields": [{"name": "value", "type": "string"}]
+                 }], "default": null}
+               ]
+            }"""
+    );
+
+    // Test with all fields null (except required id)
+    GenericData.Record recordWithNulls = new GenericData.Record(schema);
+    recordWithNulls.put("id", "test-id-1");
+    recordWithNulls.put("nullable_field", null);
+    recordWithNulls.put("nested_record", null);
+
+    String expectedWithNulls = """
+        {
+          "id": "test-id-1",
+          "nullable_field": null,
+          "nested_record": null
+        }
+        """;
+    assertJsonsEqual(expectedWithNulls, convertAvroToJson(recordWithNulls, schema));
+
+    // Test with nested record populated
+    var nestedSchema = schema.getField("nested_record").schema().getTypes().get(1);
+    var nestedRecord = new GenericData.Record(nestedSchema);
+    nestedRecord.put("value", "nested-value");
+
+    GenericData.Record recordWithNested = new GenericData.Record(schema);
+    recordWithNested.put("id", "test-id-2");
+    recordWithNested.put("nullable_field", "some-string");
+    recordWithNested.put("nested_record", nestedRecord);
+
+    // uses fully qualified type name for Avro JSON encoding compatibility
+    String expectedWithNested = """
+        {
+          "id": "test-id-2",
+          "nullable_field": { "string": "some-string" },
+          "nested_record": { "io.kafbat.test.NestedRecord": { "value": "nested-value" } }
+        }
+        """;
+    assertJsonsEqual(expectedWithNested, convertAvroToJson(recordWithNested, schema));
   }
 
   private Schema createSchema(String schema) {

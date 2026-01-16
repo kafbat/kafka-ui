@@ -296,6 +296,7 @@ class SchemaRegistrySerdeTest {
           "f_enum": "SPADES",
           "f_map": { "k1": "string value" },
           "f_union": { "int": 123 },
+          "f_optional_to_test_not_filled_case": null,
           "f_fixed": "\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\u0004Ò",
           "f_bytes": "\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\\t)"
         }
