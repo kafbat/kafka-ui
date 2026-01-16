@@ -152,12 +152,16 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 <S.MetadataLabel>Key Schema ID</S.MetadataLabel>
                 <span>
                   <S.MetadataValue>
-                    <Link to={clusterSchemaPath(clusterName, `${topicName}-key`)}>
+                    <Link
+                      to={clusterSchemaPath(clusterName, `${topicName}-key`)}
+                    >
                       {String(keyDeserializeProperties.schemaId)}
                     </Link>
                   </S.MetadataValue>
                   {keyDeserializeProperties.type != null && (
-                    <S.MetadataMeta>Type: {String(keyDeserializeProperties.type)}</S.MetadataMeta>
+                    <S.MetadataMeta>
+                      Type: {String(keyDeserializeProperties.type)}
+                    </S.MetadataMeta>
                   )}
                 </span>
               </S.Metadata>
@@ -168,12 +172,16 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 <S.MetadataLabel>Value Schema ID</S.MetadataLabel>
                 <span>
                   <S.MetadataValue>
-                    <Link to={clusterSchemaPath(clusterName, `${topicName}-value`)}>
+                    <Link
+                      to={clusterSchemaPath(clusterName, `${topicName}-value`)}
+                    >
                       {String(valueDeserializeProperties.schemaId)}
                     </Link>
                   </S.MetadataValue>
                   {valueDeserializeProperties.type != null && (
-                    <S.MetadataMeta>Type: {String(valueDeserializeProperties.type)}</S.MetadataMeta>
+                    <S.MetadataMeta>
+                      Type: {String(valueDeserializeProperties.type)}
+                    </S.MetadataMeta>
                   )}
                 </span>
               </S.Metadata>
