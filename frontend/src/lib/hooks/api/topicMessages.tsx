@@ -88,6 +88,24 @@ export const useTopicMessages = ({
             searchParams.get(MessagesFilterKeys.timestamp) || '0'
           );
           break;
+        case PollingMode.TIMESTAMP_RANGE: {
+          // Only set timestamp if it has a value (partial range supported)
+          const timestampValue = searchParams.get(MessagesFilterKeys.timestamp);
+          if (timestampValue) {
+            requestParams.set(MessagesFilterKeys.timestamp, timestampValue);
+          }
+          // Only set endTimestamp if it has a value (partial range supported)
+          const endTimestampValue = searchParams.get(
+            MessagesFilterKeys.endTimestamp
+          );
+          if (endTimestampValue) {
+            requestParams.set(
+              MessagesFilterKeys.endTimestamp,
+              endTimestampValue
+            );
+          }
+          break;
+        }
         case PollingMode.TO_OFFSET:
         case PollingMode.FROM_OFFSET:
           requestParams.set(
