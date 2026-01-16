@@ -44,6 +44,14 @@ export const mockMessage: TopicMessage = {
   partition: 6,
   value: '{"data": "test"}',
   headers: { header: 'test' },
+  keyDeserializeProperties: undefined,
+  valueDeserializeProperties: undefined,
+};
+
+export const mockMessageWithSchema: TopicMessage = {
+  ...mockMessage,
+  valueDeserializeProperties: { schemaId: 1, type: 'AVRO' },
+  keyDeserializeProperties: { schemaId: 2, type: 'AVRO' },
 };
 
 export const mockKeyFilters: PreviewFilter = {
