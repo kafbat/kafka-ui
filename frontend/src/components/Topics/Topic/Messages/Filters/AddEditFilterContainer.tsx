@@ -24,13 +24,8 @@ import { useIsMessagesSmartFilterPersisted } from 'lib/hooks/useMessagesFilters'
 import QuestionInfo from './QuestionInfo';
 
 const validationSchema = yup.object().shape({
-  saveFilter: yup.boolean(),
   value: yup.string().required(),
-  id: yup.string().when('saveFilter', {
-    is: (value: boolean | undefined) => typeof value === 'undefined' || value,
-    then: (schema) => schema.required(),
-    otherwise: (schema) => schema.notRequired(),
-  }),
+  id: yup.string(),
 });
 
 export interface AddEditFilterContainerProps {
@@ -40,12 +35,36 @@ export interface AddEditFilterContainerProps {
   setSmartFilter: (filter: AdvancedFilter, persisted?: boolean) => void;
 }
 
-interface AddMessageFilters extends Omit<AdvancedFilter, 'filterCode'> {
-  saveFilter: boolean;
+interface AddMessageFilters extends Omit<AdvancedFilter, 'filterCode'> {}
+
+function codeToName(code: string) {
+  if (code.length > 32) {
+    return code.substring(0, 32);
+  }
+  return code;
 }
 
-function submitValidation(id: string, currentFilterId: string): boolean {
+function submitValidation(
+  id: string,
+  code: string,
+  currentFilterId: string
+): boolean {
   const filter = selectFilter(id)(useMessageFiltersStore.getState());
+
+  if (id === '') {
+    const name = codeToName(code);
+    const filters = Object.keys(useMessageFiltersStore.getState().filters);
+
+    if (filters.includes(name)) {
+      showAlert('error', {
+        id: '',
+        title: 'Validation Error',
+        message: `The name “${name}” already exists. Please enter a unique name.`,
+      });
+    }
+
+    return true;
+  }
 
   if (filter && filter.id !== currentFilterId) {
     showAlert('error', {
@@ -64,8 +83,8 @@ function getLabelName(values: AddMessageFilters) {
     return values.id;
   }
 
-  if (values.value.length > 24) {
-    return values.value.substring(0, 10);
+  if (values.value.length > 32) {
+    return codeToName(values.value);
   }
 
   return values.value;
@@ -84,11 +103,13 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const save = useMessageFiltersStore((state) => state.save);
   const replace = useMessageFiltersStore((state) => state.replace);
-  const commit = useMessageFiltersStore((state) => state.commit);
 
   const methods = useForm<AddMessageFilters>({
-    mode: 'onChange',
-    resolver: yupResolver(validationSchema),
+    mode: 'onTouched',
+    resolver: yupResolver(validationSchema, { context: ['name name'] }),
+    context: {
+      value: ['name'],
+    },
     defaultValues: {
       id: currentFilter?.id,
       value: currentFilter?.value,
@@ -98,14 +119,13 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
     handleSubmit,
     control,
     formState: { isDirty, isSubmitting, isValid, errors },
-    reset,
   } = methods;
 
   const { mutateAsync } = useRegisterSmartFilter({ clusterName, topicName });
 
   const onSubmit = async (values: AddMessageFilters) => {
     try {
-      if (submitValidation(values.id, filterId)) {
+      if (submitValidation(values.id, values.value, filterId)) {
         return;
       }
 
@@ -118,14 +138,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
         };
 
         if (isEdit) {
-          if (isPersisted) {
-            replace(filterId, filterValue);
-          } else {
-            // update the non persisted storage to pick up names
-            commit(filterValue);
-          }
-
-          // when the active is the one that is getting edited
+          replace(filterId, filterValue);
           if (smartFilter?.id === filterId) {
             setSmartFilter(filterValue, isPersisted);
           }
@@ -134,14 +147,8 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
           return;
         }
 
-        if (values.saveFilter) {
-          save(filterValue);
-          reset({ id: '', value: '', saveFilter: false });
-          return;
-        }
-
-        commit(filterValue);
-        setSmartFilter(filterValue, false);
+        save(filterValue);
+        setSmartFilter(filterValue);
         closeSideBar();
       }
     } catch (e) {
@@ -175,12 +182,6 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
             <ErrorMessage errors={errors} name="value" />
           </FormError>
         </div>
-        {!isEdit && (
-          <InputLabel>
-            <input {...methods.register('saveFilter')} type="checkbox" />
-            Save this filter
-          </InputLabel>
-        )}
         <div>
           <InputLabel>Display name</InputLabel>
           <Input
