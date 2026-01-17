@@ -13,6 +13,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
+import io.kafbat.ui.service.validators.KafkaPropertiesConstraintsValidator;
 import io.kafbat.ui.util.KafkaVersion;
 import io.kafbat.ui.util.MetadataVersion;
 import io.kafbat.ui.util.annotation.KafkaClientInternalsDependant;
@@ -488,6 +489,9 @@ public class ReactiveAdminClient implements Closeable {
                                 int numPartitions,
                                 @Nullable Integer replicationFactor,
                                 Map<String, String> configs) {
+    KafkaPropertiesConstraintsValidator validator = new KafkaPropertiesConstraintsValidator(replicationFactor,
+                                                                                               configs);
+    validator.validate();
     var newTopic = new NewTopic(
         name,
         Optional.of(numPartitions),
