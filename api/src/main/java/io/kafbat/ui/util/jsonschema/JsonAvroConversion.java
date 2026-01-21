@@ -195,7 +195,10 @@ public class JsonAvroConversion {
   // converts output of KafkaAvroDeserializer (with AVRO_USE_LOGICAL_TYPE_CONVERTERS flat enabled!) into json.
   // Note: conversion should be compatible with AvroJsonSchemaConverter logic!
   @SuppressWarnings("unchecked")
-  public static JsonNode convertAvroToJson(Object obj, Schema avroSchema) {
+  public static JsonNode convertAvroToJson(Object obj, Schema avroSchema, Map<String, Object> options) {
+    boolean showNullValues = Boolean.TRUE.equals(options.get("showNullValues"));
+    boolean useFullyQualifiedNames = Boolean.TRUE.equals(options.get("useFullyQualifiedNames"));
+
     if (obj == null) {
       return NullNode.getInstance();
     }
@@ -205,19 +208,22 @@ public class JsonAvroConversion {
         ObjectNode node = MAPPER.createObjectNode();
         for (Schema.Field field : avroSchema.getFields()) {
           var fieldVal = rec.get(field.name());
-          node.set(field.name(), convertAvroToJson(fieldVal, field.schema()));
+          if (showNullValues || fieldVal != null) {
+            node.set(field.name(), convertAvroToJson(fieldVal, field.schema(), options));
+          }
         }
         yield node;
       }
       case MAP -> {
         ObjectNode node = MAPPER.createObjectNode();
-        ((Map<?, ?>) obj).forEach((k, v) -> node.set(k.toString(), convertAvroToJson(v, avroSchema.getValueType())));
+        ((Map<?, ?>) obj).forEach((k, v) -> node.set(k.toString(),
+            convertAvroToJson(v, avroSchema.getValueType(), options)));
         yield node;
       }
       case ARRAY -> {
         var list = (List<Object>) obj;
         ArrayNode node = MAPPER.createArrayNode();
-        list.forEach(e -> node.add(convertAvroToJson(e, avroSchema.getElementType())));
+        list.forEach(e -> node.add(convertAvroToJson(e, avroSchema.getElementType(), options)));
         yield node;
       }
       case ENUM -> new TextNode(obj.toString());
@@ -226,8 +232,8 @@ public class JsonAvroConversion {
         int unionIdx = AvroSchemaUtils.getGenericData().resolveUnion(avroSchema, obj);
         Schema selectedType = avroSchema.getTypes().get(unionIdx);
         node.set(
-            selectUnionTypeFieldName(avroSchema, selectedType, unionIdx),
-            convertAvroToJson(obj, selectedType)
+            selectUnionTypeFieldName(avroSchema, selectedType, unionIdx, useFullyQualifiedNames),
+            convertAvroToJson(obj, selectedType, options)
         );
         yield node;
       }
@@ -272,11 +278,27 @@ public class JsonAvroConversion {
   }
 
   // select name for a key field that represents type name of union.
-  // Always returns fully qualified name for Avro JSON encoding compatibility.
   private static String selectUnionTypeFieldName(Schema unionSchema,
                                                  Schema chosenType,
-                                                 int chosenTypeIdx) {
-    return chosenType.getFullName();
+                                                 int chosenTypeIdx,
+                                                 boolean forceFullyQualifiedNames) {
+    // If flag is set, always use fully qualified names
+    if (forceFullyQualifiedNames) {
+      return chosenType.getFullName();
+    }
+    // Otherwise, auto-detect: use short names unless there's a clash
+    var types = unionSchema.getTypes();
+    if (types.size() == 2 && types.contains(NULL_SCHEMA)) {
+      return chosenType.getName();
+    }
+    for (int i = 0; i < types.size(); i++) {
+      if (i != chosenTypeIdx && chosenType.getName().equals(types.get(i).getName())) {
+        // there is another type inside union with the same name
+        // so, we have to use fullname
+        return chosenType.getFullName();
+      }
+    }
+    return chosenType.getName();
   }
 
   private static Object processLogicalType(JsonNode node, Schema schema) {
