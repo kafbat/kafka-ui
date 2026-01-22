@@ -11,7 +11,6 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
-import java.util.Collections;
 import java.util.Map;
 import lombok.SneakyThrows;
 
