@@ -49,6 +49,7 @@ public class ClustersProperties {
 
   @Data
   public static class Csv {
+
     String lineDelimeter = "crlf";
     char quoteCharacter = '"';
     String quoteStrategy = "required";
@@ -57,6 +58,7 @@ public class ClustersProperties {
 
   @Data
   public static class AdminClient {
+
     Integer timeout;
     int describeConsumerGroupsPartitionSize = 50;
     int describeConsumerGroupsConcurrency = 4;
@@ -68,8 +70,10 @@ public class ClustersProperties {
 
   @Data
   public static class Cluster {
+
     @NotBlank(message = "field name for for cluster could not be blank")
     String name;
+
     @NotBlank(message = "field bootstrapServers for for cluster could not be blank")
     String bootstrapServers;
 
@@ -77,6 +81,7 @@ public class ClustersProperties {
 
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
+    SchemaRegistryOauth schemaRegistryOauth;
     KeystoreConfig schemaRegistrySsl;
 
     String ksqldbServer;
@@ -104,6 +109,7 @@ public class ClustersProperties {
 
   @Data
   public static class PollingProperties {
+
     Integer pollTimeoutMs;
     Integer maxPageSize;
     Integer defaultPageSize;
@@ -111,8 +117,9 @@ public class ClustersProperties {
   }
 
   @Data
-  @ToString(exclude = {"password", "keystorePassword"})
+  @ToString(exclude = { "password", "keystorePassword" })
   public static class MetricsConfig {
+
     String type;
     Integer port;
     Boolean ssl;
@@ -127,12 +134,14 @@ public class ClustersProperties {
 
   @Data
   public static class MetricsStorage {
+
     PrometheusStorage prometheus;
   }
 
   @Data
-  @ToString(exclude = {"pushGatewayPassword"})
+  @ToString(exclude = { "pushGatewayPassword" })
   public static class PrometheusStorage {
+
     String url;
     String pushGatewayUrl;
     String pushGatewayUsername;
@@ -145,12 +154,15 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder(toBuilder = true)
-  @ToString(exclude = {"password", "keystorePassword"})
+  @ToString(exclude = { "password", "keystorePassword" })
   public static class ConnectCluster {
+
     @NotBlank
     String name;
+
     @NotBlank
     String address;
+
     String username;
     String password;
     String keystoreLocation;
@@ -158,15 +170,26 @@ public class ClustersProperties {
   }
 
   @Data
-  @ToString(exclude = {"password"})
+  @ToString(exclude = { "password" })
   public static class SchemaRegistryAuth {
+
     String username;
     String password;
   }
 
   @Data
-  @ToString(exclude = {"truststorePassword"})
+  @ToString(exclude = { "clientSecret" })
+  public static class SchemaRegistryOauth {
+
+    String tokenUrl;
+    String clientId;
+    String clientSecret;
+  }
+
+  @Data
+  @ToString(exclude = { "truststorePassword" })
   public static class TruststoreConfig {
+
     String truststoreLocation;
     String truststorePassword;
     boolean verify = true;
@@ -175,16 +198,19 @@ public class ClustersProperties {
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
-  @ToString(exclude = {"keystorePassword"})
+  @ToString(exclude = { "keystorePassword" })
   public static class KeystoreConfig {
+
     String keystoreLocation;
     String keystorePassword;
   }
 
   @Data
   public static class SerdeConfig {
+
     @NotBlank
     String name;
+
     String className;
     String filePath;
     Map<String, Object> properties;
@@ -195,14 +221,17 @@ public class ClustersProperties {
   @Data
   @ToString(exclude = "password")
   public static class KsqldbServerAuth {
+
     String username;
     String password;
   }
 
   @Data
   public static class Masking {
+
     @NotNull
     Type type;
+
     List<String> fields;
     String fieldsNamePattern;
     List<String> maskingCharsReplacement; //used when type=MASK
@@ -211,7 +240,9 @@ public class ClustersProperties {
     String topicValuesPattern;
 
     public enum Type {
-      REMOVE, MASK, REPLACE
+      REMOVE,
+      MASK,
+      REPLACE,
     }
   }
 
@@ -219,6 +250,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class AuditProperties {
+
     String topic;
     Integer auditTopicsPartitions;
     Boolean topicAuditEnabled;
@@ -228,7 +260,7 @@ public class ClustersProperties {
 
     public enum LogLevel {
       ALL,
-      ALTER_ONLY //default
+      ALTER_ONLY, //default
     }
   }
 
@@ -236,6 +268,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class CacheProperties {
+
     boolean enabled = true;
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
   }
@@ -244,6 +277,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class NgramProperties {
+
     int ngramMin = 1;
     int ngramMax = 4;
     boolean distanceScore = true;
@@ -253,6 +287,7 @@ public class ClustersProperties {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class ClusterFtsProperties {
+
     boolean enabled = true;
     boolean defaultEnabled = false;
     NgramProperties schemas = new NgramProperties(1, 4, true);
@@ -324,12 +359,11 @@ public class ClustersProperties {
     for (Cluster clusterProperties : clusters) {
       if (!StringUtils.hasText(clusterProperties.getName())) {
         throw new IllegalStateException(
-            "Application config isn't valid. "
-                + "Cluster names should be provided in case of multiple clusters present");
+          "Application config isn't valid. " + "Cluster names should be provided in case of multiple clusters present"
+        );
       }
       if (!clusterNames.add(clusterProperties.getName())) {
-        throw new IllegalStateException(
-            "Application config isn't valid. Two clusters can't have the same name");
+        throw new IllegalStateException("Application config isn't valid. Two clusters can't have the same name");
       }
     }
   }
