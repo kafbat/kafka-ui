@@ -20,7 +20,7 @@ interface MessageFormatter {
   String format(String topic, byte[] value);
 
   static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
-                                                     Map<String, Object> formatterProperties) {
+                                                     FormatterProperties formatterProperties) {
     return Map.of(
         SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, formatterProperties),
         SchemaType.JSON, new JsonSchemaMessageFormatter(schemaRegistryClient),
@@ -30,10 +30,10 @@ interface MessageFormatter {
 
   class AvroMessageFormatter implements MessageFormatter {
     private final KafkaAvroDeserializer avroDeserializer;
-    private final Map<String, Object> properties;
+    private final FormatterProperties properties;
 
-    AvroMessageFormatter(SchemaRegistryClient client, Map<String, Object> properties) {
-      this.properties = properties != null ? properties : Collections.emptyMap();
+    AvroMessageFormatter(SchemaRegistryClient client, FormatterProperties properties) {
+      this.properties = properties != null ? properties : FormatterProperties.EMPTY;
       this.avroDeserializer = new KafkaAvroDeserializer(client);
       this.avroDeserializer.configure(
           Map.of(

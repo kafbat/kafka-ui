@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.primitives.Longs;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.kafbat.ui.exception.JsonAvroConversionException;
+import io.kafbat.ui.serdes.builtin.sr.FormatterProperties;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -441,26 +441,26 @@ class JsonAvroConversionTest {
 
     @Test
     void primitiveRoot() {
-      assertThat(convertAvroToJson("str", createSchema("\"string\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson("str", createSchema("\"string\""), FormatterProperties.EMPTY))
           .isEqualTo(new TextNode("str"));
 
-      assertThat(convertAvroToJson(123, createSchema("\"int\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson(123, createSchema("\"int\""), FormatterProperties.EMPTY))
           .isEqualTo(new IntNode(123));
 
-      assertThat(convertAvroToJson(123L, createSchema("\"long\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson(123L, createSchema("\"long\""), FormatterProperties.EMPTY))
           .isEqualTo(new LongNode(123));
 
-      assertThat(convertAvroToJson(123.1F, createSchema("\"float\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson(123.1F, createSchema("\"float\""), FormatterProperties.EMPTY))
           .isEqualTo(new FloatNode(123.1F));
 
-      assertThat(convertAvroToJson(123.1, createSchema("\"double\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson(123.1, createSchema("\"double\""), FormatterProperties.EMPTY))
           .isEqualTo(new DoubleNode(123.1));
 
-      assertThat(convertAvroToJson(true, createSchema("\"boolean\""), Collections.emptyMap()))
+      assertThat(convertAvroToJson(true, createSchema("\"boolean\""), FormatterProperties.EMPTY))
           .isEqualTo(BooleanNode.valueOf(true));
 
       assertThat(convertAvroToJson(
-          ByteBuffer.wrap(Longs.toByteArray(123L)), createSchema("\"bytes\""), Collections.emptyMap()))
+          ByteBuffer.wrap(Longs.toByteArray(123L)), createSchema("\"bytes\""), FormatterProperties.EMPTY))
           .isEqualTo(new TextNode(new String(Longs.toByteArray(123L), StandardCharsets.ISO_8859_1)));
     }
 
@@ -545,7 +545,7 @@ class JsonAvroConversionTest {
           }
           """;
 
-      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, Collections.emptyMap()));
+      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
     }
 
     @Test
@@ -621,7 +621,7 @@ class JsonAvroConversionTest {
           }
           """;
 
-      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, Collections.emptyMap()));
+      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
     }
 
     @Test
@@ -644,11 +644,11 @@ class JsonAvroConversionTest {
       // with default showNullValues=false, null fields are omitted
       var r = new GenericData.Record(schema);
       r.put("f_union", null);
-      assertJsonsEqual(" { }", convertAvroToJson(r, schema, Collections.emptyMap()));
+      assertJsonsEqual(" { }", convertAvroToJson(r, schema, FormatterProperties.EMPTY));
 
       r = new GenericData.Record(schema);
       r.put("f_union", 123);
-      assertJsonsEqual(" { \"f_union\" : { \"int\" : 123 } }", convertAvroToJson(r, schema, Collections.emptyMap()));
+      assertJsonsEqual(" { \"f_union\" : { \"int\" : 123 } }", convertAvroToJson(r, schema, FormatterProperties.EMPTY));
 
 
       r = new GenericData.Record(schema);
@@ -658,7 +658,7 @@ class JsonAvroConversionTest {
       // default useFullyQualifiedNames=false uses short type names
       assertJsonsEqual(
           " { \"f_union\" : { \"TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
-          convertAvroToJson(r, schema, Collections.emptyMap())
+          convertAvroToJson(r, schema, FormatterProperties.EMPTY)
       );
     }
 
@@ -714,7 +714,7 @@ class JsonAvroConversionTest {
             }
           }
           """,
-          convertAvroToJson(r, schema, Collections.emptyMap())
+          convertAvroToJson(r, schema, FormatterProperties.EMPTY)
       );
     }
 
@@ -751,12 +751,12 @@ class JsonAvroConversionTest {
             "enum_nullable_union": { "Suit": "SPADES"}
           }
           """;
-    assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema, Collections.emptyMap()));
+    assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
 
     GenericData.Record inputNullRecord  = new GenericData.Record(schema);
     inputNullRecord.put("enum_nullable_union", null);
     // default showNullValues=false omits null fields
-    assertJsonsEqual("{ }", convertAvroToJson(inputNullRecord, schema, Collections.emptyMap()));
+    assertJsonsEqual("{ }", convertAvroToJson(inputNullRecord, schema, FormatterProperties.EMPTY));
   }
 
   @Test
@@ -790,7 +790,7 @@ class JsonAvroConversionTest {
           "id": "test-id-1"
         }
         """;
-    assertJsonsEqual(expectedWithNullsOmitted, convertAvroToJson(recordWithNulls, schema, Collections.emptyMap()));
+    assertJsonsEqual(expectedWithNullsOmitted, convertAvroToJson(recordWithNulls, schema, FormatterProperties.EMPTY));
 
     // Test with nested record populated - uses short type names by default
     var nestedSchema = schema.getField("nested_record").schema().getTypes().get(1);
@@ -810,7 +810,7 @@ class JsonAvroConversionTest {
           "nested_record": { "NestedRecord": { "value": "nested-value" } }
         }
         """;
-    assertJsonsEqual(expectedWithNested, convertAvroToJson(recordWithNested, schema, Collections.emptyMap()));
+    assertJsonsEqual(expectedWithNested, convertAvroToJson(recordWithNested, schema, FormatterProperties.EMPTY));
   }
 
   @Test
@@ -840,7 +840,7 @@ class JsonAvroConversionTest {
         }
         """;
     assertJsonsEqual(expectedWithNullsShown,
-        convertAvroToJson(recordWithNulls, schema, Map.of("showNullValues", true)));
+        convertAvroToJson(recordWithNulls, schema, new FormatterProperties(true, false)));
   }
 
   @Test
@@ -878,7 +878,7 @@ class JsonAvroConversionTest {
         }
         """;
     assertJsonsEqual(expectedWithFullNames,
-        convertAvroToJson(recordWithNested, schema, Map.of("useFullyQualifiedNames", true)));
+        convertAvroToJson(recordWithNested, schema, new FormatterProperties(false, true)));
   }
 
   @Test
@@ -918,8 +918,13 @@ class JsonAvroConversionTest {
           "nested_record": { "io.kafbat.test.NestedRecord": { "value": "nested-value" } }
         }
         """;
-    assertJsonsEqual(expected, convertAvroToJson(record, schema,
-        Map.of("showNullValues", true, "useFullyQualifiedNames", true)));
+    assertJsonsEqual(expected, convertAvroToJson(
+        record, schema,
+        FormatterProperties.builder()
+            .fullyQualifiedNames(true)
+            .showNullValues(true)
+            .build()
+    ));
   }
 
   private Schema createSchema(String schema) {

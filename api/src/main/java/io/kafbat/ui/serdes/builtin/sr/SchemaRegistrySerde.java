@@ -29,7 +29,6 @@ import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +68,15 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     var urls = kafkaClusterProperties.getListProperty(SCHEMA_REGISTRY, String.class)
         .filter(lst -> !lst.isEmpty())
         .orElseThrow(() -> new ValidationException("No urls provided for schema registry"));
-    Map<String, Object> formatterProperties = new HashMap<>();
+
+    FormatterProperties.FormatterPropertiesBuilder propertiesBuilder = FormatterProperties.builder();
     kafkaClusterProperties.getProperty("schemaRegistryShowNullValues", Boolean.class)
-        .ifPresent(v -> formatterProperties.put("showNullValues", v));
+        .ifPresent(propertiesBuilder::showNullValues);
     kafkaClusterProperties.getProperty("schemaRegistryUseFullyQualifiedNames", Boolean.class)
-        .ifPresent(v -> formatterProperties.put("useFullyQualifiedNames", v));
+        .ifPresent(propertiesBuilder::fullyQualifiedNames);
+
+    var formatterProperties = propertiesBuilder.build();
+
     configure(
         urls,
         createSchemaRegistryClient(
@@ -102,11 +105,15 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .or(() -> kafkaClusterProperties.getListProperty(SCHEMA_REGISTRY, String.class))
         .filter(lst -> !lst.isEmpty())
         .orElseThrow(() -> new ValidationException("No urls provided for schema registry"));
-    Map<String, Object> formatterProperties = new HashMap<>();
-    serdeProperties.getProperty("showNullValues", Boolean.class)
-        .ifPresent(v -> formatterProperties.put("showNullValues", v));
-    serdeProperties.getProperty("useFullyQualifiedNames", Boolean.class)
-        .ifPresent(v -> formatterProperties.put("useFullyQualifiedNames", v));
+
+    FormatterProperties.FormatterPropertiesBuilder propertiesBuilder = FormatterProperties.builder();
+    kafkaClusterProperties.getProperty("showNullValues", Boolean.class)
+        .ifPresent(propertiesBuilder::showNullValues);
+    kafkaClusterProperties.getProperty("useFullyQualifiedNames", Boolean.class)
+        .ifPresent(propertiesBuilder::fullyQualifiedNames);
+
+    var formatterProperties = propertiesBuilder.build();
+
     configure(
         urls,
         createSchemaRegistryClient(
@@ -135,7 +142,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize) {
     configure(schemaRegistryUrls, schemaRegistryClient, keySchemaNameTemplate, valueSchemaNameTemplate,
-        checkTopicSchemaExistenceForDeserialize, Collections.emptyMap());
+        checkTopicSchemaExistenceForDeserialize, FormatterProperties.EMPTY);
   }
 
   @VisibleForTesting
@@ -145,7 +152,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String keySchemaNameTemplate,
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize,
-      Map<String, Object> formatterProperties) {
+      FormatterProperties formatterProperties) {
     this.schemaRegistryUrls = schemaRegistryUrls;
     this.schemaRegistryClient = schemaRegistryClient;
     this.keySchemaNameTemplate = keySchemaNameTemplate;

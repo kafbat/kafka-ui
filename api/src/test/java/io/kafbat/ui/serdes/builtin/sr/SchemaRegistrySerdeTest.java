@@ -388,8 +388,14 @@ class SchemaRegistrySerdeTest {
 
     @Test
     void showNullValuesWhenEnabled() throws Exception {
-      serde.configure(List.of("wontbeused"), registryClient, "%s-key", "%s-value", true,
-          Map.of("showNullValues", true));
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, false)
+      );
 
       AvroSchema schema = new AvroSchema(
           """
@@ -427,8 +433,13 @@ class SchemaRegistrySerdeTest {
 
     @Test
     void useFullyQualifiedNamesWhenEnabled() throws Exception {
-      serde.configure(List.of("wontbeused"), registryClient, "%s-key", "%s-value", true,
-          Map.of("useFullyQualifiedNames", true));
+      serde.configure(
+          List.of("wontbeused"), registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(false, true)
+      );
 
       AvroSchema schema = new AvroSchema(
           """
@@ -468,7 +479,13 @@ class SchemaRegistrySerdeTest {
     @Test
     void useShortNamesWhenFlagDisabled() throws Exception {
       // Default: useFullyQualifiedNames=false (empty map = defaults)
-      serde.configure(List.of("wontbeused"), registryClient, "%s-key", "%s-value", true);
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true
+      );
 
       AvroSchema schema = new AvroSchema(
           """
@@ -511,8 +528,14 @@ class SchemaRegistrySerdeTest {
 
     @Test
     void bothFlagsEnabledTogether() throws Exception {
-      serde.configure(List.of("wontbeused"), registryClient, "%s-key", "%s-value", true,
-          Map.of("showNullValues", true, "useFullyQualifiedNames", true));
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, true)
+      );
 
       AvroSchema schema = new AvroSchema(
           """

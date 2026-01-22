@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Lists;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import io.kafbat.ui.exception.JsonAvroConversionException;
+import io.kafbat.ui.serdes.builtin.sr.FormatterProperties;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -195,9 +196,7 @@ public class JsonAvroConversion {
   // converts output of KafkaAvroDeserializer (with AVRO_USE_LOGICAL_TYPE_CONVERTERS flat enabled!) into json.
   // Note: conversion should be compatible with AvroJsonSchemaConverter logic!
   @SuppressWarnings("unchecked")
-  public static JsonNode convertAvroToJson(Object obj, Schema avroSchema, Map<String, Object> options) {
-    boolean showNullValues = Boolean.TRUE.equals(options.get("showNullValues"));
-    boolean useFullyQualifiedNames = Boolean.TRUE.equals(options.get("useFullyQualifiedNames"));
+  public static JsonNode convertAvroToJson(Object obj, Schema avroSchema, FormatterProperties properties) {
 
     if (obj == null) {
       return NullNode.getInstance();
@@ -208,8 +207,8 @@ public class JsonAvroConversion {
         ObjectNode node = MAPPER.createObjectNode();
         for (Schema.Field field : avroSchema.getFields()) {
           var fieldVal = rec.get(field.name());
-          if (showNullValues || fieldVal != null) {
-            node.set(field.name(), convertAvroToJson(fieldVal, field.schema(), options));
+          if (properties.showNullValues() || fieldVal != null) {
+            node.set(field.name(), convertAvroToJson(fieldVal, field.schema(), properties));
           }
         }
         yield node;
@@ -217,13 +216,13 @@ public class JsonAvroConversion {
       case MAP -> {
         ObjectNode node = MAPPER.createObjectNode();
         ((Map<?, ?>) obj).forEach((k, v) -> node.set(k.toString(),
-            convertAvroToJson(v, avroSchema.getValueType(), options)));
+            convertAvroToJson(v, avroSchema.getValueType(), properties)));
         yield node;
       }
       case ARRAY -> {
         var list = (List<Object>) obj;
         ArrayNode node = MAPPER.createArrayNode();
-        list.forEach(e -> node.add(convertAvroToJson(e, avroSchema.getElementType(), options)));
+        list.forEach(e -> node.add(convertAvroToJson(e, avroSchema.getElementType(), properties)));
         yield node;
       }
       case ENUM -> new TextNode(obj.toString());
@@ -232,8 +231,8 @@ public class JsonAvroConversion {
         int unionIdx = AvroSchemaUtils.getGenericData().resolveUnion(avroSchema, obj);
         Schema selectedType = avroSchema.getTypes().get(unionIdx);
         node.set(
-            selectUnionTypeFieldName(avroSchema, selectedType, unionIdx, useFullyQualifiedNames),
-            convertAvroToJson(obj, selectedType, options)
+            selectUnionTypeFieldName(avroSchema, selectedType, unionIdx, properties.fullyQualifiedNames()),
+            convertAvroToJson(obj, selectedType, properties)
         );
         yield node;
       }
