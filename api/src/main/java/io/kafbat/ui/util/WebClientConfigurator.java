@@ -133,10 +133,8 @@ public class WebClientConfigurator {
     if (oauth != null && oauth.getTokenUrl() != null
         && oauth.getClientId() != null && oauth.getClientSecret() != null) {
       log.info("Configuring OAuth for Schema Registry with token URL: {}", oauth.getTokenUrl());
-      // Configure OAuth2 client credentials flow
       builder.filter((request, next) -> {
         log.debug("OAuth filter: Fetching access token from {}", oauth.getTokenUrl());
-        // Build token client at request time to ensure all httpClient configurations are applied
         WebClient tokenClient = WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(httpClient))
             .build();
