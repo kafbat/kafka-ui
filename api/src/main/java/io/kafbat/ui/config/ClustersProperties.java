@@ -79,7 +79,7 @@ public class ClustersProperties {
 
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
-    SchemaRegistryOauth schemaRegistryOauth;
+    OauthConfig schemaRegistryOAuth;
     KeystoreConfig schemaRegistrySsl;
 
     String ksqldbServer;
@@ -169,10 +169,15 @@ public class ClustersProperties {
 
   @Data
   @ToString(exclude = {"clientSecret"})
-  public static class SchemaRegistryOauth {
+  public static class OauthConfig {
     String tokenUrl;
     String clientId;
     String clientSecret;
+
+    // Token caching configuration
+    Boolean tokenCacheEnabled = true;              // Enable/disable token caching
+    Integer tokenRefreshBufferSeconds = 60;        // Refresh token N seconds before expiry
+    Integer maxRetries = 1;                        // Max retries on 401 errors
   }
 
   @Data
