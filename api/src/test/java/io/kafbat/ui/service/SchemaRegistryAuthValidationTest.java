@@ -32,11 +32,11 @@ class SchemaRegistryAuthValidationTest {
     basicAuth.setPassword("pass");
     cluster.setSchemaRegistryAuth(basicAuth);
 
-    ClustersProperties.SchemaRegistryOauth oauth = new ClustersProperties.SchemaRegistryOauth();
+    ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
     oauth.setTokenUrl("http://localhost:8080/token");
     oauth.setClientId("client-id");
     oauth.setClientSecret("client-secret");
-    cluster.setSchemaRegistryOauth(oauth);
+    cluster.setSchemaRegistryOAuth(oauth);
 
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
@@ -68,11 +68,11 @@ class SchemaRegistryAuthValidationTest {
     cluster.setBootstrapServers("localhost:9092");
     cluster.setSchemaRegistry("http://localhost:8081");
 
-    ClustersProperties.SchemaRegistryOauth oauth = new ClustersProperties.SchemaRegistryOauth();
+    ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
     oauth.setTokenUrl("http://localhost:8080/token");
     oauth.setClientId("client-id");
     oauth.setClientSecret("client-secret");
-    cluster.setSchemaRegistryOauth(oauth);
+    cluster.setSchemaRegistryOAuth(oauth);
 
     factory.create(new ClustersProperties(), cluster);
   }
