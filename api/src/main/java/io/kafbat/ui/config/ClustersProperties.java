@@ -172,8 +172,7 @@ public class ClustersProperties {
     String clientId;
     String clientSecret;
 
-    // Token caching configuration
-    Boolean tokenCacheEnabled = true;              // Enable/disable token caching
+    Boolean tokenCacheEnabled = true;
     Integer tokenRefreshBufferSeconds = 60;        // Refresh token N seconds before expiry
     Integer maxRetries = 1;                        // Max retries on 401 errors
   }
@@ -225,7 +224,7 @@ public class ClustersProperties {
     String topicValuesPattern;
 
     public enum Type {
-      REMOVE, MASK, REPLACE,
+      REMOVE, MASK, REPLACE
     }
   }
 

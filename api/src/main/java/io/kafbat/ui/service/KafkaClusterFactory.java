@@ -232,7 +232,6 @@ public class KafkaClusterFactory {
     var oauth = Optional.ofNullable(clusterProperties.getSchemaRegistryOAuth())
         .orElse(new ClustersProperties.OauthConfig());
 
-    // Validate that both auth methods are not configured together
     boolean basicAuthConfigured = basicAuth.getUsername() != null || basicAuth.getPassword() != null;
     boolean oauthConfigured = oauth.getTokenUrl() != null
         || oauth.getClientId() != null || oauth.getClientSecret() != null;
