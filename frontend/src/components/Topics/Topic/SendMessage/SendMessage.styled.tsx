@@ -26,11 +26,33 @@ export const Flex = styled.div`
   }
 `;
 export const FlexItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 18rem;
+  max-width: 18rem;
+  min-width: 0;
   @media screen and (max-width: 1450px) {
     width: 50%;
+    max-width: 50%;
   }
   @media screen and (max-width: 1200px) {
     width: 100%;
+    max-width: 100%;
+  }
+
+  & ul[role='listbox'] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  & ul[role='listbox'] > div {
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+
+  & ul[role='listbox'] > svg {
+    flex-shrink: 0;
   }
 `;

@@ -240,8 +240,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @Override
   public boolean canSerialize(String topic, Target type) {
-    String subject = schemaSubject(topic, type);
-    return getSchemaBySubject(subject).isPresent();
+    return !getSchemaSubjects(topic, type).isEmpty();
   }
 
   @Override
@@ -307,6 +306,41 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return String.format(type == Target.KEY ? keySchemaNameTemplate : valueSchemaNameTemplate, topic);
   }
 
+  @SneakyThrows
+  public List<String> getSchemaSubjects(String topic, Target type) {
+    var allSubjects = schemaRegistryClient.getAllSubjects();
+    if (allSubjects == null || allSubjects.isEmpty()) {
+      return List.of();
+    }
+
+    String defaultSubject = schemaSubject(topic, type);
+    String topicPrefix = topic + "-";
+    // Exclude subjects for the opposite type
+    String excludeSuffix = type == Target.KEY ? "-value" : "-key";
+
+    return allSubjects.stream()
+        .filter(subject -> {
+          // Exclude subjects explicitly for the opposite type
+          if (subject.endsWith(excludeSuffix)) {
+            return false;
+          }
+          // TopicNameStrategy: exact match with default subject
+          if (subject.equals(defaultSubject)) {
+            return true;
+          }
+          // TopicRecordNameStrategy: starts with topic-
+          if (subject.startsWith(topicPrefix)) {
+            return true;
+          }
+          // RecordNameStrategy: doesn't end with -key or -value (not topic-based naming)
+          if (!subject.endsWith("-key") && !subject.endsWith("-value")) {
+            return true;
+          }
+          return false;
+        })
+        .toList();
+  }
+
   @Override
   public Serializer serializer(String topic, Target type) {
     String subject = schemaSubject(topic, type);
@@ -316,6 +350,25 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     ParsedSchema schema = getSchemaById(meta.getId())
         .orElseThrow(() -> new IllegalStateException(
             String.format("Schema found for id %s, subject '%s'", meta.getId(), subject)));
+    SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
+        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + meta.getSchemaType()));
+    return switch (schemaType) {
+      case PROTOBUF -> input ->
+          serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
+      case AVRO -> input ->
+          serializeAvro((AvroSchema) schema, meta.getId(), input);
+      case JSON -> input ->
+          serializeJson((JsonSchema) schema, meta.getId(), input);
+    };
+  }
+
+  public Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
+    SchemaMetadata meta = getSchemaBySubject(explicitSubject)
+        .orElseThrow(() -> new ValidationException(
+            String.format("No schema for subject '%s' found", explicitSubject)));
+    ParsedSchema schema = getSchemaById(meta.getId())
+        .orElseThrow(() -> new IllegalStateException(
+            String.format("Schema not found for id %s, subject '%s'", meta.getId(), explicitSubject)));
     SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
         .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + meta.getSchemaType()));
     return switch (schemaType) {
