@@ -166,7 +166,7 @@ public class WebClientConfigurator {
     return getAccessToken(oauth, tokenCache)
         .flatMap(accessToken -> {
           // Add Bearer token to request
-          var modifiedRequest = org.springframework.web.reactive.function.client.ClientRequest.from(request)
+          var modifiedRequest = ClientRequest.from(request)
               .headers(headers -> headers.setBearerAuth(accessToken))
               .build();
 
@@ -205,7 +205,7 @@ public class WebClientConfigurator {
     // Try to get from cache first
     if (tokenCache != null) {
       return tokenCache.getValidToken()
-          .map(reactor.core.publisher.Mono::just)
+          .map(Mono::just)
           .orElseGet(() -> fetchAndCacheToken(oauth, tokenCache));
     }
 
