@@ -26,7 +26,9 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -153,8 +155,8 @@ public class WebClientConfigurator {
   }
 
   private Mono<ClientResponse> executeWithOAuthToken(
-          org.springframework.web.reactive.function.client.ClientRequest request,
-          org.springframework.web.reactive.function.client.ExchangeFunction next,
+          ClientRequest request,
+          ExchangeFunction next,
           ClustersProperties.OauthConfig oauth,
           OAuthTokenCache tokenCache,
           int maxRetries,
@@ -255,19 +257,19 @@ public class WebClientConfigurator {
         .flatMap(response -> {
           if (!response.hasAccessToken()) {
             log.error("OAuth token response does not contain 'access_token' field");
-            return reactor.core.publisher.Mono.error(
+            return Mono.error(
                 new RuntimeException("OAuth token response does not contain 'access_token' field"));
           }
 
           log.debug("OAuth access token obtained, expires in {}s",
               response.getExpiresIn() != null ? response.getExpiresIn() : "unknown");
 
-          return reactor.core.publisher.Mono.just(response);
+          return Mono.just(response);
         })
         .onErrorResume(error -> {
           log.error("Failed to obtain OAuth access token from {}: {}", oauth.getTokenUrl(),
               error.getMessage(), error);
-          return reactor.core.publisher.Mono.error(
+          return Mono.error(
               new RuntimeException("Failed to obtain OAuth access token from " + oauth.getTokenUrl()
                   + ": " + error.getMessage(), error));
         });
