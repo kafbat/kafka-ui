@@ -31,19 +31,7 @@ export interface Props {
 }
 
 const Message: React.FC<Props> = ({
-  message: {
-    timestamp,
-    timestampType,
-    offset,
-    key,
-    keySize,
-    partition,
-    value,
-    valueSize,
-    headers,
-    valueSerde,
-    keySerde,
-  },
+  message,
   keyFilters,
   contentFilters,
 }) => {
@@ -53,7 +41,7 @@ const Message: React.FC<Props> = ({
   const [isOpen, setIsOpen] = React.useState(false);
   const { messageRelativeTimestamp } = React.useContext(ClusterContext);
 
-  const message = {
+  const {
     timestamp,
     timestampType,
     offset,
@@ -65,7 +53,7 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
-  };
+  } = message;
 
   const savedMessageJson = {
     Value: value,

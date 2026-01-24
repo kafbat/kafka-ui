@@ -219,6 +219,8 @@ model CreateTopicMessage {
   value?: string | null;
   keySerde?: string | null;
   valueSerde?: string | null;
+  keySubject?: string | null;
+  valueSubject?: string | null;
 }
 
 enum MessageFormat {
@@ -238,4 +240,7 @@ model SerdeDescription {
 
   schema?: string;
   additionalProperties?: Record<unknown>;
+
+  @doc("Applicable subjects for this serde. Only populated for SchemaRegistry serde.")
+  subjects?: string[];
 }
