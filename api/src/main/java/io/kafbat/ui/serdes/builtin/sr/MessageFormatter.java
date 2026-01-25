@@ -18,9 +18,10 @@ interface MessageFormatter {
 
   String format(String topic, byte[] value);
 
-  static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient) {
+  static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
+                                                     FormatterProperties formatterProperties) {
     return Map.of(
-        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient),
+        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, formatterProperties),
         SchemaType.JSON, new JsonSchemaMessageFormatter(schemaRegistryClient),
         SchemaType.PROTOBUF, new ProtobufMessageFormatter(schemaRegistryClient)
     );
@@ -28,8 +29,10 @@ interface MessageFormatter {
 
   class AvroMessageFormatter implements MessageFormatter {
     private final KafkaAvroDeserializer avroDeserializer;
+    private final FormatterProperties properties;
 
-    AvroMessageFormatter(SchemaRegistryClient client) {
+    AvroMessageFormatter(SchemaRegistryClient client, FormatterProperties properties) {
+      this.properties = properties != null ? properties : FormatterProperties.EMPTY;
       this.avroDeserializer = new KafkaAvroDeserializer(client);
       this.avroDeserializer.configure(
           Map.of(
@@ -46,7 +49,7 @@ interface MessageFormatter {
     public String format(String topic, byte[] value) {
       Object deserialized = avroDeserializer.deserialize(topic, value);
       var schema = AvroSchemaUtils.getSchema(deserialized);
-      return JsonAvroConversion.convertAvroToJson(deserialized, schema).toString();
+      return JsonAvroConversion.convertAvroToJson(deserialized, schema, properties).toString();
     }
   }
 
