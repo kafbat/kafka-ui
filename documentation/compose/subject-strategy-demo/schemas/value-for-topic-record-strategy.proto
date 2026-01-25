@@ -1,0 +1,8 @@
+syntax = "proto3";
+package io.kafbat.test;
+
+message ProtoEventRecord {
+  string event_id = 1;
+  string event_type = 2;
+  int64 timestamp = 3;
+}
