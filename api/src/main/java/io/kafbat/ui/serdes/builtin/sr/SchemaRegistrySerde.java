@@ -316,13 +316,16 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       var schemaId = extractSchemaIdFromMsg(data);
       SchemaType format = getMessageFormatBySchemaId(schemaId);
       MessageFormatter formatter = schemaRegistryFormatters.get(format);
+      Map<String, Object> additionalProperties = new HashMap<>(Map.of(
+          "schemaId", schemaId,
+          "type", format.name()
+      ));
+      getSchemaById(schemaId).map(ParsedSchema::name)
+          .ifPresent(name -> additionalProperties.put("name", name));
       return new DeserializeResult(
           formatter.format(topic, data),
           DeserializeResult.Type.JSON,
-          Map.of(
-              "schemaId", schemaId,
-              "type", format.name()
-          )
+          additionalProperties
       );
     };
   }
