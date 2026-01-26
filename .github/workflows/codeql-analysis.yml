@@ -38,24 +38,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           token: ${{ github.token }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@1a7989f3955e0c69f0e0ccc14aee54a387a0fd31 # infered from @v3
+        uses: github/codeql-action/init@55252c7a3a47fea1e0fdd923b269f4be8a5ad9a0 # infered from @v3
         with:
           languages: ${{ matrix.language }}
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
           cache: 'gradle'
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@bed2a47f201e917459bc40343380c570a730ff06 # https://github.com/github/codeql-action/releases/tag/v4.31.7
+        uses: github/codeql-action/autobuild@55252c7a3a47fea1e0fdd923b269f4be8a5ad9a0 # https://github.com/github/codeql-action/releases/tag/v4.31.7
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@86b04fb0e47484f7282357688f21d5d0e32175fe # https://github.com/github/codeql-action/releases/tag/v4.31.7
+        uses: github/codeql-action/analyze@55252c7a3a47fea1e0fdd923b269f4be8a5ad9a0 # https://github.com/github/codeql-action/releases/tag/v4.31.7

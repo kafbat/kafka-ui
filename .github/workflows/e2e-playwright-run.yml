@@ -17,19 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
           cache: 'gradle'
 
       - name: Set up Node.js
-        uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # https://github.com/actions/setup-node/releases/tag/v3.9.1
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version: 18
           cache-dependency-path: ./e2e-playwright/package-lock.json
@@ -40,7 +40,7 @@ jobs:
         run: npm install
 
       - name: Cache Playwright browser binaries
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # https://github.com/actions/cache/releases/tag/v4.3.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -72,7 +72,7 @@ jobs:
 
       - name: Upload report
         if: failure()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # https://github.com/actions/upload-artifact/releases/tag/v4
         with:
           name: playwright-results
           path: ./e2e-playwright/test-results/
