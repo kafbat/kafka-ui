@@ -409,9 +409,7 @@ describe('SendMessage', () => {
       await renderComponent();
 
       // Select SchemaRegistry for key
-      await userEvent.click(
-        screen.getByRole('listbox', { name: 'Key Serde' })
-      );
+      await userEvent.click(screen.getByRole('listbox', { name: 'Key Serde' }));
       await userEvent.click(
         screen.getByRole('option', { name: 'SchemaRegistry' })
       );
