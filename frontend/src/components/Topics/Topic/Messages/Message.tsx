@@ -30,11 +30,7 @@ export interface Props {
   message: TopicMessage;
 }
 
-const Message: React.FC<Props> = ({
-  message,
-  keyFilters,
-  contentFilters,
-}) => {
+const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
