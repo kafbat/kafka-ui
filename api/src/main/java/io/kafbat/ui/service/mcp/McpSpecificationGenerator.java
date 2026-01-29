@@ -93,7 +93,7 @@ public class McpSpecificationGenerator {
   private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {
     HttpStatusCode statusCode = response.getStatusCode();
     if (statusCode.is2xxSuccessful() || statusCode.is1xxInformational()) {
-      return Mono.just(this.callToolResult(response.getBody()));
+      return toCallResult(response.getBody());
     } else {
       try {
         return Mono.just(toErrorResult(objectMapper.writeValueAsString(response.getBody())));
