@@ -16,7 +16,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
       throws IOException {
     List<PropertySource<?>> loaded = loader.load(name, resource.getResource());
     if (loaded.size() == 1) {
-      return loaded.getFirst();
+      return loaded.get(0);
     } else {
       throw new IOException(resource.getResource().getFilename());
     }

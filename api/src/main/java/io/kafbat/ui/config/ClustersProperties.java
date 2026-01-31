@@ -315,8 +315,8 @@ public class ClustersProperties {
 
   private void validateClusterNames() {
     // if only one cluster provided it is ok not to set name
-    if (clusters.size() == 1 && !StringUtils.hasText(clusters.getFirst().getName())) {
-      clusters.getFirst().setName("Default");
+    if (clusters.size() == 1 && !StringUtils.hasText(clusters.get(0).getName())) {
+      clusters.get(0).setName("Default");
       return;
     }
 

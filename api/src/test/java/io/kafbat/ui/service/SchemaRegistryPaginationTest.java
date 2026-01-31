@@ -148,7 +148,7 @@ class SchemaRegistryPaginationTest {
     assertThat(schemas.getBody()).isNotNull();
     assertThat(schemas.getBody().getPageCount()).isEqualTo(4);
     assertThat(schemas.getBody().getSchemas()).hasSize(1);
-    assertThat(schemas.getBody().getSchemas().getFirst().getSubject()).isEqualTo("subject99");
+    assertThat(schemas.getBody().getSchemas().get(0).getSubject()).isEqualTo("subject99");
   }
 
   @SuppressWarnings("unchecked")

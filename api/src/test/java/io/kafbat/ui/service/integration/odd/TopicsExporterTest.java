@@ -155,7 +155,7 @@ class TopicsExporterTest {
           assertThat(entityList.getItems())
               .hasSize(1);
 
-          DataEntity topicEntity = entityList.getItems().getFirst();
+          DataEntity topicEntity = entityList.getItems().get(0);
           assertThat(topicEntity.getName()).isNotEmpty();
           assertThat(topicEntity.getOddrn())
               .isEqualTo("//kafka/cluster/localhost:19092,localhost:9092/topics/testTopic");

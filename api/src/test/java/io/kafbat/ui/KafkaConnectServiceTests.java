@@ -422,7 +422,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
               .findFirst().orElseThrow();
           assertEquals(
               "Invalid value 0 for configuration tasks.max: Value must be at least 1",
-              error.getFirst()
+              error.get(0)
           );
         });
   }

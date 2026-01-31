@@ -58,7 +58,7 @@ public class CsvWriterService {
     final StringWriter sw = new StringWriter();
     try (CsvWriter writer = writer(sw)) {
       if (!items.isEmpty()) {
-        writer.writeRecord(mapHeader(items.getFirst()));
+        writer.writeRecord(mapHeader(items.get(0)));
         for (T item : items) {
           writer.writeRecord(mapRecord(item));
         }
@@ -95,12 +95,10 @@ public class CsvWriterService {
   }
 
   private String toText(JsonNode e) {
-    return switch (e) {
-      case JsonNode j when j.isTextual() -> j.textValue();
-      case JsonNode j when j.isNumber() || j.isBoolean() -> j.asText();
-      case ArrayNode array -> Strings.join(array.elements(), ',');
-      default -> e.toString();
-    };
+    if (e instanceof JsonNode && e.isTextual()) return e.textValue();
+    if (e instanceof JsonNode && (e.isNumber() || e.isBoolean())) return e.asText();
+    if (e instanceof ArrayNode) return Strings.join(e.elements(), ',');
+    return e.toString();
   }
 
   public class CustomIgnoreIntrospector extends JacksonAnnotationIntrospector {

@@ -44,12 +44,22 @@ public class ContentUtils {
     if (Character.isAlphabetic(c)
         || Character.isDigit(c)
         || Character.isWhitespace(c)
-        || Character.isEmoji(c)
+        || isEmoji(c)
     ) {
       return true;
     }
     // We could read only whitespace controls like
     return !Character.isISOControl(c);
+  }
+
+  public static boolean isEmoji(int codePoint) {
+    return (codePoint >= 0x1F600 && codePoint <= 0x1F64F) || // Emoticons
+        (codePoint >= 0x1F300 && codePoint <= 0x1F5FF) || // Miscellaneous Symbols and Pictographs
+        (codePoint >= 0x1F680 && codePoint <= 0x1F6FF) || // Transport and Map Symbols
+        (codePoint >= 0x1F900 && codePoint <= 0x1F9FF) || // Supplemental Symbols and Pictographs
+        (codePoint >= 0x1FA70 && codePoint <= 0x1FAFF) || // Symbols and Pictographs Extended-A
+        (codePoint >= 0x2600 && codePoint <= 0x26FF) ||   // Misc Symbols
+        (codePoint >= 0x2700 && codePoint <= 0x27FF);     // Dingbats
   }
 
   /**

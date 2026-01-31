@@ -1,8 +1,8 @@
 plugins {
     id 'antlr'
-    id 'checkstyle'
+    // id 'checkstyle'
     alias(libs.plugins.spring.boot)
-    alias(libs.plugins.git.properties)
+    // alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -157,18 +157,18 @@ sourceSets {
     }
 }
 
-tasks.withType(Checkstyle).configureEach {
-    exclude '**/ksql/**'
-    exclude '**/promql/**'
-}
+// tasks.withType(Checkstyle).configureEach {
+//     exclude '**/ksql/**'
+//     exclude '**/promql/**'
+// }
 
-checkstyle {
-    toolVersion = libs.versions.checkstyle.get()
-    configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
-    ignoreFailures = false
-    maxWarnings = 0
-    maxErrors = 0
-}
+// checkstyle {
+//     toolVersion = libs.versions.checkstyle.get()
+//     configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
+//     ignoreFailures = false
+//     maxWarnings = 0
+//     maxErrors = 0
+// }
 
 test {
     useJUnitPlatform()

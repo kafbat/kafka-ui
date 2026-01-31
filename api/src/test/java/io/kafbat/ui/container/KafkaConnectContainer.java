@@ -19,7 +19,7 @@ public class KafkaConnectContainer extends GenericContainer<KafkaConnectContaine
 
 
   public KafkaConnectContainer withKafka(ConfluentKafkaContainer kafka) {
-    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9095";
+    String bootstrapServers = kafka.getNetworkAliases().get(0) + ":9095";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
 

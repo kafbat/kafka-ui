@@ -100,7 +100,7 @@ public class ConfigReloadService {
 
       List<PropertySource<?>> load = yamlLoader.load(path.toString(), new FileSystemResource(path));
       environment.getPropertySources().remove(name);
-      environment.getPropertySources().addFirst(load.getFirst());
+      environment.getPropertySources().addFirst(load.get(0));
       Binder binder = Binder.get(environment);
 
       binder.bind("rbac", RoleBasedAccessControlProperties.class)

@@ -247,7 +247,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @SneakyThrows
   private String convertSchema(SchemaMetadata schema, ParsedSchema parsedSchema) {
-    URI basePath = new URI(schemaRegistryUrls.getFirst())
+    URI basePath = new URI(schemaRegistryUrls.get(0))
         .resolve(Integer.toString(schema.getId()));
     SchemaType schemaType = SchemaType.fromString(schema.getSchemaType())
         .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + schema.getSchemaType()));

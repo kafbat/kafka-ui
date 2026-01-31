@@ -31,7 +31,7 @@ class LogDirsTest extends AbstractIntegrationTest {
         .getResponseBody();
 
     assertThat(dirs).hasSize(1);
-    BrokersLogdirsDTO dir = dirs.getFirst();
+    BrokersLogdirsDTO dir = dirs.get(0);
     assertThat(dir.getName()).isEqualTo("/var/lib/kafka/data");
     assertThat(dir.getTopics().stream().anyMatch(t -> t.getName().equals("__consumer_offsets")))
         .isTrue();
@@ -41,8 +41,8 @@ class LogDirsTest extends AbstractIntegrationTest {
         .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
-    assertThat(topic.getPartitions().getFirst().getBroker()).isEqualTo(1);
-    assertThat(topic.getPartitions().getFirst().getSize()).isPositive();
+    assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
+    assertThat(topic.getPartitions().get(0).getSize()).isPositive();
   }
 
   @Test
@@ -56,7 +56,7 @@ class LogDirsTest extends AbstractIntegrationTest {
         .getResponseBody();
 
     assertThat(dirs).hasSize(1);
-    BrokersLogdirsDTO dir = dirs.getFirst();
+    BrokersLogdirsDTO dir = dirs.get(0);
     assertThat(dir.getName()).isEqualTo("/var/lib/kafka/data");
     assertThat(dir.getTopics().stream().anyMatch(t -> t.getName().equals("__consumer_offsets")))
         .isTrue();
@@ -66,8 +66,8 @@ class LogDirsTest extends AbstractIntegrationTest {
         .findAny().orElseThrow();
 
     assertThat(topic.getPartitions()).hasSize(1);
-    assertThat(topic.getPartitions().getFirst().getBroker()).isEqualTo(1);
-    assertThat(topic.getPartitions().getFirst().getSize()).isPositive();
+    assertThat(topic.getPartitions().get(0).getBroker()).isEqualTo(1);
+    assertThat(topic.getPartitions().get(0).getSize()).isPositive();
   }
 
   @Test

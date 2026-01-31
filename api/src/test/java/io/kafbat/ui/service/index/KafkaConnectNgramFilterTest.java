@@ -39,7 +39,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
 
   @Override
   protected Map.Entry<String, FullConnectorInfoDTO> example(List<FullConnectorInfoDTO> items) {
-    FullConnectorInfoDTO first = items.getFirst();
+    FullConnectorInfoDTO first = items.get(0);
     return Map.entry(first.getConnect(), first);
   }
 

@@ -82,12 +82,15 @@ public class McpSpecificationGenerator {
   }
 
   private Mono<CallToolResult> toCallResult(Object result) {
-    return switch (result) {
-      case Mono<?> mono -> mono.map(this::callToolResult);
-      case Flux<?> flux -> flux.collectList().map(this::callToolResult);
-      case ResponseEntity<?> response -> reponseToCallResult(response);
-      case null, default -> Mono.just(this.callToolResult(result));
-    };
+    if (result instanceof Mono<?>) {
+      return ((Mono<?>) result).map(this::callToolResult);
+    } else if (result instanceof Flux<?>) {
+      return ((Flux<?>) result).collectList().map(this::callToolResult);
+    } else if (result instanceof ResponseEntity<?>) {
+      return reponseToCallResult((ResponseEntity<?>) result);
+    } else {
+      return Mono.just(this.callToolResult(result));
+    }
   }
 
   private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {
@@ -239,16 +242,21 @@ public class McpSpecificationGenerator {
   }
 
   private Object getTypeSchema(Class<?> type) {
-    return switch (type) {
-      case Class<?> clz when clz.isAssignableFrom(String.class) -> Map.of("type", "string");
-      case Class<?> clz when clz.isAssignableFrom(Integer.class) -> Map.of("type", "integer");
-      case Class<?> clz when clz.isAssignableFrom(Long.class) -> Map.of("type", "integer");
-      case Class<?> clz when clz.isAssignableFrom(Double.class) -> Map.of("type", "number");
-      case Class<?> clz when clz.isAssignableFrom(Float.class) -> Map.of("type", "number");
-      case Class<?> clz when clz.isAssignableFrom(Boolean.class) -> Map.of("type", "boolean");
-      default -> schemaGenerator.generateSchema(type);
-    };
+    if (String.class.isAssignableFrom(type)) {
+      return Map.of("type", "string");
+    } else if (Integer.class.isAssignableFrom(type)) {
+      return Map.of("type", "integer");
+    } else if (Long.class.isAssignableFrom(type)) {
+      return Map.of("type", "integer");
+    } else if (Double.class.isAssignableFrom(type)) {
+      return Map.of("type", "number");
+    } else if (Float.class.isAssignableFrom(type)) {
+      return Map.of("type", "number");
+    } else if (Boolean.class.isAssignableFrom(type)) {
+      return Map.of("type", "boolean");
+    } else {
+      return schemaGenerator.generateSchema(type);
+    }
   }
-
 
 }

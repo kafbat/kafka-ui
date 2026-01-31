@@ -286,17 +286,25 @@ final class JsonSchemaExtractor {
   }
 
   private static DataSetFieldType.TypeEnum mapType(Schema type) {
-    return switch (type) {
-      case NumberSchema ignored -> DataSetFieldType.TypeEnum.NUMBER;
-      case StringSchema ignored -> DataSetFieldType.TypeEnum.STRING;
-      case BooleanSchema ignored -> DataSetFieldType.TypeEnum.BOOLEAN;
-      case TrueSchema ignored -> DataSetFieldType.TypeEnum.BOOLEAN;
-      case FalseSchema ignored -> DataSetFieldType.TypeEnum.BOOLEAN;
-      case ObjectSchema ignored -> DataSetFieldType.TypeEnum.STRUCT;
-      case ReferenceSchema referenceSchema -> mapType(referenceSchema.getReferredSchema());
-      case CombinedSchema ignored -> DataSetFieldType.TypeEnum.UNION;
-      default -> DataSetFieldType.TypeEnum.UNKNOWN;
-    };
+    if (type instanceof NumberSchema) {
+      return DataSetFieldType.TypeEnum.NUMBER;
+    } else if (type instanceof StringSchema) {
+      return DataSetFieldType.TypeEnum.STRING;
+    } else if (type instanceof BooleanSchema) {
+      return DataSetFieldType.TypeEnum.BOOLEAN;
+    } else if (type instanceof TrueSchema) {
+      return DataSetFieldType.TypeEnum.BOOLEAN;
+    } else if (type instanceof FalseSchema) {
+      return DataSetFieldType.TypeEnum.BOOLEAN;
+    } else if (type instanceof ObjectSchema) {
+      return DataSetFieldType.TypeEnum.STRUCT;
+    } else if (type instanceof ReferenceSchema) {
+      return mapType(((ReferenceSchema) type).getReferredSchema());
+    } else if (type instanceof CombinedSchema) {
+      return DataSetFieldType.TypeEnum.UNION;
+    } else {
+      return DataSetFieldType.TypeEnum.UNKNOWN;
+    }
   }
 
 }

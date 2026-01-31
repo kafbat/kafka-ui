@@ -15,7 +15,7 @@ public class SchemaRegistryContainer extends GenericContainer<SchemaRegistryCont
   }
 
   public SchemaRegistryContainer withKafka(ConfluentKafkaContainer kafka) {
-    String bootstrapServers = kafka.getNetworkAliases().getFirst() + ":9095";
+    String bootstrapServers = kafka.getNetworkAliases().get(0) + ":9095";
     return withKafka(kafka.getNetwork(), bootstrapServers);
   }
 

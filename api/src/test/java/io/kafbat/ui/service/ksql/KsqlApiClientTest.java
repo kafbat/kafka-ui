@@ -81,9 +81,9 @@ class KsqlApiClientTest extends AbstractIntegrationTest {
           assertThat(header.getValues()).isNull();
         })
         .assertNext(row -> {
-          var distance = (DoubleNode) row.getValues().getFirst().getFirst();
-          var riders = (ArrayNode) row.getValues().getFirst().get(1);
-          var count = (IntNode) row.getValues().getFirst().get(2);
+          var distance = (DoubleNode) row.getValues().get(0).get(0);
+          var riders = (ArrayNode) row.getValues().get(0).get(1);
+          var count = (IntNode) row.getValues().get(0).get(2);
 
           assertThat(distance).isEqualTo(new DoubleNode(0D));
           assertThat(riders).isEqualTo(new ArrayNode(JsonNodeFactory.instance)
@@ -93,9 +93,9 @@ class KsqlApiClientTest extends AbstractIntegrationTest {
           assertThat(count).isEqualTo(new IntNode(3));
         })
         .assertNext(row -> {
-          var distance = (DoubleNode) row.getValues().getFirst().getFirst();
-          var riders = (ArrayNode) row.getValues().getFirst().get(1);
-          var count = (IntNode) row.getValues().getFirst().get(2);
+          var distance = (DoubleNode) row.getValues().get(0).get(0);
+          var riders = (ArrayNode) row.getValues().get(0).get(1);
+          var count = (IntNode) row.getValues().get(0).get(2);
 
           assertThat(distance).isEqualTo(new DoubleNode(10D));
           assertThat(riders).isEqualTo(new ArrayNode(JsonNodeFactory.instance)

@@ -175,7 +175,7 @@ class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    BrokerConfigDTO brokerConfigDto = configs.getFirst();
+    BrokerConfigDTO brokerConfigDto = configs.get(0);
     Assertions.assertNotNull(brokerConfigDto.getName());
     Assertions.assertNotNull(brokerConfigDto.getIsReadOnly());
     Assertions.assertNotNull(brokerConfigDto.getIsSensitive());
@@ -221,7 +221,7 @@ class KafkaConsumerTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(configs);
     Assertions.assertFalse(configs.isEmpty());
-    TopicConfigDTO topicConfigDto = configs.getFirst();
+    TopicConfigDTO topicConfigDto = configs.get(0);
     Assertions.assertNotNull(topicConfigDto.getName());
     Assertions.assertNotNull(topicConfigDto.getIsReadOnly());
     Assertions.assertNotNull(topicConfigDto.getIsSensitive());

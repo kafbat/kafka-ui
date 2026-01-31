@@ -37,7 +37,7 @@ public class AclBindingFilterTest extends AbstractNgramFilterTest<AclBinding> {
 
   @Override
   protected Map.Entry<String, AclBinding> example(List<AclBinding> items) {
-    AclBinding binding = items.getFirst();
+    AclBinding binding = items.get(0);
     return Map.entry(binding.entry().principal(), binding);
   }
 

@@ -30,6 +30,9 @@ build/
 ### VS Code ###
 .vscode/
 /api/app/node
+/api/bin
+/contract/bin
+/serde-api/bin
 
 ### SDKMAN ###
 .sdkmanrc

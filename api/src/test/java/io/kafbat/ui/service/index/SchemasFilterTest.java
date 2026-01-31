@@ -26,7 +26,7 @@ class SchemasFilterTest extends AbstractNgramFilterTest<String> {
 
   @Override
   protected Map.Entry<String, String> example(List<String> items) {
-    String item = items.getFirst();
+    String item = items.get(0);
     return Map.entry(item, item);
   }
 

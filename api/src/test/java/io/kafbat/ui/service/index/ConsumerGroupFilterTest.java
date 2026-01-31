@@ -30,7 +30,7 @@ class ConsumerGroupFilterTest extends AbstractNgramFilterTest<ConsumerGroupListi
 
   @Override
   protected Map.Entry<String, ConsumerGroupListing> example(List<ConsumerGroupListing> items) {
-    ConsumerGroupListing first = items.getFirst();
+    ConsumerGroupListing first = items.get(0);
     return Map.entry(first.groupId(), first);
   }
 

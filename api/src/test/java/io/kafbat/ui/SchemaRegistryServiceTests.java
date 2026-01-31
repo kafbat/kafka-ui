@@ -366,7 +366,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
     List<SchemaSubjectDTO> responseBody = listEntityExchangeResult.getResponseBody();
     Assertions.assertNotNull(responseBody);
     Assertions.assertEquals(1, responseBody.size());
-    SchemaSubjectDTO actualSchema = responseBody.getFirst();
+    SchemaSubjectDTO actualSchema = responseBody.get(0);
     Assertions.assertNotNull(actualSchema);
     Assertions.assertEquals(subject, actualSchema.getSubject());
     Assertions.assertEquals("\"string\"", actualSchema.getSchema());

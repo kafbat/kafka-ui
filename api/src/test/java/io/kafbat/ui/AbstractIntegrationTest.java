@@ -45,7 +45,7 @@ public abstract class AbstractIntegrationTest {
       DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
 
   public static final ConfluentKafkaContainer kafka = kafkaOriginal
-      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
+      .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().get(0) + ":9095")
       .withEnv("KAFKA_JMX_PORT", String.valueOf(JMX_PORT))
       .withEnv("KAFKA_OPTS",
           "-Dcom.sun.management.jmxremote "

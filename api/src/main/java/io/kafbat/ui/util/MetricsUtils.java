@@ -5,13 +5,16 @@ import static io.prometheus.metrics.model.snapshots.HistogramSnapshot.HistogramD
 import static io.prometheus.metrics.model.snapshots.SummarySnapshot.SummaryDataPointSnapshot;
 
 import io.prometheus.metrics.model.snapshots.CounterSnapshot;
+import io.prometheus.metrics.model.snapshots.CounterSnapshot.CounterDataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.DataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot.GaugeDataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.HistogramSnapshot;
+import io.prometheus.metrics.model.snapshots.HistogramSnapshot.HistogramDataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.SummarySnapshot;
+import io.prometheus.metrics.model.snapshots.SummarySnapshot.SummaryDataPointSnapshot;
 import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
 import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSnapshot;
 import java.util.Collection;
@@ -26,17 +29,20 @@ public final class MetricsUtils {
   }
 
   public static double readPointValue(DataPointSnapshot dps) {
-    return switch (dps) {
-      case UnknownDataPointSnapshot unknown -> unknown.getValue();
-      case GaugeDataPointSnapshot guage -> guage.getValue();
-      case CounterDataPointSnapshot counter -> counter.getValue();
-      default -> 0;
-    };
+    if (dps instanceof UnknownDataPointSnapshot) {
+      return ((UnknownDataPointSnapshot) dps).getValue();
+    } else if (dps instanceof GaugeDataPointSnapshot) {
+      return ((GaugeDataPointSnapshot) dps).getValue();
+    } else if (dps instanceof CounterDataPointSnapshot) {
+      return ((CounterDataPointSnapshot) dps).getValue();
+    } else {
+      return 0;
+    }
   }
 
   public static MetricSnapshot appendLabel(MetricSnapshot md, String name, String value) {
-    return switch (md) {
-      case UnknownSnapshot unknown -> new UnknownSnapshot(unknown.getMetadata(), unknown.getDataPoints()
+    if (md instanceof UnknownSnapshot) {
+      return new UnknownSnapshot(md.getMetadata(), ((UnknownSnapshot) md).getDataPoints()
           .stream().map(dp ->
               new UnknownDataPointSnapshot(
                   dp.getValue(),
@@ -46,7 +52,8 @@ public final class MetricsUtils {
               )
           ).toList()
       );
-      case GaugeSnapshot gauge -> new GaugeSnapshot(gauge.getMetadata(), gauge.getDataPoints()
+    } else if (md instanceof GaugeSnapshot) {
+      return new GaugeSnapshot(md.getMetadata(), ((GaugeSnapshot) md).getDataPoints()
           .stream().map(dp ->
               new GaugeDataPointSnapshot(
                   dp.getValue(),
@@ -54,7 +61,8 @@ public final class MetricsUtils {
                   dp.getExemplar()
               )
           ).toList());
-      case CounterSnapshot counter -> new CounterSnapshot(counter.getMetadata(), counter.getDataPoints()
+    } else if (md instanceof CounterSnapshot) {
+      return new CounterSnapshot(md.getMetadata(), ((CounterSnapshot) md).getDataPoints()
           .stream().map(dp ->
               new CounterDataPointSnapshot(
                   dp.getValue(),
@@ -64,7 +72,8 @@ public final class MetricsUtils {
                   dp.getScrapeTimestampMillis()
               )
           ).toList());
-      case HistogramSnapshot histogram -> new HistogramSnapshot(histogram.getMetadata(), histogram.getDataPoints()
+    } else if (md instanceof HistogramSnapshot) {
+      return new HistogramSnapshot(md.getMetadata(), ((HistogramSnapshot) md).getDataPoints()
           .stream().map(dp ->
               new HistogramDataPointSnapshot(
                   dp.getClassicBuckets(),
@@ -74,7 +83,8 @@ public final class MetricsUtils {
                   dp.getCreatedTimestampMillis()
               )
           ).toList());
-      case SummarySnapshot summary -> new SummarySnapshot(summary.getMetadata(), summary.getDataPoints()
+    } else if (md instanceof SummarySnapshot) {
+      return new SummarySnapshot(md.getMetadata(), ((SummarySnapshot) md).getDataPoints()
           .stream().map(dp ->
               new SummaryDataPointSnapshot(
                   dp.getCount(),
@@ -85,8 +95,9 @@ public final class MetricsUtils {
                   dp.getCreatedTimestampMillis()
               )
           ).toList());
-      default -> md;
-    };
+    } else {
+      return md;
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -95,19 +106,24 @@ public final class MetricsUtils {
         d1.getDataPoints().stream(), d2.getDataPoints().stream()
     ).toList();
 
-    return switch (d1) {
-      case UnknownSnapshot u -> new UnknownSnapshot(u.getMetadata(),
+    if (d1 instanceof UnknownSnapshot) {
+      return new UnknownSnapshot(d1.getMetadata(),
           (Collection<UnknownDataPointSnapshot>) dataPoints);
-      case GaugeSnapshot g -> new GaugeSnapshot(g.getMetadata(),
+    } else if (d1 instanceof GaugeSnapshot) {
+      return new GaugeSnapshot(d1.getMetadata(),
           (Collection<GaugeDataPointSnapshot>) dataPoints);
-      case CounterSnapshot c -> new CounterSnapshot(c.getMetadata(),
+    } else if (d1 instanceof CounterSnapshot) {
+      return new CounterSnapshot(d1.getMetadata(),
           (Collection<CounterDataPointSnapshot>) dataPoints);
-      case HistogramSnapshot h -> new HistogramSnapshot(h.getMetadata(),
+    } else if (d1 instanceof HistogramSnapshot) {
+      return new HistogramSnapshot(d1.getMetadata(),
           (Collection<HistogramDataPointSnapshot>) dataPoints);
-      case SummarySnapshot s -> new SummarySnapshot(s.getMetadata(),
+    } else if (d1 instanceof SummarySnapshot) {
+      return new SummarySnapshot(d1.getMetadata(),
           (Collection<SummaryDataPointSnapshot>) dataPoints);
-      default -> d1;
-    };
+    } else {
+      return d1;
+    }
   }
 
   private static Labels extendLabels(Labels labels, String name, String value) {

@@ -120,7 +120,7 @@ class ConnectorsExporterTest {
               .satisfies(sink -> {
                 assertThat(sink.getMetadata()).isNotNull();
                 assertThat(sink.getDataTransformer()).isNotNull();
-                assertThat(sink.getMetadata().getFirst().getMetadata())
+                assertThat(sink.getMetadata().get(0).getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(sink.getDataTransformer().getInputs()).contains(
                     "//kafka/cluster/localhost:9092/topics/inputTopic");
@@ -132,7 +132,7 @@ class ConnectorsExporterTest {
               .satisfies(source -> {
                 assertThat(source.getMetadata()).isNotNull();
                 assertThat(source.getDataTransformer()).isNotNull();
-                assertThat(source.getMetadata().getFirst().getMetadata())
+                assertThat(source.getMetadata().get(0).getMetadata())
                     .containsOnlyKeys("type", "connector.class", "file", "topic");
                 assertThat(source.getDataTransformer().getOutputs()).contains(
                     "//kafka/cluster/localhost:9092/topics/outputTopic");
