@@ -99,6 +99,7 @@ const ListPage: React.FC = () => {
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
         <Search
+          key={clusterName}
           placeholder="Search by Topic Name"
           extraActions={<Fts resourceName="topics" />}
         />

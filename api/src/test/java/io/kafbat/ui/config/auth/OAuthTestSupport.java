@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -164,32 +163,33 @@ public final class OAuthTestSupport {
         .build();
   }
 
+  /**
+   * Creates a GitHub-style client registration WITHOUT "openid" scope.
+   * This tests the non-OIDC OAuth2 flow where no ID token is returned.
+   */
+  public static ClientRegistration githubStyleClientRegistration() {
+    return ClientRegistration.withRegistrationId("github")
+        .clientId(CLIENT_ID)
+        .clientSecret(CLIENT_SECRET)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+        .scope("read:user")  // No "openid" scope - this is key for non-OIDC
+        .authorizationUri(oauthBaseUrl() + AUTHORIZE_PATH)
+        .tokenUri(oauthBaseUrl() + TOKEN_PATH)
+        .userInfoUri(oauthBaseUrl() + USERINFO_PATH)
+        .userNameAttributeName("login")
+        .build();
+  }
+
   public static OAuthProperties createOAuthProperties() {
-    OAuthProperties props = mock(OAuthProperties.class);
     OAuthProperties.OAuth2Provider provider = mock(OAuthProperties.OAuth2Provider.class);
     when(provider.getProvider()).thenReturn(REGISTRATION_ID);
+    when(provider.getJwkSetUri()).thenReturn(oauthBaseUrl() + JWKS_PATH);
     Map<String, OAuthProperties.OAuth2Provider> clients = new HashMap<>();
     clients.put(REGISTRATION_ID, provider);
+    OAuthProperties props = mock(OAuthProperties.class);
     when(props.getClient()).thenReturn(clients);
     when(props.getResourceServer()).thenReturn(null);
-    return props;
-  }
-
-  public static OAuthProperties createOAuthPropertiesWithJwt() {
-    OAuthProperties props = createOAuthProperties();
-    OAuth2ResourceServerProperties rs = new OAuth2ResourceServerProperties();
-    rs.getJwt().setJwkSetUri(oauthBaseUrl() + JWKS_PATH);
-    when(props.getResourceServer()).thenReturn(rs);
-    return props;
-  }
-
-  public static OAuthProperties createOAuthPropertiesWithOpaqueToken() {
-    OAuthProperties props = createOAuthProperties();
-    OAuth2ResourceServerProperties rs = new OAuth2ResourceServerProperties();
-    rs.getOpaquetoken().setIntrospectionUri(oauthBaseUrl() + INTROSPECT_PATH);
-    rs.getOpaquetoken().setClientId(CLIENT_ID);
-    rs.getOpaquetoken().setClientSecret(CLIENT_SECRET);
-    when(props.getResourceServer()).thenReturn(rs);
     return props;
   }
 

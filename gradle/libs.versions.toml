@@ -1,6 +1,6 @@
 [versions]
-spring-boot = '3.5.8'
-nimbus-jose-jwt = '10.0.2'
+spring-boot = '3.5.9'
+nimbus-jose-jwt = '10.6'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -142,3 +142,6 @@ lucene-queryparser = {module = 'org.apache.lucene:lucene-queryparser', version.r
 lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', version.ref = 'lucene'}
 
 fastcsv = {module = 'de.siegmar:fastcsv', version = '4.1.0'}
+
+# CVE-2025-12183 fix
+lz4-yawk = {module = 'at.yawk.lz4:lz4-java', version = '1.10.1'}

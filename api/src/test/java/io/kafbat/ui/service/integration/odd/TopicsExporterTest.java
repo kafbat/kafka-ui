@@ -48,7 +48,7 @@ class TopicsExporterTest {
   @BeforeEach
   void init() {
     var statisticsCacheMock = mock(StatisticsCache.class);
-    when(statisticsCacheMock.get(cluster)).thenAnswer(invocationOnMock -> stats);
+    when(statisticsCacheMock.get(cluster)).thenAnswer(_ -> stats);
 
     topicsExporter = new TopicsExporter(
         topic -> !topic.startsWith("_"),
@@ -155,7 +155,7 @@ class TopicsExporterTest {
           assertThat(entityList.getItems())
               .hasSize(1);
 
-          DataEntity topicEntity = entityList.getItems().get(0);
+          DataEntity topicEntity = entityList.getItems().getFirst();
           assertThat(topicEntity.getName()).isNotEmpty();
           assertThat(topicEntity.getOddrn())
               .isEqualTo("//kafka/cluster/localhost:19092,localhost:9092/topics/testTopic");

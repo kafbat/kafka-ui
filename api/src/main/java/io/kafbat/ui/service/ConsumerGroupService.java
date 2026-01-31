@@ -1,9 +1,12 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateLag;
+
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
+import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
@@ -16,6 +19,7 @@ import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -39,6 +43,8 @@ import org.apache.kafka.common.ConsumerGroupState;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 @Service
 @RequiredArgsConstructor
@@ -165,6 +171,86 @@ public class ConsumerGroupService {
         .stream()
         .anyMatch(m -> m.assignment().topicPartitions().stream().anyMatch(tp -> tp.topic().equals(topic)));
     return hasActiveMembersForTopic || hasCommittedOffsets;
+  }
+
+  public Mono<Tuple2<Map<String, ConsumerGroupLagDTO>, Optional<Long>>> getConsumerGroupsLag(
+      KafkaCluster cluster, Collection<String> groupNames, Optional<Long> lastUpdate) {
+    Statistics statistics = statisticsCache.get(cluster);
+
+    Map<TopicPartition, Long> endOffsets = statistics.getClusterState().getTopicStates().entrySet().stream()
+        .flatMap(e -> e.getValue().endOffsets().entrySet().stream().map(p ->
+            Map.entry(new TopicPartition(e.getKey(), p.getKey()), p.getValue()))
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      boolean select = lastUpdate
+          .map(t -> statistics.getClusterState().getScrapeFinishedAt().isAfter(Instant.ofEpochMilli(t)))
+          .orElse(true);
+
+      if (select) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+
+        return Mono.just(
+            Tuples.of(
+                groupNames.stream()
+                    .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(g -> Map.entry(g.group(), buildConsumerGroup(g, endOffsets)))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                Optional.of(statistics.getClusterState().getScrapeFinishedAt().toEpochMilli())
+            )
+        );
+      }
+
+    }
+
+    return Mono.just(Tuples.of(Map.of(), lastUpdate));
+  }
+
+  private ConsumerGroupLagDTO buildConsumerGroup(
+      ScrapedClusterState.ConsumerGroupState state,
+      Map<TopicPartition, Long> endOffsets
+  ) {
+    var commitedTopicPartitions = Stream.concat(
+        state.description().members().stream()
+            .flatMap(m ->
+                m.assignment().topicPartitions().stream()
+                    .map(t -> Map.entry(t, Optional.<Long>empty()))
+            ),
+        state.committedOffsets().entrySet().stream()
+            .map(o -> Map.entry(o.getKey(), Optional.ofNullable(o.getValue())))
+    ).collect(
+        Collectors.groupingBy(
+            Map.Entry::getKey,
+            Collectors.mapping(Map.Entry::getValue,
+                Collectors.<Optional<Long>>reducing(
+                    Optional.empty(),
+                    (a, b) -> Stream.of(a, b)
+                        .flatMap(Optional::stream)
+                        .max(Long::compare)
+                )
+            )
+        )
+    );
+
+    Map<String, Long> topicsLags = commitedTopicPartitions.entrySet().stream()
+        .map(e ->
+          Map.entry(
+              e.getKey(),
+              calculateLag(e.getValue(), Optional.ofNullable(endOffsets.get(e.getKey()))).orElse(0L)
+          )
+        ).collect(
+            Collectors.groupingBy(
+              (e) -> e.getKey().topic(),
+              Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+            )
+        );
+
+    long lag = topicsLags.values().stream().mapToLong(v -> v).sum();
+
+    return new ConsumerGroupLagDTO(lag, topicsLags);
   }
 
   public record ConsumerGroupsPage(List<InternalConsumerGroup> consumerGroups, int totalPages) {

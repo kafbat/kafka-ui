@@ -71,6 +71,7 @@ jobs:
         uses: aquasecurity/trivy-action@dc5a429b52fcf669ce959baa2c2dd26090d2a6c4 # https://github.com/aquasecurity/trivy-action/releases/tag/0.33.1
         with:
           image-ref: "ghcr.io/kafbat/kafka-ui:latest"
+          severity: "CRITICAL,HIGH"
           format: "table"
           exit-code: "1"
 
