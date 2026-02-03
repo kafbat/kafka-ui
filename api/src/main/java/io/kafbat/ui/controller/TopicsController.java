@@ -14,6 +14,7 @@ import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
+import io.kafbat.ui.model.KafkaAclDTO;
 import io.kafbat.ui.model.PartitionsIncreaseDTO;
 import io.kafbat.ui.model.PartitionsIncreaseResponseDTO;
 import io.kafbat.ui.model.ReplicationFactorChangeDTO;
@@ -29,16 +30,22 @@ import io.kafbat.ui.model.TopicProducerStateDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
 import io.kafbat.ui.model.TopicsResponseDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
+import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.resource.PatternType;
+import org.apache.kafka.common.resource.ResourcePatternFilter;
+import org.apache.kafka.common.resource.ResourceType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,6 +65,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   private final ClusterMapper clusterMapper;
   private final ClustersProperties clustersProperties;
   private final KafkaConnectService kafkaConnectService;
+  private final AclsService aclsService;
 
   @Override
   public Mono<ResponseEntity<TopicDTO>> createTopic(
@@ -274,6 +282,28 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         partitionsIncrease.flatMap(partitions ->
             topicsService.increaseTopicPartitions(getCluster(clusterName), topicName, partitions)
         ).map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Flux<KafkaAclDTO>>> listTopicAcls(String clusterName,
+                                                               String topicName,
+                                                               ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .topicActions(topicName, VIEW)
+        .aclActions(AclAction.VIEW)
+        .build();
+
+    var resourceType = ResourceType.TOPIC;
+    var patternType = PatternType.MATCH;
+    var filter = new ResourcePatternFilter(resourceType, topicName, patternType);
+
+    return validateAccess(context).then(
+        Mono.just(
+            ResponseEntity.ok(
+                aclsService.listAcls(getCluster(clusterName), filter, null, false)
+                    .map(ClusterMapper::toKafkaAclDto)))
     ).doOnEach(sig -> audit(context, sig));
   }
 
