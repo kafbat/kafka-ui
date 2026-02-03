@@ -6,10 +6,14 @@ import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
 import useAppParams from 'lib/hooks/useAppParams';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
-import { timeAgo } from 'lib/dateTimeHelpers';
+import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
 import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAccessContext';
 import { RolesType } from 'lib/permissions';
+import ClusterContext, {
+  ContextProps,
+  initialValue as initialContextValue,
+} from 'components/contexts/ClusterContext';
 
 import {
   mockMessageValue,
@@ -40,28 +44,35 @@ const renderComponent = (
     keyFilters: [],
     contentFilters: [],
   },
-  roles: Map<string, Map<ResourceType, RolesType>> = mockNoRoles
+  roles: Map<string, Map<ResourceType, RolesType>> = mockNoRoles,
+  clusterContext: Partial<ContextProps> = initialContextValue
 ) =>
   render(
-    <UserInfoRolesAccessContext.Provider
-      value={{
-        roles,
-        rbacFlag: true,
-        username: 'testUsername',
-      }}
+    <ClusterContext.Provider
+      value={{ ...initialContextValue, ...clusterContext }}
     >
-      <TopicActionsProvider openSidebarWithMessage={mockOpenSidebarWithMessage}>
-        <table>
-          <tbody>
-            <Message
-              message={props.message || mockMessage}
-              keyFilters={props.keyFilters || []}
-              contentFilters={props.contentFilters || []}
-            />
-          </tbody>
-        </table>
-      </TopicActionsProvider>
-    </UserInfoRolesAccessContext.Provider>
+      <UserInfoRolesAccessContext.Provider
+        value={{
+          roles,
+          rbacFlag: true,
+          username: 'testUsername',
+        }}
+      >
+        <TopicActionsProvider
+          openSidebarWithMessage={mockOpenSidebarWithMessage}
+        >
+          <table>
+            <tbody>
+              <Message
+                message={props.message || mockMessage}
+                keyFilters={props.keyFilters || []}
+                contentFilters={props.contentFilters || []}
+              />
+            </tbody>
+          </table>
+        </TopicActionsProvider>
+      </UserInfoRolesAccessContext.Provider>
+    </ClusterContext.Provider>
   );
 
 describe('Message component', () => {
@@ -77,12 +88,28 @@ describe('Message component', () => {
     renderComponent();
     expect(screen.getByText(mockMessage.value as string)).toBeInTheDocument();
     expect(screen.getByText(mockMessage.key as string)).toBeInTheDocument();
-    expect(
-      screen.getByText(timeAgo(mockMessage.timestamp))
-    ).toBeInTheDocument();
+
     expect(screen.getByText(mockMessage.offset.toString())).toBeInTheDocument();
     expect(
       screen.getByText(mockMessage.partition.toString())
+    ).toBeInTheDocument();
+  });
+
+  it('shows timestamp by default', () => {
+    renderComponent();
+    expect(
+      screen.getByText(
+        formatTimestamp({
+          timestamp: mockMessage.timestamp,
+          withMilliseconds: true,
+        })
+      )
+    ).toBeInTheDocument();
+  });
+  it('shows relative timestamp when messageRelativeTimestamp turned ON', () => {
+    renderComponent(undefined, undefined, { messageRelativeTimestamp: true });
+    expect(
+      screen.getByText(timeAgo(mockMessage.timestamp))
     ).toBeInTheDocument();
   });
 
