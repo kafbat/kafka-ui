@@ -127,7 +127,8 @@ class SchemaRegistrySerdeTest {
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
     assertThat(result.getAdditionalProperties())
         .contains(Map.entry("type", "AVRO"))
-        .contains(Map.entry("schemaId", schemaId));
+        .contains(Map.entry("id", schemaId))
+        .contains(Map.entry("subjects", List.of(topic + "-value")));
   }
 
   @Nested
@@ -394,7 +395,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(true, false)
+          new FormatterProperties(true, false),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
@@ -438,7 +440,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(false, true)
+          new FormatterProperties(false, true),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
@@ -534,7 +537,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(true, true)
+          new FormatterProperties(true, true),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
