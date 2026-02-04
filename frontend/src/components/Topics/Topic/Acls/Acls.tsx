@@ -2,29 +2,29 @@ import { ColumnDef } from '@tanstack/react-table';
 import AclsTable from 'components/ACLPage/Table/Table';
 import {
   createPrincipalCell,
-  createResourceCell,
   createHostCell,
   createOperationCell,
   createParmissionCell,
-  createNameCell,
 } from 'components/ACLPage/Table/TableCells';
 import { KafkaAcl } from 'generated-sources';
-import { aclPayload } from 'lib/fixtures/acls';
+import { useTopicAcls } from 'lib/hooks/api/topics';
 import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import React from 'react';
 import { useTheme } from 'styled-components';
 
+const EMPTY_ACLS: KafkaAcl[] = [];
 const Acls = () => {
-  const { topicName } = useAppParams<RouteParamsClusterTopic>();
+  const { topicName, clusterName } = useAppParams<RouteParamsClusterTopic>();
   const theme = useTheme();
-  const acls = aclPayload; // TODO: here will be a query
+  const { data: acls = EMPTY_ACLS } = useTopicAcls({
+    clusterName,
+    topicName,
+  });
 
   const columns = React.useMemo<ColumnDef<KafkaAcl>[]>(() => {
     return [
       createPrincipalCell(),
-      createResourceCell(),
-      createNameCell({ topicName }),
       createOperationCell(),
       createParmissionCell(),
       createHostCell(),

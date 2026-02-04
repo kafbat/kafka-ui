@@ -239,9 +239,8 @@ const Topic: React.FC = () => {
           to={clusterTopicAclsRelativePath}
           className={({ isActive }) => (isActive ? 'is-active' : '')}
           permission={{
-            resource: ResourceType.TOPIC,
-            action: Action.ANALYSIS_VIEW,
-            value: topicName,
+            resource: ResourceType.ACL,
+            action: Action.VIEW,
           }}
         >
           ACLs
