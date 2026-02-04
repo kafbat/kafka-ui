@@ -76,6 +76,10 @@ const createHostCell = (): ColumnDef<KafkaAcl> => {
     header: 'Host',
     accessorKey: 'host',
     size: 257,
+    filterFn: 'includesString',
+    meta: {
+      filterVariant: 'text',
+    },
   };
 };
 const createOperationCell = (): ColumnDef<KafkaAcl> => {
