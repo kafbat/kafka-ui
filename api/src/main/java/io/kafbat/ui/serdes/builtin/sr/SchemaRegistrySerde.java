@@ -104,7 +104,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         kafkaClusterProperties.getProperty("schemaRegistryCheckSchemaExistenceForDeserialize", Boolean.class)
             .orElse(false),
         formatterProperties,
-        kafkaClusterProperties.getProperty("schemaRegistryMaxSubjectsCacheSize", Integer.class).orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
+        kafkaClusterProperties.getProperty("schemaRegistryMaxSubjectsCacheSize", Integer.class)
+            .orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
     );
   }
 
