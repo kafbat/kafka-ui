@@ -85,6 +85,11 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     var oidcAuthManager =
         new OidcAuthorizationCodeReactiveAuthenticationManager(tokenResponseClient, oidcUserService);
 
+    oidcAuthManager.setJwtDecoderFactory(clientRegistration ->
+        NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
+            .webClient(webClient)
+            .build());
+
     var oauth2AuthManager =
         new OAuth2LoginReactiveAuthenticationManager(tokenResponseClient, oauth2UserService);
 
