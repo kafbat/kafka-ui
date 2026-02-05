@@ -458,7 +458,12 @@ public class ConsumerGroupService {
   public EnhancedConsumer createConsumer(KafkaCluster cluster,
                                          Map<String, Object> properties) {
     Properties props = new Properties();
-    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), props);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(
+        cluster.getOriginalProperties().getSsl(),
+        cluster.getOriginalProperties().getKafkaSsl(),
+        cluster.getOriginalProperties().getSecurityProtocol(),
+        props
+    );
     props.putAll(cluster.getProperties());
     props.putAll(cluster.getConsumerProperties());
     props.put(ConsumerConfig.CLIENT_ID_CONFIG, "kafbat-ui-consumer-" + System.currentTimeMillis());
