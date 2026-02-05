@@ -500,6 +500,7 @@ components:
               enum:
                 - source
                 - sink
+                - unknown
 
     ExpandedConnector:
       type: object

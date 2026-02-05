@@ -47,6 +47,8 @@ public class ClustersProperties {
 
   Csv csv = new Csv();
 
+  Boolean messageRelativeTimestamp;
+
   @Data
   public static class Csv {
     String lineDelimeter = "crlf";

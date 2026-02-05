@@ -212,6 +212,7 @@ model NewConnector {
 enum ConnectorType {
   SOURCE,
   SINK,
+  UNKNOWN,
 }
 
 enum ConnectorTaskStatus {

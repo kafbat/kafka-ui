@@ -65,6 +65,9 @@ const ClusterPage: React.FC = () => {
       ftsDefaultEnabled: features.includes(
         ClusterFeaturesEnum.FTS_DEFAULT_ENABLED
       ),
+      messageRelativeTimestamp: features.includes(
+        ClusterFeaturesEnum.MESSAGE_RELATIVE_TIMESTAMP
+      ),
     };
   }, [clusterName, data]);
 
