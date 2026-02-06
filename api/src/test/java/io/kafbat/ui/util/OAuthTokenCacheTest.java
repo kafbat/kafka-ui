@@ -2,6 +2,7 @@ package io.kafbat.ui.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldReturnEmptyWhenNoTokenCached() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     Optional<String> token = cache.getValidToken();
 
@@ -25,7 +26,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldReturnCachedTokenWhenValid() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken("test-token-123", 3600);
     Optional<String> token = cache.getValidToken();
@@ -36,7 +37,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldReturnEmptyWhenTokenExpired() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(0); // No buffer
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0)); // No buffer
 
     // Store token that expires in 1 second
     cache.storeToken("expiring-token", 1);
@@ -51,7 +52,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldApplyRefreshBuffer() {
-    OAuthTokenCache cache = new OAuthTokenCache(300); // 5 minute buffer
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(300)); // 5 minute buffer
 
     // Store token that expires in 400 seconds
     cache.storeToken("test-token", 400);
@@ -67,7 +68,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldInvalidateCache() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken("test-token", 3600);
     assertThat(cache.getValidToken()).isPresent();
@@ -80,7 +81,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldHandleInvalidationWhenEmpty() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     // Should not throw exception
     cache.invalidate();
@@ -90,7 +91,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldIgnoreNullToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken(null, 3600);
 
@@ -100,7 +101,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldIgnoreEmptyToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken("", 3600);
 
@@ -110,7 +111,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldIgnoreInvalidExpiration() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken("test-token", 0);
     assertThat(cache.hasToken()).isFalse();
@@ -121,7 +122,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldOverwritePreviousToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     cache.storeToken("token-1", 3600);
     assertThat(cache.getValidToken()).contains("token-1");
@@ -132,7 +133,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldBeThreadSafe() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
     int threadCount = 10;
     int operationsPerThread = 100;
 
@@ -168,7 +169,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldHandleConcurrentReads() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
     cache.storeToken("shared-token", 3600);
 
     int threadCount = 20;
@@ -197,7 +198,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldHandleZeroRefreshBuffer() {
-    OAuthTokenCache cache = new OAuthTokenCache(0);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
 
     cache.storeToken("test-token", 100);
 
@@ -211,7 +212,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldHandleLargeRefreshBuffer() {
-    OAuthTokenCache cache = new OAuthTokenCache(5000); // Buffer larger than expiration
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(5000)); // Buffer larger than expiration
 
     cache.storeToken("test-token", 3600);
 
@@ -223,7 +224,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldProvideExpirationInfo() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     assertThat(cache.getExpirationTime()).isEmpty();
 
@@ -236,7 +237,7 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldIndicateTokenPresence() {
-    OAuthTokenCache cache = new OAuthTokenCache(60);
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
 
     assertThat(cache.hasToken()).isFalse();
 

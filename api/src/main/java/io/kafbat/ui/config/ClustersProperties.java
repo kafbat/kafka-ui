@@ -175,8 +175,8 @@ public class ClustersProperties {
     String clientSecret;
 
     Boolean tokenCacheEnabled = true;
-    Integer tokenRefreshBufferSeconds = 60;        // Refresh token N seconds before expiry
-    Integer maxRetries = 1;                        // Max retries on 401 errors
+    Duration tokenRefreshBufferSeconds = Duration.ofSeconds(60);
+    Integer maxRetries = 1;  // Max retries on 401 errors
   }
 
   @Data
