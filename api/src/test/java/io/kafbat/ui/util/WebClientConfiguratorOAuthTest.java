@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.config.ClustersProperties;
 import java.io.IOException;
+import java.time.Duration;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -482,7 +483,7 @@ class WebClientConfiguratorOAuthTest {
       oauth.setClientId("client-id");
       oauth.setClientSecret("client-secret");
       oauth.setTokenCacheEnabled(true);
-      oauth.setTokenRefreshBufferSeconds(90); // Token effectively expires in 100-90=10s
+      oauth.setTokenRefreshBufferSeconds(Duration.ofSeconds(90)); // Token effectively expires in 100-90=10s
 
       WebClient webClient = new WebClientConfigurator()
           .configureOAuth(oauth)
