@@ -158,7 +158,8 @@ model ApplicationConfig {
           clientId?: string;
           clientSecret?: string;
           tokenCacheEnabled?: boolean = true;
-          tokenRefreshBufferSeconds?: int32 = 60;
+          @format("duration")
+          tokenRefreshBufferSeconds?: string;
           maxRetries?: int32 = 1;
         };
         schemaRegistrySsl?: {
