@@ -153,6 +153,15 @@ model ApplicationConfig {
           username?: string;
           password?: string;
         };
+        schemaRegistryOAuth?: {
+          tokenUrl?: string;
+          clientId?: string;
+          clientSecret?: string;
+          tokenCacheEnabled?: boolean = true;
+          @format("duration")
+          tokenRefreshBufferSeconds?: string;
+          maxRetries?: int32 = 1;
+        };
         schemaRegistrySsl?: {
           keystoreLocation?: string;
           keystorePassword?: string;
