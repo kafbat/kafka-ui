@@ -65,6 +65,9 @@ updates:
     modelcontextprotocol:
       patterns:
         - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
+    gradle-wrapper:
+      patterns:
+        - "gradle-wrapper"
     others:
       patterns:
         - "*"
