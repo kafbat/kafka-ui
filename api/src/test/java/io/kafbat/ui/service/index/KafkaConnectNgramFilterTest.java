@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorInfoDTO> {
 
@@ -29,7 +30,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
         List.of(),
         new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "worker-1", "reason"),
         1,
-        0)).toList();
+        0,
+        JsonNullable.of("connect-connector-"+i))).toList();
   }
 
   @Override
@@ -54,7 +56,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
+            0,
+            null
         ),
         new FullConnectorInfoDTO(
             "pay-connect",
@@ -64,7 +67,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
+            0,
+            null
         )
     );
   }
@@ -85,7 +89,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0),
+            0, null),
         new FullConnectorInfoDTO(
             "connect-pay",
             "connector-pay",
@@ -94,6 +98,6 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0));
+            0, null));
   }
 }

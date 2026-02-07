@@ -13,6 +13,7 @@ import io.kafbat.ui.model.ConnectorPluginDTO;
 import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
+import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
@@ -23,11 +24,14 @@ import io.kafbat.ui.service.StatisticsService;
 import io.kafbat.ui.service.TopicsService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -83,8 +87,15 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
                 "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
-    // Force cache refresh
-    statisticsService.updateCache(kafkaCluster).block();
+
+    // Force cache refresh and wait for the consumer to start
+    Awaitility.await().until(() ->
+      statisticsService.updateCache(kafkaCluster).map(v ->
+          Optional.ofNullable(
+              v.getClusterState().getConsumerGroupsStates().get("connect-" + connectorName)
+          ).isPresent()
+      ).block()
+    );
   }
 
   @AfterEach
@@ -102,9 +113,15 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .uri("/api/clusters/{clusterName}/connectors", LOCAL)
             .exchange()
             .expectStatus().isOk()
-            .expectBody()
-            .jsonPath(String.format("$[?(@.name == '%s')]", connectorName))
-            .exists();
+            .expectBodyList(FullConnectorInfoDTO.class)
+            .value(connectors -> {
+              assertThat(connectors)
+                  .anyMatch(connector -> connector.getName().equals(connectorName));
+              FullConnectorInfoDTO createdConnector =
+                  connectors.stream().filter(connector -> connector.getName().equals(connectorName))
+                      .findFirst().orElseThrow();
+              assertThat(createdConnector.getConsumer()).isEqualTo(JsonNullable.of("connect-" + connectorName));
+            });
   }
 
   @Test
@@ -203,6 +220,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .task(0)))
         .type(ConnectorTypeDTO.SINK)
         .name(connectorName)
+        .consumer("connect-"+connectorName)
         .config(config);
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
