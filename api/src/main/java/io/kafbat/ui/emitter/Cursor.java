@@ -62,11 +62,12 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
               new ConsumerPosition(
                   switch (originalPosition.pollingMode()) {
                     case TO_OFFSET, TO_TIMESTAMP, LATEST -> PollingModeDTO.TO_OFFSET;
-                    case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> PollingModeDTO.FROM_OFFSET;
+                    case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST, TIMESTAMP_RANGE -> PollingModeDTO.FROM_OFFSET;
                     case TAILING -> throw new IllegalStateException();
                   },
                   originalPosition.topic(),
                   originalPosition.partitions(),
+                  null,
                   null,
                   new ConsumerPosition.Offsets(
                       null,
@@ -74,7 +75,7 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
                           switch (originalPosition.pollingMode()) {
                             case TO_OFFSET, TO_TIMESTAMP, LATEST -> 0;
                             // when doing forward polling we need to start from latest msg's offset + 1
-                            case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> 1;
+                            case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST, TIMESTAMP_RANGE -> 1;
                             case TAILING -> throw new IllegalStateException();
                           }
                       )
