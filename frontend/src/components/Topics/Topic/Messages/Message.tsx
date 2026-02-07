@@ -30,30 +30,14 @@ export interface Props {
   message: TopicMessage;
 }
 
-const Message: React.FC<Props> = ({
-  message: {
-    timestamp,
-    timestampType,
-    offset,
-    key,
-    keySize,
-    partition,
-    value,
-    valueSize,
-    headers,
-    valueSerde,
-    keySerde,
-  },
-  keyFilters,
-  contentFilters,
-}) => {
+const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
   const [isOpen, setIsOpen] = React.useState(false);
   const { messageRelativeTimestamp } = React.useContext(ClusterContext);
 
-  const message = {
+  const {
     timestamp,
     timestampType,
     offset,
@@ -65,7 +49,7 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
-  };
+  } = message;
 
   const savedMessageJson = {
     Value: value,

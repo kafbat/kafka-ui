@@ -19,6 +19,7 @@ public class SerdeInstance implements Closeable {
   @Getter
   final String name;
 
+  @Getter
   final Serde serde;
 
   @Nullable
