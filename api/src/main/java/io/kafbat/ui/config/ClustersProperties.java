@@ -80,6 +80,7 @@ public class ClustersProperties {
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+    String schemaRegistryTopicSubjectSuffix = "-value";
 
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;

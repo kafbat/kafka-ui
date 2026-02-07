@@ -80,6 +80,7 @@ public class KafkaClusterFactory {
 
     if (schemaRegistryConfigured(clusterProperties)) {
       builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
+      builder.schemaRegistryTopicSubjectSuffix(clusterProperties.getSchemaRegistryTopicSubjectSuffix());
     }
     if (connectClientsConfigured(clusterProperties)) {
       builder.connectsClients(connectClients(clusterProperties));

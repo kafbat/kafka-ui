@@ -6,6 +6,7 @@ import io.kafbat.ui.exception.SchemaCompatibilityException;
 import io.kafbat.ui.exception.SchemaNotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.KafkaCluster;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.sr.model.Compatibility;
 import io.kafbat.ui.sr.model.CompatibilityCheckResponse;
@@ -15,6 +16,7 @@ import io.kafbat.ui.sr.model.NewSubject;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import io.kafbat.ui.util.ReactiveFailover;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +33,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RequiredArgsConstructor
 public class SchemaRegistryService {
-
   private static final String LATEST = "latest";
 
   @AllArgsConstructor
@@ -40,7 +41,11 @@ public class SchemaRegistryService {
     SchemaSubject subject;
     @Getter
     Compatibility compatibility;
+    @Getter
+    String topic;
   }
+
+  private final StatisticsCache statisticsCache;
 
   private ReactiveFailover<KafkaSrClientApi> api(KafkaCluster cluster) {
     return cluster.getSchemaRegistryClient();
@@ -88,12 +93,22 @@ public class SchemaRegistryService {
     return getSchemaSubject(cluster, schemaName, LATEST);
   }
 
+  private String topicName(KafkaCluster cluster, String schemaName) {
+    return Optional.ofNullable(
+        statisticsCache.get(cluster)
+            .getClusterState()
+            .getTopicStates()
+            .get(schemaName.replace(cluster.getSchemaRegistryTopicSubjectSuffix(), "")))
+        .map(ScrapedClusterState.TopicState::name)
+        .orElse(null);
+  }
+
   private Mono<SubjectWithCompatibilityLevel> getSchemaSubject(KafkaCluster cluster, String schemaName,
                                                                String version) {
     return api(cluster)
         .mono(c -> c.getSubjectVersion(schemaName, version, false))
         .zipWith(getSchemaCompatibilityInfoOrGlobal(cluster, schemaName))
-        .map(t -> new SubjectWithCompatibilityLevel(t.getT1(), t.getT2()))
+        .map(t -> new SubjectWithCompatibilityLevel(t.getT1(), t.getT2(), topicName(cluster, schemaName)))
         .onErrorResume(WebClientResponseException.NotFound.class, th -> Mono.error(new SchemaNotFoundException()));
   }
 

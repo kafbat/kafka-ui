@@ -34,6 +34,7 @@ public class KafkaCluster {
   private final PollingSettings pollingSettings;
   private final MetricsScraper metricsScrapping;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;
+  private final String schemaRegistryTopicSubjectSuffix;
   private final Map<String, ReactiveFailover<KafkaConnectClientApi>> connectsClients;
   private final ReactiveFailover<KsqlApiClient> ksqlClient;
   private final ReactiveFailover<PrometheusClientApi> prometheusStorageClient;
