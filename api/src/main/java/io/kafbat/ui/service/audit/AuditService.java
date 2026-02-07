@@ -44,7 +44,7 @@ public class AuditService implements Closeable {
   private static final Duration TOPIC_BLOCK_TIMEOUT = Duration.ofSeconds(5);
   private static final Duration REACTIVE_TIMEOUT = Duration.ofSeconds(5);
 
-  private static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
+  public static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
   private static final int DEFAULT_AUDIT_TOPIC_PARTITIONS = 1;
   private static final Map<String, String> DEFAULT_AUDIT_TOPIC_CONFIG = Map.of(
       "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(90)),
