@@ -135,6 +135,10 @@ const ACList: React.FC = () => {
         header: 'Host',
         accessorKey: 'host',
         size: 257,
+        filterFn: 'includesString',
+        meta: {
+          filterVariant: 'text',
+        },
       },
       {
         header: 'Operation',
