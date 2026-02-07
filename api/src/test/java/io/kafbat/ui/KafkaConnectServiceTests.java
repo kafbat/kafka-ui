@@ -90,11 +90,11 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
 
     // Force cache refresh and wait for the consumer to start
     Awaitility.await().until(() ->
-      statisticsService.updateCache(kafkaCluster).map(v ->
-          Optional.ofNullable(
-              v.getClusterState().getConsumerGroupsStates().get("connect-" + connectorName)
-          ).isPresent()
-      ).block()
+        statisticsService.updateCache(kafkaCluster).map(v ->
+            Optional.ofNullable(
+                v.getClusterState().getConsumerGroupsStates().get("connect-" + connectorName)
+            ).isPresent()
+        ).block()
     );
   }
 
@@ -220,7 +220,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .task(0)))
         .type(ConnectorTypeDTO.SINK)
         .name(connectorName)
-        .consumer("connect-"+connectorName)
+        .consumer("connect-" + connectorName)
         .config(config);
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,

@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import org.openapitools.jackson.nullable.JsonNullable;
 
 class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorInfoDTO> {
 
@@ -31,7 +30,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
         new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "worker-1", "reason"),
         1,
         0,
-        JsonNullable.of("connect-connector-"+i))).toList();
+        null)).toList();
   }
 
   @Override
