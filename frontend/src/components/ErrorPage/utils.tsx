@@ -1,3 +1,4 @@
+import React from 'react';
 import UnexpectedErrorIcon from 'components/common/Icons/UnexpectedErrorIcon';
 import AccessErrorIcon from 'components/common/Icons/AccessErrorIcon';
 import NotFoundErrorIcon from 'components/common/Icons/NotFoundErrorIcon';

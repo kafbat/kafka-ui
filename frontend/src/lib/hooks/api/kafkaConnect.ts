@@ -124,7 +124,10 @@ export function useConnector(
 }
 export function useConnectorTasks(
   props: UseConnectorProps,
-  options?: Omit<UseQueryOptions<any[], ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<Task[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<Task[], ServerResponse>({
     queryKey: connectorTasksKey(props),

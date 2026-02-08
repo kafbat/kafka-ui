@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import Search from 'components/common/Search/Search';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import useAppParams from 'lib/hooks/useAppParams';

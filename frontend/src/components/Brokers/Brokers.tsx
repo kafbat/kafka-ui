@@ -7,10 +7,7 @@ import Broker from 'components/Brokers/Broker/Broker';
 const Brokers: React.FC = () => (
   <Routes>
     <Route index element={<BrokersList />} />
-    <Route
-      path={getNonExactPath(RouteParams.brokerId)}
-      element={<Broker />}
-    />
+    <Route path={getNonExactPath(RouteParams.brokerId)} element={<Broker />} />
   </Routes>
 );
 

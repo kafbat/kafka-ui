@@ -27,7 +27,10 @@ import { apiFetch, ServerResponse } from 'lib/errorHandling';
 
 export function useGetLatestSchema(
   param: GetLatestSchemaRequest,
-  options?: Omit<UseQueryOptions<SchemaSubject, ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<SchemaSubject, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<SchemaSubject, ServerResponse>({
     queryKey: [
@@ -43,9 +46,13 @@ export function useGetLatestSchema(
 
 export function useGetSchemas(
   params: GetSchemasRequest,
-  options?: Omit<UseQueryOptions<SchemaSubjectsResponse, ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<SchemaSubjectsResponse, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
-  const { clusterName, page, perPage, search, orderBy, sortOrder, fts } = params;
+  const { clusterName, page, perPage, search, orderBy, sortOrder, fts } =
+    params;
   return useQuery<SchemaSubjectsResponse, ServerResponse>({
     queryKey: [
       SCHEMA_QUERY_KEY,
@@ -58,45 +65,58 @@ export function useGetSchemas(
       fts,
     ],
     placeholderData: (previousData) => previousData,
-    queryFn: () => apiFetch(() => schemasApiClient.getSchemas({
-      clusterName,
-      page,
-      perPage,
-      search: search || undefined,
-      sortOrder,
-      orderBy,
-      fts,
-    })),
+    queryFn: () =>
+      apiFetch(() =>
+        schemasApiClient.getSchemas({
+          clusterName,
+          page,
+          perPage,
+          search: search || undefined,
+          sortOrder,
+          orderBy,
+          fts,
+        })
+      ),
     ...options,
   });
 }
 
 export function useGetSchemasVersions(
   params: GetAllVersionsBySubjectRequest,
-  options?: Omit<UseQueryOptions<Array<SchemaSubject>, ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<Array<SchemaSubject>, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   const { clusterName, subject } = params;
   return useQuery<Array<SchemaSubject>, ServerResponse>({
     queryKey: [SCHEMAS_VERSION_QUERY_KEY, clusterName, subject],
     queryFn: () =>
-      apiFetch(() => schemasApiClient.getAllVersionsBySubject({
-        clusterName,
-        subject,
-      })),
+      apiFetch(() =>
+        schemasApiClient.getAllVersionsBySubject({
+          clusterName,
+          subject,
+        })
+      ),
     ...options,
   });
 }
 
 export function useGetGlobalCompatibilityLayer(
   clusterName: ClusterName,
-  options?: Omit<UseQueryOptions<CompatibilityLevel, ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<CompatibilityLevel, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<CompatibilityLevel, ServerResponse>({
     queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
     queryFn: () =>
-      apiFetch(() => schemasApiClient.getGlobalSchemaCompatibilityLevel({
-        clusterName,
-      })),
+      apiFetch(() =>
+        schemasApiClient.getGlobalSchemaCompatibilityLevel({
+          clusterName,
+        })
+      ),
     ...options,
   });
 }

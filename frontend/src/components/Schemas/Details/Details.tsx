@@ -114,7 +114,10 @@ const Details: React.FC = () => {
         )}
       </ResourcePageHeading>
 
-      {(schema.isLoading || schema.isRefetching || versions.isLoading || versions.isRefetching) && <PageLoader />}
+      {(schema.isLoading ||
+        schema.isRefetching ||
+        versions.isLoading ||
+        versions.isRefetching) && <PageLoader />}
 
       {(schema.error || versions.error) && (
         <ErrorPage

@@ -25,7 +25,10 @@ export function useAcls(
     search?: string;
     fts?: boolean;
   },
-  options?: Omit<UseQueryOptions<KafkaAcl[], ServerResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<KafkaAcl[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery<KafkaAcl[], ServerResponse>({
     queryKey: ['clusters', clusterName, 'acls', { search, fts }],
