@@ -7,6 +7,7 @@ export interface ContextProps {
   isTopicDeletionAllowed: boolean;
   ftsEnabled: boolean;
   ftsDefaultEnabled: boolean;
+  messageRelativeTimestamp?: boolean;
 }
 
 export const initialValue: ContextProps = {
@@ -16,6 +17,7 @@ export const initialValue: ContextProps = {
   isTopicDeletionAllowed: true,
   ftsEnabled: false,
   ftsDefaultEnabled: false,
+  messageRelativeTimestamp: false,
 };
 const ClusterContext = React.createContext(initialValue);
 

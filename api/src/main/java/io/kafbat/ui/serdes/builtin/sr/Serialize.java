@@ -25,6 +25,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import lombok.SneakyThrows;
 import org.apache.avro.Schema;
+import org.apache.avro.data.TimeConversions;
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
@@ -110,10 +112,14 @@ final class Serialize {
         );
         out.write(((ByteBuffer) avroObject).array());
       } else {
-        boolean useLogicalTypeConverters = true;
         BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(out, null);
         DatumWriter<Object> writer =
-            (DatumWriter<Object>) AvroSchemaUtils.getDatumWriter(avroObject, rawSchema, useLogicalTypeConverters);
+            (DatumWriter<Object>) AvroSchemaUtils.getDatumWriter(avroObject, rawSchema, true);
+
+        var data = ((GenericDatumWriter<?>) writer).getData();
+        data.addLogicalTypeConversion(new TimeConversions.TimestampNanosConversion());
+        data.addLogicalTypeConversion(new TimeConversions.LocalTimestampNanosConversion());
+
         writer.write(avroObject, encoder);
         encoder.flush();
       }
