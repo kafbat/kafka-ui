@@ -29,6 +29,8 @@ import { ActionPermissionWrapper } from 'components/common/ActionComponent';
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import ClusterContext from 'components/contexts/ClusterContext';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import * as S from './List.styled';
 
@@ -36,7 +38,7 @@ const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('acl');
-  const { data: aclList } = useAcls({
+  const acls = useAcls({
     clusterName,
     search: searchParams.get('q') ?? '',
     fts: isFtsEnabled,
@@ -221,15 +223,30 @@ const ACList: React.FC = () => {
           extraActions={<Fts resourceName="acl" />}
         />
       </ControlPanelWrapper>
-      <Table
-        columns={columns}
-        data={aclList ?? []}
-        emptyMessage="No ACL items found"
-        onRowHover={handleRowHover}
-        onMouseLeave={() => setRowId('')}
-        filterPersister={filterPersister}
-        enableSorting
-      />
+
+      {(acls.isLoading || acls.isRefetching) && <PageLoader offsetY={300} />}
+
+      {acls.error && (
+        <ErrorPage
+          offsetY={300}
+          status={acls.error.status}
+          onClick={acls.refetch}
+          text={acls.error.message}
+        />
+      )}
+
+      {acls.isSuccess && (
+        <Table
+          columns={columns}
+          data={acls.data ?? []}
+          emptyMessage="No ACL items found"
+          onRowHover={handleRowHover}
+          onMouseLeave={() => setRowId('')}
+          filterPersister={filterPersister}
+          enableSorting
+        />
+      )}
+
       <ACLFormContext.Provider
         value={{
           close: closeForm,
