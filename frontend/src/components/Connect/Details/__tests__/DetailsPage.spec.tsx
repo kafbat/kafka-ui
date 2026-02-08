@@ -1,10 +1,6 @@
 import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
-import {
-  clusterConnectConnectorConfigPath,
-  clusterConnectConnectorPath,
-  getNonExactPath,
-} from 'lib/paths';
+import { clusterConnectConnectorPath, getNonExactPath } from 'lib/paths';
 import { screen } from '@testing-library/dom';
 import DetailsPage from 'components/Connect/Details/DetailsPage';
 
