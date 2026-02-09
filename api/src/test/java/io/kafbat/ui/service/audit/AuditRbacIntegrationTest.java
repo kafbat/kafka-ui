@@ -16,6 +16,8 @@ import io.kafbat.ui.model.TopicCreationDTO;
 import io.kafbat.ui.model.TopicDetailsDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
+import java.util.List;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,8 +31,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
-import java.util.List;
-import java.util.UUID;
 
 @SpringBootTest
 @ActiveProfiles("rbac-audit")
