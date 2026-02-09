@@ -43,6 +43,8 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
+    valueDeserializeProperties,
+    keyDeserializeProperties,
   },
   keyFilters,
   contentFilters,
@@ -210,6 +212,8 @@ const Message: React.FC<Props> = ({
           contentSize={valueSize}
           keySerde={keySerde}
           valueSerde={valueSerde}
+          valueDeserializeProperties={valueDeserializeProperties}
+          keyDeserializeProperties={keyDeserializeProperties}
         />
       )}
     </>
