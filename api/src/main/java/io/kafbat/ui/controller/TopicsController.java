@@ -5,7 +5,6 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.ANALYSIS_VIEW;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.CREATE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.EDIT;
-import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.VIEW;
 import static java.util.stream.Collectors.toList;
 
