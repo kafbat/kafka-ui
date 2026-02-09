@@ -5,6 +5,7 @@ import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
 
+import AvroMetadata from './AvroMetadata';
 import * as S from './MessageContent.styled';
 
 type Tab = 'key' | 'content' | 'headers';
@@ -19,6 +20,8 @@ export interface MessageContentProps {
   contentSize?: number;
   keySerde?: string;
   valueSerde?: string;
+  keyDeserializeProperties?: { [key: string]: unknown | undefined };
+  valueDeserializeProperties?: { [key: string]: unknown | undefined };
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
@@ -31,6 +34,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
   contentSize,
   keySerde,
   valueSerde,
+  keyDeserializeProperties,
+  valueDeserializeProperties,
 }) => {
   const { currentTimezone } = useTimezone();
 
@@ -127,6 +132,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
               </span>
             </S.Metadata>
 
+            <AvroMetadata deserializeProperties={keyDeserializeProperties} />
+
             <S.Metadata>
               <S.MetadataLabel>Value Serde</S.MetadataLabel>
               <span>
@@ -136,6 +143,8 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 </S.MetadataMeta>
               </span>
             </S.Metadata>
+
+            <AvroMetadata deserializeProperties={valueDeserializeProperties} />
           </S.MetadataWrapper>
         </S.Section>
       </td>
