@@ -27,11 +27,11 @@ import {
   createActionsCell,
   createPatternCell,
 } from 'components/ACLPage/Table/TableCells';
-import useDeleteKafkaAcl from 'components/ACLPage/lib/useDeleteTopic';
+import useDeleteKafkaAcl from 'components/ACLPage/lib/useDeleteAcl';
 
 import * as S from './List.styled';
 
-const emptyAclList: KafkaAcl[] = [];
+const EMPTY_ACLS: KafkaAcl[] = [];
 const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -94,7 +94,7 @@ const ACList: React.FC = () => {
           extraActions={<Fts resourceName="acl" />}
         />
       </ControlPanelWrapper>
-      <AclsTable acls={aclList ?? emptyAclList} columns={columns} />
+      <AclsTable acls={aclList ?? EMPTY_ACLS} columns={columns} />
       <ACLFormContext.Provider
         value={{
           close: closeForm,
