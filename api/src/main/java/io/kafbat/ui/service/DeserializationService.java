@@ -10,6 +10,7 @@ import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
 import io.kafbat.ui.serdes.SerdeInstance;
 import io.kafbat.ui.serdes.SerdesInitializer;
+import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +93,38 @@ public class DeserializationService implements Closeable {
     );
   }
 
+  public ProducerRecordCreator producerRecordCreator(KafkaCluster cluster,
+                                                     String topic,
+                                                     String keySerdeName,
+                                                     String valueSerdeName,
+                                                     @Nullable String keySubject,
+                                                     @Nullable String valueSubject) {
+    return new ProducerRecordCreator(
+        getSerializerWithSubject(cluster, topic, Serde.Target.KEY, keySerdeName, keySubject),
+        getSerializerWithSubject(cluster, topic, Serde.Target.VALUE, valueSerdeName, valueSubject)
+    );
+  }
+
+  private Serde.Serializer getSerializerWithSubject(KafkaCluster cluster,
+                                                    String topic,
+                                                    Serde.Target type,
+                                                    String serdeName,
+                                                    @Nullable String explicitSubject) {
+    var serdes = getSerdesFor(cluster.getName());
+    var serde = serdes.serdeForName(serdeName)
+        .orElseThrow(() -> new ValidationException(String.format("Serde %s not found", serdeName)));
+
+    if (explicitSubject != null && serde.getSerde() instanceof SchemaRegistrySerde srSerde) {
+      return srSerde.serializerWithSubject(topic, type, explicitSubject);
+    }
+
+    if (!serde.canSerialize(topic, type)) {
+      throw new ValidationException(
+          String.format("Serde %s can't serialize '%s' topic's %s", serde, topic, type));
+    }
+    return serde.serializer(topic, type);
+  }
+
   public ConsumerRecordDeserializer deserializerFor(KafkaCluster cluster,
                                                     String topic,
                                                     @Nullable String keySerdeName,
@@ -144,12 +177,19 @@ public class DeserializationService implements Closeable {
                                     Serde.Target serdeType,
                                     boolean preferred) {
     var schemaOpt = serdeInstance.getSchema(topic, serdeType);
-    return new SerdeDescriptionDTO()
+    var dto = new SerdeDescriptionDTO()
         .name(serdeInstance.getName())
         .description(serdeInstance.description().orElse(null))
         .schema(schemaOpt.map(SchemaDescription::getSchema).orElse(null))
         .additionalProperties(schemaOpt.map(SchemaDescription::getAdditionalProperties).orElse(null))
         .preferred(preferred);
+
+    // Populate applicable subjects for SchemaRegistry serde
+    if (serdeInstance.getSerde() instanceof SchemaRegistrySerde srSerde) {
+      dto.subjects(srSerde.getSchemaSubjects(topic, serdeType));
+    }
+
+    return dto;
   }
 
   @Override
