@@ -71,6 +71,40 @@ class CursorTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void forwardEmitterWithZeroLimitCompletesWithoutHanging() {
+    var consumerPosition = new ConsumerPosition(PollingModeDTO.EARLIEST, TOPIC, List.of(), null, null);
+    var emitter = new ForwardEmitter(
+        this::createConsumer,
+        consumerPosition,
+        0,
+        createRecordsDeserializer(),
+        _ -> true,
+        PollingSettings.createDefault(),
+        cursorsStorage.createNewCursor(createRecordsDeserializer(), consumerPosition, _ -> true, PAGE_SIZE)
+    );
+    List<TopicMessageEventDTO> events = Flux.create(emitter).collectList().block();
+    assertThat(events).isNotNull();
+    assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.DONE).count()).isEqualTo(1);
+  }
+
+  @Test
+  void backwardEmitterWithZeroLimitCompletesWithoutHanging() {
+    var consumerPosition = new ConsumerPosition(PollingModeDTO.LATEST, TOPIC, List.of(), null, null);
+    var emitter = new BackwardEmitter(
+        this::createConsumer,
+        consumerPosition,
+        0,
+        createRecordsDeserializer(),
+        _ -> true,
+        PollingSettings.createDefault(),
+        cursorsStorage.createNewCursor(createRecordsDeserializer(), consumerPosition, _ -> true, PAGE_SIZE)
+    );
+    List<TopicMessageEventDTO> events = Flux.create(emitter).collectList().block();
+    assertThat(events).isNotNull();
+    assertThat(events.stream().filter(m -> m.getType() == TopicMessageEventDTO.TypeEnum.DONE).count()).isEqualTo(1);
+  }
+
+  @Test
   void forwardEmitter() {
     var consumerPosition = new ConsumerPosition(PollingModeDTO.EARLIEST, TOPIC, List.of(), null, null);
     var emitter = createForwardEmitter(consumerPosition);

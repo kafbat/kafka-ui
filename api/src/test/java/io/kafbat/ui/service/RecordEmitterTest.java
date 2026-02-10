@@ -118,6 +118,41 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void forwardAndBackwardEmitterWithZeroMessagesPerPageCompleteWithoutHanging() {
+    var forwardEmitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    var backwardEmitter = new BackwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(LATEST, EMPTY_TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(forwardEmitter))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.PHASE))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.DONE))
+        .expectComplete()
+        .verify();
+
+    StepVerifier.create(Flux.create(backwardEmitter))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.PHASE))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.DONE))
+        .expectComplete()
+        .verify();
+  }
+
+  @Test
   void pollNothingOnEmptyTopic() {
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,

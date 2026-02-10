@@ -241,7 +241,7 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        cursor.limit()
+        fixPageSize(cursor.limit())
     );
   }
 
