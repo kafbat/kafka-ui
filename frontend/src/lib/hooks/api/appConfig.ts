@@ -102,7 +102,10 @@ export function useUpdateAppConfig({
         ...existingConfig,
         properties: {
           ...existingConfig.properties,
-          kafka: { clusters },
+          kafka: {
+            ...existingConfig.properties?.kafka,
+            clusters,
+          },
         },
       };
       return appConfig.restartWithConfig({ restartRequest: { config } });

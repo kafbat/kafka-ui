@@ -45,6 +45,22 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       SeekOperations seekOperations
   );
 
+  protected int nextChunkSizePerPartition(int activePartitions) {
+    if (activePartitions <= 0) {
+      return 1;
+    }
+    final int baseChunk = Math.max(1, (int) Math.ceil((double) messagesPerPage / activePartitions));
+    final int minChunk = Math.max(1, Math.min(10, messagesPerPage));
+    final int requestedChunk = Math.max(baseChunk, minChunk);
+    // Keep the total-request cap compatible with the per-partition floor.
+    final int maxTotalRequested = Math.max(
+        messagesPerPage * 3,
+        minChunk * activePartitions
+    );
+    final int maxChunkByTotal = Math.max(1, (int) Math.ceil((double) maxTotalRequested / activePartitions));
+    return Math.min(requestedChunk, maxChunkByTotal);
+  }
+
   @Override
   public void accept(FluxSink<TopicMessageEventDTO> sink) {
     log.debug("Starting polling for {}", consumerPosition);

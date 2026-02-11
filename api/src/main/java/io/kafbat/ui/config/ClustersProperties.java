@@ -110,6 +110,7 @@ public class ClustersProperties {
     Integer maxPageSize;
     Integer defaultPageSize;
     Integer responseTimeoutMs;
+    Integer maxMessagesToScanPerPoll;
   }
 
   @Data
