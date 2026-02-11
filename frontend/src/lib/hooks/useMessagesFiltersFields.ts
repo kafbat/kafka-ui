@@ -9,6 +9,7 @@ type MessagesFilterFieldsType = Pick<
   | 'mode'
   | 'offset'
   | 'timestamp'
+  | 'endTimestamp'
   | 'partitions'
   | 'keySerde'
   | 'valueSerde'
@@ -72,6 +73,7 @@ export function useMessagesFiltersFields(resourceName: string) {
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.mode);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.offset);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.timestamp);
+      setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.endTimestamp);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.partitions);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.keySerde);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.valueSerde);
@@ -83,6 +85,7 @@ export function useMessagesFiltersFields(resourceName: string) {
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.mode);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.offset);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.timestamp);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.endTimestamp);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.partitions);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.keySerde);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.valueSerde);
