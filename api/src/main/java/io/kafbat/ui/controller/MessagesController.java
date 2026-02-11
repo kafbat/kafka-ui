@@ -107,11 +107,12 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                              ServerWebExchange exchange) {
     var contextBuilder = AccessContext.builder()
         .cluster(clusterName)
-        .topicActions(topicName, MESSAGES_READ)
         .operationName("getTopicMessages");
 
     if (auditService.isAuditTopic(getCluster(clusterName), topicName)) {
       contextBuilder.auditActions(AuditAction.VIEW);
+    } else {
+      contextBuilder.topicActions(topicName, MESSAGES_READ);
     }
 
     var accessContext = contextBuilder.build();
