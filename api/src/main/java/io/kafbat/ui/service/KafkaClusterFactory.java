@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -47,6 +48,13 @@ public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
   private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
+  
+  // Schema Registry content types as defined in Confluent Schema Registry API
+  // https://docs.confluent.io/platform/current/schema-registry/develop/api.html
+  private static final MediaType SCHEMA_REGISTRY_V1_JSON = 
+      MediaType.parseMediaType("application/vnd.schemaregistry.v1+json");
+  private static final MediaType SCHEMA_REGISTRY_JSON = 
+      MediaType.parseMediaType("application/vnd.schemaregistry+json");
 
   private final DataSize webClientMaxBuffSize;
   private final Duration responseTimeout;
@@ -229,11 +237,21 @@ public class KafkaClusterFactory {
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
     var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
+    
+    // Configure WebClient to accept Schema Registry-specific content types
+    // This is needed for compatibility with Confluent Schema Registry and compatible implementations
+    // like WarpStream that return application/vnd.schemaregistry.v1+json
     WebClient webClient = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
         .configureBufferSize(webClientMaxBuffSize)
+        .configureObjectMapperWithMediaTypes(
+            WebClientConfigurator.createDefaultObjectMapper(),
+            SCHEMA_REGISTRY_V1_JSON,
+            SCHEMA_REGISTRY_JSON
+        )
         .build();
+    
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
         url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),
