@@ -227,6 +227,7 @@ public class ClustersProperties {
     Boolean consoleAuditEnabled;
     LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
+    Boolean requireAuditTopic;
 
     public enum LogLevel {
       ALL,

@@ -23,6 +23,8 @@ import {
   TopicUpdate,
   GetTopicConnectorsRequest,
   FullConnectorInfo,
+  ListTopicAclsRequest,
+  KafkaAcl,
 } from 'generated-sources';
 import { showServerError, showSuccessAlert } from 'lib/errorHandling';
 import { ClusterName } from 'lib/interfaces/cluster';
@@ -51,6 +53,8 @@ export const topicKeys = {
     [...topicKeys.details(props), 'statistics'] as const,
   connectors: (props: GetTopicConnectorsRequest) =>
     [...topicKeys.details(props), 'connectors'] as const,
+  acls: (props: ListTopicAclsRequest) =>
+    [...topicKeys.details(props), 'acls'] as const,
 };
 
 export function useTopics(props: GetTopicsRequest) {
@@ -98,6 +102,17 @@ export function useTopicConnectors(
   return useSuspenseQuery<FullConnectorInfo[]>({
     queryKey: topicKeys.connectors(props),
     queryFn: () => api.getTopicConnectors(props),
+    ...queryOptions,
+  });
+}
+
+export function useTopicAcls(
+  props: ListTopicAclsRequest,
+  queryOptions?: Omit<UseQueryOptions<KafkaAcl[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryFn: () => api.listTopicAcls(props),
+    queryKey: topicKeys.acls(props),
     ...queryOptions,
   });
 }
