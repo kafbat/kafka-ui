@@ -24,6 +24,20 @@ class ConsumingStats {
     );
   }
 
+  /**
+   * Accumulate and emit CONSUMING event with in-range-only stats (for range emitters).
+   */
+  void sendConsumingEvt(FluxSink<TopicMessageEventDTO> sink, int inRangeRecords, long inRangeBytes, long elapsedMs) {
+    bytes += inRangeBytes;
+    records += inRangeRecords;
+    elapsed += elapsedMs;
+    sink.next(
+        new TopicMessageEventDTO()
+            .type(TopicMessageEventDTO.TypeEnum.CONSUMING)
+            .consuming(createConsumingStats())
+    );
+  }
+
   void incFilterApplyError() {
     filterApplyErrors++;
   }

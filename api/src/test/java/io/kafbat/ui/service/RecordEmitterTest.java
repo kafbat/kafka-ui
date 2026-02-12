@@ -358,6 +358,41 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     );
   }
 
+  @Test
+  void rangeEmitterDoneConsumingStatsReflectInRangeOnly() {
+    final int smallLimit = 15;
+    var forwardEmitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        smallLimit,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    List<TopicMessageEventDTO> events = Flux.create(forwardEmitter).collectList().block();
+    assertThat(events).isNotNull();
+
+    long messageCount = events.stream()
+        .filter(e -> e.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
+        .count();
+    TopicMessageEventDTO doneEvent = events.stream()
+        .filter(e -> e.getType() == TopicMessageEventDTO.TypeEnum.DONE)
+        .reduce((a, b) -> b)
+        .orElseThrow(() -> new AssertionError("No DONE event"));
+
+    assertThat(doneEvent.getConsuming()).isNotNull();
+    // In-range only: messagesConsumed counts in-range records we read (may exceed sent due to limit)
+    assertThat(doneEvent.getConsuming().getMessagesConsumed()).isGreaterThanOrEqualTo((int) messageCount);
+    // No full-fetch inflation: consumed should not wildly exceed what we sent (e.g. not 500 when limit is 15)
+    assertThat(doneEvent.getConsuming().getMessagesConsumed())
+        .isLessThanOrEqualTo((int) messageCount + PARTITIONS * 20);
+    if (messageCount > 0) {
+      assertThat(doneEvent.getConsuming().getBytesConsumed()).isPositive();
+    }
+  }
+
   private void expectEmitter(Consumer<FluxSink<TopicMessageEventDTO>> emitter, List<String> expectedValues) {
     expectEmitter(emitter,
         expectedValues.size(),
