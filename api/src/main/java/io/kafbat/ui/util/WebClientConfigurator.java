@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -165,9 +166,10 @@ public class WebClientConfigurator {
           .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
       
       // Configure decoder to accept APPLICATION_JSON and additional media types
-      MediaType[] allMediaTypes = new MediaType[additionalMediaTypes.length + 1];
-      allMediaTypes[0] = MediaType.APPLICATION_JSON;
-      System.arraycopy(additionalMediaTypes, 0, allMediaTypes, 1, additionalMediaTypes.length);
+      MediaType[] allMediaTypes = Stream.concat(
+          Stream.of(MediaType.APPLICATION_JSON),
+          Stream.of(additionalMediaTypes)
+      ).toArray(MediaType[]::new);
       
       codecs.defaultCodecs()
           .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, allMediaTypes));
