@@ -471,6 +471,24 @@ public class JsonAvroConversion {
                 Map.of(FORMAT, new TextNode(DATE_TIME))))
     ),
 
+    TIMESTAMP_NANOS("timestamp-nanos",
+        (node, schema) -> {
+          if (node.isIntegralNumber()) {
+            long nanosFromEpoch = node.longValue();
+            long epochSeconds = nanosFromEpoch / 1_000_000_000L;
+            long nanoAdjustment = nanosFromEpoch % 1_000_000_000L;
+            return Instant.ofEpochSecond(epochSeconds, nanoAdjustment);
+          } else if (node.isTextual()) {
+            return Instant.parse(node.asText());
+          } else {
+            throw new JsonAvroConversionException("node '%s' can't be converted to timestamp-nanos logical type"
+                .formatted(node));
+          }
+        },
+        (obj, schema) -> new TextNode(obj.toString()),
+        new SimpleFieldSchema(new SimpleJsonType(JsonType.Type.STRING, Map.of(FORMAT, new TextNode(DATE_TIME))))
+    ),
+
     LOCAL_TIMESTAMP_MILLIS("local-timestamp-millis",
         (node, schema) -> {
           if (node.isTextual()) {
@@ -500,6 +518,18 @@ public class JsonAvroConversion {
             new SimpleJsonType(
                 JsonType.Type.STRING,
                 Map.of(FORMAT, new TextNode(DATE_TIME))))
+    ),
+
+    LOCAL_TIMESTAMP_NANOS("local-timestamp-nanos",
+        (node, schema) -> {
+          if (node.isTextual()) {
+            return LocalDateTime.parse(node.asText());
+          }
+          Instant instant = (Instant) TIMESTAMP_NANOS.jsonToAvroConversion.apply(node, schema);
+          return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+        },
+        (obj, schema) -> new TextNode(obj.toString()),
+        new SimpleFieldSchema(new SimpleJsonType(JsonType.Type.STRING, Map.of(FORMAT, new TextNode(DATE_TIME))))
     );
 
     private final String name;
