@@ -12,6 +12,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
+.pnpm-store
 
 ### IntelliJ IDEA ###
 .idea

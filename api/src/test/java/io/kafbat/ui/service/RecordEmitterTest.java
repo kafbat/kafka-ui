@@ -118,6 +118,41 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void forwardAndBackwardEmitterWithZeroMessagesPerPageCompleteWithoutHanging() {
+    var forwardEmitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, EMPTY_TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    var backwardEmitter = new BackwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(LATEST, EMPTY_TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(forwardEmitter))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.PHASE))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.DONE))
+        .expectComplete()
+        .verify();
+
+    StepVerifier.create(Flux.create(backwardEmitter))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.PHASE))
+        .expectNextMatches(m -> m.getType().equals(TopicMessageEventDTO.TypeEnum.DONE))
+        .expectComplete()
+        .verify();
+  }
+
+  @Test
   void pollNothingOnEmptyTopic() {
     var forwardEmitter = new ForwardEmitter(
         this::createConsumer,
@@ -321,6 +356,41 @@ class RecordEmitterTest extends AbstractIntegrationTest {
         e -> e.expectNextCount(0),
         StepVerifier.Assertions::hasNotDroppedElements
     );
+  }
+
+  @Test
+  void rangeEmitterDoneConsumingStatsReflectInRangeOnly() {
+    final int smallLimit = 15;
+    var forwardEmitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        smallLimit,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    List<TopicMessageEventDTO> events = Flux.create(forwardEmitter).collectList().block();
+    assertThat(events).isNotNull();
+
+    long messageCount = events.stream()
+        .filter(e -> e.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
+        .count();
+    TopicMessageEventDTO doneEvent = events.stream()
+        .filter(e -> e.getType() == TopicMessageEventDTO.TypeEnum.DONE)
+        .reduce((a, b) -> b)
+        .orElseThrow(() -> new AssertionError("No DONE event"));
+
+    assertThat(doneEvent.getConsuming()).isNotNull();
+    // In-range only: messagesConsumed counts in-range records we read (may exceed sent due to limit)
+    assertThat(doneEvent.getConsuming().getMessagesConsumed()).isGreaterThanOrEqualTo((int) messageCount);
+    // No full-fetch inflation: consumed should not wildly exceed what we sent (e.g. not 500 when limit is 15)
+    assertThat(doneEvent.getConsuming().getMessagesConsumed())
+        .isLessThanOrEqualTo((int) messageCount + PARTITIONS * 20);
+    if (messageCount > 0) {
+      assertThat(doneEvent.getConsuming().getBytesConsumed()).isPositive();
+    }
   }
 
   private void expectEmitter(Consumer<FluxSink<TopicMessageEventDTO>> emitter, List<String> expectedValues) {

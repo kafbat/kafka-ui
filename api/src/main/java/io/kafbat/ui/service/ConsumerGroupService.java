@@ -455,6 +455,12 @@ public class ConsumerGroupService {
     return createConsumer(cluster, Map.of());
   }
 
+  public EnhancedConsumer createConsumer(KafkaCluster cluster, int requestedLimit) {
+    int pollCap = cluster.getPollingSettings().getMaxMessagesToScanPerPoll();
+    long maxPollRecords = Math.min((long) pollCap, Math.max(1L, (long) requestedLimit * 2L));
+    return createConsumer(cluster, Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, (int) maxPollRecords));
+  }
+
   public EnhancedConsumer createConsumer(KafkaCluster cluster,
                                          Map<String, Object> properties) {
     Properties props = new Properties();
