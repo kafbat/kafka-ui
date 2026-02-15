@@ -308,6 +308,57 @@ class AclsServiceTest {
             new AccessControlEntry(principal, host, AclOperation.ALL, AclPermissionType.ALLOW)));
   }
 
+
+  @Test
+  void throwsExceptionWhenCreatingConsumerAclWithInvalidPrincipal() {
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createConsumerAcl(
+        CLUSTER,
+        new CreateConsumerAclDTO()
+            .principal("invalidPrincipal")
+            .host("host")
+            .consumerGroups(List.of("cg1"))
+            .topics(List.of("t1"))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingProducerAclWithInvalidPrincipal() {
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createProducerAcl(
+        CLUSTER,
+        new CreateProducerAclDTO()
+            .principal("invalidPrincipal")
+            .host("host")
+            .topics(List.of("t1"))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingStreamAppAclWithInvalidPrincipal() {
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createStreamAppAcl(
+        CLUSTER,
+        new CreateStreamAppAclDTO()
+            .principal("invalidPrincipal")
+            .host("host")
+            .inputTopics(List.of("t1"))
+            .outputTopics(List.of("t2"))
+            .applicationId("appId")
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingAclWithInvalidPrincipal() {
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createAcl(
+        CLUSTER,
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "t1", PatternType.LITERAL),
+            new AccessControlEntry("invalidPrincipal", "host", AclOperation.READ, AclPermissionType.ALLOW))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
   @SuppressWarnings("unchecked")
   private ArgumentCaptor<Collection<AclBinding>> captor() {
     return ArgumentCaptor.forClass(Collection.class);
