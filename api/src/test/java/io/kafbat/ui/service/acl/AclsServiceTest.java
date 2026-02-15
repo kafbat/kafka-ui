@@ -311,11 +311,14 @@ class AclsServiceTest {
 
   @Test
   void throwsExceptionWhenCreatingConsumerAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
     assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createConsumerAcl(
         CLUSTER,
         new CreateConsumerAclDTO()
-            .principal("invalidPrincipal")
-            .host("host")
+            .principal(principal)
+            .host(host)
             .consumerGroups(List.of("cg1"))
             .topics(List.of("t1"))
         ).block())).isInstanceOf(IllegalArgumentException.class);
@@ -324,11 +327,14 @@ class AclsServiceTest {
 
   @Test
   void throwsExceptionWhenCreatingProducerAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
     assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createProducerAcl(
         CLUSTER,
         new CreateProducerAclDTO()
-            .principal("invalidPrincipal")
-            .host("host")
+            .principal(principal)
+            .host(host)
             .topics(List.of("t1"))
         ).block())).isInstanceOf(IllegalArgumentException.class);
   }
@@ -336,11 +342,14 @@ class AclsServiceTest {
 
   @Test
   void throwsExceptionWhenCreatingStreamAppAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
     assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createStreamAppAcl(
         CLUSTER,
         new CreateStreamAppAclDTO()
-            .principal("invalidPrincipal")
-            .host("host")
+            .principal(principal)
+            .host(host)
             .inputTopics(List.of("t1"))
             .outputTopics(List.of("t2"))
             .applicationId("appId")
@@ -350,11 +359,14 @@ class AclsServiceTest {
 
   @Test
   void throwsExceptionWhenCreatingAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
     assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createAcl(
         CLUSTER,
         new AclBinding(
             new ResourcePattern(ResourceType.TOPIC, "t1", PatternType.LITERAL),
-            new AccessControlEntry("invalidPrincipal", "host", AclOperation.READ, AclPermissionType.ALLOW))
+            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW))
         ).block())).isInstanceOf(IllegalArgumentException.class);
   }
 
