@@ -92,7 +92,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createConsumerAcl(
@@ -140,7 +142,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createConsumerAcl(
@@ -176,7 +180,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createProducerAcl(
@@ -221,7 +227,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createProducerAcl(
@@ -263,7 +271,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createStreamAppAcl(
