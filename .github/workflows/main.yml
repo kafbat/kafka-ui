@@ -20,13 +20,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -43,7 +43,7 @@ jobs:
           -Pversion=$version
 
       - name: Upload jar
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # https://github.com/actions/upload-artifact/releases/tag/v4
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
