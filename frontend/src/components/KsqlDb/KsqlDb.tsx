@@ -25,8 +25,8 @@ import TableView from './TableView';
 const KsqlDb: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
 
-  const tables = useKsqlTables('clusterName');
-  const streams = useKsqlStreams('clusterName');
+  const tables = useKsqlTables(clusterName);
+  const streams = useKsqlStreams(clusterName);
 
   const isSuccess = tables.isSuccess && streams.isSuccess;
   const isLoading =
