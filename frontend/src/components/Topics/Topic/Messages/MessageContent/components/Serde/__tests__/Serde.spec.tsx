@@ -26,7 +26,7 @@ describe('Serde', () => {
   };
 
   describe('for SchemaRegistry serde', () => {
-    it('renders link to subject', () => {
+    it('renders serde name as link to subject', () => {
       renderComponent({
         serde: 'SchemaRegistry',
         properties: {
@@ -35,7 +35,7 @@ describe('Serde', () => {
           subjects: ['avrotest-value'],
         },
       });
-      const link = screen.queryByRole('link', { name: 'Schema link' });
+      const link = screen.queryByRole('link', { name: 'SchemaRegistry' });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute(
         'href',
@@ -45,10 +45,13 @@ describe('Serde', () => {
   });
 
   describe('for other serde', () => {
-    it('doesnt render link', () => {
+    it('renders serde name as text', () => {
       renderComponent({ serde: 'String' });
-      const link = screen.queryByRole('link', { name: 'Schema link' });
+      const link = screen.queryByRole('link', { name: 'String' });
       expect(link).not.toBeInTheDocument();
+
+      const serdeName = screen.getByText('String');
+      expect(serdeName).toBeInTheDocument();
     });
   });
 });

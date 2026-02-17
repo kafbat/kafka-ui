@@ -60,13 +60,15 @@ const Serde: FC<{
     <S.Metadata>
       <S.MetadataLabel>{title}</S.MetadataLabel>
       <span>
-        <S.MetadataValue>{serde}</S.MetadataValue>
+        {schemaLink ? (
+          <S.SchemaLink to={schemaLink}>{serde}</S.SchemaLink>
+        ) : (
+          <S.MetadataValue>{serde}</S.MetadataValue>
+        )}
 
         <S.MetadataMeta>
           Size: <BytesFormatted value={size} />
         </S.MetadataMeta>
-
-        {schemaLink && <S.SchemaLink to={schemaLink}>Schema link</S.SchemaLink>}
       </span>
     </S.Metadata>
   );
