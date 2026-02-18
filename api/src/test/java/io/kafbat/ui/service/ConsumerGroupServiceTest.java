@@ -5,7 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ImmutableTable;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ConsumerGroupLagDTO;
+import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
+import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
+import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.ServerStatusDTO;
@@ -18,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -361,5 +366,178 @@ class ConsumerGroupServiceTest {
             false
         )
     );
+  }
+
+  @Test
+  void getConsumerGroupsFiltersByState() {
+    // given
+    ClustersProperties.Cluster clusterProperties = new ClustersProperties.Cluster();
+    clusterProperties.setName("test");
+
+    ClustersProperties clustersProperties = new ClustersProperties();
+    clustersProperties.getClusters().add(clusterProperties);
+
+    KafkaCluster cluster = KafkaCluster.builder()
+        .name("test")
+        .originalProperties(clusterProperties)
+        .build();
+
+    ReactiveAdminClient client = Mockito.mock(ReactiveAdminClient.class);
+    AdminClientService admin = Mockito.mock(AdminClientService.class);
+    Mockito.when(admin.get(cluster)).thenReturn(Mono.just(client));
+
+    final String topic = UUID.randomUUID().toString();
+
+    // Create consumer groups with different states
+    Map<String, ScrapedClusterState.ConsumerGroupState> stableGroups =
+        Stream.generate(() -> generate(
+            List.of(new TopicPartition(topic, 0)),
+            Map.of(new TopicPartition(topic, 0), 100L),
+            ConsumerGroupState.STABLE
+        )).limit(3).collect(Collectors.toMap(
+            ScrapedClusterState.ConsumerGroupState::group,
+            s -> s
+        ));
+
+    Map<String, ScrapedClusterState.ConsumerGroupState> emptyGroups =
+        Stream.generate(() -> generate(
+            List.of(new TopicPartition(topic, 0)),
+            Map.of(new TopicPartition(topic, 0), 100L),
+            ConsumerGroupState.EMPTY
+        )).limit(2).collect(Collectors.toMap(
+            ScrapedClusterState.ConsumerGroupState::group,
+            s -> s
+        ));
+
+    Map<String, ScrapedClusterState.ConsumerGroupState> deadGroups =
+        Stream.generate(() -> generate(
+            List.of(new TopicPartition(topic, 0)),
+            Map.of(new TopicPartition(topic, 0), 100L),
+            ConsumerGroupState.DEAD
+        )).limit(4).collect(Collectors.toMap(
+            ScrapedClusterState.ConsumerGroupState::group,
+            s -> s
+        ));
+
+    Map<String, ScrapedClusterState.ConsumerGroupState> allGroups = new HashMap<>();
+    allGroups.putAll(stableGroups);
+    allGroups.putAll(emptyGroups);
+    allGroups.putAll(deadGroups);
+
+    // Mock consumer group listings with state
+    Mockito.when(client.listConsumerGroups()).thenReturn(Mono.just(
+        allGroups.entrySet().stream()
+            .map(e -> new ConsumerGroupListing(
+                e.getKey(),
+                false,
+                Optional.of(e.getValue().description().state())
+            ))
+            .toList()
+    ));
+
+    Mockito.when(client.describeConsumerGroups(Mockito.any())).thenAnswer(invocation -> {
+      List<String> groupIds = invocation.getArgument(0);
+      return Mono.just(
+          groupIds.stream()
+              .filter(allGroups::containsKey)
+              .collect(Collectors.toMap(
+                  id -> id,
+                  id -> allGroups.get(id).description()
+              ))
+      );
+    });
+
+    Mockito.when(client.listConsumerGroupOffsets(Mockito.any(), Mockito.isNull())).thenAnswer(
+        invocation -> {
+          List<String> groupIds = invocation.getArgument(0);
+          var table = ImmutableTable.<String, TopicPartition, Long>builder();
+          for (String groupId : groupIds) {
+            ScrapedClusterState.ConsumerGroupState state = allGroups.get(groupId);
+            if (state != null) {
+              for (Map.Entry<TopicPartition, Long> entry : state.committedOffsets().entrySet()) {
+                table.put(groupId, entry.getKey(), entry.getValue());
+              }
+            }
+          }
+          return Mono.just(table.build());
+        }
+    );
+
+    Mockito.when(client.listOffsets(Mockito.any(), Mockito.any(), Mockito.eq(false)))
+        .thenReturn(Mono.just(Map.of(new TopicPartition(topic, 0), 100L)));
+
+    StatisticsCache cache = Mockito.mock(StatisticsCache.class);
+    AccessControlService acl = Mockito.mock(AccessControlService.class);
+    Mockito.when(acl.isConsumerGroupAccessible(Mockito.any(), Mockito.any()))
+        .thenReturn(Mono.just(true));
+
+    ConsumerGroupService service = new ConsumerGroupService(admin, acl, clustersProperties, cache);
+
+    // Test 1: Filter by STABLE state only
+    ConsumerGroupService.ConsumerGroupsPage stablePage = service.getConsumerGroups(
+        cluster,
+        OptionalInt.of(1),
+        OptionalInt.of(100),
+        null,
+        false,
+        ConsumerGroupOrderingDTO.NAME,
+        SortOrderDTO.ASC,
+        List.of(ConsumerGroupStateDTO.STABLE)
+    ).block();
+
+    assertThat(stablePage).isNotNull();
+    assertThat(stablePage.consumerGroups()).hasSize(3);
+    assertThat(stablePage.consumerGroups())
+        .allMatch(cg -> cg.getState() == ConsumerGroupState.STABLE);
+
+    // Test 2: Filter by EMPTY state only
+    ConsumerGroupService.ConsumerGroupsPage emptyPage = service.getConsumerGroups(
+        cluster,
+        OptionalInt.of(1),
+        OptionalInt.of(100),
+        null,
+        false,
+        ConsumerGroupOrderingDTO.NAME,
+        SortOrderDTO.ASC,
+        List.of(ConsumerGroupStateDTO.EMPTY)
+    ).block();
+
+    assertThat(emptyPage).isNotNull();
+    assertThat(emptyPage.consumerGroups()).hasSize(2);
+    assertThat(emptyPage.consumerGroups())
+        .allMatch(cg -> cg.getState() == ConsumerGroupState.EMPTY);
+
+    // Test 3: Filter by multiple states (STABLE and EMPTY)
+    ConsumerGroupService.ConsumerGroupsPage multiStatePage = service.getConsumerGroups(
+        cluster,
+        OptionalInt.of(1),
+        OptionalInt.of(100),
+        null,
+        false,
+        ConsumerGroupOrderingDTO.NAME,
+        SortOrderDTO.ASC,
+        List.of(ConsumerGroupStateDTO.STABLE, ConsumerGroupStateDTO.EMPTY)
+    ).block();
+
+    assertThat(multiStatePage).isNotNull();
+    assertThat(multiStatePage.consumerGroups()).hasSize(5);
+    assertThat(multiStatePage.consumerGroups())
+        .allMatch(cg -> cg.getState() == ConsumerGroupState.STABLE
+            || cg.getState() == ConsumerGroupState.EMPTY);
+
+    // Test 4: Empty state filter returns all groups
+    ConsumerGroupService.ConsumerGroupsPage allPage = service.getConsumerGroups(
+        cluster,
+        OptionalInt.of(1),
+        OptionalInt.of(100),
+        null,
+        false,
+        ConsumerGroupOrderingDTO.NAME,
+        SortOrderDTO.ASC,
+        List.of()
+    ).block();
+
+    assertThat(allPage).isNotNull();
+    assertThat(allPage.consumerGroups()).hasSize(9);
   }
 }
