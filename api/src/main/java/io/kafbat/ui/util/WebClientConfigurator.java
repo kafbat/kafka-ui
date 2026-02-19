@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -43,6 +44,16 @@ public class WebClientConfigurator {
         .registerModule(new JavaTimeModule())
         .registerModule(new JsonNullableModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
+
+  /**
+   * Creates and returns a default ObjectMapper configured for Kafka UI.
+   * This method is public to allow external configuration when needed.
+   *
+   * @return configured ObjectMapper instance
+   */
+  public static ObjectMapper createDefaultObjectMapper() {
+    return defaultOM();
   }
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
@@ -137,6 +148,33 @@ public class WebClientConfigurator {
       codecs.defaultCodecs()
           .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, MediaType.APPLICATION_JSON));
     });
+  }
+
+  /**
+   * Configures the WebClient to accept additional media types for JSON decoding.
+   * This is useful for services that use vendor-specific content types like Schema Registry.
+   *
+   * @param mapper ObjectMapper to use for JSON serialization/deserialization
+   * @param additionalMediaTypes Additional media types to accept for JSON responses
+   * @return WebClientConfigurator for method chaining
+   */
+  public WebClientConfigurator configureObjectMapperWithMediaTypes(ObjectMapper mapper,
+                                                                    MediaType... additionalMediaTypes) {
+    builder.codecs(codecs -> {
+      // Configure encoder for standard APPLICATION_JSON
+      codecs.defaultCodecs()
+          .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
+      
+      // Configure decoder to accept APPLICATION_JSON and additional media types
+      MediaType[] allMediaTypes = Stream.concat(
+          Stream.of(MediaType.APPLICATION_JSON),
+          Stream.of(additionalMediaTypes)
+      ).toArray(MediaType[]::new);
+      
+      codecs.defaultCodecs()
+          .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, allMediaTypes));
+    });
+    return this;
   }
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {
