@@ -79,6 +79,7 @@ public class ClustersProperties {
 
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
+    OauthConfig schemaRegistryOAuth;
     KeystoreConfig schemaRegistrySsl;
 
     String ksqldbServer;
@@ -164,6 +165,18 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+  }
+
+  @Data
+  @ToString(exclude = {"clientSecret"})
+  public static class OauthConfig {
+    String tokenUrl;
+    String clientId;
+    String clientSecret;
+
+    Boolean tokenCacheEnabled = true;
+    Duration tokenRefreshBufferSeconds = Duration.ofSeconds(60);
+    Integer maxRetries = 1;  // Max retries on 401 errors
   }
 
   @Data
@@ -327,12 +340,11 @@ public class ClustersProperties {
     for (Cluster clusterProperties : clusters) {
       if (!StringUtils.hasText(clusterProperties.getName())) {
         throw new IllegalStateException(
-            "Application config isn't valid. "
-                + "Cluster names should be provided in case of multiple clusters present");
+          "Application config isn't valid. " + "Cluster names should be provided in case of multiple clusters present"
+        );
       }
       if (!clusterNames.add(clusterProperties.getName())) {
-        throw new IllegalStateException(
-            "Application config isn't valid. Two clusters can't have the same name");
+        throw new IllegalStateException("Application config isn't valid. Two clusters can't have the same name");
       }
     }
   }
