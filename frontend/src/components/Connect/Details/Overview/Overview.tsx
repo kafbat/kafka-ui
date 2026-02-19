@@ -4,24 +4,16 @@ import * as Metrics from 'components/common/Metrics';
 import { Button } from 'components/common/Button/Button';
 import { Modal } from 'components/common/Modal';
 import getTagColor from 'components/common/Tag/getTagColor';
-import { RouterParamsClusterConnectConnector } from 'lib/paths';
-import useAppParams from 'lib/hooks/useAppParams';
-import { useConnector, useConnectorTasks } from 'lib/hooks/api/kafkaConnect';
-import { ConnectorState, Connector } from 'generated-sources';
+import { Connector, ConnectorState, Task } from 'generated-sources';
 
 import getTaskMetrics from './getTaskMetrics';
 import * as S from './Overview.styled';
 
-const Overview: React.FC = () => {
-  const routerProps = useAppParams<RouterParamsClusterConnectConnector>();
+const Overview: React.FC<{ tasks: Task[]; connector: Connector }> = ({
+  tasks,
+  connector,
+}) => {
   const [showTraceModal, setShowTraceModal] = useState(false);
-
-  const { data: connector } = useConnector(routerProps);
-  const { data: tasks } = useConnectorTasks(routerProps);
-
-  if (!connector) {
-    return null;
-  }
 
   const { running, failed } = getTaskMetrics(tasks);
 
