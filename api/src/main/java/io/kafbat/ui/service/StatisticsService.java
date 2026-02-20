@@ -15,10 +15,12 @@ import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.QuorumInfo;
+import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,11 @@ public class StatisticsService {
   private final StatisticsCache cache;
   private final ClustersProperties clustersProperties;
   private final QuorumInfoMapper quorumInfoMapper;
+  private static final Set<Class<? extends Throwable>> QUORUM_INFO_IGNORABLE_EXCEPTIONS = Set.of(
+      UnsupportedVersionException.class,
+      ClusterAuthorizationException.class
+  );
+
 
   public Mono<Statistics> updateCache(KafkaCluster c) {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
@@ -73,7 +80,7 @@ public class StatisticsService {
     return ac.describeMetadataQuorum()
         .map(Optional::of)
         .onErrorResume(t ->
-            t instanceof UnsupportedVersionException
+            QUORUM_INFO_IGNORABLE_EXCEPTIONS.contains(t.getClass())
                 ? Mono.just(Optional.empty())
                 : Mono.error(t)
         );
