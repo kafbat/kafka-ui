@@ -140,6 +140,7 @@ export const CONSUMER_GROUP_STATE_TOOLTIPS: Record<ConsumerGroupState, string> =
 export const MessagesFilterKeys = {
   mode: 'mode',
   timestamp: 'timestamp',
+  endTimestamp: 'endTimestamp',
   keySerde: 'keySerde',
   valueSerde: 'valueSerde',
   limit: 'limit',

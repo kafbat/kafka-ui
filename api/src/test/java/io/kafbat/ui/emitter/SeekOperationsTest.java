@@ -52,7 +52,7 @@ class SeekOperationsTest {
       var offsets = SeekOperations.getOffsetsForSeek(
           consumer,
           new OffsetsInfo(consumer, topic),
-          new ConsumerPosition(TAILING, topic, List.of(), null, null)
+          new ConsumerPosition(TAILING, topic, List.of(), null, null, null)
       );
       assertThat(offsets).containsExactlyInAnyOrderEntriesOf(Map.of(tp0, 0L, tp1, 10L, tp2, 20L, tp3, 30L));
     }
@@ -62,7 +62,7 @@ class SeekOperationsTest {
       var offsets = SeekOperations.getOffsetsForSeek(
           consumer,
           new OffsetsInfo(consumer, topic),
-          new ConsumerPosition(LATEST, topic, List.of(), null, null)
+          new ConsumerPosition(LATEST, topic, List.of(), null, null, null)
       );
       assertThat(offsets).containsExactlyInAnyOrderEntriesOf(Map.of(tp2, 20L, tp3, 30L));
     }
@@ -72,7 +72,7 @@ class SeekOperationsTest {
       var offsets = SeekOperations.getOffsetsForSeek(
           consumer,
           new OffsetsInfo(consumer, topic),
-          new ConsumerPosition(EARLIEST, topic, List.of(), null, null)
+          new ConsumerPosition(EARLIEST, topic, List.of(), null, null, null)
       );
       assertThat(offsets).containsExactlyInAnyOrderEntriesOf(Map.of(tp2, 0L, tp3, 25L));
     }
@@ -84,7 +84,7 @@ class SeekOperationsTest {
           consumer,
           new OffsetsInfo(consumer, topic),
           new ConsumerPosition(
-              mode, topic, List.of(tp1, tp2, tp3), null,
+              mode, topic, List.of(tp1, tp2, tp3), null, null,
               new ConsumerPosition.Offsets(null, Map.of(tp1, 10L, tp2, 10L, tp3, 26L))
           )
       );
@@ -98,7 +98,7 @@ class SeekOperationsTest {
           consumer,
           new OffsetsInfo(consumer, topic),
           new ConsumerPosition(
-              mode, topic, List.of(tp1, tp2, tp3), null,
+              mode, topic, List.of(tp1, tp2, tp3), null, null,
               new ConsumerPosition.Offsets(null, Map.of(tp1, 10L, tp2, 21L, tp3, 24L))
           )
       );
