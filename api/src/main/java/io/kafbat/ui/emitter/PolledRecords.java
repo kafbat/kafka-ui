@@ -38,7 +38,14 @@ public record PolledRecords(int count,
   }
 
   private static int calculatePolledRecSize(Iterable<ConsumerRecord<Bytes, Bytes>> recs) {
-    int polledBytes = 0;
+    return (int) bytesOf(recs);
+  }
+
+  /**
+   * Compute total serialized size (bytes) of the given records. Used for in-range stats.
+   */
+  static long bytesOf(Iterable<ConsumerRecord<Bytes, Bytes>> recs) {
+    long polledBytes = 0;
     for (ConsumerRecord<Bytes, Bytes> rec : recs) {
       for (Header header : rec.headers()) {
         polledBytes +=

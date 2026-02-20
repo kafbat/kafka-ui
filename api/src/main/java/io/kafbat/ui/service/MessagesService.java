@@ -241,7 +241,7 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        cursor.limit()
+        fixPageSize(cursor.limit())
     );
   }
 
@@ -264,7 +264,7 @@ public class MessagesService {
                                                       int limit) {
     var emitter = switch (consumerPosition.pollingMode()) {
       case TO_OFFSET, TO_TIMESTAMP, LATEST -> new BackwardEmitter(
-          () -> consumerGroupService.createConsumer(cluster),
+          () -> consumerGroupService.createConsumer(cluster, limit),
           consumerPosition,
           limit,
           deserializer,
@@ -273,7 +273,7 @@ public class MessagesService {
           cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
       );
       case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> new ForwardEmitter(
-          () -> consumerGroupService.createConsumer(cluster),
+          () -> consumerGroupService.createConsumer(cluster, limit),
           consumerPosition,
           limit,
           deserializer,

@@ -72,6 +72,15 @@ class MessagesProcessing {
     }
   }
 
+  /**
+   * Send consuming stats for in-range records only (used by range emitters).
+   */
+  void sentConsumingInfo(FluxSink<TopicMessageEventDTO> sink, int inRangeRecords, long inRangeBytes, long elapsedMs) {
+    if (!sink.isCancelled()) {
+      consumingStats.sendConsumingEvt(sink, inRangeRecords, inRangeBytes, elapsedMs);
+    }
+  }
+
   void sendFinishEvents(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
     if (!sink.isCancelled()) {
       consumingStats.sendFinishEvent(sink, cursor);

@@ -154,6 +154,9 @@ export const useTopicMessages = ({
             case TopicMessageEventTypeEnum.CONSUMING:
               if (consuming) setConsumptionStats(consuming);
               break;
+            case TopicMessageEventTypeEnum.DONE:
+              if (consuming) setConsumptionStats(consuming);
+              break;
             default:
           }
         },

@@ -131,6 +131,7 @@ model ApplicationConfig {
         maxPageSize?: int32;
         defaultPageSize?: int32;
         responseTimeoutMs?: int32;
+        maxMessagesToScanPerPoll?: int32;
       };
       adminClientTimeout?: int32;
       internalTopicPrefix?: string;
