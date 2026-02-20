@@ -1,0 +1,21 @@
+version: '3.8'
+name: "kafbat_builder"
+
+services:
+
+  chonky-builder:
+    container_name: chonky-builder
+    build:
+      context: ../..
+      dockerfile: .dev/builder/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../..:/build
+      - node_modules:/build/frontend/node_modules/ # Do not alter this as node_modules might not be transferable between OS w/ different arch
+      - ${HOME}/.m2/repository:/root/.m2/repository # but it's not the case for maven (which also takes ten times longer to dl)
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+#    command: mvn -DskipTests=true -Pprod clean package # this is the default command, feel free to override if needed
+
+volumes:
+  node_modules:
