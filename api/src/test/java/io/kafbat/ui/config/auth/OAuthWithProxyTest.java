@@ -7,17 +7,25 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static io.kafbat.ui.config.auth.OAuthTestSupport.JWKS_PATH;
 import static io.kafbat.ui.config.auth.OAuthTestSupport.TOKEN_PATH;
 import static io.kafbat.ui.config.auth.OAuthTestSupport.USERINFO_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -30,9 +38,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExch
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
 
 /**
@@ -138,6 +148,112 @@ class OAuthWithProxyTest {
 
       OAuthTestSupport.getOAuthServer().verify(getRequestedFor(urlPathEqualTo(USERINFO_PATH)));
       OAuthTestSupport.getProxyServer().verify(getRequestedFor(urlPathEqualTo(USERINFO_PATH)));
+    }
+  }
+
+  @Nested
+  @SpringBootTest(
+      classes = {OAuthSecurityConfig.class, OAuthTestSupport.BaseTestConfig.class},
+      properties = {"spring.main.allow-bean-definition-overriding=true", "auth.type=OAUTH2"})
+  @ContextConfiguration(initializers = OAuthTestSupport.WithProxyInitializer.class)
+  @DirtiesContext
+  @ActiveProfiles("test")
+  class JwksEndpoint {
+
+    @Autowired
+    @Qualifier("oauthWebClient")
+    WebClient oauthWebClient;
+
+    @BeforeEach
+    void setup() {
+      OAuthTestSupport.resetServers();
+      // Stub JWKS endpoint with the test RSA key
+      String jwksJson = "{\"keys\":[" + OAuthTestSupport.getRsaKey().toPublicJWK().toJSONString() + "]}";
+      OAuthTestSupport.getOAuthServer().stubFor(get(urlPathEqualTo(JWKS_PATH))
+          .willReturn(aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+              .withBody(jwksJson)));
+    }
+
+    @Test
+    void jwksRequestGoesThruProxy() throws Exception {
+      // Create a JWT decoder using oauthWebClient - same as setJwtDecoderFactory does
+      var jwtDecoder = NimbusReactiveJwtDecoder
+          .withJwkSetUri(OAuthTestSupport.oauthBaseUrl() + JWKS_PATH)
+          .webClient(oauthWebClient)
+          .build();
+
+      // Create a valid JWT signed with our test key
+      var claims = new JWTClaimsSet.Builder()
+          .subject("test-user")
+          .issuer(OAuthTestSupport.oauthBaseUrl())
+          .expirationTime(new Date(System.currentTimeMillis() + 300000))
+          .issueTime(new Date())
+          .build();
+      var signedJwt = new SignedJWT(
+          new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(OAuthTestSupport.getRsaKey().getKeyID()).build(),
+          claims);
+      signedJwt.sign(new RSASSASigner(OAuthTestSupport.getRsaKey()));
+      String token = signedJwt.serialize();
+
+      // Decode the JWT - this triggers JWKS fetch
+      StepVerifier.create(jwtDecoder.decode(token))
+          .assertNext(jwt -> assertThat(jwt.getSubject()).isEqualTo("test-user"))
+          .verifyComplete();
+
+      // Verify JWKS request went through both OAuth server and proxy
+      OAuthTestSupport.getOAuthServer().verify(getRequestedFor(urlPathEqualTo(JWKS_PATH)));
+      OAuthTestSupport.getProxyServer().verify(getRequestedFor(urlPathEqualTo(JWKS_PATH)));
+    }
+  }
+
+  /**
+   * Tests non-OIDC OAuth2 flow (GitHub-style) where no "openid" scope is present.
+   * This verifies that DelegatingReactiveAuthenticationManager correctly falls back
+   * to OAuth2LoginReactiveAuthenticationManager when OidcAuthorizationCodeReactiveAuthenticationManager
+   * returns empty (due to missing "openid" scope).
+   */
+  @Nested
+  @SpringBootTest(
+      classes = {OAuthSecurityConfig.class, OAuthTestSupport.BaseTestConfig.class},
+      properties = {"spring.main.allow-bean-definition-overriding=true", "auth.type=OAUTH2"})
+  @ContextConfiguration(initializers = OAuthTestSupport.WithProxyInitializer.class)
+  @DirtiesContext
+  @ActiveProfiles("test")
+  class GitHubStyleOAuth2 {
+
+    @Autowired
+    ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> userService;
+
+    @BeforeEach
+    void setup() {
+      OAuthTestSupport.resetServers();
+      // GitHub-style userinfo response (uses "login" as username attribute)
+      OAuthTestSupport.getOAuthServer().stubFor(get(urlPathEqualTo(USERINFO_PATH))
+          .willReturn(aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+              .withBody("{\"login\":\"octocat\",\"id\":1,\"name\":\"The Octocat\"}")));
+    }
+
+    @Test
+    void nonOidcUserInfoRequestSucceeds() {
+      var token = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "gh-token",
+          Instant.now(), Instant.now().plus(Duration.ofHours(1)));
+      // Use GitHub-style registration (no "openid" scope)
+      var request = new OAuth2UserRequest(OAuthTestSupport.githubStyleClientRegistration(), token);
+
+      StepVerifier.create(userService.loadUser(request))
+          .assertNext(user -> {
+            // GitHub uses "login" as the username attribute
+            assertThat(user.getName()).isEqualTo("octocat");
+            assertThat(user.getAttributes()).containsEntry("login", "octocat");
+            assertThat(user.getAttributes()).containsEntry("name", "The Octocat");
+          })
+          .verifyComplete();
+
+      OAuthTestSupport.getOAuthServer().verify(getRequestedFor(urlPathEqualTo(USERINFO_PATH)));
     }
   }
 

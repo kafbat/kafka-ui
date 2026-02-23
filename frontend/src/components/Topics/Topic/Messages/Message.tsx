@@ -14,6 +14,7 @@ import { useTimezone } from 'lib/hooks/useTimezones';
 import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { useTopicActions } from 'components/contexts/TopicActionsContext';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
@@ -42,6 +43,8 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
+    valueDeserializeProperties,
+    keyDeserializeProperties,
   },
   keyFilters,
   contentFilters,
@@ -50,6 +53,7 @@ const Message: React.FC<Props> = ({
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
   const [isOpen, setIsOpen] = React.useState(false);
+  const { messageRelativeTimestamp } = React.useContext(ClusterContext);
 
   const message = {
     timestamp,
@@ -115,6 +119,12 @@ const Message: React.FC<Props> = ({
     );
   };
 
+  const messageTimestamp = formatTimestamp({
+    timestamp,
+    timezone: currentTimezone.value,
+    withMilliseconds: true,
+  });
+
   return (
     <>
       <S.ClickableRow
@@ -130,14 +140,11 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <Tooltip
-            value={timeAgo(timestamp)}
-            content={formatTimestamp({
-              timestamp,
-              timezone: currentTimezone.value,
-              withMilliseconds: true,
-            })}
-          />
+          {messageRelativeTimestamp ? (
+            <Tooltip value={timeAgo(timestamp)} content={messageTimestamp} />
+          ) : (
+            <div>{messageTimestamp}</div>
+          )}
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>
@@ -205,6 +212,8 @@ const Message: React.FC<Props> = ({
           contentSize={valueSize}
           keySerde={keySerde}
           valueSerde={valueSerde}
+          valueDeserializeProperties={valueDeserializeProperties}
+          keyDeserializeProperties={keyDeserializeProperties}
         />
       )}
     </>

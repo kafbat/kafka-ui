@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { BASE_PARAMS, QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 
 const fetchLatestVersionInfo = async () => {
@@ -11,9 +11,9 @@ const fetchLatestVersionInfo = async () => {
 };
 
 export function useLatestVersion() {
-  return useQuery(
-    ['versionInfo'],
-    fetchLatestVersionInfo,
-    QUERY_REFETCH_OFF_OPTIONS
-  );
+  return useSuspenseQuery({
+    queryKey: ['versionInfo'],
+    queryFn: fetchLatestVersionInfo,
+    ...QUERY_REFETCH_OFF_OPTIONS,
+  });
 }

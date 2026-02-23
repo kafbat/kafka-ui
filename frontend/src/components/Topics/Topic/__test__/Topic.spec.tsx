@@ -92,6 +92,7 @@ describe('Details', () => {
   beforeEach(async () => {
     (useTopicDetails as jest.Mock).mockImplementation(() => ({
       data: topic,
+      isSuccess: true,
     }));
     (useDeleteTopic as jest.Mock).mockImplementation(() => ({
       mutateAsync: mockDelete,
@@ -104,6 +105,7 @@ describe('Details', () => {
     }));
     (useTopicConnectors as jest.Mock).mockImplementation(() => ({
       data: [],
+      isSuccess: true,
     }));
   });
   describe('Action Bar', () => {

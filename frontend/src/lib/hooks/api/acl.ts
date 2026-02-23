@@ -4,9 +4,10 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  UseQueryOptions,
 } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { showSuccessAlert } from 'lib/errorHandling';
+import { apiFetch, ServerResponse, showSuccessAlert } from 'lib/errorHandling';
 import {
   CreateConsumerAcl,
   CreateProducerAcl,
@@ -14,51 +15,50 @@ import {
   KafkaAcl,
 } from 'generated-sources';
 
-export function useAcls({
-  clusterName,
-  search,
-  fts,
-}: {
-  clusterName: ClusterName;
-  search?: string;
-  fts?: boolean;
-}) {
-  return useQuery(
-    ['clusters', clusterName, 'acls', { search, fts }],
-    () =>
-      api.listAcls({
-        clusterName,
-        search,
-        fts,
-      }),
-    {
-      keepPreviousData: true,
-      suspense: false,
-    }
-  );
+export function useAcls(
+  {
+    clusterName,
+    search,
+    fts,
+  }: {
+    clusterName: ClusterName;
+    search?: string;
+    fts?: boolean;
+  },
+  options?: Omit<
+    UseQueryOptions<KafkaAcl[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<KafkaAcl[], ServerResponse>({
+    queryKey: ['clusters', clusterName, 'acls', { search, fts }],
+    queryFn: () => apiFetch(() => api.listAcls({ clusterName, search, fts })),
+    placeholderData: (previousData) => previousData,
+    ...options,
+  });
 }
 
 const onCreateAclSuccess = (queryClient: QueryClient, clusterName: string) => {
   showSuccessAlert({
     message: 'Your ACL was created successfully',
   });
-  queryClient.invalidateQueries(['clusters', clusterName, 'acls']);
+  queryClient.invalidateQueries({
+    queryKey: ['clusters', clusterName, 'acls'],
+  });
 };
 
 export function useCreateCustomAcl(clusterName: ClusterName) {
   const queryClient = useQueryClient();
-  const mutate = useMutation(
-    (kafkaAcl: KafkaAcl) =>
+  const mutate = useMutation({
+    mutationFn: (kafkaAcl: KafkaAcl) =>
       api.createAcl({
         clusterName,
         kafkaAcl,
       }),
-    {
-      onSuccess() {
-        onCreateAclSuccess(queryClient, clusterName);
-      },
-    }
-  );
+    onSuccess() {
+      onCreateAclSuccess(queryClient, clusterName);
+    },
+  });
 
   return {
     createResource: async (acl: KafkaAcl) => {
@@ -70,18 +70,16 @@ export function useCreateCustomAcl(clusterName: ClusterName) {
 
 export function useCreateConsumersAcl(clusterName: ClusterName) {
   const queryClient = useQueryClient();
-  const mutate = useMutation(
-    (createConsumerAcl: CreateConsumerAcl) =>
+  const mutate = useMutation({
+    mutationFn: (createConsumerAcl: CreateConsumerAcl) =>
       api.createConsumerAcl({
         clusterName,
         createConsumerAcl,
       }),
-    {
-      onSuccess() {
-        onCreateAclSuccess(queryClient, clusterName);
-      },
-    }
-  );
+    onSuccess() {
+      onCreateAclSuccess(queryClient, clusterName);
+    },
+  });
 
   return {
     createResource: async (acl: CreateConsumerAcl) => {
@@ -93,18 +91,16 @@ export function useCreateConsumersAcl(clusterName: ClusterName) {
 
 export function useCreateProducerAcl(clusterName: ClusterName) {
   const queryClient = useQueryClient();
-  const mutate = useMutation(
-    (createProducerAcl: CreateProducerAcl) =>
+  const mutate = useMutation({
+    mutationFn: (createProducerAcl: CreateProducerAcl) =>
       api.createProducerAcl({
         clusterName,
         createProducerAcl,
       }),
-    {
-      onSuccess() {
-        onCreateAclSuccess(queryClient, clusterName);
-      },
-    }
-  );
+    onSuccess() {
+      onCreateAclSuccess(queryClient, clusterName);
+    },
+  });
 
   return {
     createResource: async (acl: CreateProducerAcl) => {
@@ -116,18 +112,16 @@ export function useCreateProducerAcl(clusterName: ClusterName) {
 
 export function useCreateStreamAppAcl(clusterName: ClusterName) {
   const queryClient = useQueryClient();
-  const mutate = useMutation(
-    (createStreamAppAcl: CreateStreamAppAcl) =>
+  const mutate = useMutation({
+    mutationFn: (createStreamAppAcl: CreateStreamAppAcl) =>
       api.createStreamAppAcl({
         clusterName,
         createStreamAppAcl,
       }),
-    {
-      onSuccess() {
-        onCreateAclSuccess(queryClient, clusterName);
-      },
-    }
-  );
+    onSuccess() {
+      onCreateAclSuccess(queryClient, clusterName);
+    },
+  });
 
   return {
     createResource: async (acl: CreateStreamAppAcl) => {
@@ -139,15 +133,16 @@ export function useCreateStreamAppAcl(clusterName: ClusterName) {
 
 export function useDeleteAclMutation(clusterName: ClusterName) {
   const queryClient = useQueryClient();
-  return useMutation(
-    (acl: KafkaAcl) => api.deleteAcl({ clusterName, kafkaAcl: acl }),
-    {
-      onSuccess: () => {
-        showSuccessAlert({ message: 'ACL deleted' });
-        queryClient.invalidateQueries(['clusters', clusterName, 'acls']);
-      },
-    }
-  );
+  return useMutation({
+    mutationFn: (acl: KafkaAcl) =>
+      api.deleteAcl({ clusterName, kafkaAcl: acl }),
+    onSuccess: () => {
+      showSuccessAlert({ message: 'ACL deleted' });
+      queryClient.invalidateQueries({
+        queryKey: ['clusters', clusterName, 'acls'],
+      });
+    },
+  });
 }
 
 export function useDeleteAcl(clusterName: ClusterName) {
