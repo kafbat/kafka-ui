@@ -115,6 +115,7 @@ export const useTopicMessages = ({
       }
 
       prevCursor.current = currentCursor;
+
       await fetchEventSource(`${url}?${requestParams.toString()}`, {
         method: 'GET',
         signal: abortController.current.signal,
@@ -163,7 +164,11 @@ export const useTopicMessages = ({
         onerror(err) {
           setNextCursor(undefined);
           setIsFetching(false);
-          abortController.current = new AbortController();
+          /**
+           * abortController.current = new AbortController(); rewrites ref, but fetchEventSource still has old ref
+           * that way we cant stop default retry algorythm and stop retry loop
+           */
+          // abortController.current = new AbortController();
           showServerError(err);
         },
       });

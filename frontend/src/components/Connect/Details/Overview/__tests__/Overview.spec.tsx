@@ -1,43 +1,14 @@
 import React from 'react';
 import Overview from 'components/Connect/Details/Overview/Overview';
 import { connector, tasks } from 'lib/fixtures/kafkaConnect';
-import { screen, fireEvent } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
-import { useConnector, useConnectorTasks } from 'lib/hooks/api/kafkaConnect';
 import { ConnectorState } from 'generated-sources';
 
-jest.mock('lib/hooks/api/kafkaConnect', () => ({
-  useConnector: jest.fn(),
-  useConnectorTasks: jest.fn(),
-}));
-
 describe('Overview', () => {
-  it('is empty when no connector', () => {
-    (useConnector as jest.Mock).mockImplementation(() => ({
-      data: undefined,
-    }));
-    (useConnectorTasks as jest.Mock).mockImplementation(() => ({
-      data: undefined,
-    }));
-
-    render(<Overview />);
-    expect(screen.queryByText('Worker')).not.toBeInTheDocument();
-  });
-
   describe('when connector is loaded', () => {
-    beforeEach(() => {
-      (useConnector as jest.Mock).mockImplementation(() => ({
-        data: connector,
-      }));
-    });
-    beforeEach(() => {
-      (useConnectorTasks as jest.Mock).mockImplementation(() => ({
-        data: tasks,
-      }));
-    });
-
     it('renders metrics', () => {
-      render(<Overview />);
+      render(<Overview tasks={tasks} connector={connector} />);
 
       expect(screen.getByText('Worker')).toBeInTheDocument();
       expect(
@@ -65,14 +36,7 @@ describe('Overview', () => {
         },
       };
 
-      (useConnector as jest.Mock).mockImplementation(() => ({
-        data: failedConnector,
-      }));
-      (useConnectorTasks as jest.Mock).mockImplementation(() => ({
-        data: [],
-      }));
-
-      render(<Overview />);
+      render(<Overview tasks={[]} connector={failedConnector} />);
 
       const stateTag = screen.getByText('FAILED');
       expect(stateTag).toBeInTheDocument();
@@ -94,14 +58,7 @@ describe('Overview', () => {
         },
       };
 
-      (useConnector as jest.Mock).mockImplementation(() => ({
-        data: failedConnector,
-      }));
-      (useConnectorTasks as jest.Mock).mockImplementation(() => ({
-        data: [],
-      }));
-
-      render(<Overview />);
+      render(<Overview tasks={[]} connector={failedConnector} />);
 
       const stateTag = screen.getByText('FAILED');
       expect(stateTag).toBeInTheDocument();
@@ -124,14 +81,7 @@ describe('Overview', () => {
         },
       };
 
-      (useConnector as jest.Mock).mockImplementation(() => ({
-        data: failedConnector,
-      }));
-      (useConnectorTasks as jest.Mock).mockImplementation(() => ({
-        data: [],
-      }));
-
-      render(<Overview />);
+      render(<Overview tasks={[]} connector={failedConnector} />);
 
       const stateTag = screen.getByText('FAILED');
       fireEvent.click(stateTag);

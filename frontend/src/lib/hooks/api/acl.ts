@@ -4,9 +4,10 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  UseQueryOptions,
 } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { showSuccessAlert } from 'lib/errorHandling';
+import { apiFetch, ServerResponse, showSuccessAlert } from 'lib/errorHandling';
 import {
   CreateConsumerAcl,
   CreateProducerAcl,
@@ -14,24 +15,26 @@ import {
   KafkaAcl,
 } from 'generated-sources';
 
-export function useAcls({
-  clusterName,
-  search,
-  fts,
-}: {
-  clusterName: ClusterName;
-  search?: string;
-  fts?: boolean;
-}) {
-  return useQuery({
+export function useAcls(
+  {
+    clusterName,
+    search,
+    fts,
+  }: {
+    clusterName: ClusterName;
+    search?: string;
+    fts?: boolean;
+  },
+  options?: Omit<
+    UseQueryOptions<KafkaAcl[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<KafkaAcl[], ServerResponse>({
     queryKey: ['clusters', clusterName, 'acls', { search, fts }],
-    queryFn: () =>
-      api.listAcls({
-        clusterName,
-        search,
-        fts,
-      }),
+    queryFn: () => apiFetch(() => api.listAcls({ clusterName, search, fts })),
     placeholderData: (previousData) => previousData,
+    ...options,
   });
 }
 
