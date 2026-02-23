@@ -62,7 +62,7 @@
     "@testing-library/jest-dom": "6.4.2",
     "@testing-library/react": "14.3.1",
     "@testing-library/user-event": "14.5.2",
-    "@types/eventsource": "1.1.15",
+    "@types/eventsource": "3.0.0",
     "@types/lossless-json": "1.0.4",
     "@types/node": "20.11.17",
     "@types/react": "18.2.79",
