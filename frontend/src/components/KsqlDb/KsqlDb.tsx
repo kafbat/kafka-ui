@@ -14,18 +14,27 @@ import { ActionButton } from 'components/common/ActionComponent';
 import Navbar from 'components/common/Navigation/Navbar.styled';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import { Action, ResourceType } from 'generated-sources';
-import { useKsqlkDb } from 'lib/hooks/api/ksqlDb';
+import { useKsqlTables, useKsqlStreams } from 'lib/hooks/api/ksqlDb';
 import 'ace-builds/src-noconflict/ace';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import TableView from './TableView';
 
 const KsqlDb: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
 
-  const [tables, streams] = useKsqlkDb(clusterName);
+  const tables = useKsqlTables(clusterName);
+  const streams = useKsqlStreams(clusterName);
 
-  const isFetching = tables.isFetching || streams.isFetching;
+  const isSuccess = tables.isSuccess && streams.isSuccess;
+  const isLoading =
+    tables.isLoading ||
+    tables.isRefetching ||
+    streams.isLoading ||
+    streams.isRefetching;
+  const error = tables.error || streams.error;
 
   return (
     <>
@@ -42,24 +51,28 @@ const KsqlDb: React.FC = () => {
           Execute KSQL Request
         </ActionButton>
       </ResourcePageHeading>
-      <Metrics.Wrapper>
-        <Metrics.Section>
-          <Metrics.Indicator
-            label="Tables"
-            title="Tables"
-            fetching={isFetching}
-          >
-            {tables.isSuccess ? tables.data.length : '-'}
-          </Metrics.Indicator>
-          <Metrics.Indicator
-            label="Streams"
-            title="Streams"
-            fetching={isFetching}
-          >
-            {streams.isSuccess ? streams.data.length : '-'}
-          </Metrics.Indicator>
-        </Metrics.Section>
-      </Metrics.Wrapper>
+
+      {isSuccess && (
+        <Metrics.Wrapper>
+          <Metrics.Section>
+            <Metrics.Indicator
+              label="Tables"
+              title="Tables"
+              fetching={isLoading}
+            >
+              {tables.data?.length || 0}
+            </Metrics.Indicator>
+            <Metrics.Indicator
+              label="Streams"
+              title="Streams"
+              fetching={isLoading}
+            >
+              {streams.data?.length || 0}
+            </Metrics.Indicator>
+          </Metrics.Section>
+        </Metrics.Wrapper>
+      )}
+
       <div>
         <Navbar role="navigation">
           <NavLink
@@ -77,31 +90,38 @@ const KsqlDb: React.FC = () => {
             Streams
           </NavLink>
         </Navbar>
-        <Routes>
-          <Route
-            index
-            element={<Navigate to={clusterKsqlDbTablesRelativePath} />}
+
+        {isLoading && <PageLoader offsetY={300} />}
+
+        {error && (
+          <ErrorPage
+            offsetY={300}
+            status={error.status}
+            onClick={() => {
+              tables.refetch();
+              streams.refetch();
+            }}
+            text={error.message}
           />
-          <Route
-            path={clusterKsqlDbTablesRelativePath}
-            element={
-              <TableView
-                fetching={tables.isFetching}
-                rows={tables.data || []}
-              />
-            }
-          />
-          <Route
-            path={clusterKsqlDbStreamsRelativePath}
-            element={
-              <TableView
-                fetching={streams.isFetching}
-                rows={streams.data || []}
-              />
-            }
-          />
-          <Route path={clusterKsqlDbQueryRelativePath} element={<Query />} />
-        </Routes>
+        )}
+
+        {isSuccess && (
+          <Routes>
+            <Route
+              index
+              element={<Navigate to={clusterKsqlDbTablesRelativePath} />}
+            />
+            <Route
+              path={clusterKsqlDbTablesRelativePath}
+              element={<TableView fetching={false} rows={tables.data || []} />}
+            />
+            <Route
+              path={clusterKsqlDbStreamsRelativePath}
+              element={<TableView fetching={false} rows={streams.data || []} />}
+            />
+            <Route path={clusterKsqlDbQueryRelativePath} element={<Query />} />
+          </Routes>
+        )}
       </div>
     </>
   );

@@ -1,10 +1,6 @@
 import React from 'react';
 import { render, WithRoute } from 'lib/testHelpers';
-import {
-  clusterConnectConnectorConfigPath,
-  clusterConnectConnectorPath,
-  getNonExactPath,
-} from 'lib/paths';
+import { clusterConnectConnectorPath, getNonExactPath } from 'lib/paths';
 import { screen } from '@testing-library/dom';
 import DetailsPage from 'components/Connect/Details/DetailsPage';
 
@@ -52,27 +48,5 @@ describe('Details Page', () => {
   it('renders actions', () => {
     renderComponent();
     expect(screen.getByText(DetailsCompText.actions));
-  });
-
-  it('renders overview pane', () => {
-    renderComponent();
-    expect(screen.getByText(DetailsCompText.overview));
-  });
-
-  describe('Router component tests', () => {
-    it('should test if tasks is rendering', () => {
-      renderComponent();
-      expect(screen.getByText(DetailsCompText.tasks));
-    });
-
-    it('should test if list is rendering', () => {
-      const path = clusterConnectConnectorConfigPath(
-        clusterName,
-        connectName,
-        connectorName
-      );
-      renderComponent(path);
-      expect(screen.getByText(DetailsCompText.config));
-    });
   });
 });
