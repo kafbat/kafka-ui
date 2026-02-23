@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.label.name == 'status/image_testing' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
@@ -25,7 +25,7 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -38,25 +38,25 @@ jobs:
           export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # https://github.com/docker/setup-qemu-action/releases/tag/v3.7.0
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # https://github.com/docker/setup-qemu-action/releases/tag/v3.7.0
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # https://github.com/docker/setup-buildx-action/releases/tag/v3.11.1
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # https://github.com/docker/setup-buildx-action/releases/tag/v3.11.1
       - name: Cache Docker layers
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v4.3.0
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
         with:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE }}
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
+        uses: aws-actions/amazon-ecr-login@fe725d47d3009d901b44f3df285a6dc9d438e63a # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
         with:
           registry-type: 'public'
       - name: Build and push
@@ -72,7 +72,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: make comment with private deployment link
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # infered from @v4
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # infered from @v5.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
