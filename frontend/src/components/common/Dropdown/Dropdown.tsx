@@ -47,7 +47,11 @@ const Dropdown: React.FC<DropdownProps> = ({
           aria-label={props['aria-label'] || 'Dropdown Toggle'}
           disabled={disabled}
         >
-          {label || <VerticalElipsisIcon />}
+          {label || (
+            <S.SmallButton>
+              <VerticalElipsisIcon />
+            </S.SmallButton>
+          )}
         </S.DropdownButton>
       )}
 

@@ -74,6 +74,20 @@ export const DropdownButton = styled.button`
   }
 `;
 
+export const SmallButton = styled.div`
+  padding: 4px;
+  margin: 0;
+  min-width: 24px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+
+  &:hover {
+    background-color: ${({ theme: { dropdown } }) =>
+      dropdown.button.backgroundColor.hover};
+  }
+`;
+
 export const DangerItem = styled.div`
   color: ${({ theme: { dropdown } }) => dropdown.item.color.danger};
 `;
