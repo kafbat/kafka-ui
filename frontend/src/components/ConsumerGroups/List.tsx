@@ -27,6 +27,7 @@ import { consumerGroupsApiClient } from 'lib/api';
 import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import useQueryPersister from 'components/common/NewTable/ColumnFilter/lib/persisters/queryPersister';
 
 import { LagContainer } from './styled';
 
@@ -50,6 +51,9 @@ const List = () => {
     ...params,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
+    state: searchParams
+      .get(ConsumerGroupOrdering.STATE)
+      ?.split(',') as ConsumerGroupState[],
   });
 
   const [pollingIntervalSec] = useLocalStorage(
@@ -165,13 +169,20 @@ const List = () => {
         );
       },
       size: 124,
+      filterFn: 'noop',
       meta: {
+        filterKey: ConsumerGroupOrdering.STATE,
+        filterVariant: 'multi-select',
+        filterValues: Object.keys(ConsumerGroupState).filter(
+          (v) => v !== ConsumerGroupState.UNKNOWN
+        ),
         csvFn: (row) => String(row.state),
       },
     },
   ];
 
   const columnSizingPersister = useLocalStoragePersister('Consumers');
+  const filterPersister = useQueryPersister(columns);
 
   const fetchCsv = async () => {
     return consumerGroupsApiClient.getConsumerGroupsCsv(params);
@@ -198,6 +209,7 @@ const List = () => {
         columns={columns}
         pageCount={consumerGroups.data?.pageCount || 0}
         data={consumerGroups.data?.consumerGroups || []}
+        filterPersister={filterPersister}
         emptyMessage={
           consumerGroups.isSuccess
             ? 'No active consumer groups found'

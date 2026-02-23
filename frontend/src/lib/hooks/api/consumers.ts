@@ -12,6 +12,7 @@ import {
   ConsumerGroupOffsetsReset,
   ConsumerGroupOrdering,
   ConsumerGroupsLagResponse,
+  ConsumerGroupState,
   SortOrder,
 } from 'generated-sources';
 import { showSuccessAlert } from 'lib/errorHandling';
@@ -27,6 +28,7 @@ type UseConsumerGroupsProps = {
   perPage?: number;
   search: string;
   fts?: boolean;
+  state?: ConsumerGroupState[];
 };
 
 type UseConsumerGroupDetailsProps = {
