@@ -126,7 +126,7 @@ bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1
 google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
 google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', version = '1.39.0' }
 
-modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.10.0'}
+modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.18.1'}
 victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-generator', version = '4.38.0'}
 
 prometheus-metrics-core = {module = 'io.prometheus:prometheus-metrics-core', version.ref = 'prometheus'}
