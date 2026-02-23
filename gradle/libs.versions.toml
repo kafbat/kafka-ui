@@ -1,6 +1,6 @@
 [versions]
-spring-boot = '3.5.9'
-nimbus-jose-jwt = '10.6'
+spring-boot = '3.5.11'
+nimbus-jose-jwt = '10.8'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
