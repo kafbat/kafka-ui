@@ -45,6 +45,22 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       SeekOperations seekOperations
   );
 
+  protected int nextChunkSizePerPartition(int activePartitions) {
+    if (activePartitions <= 0) {
+      return 1;
+    }
+    final int pollCap = getPollingSettings().getMaxMessagesToScanPerPoll();
+    final int baseChunk = Math.max(1, (int) Math.ceil((double) messagesPerPage / activePartitions));
+    final int minChunk = Math.max(1, Math.min(10, messagesPerPage));
+    final int requestedChunk = Math.max(baseChunk, minChunk);
+    // Align total requested with poll cap to reduce tiny range iterations (many partitions + small page).
+    final int maxTotalByPage = Math.max(messagesPerPage * 3, minChunk * activePartitions);
+    final int maxTotalRequested = Math.min(pollCap, maxTotalByPage);
+    final int maxChunkByTotal = Math.max(1, (int) Math.ceil((double) maxTotalRequested / activePartitions));
+    // Prefer larger chunk up to maxChunkByTotal to fill poll cap and reduce iterations.
+    return Math.min(maxChunkByTotal, Math.max(requestedChunk, maxChunkByTotal));
+  }
+
   @Override
   public void accept(FluxSink<TopicMessageEventDTO> sink) {
     log.debug("Starting polling for {}", consumerPosition);
@@ -88,11 +104,12 @@ abstract class RangePollingEmitter extends AbstractEmitter {
     List<ConsumerRecord<Bytes, Bytes>> result = new ArrayList<>();
     Set<TopicPartition> paused = new HashSet<>();
     while (!sink.isCancelled() && paused.size() < range.size()) {
-      var polledRecords = poll(sink, consumer);
+      var polledRecords = pollWithoutConsuming(consumer);
+      List<ConsumerRecord<Bytes, Bytes>> inRangeThisPoll = new ArrayList<>();
       range.forEach((tp, fromTo) -> {
         polledRecords.records(tp).stream()
             .filter(r -> r.offset() < fromTo.to)
-            .forEach(result::add);
+            .forEach(inRangeThisPoll::add);
 
         //next position is out of target range -> pausing partition
         if (!paused.contains(tp) && consumer.position(tp) >= fromTo.to) {
@@ -100,6 +117,9 @@ abstract class RangePollingEmitter extends AbstractEmitter {
           consumer.pause(List.of(tp));
         }
       });
+      result.addAll(inRangeThisPoll);
+      long inRangeBytes = PolledRecords.bytesOf(inRangeThisPoll);
+      sendConsumingInRange(sink, inRangeThisPoll.size(), inRangeBytes, polledRecords.elapsed().toMillis());
     }
     consumer.resume(paused);
     return result;
