@@ -21,6 +21,7 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ActionNavLink } from 'components/common/ActionComponent';
 import { Action, ResourceType } from 'generated-sources';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import Configs from './Configs/Configs';
 
@@ -28,14 +29,20 @@ const Broker: React.FC = () => {
   const { clusterName, brokerId } = useAppParams<ClusterBrokerParam>();
 
   const { data: clusterStats } = useClusterStats(clusterName);
-  const { data: brokers } = useBrokers(clusterName);
-
-  if (!clusterStats) return null;
+  const {
+    data: brokers,
+    error,
+    isSuccess,
+    refetch,
+    isLoading,
+    isRefetching,
+  } = useBrokers(clusterName);
 
   const brokerItem = brokers?.find(({ id }) => id === Number(brokerId));
-  const brokerDiskUsage = clusterStats.diskUsage?.find(
+  const brokerDiskUsage = clusterStats?.diskUsage?.find(
     (item) => item.brokerId === Number(brokerId)
   );
+
   return (
     <>
       <ResourcePageHeading
@@ -43,60 +50,79 @@ const Broker: React.FC = () => {
         backTo={clusterBrokersPath(clusterName)}
         backText="Brokers"
       />
-      <Metrics.Wrapper>
-        <Metrics.Section>
-          <Metrics.Indicator label="Segment Size">
-            <BytesFormatted
-              value={brokerDiskUsage?.segmentSize}
-              precision={2}
-            />
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Segment Count">
-            {brokerDiskUsage?.segmentCount}
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Port">{brokerItem?.port}</Metrics.Indicator>
-          <Metrics.Indicator label="Host">{brokerItem?.host}</Metrics.Indicator>
-        </Metrics.Section>
-      </Metrics.Wrapper>
 
-      <Navbar role="navigation">
-        <NavLink
-          to={clusterBrokerPath(clusterName, brokerId)}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-          end
-        >
-          Log directories
-        </NavLink>
-        <NavLink
-          to={clusterBrokerConfigsPath(clusterName, brokerId)}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-        >
-          Configs
-        </NavLink>
-        <ActionNavLink
-          to={clusterBrokerMetricsPath(clusterName, brokerId)}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-          permission={{
-            resource: ResourceType.CLUSTERCONFIG,
-            action: Action.VIEW,
-          }}
-        >
-          Metrics
-        </ActionNavLink>
-      </Navbar>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route index element={<BrokerLogdir />} />
-          <Route
-            path={clusterBrokerConfigsRelativePath}
-            element={<Configs />}
-          />
-          <Route
-            path={clusterBrokerMetricsRelativePath}
-            element={<BrokerMetrics />}
-          />
-        </Routes>
-      </Suspense>
+      {(isLoading || isRefetching) && <PageLoader />}
+
+      {(error || brokerItem === undefined) && (
+        <ErrorPage
+          status={error?.status || 404}
+          onClick={refetch}
+          resourceName={`Broker ${brokerId}`}
+        />
+      )}
+
+      {isSuccess && brokerItem !== undefined && (
+        <>
+          <Metrics.Wrapper>
+            <Metrics.Section>
+              <Metrics.Indicator label="Segment Size">
+                <BytesFormatted
+                  value={brokerDiskUsage?.segmentSize}
+                  precision={2}
+                />
+              </Metrics.Indicator>
+              <Metrics.Indicator label="Segment Count">
+                {brokerDiskUsage?.segmentCount}
+              </Metrics.Indicator>
+              <Metrics.Indicator label="Port">
+                {brokerItem?.port}
+              </Metrics.Indicator>
+              <Metrics.Indicator label="Host">
+                {brokerItem?.host}
+              </Metrics.Indicator>
+            </Metrics.Section>
+          </Metrics.Wrapper>
+
+          <Navbar role="navigation">
+            <NavLink
+              to={clusterBrokerPath(clusterName, brokerId)}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              end
+            >
+              Log directories
+            </NavLink>
+            <NavLink
+              to={clusterBrokerConfigsPath(clusterName, brokerId)}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+            >
+              Configs
+            </NavLink>
+            <ActionNavLink
+              to={clusterBrokerMetricsPath(clusterName, brokerId)}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.CLUSTERCONFIG,
+                action: Action.VIEW,
+              }}
+            >
+              Metrics
+            </ActionNavLink>
+          </Navbar>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route index element={<BrokerLogdir />} />
+              <Route
+                path={clusterBrokerConfigsRelativePath}
+                element={<Configs />}
+              />
+              <Route
+                path={clusterBrokerMetricsRelativePath}
+                element={<BrokerMetrics />}
+              />
+            </Routes>
+          </Suspense>
+        </>
+      )}
     </>
   );
 };

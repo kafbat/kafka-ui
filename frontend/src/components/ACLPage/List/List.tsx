@@ -28,6 +28,8 @@ import {
   createPatternCell,
 } from 'components/ACLPage/Table/TableCells';
 import useDeleteKafkaAcl from 'components/ACLPage/lib/useDeleteAcl';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import * as S from './List.styled';
 
@@ -36,7 +38,7 @@ const ACList: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('acl');
-  const { data: aclList } = useAcls({
+  const acls = useAcls({
     clusterName,
     search: searchParams.get('q') ?? '',
     fts: isFtsEnabled,
@@ -94,7 +96,22 @@ const ACList: React.FC = () => {
           extraActions={<Fts resourceName="acl" />}
         />
       </ControlPanelWrapper>
-      <AclsTable acls={aclList ?? EMPTY_ACLS} columns={columns} />
+
+      {(acls.isLoading || acls.isRefetching) && <PageLoader offsetY={300} />}
+
+      {acls.error && (
+        <ErrorPage
+          offsetY={300}
+          status={acls.error.status}
+          onClick={acls.refetch}
+          text={acls.error.message}
+        />
+      )}
+
+      {acls.isSuccess && (
+        <AclsTable acls={acls.data ?? EMPTY_ACLS} columns={columns} />
+      )}
+
       <ACLFormContext.Provider
         value={{
           close: closeForm,
