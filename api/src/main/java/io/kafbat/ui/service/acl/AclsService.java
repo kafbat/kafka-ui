@@ -54,13 +54,15 @@ public class AclsService {
 
   private void validatePrincipal(String principal) {
     if (principal == null || principal.isEmpty()) {
-      throw new IllegalArgumentException("expected a string in format principalType:principalName but got " + principal);
+      throw new IllegalArgumentException(
+          "expected a string in format principalType:principalName but got " + principal);
     }
 
     String[] split = principal.split(":", 2);
 
     if (split.length != 2) {
-      throw new IllegalArgumentException("expected a string in format principalType:principalName but got " + principal);
+      throw new IllegalArgumentException(
+          "expected a string in format principalType:principalName but got " + principal);
     }
   }
 
