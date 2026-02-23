@@ -97,7 +97,9 @@ describe('CustomParamsField', () => {
       const selectedParam = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
       const otherParam = 'some.other.param';
       // Initialize the form with the param name so nameValue is set in the component
-      const formDefaults = { customParams: [{ name: selectedParam, value: '' }] };
+      const formDefaults = {
+        customParams: [{ name: selectedParam, value: '' }],
+      };
 
       setupComponent(
         {
