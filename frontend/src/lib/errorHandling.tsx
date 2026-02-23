@@ -3,29 +3,46 @@ import Alert from 'components/common/Alert/Alert';
 import toast, { ToastType } from 'react-hot-toast';
 import { ErrorResponse } from 'generated-sources';
 
-interface ServerResponse {
-  status: number;
+export interface ServerResponse {
+  status?: number;
   statusText: string;
   url?: string;
   message?: ErrorResponse['message'];
 }
 export type ToastTypes = ToastType | 'warning';
 
-export const getResponse = async (
-  response: Response
-): Promise<ServerResponse> => {
-  let body;
-  try {
-    body = await response.json();
-  } catch (e) {
-    // do nothing;
+export const getResponse = async (error: unknown): Promise<ServerResponse> => {
+  if (error instanceof Response) {
+    let body;
+
+    try {
+      body = await error.json();
+    } catch {
+      // do nothing
+    }
+
+    const apiError: ServerResponse = {
+      status: error.status,
+      statusText: error.statusText,
+      url: error.url,
+      message: body?.message,
+    };
+
+    return apiError;
   }
+
   return {
-    status: response.status,
-    statusText: response.statusText,
-    url: response.url,
-    message: body?.message,
+    statusText: 'Unknown error',
+    message: error instanceof Error ? error.message : 'Unknown error',
   };
+};
+
+export const apiFetch = async <T,>(fn: () => Promise<T>): Promise<T> => {
+  try {
+    return await fn();
+  } catch (e) {
+    throw await getResponse(e);
+  }
 };
 
 interface AlertOptions {
