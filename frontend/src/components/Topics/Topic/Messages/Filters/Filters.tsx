@@ -1,6 +1,10 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
+import {
+  PollingMode,
+  SerdeUsage,
+  TopicMessageConsuming,
+} from 'generated-sources';
 import React, { ChangeEvent, useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
@@ -49,6 +53,8 @@ const Filters: React.FC<FiltersProps> = ({
     setMode,
     date,
     setTimeStamp,
+    endDate,
+    setEndTimestamp,
     keySerde,
     setKeySerde,
     valueSerde,
@@ -104,6 +110,70 @@ const Filters: React.FC<FiltersProps> = ({
     refreshData();
   };
 
+  const renderModeInput = () => {
+    if (!isModeOptionWithInput(mode)) {
+      return null;
+    }
+
+    if (isModeOffsetSelector(mode)) {
+      return (
+        <S.OffsetSelector
+          id="offset"
+          type="text"
+          inputSize="M"
+          value={offset}
+          placeholder="Offset"
+          onChange={({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
+            setOffsetValue(value);
+          }}
+        />
+      );
+    }
+
+    if (mode === PollingMode.TIMESTAMP_RANGE) {
+      return (
+        <>
+          <S.DatePickerRangeInput
+            selected={date}
+            onChange={setTimeStamp}
+            showTimeInput
+            timeInputLabel="Time:"
+            dateFormat="MMM d, yyyy HH:mm"
+            placeholderText="Start time"
+            selectsStart
+            startDate={date}
+            endDate={endDate}
+          />
+          <S.DateRangeSeparator>~</S.DateRangeSeparator>
+          <S.DatePickerRangeInput
+            selected={endDate}
+            onChange={setEndTimestamp}
+            showTimeInput
+            timeInputLabel="Time:"
+            dateFormat="MMM d, yyyy HH:mm"
+            placeholderText="End time"
+            selectsEnd
+            startDate={date}
+            endDate={endDate}
+            minDate={date}
+          />
+        </>
+      );
+    }
+
+    return (
+      <S.DatePickerInput
+        $fixedWidth
+        selected={date}
+        onChange={setTimeStamp}
+        showTimeInput
+        timeInputLabel="Time:"
+        dateFormat="MMM d, yyyy HH:mm"
+        placeholderText="Select timestamp"
+      />
+    );
+  };
+
   return (
     <FlexBox flexDirection="column" padding="0 16px">
       <FlexBox width="100%" justifyContent="space-between" margin="10px 0 0 0">
@@ -118,30 +188,7 @@ const Filters: React.FC<FiltersProps> = ({
               options={ModeOptions}
             />
 
-            {isModeOptionWithInput(mode) &&
-              (isModeOffsetSelector(mode) ? (
-                <S.OffsetSelector
-                  id="offset"
-                  type="text"
-                  inputSize="M"
-                  value={offset}
-                  placeholder="Offset"
-                  onChange={({
-                    target: { value },
-                  }: ChangeEvent<HTMLInputElement>) => {
-                    setOffsetValue(value);
-                  }}
-                />
-              ) : (
-                <S.DatePickerInput
-                  selected={date}
-                  onChange={setTimeStamp}
-                  showTimeInput
-                  timeInputLabel="Time:"
-                  dateFormat="MMM d, yyyy"
-                  placeholderText="Select timestamp"
-                />
-              ))}
+            {renderModeInput()}
           </S.FilterModeTypeSelectorWrapper>
           <MultiSelect
             disabled={isLoading}

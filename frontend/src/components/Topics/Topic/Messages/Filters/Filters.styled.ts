@@ -35,13 +35,14 @@ export const OffsetSelector = styled(Input)`
   }
 `;
 
-export const DatePickerInput = styled(DatePicker)`
+export const DatePickerInput = styled(DatePicker)<{ $fixedWidth?: boolean }>`
   height: 32px;
   border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
   border-left: none;
   border-radius: 0 4px 4px 0;
   font-size: 14px;
-  width: 100%;
+  width: ${({ $fixedWidth }) => ($fixedWidth ? '160px' : '100%')};
+  min-width: 160px;
   padding-left: 12px;
   background-color: ${({ theme }) => theme.input.backgroundColor.normal};
   color: ${({ theme }) => theme.input.color.normal};
@@ -61,6 +62,52 @@ export const DatePickerInput = styled(DatePicker)`
   &:focus {
     outline: none;
   }
+`;
+
+export const DatePickerRangeInput = styled(DatePicker)`
+  height: 32px;
+  border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
+  border-left: none;
+  border-radius: 0;
+  font-size: 14px;
+  width: 160px;
+  min-width: 160px;
+  padding-left: 12px;
+  background-color: ${({ theme }) => theme.input.backgroundColor.normal};
+  color: ${({ theme }) => theme.input.color.normal};
+  &::placeholder {
+    color: ${({ theme }) => theme.input.color.normal};
+  }
+
+  background-image: url('data:image/svg+xml,%3Csvg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1L5 5L9 1" stroke="%23454F54"/%3E%3C/svg%3E%0A') !important;
+  background-repeat: no-repeat !important;
+  background-position-x: 96% !important;
+  background-position-y: 55% !important;
+  appearance: none !important;
+
+  &:hover {
+    cursor: pointer;
+  }
+  &:focus {
+    outline: none;
+  }
+
+  &:last-of-type {
+    border-radius: 0 4px 4px 0;
+  }
+`;
+
+export const DateRangeSeparator = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.input.color.normal};
+  background-color: ${({ theme }) => theme.input.backgroundColor.normal};
+  border-top: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
+  border-bottom: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
 `;
 
 export const Message = styled.div`

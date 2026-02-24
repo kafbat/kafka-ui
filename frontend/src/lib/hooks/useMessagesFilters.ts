@@ -97,8 +97,10 @@ export function useMessagesFilters(topicName: string) {
     defaultModeValue;
 
   const dateParams = searchParams.get(MessagesFilterKeys.timestamp);
+  const endDateParams = searchParams.get(MessagesFilterKeys.endTimestamp);
 
   const date = dateParams ? new Date(parseFloat(dateParams)) : null;
+  const endDate = endDateParams ? new Date(parseFloat(endDateParams)) : null;
 
   const keySerde = searchParams.get(MessagesFilterKeys.keySerde) || undefined;
   const valueSerde =
@@ -125,10 +127,12 @@ export function useMessagesFilters(topicName: string) {
     setSearchParams((params) => {
       removeMessagesFiltersField(MessagesFilterKeys.offset);
       removeMessagesFiltersField(MessagesFilterKeys.timestamp);
+      removeMessagesFiltersField(MessagesFilterKeys.endTimestamp);
       setMessagesFiltersField(MessagesFilterKeys.mode, newMode);
       params.set(MessagesFilterKeys.mode, newMode);
       params.delete(MessagesFilterKeys.offset);
       params.delete(MessagesFilterKeys.timestamp);
+      params.delete(MessagesFilterKeys.endTimestamp);
       return params;
     });
   };
@@ -149,6 +153,26 @@ export function useMessagesFilters(topicName: string) {
         newDate.getTime().toString()
       );
       params.set(MessagesFilterKeys.timestamp, newDate.getTime().toString());
+      return params;
+    });
+  };
+
+  const setEndTimestamp = (newDate: Date | null) => {
+    if (newDate === null) {
+      setSearchParams((params) => {
+        removeMessagesFiltersField(MessagesFilterKeys.endTimestamp);
+        params.delete(MessagesFilterKeys.endTimestamp);
+        return params;
+      });
+      return;
+    }
+
+    setSearchParams((params) => {
+      setMessagesFiltersField(
+        MessagesFilterKeys.endTimestamp,
+        newDate.getTime().toString()
+      );
+      params.set(MessagesFilterKeys.endTimestamp, newDate.getTime().toString());
       return params;
     });
   };
@@ -249,6 +273,8 @@ export function useMessagesFilters(topicName: string) {
     setMode,
     date,
     setTimeStamp,
+    endDate,
+    setEndTimestamp,
     keySerde,
     setKeySerde,
     valueSerde,

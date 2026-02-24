@@ -272,7 +272,7 @@ public class MessagesService {
           cluster.getPollingSettings(),
           cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
       );
-      case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> new ForwardEmitter(
+      case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST, TIMESTAMP_RANGE -> new ForwardEmitter(
           () -> consumerGroupService.createConsumer(cluster),
           consumerPosition,
           limit,

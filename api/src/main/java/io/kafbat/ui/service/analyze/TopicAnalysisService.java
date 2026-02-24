@@ -106,7 +106,7 @@ public class TopicAnalysisService {
             .forEach(tp -> partitionStats.put(tp.partition(), new TopicAnalysisStats()));
 
         var seekOperations =
-            SeekOperations.create(consumer, new ConsumerPosition(EARLIEST, topicId.topicName, List.of(), null, null));
+            SeekOperations.create(consumer, new ConsumerPosition(EARLIEST, topicId.topicName, List.of(), null, null, null));
         long summaryOffsetsRange = seekOperations.summaryOffsetsRange();
         seekOperations.assignAndSeekNonEmptyPartitions();
 

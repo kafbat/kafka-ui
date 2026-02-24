@@ -101,6 +101,7 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                              String smartFilterId,
                                                                              Long offset,
                                                                              Long timestamp,
+                                                                             Long endTimestamp,
                                                                              String keySerde,
                                                                              String valueSerde,
                                                                              String cursor,
@@ -125,7 +126,7 @@ public class MessagesController extends AbstractController implements MessagesAp
       messagesFlux = messagesService.loadMessages(
           getCluster(clusterName),
           topicName,
-          ConsumerPosition.create(pollingMode, checkNotNull(topicName), partitions, timestamp, offset),
+          ConsumerPosition.create(pollingMode, checkNotNull(topicName), partitions, timestamp, endTimestamp, offset),
           stringFilter,
           smartFilterId,
           limit,

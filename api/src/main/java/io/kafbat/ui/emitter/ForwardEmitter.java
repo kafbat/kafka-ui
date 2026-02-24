@@ -24,7 +24,7 @@ public class ForwardEmitter extends RangePollingEmitter {
         consumerSupplier,
         consumerPosition,
         messagesPerPage,
-        new MessagesProcessing(deserializer, filter, true, messagesPerPage),
+        new MessagesProcessing(deserializer, filter, true, messagesPerPage, consumerPosition.endTimestamp()),
         pollingSettings,
         cursor
     );
