@@ -2,7 +2,6 @@ import styled, { css } from 'styled-components';
 import { ServerStatus } from 'generated-sources';
 
 export const ColorPickerWrapper = styled.div`
-  position: absolute;
   display: flex;
   visibility: hidden;
 `;
@@ -37,8 +36,6 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
       color: ${theme.menu[$variant].color.hover};
 
       ${ColorPickerWrapper} {
-        position: absolute;
-        right: 36px;
         visibility: visible;
       }
     }
