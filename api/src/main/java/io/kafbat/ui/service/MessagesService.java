@@ -205,7 +205,12 @@ public class MessagesService {
   public static KafkaProducer<byte[], byte[]> createProducer(ClustersProperties.Cluster cluster,
                                                              Map<String, Object> additionalProps) {
     Properties properties = new Properties();
-    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getSsl(), properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(
+        cluster.getSsl(),
+        cluster.getKafkaSsl(),
+        cluster.getSecurityProtocol(),
+        properties
+    );
     properties.putAll(cluster.getProperties());
     properties.putAll(cluster.getProducerProperties());
     properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());

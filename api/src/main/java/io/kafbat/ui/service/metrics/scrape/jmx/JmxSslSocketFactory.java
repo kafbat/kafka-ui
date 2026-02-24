@@ -1,22 +1,20 @@
 package io.kafbat.ui.service.metrics.scrape.jmx;
 
 import com.google.common.base.Preconditions;
-import java.io.FileInputStream;
+import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.util.SslBundleUtil;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.security.KeyStore;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ResourceUtils;
+import org.springframework.boot.ssl.SslBundle;
 
 /*
  * Purpose of this class to provide an ability to connect to different JMX endpoints using different keystores.
@@ -78,18 +76,13 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
   private record HostAndPort(String host, int port) {
   }
 
-  private record Ssl(@Nullable String truststoreLocation,
-                     @Nullable String truststorePassword,
-                     @Nullable String keystoreLocation,
-                     @Nullable String keystorePassword) {
+  private record Ssl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
+                     @Nullable ClustersProperties.KeystoreConfig keystoreConfig) {
   }
 
-  public static void setSslContextThreadLocal(@Nullable String truststoreLocation,
-                                              @Nullable String truststorePassword,
-                                              @Nullable String keystoreLocation,
-                                              @Nullable String keystorePassword) {
-    SSL_CONTEXT_THREAD_LOCAL.set(
-        new Ssl(truststoreLocation, truststorePassword, keystoreLocation, keystorePassword));
+  public static void setSslContextThreadLocal(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
+                                              @Nullable ClustersProperties.KeystoreConfig keystoreConfig) {
+    SSL_CONTEXT_THREAD_LOCAL.set(new Ssl(truststoreConfig, keystoreConfig));
   }
 
   // should be called when (host:port) -> factory cache should be invalidated (ex. on app config reload)
@@ -117,33 +110,16 @@ class JmxSslSocketFactory extends javax.net.ssl.SSLSocketFactory {
   @SneakyThrows
   private javax.net.ssl.SSLSocketFactory createFactoryFromThreadLocalCtx() {
     Ssl ssl = Preconditions.checkNotNull(SSL_CONTEXT_THREAD_LOCAL.get());
+    SslBundle bundle = SslBundleUtil.loadBundle(ssl.truststoreConfig(), ssl.keystoreConfig);
 
-    var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    if (ssl.truststoreLocation() != null && ssl.truststorePassword() != null) {
-      KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-      trustStore.load(
-          new FileInputStream((ResourceUtils.getFile(ssl.truststoreLocation()))),
-          ssl.truststorePassword().toCharArray()
-      );
-      trustManagerFactory.init(trustStore);
+    SSLContext ctx;
+    if (bundle != null) {
+      ctx = bundle.createSslContext();
+    } else {
+      ctx = SSLContext.getInstance("TLS");
+      ctx.init(null, null, null);
     }
 
-    var keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    if (ssl.keystoreLocation() != null && ssl.keystorePassword() != null) {
-      KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keyStore.load(
-          new FileInputStream(ResourceUtils.getFile(ssl.keystoreLocation())),
-          ssl.keystorePassword().toCharArray()
-      );
-      keyManagerFactory.init(keyStore, ssl.keystorePassword().toCharArray());
-    }
-
-    SSLContext ctx = SSLContext.getInstance("TLS");
-    ctx.init(
-        keyManagerFactory.getKeyManagers(),
-        trustManagerFactory.getTrustManagers(),
-        null
-    );
     return ctx.getSocketFactory();
   }
 

@@ -2,6 +2,7 @@ package io.kafbat.ui.config;
 
 import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
 
+import io.kafbat.ui.api.model.SecurityProtocol;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -75,7 +76,9 @@ public class ClustersProperties {
     @NotBlank(message = "field bootstrapServers for for cluster could not be blank")
     String bootstrapServers;
 
+    SecurityProtocol securityProtocol;
     TruststoreConfig ssl;
+    KeystoreConfig kafkaSsl;
 
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
@@ -120,6 +123,8 @@ public class ClustersProperties {
     Boolean ssl;
     String username;
     String password;
+    StoreType keystoreType;
+    String keystoreCertificate;
     String keystoreLocation;
     String keystorePassword;
 
@@ -155,6 +160,8 @@ public class ClustersProperties {
     String address;
     String username;
     String password;
+    StoreType keystoreType;
+    String keystoreCertificate;
     String keystoreLocation;
     String keystorePassword;
   }
@@ -166,9 +173,14 @@ public class ClustersProperties {
     String password;
   }
 
+  public enum StoreType {
+    JKS, PKCS12, PEM
+  }
+
   @Data
   @ToString(exclude = {"truststorePassword"})
   public static class TruststoreConfig {
+    StoreType truststoreType;
     String truststoreLocation;
     String truststorePassword;
     boolean verify = true;
@@ -179,6 +191,8 @@ public class ClustersProperties {
   @AllArgsConstructor
   @ToString(exclude = {"keystorePassword"})
   public static class KeystoreConfig {
+    StoreType keystoreType;
+    String keystoreCertificate;
     String keystoreLocation;
     String keystorePassword;
   }

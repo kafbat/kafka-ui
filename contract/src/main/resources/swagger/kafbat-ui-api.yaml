@@ -4457,6 +4457,30 @@ components:
         prometheusStorage:
           $ref: '#/components/schemas/ApplicationPropertyValidation'
 
+    StoreType:
+      type: string
+      enum:
+        - JKS
+        - PKCS12
+        - PEM
+    SecurityProtocol:
+      type: string
+      enum:
+        - PLAINTEXT
+        - SASL_PLAINTEXT
+        - SASL_SSL
+        - SSL
+    KeystoreConfig:
+      type: object
+      properties:
+        keystoreType:
+          $ref: '#/components/schemas/StoreType'
+        keystoreCertificate:
+          type: string
+        keystoreLocation:
+          type: string
+        keystorePassword:
+          type: string
     ApplicationConfig:
       type: object
       properties:
@@ -4639,9 +4663,13 @@ components:
                         type: string
                       bootstrapServers:
                         type: string
+                      securityProtocol:
+                        $ref: '#/components/schemas/SecurityProtocol'
                       ssl:
                         type: object
                         properties:
+                          truststoreType:
+                            $ref: '#/components/schemas/StoreType'
                           truststoreLocation:
                             type: string
                           truststorePassword:
@@ -4650,6 +4678,8 @@ components:
                             type: boolean
                             description: Skip SSL verification for the host.
                             default: true
+                      kafkaSsl:
+                        $ref: '#/components/schemas/KeystoreConfig'
                       schemaRegistry:
                         type: string
                       schemaRegistryAuth:
@@ -4660,21 +4690,11 @@ components:
                           password:
                             type: string
                       schemaRegistrySsl:
-                        type: object
-                        properties:
-                          keystoreLocation:
-                            type: string
-                          keystorePassword:
-                            type: string
+                        $ref: '#/components/schemas/KeystoreConfig'
                       ksqldbServer:
                         type: string
                       ksqldbServerSsl:
-                        type: object
-                        properties:
-                          keystoreLocation:
-                            type: string
-                          keystorePassword:
-                              type: string
+                        $ref: '#/components/schemas/KeystoreConfig'
                       ksqldbServerAuth:
                         type: object
                         properties:
@@ -4695,6 +4715,10 @@ components:
                               type: string
                             password:
                               type: string
+                            keystoreType:
+                              $ref: '#/components/schemas/StoreType'
+                            keystoreCertificate:
+                              type: string
                             keystoreLocation:
                               type: string
                             keystorePassword:
@@ -4713,6 +4737,10 @@ components:
                           username:
                             type: string
                           password:
+                            type: string
+                          keystoreType:
+                            $ref: '#/components/schemas/StoreType'
+                          keystoreCertificate:
                             type: string
                           keystoreLocation:
                             type: string

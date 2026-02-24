@@ -4,7 +4,7 @@ import static io.kafbat.ui.util.KafkaServicesValidation.validateClusterConnectio
 import static io.kafbat.ui.util.KafkaServicesValidation.validateKsql;
 import static io.kafbat.ui.util.KafkaServicesValidation.validatePrometheusStore;
 import static io.kafbat.ui.util.KafkaServicesValidation.validateSchemaRegistry;
-import static io.kafbat.ui.util.KafkaServicesValidation.validateTruststore;
+import static io.kafbat.ui.util.KafkaServicesValidation.validateSslBundle;
 
 import io.kafbat.ui.client.RetryingKafkaConnectClient;
 import io.kafbat.ui.config.ClustersProperties;
@@ -110,12 +110,12 @@ public class KafkaClusterFactory {
 
   public Mono<ClusterConfigValidationDTO> validate(ClustersProperties.Cluster clusterProperties) {
     if (clusterProperties.getSsl() != null) {
-      Optional<String> errMsg = validateTruststore(clusterProperties.getSsl());
+      Optional<String> errMsg = validateSslBundle(clusterProperties.getSsl(), clusterProperties.getKafkaSsl());
       if (errMsg.isPresent()) {
         return Mono.just(new ClusterConfigValidationDTO()
             .kafka(new ApplicationPropertyValidationDTO()
                 .error(true)
-                .errorMessage("Truststore not valid: " + errMsg.get())));
+                .errorMessage("Truststore/Keystore not valid: " + errMsg.get())));
       }
     }
 
@@ -123,7 +123,9 @@ public class KafkaClusterFactory {
         validateClusterConnection(
             clusterProperties.getBootstrapServers(),
             convertProperties(clusterProperties.getProperties()),
-            clusterProperties.getSsl()
+            clusterProperties.getSsl(),
+            clusterProperties.getKafkaSsl(),
+            clusterProperties.getSecurityProtocol()
         ),
         schemaRegistryConfigured(clusterProperties)
             ? validateSchemaRegistry(() -> schemaRegistryClient(clusterProperties)).map(Optional::of)
