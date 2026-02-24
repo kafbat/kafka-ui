@@ -18,6 +18,7 @@ import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
+import io.confluent.kafka.schemaregistry.client.rest.entities.SubjectVersion;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchemaProvider;
@@ -355,8 +356,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private List<String> getSubjectsById(int schemaId) {
     return idToSubjectsCache.get(schemaId, (id) -> {
       try {
-        return schemaRegistryClient.getAllSubjectsById(id).stream()
+        return schemaRegistryClient.getAllVersionsById(id).stream()
+            .map(SubjectVersion::getSubject)
             .filter(s -> !s.isEmpty())
+            .distinct()
             .toList();
       } catch (Exception e) {
         throw new RuntimeException(e);

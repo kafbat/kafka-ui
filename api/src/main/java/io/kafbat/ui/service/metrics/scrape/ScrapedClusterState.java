@@ -81,6 +81,7 @@ public class ScrapedClusterState implements AutoCloseable {
         .nodesStates(Map.of())
         .topicStates(Map.of())
         .consumerGroupsStates(Map.of())
+        .topicIndex(new FilterTopicIndex(List.of()))
         .build();
   }
 
