@@ -34,9 +34,10 @@ public class WebClientConfigurator {
   private HttpClient httpClient = HttpClient
       .create()
       .proxyWithSystemProperties();
+  private ObjectMapper objectMapper = defaultOM();
 
   public WebClientConfigurator() {
-    configureObjectMapper(defaultOM());
+    configureObjectMapper(objectMapper);
   }
 
   private static ObjectMapper defaultOM() {
@@ -132,6 +133,7 @@ public class WebClientConfigurator {
   }
 
   public void configureObjectMapper(ObjectMapper mapper) {
+    this.objectMapper = mapper;
     builder.codecs(codecs -> {
       codecs.defaultCodecs()
           .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
@@ -142,15 +144,14 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureAdditionalDecoderMediaTypes(MediaType... additionalMediaTypes) {
     builder.codecs(codecs -> {
-      ObjectMapper mapper = defaultOM();
       codecs.defaultCodecs()
-          .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
+          .jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper, MediaType.APPLICATION_JSON));
       MediaType[] allMediaTypes = Stream.concat(
           Stream.of(MediaType.APPLICATION_JSON),
           Stream.of(additionalMediaTypes)
       ).toArray(MediaType[]::new);
       codecs.defaultCodecs()
-          .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, allMediaTypes));
+          .jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper, allMediaTypes));
     });
     return this;
   }
