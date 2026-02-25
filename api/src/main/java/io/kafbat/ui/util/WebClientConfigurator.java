@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -25,9 +26,14 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
+@Slf4j
 public class WebClientConfigurator {
 
   private final WebClient.Builder builder = WebClient.builder();
@@ -125,6 +131,148 @@ public class WebClientConfigurator {
       throw new ValidationException("You specified password but did not specify username");
     }
     return this;
+  }
+
+  public WebClientConfigurator configureOAuth(@Nullable ClustersProperties.OauthConfig oauth) {
+    if (oauth != null && oauth.getTokenUrl() != null
+        && oauth.getClientId() != null && oauth.getClientSecret() != null) {
+
+      // Create token cache if caching is enabled
+      OAuthTokenCache tokenCache = Boolean.TRUE.equals(oauth.getTokenCacheEnabled())
+          ? new OAuthTokenCache(oauth.getTokenRefreshBufferSeconds())
+          : null;
+
+      int maxRetries = oauth.getMaxRetries() != null ? oauth.getMaxRetries() : 1;
+
+      log.info("Configuring OAuth with token URL: {}, caching: {}, maxRetries: {}",
+          oauth.getTokenUrl(), tokenCache != null, maxRetries);
+
+      builder.filter((request, next) ->
+          executeWithOAuthToken(request, next, oauth, tokenCache, maxRetries, 0)
+      );
+    }
+    return this;
+  }
+
+  private Mono<ClientResponse> executeWithOAuthToken(
+          ClientRequest request,
+          ExchangeFunction next,
+          ClustersProperties.OauthConfig oauth,
+          OAuthTokenCache tokenCache,
+          int maxRetries,
+          int currentRetryCount) {
+
+    // Get token from cache or fetch new one
+    return getAccessToken(oauth, tokenCache)
+        .flatMap(accessToken -> {
+          // Add Bearer token to request
+          var modifiedRequest = ClientRequest.from(request)
+              .headers(headers -> headers.setBearerAuth(accessToken))
+              .build();
+
+          // Execute request
+          return next.exchange(modifiedRequest)
+              .flatMap(response -> {
+                // Check for 401 Unauthorized
+                if (response.statusCode().value() == 401 && currentRetryCount < maxRetries) {
+                  log.debug("Received 401 from Schema Registry, invalidating cache (retry {}/{})",
+                      currentRetryCount + 1, maxRetries);
+
+                  // Invalidate cache and retry
+                  if (tokenCache != null) {
+                    tokenCache.invalidate();
+                  }
+
+                  // Recursive retry with incremented count
+                  return response.releaseBody()
+                      .then(executeWithOAuthToken(request, next, oauth, tokenCache, maxRetries,
+                          currentRetryCount + 1));
+
+                } else if (response.statusCode().value() == 401 && currentRetryCount >= maxRetries) {
+                  log.warn("OAuth authentication failed after {} retries - verify clientId, clientSecret, "
+                      + "and Schema Registry permissions", maxRetries);
+                }
+
+                return reactor.core.publisher.Mono.just(response);
+              });
+        });
+  }
+
+  private Mono<String> getAccessToken(
+      ClustersProperties.OauthConfig oauth,
+      OAuthTokenCache tokenCache) {
+
+    // Try to get from cache first
+    if (tokenCache != null) {
+      return tokenCache.getValidToken()
+          .map(Mono::just)
+          .orElseGet(() -> fetchAndCacheToken(oauth, tokenCache));
+    }
+
+    // No caching, always fetch fresh token
+    return fetchToken(oauth);
+  }
+
+  private Mono<String> fetchAndCacheToken(
+      ClustersProperties.OauthConfig oauth,
+      OAuthTokenCache tokenCache) {
+
+    return fetchTokenResponse(oauth)
+        .doOnNext(response -> {
+          // Cache token with expiration if available
+          if (response.hasExpiresIn()) {
+            tokenCache.storeToken(response.getAccessToken(), response.getExpiresIn());
+          } else {
+            // Default to 1 hour if server doesn't provide expires_in
+            log.warn("OAuth server did not provide expires_in, using default 3600s");
+            tokenCache.storeToken(response.getAccessToken(), 3600L);
+          }
+        })
+        .map(OAuthTokenResponse::getAccessToken);
+  }
+
+  private Mono<String> fetchToken(ClustersProperties.OauthConfig oauth) {
+    return fetchTokenResponse(oauth)
+        .map(OAuthTokenResponse::getAccessToken);
+  }
+
+  private Mono<OAuthTokenResponse> fetchTokenResponse(
+      ClustersProperties.OauthConfig oauth) {
+    log.debug("OAuth filter: Fetching access token from {}", oauth.getTokenUrl());
+
+    WebClient tokenClient = WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
+        .build();
+
+    return tokenClient
+        .post()
+        .uri(oauth.getTokenUrl())
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .bodyValue("grant_type=client_credentials&client_id=" + oauth.getClientId()
+            + "&client_secret=" + oauth.getClientSecret())
+        .retrieve()
+        .bodyToMono(OAuthTokenResponse.class)
+        .doOnNext(response -> log.debug("OAuth token response received: accessToken present: {}, expiresIn: {}s",
+            response.hasAccessToken(), response.getExpiresIn()))
+        .flatMap(response -> {
+          if (!response.hasAccessToken()) {
+            log.error("OAuth token response does not contain 'access_token' field");
+            return Mono.error(
+                new RuntimeException("OAuth token response does not contain 'access_token' field"));
+          }
+
+          log.debug("OAuth access token obtained, expires in {}s",
+              response.getExpiresIn() != null ? response.getExpiresIn() : "unknown");
+
+          return Mono.just(response);
+        })
+        .onErrorResume(error -> {
+          log.error("Failed to obtain OAuth access token from {}: {}", oauth.getTokenUrl(),
+              error.getMessage(), error);
+          return Mono.error(
+              new RuntimeException("Failed to obtain OAuth access token from " + oauth.getTokenUrl()
+                  + ": " + error.getMessage(), error));
+        });
   }
 
   public WebClientConfigurator configureBufferSize(DataSize maxBuffSize) {
