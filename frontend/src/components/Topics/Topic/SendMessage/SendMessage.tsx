@@ -242,7 +242,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
                         options={keySubjectOptions}
                         value={value}
                         placeholder="Search subjects..."
-                        inputSize="M"
+                        inputSize="L"
                       />
                     )}
                   />
@@ -284,7 +284,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
                         options={valueSubjectOptions}
                         value={value}
                         placeholder="Search subjects..."
-                        inputSize="M"
+                        inputSize="L"
                       />
                     )}
                   />
