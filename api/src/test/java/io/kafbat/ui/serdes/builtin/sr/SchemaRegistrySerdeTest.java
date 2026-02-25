@@ -408,7 +408,8 @@ class SchemaRegistrySerdeTest {
           "%s-value",
           true,
           new FormatterProperties(true, false),
-          1024
+          1024,
+          0
       );
 
       AvroSchema schema = new AvroSchema(
@@ -453,7 +454,8 @@ class SchemaRegistrySerdeTest {
           "%s-value",
           true,
           new FormatterProperties(false, true),
-          1024
+          1024,
+          0
       );
 
       AvroSchema schema = new AvroSchema(
@@ -550,7 +552,8 @@ class SchemaRegistrySerdeTest {
           "%s-value",
           true,
           new FormatterProperties(true, true),
-          1024
+          1024,
+          0
       );
 
       AvroSchema schema = new AvroSchema(
@@ -778,7 +781,7 @@ class SchemaRegistrySerdeTest {
       String explicitSubject = "com.example.CustomRecord";
       registryClient.register(explicitSubject, AVRO_RECORD_SCHEMA);
 
-      var serializer = serde.serializerWithSubject(topic, Serde.Target.VALUE, explicitSubject);
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
       String jsonInput = "{\"field1\": \"test value\"}";
       byte[] result = serializer.serialize(jsonInput);
 
@@ -794,7 +797,7 @@ class SchemaRegistrySerdeTest {
       String explicitSubject = "events-UserCreated";
       registryClient.register(explicitSubject, PROTOBUF_SCHEMA);
 
-      var serializer = serde.serializerWithSubject(topic, Serde.Target.VALUE, explicitSubject);
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
       String jsonInput = "{\"field1\": \"test value\"}";
       byte[] result = serializer.serialize(jsonInput);
 
@@ -810,7 +813,7 @@ class SchemaRegistrySerdeTest {
       String explicitSubject = "io.kafbat.TestJson";
       registryClient.register(explicitSubject, JSON_SCHEMA);
 
-      var serializer = serde.serializerWithSubject(topic, Serde.Target.VALUE, explicitSubject);
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
       String jsonInput = "{\"field1\": \"test value\"}";
       byte[] result = serializer.serialize(jsonInput);
 
@@ -825,7 +828,7 @@ class SchemaRegistrySerdeTest {
       String nonexistentSubject = "nonexistent.Subject";
 
       assertThat(org.assertj.core.api.Assertions.catchThrowable(
-          () -> serde.serializerWithSubject(topic, Serde.Target.VALUE, nonexistentSubject)
+          () -> serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", nonexistentSubject))
       )).isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
           .hasMessageContaining(nonexistentSubject);
     }

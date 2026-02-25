@@ -58,7 +58,9 @@ const SendMessage: React.FC<SendMessageProps> = ({
     const srSerde = serdes.key?.find(
       (s) => s.name === SCHEMA_REGISTRY_SERDE_NAME
     );
-    return (srSerde?.subjects || []).map((subject) => ({
+    const subjects =
+      (srSerde?.additionalProperties?.subjects as string[]) || [];
+    return subjects.map((subject) => ({
       label: subject,
       value: subject,
     }));
@@ -68,7 +70,9 @@ const SendMessage: React.FC<SendMessageProps> = ({
     const srSerde = serdes.value?.find(
       (s) => s.name === SCHEMA_REGISTRY_SERDE_NAME
     );
-    return (srSerde?.subjects || []).map((subject) => ({
+    const subjects =
+      (srSerde?.additionalProperties?.subjects as string[]) || [];
+    return subjects.map((subject) => ({
       label: subject,
       value: subject,
     }));
@@ -77,8 +81,8 @@ const SendMessage: React.FC<SendMessageProps> = ({
   const formDefaults = React.useMemo(
     () => ({
       ...defaultValues,
-      keySerde: urlKeySerde || defaultValues.keySerde,
-      valueSerde: urlValueSerde || defaultValues.valueSerde,
+      ...(urlKeySerde ? { keySerde: urlKeySerde } : {}),
+      ...(urlValueSerde ? { valueSerde: urlValueSerde } : {}),
       partition: Number(partitionOptions[0]?.value || 0),
       keepContents: false,
       ...messageData,
@@ -95,16 +99,6 @@ const SendMessage: React.FC<SendMessageProps> = ({
     mode: 'onChange',
     defaultValues: formDefaults,
   });
-
-  // Update serde values when URL params change
-  React.useEffect(() => {
-    if (urlKeySerde) {
-      setValue('keySerde', urlKeySerde);
-    }
-    if (urlValueSerde) {
-      setValue('valueSerde', urlValueSerde);
-    }
-  }, [urlKeySerde, urlValueSerde, setValue]);
 
   const keySerde = useWatch({ control, name: 'keySerde' });
   const valueSerde = useWatch({ control, name: 'valueSerde' });
@@ -171,8 +165,10 @@ const SendMessage: React.FC<SendMessageProps> = ({
         partition: partition || 0,
         keySerde: formKeySerde,
         valueSerde: formValueSerde,
-        keySubject: keySubject || undefined,
-        valueSubject: valueSubject || undefined,
+        keySerdeProperties: keySubject ? { subject: keySubject } : undefined,
+        valueSerdeProperties: valueSubject
+          ? { subject: valueSubject }
+          : undefined,
       });
       if (!keepContents) {
         setValue('key', defaultValues.key || '');

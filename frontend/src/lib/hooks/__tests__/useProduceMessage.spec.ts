@@ -78,8 +78,16 @@ describe('useProduceMessage', () => {
       ...mockMessage,
       valueSerde: 'SchemaRegistry',
       keySerde: 'SchemaRegistry',
-      valueDeserializeProperties: { subjects: ['test-topic-value'], type: 'AVRO', id: 1 },
-      keyDeserializeProperties: { subjects: ['test-topic-key'], type: 'AVRO', id: 2 },
+      valueDeserializeProperties: {
+        subjects: ['test-topic-value'],
+        type: 'AVRO',
+        id: 1,
+      },
+      keyDeserializeProperties: {
+        subjects: ['test-topic-key'],
+        type: 'AVRO',
+        id: 2,
+      },
     };
 
     act(() => {

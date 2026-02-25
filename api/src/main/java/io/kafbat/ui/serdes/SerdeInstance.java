@@ -3,6 +3,8 @@ package io.kafbat.ui.serdes;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
 import java.io.Closeable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -19,7 +21,6 @@ public class SerdeInstance implements Closeable {
   @Getter
   final String name;
 
-  @Getter
   final Serde serde;
 
   @Nullable
@@ -82,18 +83,38 @@ public class SerdeInstance implements Closeable {
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     return wrapWithClassloader(() -> {
       var serializer = serde.serializer(topic, type);
-      return new Serde.Serializer() {
-        @Override
-        public byte[] serialize(String input) {
-          return wrapWithClassloader(() -> serializer.serialize(input));
-        }
-
-        @Override
-        public byte[] serialize(String input, Headers headers) {
-          return wrapWithClassloader(() -> serializer.serialize(input, headers));
-        }
-      };
+      return wrapSerializer(serializer);
     });
+  }
+
+  public Serde.Serializer serializer(String topic, Serde.Target type, Map<String, Object> properties) {
+    return wrapWithClassloader(() -> {
+      var serializer = serde.serializer(topic, type, properties);
+      return wrapSerializer(serializer);
+    });
+  }
+
+  public List<String> getSubjects(String topic, Serde.Target type) {
+    try {
+      return wrapWithClassloader(() -> serde.getSubjects(topic, type));
+    } catch (Exception e) {
+      log.warn("Error getting subjects for '{}'({}) with serde '{}'", topic, type, name, e);
+      return List.of();
+    }
+  }
+
+  private Serde.Serializer wrapSerializer(Serde.Serializer serializer) {
+    return new Serde.Serializer() {
+      @Override
+      public byte[] serialize(String input) {
+        return wrapWithClassloader(() -> serializer.serialize(input));
+      }
+
+      @Override
+      public byte[] serialize(String input, Headers headers) {
+        return wrapWithClassloader(() -> serializer.serialize(input, headers));
+      }
+    };
   }
 
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {

@@ -87,7 +87,7 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      subjects: ['user-key', 'order-key'],
+      additionalProperties: { subjects: ['user-key', 'order-key'] },
     },
   ],
   value: [
@@ -96,7 +96,7 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      subjects: ['user-value', 'order-value'],
+      additionalProperties: { subjects: ['user-value', 'order-value'] },
     },
   ],
 };
@@ -374,27 +374,26 @@ describe('SendMessage', () => {
       );
     });
 
-    it('should prefer URL params over messageData due to useEffect', async () => {
-      // Note: URL params take precedence because the useEffect runs after mount
-      // and explicitly sets the serde values from URL params
+    it('should prefer messageData over URL params', async () => {
+      // messageData (reproducing a message) should always win over URL params
       const messageData: Partial<MessageFormData> = {
         keySerde: 'Int32',
         valueSerde: 'Int64',
       };
       await renderComponent(messageData, 'keySerde=String&valueSerde=String');
 
-      // URL params should win over messageData
+      // messageData should win over URL params
       expect(
         screen.getByRole('listbox', {
           name: 'Key Serde',
         })
-      ).toHaveTextContent('String');
+      ).toHaveTextContent('Int32');
 
       expect(
         screen.getByRole('listbox', {
           name: 'Value Serde',
         })
-      ).toHaveTextContent('String');
+      ).toHaveTextContent('Int64');
     });
   });
 
@@ -445,7 +444,7 @@ describe('SendMessage', () => {
       expect(screen.queryByText('Value Subject')).not.toBeInTheDocument();
     });
 
-    it('should submit with keySubject when SchemaRegistry key is selected', async () => {
+    it('should submit with keySerdeProperties when SchemaRegistry key is selected', async () => {
       await renderComponent();
 
       // Select SchemaRegistry for key
@@ -470,12 +469,12 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           keySerde: 'SchemaRegistry',
-          keySubject: 'user-key',
+          keySerdeProperties: { subject: 'user-key' },
         })
       );
     });
 
-    it('should submit with valueSubject when SchemaRegistry value is selected', async () => {
+    it('should submit with valueSerdeProperties when SchemaRegistry value is selected', async () => {
       await renderComponent();
 
       // Select SchemaRegistry for value
@@ -505,7 +504,7 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           valueSerde: 'SchemaRegistry',
-          valueSubject: 'user-value',
+          valueSerdeProperties: { subject: 'user-value' },
         })
       );
     });

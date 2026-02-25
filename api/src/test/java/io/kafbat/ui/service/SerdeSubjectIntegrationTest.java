@@ -6,8 +6,10 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.kafbat.ui.AbstractIntegrationTest;
+import io.kafbat.ui.model.SerdeDescriptionDTO;
 import io.kafbat.ui.model.SerdeUsageDTO;
 import io.kafbat.ui.model.TopicSerdeSuggestionDTO;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -102,6 +104,19 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
         .getResponseBody();
   }
 
+  @SuppressWarnings("unchecked")
+  private static List<String> getSubjects(SerdeDescriptionDTO dto) {
+    var props = dto.getAdditionalProperties();
+    if (props == null) {
+      return Collections.emptyList();
+    }
+    Object subjects = props.get("subjects");
+    if (subjects instanceof List<?> list) {
+      return (List<String>) list;
+    }
+    return Collections.emptyList();
+  }
+
   @Nested
   class TopicNameStrategyTests {
 
@@ -122,10 +137,10 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(keySrSerde).isPresent();
-      assertThat(keySrSerde.get().getSubjects()).contains(topicName + "-key");
+      assertThat(getSubjects(keySrSerde.get())).contains(topicName + "-key");
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(topicName + "-value");
+      assertThat(getSubjects(valueSrSerde.get())).contains(topicName + "-value");
     }
 
     @Test
@@ -142,7 +157,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(topicName + "-value");
+      assertThat(getSubjects(valueSrSerde.get())).contains(topicName + "-value");
     }
 
     @Test
@@ -158,7 +173,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(topicName + "-value");
+      assertThat(getSubjects(valueSrSerde.get())).contains(topicName + "-value");
     }
   }
 
@@ -180,7 +195,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
 
     @Test
@@ -197,7 +212,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
 
     @Test
@@ -214,7 +229,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
   }
 
@@ -236,7 +251,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
 
     @Test
@@ -253,7 +268,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
 
     @Test
@@ -270,7 +285,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects()).contains(subject);
+      assertThat(getSubjects(valueSrSerde.get())).contains(subject);
     }
   }
 
@@ -297,7 +312,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .findFirst();
 
       assertThat(valueSrSerde).isPresent();
-      List<String> subjects = valueSrSerde.get().getSubjects();
+      List<String> subjects = getSubjects(valueSrSerde.get());
 
       assertThat(subjects).contains(topicNameSubject);
       assertThat(subjects).contains(topicRecordNameSubject);
@@ -323,7 +338,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .filter(s -> "SchemaRegistry".equals(s.getName()))
           .findFirst();
       assertThat(keySrSerde).isPresent();
-      assertThat(keySrSerde.get().getSubjects())
+      assertThat(getSubjects(keySrSerde.get()))
           .contains(keySubject)
           .doesNotContain(valueSubject);
 
@@ -332,7 +347,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
           .filter(s -> "SchemaRegistry".equals(s.getName()))
           .findFirst();
       assertThat(valueSrSerde).isPresent();
-      assertThat(valueSrSerde.get().getSubjects())
+      assertThat(getSubjects(valueSrSerde.get()))
           .contains(valueSubject)
           .doesNotContain(keySubject);
     }

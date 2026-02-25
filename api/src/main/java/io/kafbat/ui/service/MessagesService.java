@@ -173,8 +173,8 @@ public class MessagesService {
             topicDescription.name(),
             msg.getKeySerde().get(),
             msg.getValueSerde().get(),
-            msg.getKeySubject().orElse(null),
-            msg.getValueSubject().orElse(null)
+            msg.getKeySerdeProperties(),
+            msg.getValueSerdeProperties()
         );
 
     try (KafkaProducer<byte[], byte[]> producer = createProducer(cluster, Map.of())) {

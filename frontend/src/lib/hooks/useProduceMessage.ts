@@ -43,7 +43,8 @@ export const useProduceMessage = (): UseProduceMessageReturn => {
     }
 
     if (message.valueDeserializeProperties?.subjects?.[0]) {
-      data.valueSubject = message.valueDeserializeProperties.subjects[0] as string;
+      data.valueSubject = message.valueDeserializeProperties
+        .subjects[0] as string;
     }
 
     setMessageData(data);

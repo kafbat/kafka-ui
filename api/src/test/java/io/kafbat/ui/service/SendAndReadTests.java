@@ -514,7 +514,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("test-key");
@@ -535,7 +535,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("test-key");
@@ -556,7 +556,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("proto-key");
@@ -577,7 +577,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("proto-key");
@@ -598,7 +598,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("json-key");
@@ -619,7 +619,7 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 .keySerde(StringSerde.NAME)
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("json-key");
@@ -642,10 +642,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
             new CreateTopicMessageDTO()
                 .key(RECORD_JSON)
                 .keySerde(SchemaRegistrySerde.NAME)
-                .keySubject(keySubject)
+                .keySerdeProperties(java.util.Map.of("subject", keySubject))
                 .value(RECORD_JSON)
                 .valueSerde(SchemaRegistrySerde.NAME)
-                .valueSubject(valueSubject)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), RECORD_JSON);
