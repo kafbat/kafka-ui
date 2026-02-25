@@ -37,11 +37,20 @@ describe('Connectors List Page', () => {
   beforeEach(() => {
     (useConnectors as jest.Mock).mockImplementation(() => ({
       isLoading: false,
+      isRefetching: false,
+      isSuccess: true,
+      error: null,
       data: [],
+      refetch: jest.fn(),
     }));
 
     (useConnects as jest.Mock).mockImplementation(() => ({
+      isLoading: false,
+      isRefetching: false,
+      isSuccess: true,
+      error: null,
       data: connects,
+      refetch: jest.fn(),
     }));
   });
 

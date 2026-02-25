@@ -127,7 +127,8 @@ class SchemaRegistrySerdeTest {
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
     assertThat(result.getAdditionalProperties())
         .contains(Map.entry("type", "AVRO"))
-        .contains(Map.entry("schemaId", schemaId));
+        .contains(Map.entry("id", schemaId))
+        .contains(Map.entry("subjects", List.of(topic + "-value")));
   }
 
   @Nested
@@ -343,12 +344,20 @@ class SchemaRegistrySerdeTest {
                    "type": { "type": "long", "logicalType": "timestamp-micros" }
                  },
                  {
+                   "name": "lt_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                 },
+                 {
                    "name": "lt_local_timestamp_millis",
                    "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                  },
                  {
                    "name": "lt_local_timestamp_micros",
                    "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                 },
+                 {
+                   "name": "lt_local_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                  }
                ]
             }"""
@@ -363,8 +372,10 @@ class SchemaRegistrySerdeTest {
           "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
           "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
           "lt_timestamp_micros": "2007-12-03T10:15:30.123456Z",
+          "lt_timestamp_nanos": "2007-12-03T10:15:30.123456789Z",
           "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456"
+          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456",
+          "lt_local_timestamp_nanos": "2017-12-03T10:15:30.123456789"
         }
         """;
 
@@ -394,7 +405,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(true, false)
+          new FormatterProperties(true, false),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
@@ -438,7 +450,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(false, true)
+          new FormatterProperties(false, true),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
@@ -534,7 +547,8 @@ class SchemaRegistrySerdeTest {
           "%s-key",
           "%s-value",
           true,
-          new FormatterProperties(true, true)
+          new FormatterProperties(true, true),
+          1024
       );
 
       AvroSchema schema = new AvroSchema(
