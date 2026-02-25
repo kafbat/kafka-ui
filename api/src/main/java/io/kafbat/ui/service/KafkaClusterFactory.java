@@ -232,14 +232,34 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
-    var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
+    var basicAuth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
-    WebClient webClient = new WebClientConfigurator()
+    var oauth = Optional.ofNullable(clusterProperties.getSchemaRegistryOAuth())
+        .orElse(new ClustersProperties.OauthConfig());
+
+    boolean basicAuthConfigured = basicAuth.getUsername() != null || basicAuth.getPassword() != null;
+    boolean oauthConfigured = oauth.getTokenUrl() != null
+        || oauth.getClientId() != null || oauth.getClientSecret() != null;
+
+    if (basicAuthConfigured && oauthConfigured) {
+      throw new IllegalArgumentException(
+          "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
+              + "Please configure only one authentication method."
+      );
+    }
+
+    WebClientConfigurator configurator = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
-        .configureBasicAuth(auth.getUsername(), auth.getPassword())
-        .configureBufferSize(webClientMaxBuffSize)
         .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
-        .build();
+        .configureBufferSize(webClientMaxBuffSize);
+
+    if (basicAuthConfigured) {
+      configurator.configureBasicAuth(basicAuth.getUsername(), basicAuth.getPassword());
+    } else if (oauthConfigured) {
+      configurator.configureOAuth(oauth);
+    }
+
+    WebClient webClient = configurator.build();
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
         url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),
