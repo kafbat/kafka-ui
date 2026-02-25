@@ -11,7 +11,7 @@ apache-commons-pool2 = '2.13.0'
 apache-datasketches = '3.1.0'
 apache-commons-compress = '1.28.0'
 
-assertj = '3.25.3'
+assertj = '3.27.7'
 avro = '1.12.1'
 byte-buddy = '1.18.1'
 confluent = '7.9.5'
