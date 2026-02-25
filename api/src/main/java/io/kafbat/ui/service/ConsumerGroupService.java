@@ -8,6 +8,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
 import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
@@ -84,10 +85,12 @@ public class ConsumerGroupService {
       @Nullable String search,
       Boolean fts,
       ConsumerGroupOrderingDTO orderBy,
-      SortOrderDTO sortOrderDto) {
+      SortOrderDTO sortOrderDto,
+      List<ConsumerGroupStateDTO> states) {
     return adminClientService.get(cluster).flatMap(ac ->
         ac.listConsumerGroups()
             .map(listing -> filterGroups(listing, search, fts))
+            .map(listing -> filterByState(listing, states))
             .flatMapIterable(lst -> lst)
             .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
             .collectList()
@@ -100,6 +103,30 @@ public class ConsumerGroupService {
                     )
             )
     );
+  }
+
+  private Collection<ConsumerGroupListing> filterByState(Collection<ConsumerGroupListing> groups,
+                                                         List<ConsumerGroupStateDTO> states) {
+    if (states.isEmpty()) {
+      return groups;
+    }
+    Set<ConsumerGroupState> kafkaStates = states.stream()
+        .map(this::mapToKafkaState)
+        .collect(Collectors.toSet());
+    return groups.stream()
+        .filter(cg -> kafkaStates.contains(cg.state().orElse(ConsumerGroupState.UNKNOWN)))
+        .toList();
+  }
+
+  private ConsumerGroupState mapToKafkaState(ConsumerGroupStateDTO stateDto) {
+    return switch (stateDto) {
+      case UNKNOWN -> ConsumerGroupState.UNKNOWN;
+      case PREPARING_REBALANCE -> ConsumerGroupState.PREPARING_REBALANCE;
+      case COMPLETING_REBALANCE -> ConsumerGroupState.COMPLETING_REBALANCE;
+      case STABLE -> ConsumerGroupState.STABLE;
+      case DEAD -> ConsumerGroupState.DEAD;
+      case EMPTY -> ConsumerGroupState.EMPTY;
+    };
   }
 
   public Mono<List<InternalTopicConsumerGroup>> getConsumerGroupsForTopic(KafkaCluster cluster,
