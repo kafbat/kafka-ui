@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -28,6 +29,7 @@ import org.springframework.util.unit.DataSize;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+@Slf4j
 public class WebClientConfigurator {
 
   private final WebClient.Builder builder = WebClient.builder();
@@ -123,6 +125,53 @@ public class WebClientConfigurator {
       throw new ValidationException("You specified username but did not specify password");
     } else if (password != null) {
       throw new ValidationException("You specified password but did not specify username");
+    }
+    return this;
+  }
+
+  public WebClientConfigurator configureOAuth(@Nullable ClustersProperties.SchemaRegistryOauth oauth) {
+    if (oauth != null && oauth.getTokenUrl() != null
+        && oauth.getClientId() != null && oauth.getClientSecret() != null) {
+      log.info("Configuring OAuth for Schema Registry with token URL: {}", oauth.getTokenUrl());
+      // Configure OAuth2 client credentials flow
+      builder.filter((request, next) -> {
+        log.debug("OAuth filter: Fetching access token from {}", oauth.getTokenUrl());
+        // Build token client at request time to ensure all httpClient configurations are applied
+        WebClient tokenClient = WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .build();
+
+        return tokenClient
+            .post()
+            .uri(oauth.getTokenUrl())
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .bodyValue("grant_type=client_credentials&client_id=" + oauth.getClientId()
+                + "&client_secret=" + oauth.getClientSecret())
+            .retrieve()
+            .bodyToMono(java.util.Map.class)
+            .doOnNext(response -> log.debug("OAuth token response received: {}", response.keySet()))
+            .flatMap(response -> {
+              String accessToken = (String) response.get("access_token");
+              if (accessToken == null) {
+                log.error("OAuth token response does not contain 'access_token' field. Response keys: {}",
+                    response.keySet());
+                return reactor.core.publisher.Mono.error(
+                    new RuntimeException("OAuth token response does not contain 'access_token' field"));
+              }
+              log.debug("OAuth access token obtained, adding Bearer token to request");
+              var modifiedRequest = org.springframework.web.reactive.function.client.ClientRequest.from(request)
+                  .headers(headers -> headers.setBearerAuth(accessToken))
+                  .build();
+              return next.exchange(modifiedRequest);
+            })
+            .onErrorResume(error -> {
+              log.error("Failed to obtain OAuth access token from {}: {}", oauth.getTokenUrl(),
+                  error.getMessage(), error);
+              return reactor.core.publisher.Mono.error(
+                  new RuntimeException("Failed to obtain OAuth access token from " + oauth.getTokenUrl()
+                      + ": " + error.getMessage(), error));
+            });
+      });
     }
     return this;
   }

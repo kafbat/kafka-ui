@@ -153,6 +153,11 @@ model ApplicationConfig {
           username?: string;
           password?: string;
         };
+        schemaRegistryOauth?: {
+          tokenUrl?: string;
+          clientId?: string;
+          clientSecret?: string;
+        };
         schemaRegistrySsl?: {
           keystoreLocation?: string;
           keystorePassword?: string;
