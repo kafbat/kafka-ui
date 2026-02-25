@@ -36,19 +36,27 @@ const ListPage: React.FC = () => {
     if (!searchParams.has('perPage')) {
       searchParams.set('perPage', String(PER_PAGE));
     }
-    if (
-      !!localStorage.getItem('hideInternalTopics') &&
-      !searchParams.has('hideInternal')
-    ) {
-      searchParams.set('hideInternal', 'true');
+    // If URL doesn't specify it, derive from localStorage (default = true when missing)
+    if (!searchParams.has('hideInternal')) {
+      const stored = localStorage.getItem('hideInternalTopics');
+      const shouldHide = stored === null ? true : stored === 'true';
+      searchParams.set('hideInternal', String(shouldHide));
+      // persist the default so it sticks across pages
+      if (stored === null) localStorage.setItem('hideInternalTopics', 'true');
+    } else {
+      // sync localStorage if URL has it set
+      const raw = searchParams.get('hideInternal');
+      const norm = raw === 'true' || raw === 'false' ? raw : 'true'; // default to true if malformed
+      localStorage.setItem('hideInternalTopics', norm);
+      if (norm !== raw) searchParams.set('hideInternal', norm); // sync URL if malformed
     }
     setSearchParams(searchParams);
   }, []);
 
   const handleSwitch = () => {
-    if (searchParams.has('hideInternal')) {
-      localStorage.removeItem('hideInternalTopics');
-      searchParams.delete('hideInternal');
+    if (searchParams.get('hideInternal') === 'true') {
+      localStorage.setItem('hideInternalTopics', 'false');
+      searchParams.set('hideInternal', 'false');
     } else {
       localStorage.setItem('hideInternalTopics', 'true');
       searchParams.set('hideInternal', 'true');
@@ -106,7 +114,7 @@ const ListPage: React.FC = () => {
         <label>
           <Switch
             name="ShowInternalTopics"
-            checked={!searchParams.has('hideInternal')}
+            checked={searchParams.get('hideInternal') === 'false'}
             onChange={handleSwitch}
           />
           Show Internal Topics
