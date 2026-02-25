@@ -14,7 +14,7 @@ import io.kafbat.ui.service.BrokerService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

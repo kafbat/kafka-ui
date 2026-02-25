@@ -19,7 +19,7 @@ import io.kafbat.ui.service.KafkaClusterFactory;
 import io.kafbat.ui.util.ApplicationRestarter;
 import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Map;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -88,18 +88,16 @@ public class ApplicationConfigController extends AbstractController implements A
   }
 
   @Override
-  public Mono<ResponseEntity<UploadedFileInfoDTO>> uploadConfigRelatedFile(Flux<Part> fileFlux,
+  public Mono<ResponseEntity<UploadedFileInfoDTO>> uploadConfigRelatedFile(Part file,
                                                                            ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .applicationConfigActions(EDIT)
         .operationName("uploadConfigRelatedFile")
         .build();
     return validateAccess(context)
-        .then(fileFlux.single())
-        .flatMap(file ->
-            dynamicConfigOperations.uploadConfigRelatedFile((FilePart) file)
-                .map(path -> new UploadedFileInfoDTO(path.toString()))
-                .map(ResponseEntity::ok))
+        .then(dynamicConfigOperations.uploadConfigRelatedFile((FilePart) file)
+            .map(path -> new UploadedFileInfoDTO(path.toString()))
+            .map(ResponseEntity::ok))
         .doOnEach(sig -> audit(context, sig));
   }
 

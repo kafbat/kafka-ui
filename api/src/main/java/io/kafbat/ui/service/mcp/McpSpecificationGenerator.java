@@ -56,7 +56,11 @@ public class McpSpecificationGenerator {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
     return new AsyncToolSpecification(
-        new McpSchema.Tool(name, description, operationSchema(method, instance)),
+        McpSchema.Tool.builder()
+            .name(name)
+            .description(description)
+            .inputSchema(operationSchema(method, instance))
+            .build(),
         methodCall(method, instance)
     );
   }

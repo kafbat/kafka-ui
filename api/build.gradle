@@ -17,6 +17,12 @@ configurations.all {
     }
 }
 
+// Use Jackson 2 compatibility bridge instead of Jackson 3 default,
+// since jackson-databind-nullable and OpenAPI generated code require Jackson 2
+configurations.configureEach {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
+}
+
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
@@ -32,7 +38,8 @@ dependencies {
     }
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
-    implementation libs.spring.starter.oauth2.client
+    implementation libs.spring.starter.security.oauth2.client
+    implementation libs.spring.starter.security.oauth2.resource.server
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
@@ -65,6 +72,7 @@ dependencies {
     }
 
     implementation libs.jackson.databind.nullable
+    implementation libs.spring.boot.jackson2
     implementation libs.cel
     implementation libs.caffeine
     antlr libs.antlr
@@ -122,6 +130,7 @@ dependencies {
 
     // Tests
     testImplementation libs.spring.starter.test
+    testImplementation libs.spring.boot.webtestclient
     testImplementation libs.reactor.test
     testImplementation libs.testcontainers
     testImplementation libs.testcontainers.kafka

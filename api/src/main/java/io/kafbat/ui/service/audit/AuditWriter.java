@@ -10,7 +10,7 @@ import java.io.Closeable;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;

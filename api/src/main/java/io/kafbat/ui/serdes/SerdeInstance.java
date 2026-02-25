@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

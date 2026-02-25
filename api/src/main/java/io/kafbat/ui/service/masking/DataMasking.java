@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 

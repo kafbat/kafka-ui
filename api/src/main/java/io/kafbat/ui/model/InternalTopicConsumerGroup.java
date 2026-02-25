@@ -2,7 +2,7 @@ package io.kafbat.ui.model;
 
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;

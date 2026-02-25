@@ -16,7 +16,7 @@ import io.kafbat.ui.model.ResourceTypeDTO;
 import io.kafbat.ui.model.UserPermissionDTO;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;

@@ -46,35 +46,31 @@ class McpSpecificationGeneratorTest {
 
     assertThat(specifications).hasSize(17);
     List<McpSchema.Tool> tools = List.of(
-        new McpSchema.Tool(
-            "recreateTopic",
-            "recreateTopic",
-            new McpSchema.JsonSchema("object", Map.of(
+        McpSchema.Tool.builder()
+            .name("recreateTopic").description("recreateTopic")
+            .inputSchema(new McpSchema.JsonSchema("object", Map.of(
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string")
-            ), List.of("clusterName", "topicName"), false, null, null)
-        ),
-        new McpSchema.Tool(
-            "getTopicConfigs",
-            "getTopicConfigs",
-            new McpSchema.JsonSchema("object", Map.of(
+            ), List.of("clusterName", "topicName"), false, null, null))
+            .build(),
+        McpSchema.Tool.builder()
+            .name("getTopicConfigs").description("getTopicConfigs")
+            .inputSchema(new McpSchema.JsonSchema("object", Map.of(
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string")
-            ), List.of("clusterName", "topicName"), false, null, null)
-        ),
-        new McpSchema.Tool(
-            "cloneTopic",
-            "cloneTopic",
-            new McpSchema.JsonSchema("object", Map.of(
+            ), List.of("clusterName", "topicName"), false, null, null))
+            .build(),
+        McpSchema.Tool.builder()
+            .name("cloneTopic").description("cloneTopic")
+            .inputSchema(new McpSchema.JsonSchema("object", Map.of(
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string"),
                 "newTopicName", Map.of("type", "string")
-            ), List.of("clusterName", "topicName", "newTopicName"), false, null, null)
-        ),
-        new McpSchema.Tool(
-            "getTopics",
-            "getTopics",
-            new McpSchema.JsonSchema("object", Map.of(
+            ), List.of("clusterName", "topicName", "newTopicName"), false, null, null))
+            .build(),
+        McpSchema.Tool.builder()
+            .name("getTopics").description("getTopics")
+            .inputSchema(new McpSchema.JsonSchema("object", Map.of(
                 "clusterName", Map.of("type", "string"),
                 "page", Map.of("type", "integer"),
                 "perPage", Map.of("type", "integer"),
@@ -83,17 +79,16 @@ class McpSpecificationGeneratorTest {
                 "orderBy", SCHEMA_GENERATOR.generateSchema(TopicColumnsToSortDTO.class),
                 "sortOrder", SCHEMA_GENERATOR.generateSchema(SortOrderDTO.class),
                 "fts", Map.of("type", "boolean")
-            ), List.of("clusterName"), false, null, null)
-        ),
-        new McpSchema.Tool(
-            "updateTopic",
-            "updateTopic",
-            new McpSchema.JsonSchema("object", Map.of(
+            ), List.of("clusterName"), false, null, null))
+            .build(),
+        McpSchema.Tool.builder()
+            .name("updateTopic").description("updateTopic")
+            .inputSchema(new McpSchema.JsonSchema("object", Map.of(
                 "clusterName", Map.of("type", "string"),
                 "topicName", Map.of("type", "string"),
                 "topicUpdate", SCHEMA_GENERATOR.generateSchema(TopicUpdateDTO.class)
-            ), List.of("clusterName", "topicName", "topicUpdate"), false, null, null)
-        )
+            ), List.of("clusterName", "topicName", "topicUpdate"), false, null, null))
+            .build()
     );
     assertThat(tools).allMatch(tool ->
         specifications.stream().anyMatch(s -> s.tool().equals(tool))

@@ -1,5 +1,5 @@
 [versions]
-spring-boot = '3.5.9'
+spring-boot = '4.0.3'
 nimbus-jose-jwt = '10.6'
 
 aws-msk-auth = '2.3.0'
@@ -29,10 +29,10 @@ mockito = '5.20.0'
 okhttp3 = '4.12.0'
 wiremock = '3.9.1'
 testcontainers = '1.20.6'
-swagger-integration-jakarta = '2.2.28'
-springdoc = '2.6.0'
+swagger-integration-jakarta = '2.2.41'
+springdoc = '3.0.1'
 jakarta-annotation-api = '2.1.1'
-jackson-databind-nullable = '0.2.8'
+jackson-databind-nullable = '0.2.9'
 antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
@@ -45,7 +45,7 @@ spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
 spring-dependency-management = { id = 'io.spring.dependency-management', version = '1.1.7' }
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.5.3' }
 openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.10" }
-openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
+openapi-generator = { id = 'org.openapi.generator', version = '7.18.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
@@ -61,14 +61,17 @@ spring-starter-security = { module = 'org.springframework.boot:spring-boot-start
 # Temporary overwrite to fix CVE-2025-53864
 nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
 spring-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation', version.ref = 'spring-boot' }
-spring-starter-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-oauth2-client', version.ref = 'spring-boot' }
+spring-starter-security-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-security-oauth2-client', version.ref = 'spring-boot' }
 spring-starter-logging = { module = 'org.springframework.boot:spring-boot-starter-logging', version.ref = 'spring-boot' }
 spring-boot-actuator = { module = 'org.springframework.boot:spring-boot-actuator', version.ref = 'spring-boot' }
 spring-boot-devtools = { module = 'org.springframework.boot:spring-boot-devtools', version.ref = 'spring-boot' }
 spring-boot-configuration-processor = { module = 'org.springframework.boot:spring-boot-configuration-processor', version.ref = 'spring-boot' }
+spring-boot-jackson2 = { module = 'org.springframework.boot:spring-boot-jackson2', version.ref = 'spring-boot' }
+spring-boot-webtestclient = { module = 'org.springframework.boot:spring-boot-webtestclient', version.ref = 'spring-boot' }
 
 spring-security-ldap = { module = 'org.springframework.security:spring-security-ldap' }
 spring-security-oauth2-resource-server = { module = 'org.springframework.security:spring-security-oauth2-resource-server'}
+spring-starter-security-oauth2-resource-server = { module = 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server', version.ref = 'spring-boot' }
 
 swagger-integration-jakarta = { module = 'io.swagger.core.v3:swagger-integration-jakarta', version.ref = 'swagger-integration-jakarta' }
 lombok = { module = 'org.projectlombok:lombok', version.ref = 'lombok' }
@@ -128,7 +131,7 @@ bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1
 google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
 google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', version = '1.39.0' }
 
-modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.10.0'}
+modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version = '0.18.1'}
 victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-generator', version = '4.38.0'}
 
 prometheus-metrics-core = {module = 'io.prometheus:prometheus-metrics-core', version.ref = 'prometheus'}

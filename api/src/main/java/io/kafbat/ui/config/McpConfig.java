@@ -1,6 +1,5 @@
 package io.kafbat.ui.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.service.mcp.McpSpecificationGenerator;
 import io.kafbat.ui.service.mcp.McpTool;
 import io.modelcontextprotocol.server.McpAsyncServer;
@@ -26,8 +25,11 @@ public class McpConfig {
 
   // SSE transport
   @Bean
-  public WebFluxSseServerTransportProvider sseServerTransport(ObjectMapper mapper) {
-    return new WebFluxSseServerTransportProvider(mapper, "/mcp/message", "/mcp/sse");
+  public WebFluxSseServerTransportProvider sseServerTransport() {
+    return WebFluxSseServerTransportProvider.builder()
+        .messageEndpoint("/mcp/message")
+        .sseEndpoint("/mcp/sse")
+        .build();
   }
 
   // Router function for SSE transport used by Spring WebFlux to start an HTTP

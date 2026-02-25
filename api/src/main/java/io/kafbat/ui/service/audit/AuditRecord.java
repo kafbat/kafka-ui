@@ -9,7 +9,7 @@ import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.springframework.security.access.AccessDeniedException;
 
