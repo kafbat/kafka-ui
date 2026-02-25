@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JsonEventRecord",
+  "type": "object",
+  "properties": {
+    "eventId": { "type": "string" },
+    "eventType": { "type": "string" },
+    "timestamp": { "type": "integer" }
+  },
+  "required": ["eventId", "eventType", "timestamp"]
+}

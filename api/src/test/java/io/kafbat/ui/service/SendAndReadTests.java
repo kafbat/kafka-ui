@@ -460,6 +460,201 @@ class SendAndReadTests extends AbstractIntegrationTest {
         });
   }
 
+  // Explicit subject tests for TopicRecordNameStrategy and RecordNameStrategy
+  private static final AvroSchema AVRO_RECORD_SCHEMA = new AvroSchema(
+      """
+          {
+            "type": "record",
+            "name": "TestRecord",
+            "fields": [
+              {"name": "field1", "type": "string"},
+              {"name": "field2", "type": "int"}
+            ]
+          }
+          """
+  );
+
+  private static final ProtobufSchema EXPLICIT_PROTOBUF_SCHEMA = new ProtobufSchema(
+      """
+          syntax = "proto3";
+          package io.kafbat.test;
+
+          message ExplicitTestRecord {
+            string field1 = 1;
+            int32 field2 = 2;
+          }
+          """
+  );
+
+  private static final JsonSchema EXPLICIT_JSON_SCHEMA = new JsonSchema(
+      """
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "ExplicitTestRecord",
+            "type": "object",
+            "properties": {
+              "field1": { "type": "string" },
+              "field2": { "type": "integer" }
+            }
+          }
+          """
+  );
+
+  private static final String RECORD_JSON = "{ \"field1\": \"test\", \"field2\": 42 }";
+
+  @Test
+  void sendAvroMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "com.example.TopicRecordNameSubject";
+    new SendAndReadSpec()
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("test-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("test-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
+        });
+  }
+
+  @Test
+  void sendAvroMessageWithRecordNameStrategySubject() {
+    String valueSubject = "io.kafbat.test.UserRecord";
+    new SendAndReadSpec()
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("test-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("test-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
+        });
+  }
+
+  @Test
+  void sendProtobufMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "events-UserCreated";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_PROTOBUF_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("proto-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("proto-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
+        });
+  }
+
+  @Test
+  void sendProtobufMessageWithRecordNameStrategySubject() {
+    String valueSubject = "io.kafbat.test.ExplicitTestRecord";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_PROTOBUF_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("proto-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("proto-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
+        });
+  }
+
+  @Test
+  void sendJsonSchemaMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "orders-OrderCreated";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_JSON_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("json-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("json-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
+        });
+  }
+
+  @Test
+  void sendJsonSchemaMessageWithRecordNameStrategySubject() {
+    String valueSubject = "com.example.JsonRecord";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_JSON_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("json-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("json-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
+        });
+  }
+
+  @Test
+  void sendMessageWithDifferentStrategiesForKeyAndValue() {
+    // Key uses RecordNameStrategy, Value uses TopicRecordNameStrategy
+    String keySubject = "com.example.KeyRecord";
+    String valueSubject = "events-ValueRecord";
+    new SendAndReadSpec()
+        .withKeySchema(AVRO_RECORD_SCHEMA)
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitKeySubject(keySubject)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key(RECORD_JSON)
+                .keySerde(SchemaRegistrySerde.NAME)
+                .keySerdeProperties(java.util.Map.of("subject", keySubject))
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertJsonEqual(polled.getKey(), RECORD_JSON);
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("AVRO");
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
+        });
+  }
+
   @SneakyThrows
   private void assertJsonEqual(String actual, String expected) {
     var mapper = new ObjectMapper();
@@ -470,6 +665,8 @@ class SendAndReadTests extends AbstractIntegrationTest {
     CreateTopicMessageDTO msgToSend;
     ParsedSchema keySchema;
     ParsedSchema valueSchema;
+    String explicitKeySubject;
+    String explicitValueSubject;
 
     public SendAndReadSpec withMsgToSend(CreateTopicMessageDTO msg) {
       this.msgToSend = msg;
@@ -486,16 +683,28 @@ class SendAndReadTests extends AbstractIntegrationTest {
       return this;
     }
 
+    public SendAndReadSpec withExplicitKeySubject(String subject) {
+      this.explicitKeySubject = subject;
+      return this;
+    }
+
+    public SendAndReadSpec withExplicitValueSubject(String subject) {
+      this.explicitValueSubject = subject;
+      return this;
+    }
+
     @SneakyThrows
     private String createTopicAndCreateSchemas() {
       Objects.requireNonNull(msgToSend);
       String topic = UUID.randomUUID().toString();
       createTopic(new NewTopic(topic, 1, (short) 1));
       if (keySchema != null) {
-        schemaRegistry.schemaRegistryClient().register(topic + "-key", keySchema);
+        String keySubject = explicitKeySubject != null ? explicitKeySubject : topic + "-key";
+        schemaRegistry.schemaRegistryClient().register(keySubject, keySchema);
       }
       if (valueSchema != null) {
-        schemaRegistry.schemaRegistryClient().register(topic + "-value", valueSchema);
+        String valueSubject = explicitValueSubject != null ? explicitValueSubject : topic + "-value";
+        schemaRegistry.schemaRegistryClient().register(valueSubject, valueSchema);
       }
       return topic;
     }

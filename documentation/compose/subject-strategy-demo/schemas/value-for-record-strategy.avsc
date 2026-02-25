@@ -1,0 +1,10 @@
+{
+  "namespace": "io.kafbat.test",
+  "type": "record",
+  "name": "UserRecord",
+  "fields": [
+    {"name": "userId", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "email", "type": ["null", "string"], "default": null}
+  ]
+}

@@ -225,6 +225,8 @@ model CreateTopicMessage {
   value?: string | null;
   keySerde?: string | null;
   valueSerde?: string | null;
+  keySerdeProperties?: Record<unknown>;
+  valueSerdeProperties?: Record<unknown>;
 }
 
 enum MessageFormat {
