@@ -33,6 +33,12 @@ abstract class AbstractAuthSecurityConfig {
       "/actuator/info",
       "/actuator/prometheus",
 
+      /* SWAGGER UI */
+      "/swagger-ui/**",
+      "/v3/api-docs",
+      "/v3/api-docs/**",
+      "/webjars/**",
+
       /* AUTH */
       "/login",
       "/logout",
