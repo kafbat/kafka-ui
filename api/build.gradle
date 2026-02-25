@@ -36,6 +36,9 @@ dependencies {
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
+    // For Swagger UI Webflux
+    implementation libs.springdoc.openapi.webflux
+
     compileOnly libs.spring.boot.devtools
 
     implementation libs.spring.security.ldap
@@ -187,6 +190,28 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
+tasks.register('copyOpenApiSpecForSwagger', Copy) {
+    dependsOn ':contract-typespec:build'
+
+    if (useTypeSpec) {
+        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
+    } else {
+        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
+    }
+    outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
+
+    from useTypeSpec ?
+        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
+        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    into "src/main/resources/static/openapi/"
+    rename { "kafbat-ui-api.yaml" }
+}
+
+
+tasks.named("processResources") {
+    dependsOn("copyOpenApiSpecForSwagger")
+}
+
 if (buildDockerImages) {
     tasks.build.finalizedBy buildDockerImageTask
 }
@@ -196,3 +221,4 @@ if (includeFrontend) {
         dependsOn(":frontend:buildFrontend")
     }
 }
+
