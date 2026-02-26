@@ -131,6 +131,7 @@ dependencies {
     testImplementation libs.mockito.jupiter
     testImplementation libs.bytebuddy
     testImplementation libs.assertj
+    testImplementation libs.awaitility
     testImplementation libs.jsonschemavalidator
     testImplementation(libs.kafka.clients) { artifact { classifier = "test" } }
     testImplementation libs.bouncycastle.bcpkix

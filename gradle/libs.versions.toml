@@ -36,6 +36,7 @@ jackson-databind-nullable = '0.2.8'
 antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
+awaitility = '4.2.2'
 
 prometheus = '1.3.6'
 lucene = '10.3.2'
@@ -119,6 +120,7 @@ opendatadiscovery-client = { module = 'org.opendatadiscovery:ingestion-contract-
 
 bytebuddy = { module = 'net.bytebuddy:byte-buddy', version.ref = 'byte-buddy' }
 assertj = { module = 'org.assertj:assertj-core', version.ref = 'assertj' }
+awaitility = { module = 'org.awaitility:awaitility', version.ref = 'awaitility' }
 jsonschemavalidator = { module = 'com.github.java-json-tools:json-schema-validator', version.ref = 'json-schema-validator' }
 
 # test scope
