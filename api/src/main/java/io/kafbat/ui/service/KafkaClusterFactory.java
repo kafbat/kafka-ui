@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -88,6 +90,7 @@ public class KafkaClusterFactory {
     }
     if (connectClientsConfigured(clusterProperties)) {
       builder.connectsClients(connectClients(clusterProperties));
+      builder.connectsConfigs(connectConfigs(clusterProperties));
     }
     if (ksqlConfigured(clusterProperties)) {
       builder.ksqlClient(ksqlClient(clusterProperties));
@@ -209,6 +212,13 @@ public class KafkaClusterFactory {
     Map<String, ReactiveFailover<KafkaConnectClientApi>> connects = new HashMap<>();
     clusterProperties.getKafkaConnect().forEach(c -> connects.put(c.getName(), connectClient(clusterProperties, c)));
     return connects;
+  }
+
+  private Map<String, ClustersProperties.ConnectCluster> connectConfigs(ClustersProperties.Cluster clusterProperties) {
+    return clusterProperties.getKafkaConnect().stream().collect(Collectors.toMap(
+        ClustersProperties.ConnectCluster::getName,
+        Function.identity()
+    ));
   }
 
   private ReactiveFailover<KafkaConnectClientApi> connectClient(ClustersProperties.Cluster cluster,
