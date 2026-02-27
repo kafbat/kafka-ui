@@ -4471,6 +4471,8 @@ components:
                 oauth2:
                   type: object
                   properties:
+                    insecureSsl:
+                      type: boolean
                     client:
                       type: object
                       additionalProperties:
