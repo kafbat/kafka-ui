@@ -1,9 +1,13 @@
 package io.kafbat.ui.config.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.auth.logout.OAuthLogoutSuccessHandler;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +48,7 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -57,17 +62,30 @@ import reactor.netty.http.client.HttpClient;
 @Slf4j
 public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
+  private static final Duration OIDC_DISCOVERY_TIMEOUT = Duration.ofSeconds(15);
   private final OAuthProperties properties;
 
   /**
    * WebClient configured to use system proxy properties (http.proxyHost/https.proxyHost,
-   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts).
+   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts) and optionally
+   * skip TLS certificate verification when auth.oauth2.insecure-ssl=true.
    * Created as a bean to ensure system properties are read after context initialization.
    */
   @Bean(name = "oauthWebClient")
   public WebClient oauthWebClient() {
+    HttpClient httpClient = HttpClient.create().proxyWithSystemProperties();
+    if (properties.isInsecureSsl()) {
+      try {
+        var context = SslContextBuilder.forClient()
+            .trustManager(InsecureTrustManagerFactory.INSTANCE)
+            .build();
+        httpClient = httpClient.secure(t -> t.sslContext(context));
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to initialize OAuth insecure SSL context", e);
+      }
+    }
     return WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
         .build();
   }
 
@@ -179,7 +197,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
+  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository(
+      @Qualifier("oauthWebClient") WebClient webClient
+  ) {
+    enrichOidcMetadataIfInsecureSsl(webClient);
     final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
     final List<ClientRegistration> registrations =
         new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
@@ -208,5 +229,66 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     return properties.getClient().get(providerId);
   }
 
-}
+  private void enrichOidcMetadataIfInsecureSsl(WebClient webClient) {
+    if (!properties.isInsecureSsl()) {
+      return;
+    }
 
+    properties.getClient().forEach((providerId, provider) -> {
+      if (!StringUtils.hasText(provider.getIssuerUri())) {
+        return;
+      }
+
+      final String openIdConfigUri = provider.getIssuerUri().replaceAll("/$", "")
+          + "/.well-known/openid-configuration";
+
+      final OidcDiscoveryResponse metadata;
+      try {
+        metadata = webClient.get()
+            .uri(openIdConfigUri)
+            .retrieve()
+            .bodyToMono(OidcDiscoveryResponse.class)
+            .block(OIDC_DISCOVERY_TIMEOUT);
+      } catch (Exception e) {
+        throw new IllegalStateException(
+            "Unable to resolve OIDC discovery metadata for provider [%s] from [%s]"
+                .formatted(providerId, openIdConfigUri),
+            e
+        );
+      }
+
+      if (metadata == null) {
+        throw new IllegalStateException(
+            "Empty OIDC discovery metadata for provider [%s] from [%s]"
+                .formatted(providerId, openIdConfigUri)
+        );
+      }
+
+      if (!StringUtils.hasText(provider.getAuthorizationUri())) {
+        provider.setAuthorizationUri(metadata.authorizationEndpoint());
+      }
+      if (!StringUtils.hasText(provider.getTokenUri())) {
+        provider.setTokenUri(metadata.tokenEndpoint());
+      }
+      if (!StringUtils.hasText(provider.getJwkSetUri())) {
+        provider.setJwkSetUri(metadata.jwksUri());
+      }
+      if (!StringUtils.hasText(provider.getUserInfoUri())) {
+        provider.setUserInfoUri(metadata.userInfoEndpoint());
+      }
+
+      // Prevent OAuth2ClientPropertiesMapper from performing issuer discovery via RestTemplate,
+      // which would ignore auth.oauth2.insecure-ssl and fail on self-signed certs.
+      provider.setIssuerUri(null);
+    });
+  }
+
+  private record OidcDiscoveryResponse(
+      @JsonProperty("authorization_endpoint") String authorizationEndpoint,
+      @JsonProperty("token_endpoint") String tokenEndpoint,
+      @JsonProperty("jwks_uri") String jwksUri,
+      @JsonProperty("userinfo_endpoint") String userInfoEndpoint
+  ) {
+  }
+
+}
