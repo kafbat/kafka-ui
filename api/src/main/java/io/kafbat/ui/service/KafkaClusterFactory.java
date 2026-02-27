@@ -237,6 +237,7 @@ public class KafkaClusterFactory {
     WebClient webClient = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
+        .configureDefaultHeaders(clusterProperties.getSchemaRegistryHeaders())
         .configureBufferSize(webClientMaxBuffSize)
         .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
         .build();
