@@ -11,6 +11,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -123,6 +124,13 @@ public class WebClientConfigurator {
       throw new ValidationException("You specified username but did not specify password");
     } else if (password != null) {
       throw new ValidationException("You specified password but did not specify username");
+    }
+    return this;
+  }
+
+  public WebClientConfigurator configureDefaultHeaders(@Nullable Map<String, String> headers) {
+    if (headers != null && !headers.isEmpty()) {
+      builder.defaultHeaders(httpHeaders -> headers.forEach(httpHeaders::set));
     }
     return this;
   }

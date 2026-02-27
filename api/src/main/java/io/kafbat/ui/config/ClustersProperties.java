@@ -80,6 +80,7 @@ public class ClustersProperties {
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+    Map<String, String> schemaRegistryHeaders;
 
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
