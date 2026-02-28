@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -49,6 +50,10 @@ public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
   private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
+
+  // Confluent Schema Registry API content types (used by WarpStream and other compatible implementations)
+  private static final MediaType SR_V1_JSON = MediaType.parseMediaType("application/vnd.schemaregistry.v1+json");
+  private static final MediaType SR_JSON = MediaType.parseMediaType("application/vnd.schemaregistry+json");
 
   private final DataSize webClientMaxBuffSize;
   private final Duration responseTimeout;
@@ -243,6 +248,7 @@ public class KafkaClusterFactory {
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
         .configureBufferSize(webClientMaxBuffSize)
+        .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
         .build();
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
