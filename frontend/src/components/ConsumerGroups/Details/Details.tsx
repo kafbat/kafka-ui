@@ -1,10 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
   clusterConsumerGroupResetRelativePath,
   clusterConsumerGroupsPath,
   ClusterGroupParam,
+  clusterConnectorsPath,
 } from 'lib/paths';
 import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -25,6 +26,7 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import { exportTableCSV, TableProvider } from 'components/common/NewTable';
 import { Button } from 'components/common/Button/Button';
 import ExportIcon from 'components/common/Icons/ExportIcon';
+import { getConnectorNameFromConsumerGroup } from 'lib/utils/connectorUtils';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -47,6 +49,7 @@ const Details: React.FC = () => {
   };
 
   const hasAssignedTopics = consumerGroup?.topics !== 0;
+  const connectorName = getConnectorNameFromConsumerGroup(consumerGroupID);
 
   return (
     <TableProvider>
@@ -132,6 +135,15 @@ const Details: React.FC = () => {
                 <Metrics.Indicator label="Total lag">
                   {consumerGroup?.consumerLag}
                 </Metrics.Indicator>
+                {connectorName && (
+                  <Metrics.Indicator label="Connector">
+                    <Link
+                      to={`${clusterConnectorsPath(clusterName)}?search=${encodeURIComponent(connectorName)}`}
+                    >
+                      {connectorName}
+                    </Link>
+                  </Metrics.Indicator>
+                )}
               </Metrics.Section>
             </Metrics.Wrapper>
             <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>

@@ -4,10 +4,14 @@ import * as Metrics from 'components/common/Metrics';
 import { Button } from 'components/common/Button/Button';
 import { Modal } from 'components/common/Modal';
 import getTagColor from 'components/common/Tag/getTagColor';
-import { RouterParamsClusterConnectConnector } from 'lib/paths';
+import {
+  clusterConsumerGroupDetailsPath,
+  RouterParamsClusterConnectConnector,
+} from 'lib/paths';
 import useAppParams from 'lib/hooks/useAppParams';
 import { useConnector, useConnectorTasks } from 'lib/hooks/api/kafkaConnect';
 import { ConnectorState, Connector } from 'generated-sources';
+import { Link, useParams } from 'react-router-dom';
 
 import getTaskMetrics from './getTaskMetrics';
 import * as S from './Overview.styled';
@@ -15,6 +19,7 @@ import * as S from './Overview.styled';
 const Overview: React.FC = () => {
   const routerProps = useAppParams<RouterParamsClusterConnectConnector>();
   const [showTraceModal, setShowTraceModal] = useState(false);
+  const { clusterName } = useParams<{ clusterName: string }>();
 
   const { data: connector } = useConnector(routerProps);
   const { data: tasks } = useConnectorTasks(routerProps);
@@ -67,6 +72,18 @@ const Overview: React.FC = () => {
           >
             {failed}
           </Metrics.Indicator>
+          {connector.consumer && clusterName && (
+            <Metrics.Indicator label="Consumer Group">
+              <Link
+                to={clusterConsumerGroupDetailsPath(
+                  clusterName,
+                  encodeURIComponent(connector.consumer)
+                )}
+              >
+                {connector.consumer}
+              </Link>
+            </Metrics.Indicator>
+          )}
         </Metrics.Section>
       </Metrics.Wrapper>
 
