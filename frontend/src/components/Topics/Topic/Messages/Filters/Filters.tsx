@@ -112,7 +112,7 @@ const Filters: React.FC<FiltersProps> = ({
         <FlexBox gap="8px" alignItems="flex-end" flexWrap="wrap">
           <S.FilterModeTypeSelectorWrapper>
             <S.FilterModeTypeSelect
-              id="selectSeekType"
+              id="selectMode"
               onChange={setMode}
               value={mode}
               selectSize="M"

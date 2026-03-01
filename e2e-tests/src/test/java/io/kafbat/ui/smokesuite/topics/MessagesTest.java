@@ -6,7 +6,7 @@ import io.kafbat.ui.BaseTest;
 import io.kafbat.ui.models.Topic;
 import io.kafbat.ui.screens.BasePage;
 import io.kafbat.ui.screens.topics.TopicDetails;
-import io.kafbat.ui.screens.topics.enums.SeekType;
+import io.kafbat.ui.screens.topics.enums.PollingMode;
 import io.kafbat.ui.utilities.TimeUtil;
 import io.qameta.allure.Issue;
 import io.qameta.allure.Step;
@@ -124,11 +124,11 @@ public class MessagesTest extends BaseTest {
     navigateToTopicsAndOpenDetails(CHECK_FILTERS_TOPIC.getName());
     int nextOffset = topicDetails
         .openDetailsTab(TopicDetails.TopicMenu.MESSAGES)
-        .selectSeekTypeDdlMessagesTab(SeekType.FROM_OFFSET)
+        .selectModeDdlMessagesTab(PollingMode.FROM_OFFSET)
         .getAllMessages().stream()
         .findFirst().orElseThrow().getOffset() + 1;
     topicDetails
-        .setSeekTypeValueFldMessagesTab(String.valueOf(nextOffset))
+        .setModeValueFldMessagesTab(String.valueOf(nextOffset))
         .clickSubmitFiltersBtnMessagesTab();
     SoftAssert softly = new SoftAssert();
     topicDetails.getAllMessages().forEach(message ->
@@ -150,8 +150,8 @@ public class MessagesTest extends BaseTest {
         .filter(message -> message.getTimestamp().getMinute() != firstTimestamp.getMinute())
         .findFirst().orElseThrow().getTimestamp();
     topicDetails
-        .selectSeekTypeDdlMessagesTab(SeekType.SINCE_TIME)
-        .openCalendarSeekType()
+        .selectModeDdlMessagesTab(PollingMode.SINCE_TIME)
+        .openCalendarMode()
         .selectDateAndTimeByCalendar(nextTimestamp)
         .clickSubmitFiltersBtnMessagesTab();
     SoftAssert softly = new SoftAssert();

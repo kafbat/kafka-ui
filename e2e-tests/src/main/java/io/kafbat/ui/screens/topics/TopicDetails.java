@@ -12,7 +12,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.kafbat.ui.screens.BasePage;
-import io.kafbat.ui.screens.topics.enums.SeekType;
+import io.kafbat.ui.screens.topics.enums.PollingMode;
 import io.kafbat.ui.utilities.WebUtil;
 import io.qameta.allure.Step;
 import java.time.LocalDate;
@@ -36,8 +36,8 @@ public class TopicDetails extends BasePage {
   protected SelenideElement messageAmountCell = $x("//tbody/tr/td[5]");
   protected SelenideElement overviewTab = $x("//a[contains(text(),'Overview')]");
   protected SelenideElement messagesTab = $x("//a[contains(text(),'Messages')]");
-  protected SelenideElement seekTypeDdl = $x("//ul[@id='selectSeekType']//li");
-  protected SelenideElement seekTypeField = $x("//ul[@id='selectSeekType']/../..//input");
+  protected SelenideElement modeDdl = $x("//ul[@id='selectMode']//li");
+  protected SelenideElement modeField = $x("//ul[@id='selectMode']/../..//input");
   protected SelenideElement addFiltersBtn = $x("//button[text()='Add Filters']");
   protected SelenideElement savedFiltersLink = $x("//div[text()='Saved Filters']");
   protected SelenideElement addFilterCodeModalTitle = $x("//label[text()='Filter code']");
@@ -62,7 +62,7 @@ public class TopicDetails extends BasePage {
   protected SelenideElement calendarTimeFld = $x("//input[@placeholder='Time']");
   protected String detailsTabLtr = "//nav//a[contains(text(),'%s')]";
   protected String dayCellLtr = "//div[@role='option'][contains(text(),'%d')]";
-  protected String seekFilterDdlLocator = "//ul[@id='selectSeekType']/ul/li[text()='%s']";
+  protected String modeFilterDdlLocator = "//ul[@id='selectMode']/ul/li[text()='%s']";
   protected String savedFilterNameLocator = "//div[@role='savedFilter']/div[contains(text(),'%s')]";
   protected String consumerIdLocator = "//a[@title='%s']";
   protected String topicHeaderLocator = "//h1[contains(text(),'%s')]";
@@ -164,15 +164,15 @@ public class TopicDetails extends BasePage {
   }
 
   @Step
-  public TopicDetails selectSeekTypeDdlMessagesTab(SeekType seekType) {
-    seekTypeDdl.shouldBe(enabled).click();
-    $x(String.format(seekFilterDdlLocator, seekType.getValue())).shouldBe(Condition.visible).click();
+  public TopicDetails selectModeDdlMessagesTab(PollingMode pollingMode) {
+    modeDdl.shouldBe(enabled).click();
+    $x(String.format(modeFilterDdlLocator, pollingMode.getValue())).shouldBe(Condition.visible).click();
     return this;
   }
 
   @Step
-  public TopicDetails setSeekTypeValueFldMessagesTab(String seekTypeValue) {
-    seekTypeField.shouldBe(enabled).sendKeys(seekTypeValue);
+  public TopicDetails setModeValueFldMessagesTab(String modeValue) {
+    modeField.shouldBe(enabled).sendKeys(modeValue);
     return this;
   }
 
@@ -377,8 +377,8 @@ public class TopicDetails extends BasePage {
   }
 
   @Step
-  public TopicDetails openCalendarSeekType() {
-    seekTypeField.shouldBe(enabled).click();
+  public TopicDetails openCalendarMode() {
+    modeField.shouldBe(enabled).click();
     actualCalendarDate.shouldBe(Condition.visible);
     return this;
   }

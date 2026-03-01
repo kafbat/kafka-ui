@@ -3,7 +3,7 @@ package io.kafbat.ui.screens.topics.enums;
 import lombok.Getter;
 
 @Getter
-public enum SeekType {
+public enum PollingMode {
 
   OLDEST("Oldest"),
   NEWEST("Newest"),
@@ -15,7 +15,7 @@ public enum SeekType {
 
   private final String value;
 
-  SeekType(String value) {
+  PollingMode(String value) {
     this.value = value;
   }
 }
