@@ -13,7 +13,7 @@ export default class ConnectorsLocators {
     get rowMenu():Locator { return this.page.getByRole('cell', { name: 'Dropdown Toggle' })};
     get internalMenuButton(): Locator { return this.page.locator('button').filter({ hasText: 'Restart' })};
 
-    rowData(value:string): Locator { return this.page.getByRole('cell', { name: value })};
+    rowData(value:string): Locator { return this.page.getByRole('cell', { name: value, exact: true })};
     rowMenuItem(value:string): Locator { return this.page.getByRole('menuitem', { name: value })};
 
     cellData(value:string): Locator { return this.page.getByText(value, { exact: true })};

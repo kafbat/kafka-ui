@@ -29,7 +29,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
         List.of(),
         new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, "worker-1", "reason"),
         1,
-        0)).toList();
+        0,
+        null)).toList();
   }
 
   @Override
@@ -54,7 +55,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
+            0,
+            null
         ),
         new FullConnectorInfoDTO(
             "pay-connect",
@@ -64,7 +66,8 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0
+            0,
+            null
         )
     );
   }
@@ -85,7 +88,7 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0),
+            0, null),
         new FullConnectorInfoDTO(
             "connect-pay",
             "connector-pay",
@@ -94,6 +97,6 @@ class KafkaConnectNgramFilterTest extends AbstractNgramFilterTest<FullConnectorI
             List.of(),
             new ConnectorStatusDTO(ConnectorStateDTO.RUNNING, null, "reason"),
             1,
-            0));
+            0, null));
   }
 }
