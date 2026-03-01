@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
@@ -33,10 +34,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
-
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
+
+  @Value("${misc.excludeStackTracesInWebResponses:false}")
+  private boolean excludeStackTraces;
 
   public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes,
                                         ApplicationContext applicationContext,
@@ -77,7 +80,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(coalesce(throwable.getMessage(), "Unexpected internal error"))
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(throwable));
+        .stackTrace(formatStacktrace(throwable));
     return ServerResponse
         .status(ErrorCode.UNEXPECTED.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +95,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(coalesce(baseException.getMessage(), "Internal error"))
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(baseException));
+        .stackTrace(formatStacktrace(baseException));
     return ServerResponse
         .status(errorCode.httpStatus())
         .contentType(MediaType.APPLICATION_JSON)
@@ -122,7 +125,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
         .fieldsErrors(fieldsErrors)
-        .stackTrace(Throwables.getStackTraceAsString(exception));
+        .stackTrace(formatStacktrace(exception));
     return ServerResponse
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
@@ -137,7 +140,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         .message(msg)
         .requestId(requestId(request))
         .timestamp(currentTimestamp())
-        .stackTrace(Throwables.getStackTraceAsString(exception));
+        .stackTrace(formatStacktrace(exception));
     return ServerResponse
         .status(exception.getStatusCode())
         .contentType(MediaType.APPLICATION_JSON)
@@ -164,6 +167,13 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
   @SafeVarargs
   private <T> T coalesce(T... items) {
     return Stream.of(items).filter(Objects::nonNull).findFirst().orElse(null);
+  }
+
+  private String formatStacktrace(Throwable e) {
+    if (excludeStackTraces) {
+      return "REDACTED FOR SECURITY REASONS";
+    }
+    return Throwables.getStackTraceAsString(e);
   }
 
 }
