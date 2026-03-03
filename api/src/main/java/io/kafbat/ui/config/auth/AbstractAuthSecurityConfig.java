@@ -4,6 +4,7 @@ import io.kafbat.ui.util.EmptyRedirectStrategy;
 import java.net.URI;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.security.web.server.savedrequest.WebSessionServerRequestCache;
 
 abstract class AbstractAuthSecurityConfig {
 
@@ -51,6 +52,16 @@ abstract class AbstractAuthSecurityConfig {
     final var authHandler = new RedirectServerAuthenticationSuccessHandler();
     authHandler.setRedirectStrategy(new EmptyRedirectStrategy());
     return authHandler;
+  }
+
+  protected RedirectServerAuthenticationSuccessHandler requestCacheAwareSuccessHandler() {
+    final var authHandler = new RedirectServerAuthenticationSuccessHandler("/");
+    authHandler.setRequestCache(new WebSessionServerRequestCache());
+    return authHandler;
+  }
+
+  protected WebSessionServerRequestCache webSessionServerRequestCache() {
+    return new WebSessionServerRequestCache();
   }
 
   protected RedirectServerLogoutSuccessHandler redirectLogoutSuccessHandler() {
