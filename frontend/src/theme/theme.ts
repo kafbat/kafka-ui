@@ -503,6 +503,12 @@ export const theme = {
         hover: Colors.neutral[5],
       },
     },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[20],
+      },
+    },
   },
   ksqlDb: {
     query: {
@@ -1088,6 +1094,12 @@ export const darkTheme: ThemeType = {
       backgroundColor: {
         default: Colors.neutral[85],
         hover: Colors.neutral[80],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[70],
       },
     },
   },

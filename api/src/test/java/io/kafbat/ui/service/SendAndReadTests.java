@@ -369,10 +369,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
           assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(15L);
           assertThat(polled.getValueSize()).isEqualTo(15L);
-          assertThat(polled.getKeyDeserializeProperties().get("schemaId")).isNotNull();
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getKeyDeserializeProperties().get("id")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("AVRO");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
         });
   }
@@ -394,9 +394,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
           assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(18L);
           assertThat(polled.getValueSize()).isEqualTo(18L);
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
         });
   }
@@ -420,9 +420,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
           assertThat(polled.getKeySize()).isEqualTo(57L);
           assertThat(polled.getValueSize()).isEqualTo(57L);
           assertThat(polled.getHeadersSize()).isEqualTo(13L);
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("JSON");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
         });
   }

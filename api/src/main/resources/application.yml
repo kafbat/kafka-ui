@@ -12,6 +12,19 @@ management:
       exposure:
         include: "info,health,prometheus"
 
+springdoc:
+  path: /swagger
+  api-docs:
+    enabled: ${SWAGGER_UI_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:false}
+    url: /openapi/kafbat-ui-api.yaml
+    urls:
+      - name: kafbat-ui
+        url: /openapi/kafbat-ui-api.yaml
+    config-url: null
+  override-with-generic-response: true
+
 logging:
   level:
     root: INFO

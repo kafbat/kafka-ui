@@ -23,6 +23,7 @@ import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicDTO;
+import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.audit.AuditService;
 import io.kafbat.ui.service.rbac.AccessControlService;
@@ -62,6 +63,7 @@ class TopicsServicePaginationTest {
   private final TopicsService mockTopicsService = Mockito.mock(TopicsService.class);
   private final KafkaConnectService kafkaConnectService = Mockito.mock(KafkaConnectService.class);
   private final ClusterMapper clusterMapper = new ClusterMapperImpl();
+  private final AclsService aclService = Mockito.mock(AclsService.class);
 
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
 
@@ -71,7 +73,8 @@ class TopicsServicePaginationTest {
           mock(TopicAnalysisService.class),
           clusterMapper,
           clustersProperties,
-          kafkaConnectService
+          kafkaConnectService,
+          aclService
       );
 
   private void init(Map<String, InternalTopic> topicsInCache) {
