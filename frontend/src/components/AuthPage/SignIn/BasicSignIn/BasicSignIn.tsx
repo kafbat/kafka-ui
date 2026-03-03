@@ -4,7 +4,7 @@ import Input from 'components/common/Input/Input';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useAuthenticate } from 'lib/hooks/api/appConfig';
 import AlertIcon from 'components/common/Icons/AlertIcon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
 import * as S from './BasicSignIn.styled';
@@ -19,6 +19,7 @@ function BasicSignIn() {
     defaultValues: { username: '', password: '' },
   });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { mutateAsync, isPending } = useAuthenticate();
   const client = useQueryClient();
 
@@ -29,7 +30,10 @@ function BasicSignIn() {
           methods.setError('root', { message: 'error' });
         } else {
           await client.invalidateQueries({ queryKey: ['app', 'info'] });
-          navigate('/');
+          const returnTo = searchParams.get('returnTo');
+          // Only allow relative paths to prevent open redirect attacks
+          const target = returnTo && returnTo.startsWith('/') ? returnTo : '/';
+          navigate(target);
         }
       },
     });
