@@ -96,6 +96,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     var delegatingAuthManager =
         new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
 
+    var requestCache = webSessionServerRequestCache();
+
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
@@ -103,6 +105,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .authenticated()
         )
         .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
+        .requestCache(cache -> cache.requestCache(requestCache))
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
@@ -207,6 +210,4 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   private OAuthProperties.OAuth2Provider getProviderByProviderId(final String providerId) {
     return properties.getClient().get(providerId);
   }
-
-}
 
