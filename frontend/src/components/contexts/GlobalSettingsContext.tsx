@@ -1,7 +1,7 @@
 import { useAppInfo } from 'lib/hooks/api/appConfig';
 import React from 'react';
 import { ApplicationInfoEnabledFeaturesEnum } from 'generated-sources';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface GlobalSettingsContextProps {
   hasDynamicConfig: boolean;
@@ -17,13 +17,19 @@ export const GlobalSettingsProvider: React.FC<
 > = ({ children }) => {
   const info = useAppInfo();
   const navigate = useNavigate();
+  const location = useLocation();
   const [value, setValue] = React.useState<GlobalSettingsContextProps>({
     hasDynamicConfig: false,
   });
 
   React.useEffect(() => {
     if (info.data?.redirect && !info.isFetching) {
-      navigate('login');
+      const currentPath = location.pathname + location.search;
+      const returnTo =
+        currentPath && currentPath !== '/' && currentPath !== '/login'
+          ? `?returnTo=${encodeURIComponent(currentPath)}`
+          : '';
+      navigate(`/login${returnTo}`);
       return;
     }
 
