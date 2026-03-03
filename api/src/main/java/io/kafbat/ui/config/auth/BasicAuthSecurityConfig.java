@@ -22,6 +22,8 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
   public SecurityWebFilterChain configure(ServerHttpSecurity http) {
     log.info("Configuring LOGIN_FORM authentication.");
 
+    var requestCache = webSessionServerRequestCache();
+
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
@@ -30,8 +32,9 @@ public class BasicAuthSecurityConfig extends AbstractAuthSecurityConfig {
         )
         .formLogin(form -> form
             .loginPage(LOGIN_URL)
-            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
+            .authenticationSuccessHandler(requestCacheAwareSuccessHandler())
         )
+        .requestCache(cache -> cache.requestCache(requestCache))
         .logout(spec -> spec
             .logoutSuccessHandler(redirectLogoutSuccessHandler())
             .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
