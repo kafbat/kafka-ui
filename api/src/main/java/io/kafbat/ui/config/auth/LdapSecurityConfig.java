@@ -143,6 +143,8 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
       log.info("Active Directory support for LDAP has been enabled.");
     }
 
+    var requestCache = webSessionServerRequestCache();
+
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
             .permitAll()
@@ -151,8 +153,9 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
         )
         .formLogin(form -> form
             .loginPage(LOGIN_URL)
-            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
+            .authenticationSuccessHandler(requestCacheAwareSuccessHandler())
         )
+        .requestCache(cache -> cache.requestCache(requestCache))
         .logout(spec -> spec
             .logoutSuccessHandler(redirectLogoutSuccessHandler())
             .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
@@ -193,4 +196,3 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
 }
-
