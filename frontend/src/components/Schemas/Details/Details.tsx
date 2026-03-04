@@ -69,13 +69,13 @@ const Details: React.FC = () => {
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
       >
-        {!!schema.topic && (
+        {!!schema.data?.topic && (
           <Button
             buttonType="secondary"
             buttonSize="M"
-            to={clusterTopicPath(clusterName, schema.topic)}
+            to={clusterTopicPath(clusterName, schema.data.topic)}
           >
-            {`Go to topic "${schema.topic}"`}
+            {`Go to topic "${schema.data.topic}"`}
           </Button>
         )}
         <Button
