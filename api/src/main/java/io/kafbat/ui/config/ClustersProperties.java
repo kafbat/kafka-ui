@@ -158,6 +158,7 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+    String consumerNamePattern = "connect-%s";
   }
 
   @Data
