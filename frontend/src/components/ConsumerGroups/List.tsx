@@ -27,6 +27,9 @@ import { consumerGroupsApiClient } from 'lib/api';
 import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import useQueryPersister from 'components/common/NewTable/ColumnFilter/lib/persisters/queryPersister';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import { LagContainer } from './styled';
 
@@ -50,6 +53,9 @@ const List = () => {
     ...params,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
+    state: searchParams
+      .get(ConsumerGroupOrdering.STATE)
+      ?.split(',') as ConsumerGroupState[],
   });
 
   const [pollingIntervalSec] = useLocalStorage(
@@ -165,13 +171,20 @@ const List = () => {
         );
       },
       size: 124,
+      filterFn: 'noop',
       meta: {
+        filterKey: ConsumerGroupOrdering.STATE,
+        filterVariant: 'multi-select',
+        filterValues: Object.keys(ConsumerGroupState).filter(
+          (v) => v !== ConsumerGroupState.UNKNOWN
+        ),
         csvFn: (row) => String(row.state),
       },
     },
   ];
 
   const columnSizingPersister = useLocalStoragePersister('Consumers');
+  const filterPersister = useQueryPersister(columns);
 
   const fetchCsv = async () => {
     return consumerGroupsApiClient.getConsumerGroupsCsv(params);
@@ -194,26 +207,39 @@ const List = () => {
 
         <RefreshRateSelect storageKey="consumer-groups-refresh-rate" />
       </ControlPanelWrapper>
-      <Table
-        columns={columns}
-        pageCount={consumerGroups.data?.pageCount || 0}
-        data={consumerGroups.data?.consumerGroups || []}
-        emptyMessage={
-          consumerGroups.isSuccess
-            ? 'No active consumer groups found'
-            : 'Loading...'
-        }
-        serverSideProcessing
-        enableSorting
-        onRowClick={({ original }) =>
-          navigate(
-            clusterConsumerGroupDetailsPath(clusterName, original.groupId)
-          )
-        }
-        enableColumnResizing
-        columnSizingPersister={columnSizingPersister}
-        disabled={consumerGroups.isFetching}
-      />
+
+      {(consumerGroups.isLoading || consumerGroups.isRefetching) && (
+        <PageLoader offsetY={300} />
+      )}
+
+      {consumerGroups.error && (
+        <ErrorPage
+          offsetY={300}
+          status={consumerGroups.error.status}
+          onClick={consumerGroups.refetch}
+          text={consumerGroups.error.message}
+        />
+      )}
+
+      {consumerGroups.isSuccess && (
+        <Table
+          columns={columns}
+          pageCount={consumerGroups.data?.pageCount || 0}
+          filterPersister={filterPersister}
+          data={consumerGroups.data?.consumerGroups || []}
+          emptyMessage="No active consumer groups found"
+          serverSideProcessing
+          enableSorting
+          onRowClick={({ original }) =>
+            navigate(
+              clusterConsumerGroupDetailsPath(clusterName, original.groupId)
+            )
+          }
+          enableColumnResizing
+          columnSizingPersister={columnSizingPersister}
+          disabled={consumerGroups.isFetching}
+        />
+      )}
     </>
   );
 };

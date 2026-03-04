@@ -56,26 +56,6 @@ describe('Details', () => {
     }));
   });
 
-  describe('fetch failed', () => {
-    it('renders page loader', async () => {
-      (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
-        data: undefined,
-        isFetching: false,
-        isError: false,
-      }));
-      (useGetLatestSchema as jest.Mock).mockImplementation(() => ({
-        data: undefined,
-        isFetching: false,
-        isError: true,
-      }));
-      renderComponent();
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
-      expect(screen.queryByText(schemaVersion.subject)).not.toBeInTheDocument();
-      expect(screen.queryByText('Edit Schema')).not.toBeInTheDocument();
-      expect(screen.queryByText('Remove Schema')).not.toBeInTheDocument();
-    });
-  });
-
   describe('fetch success', () => {
     describe('has schema versions', () => {
       it('renders component with schema info', async () => {
@@ -83,11 +63,13 @@ describe('Details', () => {
           data: versionPayload,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         (useGetLatestSchema as jest.Mock).mockImplementation(() => ({
           data: useGetSchemasVersions,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         renderComponent();
         expect(screen.getByText('Edit Schema')).toBeInTheDocument();
@@ -103,11 +85,13 @@ describe('Details', () => {
             data: versionPayload,
             isFetching: false,
             isError: false,
+            isSuccess: true,
           }));
           (useGetLatestSchema as jest.Mock).mockImplementation(() => ({
             data: schemaVersionWithNonAsciiChars,
             isFetching: false,
             isError: false,
+            isSuccess: true,
           }));
           renderComponent();
           expect(screen.getByText('Edit Schema')).toBeInTheDocument();
@@ -123,11 +107,13 @@ describe('Details', () => {
           data: versionEmptyPayload,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         (useGetLatestSchema as jest.Mock).mockImplementation(() => ({
           data: schemaVersionWithNonAsciiChars,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         renderComponent();
       });

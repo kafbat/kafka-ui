@@ -146,7 +146,7 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
         {sortedConsumers.map((consumer) => (
           <tr key={consumer.partition}>
             <td>{consumer.partition}</td>
-            <td>{consumer.consumerId}</td>
+            <td className="break-spaces">{consumer.consumerId}</td>
             <td>{consumer.host}</td>
             <td>{consumer.consumerLag}</td>
             <td>{consumer.currentOffset}</td>

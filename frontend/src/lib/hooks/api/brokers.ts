@@ -1,22 +1,32 @@
 import { brokersApiClient as api } from 'lib/api';
 import {
   useMutation,
+  useQuery,
   useQueryClient,
+  UseQueryOptions,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { BrokerConfigItem } from 'generated-sources';
+import { BrokerConfigItem, Broker } from 'generated-sources';
+import { apiFetch, ServerResponse } from 'lib/errorHandling';
 
 interface UpdateBrokerConfigProps {
   name: string;
   brokerConfigItem: BrokerConfigItem;
 }
 
-export function useBrokers(clusterName: ClusterName) {
-  return useSuspenseQuery({
+export function useBrokers(
+  clusterName: ClusterName,
+  queryOptions?: Omit<
+    UseQueryOptions<Broker[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<Broker[], ServerResponse>({
     queryKey: ['clusters', clusterName, 'brokers'],
-    queryFn: () => api.getBrokers({ clusterName }),
+    queryFn: () => apiFetch(() => api.getBrokers({ clusterName })),
     refetchInterval: 5000,
+    ...queryOptions,
   });
 }
 

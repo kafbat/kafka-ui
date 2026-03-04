@@ -6,6 +6,10 @@ import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeAvro;
 import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeJson;
 import static io.kafbat.ui.serdes.builtin.sr.Serialize.serializeProto;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.annotations.VisibleForTesting;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
@@ -14,12 +18,14 @@ import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaMetadata;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
+import io.confluent.kafka.schemaregistry.client.rest.entities.SubjectVersion;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.kafbat.ui.exception.ValidationException;
+import io.kafbat.ui.model.SchemaRegistryDeserializePropertiesDTO;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
 import io.kafbat.ui.serde.api.SchemaDescription;
@@ -40,11 +46,14 @@ import org.apache.kafka.common.config.SslConfigs;
 
 
 public class SchemaRegistrySerde implements BuiltInSerde {
+  private static final ObjectMapper OM = new ObjectMapper();
+
   public static final String NAME = "SchemaRegistry";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
 
   private static final String SCHEMA_REGISTRY = "schemaRegistry";
+  private static final int DEFAULT_MAX_SUBJECTS_CACHE_SIZE = 1024;
 
   private SchemaRegistryClient schemaRegistryClient;
   private List<String> schemaRegistryUrls;
@@ -53,6 +62,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private boolean checkSchemaExistenceForDeserialize;
 
   private Map<SchemaType, MessageFormatter> schemaRegistryFormatters;
+
+  private Cache<Integer, List<String>> idToSubjectsCache;
 
   @Override
   public boolean canBeAutoConfigured(PropertyResolver kafkaClusterProperties,
@@ -93,7 +104,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         kafkaClusterProperties.getProperty("schemaRegistrySchemaNameTemplate", String.class).orElse("%s-value"),
         kafkaClusterProperties.getProperty("schemaRegistryCheckSchemaExistenceForDeserialize", Boolean.class)
             .orElse(false),
-        formatterProperties
+        formatterProperties,
+        kafkaClusterProperties.getProperty("schemaRegistryMaxSubjectsCacheSize", Integer.class)
+            .orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
     );
   }
 
@@ -130,7 +143,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         serdeProperties.getProperty("schemaNameTemplate", String.class).orElse("%s-value"),
         serdeProperties.getProperty("checkSchemaExistenceForDeserialize", Boolean.class)
             .orElse(false),
-        formatterProperties
+        formatterProperties,
+        serdeProperties.getProperty("maxSubjectsCacheSize", Integer.class).orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
     );
   }
 
@@ -142,7 +156,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize) {
     configure(schemaRegistryUrls, schemaRegistryClient, keySchemaNameTemplate, valueSchemaNameTemplate,
-        checkTopicSchemaExistenceForDeserialize, FormatterProperties.EMPTY);
+        checkTopicSchemaExistenceForDeserialize, FormatterProperties.EMPTY, DEFAULT_MAX_SUBJECTS_CACHE_SIZE);
   }
 
   @VisibleForTesting
@@ -152,13 +166,17 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String keySchemaNameTemplate,
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize,
-      FormatterProperties formatterProperties) {
+      FormatterProperties formatterProperties,
+      int maxSubjectsCacheSize) {
     this.schemaRegistryUrls = schemaRegistryUrls;
     this.schemaRegistryClient = schemaRegistryClient;
     this.keySchemaNameTemplate = keySchemaNameTemplate;
     this.valueSchemaNameTemplate = valueSchemaNameTemplate;
     this.schemaRegistryFormatters = MessageFormatter.createMap(schemaRegistryClient, formatterProperties);
     this.checkSchemaExistenceForDeserialize = checkTopicSchemaExistenceForDeserialize;
+    this.idToSubjectsCache = Caffeine.newBuilder()
+        .maximumSize(maxSubjectsCacheSize)
+        .build();
   }
 
   private static SchemaRegistryClient createSchemaRegistryClient(List<String> urls,
@@ -314,24 +332,44 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   public Deserializer deserializer(String topic, Target type) {
     return (headers, data) -> {
       var schemaId = extractSchemaIdFromMsg(data);
-      SchemaType format = getMessageFormatBySchemaId(schemaId);
+      ParsedSchema schema = getSchemaById(schemaId)
+              .orElseThrow(() -> new ValidationException(String.format("Schema not found %s", schemaId)));
+      List<String> subjects = getSubjectsById(schemaId);
+      SchemaType format = getMessageFormatBySchemaId(schema);
+
+      var properties = new SchemaRegistryDeserializePropertiesDTO();
+      properties.setId(schemaId);
+      properties.setSubjects(subjects);
+      properties.setType(format.name());
+
       MessageFormatter formatter = schemaRegistryFormatters.get(format);
+
       return new DeserializeResult(
           formatter.format(topic, data),
           DeserializeResult.Type.JSON,
-          Map.of(
-              "schemaId", schemaId,
-              "type", format.name()
-          )
+          OM.convertValue(properties, new TypeReference<>() {
+          })
       );
     };
   }
 
-  private SchemaType getMessageFormatBySchemaId(int schemaId) {
-    return getSchemaById(schemaId)
-        .map(ParsedSchema::schemaType)
-        .flatMap(SchemaType::fromString)
-        .orElseThrow(() -> new ValidationException(String.format("Schema for id '%d' not found ", schemaId)));
+  private List<String> getSubjectsById(int schemaId) {
+    return idToSubjectsCache.get(schemaId, (id) -> {
+      try {
+        return schemaRegistryClient.getAllVersionsById(id).stream()
+            .map(SubjectVersion::getSubject)
+            .filter(s -> !s.isEmpty())
+            .distinct()
+            .toList();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private SchemaType getMessageFormatBySchemaId(ParsedSchema schema) {
+    return SchemaType.fromString(schema.schemaType())
+        .orElseThrow(() -> new ValidationException(String.format("Schema type not found %s", schema.schemaType())));
   }
 
   private int extractSchemaIdFromMsg(byte[] data) {

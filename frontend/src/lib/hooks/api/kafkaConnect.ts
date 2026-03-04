@@ -2,7 +2,9 @@ import {
   Connect,
   Connector,
   ConnectorAction,
+  FullConnectorInfo,
   NewConnector,
+  Task,
   Topic,
 } from 'generated-sources';
 import { kafkaConnectApiClient as api } from 'lib/api';
@@ -10,10 +12,10 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-  useSuspenseQuery,
+  UseQueryOptions,
 } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { showSuccessAlert } from 'lib/errorHandling';
+import { apiFetch, ServerResponse, showSuccessAlert } from 'lib/errorHandling';
 import { topicKeys } from 'lib/hooks/api/topics';
 
 interface UseConnectorProps {
@@ -66,20 +68,33 @@ const connectorTasksKey = (props: UseConnectorProps) => [
   'tasks',
 ];
 
-export function useConnects(clusterName: ClusterName, withStats?: boolean) {
-  return useSuspenseQuery({
+export function useConnects(
+  clusterName: ClusterName,
+  withStats?: boolean,
+  options?: Omit<
+    UseQueryOptions<Connect[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<Connect[], ServerResponse>({
     queryKey: connectsKey(clusterName, withStats),
-    queryFn: () => api.getConnects({ clusterName, withStats }),
+    queryFn: () => apiFetch(() => api.getConnects({ clusterName, withStats })),
+    ...options,
   });
 }
 export function useConnectors(
   clusterName: ClusterName,
   search?: string,
-  fts?: boolean
+  fts?: boolean,
+  options?: Omit<
+    UseQueryOptions<FullConnectorInfo[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
-  return useQuery({
+  return useQuery<FullConnectorInfo[], ServerResponse>({
     queryKey: connectorsKey(clusterName, search, fts),
-    queryFn: () => api.getAllConnectors({ clusterName, search, fts }),
+    queryFn: () =>
+      apiFetch(() => api.getAllConnectors({ clusterName, search, fts })),
     placeholderData: (previousData) => previousData,
     select: (data) =>
       [...data].sort((a, b) => {
@@ -91,18 +106,32 @@ export function useConnectors(
         }
         return 0;
       }),
+    ...options,
   });
 }
-export function useConnector(props: UseConnectorProps) {
-  return useSuspenseQuery({
+export function useConnector(
+  props: UseConnectorProps,
+  options?: Omit<
+    UseQueryOptions<Connector, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<Connector, ServerResponse>({
     queryKey: connectorKey(props),
-    queryFn: () => api.getConnector(props),
+    queryFn: () => apiFetch(() => api.getConnector(props)),
+    ...options,
   });
 }
-export function useConnectorTasks(props: UseConnectorProps) {
-  return useSuspenseQuery({
+export function useConnectorTasks(
+  props: UseConnectorProps,
+  options?: Omit<
+    UseQueryOptions<Task[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<Task[], ServerResponse>({
     queryKey: connectorTasksKey(props),
-    queryFn: () => api.getConnectorTasks(props),
+    queryFn: () => apiFetch(() => api.getConnectorTasks(props)),
     select: (data) =>
       [...data].sort((a, b) => {
         const aid = a.status.id;
@@ -117,6 +146,7 @@ export function useConnectorTasks(props: UseConnectorProps) {
         }
         return 0;
       }),
+    ...options,
   });
 }
 export function useUpdateConnectorState(props: UseConnectorProps) {

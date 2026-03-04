@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  topicsApiClient as api,
-  messagesApiClient as messagesApi,
   consumerGroupsApiClient,
+  messagesApiClient as messagesApi,
   messagesApiClient,
+  topicsApiClient as api,
 } from 'lib/api';
 import {
   useMutation,
@@ -20,11 +20,19 @@ import {
   TopicConfig,
   TopicCreation,
   TopicDetails,
+  TopicsResponse,
   TopicUpdate,
   GetTopicConnectorsRequest,
   FullConnectorInfo,
+  ListTopicAclsRequest,
+  KafkaAcl,
 } from 'generated-sources';
-import { showServerError, showSuccessAlert } from 'lib/errorHandling';
+import {
+  apiFetch,
+  ServerResponse,
+  showServerError,
+  showSuccessAlert,
+} from 'lib/errorHandling';
 import { ClusterName } from 'lib/interfaces/cluster';
 import {
   TopicFormData,
@@ -51,23 +59,28 @@ export const topicKeys = {
     [...topicKeys.details(props), 'statistics'] as const,
   connectors: (props: GetTopicConnectorsRequest) =>
     [...topicKeys.details(props), 'connectors'] as const,
+  acls: (props: ListTopicAclsRequest) =>
+    [...topicKeys.details(props), 'acls'] as const,
 };
 
 export function useTopics(props: GetTopicsRequest) {
   const { clusterName, ...filters } = props;
-  return useQuery({
+  return useQuery<TopicsResponse, ServerResponse>({
     queryKey: topicKeys.list(clusterName, filters),
-    queryFn: () => api.getTopics(props),
+    queryFn: () => apiFetch(() => api.getTopics(props)),
     placeholderData: (previousData) => previousData,
   });
 }
 export function useTopicDetails(
   props: GetTopicDetailsRequest,
-  queryOptions?: Omit<UseQueryOptions<TopicDetails>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<TopicDetails, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
-  return useSuspenseQuery<TopicDetails>({
+  return useQuery<TopicDetails, ServerResponse>({
     queryKey: topicKeys.details(props),
-    queryFn: () => api.getTopicDetails(props),
+    queryFn: () => apiFetch(() => api.getTopicDetails(props)),
     ...queryOptions,
   });
 }
@@ -98,6 +111,17 @@ export function useTopicConnectors(
   return useSuspenseQuery<FullConnectorInfo[]>({
     queryKey: topicKeys.connectors(props),
     queryFn: () => api.getTopicConnectors(props),
+    ...queryOptions,
+  });
+}
+
+export function useTopicAcls(
+  props: ListTopicAclsRequest,
+  queryOptions?: Omit<UseQueryOptions<KafkaAcl[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryFn: () => api.listTopicAcls(props),
+    queryKey: topicKeys.acls(props),
     ...queryOptions,
   });
 }

@@ -3,18 +3,21 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-  useSuspenseQuery,
+  UseQueryOptions,
 } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import {
   ConsumerGroup,
+  ConsumerGroupDetails,
   ConsumerGroupLag,
   ConsumerGroupOffsetsReset,
   ConsumerGroupOrdering,
   ConsumerGroupsLagResponse,
+  ConsumerGroupState,
+  ConsumerGroupsPageResponse,
   SortOrder,
 } from 'generated-sources';
-import { showSuccessAlert } from 'lib/errorHandling';
+import { apiFetch, ServerResponse, showSuccessAlert } from 'lib/errorHandling';
 import { useEffect, useRef } from 'react';
 
 export type ConsumerGroupID = ConsumerGroup['groupId'];
@@ -27,6 +30,7 @@ type UseConsumerGroupsProps = {
   perPage?: number;
   search: string;
   fts?: boolean;
+  state?: ConsumerGroupState[];
 };
 
 type UseConsumerGroupDetailsProps = {
@@ -34,20 +38,37 @@ type UseConsumerGroupDetailsProps = {
   consumerGroupID: ConsumerGroupID;
 };
 
-export function useConsumerGroups(props: UseConsumerGroupsProps) {
+export function useConsumerGroups(
+  props: UseConsumerGroupsProps,
+  queryOptions?: Omit<
+    UseQueryOptions<ConsumerGroupsPageResponse, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
   const { clusterName, ...rest } = props;
   return useQuery({
     queryKey: ['clusters', clusterName, 'consumerGroups', rest],
-    queryFn: () => api.getConsumerGroupsPage(props),
+    queryFn: () => apiFetch(() => api.getConsumerGroupsPage(props)),
     placeholderData: (previousData) => previousData,
+    ...queryOptions,
   });
 }
 
-export function useConsumerGroupDetails(props: UseConsumerGroupDetailsProps) {
+export function useConsumerGroupDetails(
+  props: UseConsumerGroupDetailsProps,
+  queryOptions?: Omit<
+    UseQueryOptions<ConsumerGroupDetails, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
   const { clusterName, consumerGroupID } = props;
-  return useSuspenseQuery({
+  return useQuery<ConsumerGroupDetails, ServerResponse>({
     queryKey: ['clusters', clusterName, 'consumerGroups', consumerGroupID],
-    queryFn: () => api.getConsumerGroup({ clusterName, id: consumerGroupID }),
+    queryFn: () =>
+      apiFetch(() =>
+        api.getConsumerGroup({ clusterName, id: consumerGroupID })
+      ),
+    ...queryOptions,
   });
 }
 
