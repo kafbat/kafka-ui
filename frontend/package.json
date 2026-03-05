@@ -13,7 +13,7 @@
     "@tanstack/react-query-devtools": "5.91.2",
     "@tanstack/react-table": "8.16.0",
     "ace-builds": "1.33.0",
-    "ajv": "8.8.2",
+    "ajv": "8.18.0",
     "ajv-draft-04": "^1.0.0",
     "ajv-formats": "3.0.1",
     "json-schema-faker": "0.5.6",
