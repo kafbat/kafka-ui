@@ -38,6 +38,15 @@ export const useProduceMessage = (): UseProduceMessageReturn => {
       data.keySerde = message.keySerde;
     }
 
+    if (message.keyDeserializeProperties?.subjects?.[0]) {
+      data.keySubject = message.keyDeserializeProperties.subjects[0] as string;
+    }
+
+    if (message.valueDeserializeProperties?.subjects?.[0]) {
+      data.valueSubject = message.valueDeserializeProperties
+        .subjects[0] as string;
+    }
+
     setMessageData(data);
   }, []);
 

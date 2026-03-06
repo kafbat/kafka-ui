@@ -1,6 +1,8 @@
 package io.kafbat.ui.serde.api;
 
 import java.io.Closeable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.kafka.common.header.Headers;
 
@@ -101,6 +103,33 @@ public interface Serde extends Closeable {
    * @return {@code Serializer} for the specified topic's key/value.
    */
   Serializer serializer(String topic, Target type);
+
+  /**
+   * Creates {@code Serializer} for the specified topic's key/value, with additional properties
+   * that may influence serialization (e.g. explicit schema subject).
+   * Default implementation ignores properties and delegates to {@link #serializer(String, Target)}.
+   *
+   * @param topic      topic name
+   * @param type       {@code Target} for which {@code Serializer} will be created.
+   * @param properties additional serde-specific properties (e.g. {"subject": "my-subject"})
+   * @return {@code Serializer} for the specified topic's key/value.
+   */
+  default Serializer serializer(String topic, Target type, Map<String, Object> properties) {
+    return serializer(topic, type);
+  }
+
+  /**
+   * Returns a list of subjects (or similar identifiers) that this serde can use
+   * for the given topic and target. Used to populate UI dropdowns.
+   * Default implementation returns an empty list.
+   *
+   * @param topic topic name
+   * @param type  {@code Target} for which subjects will be returned.
+   * @return list of applicable subjects, empty if not applicable.
+   */
+  default List<String> getSubjects(String topic, Target type) {
+    return List.of();
+  }
 
   /**
    * Creates {@code Deserializer} for the specified topic's key/value.
