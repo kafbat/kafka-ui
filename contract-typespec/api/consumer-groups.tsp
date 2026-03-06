@@ -20,7 +20,8 @@ interface ConsumerGroupsApi {
     @query search?: string,
     @query orderBy?: ConsumerGroupOrdering,
     @query sortOrder?: SortOrder,
-    @query fts?: boolean
+    @query fts?: boolean,
+    @query state?: ConsumerGroupState[]
   ): ConsumerGroupsPageResponse;
 
   @get
@@ -44,7 +45,8 @@ interface ConsumerGroupsApi {
     @query search?: string,
     @query orderBy?: ConsumerGroupOrdering,
     @query sortOrder?: SortOrder,
-    @query fts?: boolean
+    @query fts?: boolean,
+    @query state?: ConsumerGroupState[]
   ): CsvResponse;
 
   @get
