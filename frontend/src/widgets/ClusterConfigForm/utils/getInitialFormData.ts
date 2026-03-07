@@ -1,6 +1,6 @@
 import {
   ApplicationConfigPropertiesKafkaClusters,
-  ApplicationConfigPropertiesKafkaSchemaRegistrySsl,
+  KeystoreConfig,
 } from 'generated-sources';
 import { ClusterConfigFormValues } from 'widgets/ClusterConfigForm/types';
 
@@ -12,9 +12,7 @@ const parseBootstrapServers = (bootstrapServers?: string) =>
     return { host, port };
   });
 
-const parseKeystore = (
-  keystore?: ApplicationConfigPropertiesKafkaSchemaRegistrySsl
-) => {
+const parseKeystore = (keystore?: KeystoreConfig) => {
   if (!keystore) return undefined;
   const { keystoreLocation, keystorePassword } = keystore;
   return {
