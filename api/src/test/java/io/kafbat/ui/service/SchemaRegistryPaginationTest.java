@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.openapitools.jackson.nullable.JsonNullable;
 import reactor.core.publisher.Mono;
 
 class SchemaRegistryPaginationTest {
@@ -41,7 +42,8 @@ class SchemaRegistryPaginationTest {
     initWithData(subjects.stream().map(s ->
         new SubjectWithCompatibilityLevel(
             new SchemaSubject().subject(s),
-            Compatibility.FULL
+            Compatibility.FULL,
+            s.contains("-value") ? s.replace("-value", "") : null
         )
     ).toList());
   }
@@ -115,6 +117,20 @@ class SchemaRegistryPaginationTest {
   }
 
   @Test
+  void shouldReturnTopic() {
+    init(
+        List.of("topic-1-value")
+    );
+    var schemasSearch7 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
+        null, null, "1", null, null, null, null).block();
+    assertThat(schemasSearch7).isNotNull();
+    assertThat(schemasSearch7.getBody()).isNotNull();
+    assertThat(schemasSearch7.getBody().getPageCount()).isEqualTo(1);
+    assertThat(schemasSearch7.getBody().getSchemas()).hasSize(1);
+    assertThat(schemasSearch7.getBody().getSchemas().getFirst().getTopic()).isEqualTo(JsonNullable.of("topic-1"));
+  }
+
+  @Test
   void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
     init(
                 IntStream.rangeClosed(1, 100)
@@ -169,7 +185,7 @@ class SchemaRegistryPaginationTest {
                     .subject("subject" + num)
                     .schemaType(SchemaType.AVRO)
                     .id(num),
-                Compatibility.FULL
+                Compatibility.FULL, null
             )
         ).toList();
 

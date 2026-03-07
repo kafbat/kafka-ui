@@ -30,8 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -47,6 +50,10 @@ public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
   private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
+
+  // Confluent Schema Registry API content types (used by WarpStream and other compatible implementations)
+  private static final MediaType SR_V1_JSON = MediaType.parseMediaType("application/vnd.schemaregistry.v1+json");
+  private static final MediaType SR_JSON = MediaType.parseMediaType("application/vnd.schemaregistry+json");
 
   private final DataSize webClientMaxBuffSize;
   private final Duration responseTimeout;
@@ -80,9 +87,11 @@ public class KafkaClusterFactory {
 
     if (schemaRegistryConfigured(clusterProperties)) {
       builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
+      builder.schemaRegistryTopicSubjectSuffix(clusterProperties.getSchemaRegistryTopicSubjectSuffix());
     }
     if (connectClientsConfigured(clusterProperties)) {
       builder.connectsClients(connectClients(clusterProperties));
+      builder.connectsConfigs(connectConfigs(clusterProperties));
     }
     if (ksqlConfigured(clusterProperties)) {
       builder.ksqlClient(ksqlClient(clusterProperties));
@@ -206,6 +215,13 @@ public class KafkaClusterFactory {
     return connects;
   }
 
+  private Map<String, ClustersProperties.ConnectCluster> connectConfigs(ClustersProperties.Cluster clusterProperties) {
+    return clusterProperties.getKafkaConnect().stream().collect(Collectors.toMap(
+        ClustersProperties.ConnectCluster::getName,
+        Function.identity()
+    ));
+  }
+
   private ReactiveFailover<KafkaConnectClientApi> connectClient(ClustersProperties.Cluster cluster,
                                                                 ClustersProperties.ConnectCluster connectCluster) {
     return ReactiveFailover.create(
@@ -233,6 +249,7 @@ public class KafkaClusterFactory {
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
         .configureBasicAuth(auth.getUsername(), auth.getPassword())
         .configureBufferSize(webClientMaxBuffSize)
+        .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
         .build();
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
