@@ -43,6 +43,7 @@ export const DatePickerInput = styled(DatePicker)`
   font-size: 14px;
   width: 100%;
   padding-left: 12px;
+  padding-right: 24px;
   background-color: ${({ theme }) => theme.input.backgroundColor.normal};
   color: ${({ theme }) => theme.input.color.normal};
   &::placeholder {
