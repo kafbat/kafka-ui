@@ -45,6 +45,8 @@ public class ClustersProperties {
 
   AdminClient adminClient = new AdminClient();
 
+  KafkaConnect kafkaConnectClient = new KafkaConnect();
+
   Csv csv = new Csv();
 
   Boolean messageRelativeTimestamp;
@@ -66,6 +68,14 @@ public class ClustersProperties {
     int listConsumerGroupOffsetsConcurrency = 4;
     int getTopicsConfigPartitionSize = 200;
     int describeTopicsPartitionSize = 200;
+  }
+
+  @Data
+  public static class KafkaConnect {
+    int scrapeConcurrency = 4;
+    int maxRetries = 5;
+    long retryBaseDelayMs = 500;
+    long retryMaxDelayMs = 10000;
   }
 
   @Data
