@@ -52,11 +52,11 @@ if (release) {
     nexusPublishing {
         repositories {
             sonatype {
-                nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
-                snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+                snapshotRepositoryUrl = uri("https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/")
 
-                username = sonatypeUsername
-                password = sonatypePassword
+                username = System.getenv("NEXUS_USERNAME")
+                password = System.getenv("NEXUS_PASSWORD")
             }
         }
     }
