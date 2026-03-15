@@ -15,6 +15,7 @@ permissions:
 jobs:
 
   check-cves:
+    if: ${{ github.repository == 'kafbat/kafka-ui' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -77,7 +78,7 @@ jobs:
 
   notify:
     needs: check-cves
-    if: ${{ always() && needs.build-and-test.result == 'failure' && github.event_name == 'schedule' }}
+    if: ${{ always() && needs.build-and-test.result == 'failure' && github.event_name == 'schedule' && github.repository == 'kafbat/kafka-ui' }}
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
       message: "Attention! CVE checks run failed! Please fix them CVEs :("
