@@ -5,6 +5,7 @@ import {
   clusterSchemaEditPageRelativePath,
   clusterSchemaSchemaComparePageRelativePath,
   clusterSchemasPath,
+  clusterTopicPath,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
@@ -68,6 +69,15 @@ const Details: React.FC = () => {
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
       >
+        {!!schema.data?.topic && (
+          <Button
+            buttonType="secondary"
+            buttonSize="M"
+            to={clusterTopicPath(clusterName, schema.data.topic)}
+          >
+            {`Go to topic "${schema.data.topic}"`}
+          </Button>
+        )}
         <Button
           buttonSize="M"
           buttonType="primary"
