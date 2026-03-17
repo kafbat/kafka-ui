@@ -143,16 +143,22 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
         </tr>
       </thead>
       <tbody>
-        {sortedConsumers.map((consumer) => (
-          <tr key={consumer.partition}>
-            <td>{consumer.partition}</td>
-            <td className="break-spaces">{consumer.consumerId}</td>
-            <td>{consumer.host}</td>
-            <td>{consumer.consumerLag}</td>
-            <td>{consumer.currentOffset}</td>
-            <td>{consumer.endOffset}</td>
-          </tr>
-        ))}
+        {sortedConsumers.map((consumer) => {
+          const consumerId = consumer.consumerId || 'no-id';
+          const consumerHost = consumer.host || 'no-host';
+          const key = `${consumer.topic}-${consumer.partition}-${consumerId}-${consumerHost}`;
+
+          return (
+            <tr key={key}>
+              <td>{consumer.partition}</td>
+              <td className="break-spaces">{consumer.consumerId}</td>
+              <td>{consumer.host}</td>
+              <td>{consumer.consumerLag}</td>
+              <td>{consumer.currentOffset}</td>
+              <td>{consumer.endOffset}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </Table>
   );
