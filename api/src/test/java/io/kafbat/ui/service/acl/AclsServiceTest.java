@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
 
 class AclsServiceTest {
 
-  private static final KafkaCluster CLUSTER = KafkaCluster.builder().build();
+  private static final KafkaCluster CLUSTER = KafkaCluster.builder().name("cluster1").build();
 
   private final ReactiveAdminClient adminClientMock = mock(ReactiveAdminClient.class);
   private final AdminClientService adminClientService = mock(AdminClientService.class);
