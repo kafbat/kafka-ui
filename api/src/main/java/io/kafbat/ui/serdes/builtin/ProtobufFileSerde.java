@@ -40,7 +40,6 @@ import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.ProtoParser;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaUtils;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
@@ -161,13 +160,17 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    TypeRegistry typeRegistry = TypeRegistry.newBuilder().add(descriptorPaths.keySet()).build();
     return new Serde.Deserializer() {
       @SneakyThrows
       @Override
       public DeserializeResult deserialize(RecordHeaders headers, byte[] data) {
         var protoMsg = DynamicMessage.parseFrom(descriptor, new ByteArrayInputStream(data));
-        byte[] jsonFromProto = ProtobufSchemaUtils.toJson(protoMsg);
-        var result = new String(jsonFromProto);
+        var result = JsonFormat.printer()
+            .usingTypeRegistry(typeRegistry)
+            .includingDefaultValueFields()
+            .omittingInsignificantWhitespace()
+            .print(protoMsg);
         return new DeserializeResult(
             result,
             DeserializeResult.Type.JSON,

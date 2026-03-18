@@ -270,6 +270,55 @@ class ProtobufFileSerdeTest {
   }
 
   @Test
+  void deserializeResolvesCustomTypesInsideAnyFields() throws Exception {
+    // messagewithany.proto defines MessageWithAny { string name; google.protobuf.Any payload; }
+    // and PayloadMessage { string id; }. This test verifies that when PayloadMessage is packed
+    // into the Any field, the deserializer can resolve the type URL and print its content as JSON.
+    Map<Path, ProtobufSchema> files = ProtobufFileSerde.Configuration.loadSchemas(
+        Optional.empty(),
+        Optional.of(protoFilesDir())
+    );
+    Path msgWithAnyPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
+    var msgWithAnySchema = files.get(msgWithAnyPath);
+
+    var payloadDescriptor = msgWithAnySchema.toDescriptor("test.PayloadMessage");
+    var outerDescriptor = msgWithAnySchema.toDescriptor("test.MessageWithAny");
+
+    // Build a PayloadMessage and pack it into MessageWithAny.payload as an Any
+    var payloadMsg = com.google.protobuf.DynamicMessage.newBuilder(payloadDescriptor)
+        .setField(payloadDescriptor.findFieldByName("id"), "payload-123")
+        .build();
+    var anyValue = com.google.protobuf.Any.pack(payloadMsg);
+
+    // Workaround: pack() requires a generated class; build Any manually via JSON round-trip
+    var typeRegistry = com.google.protobuf.TypeRegistry.newBuilder()
+        .add(payloadDescriptor)
+        .add(outerDescriptor)
+        .build();
+    var anyJson = "{\"@type\":\"type.googleapis.com/test.PayloadMessage\",\"id\":\"payload-123\"}";
+    var outerJson = "{\"name\":\"test\",\"payload\":" + anyJson + "}";
+
+    var outerBuilder = msgWithAnySchema.newMessageBuilder("test.MessageWithAny");
+    com.google.protobuf.util.JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(outerJson, outerBuilder);
+    var outerMsgBytes = outerBuilder.build().toByteArray();
+
+    var serde = new ProtobufFileSerde();
+    serde.configure(new Configuration(
+        outerDescriptor,
+        null,
+        Map.of(outerDescriptor, msgWithAnyPath, payloadDescriptor, msgWithAnyPath),
+        Map.of(),
+        Map.of()
+    ));
+
+    var result = serde.deserializer("any-topic", Serde.Target.VALUE)
+        .deserialize(null, outerMsgBytes);
+
+    assertThat(result.getResult()).contains("payload-123");
+    assertThat(result.getResult()).contains("test.PayloadMessage");
+  }
+
+  @Test
   void deserializeUsesTopicsMappingToFindMsgDescriptor() {
     var messageNameMap = Map.of(
         "persons", personDescriptor,
