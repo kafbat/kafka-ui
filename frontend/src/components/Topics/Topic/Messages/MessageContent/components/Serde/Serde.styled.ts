@@ -24,6 +24,7 @@ export const MetadataMeta = styled.p`
 
 export const SchemaLink = styled(Link)`
   cursor: pointer;
+  text-decoration: underline;
   color: ${({ theme }) => theme.link.color};
 
   &:hover {
