@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Builder;
@@ -43,6 +44,38 @@ public class InternalTopic {
   // from log dir data
   private final long segmentSize;
   private final long segmentCount;
+
+  public long getSize() {
+    return segmentSize * segmentCount;
+  }
+
+  public long getRetentionMs() {
+    return getConfig("retention.ms", Long::parseLong).orElse(0L);
+  }
+
+  public long getRetentionBytes() {
+    return getConfig("retention.bytes", Long::parseLong).orElse(0L);
+  }
+
+  public long getSegmentMs() {
+    return getConfig("segment.ms", Long::parseLong).orElse(0L);
+  }
+
+  public long getSegmentBytes() {
+    return getConfig("segment.bytes", Long::parseLong).orElse(0L);
+  }
+
+  public long getMaxMessageBytes() {
+    return getConfig("max.message.bytes", Long::parseLong).orElse(0L);
+  }
+
+  private <T> Optional<T> getConfig(String name, Function<String, T> mapper) {
+    return topicConfigs.stream()
+        .filter(c -> c.getName().equals(name))
+        .findFirst()
+        .map(InternalTopicConfig::getValue)
+        .map(mapper);
+  }
 
 
   public InternalTopic withMetrics(Metrics metrics) {
