@@ -2,6 +2,7 @@ package io.kafbat.ui.model;
 
 import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
 
+import com.google.common.primitives.Longs;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.util.annotation.CsvIgnore;
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import lombok.Data;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.TopicConfig;
 
 @Data
 @Builder(toBuilder = true)
@@ -50,31 +52,34 @@ public class InternalTopic {
   }
 
   public long getRetentionMs() {
-    return getConfig("retention.ms", Long::parseLong).orElse(0L);
+    return getConfig(TopicConfig.RETENTION_MS_CONFIG, Long::parseLong).orElse(0L);
   }
 
   public long getRetentionBytes() {
-    return getConfig("retention.bytes", Long::parseLong).orElse(0L);
+    return getConfig(TopicConfig.RETENTION_BYTES_CONFIG, Longs::tryParse).orElse(0L);
   }
 
   public long getSegmentMs() {
-    return getConfig("segment.ms", Long::parseLong).orElse(0L);
+    return getConfig(TopicConfig.SEGMENT_MS_CONFIG, Longs::tryParse).orElse(0L);
   }
 
   public long getSegmentBytes() {
-    return getConfig("segment.bytes", Long::parseLong).orElse(0L);
+    return getConfig(TopicConfig.RETENTION_BYTES_CONFIG, Longs::tryParse).orElse(0L);
   }
 
   public long getMaxMessageBytes() {
-    return getConfig("max.message.bytes", Long::parseLong).orElse(0L);
+    return getConfig(TopicConfig.MAX_MESSAGE_BYTES_CONFIG, Longs::tryParse).orElse(0L);
   }
 
   private <T> Optional<T> getConfig(String name, Function<String, T> mapper) {
-    return topicConfigs.stream()
-        .filter(c -> c.getName().equals(name))
-        .findFirst()
-        .map(InternalTopicConfig::getValue)
-        .map(mapper);
+    return Optional.ofNullable(topicConfigs)
+        .flatMap(configs ->
+            configs.stream()
+              .filter(c -> c.getName().equals(name))
+              .findFirst()
+              .map(InternalTopicConfig::getValue)
+              .map(mapper)
+        );
   }
 
 
