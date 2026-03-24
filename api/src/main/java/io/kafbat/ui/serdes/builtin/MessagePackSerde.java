@@ -34,7 +34,6 @@ public class MessagePackSerde implements BuiltInSerde {
       }
       try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
         packer.packString(inputString);
-        packer.close();
         return packer.toByteArray();
       } catch (IOException e) {
         throw new IllegalArgumentException("Failed to serialize MessagePack payload", e);
