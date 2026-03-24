@@ -3,12 +3,12 @@ import Table from 'components/common/NewTable';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { useSearchParams } from 'react-router-dom';
 import TopicContents from 'components/ConsumerGroups/Details/TopicContents/TopicContents';
+import groupBy from 'lib/functions/groupBy';
 
 import {
   getConsumerGroupTopicsTableColumns,
   getConsumerGroupTopicsTableData,
 } from './lib/utils';
-import groupBy from 'lib/functions/groupBy';
 
 type TopicsTableProps = {
   partitions: ConsumerGroupTopicPartition[];
@@ -23,10 +23,7 @@ export const TopicsTable = ({ partitions }: TopicsTableProps) => {
     partitions,
     searchQuery,
   });
-  const partitionsByTopic = groupBy(
-    partitions || [],
-    'topic'
-  );
+  const partitionsByTopic = groupBy(partitions || [], 'topic');
 
   return (
     <Table
@@ -34,12 +31,12 @@ export const TopicsTable = ({ partitions }: TopicsTableProps) => {
       columns={columns}
       data={tableData}
       emptyMessage="No topics"
-      renderSubComponent={
-        (row) => {
-          const topicName = row.row.original.topicName;
-          return <TopicContents topicPartitions={partitionsByTopic[topicName] ?? []} />
-        }
-      }
+      renderSubComponent={(row) => {
+        const { topicName } = row.row.original;
+        return (
+          <TopicContents topicPartitions={partitionsByTopic[topicName] ?? []} />
+        );
+      }}
     />
   );
 };

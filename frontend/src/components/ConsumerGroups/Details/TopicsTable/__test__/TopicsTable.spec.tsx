@@ -1,6 +1,6 @@
 import React from 'react';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
-import {act, fireEvent, screen, within} from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { TopicsTable } from 'components/ConsumerGroups/Details/TopicsTable/TopicsTable';
 import { render, WithRoute } from 'lib/testHelpers';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
@@ -13,7 +13,7 @@ const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
     <WithRoute path={clusterConsumerGroupDetailsPath()}>
       <table>
         <tbody>
-        <TopicsTable partitions={topicPartitions} />
+          <TopicsTable partitions={topicPartitions} />
         </tbody>
       </table>
     </WithRoute>,
@@ -30,7 +30,7 @@ const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
 describe('TopicContent', () => {
   it('renders empty table', () => {
     renderComponent();
-    expect(screen.getByText('No topics')).toBeDefined();
+    expect(screen.getByText('No topics')).toBeInTheDocument();
   });
 
   it('renders partitions only for the expanded topic', () => {
@@ -46,11 +46,12 @@ describe('TopicContent', () => {
     expect(expectedPartitions.length).toBeGreaterThan(0);
 
     const topicLink = screen.getByRole('link', { name: firstTopic });
-    expect(topicLink).toBeDefined();
+    expect(topicLink).toBeInTheDocument();
 
     const topicRow = topicLink.closest('tr');
-    const expandButton = within(topicRow as HTMLElement)
-      .getByRole('button', { name: 'Expand row' });
+    const expandButton = within(topicRow as HTMLElement).getByRole('button', {
+      name: 'Expand row',
+    });
 
     act(() => fireEvent.click(expandButton));
 
@@ -61,7 +62,8 @@ describe('TopicContent', () => {
     expect(expandedCell).toHaveAttribute('colspan', '5');
 
     const nestedTable = within(expandedCell as HTMLElement).getByRole('table');
-    const nestedRows = within(nestedTable).getAllByRole('row')
+    const nestedRows = within(nestedTable)
+      .getAllByRole('row')
       .filter((row) => row.querySelector('td'));
 
     const shownPartitions = nestedRows

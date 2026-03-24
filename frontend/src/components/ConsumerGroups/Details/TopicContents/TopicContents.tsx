@@ -121,7 +121,9 @@ const TopicContents: React.FC<Props> = ({ topicPartitions }) => {
         comparator = consumerIdComparator;
       }
 
-      return topicPartitions.sort((a, b) => comparator(a, b, sortOrder, orderBy));
+      return topicPartitions.sort((a, b) =>
+        comparator(a, b, sortOrder, orderBy)
+      );
     }
     return topicPartitions;
   }, [orderBy, sortOrder, topicPartitions]);
