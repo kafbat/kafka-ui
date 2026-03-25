@@ -1,7 +1,7 @@
 import React from 'react';
 import { CellContext } from '@tanstack/react-table';
 import { FullConnectorInfo } from 'generated-sources';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
 import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 

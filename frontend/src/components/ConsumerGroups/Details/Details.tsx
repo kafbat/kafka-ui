@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
+  clusterConnectorsPath,
   clusterConsumerGroupResetRelativePath,
   clusterConsumerGroupsPath,
   ClusterGroupParam,
-  clusterConnectorsPath,
 } from 'lib/paths';
 import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -19,6 +19,7 @@ import { ActionDropdownItem } from 'components/common/ActionComponent';
 import {
   useConsumerGroupDetails,
   useDeleteConsumerGroupMutation,
+  useGetConsumerGroupsLag,
 } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
@@ -29,6 +30,13 @@ import ExportIcon from 'components/common/Icons/ExportIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
 import { getConnectorNameFromConsumerGroup } from 'lib/utils/connectorUtils';
+import { useLocalStorage } from 'lib/hooks/useLocalStorage';
+import {
+  computeLagTrends,
+  LagTrend,
+  LagTrendComponent,
+} from 'lib/consumerGroups';
+import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -47,6 +55,36 @@ const Details: React.FC = () => {
     isRefetching,
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
+
+  const [pollingIntervalSec] = useLocalStorage(
+    `consumer-group-${consumerGroupID}-refresh-rate`,
+    0
+  );
+
+  const { data: consumerGroupsLag, isSuccess: isLagFetched } =
+    useGetConsumerGroupsLag({
+      clusterName,
+      ids: [consumerGroupID],
+      pollingIntervalSec,
+    });
+
+  const prevLagRef = useRef<Record<string, number | undefined>>({});
+  const [lagTrends, setLagTrends] = React.useState<Record<string, LagTrend>>(
+    {}
+  );
+
+  useEffect(() => {
+    if (isLagFetched && !!consumerGroupsLag) {
+      const nextTrends = computeLagTrends(
+        prevLagRef.current,
+        consumerGroupsLag.consumerGroups ?? {},
+        (cg) => cg?.lag,
+        pollingIntervalSec > 0
+      );
+
+      setLagTrends(nextTrends);
+    }
+  }, [consumerGroupsLag, isLagFetched]);
 
   const onDelete = async () => {
     await deleteConsumerGroup.mutateAsync();
@@ -125,7 +163,6 @@ const Details: React.FC = () => {
 
             {isSuccess && (
               <>
-                {' '}
                 <Metrics.Wrapper>
                   <Metrics.Section>
                     <Metrics.Indicator label="State">
@@ -156,7 +193,13 @@ const Details: React.FC = () => {
                       {consumerGroup?.coordinator?.id}
                     </Metrics.Indicator>
                     <Metrics.Indicator label="Total lag">
-                      {consumerGroup?.consumerLag}
+                      <LagTrendComponent
+                        lag={
+                          consumerGroupsLag?.consumerGroups[consumerGroupID]
+                            ?.lag ?? consumerGroup?.consumerLag
+                        }
+                        trend={lagTrends[consumerGroupID]}
+                      />
                     </Metrics.Indicator>
                     {connectorName && (
                       <Metrics.Indicator label="Connector">
@@ -171,8 +214,17 @@ const Details: React.FC = () => {
                 </Metrics.Wrapper>
                 <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
                   <Search placeholder="Search by Topic Name" />
+
+                  <RefreshRateSelect
+                    storageKey={`consumer-group-${consumerGroupID}-refresh-rate`}
+                  />
                 </ControlPanelWrapper>
-                <TopicsTable partitions={consumerGroup?.partitions ?? []} />
+                <TopicsTable
+                  partitions={consumerGroup?.partitions ?? []}
+                  consumerGroupsLag={consumerGroupsLag}
+                  isLagFetched={isLagFetched}
+                  pollingIntervalSec={pollingIntervalSec}
+                />
               </>
             )}
           </>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Search from 'components/common/Search/Search';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import {
@@ -24,14 +24,16 @@ import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
 import { consumerGroupsApiClient } from 'lib/api';
-import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import useQueryPersister from 'components/common/NewTable/ColumnFilter/lib/persisters/queryPersister';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
-
-import { LagContainer } from './styled';
+import {
+  computeLagTrends,
+  LagTrend,
+  LagTrendComponent,
+} from 'lib/consumerGroups';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -64,9 +66,7 @@ const List = () => {
   );
 
   const prevLagRef = useRef<Record<string, number | undefined>>({});
-  const [lagTrends, setLagTrends] = React.useState<Record<string, LagTrend>>(
-    {}
-  );
+  const [lagTrends, setLagTrends] = useState<Record<string, LagTrend>>({});
 
   const { data: consumerGroupsLag, isSuccess } = useGetConsumerGroupsLag({
     clusterName,
@@ -127,22 +127,7 @@ const List = () => {
         const lag = consumerGroupsLag?.consumerGroups?.[groupId]?.lag;
         const trend = lagTrends[groupId];
 
-        if (lag == null) return 'N/A';
-
-        let trendElement = null;
-
-        if (trend === 'up') {
-          trendElement = '▲';
-        } else if (trend === 'down') {
-          trendElement = '▼';
-        }
-
-        return (
-          <LagContainer $lagTrend={trend}>
-            <span>{lag}</span>
-            {trendElement && <span>{trendElement}</span>}
-          </LagContainer>
-        );
+        return <LagTrendComponent lag={lag} trend={trend} />;
       },
       size: 124,
     },
@@ -204,14 +189,11 @@ const List = () => {
           placeholder="Search by Consumer Group ID"
           extraActions={<Fts resourceName="consumer_groups" />}
         />
-
         <RefreshRateSelect storageKey="consumer-groups-refresh-rate" />
       </ControlPanelWrapper>
-
       {(consumerGroups.isLoading || consumerGroups.isRefetching) && (
         <PageLoader offsetY={300} />
       )}
-
       {consumerGroups.error && (
         <ErrorPage
           offsetY={300}
@@ -220,7 +202,6 @@ const List = () => {
           text={consumerGroups.error.message}
         />
       )}
-
       {consumerGroups.isSuccess && (
         <Table
           columns={columns}
