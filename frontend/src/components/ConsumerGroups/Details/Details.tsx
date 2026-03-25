@@ -161,7 +161,7 @@ const Details: React.FC = () => {
                     {connectorName && (
                       <Metrics.Indicator label="Connector">
                         <Link
-                          to={`${clusterConnectorsPath(clusterName)}?search=${encodeURIComponent(connectorName)}`}
+                          to={`${clusterConnectorsPath(clusterName)}?q=${encodeURIComponent(connectorName)}`}
                         >
                           {connectorName}
                         </Link>
