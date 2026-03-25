@@ -7,7 +7,7 @@ azure-identity = '1.15.4'
 
 apache-commons-lang3 = '3.20.0'
 apache-commons-text = '1.15.0'
-apache-commons-pool2 = '2.13.0'
+apache-commons-pool2 = '2.13.1'
 apache-datasketches = '3.1.0'
 apache-commons-compress = '1.28.0'
 
