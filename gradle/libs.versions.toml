@@ -1,6 +1,6 @@
 [versions]
 spring-boot = '3.5.12'
-nimbus-jose-jwt = '10.6'
+nimbus-jose-jwt = '10.8'
 jackson-core = '2.21.2'
 
 aws-msk-auth = '2.3.0'
