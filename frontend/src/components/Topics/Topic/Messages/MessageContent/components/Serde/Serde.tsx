@@ -63,7 +63,7 @@ const Serde: FC<{
       <span>
         {schemaLink ? (
           <S.SchemaButton to={schemaLink} buttonType="text" buttonSize="S">
-            Go to schema registry <GoToIcon />
+            {serde} <GoToIcon />
           </S.SchemaButton>
         ) : (
           <S.MetadataValue>{serde}</S.MetadataValue>
