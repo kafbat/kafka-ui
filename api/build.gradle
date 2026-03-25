@@ -58,7 +58,8 @@ dependencies {
     implementation libs.confluent.avro.serializer
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
-    implementation 'org.msgpack:msgpack-core:0.9.11'
+
+    implementation libs.msgpack.core
 
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
