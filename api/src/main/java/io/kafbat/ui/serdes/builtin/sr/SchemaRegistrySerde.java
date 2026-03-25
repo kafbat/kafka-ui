@@ -24,11 +24,13 @@ import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
+import io.kafbat.ui.exception.UnknownSchemaTypeException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.SchemaRegistryDeserializePropertiesDTO;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
 import io.kafbat.ui.serde.api.SchemaDescription;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
@@ -51,6 +53,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private static final ObjectMapper OM = new ObjectMapper();
 
   public static final String NAME = "SchemaRegistry";
+  public static final String SUBJECT_PARAMETER_NAME = "subject";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
 
@@ -281,7 +284,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     URI basePath = new URI(schemaRegistryUrls.getFirst())
         .resolve(Integer.toString(schema.getId()));
     SchemaType schemaType = SchemaType.fromString(schema.getSchemaType())
-        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + schema.getSchemaType()));
+        .orElseThrow(() -> new UnknownSchemaTypeException(schema.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> new ProtobufSchemaConverter()
           .convert(basePath, ((ProtobufSchema) parsedSchema).toDescriptor())
@@ -340,23 +343,16 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
     return allSubjects.stream()
         .filter(subject -> {
-          // Exclude subjects explicitly for the opposite type
           if (subject.endsWith(excludeSuffix)) {
             return false;
           }
-          // TopicNameStrategy: exact match with default subject
-          if (subject.equals(defaultSubject)) {
-            return true;
-          }
-          // TopicRecordNameStrategy: starts with topic-
-          if (subject.startsWith(topicPrefix)) {
-            return true;
-          }
-          // RecordNameStrategy: doesn't end with -key or -value (not topic-based naming)
-          if (!subject.endsWith("-key") && !subject.endsWith("-value")) {
-            return true;
-          }
-          return false;
+
+          boolean isDefaultSubject = subject.equals(defaultSubject);
+          boolean isTopicName = subject.startsWith(topicPrefix);
+          boolean isNotKeyOrValue =
+              !subject.endsWith("-key") && !subject.endsWith("-value");
+
+          return isDefaultSubject || isTopicName || isNotKeyOrValue;
         })
         .toList();
   }
@@ -371,7 +367,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .orElseThrow(() -> new IllegalStateException(
             String.format("Schema found for id %s, subject '%s'", meta.getId(), subject)));
     SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
-        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + meta.getSchemaType()));
+        .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> input ->
           serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
@@ -385,7 +381,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   @Override
   public Serializer serializer(String topic, Target type, Map<String, Object> properties) {
     if (properties != null) {
-      Object subjectObj = properties.get("subject");
+      Object subjectObj = properties.get(SUBJECT_PARAMETER_NAME);
       if (subjectObj instanceof String explicitSubject && !explicitSubject.isEmpty()) {
         return serializerWithSubject(topic, type, explicitSubject);
       }
@@ -394,8 +390,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   }
 
   @Override
-  public List<String> getSubjects(String topic, Target type) {
-    return getSchemaSubjects(topic, type);
+  public List<SerdeParameter> getParameters(String topic, Target type) {
+    return List.of(
+        new SerdeParameter(SUBJECT_PARAMETER_NAME, SUBJECT_PARAMETER_NAME, getSchemaSubjects(topic, type))
+    );
   }
 
   private Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
@@ -406,7 +404,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .orElseThrow(() -> new IllegalStateException(
             String.format("Schema not found for id %s, subject '%s'", meta.getId(), explicitSubject)));
     SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
-        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + meta.getSchemaType()));
+        .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> input ->
           serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);

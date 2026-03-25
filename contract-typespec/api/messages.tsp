@@ -246,4 +246,11 @@ model SerdeDescription {
 
   schema?: string;
   additionalProperties?: Record<unknown>;
+  parameters?: SerdeParameter[];
+}
+
+model SerdeParameter {
+  name: string;
+  visibleName?: string;
+  allowedValues?: string[]
 }

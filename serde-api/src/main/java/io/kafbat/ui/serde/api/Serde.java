@@ -119,15 +119,15 @@ public interface Serde extends Closeable {
   }
 
   /**
-   * Returns a list of subjects (or similar identifiers) that this serde can use
+   * Returns a list of possible parameters that this serde can use
    * for the given topic and target. Used to populate UI dropdowns.
-   * Default implementation returns an empty list.
+   * Default implementation returns an empty Map.
    *
    * @param topic topic name
    * @param type  {@code Target} for which subjects will be returned.
-   * @return list of applicable subjects, empty if not applicable.
+   * @return List of applicable parameters.
    */
-  default List<String> getSubjects(String topic, Target type) {
+  default List<SerdeParameter> getParameters(String topic, Target type) {
     return List.of();
   }
 

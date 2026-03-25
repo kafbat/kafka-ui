@@ -3,8 +3,10 @@ package io.kafbat.ui.service;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SerdeDescriptionDTO;
+import io.kafbat.ui.model.SerdeParameterDTO;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.serdes.ClusterSerdes;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
@@ -12,7 +14,6 @@ import io.kafbat.ui.serdes.SerdeInstance;
 import io.kafbat.ui.serdes.SerdesInitializer;
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -151,22 +152,26 @@ public class DeserializationService implements Closeable {
                                     Serde.Target serdeType,
                                     boolean preferred) {
     var schemaOpt = serdeInstance.getSchema(topic, serdeType);
-    Map<String, Object> additionalProps = schemaOpt
-        .map(SchemaDescription::getAdditionalProperties)
-        .map(HashMap::new)
-        .orElseGet(HashMap::new);
-
-    var subjects = serdeInstance.getSubjects(topic, serdeType);
-    if (!subjects.isEmpty()) {
-      additionalProps.put("subjects", subjects);
-    }
 
     return new SerdeDescriptionDTO()
         .name(serdeInstance.getName())
         .description(serdeInstance.description().orElse(null))
         .schema(schemaOpt.map(SchemaDescription::getSchema).orElse(null))
-        .additionalProperties(additionalProps.isEmpty() ? null : additionalProps)
+        .parameters(toParametersDto(serdeInstance.getParameters(topic, serdeType)))
+        .additionalProperties(schemaOpt.map(SchemaDescription::getAdditionalProperties).orElse(null))
         .preferred(preferred);
+  }
+
+  private SerdeParameterDTO toDto(SerdeParameter p) {
+    return new SerdeParameterDTO(
+        p.getName(),
+        p.getVisibleName(),
+        p.getAllowedValues()
+    );
+  }
+
+  private List<SerdeParameterDTO> toParametersDto(List<SerdeParameter> parameters) {
+    return parameters.stream().map(this::toDto).toList();
   }
 
   @Override

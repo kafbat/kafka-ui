@@ -55,9 +55,11 @@ const SendMessage: React.FC<SendMessageProps> = ({
 
   // Get subjects from the SchemaRegistry serde for key and value
   const keySubjectOptions = React.useMemo(() => {
+
     const srSerde = serdes.key?.find(
       (s) => s.name === SCHEMA_REGISTRY_SERDE_NAME
     );
+
     const subjects =
       (srSerde?.additionalProperties?.subjects as string[]) || [];
     return subjects.map((subject) => ({

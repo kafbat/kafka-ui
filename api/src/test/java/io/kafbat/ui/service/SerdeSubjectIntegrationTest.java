@@ -1,5 +1,6 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde.SUBJECT_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
@@ -7,10 +8,11 @@ import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.model.SerdeDescriptionDTO;
+import io.kafbat.ui.model.SerdeParameterDTO;
 import io.kafbat.ui.model.SerdeUsageDTO;
 import io.kafbat.ui.model.TopicSerdeSuggestionDTO;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -84,7 +86,7 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
       if (subject.contains(topicName) || subject.startsWith("com.example.") || subject.startsWith("io.kafbat.")) {
         try {
           schemaRegistry.schemaRegistryClient().deleteSubject(subject);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
           // ignore cleanup errors
         }
       }
@@ -106,15 +108,12 @@ class SerdeSubjectIntegrationTest extends AbstractIntegrationTest {
 
   @SuppressWarnings("unchecked")
   private static List<String> getSubjects(SerdeDescriptionDTO dto) {
-    var props = dto.getAdditionalProperties();
-    if (props == null) {
-      return Collections.emptyList();
-    }
-    Object subjects = props.get("subjects");
-    if (subjects instanceof List<?> list) {
-      return (List<String>) list;
-    }
-    return Collections.emptyList();
+    return Optional.ofNullable(dto.getParameters())
+        .flatMap(list ->
+            list.stream()
+                .filter(p -> SUBJECT_PARAMETER_NAME.equals(p.getName()))
+                .findFirst().map(SerdeParameterDTO::getAllowedValues)
+        ).orElse(List.of());
   }
 
   @Nested

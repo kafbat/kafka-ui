@@ -1,5 +1,6 @@
 package io.kafbat.ui.serdes.builtin.sr;
 
+import static io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde.SUBJECT_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -601,6 +602,13 @@ class SchemaRegistrySerdeTest {
   @Nested
   class GetSchemaSubjectsTests {
 
+    List<String> resolveSubjects(String topic, Serde.Target target) {
+      var parameters = serde.getParameters(topic, target);
+      return parameters.stream()
+          .filter(p -> p.getName().equals(SUBJECT_PARAMETER_NAME))
+          .findFirst().orElseThrow().getAllowedValues();
+    }
+
     @Test
     @SneakyThrows
     void returnsSubjectForTopicNameStrategy() {
@@ -608,8 +616,8 @@ class SchemaRegistrySerdeTest {
       registryClient.register(topic + "-key", new AvroSchema("\"int\""));
       registryClient.register(topic + "-value", new AvroSchema("\"string\""));
 
-      var keySubjects = serde.getSchemaSubjects(topic, Serde.Target.KEY);
-      var valueSubjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var keySubjects = resolveSubjects(topic, Serde.Target.KEY);
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(keySubjects).containsExactly(topic + "-key");
       assertThat(valueSubjects).containsExactly(topic + "-value");
@@ -623,9 +631,9 @@ class SchemaRegistrySerdeTest {
       registryClient.register("orders-OrderCreated", new AvroSchema("\"int\""));
       registryClient.register("orders-OrderUpdated", new AvroSchema("\"string\""));
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
-
-      assertThat(subjects).contains("orders-OrderCreated", "orders-OrderUpdated");
+      var parameters = serde.getParameters(topic, Serde.Target.VALUE);
+      assertThat(parameters).hasSize(1);
+      assertThat(parameters.getFirst().getAllowedValues()).contains("orders-OrderCreated", "orders-OrderUpdated");
     }
 
     @Test
@@ -636,7 +644,7 @@ class SchemaRegistrySerdeTest {
       registryClient.register("com.example.User", new AvroSchema("\"int\""));
       registryClient.register("com.example.Order", new AvroSchema("\"string\""));
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(subjects).contains("com.example.User", "com.example.Order");
     }
@@ -648,8 +656,8 @@ class SchemaRegistrySerdeTest {
       registryClient.register(topic + "-key", new AvroSchema("\"int\""));
       registryClient.register(topic + "-value", new AvroSchema("\"string\""));
 
-      var keySubjects = serde.getSchemaSubjects(topic, Serde.Target.KEY);
-      var valueSubjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var keySubjects = resolveSubjects(topic, Serde.Target.KEY);
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       // KEY should not include -value subjects
       assertThat(keySubjects).doesNotContain(topic + "-value");
@@ -667,7 +675,7 @@ class SchemaRegistrySerdeTest {
       registryClient.register("events-UserCreated", new AvroSchema("\"int\""));
       registryClient.register("com.example.Event", new AvroSchema("\"string\""));
 
-      var valueSubjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(valueSubjects).contains(
           "events-value",       // TopicNameStrategy
@@ -680,7 +688,7 @@ class SchemaRegistrySerdeTest {
     void returnsEmptyListWhenNoSubjectsExist() {
       String topic = "nonexistent-topic";
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(subjects).isEmpty();
     }
@@ -691,7 +699,7 @@ class SchemaRegistrySerdeTest {
       String topic = "avro-topic";
       registryClient.register(topic + "-value", new AvroSchema("\"int\""));
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(subjects).contains(topic + "-value");
     }
@@ -710,7 +718,7 @@ class SchemaRegistrySerdeTest {
       );
       registryClient.register(topic + "-value", protoSchema);
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(subjects).contains(topic + "-value");
     }
@@ -732,7 +740,7 @@ class SchemaRegistrySerdeTest {
       );
       registryClient.register(topic + "-value", jsonSchema);
 
-      var subjects = serde.getSchemaSubjects(topic, Serde.Target.VALUE);
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
 
       assertThat(subjects).contains(topic + "-value");
     }

@@ -2,6 +2,7 @@ package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
@@ -94,11 +95,11 @@ public class SerdeInstance implements Closeable {
     });
   }
 
-  public List<String> getSubjects(String topic, Serde.Target type) {
+  public List<SerdeParameter> getParameters(String topic, Serde.Target type) {
     try {
-      return wrapWithClassloader(() -> serde.getSubjects(topic, type));
+      return wrapWithClassloader(() -> serde.getParameters(topic, type));
     } catch (Exception e) {
-      log.warn("Error getting subjects for '{}'({}) with serde '{}'", topic, type, name, e);
+      log.warn("Error getting parameters for '{}'({}) with serde '{}'", topic, type, name, e);
       return List.of();
     }
   }

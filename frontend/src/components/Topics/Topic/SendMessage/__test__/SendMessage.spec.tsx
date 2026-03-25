@@ -87,7 +87,8 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      additionalProperties: { subjects: ['user-key', 'order-key'] },
+      parameters: [{name: "subjects", visibleName: "subjects", allowedValues: ['user-key', 'order-key']}],
+      additionalProperties: {},
     },
   ],
   value: [
@@ -96,7 +97,7 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      additionalProperties: { subjects: ['user-value', 'order-value'] },
+      parameters: [{name: "subjects", visibleName: "subjects", allowedValues: ['user-value', 'order-value']}],
     },
   ],
 };
