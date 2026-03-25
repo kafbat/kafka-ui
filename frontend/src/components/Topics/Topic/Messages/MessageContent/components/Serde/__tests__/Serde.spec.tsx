@@ -35,7 +35,9 @@ describe('Serde', () => {
           subjects: ['avrotest-value'],
         },
       });
-      const link = screen.queryByRole('link', { name: 'SchemaRegistry' });
+      const link = screen.queryByRole('link', {
+        name: 'Go to schema registry',
+      });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute(
         'href',
