@@ -2,11 +2,11 @@ package io.kafbat.ui.model;
 
 import com.google.common.base.Preconditions;
 import io.kafbat.ui.exception.ValidationException;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import jakarta.annotation.Nullable;
 import org.apache.kafka.common.TopicPartition;
 
 public record ConsumerPosition(PollingModeDTO pollingMode,

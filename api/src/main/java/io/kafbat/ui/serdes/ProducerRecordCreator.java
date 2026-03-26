@@ -1,8 +1,8 @@
 package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.Serde;
-import java.util.Map;
 import jakarta.annotation.Nullable;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;

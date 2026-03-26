@@ -2,11 +2,11 @@ package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

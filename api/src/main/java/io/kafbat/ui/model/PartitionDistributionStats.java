@@ -1,11 +1,11 @@
 package io.kafbat.ui.model;
 
+import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

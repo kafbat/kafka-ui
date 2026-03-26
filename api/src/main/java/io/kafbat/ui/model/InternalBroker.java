@@ -1,7 +1,7 @@
 package io.kafbat.ui.model;
 
-import java.math.BigDecimal;
 import jakarta.annotation.Nullable;
+import java.math.BigDecimal;
 import lombok.Data;
 import org.apache.kafka.common.Node;
 

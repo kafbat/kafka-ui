@@ -5,8 +5,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.kafbat.ui.config.auth.AuthenticatedUser;
-import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.AccessContext.AccessContextBuilder;
+import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.AclAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;

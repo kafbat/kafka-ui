@@ -33,6 +33,7 @@ import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
+import jakarta.annotation.Nullable;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import jakarta.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.apache.kafka.common.config.SslConfigs;
 

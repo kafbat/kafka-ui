@@ -1,7 +1,7 @@
 package io.kafbat.ui.serdes;
 
-import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageDTO.TimestampTypeEnum;
+import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.util.ContentUtils;
 import java.time.Instant;

@@ -3,8 +3,8 @@ package io.kafbat.ui.service.integration.odd.schema;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.BytesValue;
-import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
 import com.google.protobuf.FloatValue;
@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.opendatadiscovery.client.model.DataSetField;
-import org.opendatadiscovery.client.model.DataSetFieldType;
 import org.opendatadiscovery.client.model.DataSetFieldType.TypeEnum;
+import org.opendatadiscovery.client.model.DataSetFieldType;
 import org.opendatadiscovery.oddrn.model.KafkaPath;
 
 final class ProtoExtractor {

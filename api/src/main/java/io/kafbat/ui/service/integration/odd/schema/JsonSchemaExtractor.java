@@ -2,12 +2,12 @@ package io.kafbat.ui.service.integration.odd.schema;
 
 import com.google.common.collect.ImmutableSet;
 import io.confluent.kafka.schemaregistry.json.JsonSchema;
+import jakarta.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.annotation.Nullable;
 import org.everit.json.schema.ArraySchema;
 import org.everit.json.schema.BooleanSchema;
 import org.everit.json.schema.CombinedSchema;

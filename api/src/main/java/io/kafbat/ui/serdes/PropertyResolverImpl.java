@@ -2,10 +2,10 @@ package io.kafbat.ui.serdes;
 
 import com.google.common.base.Preconditions;
 import io.kafbat.ui.serde.api.PropertyResolver;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.annotation.Nullable;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertyName;

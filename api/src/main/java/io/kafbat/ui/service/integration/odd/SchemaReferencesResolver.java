@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
 import io.kafbat.ui.sr.model.SchemaReference;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import jakarta.annotation.Nullable;
 import reactor.core.publisher.Mono;
 
 // logic copied from AbstractSchemaProvider:resolveReferences

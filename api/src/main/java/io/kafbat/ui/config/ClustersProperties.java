@@ -2,6 +2,7 @@ package io.kafbat.ui.config;
 
 import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
 
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

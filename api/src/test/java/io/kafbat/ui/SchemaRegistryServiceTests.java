@@ -233,7 +233,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .subject(subject)
         .schema("""
             syntax = "proto3";
-            import "MyRecord.proto";
+import "MyRecord.proto";
             message MyRecordWithRef {
               int32 id = 1;
               MyRecord my_ref = 2;
