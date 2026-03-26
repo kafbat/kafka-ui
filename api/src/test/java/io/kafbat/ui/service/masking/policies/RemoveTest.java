@@ -42,12 +42,12 @@ class RemoveTest {
             parse("{ \"outer\": { \"f1\": \"James\"}}")
         ),
         Arguments.of(
-            (FieldsSelector) (_ -> true),
+            (FieldsSelector) (f -> true),
             parse("{ \"outer\": { \"f1\": \"v1\", \"f2\": \"v2\", \"inner\" : {\"if1\": \"iv1\"}}}"),
             parse("{}")
         ),
         Arguments.of(
-            (FieldsSelector) (_ -> true),
+            (FieldsSelector) (f -> true),
             parse("[{ \"f1\": 123}, { \"f2\": \"1.2\"} ]"),
             parse("[{}, {}]")
         )
@@ -66,7 +66,7 @@ class RemoveTest {
       "null, null"
   })
   void testApplyToString(String original, String expected) {
-    var policy = new Remove(_ -> true);
+    var policy = new Remove(f -> true);
     assertThat(policy.applyToString(original)).isEqualTo(expected);
   }
 }

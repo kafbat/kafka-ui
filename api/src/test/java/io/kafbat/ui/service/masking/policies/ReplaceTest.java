@@ -43,7 +43,7 @@ class ReplaceTest {
             parse("{ \"outer\": { \"f1\": \"James\", \"name\": \"***\"}}")
         ),
         Arguments.of(
-            (FieldsSelector) (_ -> true),
+            (FieldsSelector) (f -> true),
             parse("{ \"outer\": { \"f1\": \"v1\", \"f2\": \"v2\", \"inner\" : {\"if1\": \"iv1\"}}}"),
             parse("{ \"outer\": { \"f1\": \"***\", \"f2\": \"***\", \"inner\" : {\"if1\": \"***\"}}}}")
         )
@@ -62,7 +62,7 @@ class ReplaceTest {
       "null, ***"
   })
   void testApplyToString(String original, String expected) {
-    var policy = new Replace(_ -> true, REPLACEMENT_STRING);
+    var policy = new Replace(f -> true, REPLACEMENT_STRING);
     assertThat(policy.applyToString(original)).isEqualTo(expected);
   }
 }
