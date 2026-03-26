@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
-  clusterConnectorsPath,
+  clusterConnectConnectorPath,
   clusterConsumerGroupResetRelativePath,
   clusterConsumerGroupsPath,
   ClusterGroupParam,
@@ -37,6 +37,7 @@ import {
   LagTrendComponent,
 } from 'lib/consumerGroups';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -52,9 +53,13 @@ const Details: React.FC = () => {
     isSuccess,
     refetch,
     isLoading,
-    isRefetching,
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
+
+  const { data: connectors = [], isLoading: isLoadingConnectors } =
+    useConnectors(clusterName);
+
+  const connector = connectors.find((c) => c.consumer === consumerGroupID);
 
   const [pollingIntervalSec] = useLocalStorage(
     `consumer-group-${consumerGroupID}-refresh-rate`,
@@ -151,7 +156,7 @@ const Details: React.FC = () => {
               </ResourcePageHeading>
             </div>
 
-            {(isLoading || isRefetching) && <PageLoader />}
+            {(isLoading || isLoadingConnectors) && <PageLoader />}
 
             {error && (
               <ErrorPage
@@ -161,7 +166,7 @@ const Details: React.FC = () => {
               />
             )}
 
-            {isSuccess && (
+            {isSuccess && connector && (
               <>
                 <Metrics.Wrapper>
                   <Metrics.Section>
@@ -204,7 +209,11 @@ const Details: React.FC = () => {
                     {connectorName && (
                       <Metrics.Indicator label="Connector">
                         <Link
-                          to={`${clusterConnectorsPath(clusterName)}?search=${encodeURIComponent(connectorName)}`}
+                          to={clusterConnectConnectorPath(
+                            clusterName,
+                            connector.connect,
+                            connectorName
+                          )}
                         >
                           {connectorName}
                         </Link>
