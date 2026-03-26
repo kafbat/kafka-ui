@@ -33,8 +33,12 @@ import { LagTrendComponent } from 'lib/consumerGroups';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { useGetConsumerGroupLagsInfo } from 'components/ConsumerGroups/Details/useGetConsumerGroupLagsInfo';
+import { useClusters } from 'lib/hooks/api/clusters';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
+
+const isConnect = (groupId: string | undefined) =>
+  groupId?.startsWith('connect-');
 
 const Details: React.FC = () => {
   const navigate = useNavigate();
@@ -51,8 +55,12 @@ const Details: React.FC = () => {
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
 
+  const { data: clusters } = useClusters();
+
   const { data: connectors = [], isLoading: isLoadingConnectors } =
-    useConnectors(clusterName);
+    useConnectors(clusterName, undefined, undefined, {
+      enabled: isConnect(consumerGroup?.groupId) && Boolean(clusters?.length),
+    });
 
   const connector = connectors.find((c) => c.consumer === consumerGroupID);
 
@@ -137,7 +145,7 @@ const Details: React.FC = () => {
               />
             )}
 
-            {isSuccess && connector && (
+            {isSuccess && (
               <>
                 <Metrics.Wrapper>
                   <Metrics.Section>
@@ -174,7 +182,7 @@ const Details: React.FC = () => {
                         trend={consumerGroupLagInfo.trend}
                       />
                     </Metrics.Indicator>
-                    {connectorName && (
+                    {connectorName && connector && (
                       <Metrics.Indicator label="Connector">
                         <Link
                           to={clusterConnectConnectorPath(
