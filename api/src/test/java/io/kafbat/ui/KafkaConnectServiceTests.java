@@ -61,7 +61,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
     KafkaCluster kafkaCluster = clustersStorage.getClusterByName(LOCAL).get();
 
     InternalTopic block = topicsService.getTopicDetails(kafkaCluster, topicName)
-        .onErrorResume(e -> Mono.empty()).block();
+        .onErrorResume(_ -> Mono.empty()).block();
     if (block == null) {
       topicsService.createTopic(kafkaCluster,
           new TopicCreationDTO()

@@ -123,7 +123,7 @@ class CursorTest extends AbstractIntegrationTest {
         position,
         PAGE_SIZE,
         createRecordsDeserializer(),
-        msg -> true,
+        _ -> true,
         PollingSettings.createDefault(),
         createCursor(position)
     );
@@ -159,14 +159,14 @@ class CursorTest extends AbstractIntegrationTest {
         position,
         PAGE_SIZE,
         createRecordsDeserializer(),
-        msg -> true,
+        _ -> true,
         PollingSettings.createDefault(),
         createCursor(position)
     );
   }
 
   private Cursor.Tracking createCursor(ConsumerPosition position) {
-    return cursorsStorage.createNewCursor(createRecordsDeserializer(), position, msg -> true, PAGE_SIZE);
+    return cursorsStorage.createNewCursor(createRecordsDeserializer(), position, _ -> true, PAGE_SIZE);
   }
 
   private EnhancedConsumer createConsumer() {

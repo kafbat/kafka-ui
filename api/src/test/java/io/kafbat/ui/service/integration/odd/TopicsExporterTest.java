@@ -48,7 +48,7 @@ class TopicsExporterTest {
   @BeforeEach
   void init() {
     var statisticsCacheMock = mock(StatisticsCache.class);
-    when(statisticsCacheMock.get(cluster)).thenAnswer(inv -> stats);
+    when(statisticsCacheMock.get(cluster)).thenAnswer(_ -> stats);
 
     topicsExporter = new TopicsExporter(
         topic -> !topic.startsWith("_"),

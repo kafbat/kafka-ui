@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableAsync
 @EnableScheduling
-@SpringBootApplication
+@SpringBootApplication(excludeName = "org.springframework.boot.ldap.autoconfigure.LdapAutoConfiguration")
 public class KafkaUiApplication {
 
   public static void main(String[] args) {
