@@ -30,6 +30,14 @@ export function computeLagTrends<T>(
   if (!pollingEnabled) return {};
 
   const trends: Record<string, LagTrend> = {};
+  const nextKeys = new Set(Object.keys(source));
+
+  Object.keys(prevLagMap).forEach((key) => {
+    if (!nextKeys.has(key)) {
+      // eslint-disable-next-line no-param-reassign
+      delete prevLagMap[key];
+    }
+  });
 
   Object.entries(source).forEach(([key, value]) => {
     const next = selectLag(value);

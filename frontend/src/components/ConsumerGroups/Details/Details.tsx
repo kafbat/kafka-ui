@@ -134,7 +134,7 @@ const Details: React.FC = () => {
               </ResourcePageHeading>
             </div>
 
-            {(isLoading || isLoadingConnectors) && <PageLoader />}
+            {isLoading && <PageLoader />}
 
             {error && (
               <ErrorPage

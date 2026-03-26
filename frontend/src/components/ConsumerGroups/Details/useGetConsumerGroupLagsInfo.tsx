@@ -1,6 +1,6 @@
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { useGetConsumerGroupsLag } from 'lib/hooks/api/consumers';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { computeLagTrends } from 'lib/consumerGroups';
 
 type GroupId = string;
@@ -32,6 +32,10 @@ export const useGetConsumerGroupLagsInfo = ({
     topics: Record<TopicName, LagValue>;
     partitions: Record<TopicName, Record<number, LagValue>>;
   }>({ groups: {}, topics: {}, partitions: {} });
+
+  useEffect(() => {
+    prevLagRef.current = { groups: {}, topics: {}, partitions: {} };
+  }, [clusterName, consumerGroupID]);
 
   const lagTrends = useMemo(() => {
     if (!isLagFetched || !consumerGroupsLag) {
