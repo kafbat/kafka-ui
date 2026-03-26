@@ -2,11 +2,14 @@ package io.kafbat.ui.model;
 
 import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
 
+import com.google.common.primitives.Longs;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import io.kafbat.ui.util.annotation.CsvIgnore;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Builder;
@@ -28,9 +31,11 @@ public class InternalTopic {
   private final int inSyncReplicas;
   private final int replicationFactor;
   private final int underReplicatedPartitions;
+  @CsvIgnore
   private final Map<Integer, InternalPartition> partitions;
 
   // topic configs
+  @CsvIgnore
   private final List<InternalTopicConfig> topicConfigs;
   private final CleanupPolicy cleanUpPolicy;
 
@@ -41,6 +46,41 @@ public class InternalTopic {
   // from log dir data
   private final long segmentSize;
   private final long segmentCount;
+
+  public long getSize() {
+    return segmentSize * segmentCount;
+  }
+
+  public long getRetentionMs() {
+    return getConfig(TopicConfig.RETENTION_MS_CONFIG, Long::parseLong).orElse(0L);
+  }
+
+  public long getRetentionBytes() {
+    return getConfig(TopicConfig.RETENTION_BYTES_CONFIG, Longs::tryParse).orElse(0L);
+  }
+
+  public long getSegmentMs() {
+    return getConfig(TopicConfig.SEGMENT_MS_CONFIG, Longs::tryParse).orElse(0L);
+  }
+
+  public long getSegmentBytes() {
+    return getConfig(TopicConfig.RETENTION_BYTES_CONFIG, Longs::tryParse).orElse(0L);
+  }
+
+  public long getMaxMessageBytes() {
+    return getConfig(TopicConfig.MAX_MESSAGE_BYTES_CONFIG, Longs::tryParse).orElse(0L);
+  }
+
+  private <T> Optional<T> getConfig(String name, Function<String, T> mapper) {
+    return Optional.ofNullable(topicConfigs)
+        .flatMap(configs ->
+            configs.stream()
+              .filter(c -> c.getName().equals(name))
+              .findFirst()
+              .map(InternalTopicConfig::getValue)
+              .map(mapper)
+        );
+  }
 
 
   public InternalTopic withMetrics(Metrics metrics) {

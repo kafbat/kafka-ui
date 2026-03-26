@@ -33,4 +33,27 @@ class ConsumerGroupFilterTest extends AbstractNgramFilterTest<ConsumerGroupListi
     ConsumerGroupListing first = items.getFirst();
     return Map.entry(first.groupId(), first);
   }
+
+  @Override
+  protected List<ConsumerGroupListing> sortedItems() {
+    return List.of(
+        new ConsumerGroupListing("cg-payment-new-", true),
+        new ConsumerGroupListing("payment-cg-", true),
+        new ConsumerGroupListing("payCg", true)
+    );
+  }
+
+  @Override
+  protected String sortedExample(List<ConsumerGroupListing> items) {
+    return "pay";
+  }
+
+  @Override
+  protected List<ConsumerGroupListing> sortedResult(List<ConsumerGroupListing> items) {
+    return List.of(
+        new ConsumerGroupListing("payment-cg-", true),
+        new ConsumerGroupListing("payCg", true),
+        new ConsumerGroupListing("cg-payment-new-", true)
+    );
+  }
 }

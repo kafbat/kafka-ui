@@ -183,7 +183,7 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
                 List.of(
                     new TopicPartitionInfo(0, new Node(1, "n1", 9092), List.of(), List.of()))
             )),
-        p -> true,
+        _ -> true,
         // setting failOnNoLeader flag
         true
     );

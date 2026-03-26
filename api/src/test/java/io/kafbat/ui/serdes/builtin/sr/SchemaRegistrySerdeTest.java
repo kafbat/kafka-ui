@@ -127,7 +127,8 @@ class SchemaRegistrySerdeTest {
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
     assertThat(result.getAdditionalProperties())
         .contains(Map.entry("type", "AVRO"))
-        .contains(Map.entry("schemaId", schemaId));
+        .contains(Map.entry("id", schemaId))
+        .contains(Map.entry("subjects", List.of(topic + "-value")));
   }
 
   @Nested
@@ -285,6 +286,7 @@ class SchemaRegistrySerdeTest {
             }"""
     );
 
+    // Note: f_optional_to_test_not_filled_case is omitted since default showNullValues=false
     String jsonPayload = """
         {
           "f_int": 123,
@@ -342,12 +344,20 @@ class SchemaRegistrySerdeTest {
                    "type": { "type": "long", "logicalType": "timestamp-micros" }
                  },
                  {
+                   "name": "lt_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                 },
+                 {
                    "name": "lt_local_timestamp_millis",
                    "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                  },
                  {
                    "name": "lt_local_timestamp_micros",
                    "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                 },
+                 {
+                   "name": "lt_local_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                  }
                ]
             }"""
@@ -362,8 +372,10 @@ class SchemaRegistrySerdeTest {
           "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
           "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
           "lt_timestamp_micros": "2007-12-03T10:15:30.123456Z",
+          "lt_timestamp_nanos": "2007-12-03T10:15:30.123456789Z",
           "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456"
+          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456",
+          "lt_local_timestamp_nanos": "2017-12-03T10:15:30.123456789"
         }
         """;
 
@@ -382,4 +394,204 @@ class SchemaRegistrySerdeTest {
     assertJsonsEqual(jsonInput, deserializedJson);
   }
 
+  @Nested
+  class ConfigurableAvroDisplayOptions {
+
+    @Test
+    void showNullValuesWhenEnabled() throws Exception {
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, false),
+          1024
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nullable_field", "type": ["null", "string"], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-nulls";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      // Serialize with null value
+      String jsonInput = """
+          {
+            "id": "test-id"
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With showNullValues=true, the null field should be present in output
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nullable_field": null
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void useFullyQualifiedNamesWhenEnabled() throws Exception {
+      serde.configure(
+          List.of("wontbeused"), registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(false, true),
+          1024
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "optional_string", "type": ["null", "string"], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-fqn";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "optional_string": { "string": "hello" }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With useFullyQualifiedNames=true, union types should use full names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "optional_string": { "string": "hello" }
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void useShortNamesWhenFlagDisabled() throws Exception {
+      // Default: useFullyQualifiedNames=false (empty map = defaults)
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nested", "type": ["null", {
+                     "type": "record",
+                     "name": "NestedRecord",
+                     "fields": [{"name": "value", "type": "int"}]
+                   }], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-short-names";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "nested": { "NestedRecord": { "value": 42 } }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With useFullyQualifiedNames=false, should use short names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nested": { "NestedRecord": { "value": 42 } }
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void bothFlagsEnabledTogether() throws Exception {
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, true),
+          1024
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nullable_field", "type": ["null", "string"], "default": null},
+                   {"name": "nested", "type": ["null", {
+                     "type": "record",
+                     "name": "NestedRecord",
+                     "fields": [{"name": "value", "type": "int"}]
+                   }], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-both-flags";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "nested": { "io.kafbat.test.NestedRecord": { "value": 42 } }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With both flags: show nulls and use fully qualified names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nullable_field": null,
+            "nested": { "io.kafbat.test.NestedRecord": { "value": 42 } }
+          }
+          """, result.getResult());
+    }
+  }
+
 }
+

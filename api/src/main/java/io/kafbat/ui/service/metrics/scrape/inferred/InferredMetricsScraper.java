@@ -4,8 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.core.metrics.Metric;
-import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
-import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.PrometheusNaming;
 import java.util.LinkedHashMap;

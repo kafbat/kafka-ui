@@ -47,6 +47,12 @@ public class BrokersController extends AbstractController implements BrokersApi,
   }
 
   @Override
+  public Mono<ResponseEntity<String>> getBrokersCsv(String clusterName,
+                                                    ServerWebExchange exchange) {
+    return getBrokers(clusterName, exchange).flatMap(this::responseToCsv);
+  }
+
+  @Override
   public Mono<ResponseEntity<BrokerMetricsDTO>> getBrokersMetrics(String clusterName, Integer id,
                                                                   ServerWebExchange exchange) {
     var context = AccessContext.builder()

@@ -77,3 +77,45 @@ export const calculateTimer = (startedAt: number) => {
 
   return `${passedTime(minutes)}:${passedTime(seconds)}`;
 };
+
+export const timeAgo = (
+  timestamp: number | string | Date | undefined
+): string => {
+  if (!timestamp) {
+    return '';
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  const language = navigator.language || navigator.languages[0];
+  const rtf = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
+
+  if (diffSeconds < 60) {
+    return rtf.format(-diffSeconds, 'second');
+  }
+
+  if (diffMinutes < 60) {
+    return rtf.format(-diffMinutes, 'minute');
+  }
+
+  if (diffHours < 24) {
+    return rtf.format(-diffHours, 'hour');
+  }
+
+  if (diffDays < 30) {
+    return rtf.format(-diffDays, 'day');
+  }
+
+  // Fall back to formatted date for older timestamps
+  return date.toLocaleDateString(language);
+};

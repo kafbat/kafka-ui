@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -32,6 +32,7 @@ import SelectRowCell from './SelectRowCell';
 import SelectRowHeader from './SelectRowHeader';
 import ColumnFilter, { type Persister } from './ColumnFilter';
 import { ColumnSizingPersister } from './ColumnResizer/lib/persister/types';
+import { useTableInstance } from './Provider';
 
 export interface TableProps<TData> {
   data: TData[];
@@ -77,6 +78,8 @@ export interface TableProps<TData> {
   onMouseLeave?: () => void;
 
   setRowId?: (originalRow: TData) => string;
+
+  onFilterRows?: (rows: TData[]) => void;
 }
 
 type UpdaterFn<T> = (previousState: T) => T;
@@ -163,9 +166,12 @@ function Table<TData>({
   filterPersister,
   resetPaginationOnFilter = true,
   columnVisibility,
+  onFilterRows,
 }: TableProps<TData>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+
+  const ctx = useTableInstance<TData>();
 
   const [rowSelection, setRowSelection] = React.useState({});
 
@@ -259,19 +265,36 @@ function Table<TData>({
         }
         return filterValue.includes(row.getValue(columnId));
       },
+      noop: () => {
+        return true;
+      },
     },
   });
+
+  useEffect(() => {
+    ctx?.setTable(table);
+  }, [table]);
 
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders();
     const colSizes: { [key: string]: number } = {};
     for (let i = 0; i < headers.length; i += 1) {
       const header = headers[i]!;
+
       colSizes[`--header-${header.id}-size`] = header.getSize();
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
     }
+
     return colSizes;
   }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
+  useEffect(() => {
+    if (onFilterRows) {
+      const filteredRows = table.getFilteredRowModel().rows;
+      const filteredData = filteredRows.map((row) => row.original);
+      onFilterRows(filteredData);
+    }
+  }, [table.getState().columnFilters]);
 
   const handleRowClick = (row: Row<TData>) => (e: React.MouseEvent) => {
     // If row selection is enabled do not handle row click.

@@ -1,16 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { FC, useMemo } from 'react';
 import * as Statistics from 'components/common/Statistics';
-import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterNameRoute } from 'lib/paths';
-import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useFilteredConnectors } from 'components/Connect/model/FilteredConnectorsProvider';
 
 import { computeStatistics } from './models/computeStatistics';
 
-const ConnectorsStatistics = () => {
-  const { clusterName } = useAppParams<ClusterNameRoute>();
-  const { data: connectors = [], isLoading } = useConnectors(clusterName);
+interface ConnectorsStatisticsProps {
+  isLoading: boolean;
+}
+const ConnectorsStatistics: FC<ConnectorsStatisticsProps> = ({ isLoading }) => {
+  const connectors = useFilteredConnectors();
 
-  const statistics = useMemo(() => computeStatistics(connectors), [connectors]);
+  const statistics = useMemo(() => {
+    return computeStatistics(connectors);
+  }, [connectors]);
 
   return (
     <Statistics.Container role="group">

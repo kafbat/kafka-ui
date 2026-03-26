@@ -1,6 +1,7 @@
 import "@typespec/openapi";
 import "./responses.tsp";
 import "./models.tsp";
+import "./acls.tsp";
 
 namespace Api;
 
@@ -23,6 +24,19 @@ interface TopicsApi {
     @query sortOrder?: SortOrder,
     @query fts?: boolean
   ): TopicsResponse;
+
+  @get
+  @operationId("getTopicsCsv")
+  @summary("getTopics")
+  @route("csv")
+  getTopicsCsv(
+    @path clusterName: string,
+    @query showInternal?: boolean,
+    @query search?: string,
+    @query orderBy?: TopicColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
 
   @post
   @operationId("createTopic")
@@ -152,7 +166,16 @@ interface TopicsApi {
   connectors(
     @path clusterName: string,
     @path topicName: string
-  ) : FullConnectorInfo[]
+  ) : FullConnectorInfo[];
+
+  @get
+  @route("/{topicName}/acls")
+  @summary("listTopicAcls")
+  @operationId("listTopicAcls")
+  listTopicAcls(
+    @path clusterName: string,
+    @path topicName: string,
+  ): KafkaAcl[];
 }
 
 model TopicsResponse {

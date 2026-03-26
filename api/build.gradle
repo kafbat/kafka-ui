@@ -7,10 +7,24 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+configurations.all {
+    resolutionStrategy {
+        capabilitiesResolution {
+            withCapability("org.lz4:lz4-java") {
+                select(libs.lz4.yawk.get().toString())
+            }
+        }
+    }
+}
+
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
+    implementation(libs.jackson.core){
+        because("Fixes GHSA-72hv-8253-57qq. Revert when Spring boot 3.5.13 is released. See https://github.com/spring-projects/spring-boot/issues/49365/")
+    }
+
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
@@ -26,11 +40,17 @@ dependencies {
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
+    // For Swagger UI Webflux
+    implementation libs.springdoc.openapi.webflux
+
     compileOnly libs.spring.boot.devtools
 
     implementation libs.spring.security.ldap
 
-    implementation libs.kafka.clients
+    implementation (libs.kafka.clients) {
+        // TODO: Remove once client would fix CVE
+        exclude group: "org.lz4", module: "lz4-java"
+    }
 
     implementation libs.apache.avro
     implementation libs.apache.commons
@@ -58,6 +78,8 @@ dependencies {
     implementation libs.lucene.queryparser
     implementation libs.lucene.analysis.common
 
+    implementation libs.fastcsv
+
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
@@ -72,9 +94,11 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
+    implementation libs.lz4.yawk
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
+
 
     // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {
@@ -117,6 +141,7 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.wiremock
     testImplementation libs.prometheus.metrics.core
 }
 
@@ -124,16 +149,14 @@ generateGrammarSource {
     maxHeapSize = "64m"
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
-
-
 
 sourceSets {
     main {
         java {
-            srcDirs += generateGrammarSource.outputDirectory
+
         }
         resources {
             srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
@@ -171,6 +194,28 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
+tasks.register('copyOpenApiSpecForSwagger', Copy) {
+    dependsOn ':contract-typespec:build'
+
+    if (useTypeSpec) {
+        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
+    } else {
+        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
+    }
+    outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
+
+    from useTypeSpec ?
+        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
+        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    into "src/main/resources/static/openapi/"
+    rename { "kafbat-ui-api.yaml" }
+}
+
+
+tasks.named("processResources") {
+    dependsOn("copyOpenApiSpecForSwagger")
+}
+
 if (buildDockerImages) {
     tasks.build.finalizedBy buildDockerImageTask
 }
@@ -180,3 +225,4 @@ if (includeFrontend) {
         dependsOn(":frontend:buildFrontend")
     }
 }
+

@@ -29,4 +29,23 @@ class SchemasFilterTest extends AbstractNgramFilterTest<String> {
     String item = items.getFirst();
     return Map.entry(item, item);
   }
+
+  @Override
+  protected List<String> sortedItems() {
+    return List.of(
+        "longwordstartingfromPay", "s-pay", "sPayment"
+    );
+  }
+
+  @Override
+  protected String sortedExample(List<String> items) {
+    return "pay";
+  }
+
+  @Override
+  protected List<String> sortedResult(List<String> items) {
+    return List.of(
+        "s-pay", "sPayment", "longwordstartingfromPay"
+    );
+  }
 }
