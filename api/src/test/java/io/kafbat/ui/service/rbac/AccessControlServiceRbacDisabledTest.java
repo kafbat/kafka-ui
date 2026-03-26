@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -52,6 +53,7 @@ class AccessControlServiceRbacDisabledTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     // Mock security context
     when(securityContext.getAuthentication()).thenReturn(authentication);
     when(authentication.getPrincipal()).thenReturn(user);

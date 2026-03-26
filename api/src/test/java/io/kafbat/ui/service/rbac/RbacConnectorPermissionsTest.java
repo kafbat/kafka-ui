@@ -16,11 +16,10 @@ import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -33,7 +32,6 @@ import reactor.test.StepVerifier;
  * Tests the hierarchical permission system where connector-level permissions
  * take precedence over connect-level permissions.
  */
-@ExtendWith(MockitoExtension.class)
 class RbacConnectorPermissionsTest {
 
   public static final String DEV_ROLE_NAME = "dev_role";
@@ -58,6 +56,7 @@ class RbacConnectorPermissionsTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     List<Role> roles = List.of(
         getDevRole(),
         getAdminRole(),

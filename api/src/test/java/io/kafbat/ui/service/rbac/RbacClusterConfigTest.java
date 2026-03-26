@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -50,6 +51,7 @@ class RbacClusterConfigTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     // Mock roles
     List<Role> roles = List.of(
         getClusterConfigRole()
