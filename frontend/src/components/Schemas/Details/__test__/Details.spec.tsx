@@ -1,11 +1,12 @@
 import React from 'react';
 import Details from 'components/Schemas/Details/Details';
 import { render, WithRoute } from 'lib/testHelpers';
-import { clusterSchemaPath } from 'lib/paths';
+import { clusterSchemaPath, clusterTopicPath } from 'lib/paths';
 import { screen } from '@testing-library/dom';
 import {
   schemaVersion,
   schemaVersionWithNonAsciiChars,
+  schemaVersionWithTopic,
 } from 'components/Schemas/Edit/__tests__/fixtures';
 import ClusterContext, {
   ContextProps,
@@ -57,6 +58,29 @@ describe('Details', () => {
   });
 
   describe('fetch success', () => {
+    describe('has schema topic', () => {
+      it('renders button that navigate to topic', async () => {
+        (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({
+          data: versionPayload,
+          isFetching: false,
+          isError: false,
+        }));
+        (useGetLatestSchema as jest.Mock).mockImplementation(() => ({
+          data: schemaVersionWithTopic,
+          isFetching: false,
+          isError: false,
+        }));
+        renderComponent();
+        const button = screen.getByRole('link', {
+          name: `Go to topic "${schemaVersionWithTopic.topic}"`,
+        });
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute(
+          'href',
+          clusterTopicPath(clusterName, schemaVersionWithTopic.topic!)
+        );
+      });
+    });
     describe('has schema versions', () => {
       it('renders component with schema info', async () => {
         (useGetSchemasVersions as jest.Mock).mockImplementation(() => ({

@@ -61,6 +61,7 @@ function submitValidation(
         title: 'Validation Error',
         message: `The name “${name}” already exists. Please enter a unique name.`,
       });
+      return false;
     }
 
     return true;
@@ -72,10 +73,10 @@ function submitValidation(
       title: 'Validation Error',
       message: 'Filter with the same name already exists',
     });
-    return true;
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 function getLabelName(values: AddMessageFilters) {
@@ -125,7 +126,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
 
   const onSubmit = async (values: AddMessageFilters) => {
     try {
-      if (submitValidation(values.id, values.value, filterId)) {
+      if (!submitValidation(values.id, values.value, filterId)) {
         return;
       }
 

@@ -9,6 +9,7 @@ import RunningTasksCell, {
   getRunningTasksCountText,
 } from './cells/RunningTasksCell';
 import ActionsCell from './cells/ActionsCell';
+import ConsumerGroupCell from './cells/ConsumerGroupCell';
 
 export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
   {
@@ -58,6 +59,18 @@ export const connectorsColumns: ColumnDef<FullConnectorInfo, string>[] = [
     cell: TagCell,
     meta: { filterVariant: 'multi-select', csvFn: (row) => row.status.state },
     filterFn: 'arrIncludesSome',
+  },
+  {
+    header: 'Consumers',
+    accessorKey: 'consumer',
+    cell: ConsumerGroupCell,
+    enableColumnFilter: true,
+    meta: {
+      filterVariant: 'text',
+      csvFn: (row) => row.consumer || '-',
+    },
+    filterFn: 'includesString',
+    enableResizing: true,
   },
   {
     id: 'running_task',
