@@ -13,7 +13,7 @@ const renderComponent = (consumers: ConsumerGroupTopicPartition[] = []) =>
     <WithRoute path={clusterConsumerGroupDetailsPath()}>
       <table>
         <tbody>
-          <TopicContents consumers={consumers} />
+          <TopicContents topicPartitions={consumers} />
         </tbody>
       </table>
     </WithRoute>,
