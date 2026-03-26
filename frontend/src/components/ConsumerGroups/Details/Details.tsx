@@ -54,10 +54,12 @@ const Details: React.FC = () => {
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
 
-  const { data: connectors = [], isLoading: isLoadingConnectors } =
-    useConnectors(clusterName, undefined, undefined, {
-      enabled: hasKafkaConnectConfigured && isConnect(consumerGroup?.groupId),
-    });
+  const { data: connectors = [] } = useConnectors(
+    clusterName,
+    undefined,
+    undefined,
+    { enabled: hasKafkaConnectConfigured && isConnect(consumerGroup?.groupId) }
+  );
 
   const connector = connectors.find(
     (c) => c.consumer === consumerGroup?.groupId
