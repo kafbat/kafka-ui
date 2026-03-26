@@ -5,7 +5,6 @@ import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.io.IOException;
 import java.util.Map;
-import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.Value;
@@ -17,28 +16,6 @@ public class MessagePackSerde implements BuiltInSerde {
   @Override
   public boolean canDeserialize(String topic, Serde.Target type) {
     return true;
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Serde.Target type) {
-    return true;
-  }
-
-  @Override
-  public Serde.Serializer serializer(String topic, Serde.Target type) {
-    return inputString -> {
-      inputString = inputString.trim();
-      // it is actually a hack to provide ability to sent empty array as a key/value
-      if (inputString.isEmpty()) {
-        return new byte[] {};
-      }
-      try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
-        packer.packString(inputString);
-        return packer.toByteArray();
-      } catch (IOException e) {
-        throw new IllegalArgumentException("Failed to serialize MessagePack payload", e);
-      }
-    };
   }
 
   @Override
