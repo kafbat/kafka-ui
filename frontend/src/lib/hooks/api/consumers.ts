@@ -158,7 +158,13 @@ export function useGetConsumerGroupsLag({
   }, [clusterName, ids.join(',')]);
 
   return useQuery({
-    queryKey: ['clusters', clusterName, 'consumerGroupsLag', ids],
+    queryKey: [
+      'clusters',
+      clusterName,
+      'consumerGroupsLag',
+      ids,
+      includePartitions,
+    ],
     queryFn: async () => {
       const response = await api.getConsumerGroupsLag({
         clusterName,

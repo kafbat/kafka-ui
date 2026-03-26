@@ -85,7 +85,7 @@ const List = () => {
 
       setLagTrends(nextTrends);
     }
-  }, [consumerGroupsLag, isSuccess]);
+  }, [consumerGroupsLag, isSuccess, pollingIntervalSec]);
 
   const columns: ColumnDef<ConsumerGroup>[] = [
     {

@@ -5,7 +5,6 @@ import { computeLagTrends } from 'lib/consumerGroups';
 
 type GroupId = string;
 type TopicName = string;
-type PartitionName = number;
 type LagValue = number | undefined;
 
 export const useGetConsumerGroupLagsInfo = ({
@@ -31,7 +30,7 @@ export const useGetConsumerGroupLagsInfo = ({
   const prevLagRef = useRef<{
     groups: Record<GroupId, LagValue>;
     topics: Record<TopicName, LagValue>;
-    partitions: Record<TopicName, Record<PartitionName, LagValue>>;
+    partitions: Record<TopicName, Record<number, LagValue>>;
   }>({ groups: {}, topics: {}, partitions: {} });
 
   const lagTrends = useMemo(() => {
@@ -81,7 +80,7 @@ export const useGetConsumerGroupLagsInfo = ({
       ),
       partitionsLagTrends,
     };
-  }, [consumerGroupsLag, isLagFetched]);
+  }, [consumerGroupsLag, isLagFetched, consumerGroupID, pollingIntervalSec]);
 
   const groupInfo = consumerGroupsLag?.consumerGroups[consumerGroupID];
 

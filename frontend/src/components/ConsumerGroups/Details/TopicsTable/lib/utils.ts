@@ -39,7 +39,7 @@ export const getConsumerGroupTopicsTableData = ({
     .map(([topic, partitionLags]) => ({
       topicName: topic,
       consumerLag: lags?.[topic] ?? calculateConsumerLag(partitionLags),
-      lagTrend: lagTrends[topic],
+      lagTrend: lagTrends?.[topic] ?? 'none',
     }));
 };
 

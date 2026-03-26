@@ -53,10 +53,11 @@ export const LagTrendComponent = ({
   trend,
 }: {
   lag: number | string | undefined | null;
-  trend: LagTrend;
+  trend?: LagTrend;
 }) => {
   if (lag === undefined || lag === null) return 'N/A';
 
+  const effectiveTrend: LagTrend = trend ?? 'none';
   let trendElement = null;
 
   if (trend === 'up') {
@@ -66,7 +67,7 @@ export const LagTrendComponent = ({
   }
 
   return (
-    <LagContainer $lagTrend={trend}>
+    <LagContainer $lagTrend={effectiveTrend}>
       <span>{lag}</span>
       {trendElement && <span>{trendElement}</span>}
     </LagContainer>
