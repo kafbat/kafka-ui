@@ -3,6 +3,7 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.RESET_OFFSETS;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.VIEW;
+import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toMap;
 
 import io.kafbat.ui.api.ConsumerGroupsApi;
@@ -107,6 +108,7 @@ public class ConsumerGroupsController extends AbstractController implements Cons
   public Mono<ResponseEntity<ConsumerGroupsLagResponseDTO>> getConsumerGroupsLag(String clusterName,
                                                                                  List<String> groupNames,
                                                                                  Long lastUpdate,
+                                                                                 Boolean includePartitions,
                                                                                  ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -115,7 +117,7 @@ public class ConsumerGroupsController extends AbstractController implements Cons
         .build();
 
     Mono<ResponseEntity<ConsumerGroupsLagResponseDTO>> result =
-        consumerGroupService.getConsumerGroupsLag(getCluster(clusterName), groupNames, Optional.ofNullable(lastUpdate))
+        consumerGroupService.getConsumerGroupsLag(getCluster(clusterName), groupNames, TRUE.equals(includePartitions), Optional.ofNullable(lastUpdate))
             .flatMap(t ->
                Flux.fromIterable(t.getT1().entrySet())
                 .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.getKey(), clusterName))
