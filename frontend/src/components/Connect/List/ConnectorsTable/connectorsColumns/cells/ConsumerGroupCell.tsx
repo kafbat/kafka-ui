@@ -15,7 +15,7 @@ const ConsumerGroupCell = ({ row }: CellContext<FullConnectorInfo, string>) => {
 
   const toConsumerGroupDetails = clusterConsumerGroupDetailsPath(
     clusterName,
-    encodeURIComponent(consumer)
+    consumer
   );
 
   return (
