@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.Nullable;
-import javax.validation.ValidationException;
+import jakarta.validation.ValidationException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
