@@ -265,6 +265,9 @@ function Table<TData>({
         }
         return filterValue.includes(row.getValue(columnId));
       },
+      noop: () => {
+        return true;
+      },
     },
   });
 

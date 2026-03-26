@@ -12,6 +12,7 @@ import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupDetailsDTO;
 import io.kafbat.ui.model.ConsumerGroupOffsetsResetDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
 import io.kafbat.ui.model.ConsumerGroupsLagResponseDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
 import io.kafbat.ui.model.PartitionOffsetDTO;
@@ -171,6 +172,7 @@ public class ConsumerGroupsController extends AbstractController implements Cons
       ConsumerGroupOrderingDTO orderBy,
       SortOrderDTO sortOrderDto,
       Boolean fts,
+      List<ConsumerGroupStateDTO> state,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -191,7 +193,8 @@ public class ConsumerGroupsController extends AbstractController implements Cons
                 search,
                 fts,
                 Optional.ofNullable(orderBy).orElse(ConsumerGroupOrderingDTO.NAME),
-                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC)
+                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC),
+                Optional.ofNullable(state).orElse(List.of())
             )
             .map(this::convertPage)
             .map(ResponseEntity::ok)
@@ -204,6 +207,7 @@ public class ConsumerGroupsController extends AbstractController implements Cons
                                                            Integer perPage, String search,
                                                            ConsumerGroupOrderingDTO orderBy,
                                                            SortOrderDTO sortOrderDto, Boolean fts,
+                                                           List<ConsumerGroupStateDTO> state,
                                                            ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -220,7 +224,8 @@ public class ConsumerGroupsController extends AbstractController implements Cons
                 search,
                 fts,
                 Optional.ofNullable(orderBy).orElse(ConsumerGroupOrderingDTO.NAME),
-                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC)
+                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC),
+                Optional.ofNullable(state).orElse(List.of())
             )
             .map(this::convertPage)
             .map(ResponseEntity::ok)
