@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
@@ -33,7 +33,6 @@ import { LagTrendComponent } from 'lib/consumerGroups';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { useGetConsumerGroupLagsInfo } from 'components/ConsumerGroups/Details/useGetConsumerGroupLagsInfo';
-import { useClusters } from 'lib/hooks/api/clusters';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -42,7 +41,7 @@ const isConnect = (groupId: string | undefined) =>
 
 const Details: React.FC = () => {
   const navigate = useNavigate();
-  const { isReadOnly } = React.useContext(ClusterContext);
+  const { isReadOnly, hasKafkaConnectConfigured } = useContext(ClusterContext);
   const routeParams = useAppParams<ClusterGroupParam>();
   const { clusterName, consumerGroupID } = routeParams;
 
@@ -55,14 +54,14 @@ const Details: React.FC = () => {
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
 
-  const { data: clusters } = useClusters();
-
   const { data: connectors = [], isLoading: isLoadingConnectors } =
     useConnectors(clusterName, undefined, undefined, {
-      enabled: isConnect(consumerGroup?.groupId) && Boolean(clusters?.length),
+      enabled: hasKafkaConnectConfigured && isConnect(consumerGroup?.groupId),
     });
 
-  const connector = connectors.find((c) => c.consumer === consumerGroupID);
+  const connector = connectors.find(
+    (c) => c.consumer === consumerGroup?.groupId
+  );
 
   const { consumerGroupLagInfo, topicsLagInfo, partitionsLagInfo } =
     useGetConsumerGroupLagsInfo({
