@@ -134,11 +134,11 @@ describe('Filters component', () => {
     it('saves filter value', async () => {
       await act(() => renderComponent());
 
-      const seekTypeSelect = getSeekTypeSelect();
+      const modeSelect = getModeSelect();
       const option = screen.getAllByRole('option');
 
-      await userEvent.click(seekTypeSelect);
-      await userEvent.selectOptions(seekTypeSelect, ['From offset']);
+      await userEvent.click(modeSelect);
+      await userEvent.selectOptions(modeSelect, ['From offset']);
 
       expect(option[0]).toHaveTextContent('From offset');
       const timestampInput = screen.getByPlaceholderText('Offset');
@@ -147,8 +147,8 @@ describe('Filters component', () => {
 
       expect(timestampInput).toHaveValue(inputValue);
 
-      await userEvent.click(seekTypeSelect);
-      await userEvent.selectOptions(seekTypeSelect, ['To offset']);
+      await userEvent.click(modeSelect);
+      await userEvent.selectOptions(modeSelect, ['To offset']);
 
       expect(timestampInput).toHaveValue(inputValue);
     });
