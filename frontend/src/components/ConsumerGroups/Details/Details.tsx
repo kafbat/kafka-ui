@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
@@ -19,7 +19,6 @@ import { ActionDropdownItem } from 'components/common/ActionComponent';
 import {
   useConsumerGroupDetails,
   useDeleteConsumerGroupMutation,
-  useGetConsumerGroupsLag,
 } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
@@ -30,14 +29,10 @@ import ExportIcon from 'components/common/Icons/ExportIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
 import { getConnectorNameFromConsumerGroup } from 'lib/utils/connectorUtils';
-import { useLocalStorage } from 'lib/hooks/useLocalStorage';
-import {
-  computeLagTrends,
-  LagTrend,
-  LagTrendComponent,
-} from 'lib/consumerGroups';
+import { LagTrendComponent } from 'lib/consumerGroups';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useGetConsumerGroupLagsInfo } from 'components/ConsumerGroups/Details/useGetConsumerGroupLagsInfo';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
@@ -61,35 +56,11 @@ const Details: React.FC = () => {
 
   const connector = connectors.find((c) => c.consumer === consumerGroupID);
 
-  const [pollingIntervalSec] = useLocalStorage(
-    `consumer-group-${consumerGroupID}-refresh-rate`,
-    0
-  );
-
-  const { data: consumerGroupsLag, isSuccess: isLagFetched } =
-    useGetConsumerGroupsLag({
+  const { consumerGroupLagInfo, topicsLagInfo, partitionsLagInfo } =
+    useGetConsumerGroupLagsInfo({
+      consumerGroupID,
       clusterName,
-      ids: [consumerGroupID],
-      pollingIntervalSec,
     });
-
-  const prevLagRef = useRef<Record<string, number | undefined>>({});
-  const [lagTrends, setLagTrends] = React.useState<Record<string, LagTrend>>(
-    {}
-  );
-
-  useEffect(() => {
-    if (isLagFetched && !!consumerGroupsLag) {
-      const nextTrends = computeLagTrends(
-        prevLagRef.current,
-        consumerGroupsLag.consumerGroups ?? {},
-        (cg) => cg?.lag,
-        pollingIntervalSec > 0
-      );
-
-      setLagTrends(nextTrends);
-    }
-  }, [consumerGroupsLag, isLagFetched]);
 
   const onDelete = async () => {
     await deleteConsumerGroup.mutateAsync();
@@ -199,11 +170,8 @@ const Details: React.FC = () => {
                     </Metrics.Indicator>
                     <Metrics.Indicator label="Total lag">
                       <LagTrendComponent
-                        lag={
-                          consumerGroupsLag?.consumerGroups[consumerGroupID]
-                            ?.lag ?? consumerGroup?.consumerLag
-                        }
-                        trend={lagTrends[consumerGroupID]}
+                        lag={consumerGroupLagInfo.lag}
+                        trend={consumerGroupLagInfo.trend}
                       />
                     </Metrics.Indicator>
                     {connectorName && (
@@ -230,9 +198,8 @@ const Details: React.FC = () => {
                 </ControlPanelWrapper>
                 <TopicsTable
                   partitions={consumerGroup?.partitions ?? []}
-                  consumerGroupsLag={consumerGroupsLag}
-                  isLagFetched={isLagFetched}
-                  pollingIntervalSec={pollingIntervalSec}
+                  topicsLagInfo={topicsLagInfo}
+                  partitionsLagInfo={partitionsLagInfo}
                 />
               </>
             )}

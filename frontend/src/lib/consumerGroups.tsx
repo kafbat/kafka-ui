@@ -52,10 +52,10 @@ export const LagTrendComponent = ({
   lag,
   trend,
 }: {
-  lag: number | string | undefined;
+  lag: number | string | undefined | null;
   trend: LagTrend;
 }) => {
-  if (lag === undefined) return 'N/A';
+  if (lag === undefined || lag === null) return 'N/A';
 
   let trendElement = null;
 

@@ -141,12 +141,14 @@ interface UseGetConsumerGroupsLagProps {
   clusterName: string;
   ids: string[];
   pollingIntervalSec?: number;
+  includePartitions?: boolean;
 }
 
 export function useGetConsumerGroupsLag({
   clusterName,
   pollingIntervalSec = 0,
   ids,
+  includePartitions,
 }: UseGetConsumerGroupsLagProps) {
   const pollingEnabled = pollingIntervalSec > 0;
   const lastUpdateRef = useRef<number | undefined>(undefined);
@@ -162,6 +164,7 @@ export function useGetConsumerGroupsLag({
         clusterName,
         ids,
         lastUpdate: lastUpdateRef.current,
+        includePartitions,
       });
 
       lastUpdateRef.current = response.updateTimestamp;

@@ -15,9 +15,8 @@ const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
         <tbody>
           <TopicsTable
             partitions={topicPartitions}
-            isLagFetched={false}
-            pollingIntervalSec={0}
-            consumerGroupsLag={{ consumerGroups: {}, updateTimestamp: 0 }}
+            topicsLagInfo={{ lags: {}, trends: {} }}
+            partitionsLagInfo={{ lags: {}, trends: {} }}
           />
         </tbody>
       </table>
