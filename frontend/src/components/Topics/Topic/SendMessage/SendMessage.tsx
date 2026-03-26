@@ -14,7 +14,11 @@ import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
-import { SerdeUsage } from 'generated-sources';
+import {
+  SerdeDescription,
+  SerdeParameter,
+  SerdeUsage,
+} from 'generated-sources';
 import { MessageFormData } from 'lib/interfaces/message';
 
 import * as S from './SendMessage.styled';
@@ -30,7 +34,14 @@ interface SendMessageProps {
   messageData?: Partial<MessageFormData> | null;
 }
 
-const SCHEMA_REGISTRY_SERDE_NAME = 'SchemaRegistry';
+const getSerdeParameters = (
+  serdeName: string | undefined,
+  serdeList: SerdeDescription[] | undefined
+): SerdeParameter[] => {
+  if (!serdeName || !serdeList) return [];
+  const serde = serdeList.find((s) => s.name === serdeName);
+  return serde?.parameters ?? [];
+};
 
 const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
@@ -52,33 +63,6 @@ const SendMessage: React.FC<SendMessageProps> = ({
     () => getPartitionOptions(topic?.partitions || []),
     [topic]
   );
-
-  // Get subjects from the SchemaRegistry serde for key and value
-  const keySubjectOptions = React.useMemo(() => {
-
-    const srSerde = serdes.key?.find(
-      (s) => s.name === SCHEMA_REGISTRY_SERDE_NAME
-    );
-
-    const subjects =
-      (srSerde?.additionalProperties?.subjects as string[]) || [];
-    return subjects.map((subject) => ({
-      label: subject,
-      value: subject,
-    }));
-  }, [serdes.key]);
-
-  const valueSubjectOptions = React.useMemo(() => {
-    const srSerde = serdes.value?.find(
-      (s) => s.name === SCHEMA_REGISTRY_SERDE_NAME
-    );
-    const subjects =
-      (srSerde?.additionalProperties?.subjects as string[]) || [];
-    return subjects.map((subject) => ({
-      label: subject,
-      value: subject,
-    }));
-  }, [serdes.value]);
 
   const formDefaults = React.useMemo(
     () => ({
@@ -105,8 +89,58 @@ const SendMessage: React.FC<SendMessageProps> = ({
   const keySerde = useWatch({ control, name: 'keySerde' });
   const valueSerde = useWatch({ control, name: 'valueSerde' });
 
-  const showKeySubject = keySerde === SCHEMA_REGISTRY_SERDE_NAME;
-  const showValueSubject = valueSerde === SCHEMA_REGISTRY_SERDE_NAME;
+  const keySerdeParameters = React.useMemo(
+    () => getSerdeParameters(keySerde, serdes.key),
+    [keySerde, serdes.key]
+  );
+
+  const valueSerdeParameters = React.useMemo(
+    () => getSerdeParameters(valueSerde, serdes.value),
+    [valueSerde, serdes.value]
+  );
+
+  React.useEffect(() => {
+    setValue('keySerdeParams', undefined);
+  }, [keySerde, setValue]);
+
+  React.useEffect(() => {
+    setValue('valueSerdeParams', undefined);
+  }, [valueSerde, setValue]);
+
+  const renderParameters = (
+    parameters: SerdeParameter[],
+    prefix: 'keySerdeParams' | 'valueSerdeParams'
+  ) => {
+    return parameters.map((param) => {
+      if (!param.allowedValues || param.allowedValues.length === 0) return null;
+      const fieldName = `${prefix}.${param.name}`;
+      const label = param.visibleName || param.name;
+      const options = param.allowedValues.map((v) => ({
+        label: v,
+        value: v,
+      }));
+      return (
+        <div key={fieldName}>
+          <InputLabel>{label}</InputLabel>
+          <Controller
+            control={control}
+            name={fieldName as keyof MessageFormData}
+            render={({ field: { name, onChange, value } }) => (
+              <InputWithOptions
+                name={name}
+                onChange={onChange}
+                minWidth="100%"
+                options={options}
+                value={value as string}
+                placeholder={`Search ${label.toLowerCase()}...`}
+                inputSize="L"
+              />
+            )}
+          />
+        </div>
+      );
+    });
+  };
 
   const submit = async ({
     keySerde: formKeySerde,
@@ -115,8 +149,8 @@ const SendMessage: React.FC<SendMessageProps> = ({
     content,
     headers,
     partition,
-    keySubject,
-    valueSubject,
+    keySerdeParams,
+    valueSerdeParams,
     keepContents,
   }: MessageFormData) => {
     let errors: string[] = [];
@@ -167,10 +201,12 @@ const SendMessage: React.FC<SendMessageProps> = ({
         partition: partition || 0,
         keySerde: formKeySerde,
         valueSerde: formValueSerde,
-        keySerdeProperties: keySubject ? { subject: keySubject } : undefined,
-        valueSerdeProperties: valueSubject
-          ? { subject: valueSubject }
-          : undefined,
+        ...(keySerdeParams && Object.keys(keySerdeParams).length > 0
+          ? { keySerdeProperties: keySerdeParams }
+          : {}),
+        ...(valueSerdeParams && Object.keys(valueSerdeParams).length > 0
+          ? { valueSerdeProperties: valueSerdeParams }
+          : {}),
       });
       if (!keepContents) {
         setValue('key', defaultValues.key || '');
@@ -224,28 +260,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
                   )}
                 />
               </div>
-              {showKeySubject && (
-                <div>
-                  <InputLabel id="keySubjectOptionsLabel">
-                    Key Subject
-                  </InputLabel>
-                  <Controller
-                    control={control}
-                    name="keySubject"
-                    render={({ field: { name, onChange, value } }) => (
-                      <InputWithOptions
-                        name={name}
-                        onChange={onChange}
-                        minWidth="100%"
-                        options={keySubjectOptions}
-                        value={value}
-                        placeholder="Search subjects..."
-                        inputSize="L"
-                      />
-                    )}
-                  />
-                </div>
-              )}
+              {renderParameters(keySerdeParameters, 'keySerdeParams')}
             </S.FlexItem>
             <S.FlexItem>
               <div>
@@ -266,28 +281,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
                   )}
                 />
               </div>
-              {showValueSubject && (
-                <div>
-                  <InputLabel id="valueSubjectOptionsLabel">
-                    Value Subject
-                  </InputLabel>
-                  <Controller
-                    control={control}
-                    name="valueSubject"
-                    render={({ field: { name, onChange, value } }) => (
-                      <InputWithOptions
-                        name={name}
-                        onChange={onChange}
-                        minWidth="100%"
-                        options={valueSubjectOptions}
-                        value={value}
-                        placeholder="Search subjects..."
-                        inputSize="L"
-                      />
-                    )}
-                  />
-                </div>
-              )}
+              {renderParameters(valueSerdeParameters, 'valueSerdeParams')}
             </S.FlexItem>
           </S.Flex>
         </S.Columns>

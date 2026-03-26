@@ -72,7 +72,7 @@ describe('useProduceMessage', () => {
     });
   });
 
-  it('should extract subjects from deserialize properties', () => {
+  it('should extract serde params from deserialize properties', () => {
     const { result } = renderHook(() => useProduceMessage());
     const messageWithSubjects: TopicMessage = {
       ...mockMessage,
@@ -94,8 +94,16 @@ describe('useProduceMessage', () => {
       result.current.setMessage(messageWithSubjects);
     });
 
-    expect(result.current.messageData?.valueSubject).toBe('test-topic-value');
-    expect(result.current.messageData?.keySubject).toBe('test-topic-key');
+    expect(result.current.messageData?.keySerdeParams).toEqual({
+      subjects: 'test-topic-key',
+      type: 'AVRO',
+      id: '2',
+    });
+    expect(result.current.messageData?.valueSerdeParams).toEqual({
+      subjects: 'test-topic-value',
+      type: 'AVRO',
+      id: '1',
+    });
   });
 
   it('should handle empty subjects array in deserialize properties', () => {
@@ -110,7 +118,9 @@ describe('useProduceMessage', () => {
       result.current.setMessage(messageWithEmptySubjects);
     });
 
-    expect(result.current.messageData).not.toHaveProperty('valueSubject');
+    expect(
+      result.current.messageData?.valueSerdeParams?.subjects
+    ).toBeUndefined();
   });
 
   it('should clear message on callback', () => {

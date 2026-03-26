@@ -87,7 +87,13 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      parameters: [{name: "subjects", visibleName: "subjects", allowedValues: ['user-key', 'order-key']}],
+      parameters: [
+        {
+          name: 'subjects',
+          visibleName: 'subjects',
+          allowedValues: ['user-key', 'order-key'],
+        },
+      ],
       additionalProperties: {},
     },
   ],
@@ -97,7 +103,13 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
     {
       name: 'SchemaRegistry',
       preferred: false,
-      parameters: [{name: "subjects", visibleName: "subjects", allowedValues: ['user-value', 'order-value']}],
+      parameters: [
+        {
+          name: 'subjects',
+          visibleName: 'subjects',
+          allowedValues: ['user-value', 'order-value'],
+        },
+      ],
     },
   ],
 };
@@ -405,7 +417,7 @@ describe('SendMessage', () => {
       }));
     });
 
-    it('should show Key Subject field when SchemaRegistry is selected for key', async () => {
+    it('should show parameter field when SchemaRegistry is selected for key', async () => {
       await renderComponent();
 
       // Select SchemaRegistry for key
@@ -414,13 +426,13 @@ describe('SendMessage', () => {
         screen.getByRole('option', { name: 'SchemaRegistry' })
       );
 
-      // Key Subject field should appear (identified by its label text)
+      // Parameter field should appear (label from visibleName)
       await waitFor(() => {
-        expect(screen.getByText('Key Subject')).toBeInTheDocument();
+        expect(screen.getByText('subjects')).toBeInTheDocument();
       });
     });
 
-    it('should show Value Subject field when SchemaRegistry is selected for value', async () => {
+    it('should show parameter field when SchemaRegistry is selected for value', async () => {
       await renderComponent();
 
       // Select SchemaRegistry for value
@@ -431,18 +443,17 @@ describe('SendMessage', () => {
         screen.getByRole('option', { name: 'SchemaRegistry' })
       );
 
-      // Value Subject field should appear (identified by its label text)
+      // Parameter field should appear (label from visibleName)
       await waitFor(() => {
-        expect(screen.getByText('Value Subject')).toBeInTheDocument();
+        expect(screen.getByText('subjects')).toBeInTheDocument();
       });
     });
 
-    it('should not show subject fields when non-SchemaRegistry serde is selected', async () => {
+    it('should not show parameter fields when non-SchemaRegistry serde is selected', async () => {
       await renderComponent();
 
       // By default, Int32/Int64 are selected (preferred), not SchemaRegistry
-      expect(screen.queryByText('Key Subject')).not.toBeInTheDocument();
-      expect(screen.queryByText('Value Subject')).not.toBeInTheDocument();
+      expect(screen.queryByText('subjects')).not.toBeInTheDocument();
     });
 
     it('should submit with keySerdeProperties when SchemaRegistry key is selected', async () => {
@@ -454,9 +465,9 @@ describe('SendMessage', () => {
         screen.getByRole('option', { name: 'SchemaRegistry' })
       );
 
-      // Wait for subject field to appear and type a subject
+      // Wait for parameter field to appear and type a value
       await waitFor(() => {
-        expect(screen.getByText('Key Subject')).toBeInTheDocument();
+        expect(screen.getByText('subjects')).toBeInTheDocument();
       });
 
       const keySubjectInput = screen.getByPlaceholderText('Search subjects...');
@@ -470,7 +481,7 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           keySerde: 'SchemaRegistry',
-          keySerdeProperties: { subject: 'user-key' },
+          keySerdeProperties: { subjects: 'user-key' },
         })
       );
     });
@@ -486,9 +497,9 @@ describe('SendMessage', () => {
         screen.getByRole('option', { name: 'SchemaRegistry' })
       );
 
-      // Wait for subject field to appear and type a subject
+      // Wait for parameter field to appear and type a value
       await waitFor(() => {
-        expect(screen.getByText('Value Subject')).toBeInTheDocument();
+        expect(screen.getByText('subjects')).toBeInTheDocument();
       });
 
       const valueSubjectInputs =
@@ -505,7 +516,7 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           valueSerde: 'SchemaRegistry',
-          valueSerdeProperties: { subject: 'user-value' },
+          valueSerdeProperties: { subjects: 'user-value' },
         })
       );
     });

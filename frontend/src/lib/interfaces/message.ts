@@ -5,7 +5,7 @@ export interface MessageFormData {
   partition: number;
   keySerde: string;
   valueSerde: string;
-  keySubject?: string;
-  valueSubject?: string;
+  keySerdeParams?: Record<string, string>;
+  valueSerdeParams?: Record<string, string>;
   keepContents: boolean;
 }
