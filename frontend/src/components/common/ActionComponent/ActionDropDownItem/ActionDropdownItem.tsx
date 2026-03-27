@@ -9,10 +9,13 @@ import { usePermission } from 'lib/hooks/usePermission';
 import { DropdownItemProps } from 'components/common/Dropdown/DropdownItem';
 import { DropdownItem } from 'components/common/Dropdown';
 
-interface Props extends ActionComponentProps, DropdownItemProps {}
+interface Props extends ActionComponentProps, DropdownItemProps {
+  fallbackPermission?: ActionComponentProps['permission'];
+}
 
 const ActionDropdownItem: React.FC<Props> = ({
   permission,
+  fallbackPermission,
   message = getDefaultActionMessage(),
   placement = 'left',
   children,
@@ -25,7 +28,17 @@ const ActionDropdownItem: React.FC<Props> = ({
     permission.value
   );
 
-  const isDisabled = !canDoAction;
+  // Only check fallback if it's provided - use primary values as placeholders otherwise
+  // (will result in same permission check, effectively a no-op for the OR logic)
+  const canDoFallbackAction = usePermission(
+    fallbackPermission?.resource ?? permission.resource,
+    fallbackPermission?.action ?? permission.action,
+    fallbackPermission?.value ?? permission.value
+  );
+
+  const hasPermission =
+    canDoAction || (fallbackPermission && canDoFallbackAction);
+  const isDisabled = !hasPermission;
 
   const { x, y, refs, strategy, open } = useActionTooltip(
     isDisabled,

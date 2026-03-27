@@ -30,6 +30,7 @@ describe('ACLList Component', () => {
       beforeEach(() => {
         (useAcls as jest.Mock).mockImplementation(() => ({
           data: aclPayload,
+          isSuccess: true,
         }));
         (useDeleteAcl as jest.Mock).mockImplementation(() => ({
           deleteResource: jest.fn(),
@@ -82,6 +83,7 @@ describe('ACLList Component', () => {
       beforeEach(() => {
         (useAcls as jest.Mock).mockImplementation(() => ({
           data: [],
+          isSuccess: true,
         }));
         (useDeleteAcl as jest.Mock).mockImplementation(() => ({
           deleteResource: jest.fn(),

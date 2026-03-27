@@ -17,7 +17,9 @@ import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSna
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class MetricsUtils {
 
   private MetricsUtils() {
@@ -109,6 +111,11 @@ public final class MetricsUtils {
   }
 
   private static Labels extendLabels(Labels labels, String name, String value) {
-    return labels.add(name, value);
+    if (!labels.contains(name)) {
+      return labels.add(name, value);
+    } else {
+      log.warn("Label {} already exists with value {} not updated to {}, skipping", name, labels.get(name), value);
+      return labels;
+    }
   }
 }

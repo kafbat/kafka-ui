@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.primitives.Longs;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.kafbat.ui.exception.JsonAvroConversionException;
+import io.kafbat.ui.serdes.builtin.sr.FormatterProperties;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -385,12 +386,20 @@ class JsonAvroConversionTest {
                      "type": { "type": "long", "logicalType": "timestamp-micros" }
                    },
                    {
+                     "name": "lt_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                   },
+                   {
                      "name": "lt_local_timestamp_millis",
                      "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                    },
                    {
                      "name": "lt_local_timestamp_micros",
                      "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                   },
+                   {
+                     "name": "lt_local_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                    }
                  ]
               }"""
@@ -405,8 +414,10 @@ class JsonAvroConversionTest {
             "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
             "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
             "lt_timestamp_micros": "2007-12-13T10:15:30.123456Z",
+            "lt_timestamp_nanos": "2007-12-13T10:15:30.123456789Z",
             "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456"
+            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456",
+            "lt_local_timestamp_nanos": "2017-12-13T10:15:30.123456789"
           }
           """;
 
@@ -427,10 +438,14 @@ class JsonAvroConversionTest {
           .isEqualTo(Instant.parse("2007-12-03T10:15:30.123Z"));
       assertThat(record.get("lt_timestamp_micros"))
           .isEqualTo(Instant.parse("2007-12-13T10:15:30.123456Z"));
+      assertThat(record.get("lt_timestamp_nanos"))
+          .isEqualTo(Instant.parse("2007-12-13T10:15:30.123456789Z"));
       assertThat(record.get("lt_local_timestamp_millis"))
           .isEqualTo(LocalDateTime.parse("2017-12-03T10:15:30.123"));
       assertThat(record.get("lt_local_timestamp_micros"))
           .isEqualTo(LocalDateTime.parse("2017-12-13T10:15:30.123456"));
+      assertThat(record.get("lt_local_timestamp_nanos"))
+          .isEqualTo(LocalDateTime.parse("2017-12-13T10:15:30.123456789"));
     }
   }
 
@@ -440,25 +455,26 @@ class JsonAvroConversionTest {
 
     @Test
     void primitiveRoot() {
-      assertThat(convertAvroToJson("str", createSchema("\"string\"")))
+      assertThat(convertAvroToJson("str", createSchema("\"string\""), FormatterProperties.EMPTY))
           .isEqualTo(new TextNode("str"));
 
-      assertThat(convertAvroToJson(123, createSchema("\"int\"")))
+      assertThat(convertAvroToJson(123, createSchema("\"int\""), FormatterProperties.EMPTY))
           .isEqualTo(new IntNode(123));
 
-      assertThat(convertAvroToJson(123L, createSchema("\"long\"")))
+      assertThat(convertAvroToJson(123L, createSchema("\"long\""), FormatterProperties.EMPTY))
           .isEqualTo(new LongNode(123));
 
-      assertThat(convertAvroToJson(123.1F, createSchema("\"float\"")))
+      assertThat(convertAvroToJson(123.1F, createSchema("\"float\""), FormatterProperties.EMPTY))
           .isEqualTo(new FloatNode(123.1F));
 
-      assertThat(convertAvroToJson(123.1, createSchema("\"double\"")))
+      assertThat(convertAvroToJson(123.1, createSchema("\"double\""), FormatterProperties.EMPTY))
           .isEqualTo(new DoubleNode(123.1));
 
-      assertThat(convertAvroToJson(true, createSchema("\"boolean\"")))
+      assertThat(convertAvroToJson(true, createSchema("\"boolean\""), FormatterProperties.EMPTY))
           .isEqualTo(BooleanNode.valueOf(true));
 
-      assertThat(convertAvroToJson(ByteBuffer.wrap(Longs.toByteArray(123L)), createSchema("\"bytes\"")))
+      assertThat(convertAvroToJson(
+          ByteBuffer.wrap(Longs.toByteArray(123L)), createSchema("\"bytes\""), FormatterProperties.EMPTY))
           .isEqualTo(new TextNode(new String(Longs.toByteArray(123L), StandardCharsets.ISO_8859_1)));
     }
 
@@ -543,7 +559,7 @@ class JsonAvroConversionTest {
           }
           """;
 
-      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema));
+      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
     }
 
     @Test
@@ -583,12 +599,20 @@ class JsonAvroConversionTest {
                      "type": { "type": "long", "logicalType": "timestamp-micros" }
                    },
                    {
+                     "name": "lt_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                   },
+                   {
                      "name": "lt_local_timestamp_millis",
                      "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                    },
                    {
                      "name": "lt_local_timestamp_micros",
                      "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                   },
+                   {
+                     "name": "lt_local_timestamp_nanos",
+                     "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                    }
                  ]
               }"""
@@ -602,8 +626,10 @@ class JsonAvroConversionTest {
       inputRecord.put("lt_time_micros", LocalTime.parse("10:15:30.123456"));
       inputRecord.put("lt_timestamp_millis", Instant.parse("2007-12-03T10:15:30.123Z"));
       inputRecord.put("lt_timestamp_micros", Instant.parse("2007-12-13T10:15:30.123456Z"));
+      inputRecord.put("lt_timestamp_nanos", Instant.parse("2007-12-13T10:15:30.123456789Z"));
       inputRecord.put("lt_local_timestamp_millis", LocalDateTime.parse("2017-12-03T10:15:30.123"));
       inputRecord.put("lt_local_timestamp_micros", LocalDateTime.parse("2017-12-13T10:15:30.123456"));
+      inputRecord.put("lt_local_timestamp_nanos", LocalDateTime.parse("2017-12-13T10:15:30.123456789"));
 
       String expectedJson = """
           {
@@ -614,12 +640,14 @@ class JsonAvroConversionTest {
             "lt_time_micros": "10:15:30.123456",
             "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
             "lt_timestamp_micros": "2007-12-13T10:15:30.123456Z",
+            "lt_timestamp_nanos": "2007-12-13T10:15:30.123456789Z",
             "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456"
+            "lt_local_timestamp_micros": "2017-12-13T10:15:30.123456",
+            "lt_local_timestamp_nanos": "2017-12-13T10:15:30.123456789"
           }
           """;
 
-      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema));
+      assertJsonsEqual(expectedJson, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
     }
 
     @Test
@@ -639,23 +667,24 @@ class JsonAvroConversionTest {
               }"""
       );
 
+      // with default showNullValues=false, null fields are omitted
       var r = new GenericData.Record(schema);
       r.put("f_union", null);
-      assertJsonsEqual(" {}", convertAvroToJson(r, schema));
+      assertJsonsEqual(" { }", convertAvroToJson(r, schema, FormatterProperties.EMPTY));
 
       r = new GenericData.Record(schema);
       r.put("f_union", 123);
-      assertJsonsEqual(" { \"f_union\" : { \"int\" : 123 } }", convertAvroToJson(r, schema));
+      assertJsonsEqual(" { \"f_union\" : { \"int\" : 123 } }", convertAvroToJson(r, schema, FormatterProperties.EMPTY));
 
 
       r = new GenericData.Record(schema);
       var innerRec = new GenericData.Record(schema);
       innerRec.put("f_union", 123);
       r.put("f_union", innerRec);
-      // short type name can be set since there is NO clash with other types name
+      // default useFullyQualifiedNames=false uses short type names
       assertJsonsEqual(
           " { \"f_union\" : { \"TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
-          convertAvroToJson(r, schema)
+          convertAvroToJson(r, schema, FormatterProperties.EMPTY)
       );
     }
 
@@ -687,14 +716,31 @@ class JsonAvroConversionTest {
               }"""
       );
 
+      var nestedClassSchema = schema.getField("nestedClass").schema();
+
       var r = new GenericData.Record(schema);
+      var nestedClassRec = new GenericData.Record(nestedClassSchema);
+      nestedClassRec.put("inner_obj_field", 999);
+      r.put("nestedClass", nestedClassRec);
       var innerRec = new GenericData.Record(schema);
       innerRec.put("f_union", 123);
+      innerRec.put("nestedClass", nestedClassRec);
       r.put("f_union", innerRec);
-      // full type name should be set since there is a clash with other type name
+      // auto-detection uses full names when there's a name clash within the union
+      // default showNullValues=false omits null fields
       assertJsonsEqual(
-          " { \"f_union\" : { \"com.test.TestAvroRecord\" : { \"f_union\" : { \"int\" : 123 } } } }",
-          convertAvroToJson(r, schema)
+          """
+          {
+            "nestedClass": { "inner_obj_field": 999 },
+            "f_union": {
+              "com.test.TestAvroRecord": {
+                "nestedClass": { "inner_obj_field": 999 },
+                "f_union": { "int": 123 }
+              }
+            }
+          }
+          """,
+          convertAvroToJson(r, schema, FormatterProperties.EMPTY)
       );
     }
 
@@ -725,16 +771,186 @@ class JsonAvroConversionTest {
     inputRecord.put("enum_nullable_union",
         new GenericData.EnumSymbol(
             schema.getField("enum_nullable_union").schema().getTypes().get(1), "SPADES"));
+    // default useFullyQualifiedNames=false uses short type names
     String expectedJsonWithEnum = """
           {
-            "enum_nullable_union": { "Suit": "SPADES"}\s
+            "enum_nullable_union": { "Suit": "SPADES"}
           }
-         \s""";
-    assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema));
+          """;
+    assertJsonsEqual(expectedJsonWithEnum, convertAvroToJson(inputRecord, schema, FormatterProperties.EMPTY));
 
     GenericData.Record inputNullRecord  = new GenericData.Record(schema);
     inputNullRecord.put("enum_nullable_union", null);
-    assertJsonsEqual("{}", convertAvroToJson(inputNullRecord, schema));
+    // default showNullValues=false omits null fields
+    assertJsonsEqual("{ }", convertAvroToJson(inputNullRecord, schema, FormatterProperties.EMPTY));
+  }
+
+  @Test
+  void nullFieldsAreOmittedByDefault() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "io.kafbat.test",
+               "name": "TestMessage",
+               "fields": [
+                 {"name": "id", "type": "string"},
+                 {"name": "nullable_field", "type": ["null", "string"], "default": null},
+                 {"name": "nested_record", "type": ["null", {
+                   "type": "record",
+                   "name": "NestedRecord",
+                   "fields": [{"name": "value", "type": "string"}]
+                 }], "default": null}
+               ]
+            }"""
+    );
+
+    // Test with all fields null (except required id) - nulls are omitted by default
+    GenericData.Record recordWithNulls = new GenericData.Record(schema);
+    recordWithNulls.put("id", "test-id-1");
+    recordWithNulls.put("nullable_field", null);
+    recordWithNulls.put("nested_record", null);
+
+    String expectedWithNullsOmitted = """
+        {
+          "id": "test-id-1"
+        }
+        """;
+    assertJsonsEqual(expectedWithNullsOmitted, convertAvroToJson(recordWithNulls, schema, FormatterProperties.EMPTY));
+
+    // Test with nested record populated - uses short type names by default
+    var nestedSchema = schema.getField("nested_record").schema().getTypes().get(1);
+    var nestedRecord = new GenericData.Record(nestedSchema);
+    nestedRecord.put("value", "nested-value");
+
+    GenericData.Record recordWithNested = new GenericData.Record(schema);
+    recordWithNested.put("id", "test-id-2");
+    recordWithNested.put("nullable_field", "some-string");
+    recordWithNested.put("nested_record", nestedRecord);
+
+    // default useFullyQualifiedNames=false uses short type names
+    String expectedWithNested = """
+        {
+          "id": "test-id-2",
+          "nullable_field": { "string": "some-string" },
+          "nested_record": { "NestedRecord": { "value": "nested-value" } }
+        }
+        """;
+    assertJsonsEqual(expectedWithNested, convertAvroToJson(recordWithNested, schema, FormatterProperties.EMPTY));
+  }
+
+  @Test
+  void showNullValuesWhenFlagEnabled() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "io.kafbat.test",
+               "name": "TestMessage",
+               "fields": [
+                 {"name": "id", "type": "string"},
+                 {"name": "nullable_field", "type": ["null", "string"], "default": null}
+               ]
+            }"""
+    );
+
+    GenericData.Record recordWithNulls = new GenericData.Record(schema);
+    recordWithNulls.put("id", "test-id-1");
+    recordWithNulls.put("nullable_field", null);
+
+    // With showNullValues=true, null fields are included
+    String expectedWithNullsShown = """
+        {
+          "id": "test-id-1",
+          "nullable_field": null
+        }
+        """;
+    assertJsonsEqual(expectedWithNullsShown,
+        convertAvroToJson(recordWithNulls, schema, new FormatterProperties(true, false)));
+  }
+
+  @Test
+  void useFullyQualifiedNamesWhenFlagEnabled() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "io.kafbat.test",
+               "name": "TestMessage",
+               "fields": [
+                 {"name": "id", "type": "string"},
+                 {"name": "nested_record", "type": ["null", {
+                   "type": "record",
+                   "name": "NestedRecord",
+                   "fields": [{"name": "value", "type": "string"}]
+                 }], "default": null}
+               ]
+            }"""
+    );
+
+    var nestedSchema = schema.getField("nested_record").schema().getTypes().get(1);
+    var nestedRecord = new GenericData.Record(nestedSchema);
+    nestedRecord.put("value", "nested-value");
+
+    GenericData.Record recordWithNested = new GenericData.Record(schema);
+    recordWithNested.put("id", "test-id-2");
+    recordWithNested.put("nested_record", nestedRecord);
+
+    // With useFullyQualifiedNames=true, full type names are used
+    String expectedWithFullNames = """
+        {
+          "id": "test-id-2",
+          "nested_record": { "io.kafbat.test.NestedRecord": { "value": "nested-value" } }
+        }
+        """;
+    assertJsonsEqual(expectedWithFullNames,
+        convertAvroToJson(recordWithNested, schema, new FormatterProperties(false, true)));
+  }
+
+  @Test
+  void bothFlagsEnabledTogether() {
+    var schema = createSchema(
+        """
+             {
+               "type": "record",
+               "namespace": "io.kafbat.test",
+               "name": "TestMessage",
+               "fields": [
+                 {"name": "id", "type": "string"},
+                 {"name": "nullable_field", "type": ["null", "string"], "default": null},
+                 {"name": "nested_record", "type": ["null", {
+                   "type": "record",
+                   "name": "NestedRecord",
+                   "fields": [{"name": "value", "type": "string"}]
+                 }], "default": null}
+               ]
+            }"""
+    );
+
+    var nestedSchema = schema.getField("nested_record").schema().getTypes().get(1);
+    var nestedRecord = new GenericData.Record(nestedSchema);
+    nestedRecord.put("value", "nested-value");
+
+    GenericData.Record record = new GenericData.Record(schema);
+    record.put("id", "test-id");
+    record.put("nullable_field", null);
+    record.put("nested_record", nestedRecord);
+
+    // With both flags enabled: nulls shown and full names used
+    String expected = """
+        {
+          "id": "test-id",
+          "nullable_field": null,
+          "nested_record": { "io.kafbat.test.NestedRecord": { "value": "nested-value" } }
+        }
+        """;
+    assertJsonsEqual(expected, convertAvroToJson(
+        record, schema,
+        FormatterProperties.builder()
+            .fullyQualifiedNames(true)
+            .showNullValues(true)
+            .build()
+    ));
   }
 
   private Schema createSchema(String schema) {

@@ -62,7 +62,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   static final List<Record> SENT_RECORDS = new ArrayList<>();
   static final ConsumerRecordDeserializer RECORD_DESERIALIZER = createRecordsDeserializer();
   static final Cursor.Tracking CURSOR_MOCK = Mockito.mock(Cursor.Tracking.class);
-  static final Predicate<TopicMessageDTO> NOOP_FILTER = m -> true;
+  static final Predicate<TopicMessageDTO> NOOP_FILTER = _ -> true;
 
   @BeforeAll
   static void generateMsgs() throws Exception {
@@ -323,6 +323,48 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     );
   }
 
+  @Test
+  void forwardEmitterCompletesWithZeroPageSize() {
+    var emitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(emitter))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType()))
+        .thenConsumeWhile(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType())
+            || TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .expectComplete()
+        .verify();
+  }
+
+  @Test
+  void backwardEmitterCompletesWithZeroPageSize() {
+    var emitter = new BackwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(LATEST, TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(emitter))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType()))
+        .thenConsumeWhile(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType())
+            || TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .expectComplete()
+        .verify();
+  }
+
   private void expectEmitter(Consumer<FluxSink<TopicMessageEventDTO>> emitter, List<String> expectedValues) {
     expectEmitter(emitter,
         expectedValues.size(),
@@ -330,7 +372,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
             .expectNextCount(expectedValues.size())
             .expectRecordedMatches(r -> r.containsAll(expectedValues))
             .consumeRecordedWith(r -> log.info("Collected collection: {}", r)),
-        v -> {
+        _ -> {
         }
     );
   }

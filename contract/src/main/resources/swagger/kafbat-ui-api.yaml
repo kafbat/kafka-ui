@@ -3688,6 +3688,7 @@ components:
       enum:
         - SOURCE
         - SINK
+        - UNKNOWN
 
     ConsumerGroupOffsetsReset:
       type: object
@@ -3755,6 +3756,8 @@ components:
         state:
           $ref: '#/components/schemas/ConnectorState'
         workerId:
+          type: string
+        trace:
           type: string
       required:
         - state
@@ -4154,6 +4157,7 @@ components:
         - CONSUMER
         - SCHEMA
         - CONNECT
+        - CONNECTOR
         - KSQL
         - ACL
         - AUDIT

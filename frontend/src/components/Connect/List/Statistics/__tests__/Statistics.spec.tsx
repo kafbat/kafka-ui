@@ -5,6 +5,7 @@ import ConnectorsStatistics from 'components/Connect/List/Statistics/Statistics'
 import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { connectors } from 'lib/fixtures/kafkaConnect';
 import { FullConnectorInfo } from 'generated-sources';
+import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
 
 jest.mock('lib/hooks/api/kafkaConnect');
 jest.mock('lib/hooks/useAppParams', () => ({
@@ -25,7 +26,11 @@ describe('Kafka Connect Connectors Statistics', () => {
   function renderComponent({ data = [], isLoading }: RenderComponentProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useConnectorsMock.mockReturnValue({ data, isLoading } as any);
-    render(<ConnectorsStatistics connectors={data} isLoading={isLoading} />);
+    render(
+      <FilteredConnectorsProvider initialData={data}>
+        <ConnectorsStatistics isLoading={isLoading} />
+      </FilteredConnectorsProvider>
+    );
   }
 
   describe('when data loading', () => {

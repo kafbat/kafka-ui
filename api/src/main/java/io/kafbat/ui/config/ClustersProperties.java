@@ -45,6 +45,18 @@ public class ClustersProperties {
 
   AdminClient adminClient = new AdminClient();
 
+  Csv csv = new Csv();
+
+  Boolean messageRelativeTimestamp;
+
+  @Data
+  public static class Csv {
+    String lineDelimeter = "crlf";
+    char quoteCharacter = '"';
+    String quoteStrategy = "required";
+    char fieldSeparator = ',';
+  }
+
   @Data
   public static class AdminClient {
     Integer timeout;
@@ -68,6 +80,7 @@ public class ClustersProperties {
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+    String schemaRegistryTopicSubjectSuffix = "-value";
 
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
@@ -145,6 +158,7 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+    String consumerNamePattern = "connect-%s";
   }
 
   @Data
@@ -159,7 +173,7 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
-    boolean verifySsl = true;
+    boolean verify = true;
   }
 
   @Data
@@ -215,6 +229,7 @@ public class ClustersProperties {
     Boolean consoleAuditEnabled;
     LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
+    Boolean requireAuditTopic;
 
     public enum LogLevel {
       ALL,
@@ -236,6 +251,7 @@ public class ClustersProperties {
   public static class NgramProperties {
     int ngramMin = 1;
     int ngramMax = 4;
+    boolean distanceScore = true;
   }
 
   @Data
@@ -244,17 +260,17 @@ public class ClustersProperties {
   public static class ClusterFtsProperties {
     boolean enabled = true;
     boolean defaultEnabled = false;
-    NgramProperties schemas = new NgramProperties(1, 4);
-    NgramProperties consumers = new NgramProperties(1, 4);
-    NgramProperties connect = new NgramProperties(1, 4);
-    NgramProperties acl = new NgramProperties(1, 4);
+    NgramProperties schemas = new NgramProperties(1, 4, true);
+    NgramProperties consumers = new NgramProperties(1, 4, true);
+    NgramProperties connect = new NgramProperties(1, 4, true);
+    NgramProperties acl = new NgramProperties(1, 4, true);
 
     public boolean use(Boolean request) {
       if (enabled) {
         if (Boolean.TRUE.equals(request)) {
           return true;
-        } else if (request == null && defaultEnabled) {
-          return true;
+        } else {
+          return request == null && defaultEnabled;
         }
       }
       return false;
@@ -286,7 +302,6 @@ public class ClustersProperties {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();
@@ -305,8 +320,8 @@ public class ClustersProperties {
 
   private void validateClusterNames() {
     // if only one cluster provided it is ok not to set name
-    if (clusters.size() == 1 && !StringUtils.hasText(clusters.get(0).getName())) {
-      clusters.get(0).setName("Default");
+    if (clusters.size() == 1 && !StringUtils.hasText(clusters.getFirst().getName())) {
+      clusters.getFirst().setName("Default");
       return;
     }
 

@@ -169,7 +169,8 @@ public class TopicsService {
         .flatMap(ac -> ac.describeTopic(topicName)
             .switchIfEmpty(Mono.error(new TopicNotFoundException()))
             .then(ac.getTopicsConfig(List.of(topicName), true))
-            .map(m -> m.values().stream().findFirst().orElse(List.of())));
+            .map(m -> m.values().stream().findFirst().orElse(List.of())))
+            .doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
   private Mono<InternalTopic> createTopic(KafkaCluster c, ReactiveAdminClient adminClient, TopicCreationDTO topicData) {
@@ -178,6 +179,7 @@ public class TopicsService {
             topicData.getPartitions(),
             topicData.getReplicationFactor(),
             topicData.getConfigs())
+        .doOnError(e -> adminClientService.invalidate(c, e))
         .thenReturn(topicData)
         .onErrorMap(t -> new TopicMetadataException(t.getMessage(), t))
         .then(loadTopicAfterCreation(c, topicData.getName()));
@@ -465,8 +467,7 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster, String search, Boolean showInternal,
-                                                          Boolean fts) {
+  public Mono<List<InternalTopic>> getTopics(KafkaCluster cluster, String search, Boolean showInternal, Boolean fts) {
     Statistics stats = statisticsCache.get(cluster);
     ScrapedClusterState clusterState = stats.getClusterState();
     boolean useFts = clustersProperties.getFts().use(fts);
@@ -492,7 +493,8 @@ public class TopicsService {
         .map(existing -> topics
             .stream()
             .filter(s -> existing.contains(s.getName()))
-            .collect(toList()));
+            .collect(toList())
+        ).doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
 }

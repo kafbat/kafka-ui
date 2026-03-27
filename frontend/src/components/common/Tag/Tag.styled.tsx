@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 interface Props {
   color: 'green' | 'gray' | 'yellow' | 'red' | 'white' | 'blue';
+  clickable?: boolean;
 }
 
 export const Tag = styled.span.attrs({ role: 'widget' })<Props>`
@@ -18,6 +19,7 @@ export const Tag = styled.span.attrs({ role: 'widget' })<Props>`
   text-align: center;
   width: max-content;
   margin: 2px 0;
+  cursor: ${({ clickable }) => (clickable ? 'pointer' : 'default')};
 `;
 
 export const MultiLineTag = styled.div.attrs({ role: 'widget' })<Props>`

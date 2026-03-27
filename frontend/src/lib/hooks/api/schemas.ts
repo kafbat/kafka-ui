@@ -23,33 +23,37 @@ import {
 } from 'generated-sources';
 import { schemasApiClient } from 'lib/api';
 import { ClusterName } from 'lib/interfaces/cluster';
+import { apiFetch, ServerResponse } from 'lib/errorHandling';
 
 export function useGetLatestSchema(
   param: GetLatestSchemaRequest,
-  options?: UseQueryOptions<SchemaSubject>
+  options?: Omit<
+    UseQueryOptions<SchemaSubject, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
 ) {
-  return useQuery<SchemaSubject>({
+  return useQuery<SchemaSubject, ServerResponse>({
     queryKey: [
       SCHEMA_QUERY_KEY,
       LATEST_SCHEMA_QUERY_KEY,
       param.clusterName,
       param.subject,
     ],
-    queryFn: () => schemasApiClient.getLatestSchema(param),
+    queryFn: () => apiFetch(() => schemasApiClient.getLatestSchema(param)),
     ...options,
   });
 }
 
-export function useGetSchemas({
-  clusterName,
-  page,
-  perPage,
-  search,
-  orderBy,
-  sortOrder,
-  fts,
-}: GetSchemasRequest) {
-  return useQuery<SchemaSubjectsResponse>({
+export function useGetSchemas(
+  params: GetSchemasRequest,
+  options?: Omit<
+    UseQueryOptions<SchemaSubjectsResponse, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  const { clusterName, page, perPage, search, orderBy, sortOrder, fts } =
+    params;
+  return useQuery<SchemaSubjectsResponse, ServerResponse>({
     queryKey: [
       SCHEMA_QUERY_KEY,
       clusterName,
@@ -60,41 +64,60 @@ export function useGetSchemas({
       orderBy,
       fts,
     ],
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
     queryFn: () =>
-      schemasApiClient.getSchemas({
-        clusterName,
-        page,
-        perPage,
-        search: search || undefined,
-        sortOrder,
-        orderBy,
-        fts,
-      }),
+      apiFetch(() =>
+        schemasApiClient.getSchemas({
+          clusterName,
+          page,
+          perPage,
+          search: search || undefined,
+          sortOrder,
+          orderBy,
+          fts,
+        })
+      ),
+    ...options,
   });
 }
 
-export function useGetSchemasVersions({
-  clusterName,
-  subject,
-}: GetAllVersionsBySubjectRequest) {
-  return useQuery<Array<SchemaSubject>>({
+export function useGetSchemasVersions(
+  params: GetAllVersionsBySubjectRequest,
+  options?: Omit<
+    UseQueryOptions<Array<SchemaSubject>, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  const { clusterName, subject } = params;
+  return useQuery<Array<SchemaSubject>, ServerResponse>({
     queryKey: [SCHEMAS_VERSION_QUERY_KEY, clusterName, subject],
     queryFn: () =>
-      schemasApiClient.getAllVersionsBySubject({
-        clusterName,
-        subject,
-      }),
+      apiFetch(() =>
+        schemasApiClient.getAllVersionsBySubject({
+          clusterName,
+          subject,
+        })
+      ),
+    ...options,
   });
 }
 
-export function useGetGlobalCompatibilityLayer(clusterName: ClusterName) {
-  return useQuery<CompatibilityLevel>({
+export function useGetGlobalCompatibilityLayer(
+  clusterName: ClusterName,
+  options?: Omit<
+    UseQueryOptions<CompatibilityLevel, ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<CompatibilityLevel, ServerResponse>({
     queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
     queryFn: () =>
-      schemasApiClient.getGlobalSchemaCompatibilityLevel({
-        clusterName,
-      }),
+      apiFetch(() =>
+        schemasApiClient.getGlobalSchemaCompatibilityLevel({
+          clusterName,
+        })
+      ),
+    ...options,
   });
 }
 
@@ -162,10 +185,9 @@ export function useUpdateGlobalSchemaCompatibilityLevel(
       }),
     onSuccess: () => {
       return Promise.all([
-        queryClient.invalidateQueries([
-          GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY,
-          clusterName,
-        ]),
+        queryClient.invalidateQueries({
+          queryKey: [GLOBAL_COMPATIBILITY_SCHEMAS_QUERY_KEY, clusterName],
+        }),
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey[0] === SCHEMA_QUERY_KEY &&
