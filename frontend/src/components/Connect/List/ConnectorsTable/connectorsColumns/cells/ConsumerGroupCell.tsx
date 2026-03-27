@@ -1,7 +1,7 @@
 import React from 'react';
 import { CellContext } from '@tanstack/react-table';
 import { FullConnectorInfo } from 'generated-sources';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
 import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 
@@ -20,7 +20,7 @@ const ConsumerGroupCell = ({ row }: CellContext<FullConnectorInfo, string>) => {
 
   return (
     <MultiLineTag color="gray">
-      <a href={toConsumerGroupDetails}>{consumer}</a>
+      <Link to={toConsumerGroupDetails}>{consumer}</Link>
     </MultiLineTag>
   );
 };

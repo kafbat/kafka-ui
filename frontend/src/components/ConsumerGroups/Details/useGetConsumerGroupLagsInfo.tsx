@@ -51,6 +51,12 @@ export const useGetConsumerGroupLagsInfo = ({
     const topicPartitions = groups[consumerGroupID]?.topicPartitions ?? {};
     const isPolling = pollingIntervalSec > 0;
 
+    Object.keys(prevLagRef.current.partitions).forEach((topicName) => {
+      if (!(topicName in topicPartitions)) {
+        delete prevLagRef.current.partitions[topicName];
+      }
+    });
+
     const partitionsLagTrends = Object.fromEntries(
       Object.entries(topicPartitions).map(([topicName, topicLag]) => {
         const partitions = topicLag?.partitions ?? {};
