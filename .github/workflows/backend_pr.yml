@@ -2,13 +2,11 @@ name: "Backend: PR: Build and test"
 
 on:
 
-  pull_request_target:
+  pull_request:
     types: [ "opened", "reopened", "synchronize" ]
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
