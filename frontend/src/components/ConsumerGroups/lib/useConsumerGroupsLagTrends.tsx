@@ -49,6 +49,8 @@ export const useConsumerGroupsLagTrends = ({
     return { groups };
   }, [isLagFetched, consumerGroupsLag]);
 
+  const groupId = ids[0];
+
   const lagTrends = useMemo(() => {
     const empty: LagTrends = {
       groupLagTrends: {},
@@ -72,7 +74,6 @@ export const useConsumerGroupsLagTrends = ({
       return { ...empty, groupLagTrends };
     }
 
-    const groupId = ids[0];
     const topics = groups[groupId]?.topics ?? {};
     const topicPartitions = groups[groupId]?.topicPartitions ?? {};
 
@@ -90,7 +91,7 @@ export const useConsumerGroupsLagTrends = ({
         isPolling
       ),
     };
-  }, [lagData, pollingIntervalSec, includePartitions]);
+  }, [lagData, pollingIntervalSec, includePartitions, groupId]);
 
   useEffect(() => {
     if (!lagData) return;
@@ -99,11 +100,10 @@ export const useConsumerGroupsLagTrends = ({
     const nextGroups = buildNextLagMap(groups, (cg) => cg?.lag);
 
     if (!includePartitions) {
-      prevLagRef.current.groups = nextGroups;
+      prevLagRef.current = { groups: nextGroups, topics: {}, partitions: {} };
       return;
     }
 
-    const groupId = ids[0];
     const topics = groups[groupId]?.topics ?? {};
     const topicPartitions = groups[groupId]?.topicPartitions ?? {};
 
@@ -112,7 +112,7 @@ export const useConsumerGroupsLagTrends = ({
       topics: buildNextLagMap(topics, (lag) => lag),
       partitions: buildNextPartitionsLagMap(topicPartitions),
     };
-  }, [lagData, includePartitions]);
+  }, [lagData, includePartitions, groupId]);
 
   return { consumerGroupsLag, lagTrends, pollingIntervalSec };
 };
