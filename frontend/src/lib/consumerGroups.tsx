@@ -2,10 +2,22 @@ import React from 'react';
 import styled from 'styled-components';
 
 export type LagTrend = 'up' | 'down' | 'same' | 'none';
+export type LagValue = number | undefined;
+export type LagMap = Record<string, LagValue>;
+export type PartitionsLagMap = Record<string, LagMap>;
+export type TopicPartitions = Record<
+  string,
+  { partitions?: LagMap } | undefined
+>;
+export type LagTrends = {
+  groupLagTrends: Record<string, LagTrend>;
+  topicsLagTrends: Record<string, LagTrend>;
+  partitionsLagTrends: Record<string, Record<string, LagTrend>>;
+};
 
 export function computeSingleLagTrend(
-  prev: number | undefined,
-  next: number | undefined
+  prev: LagValue,
+  next: LagValue
 ): LagTrend {
   if (
     prev === null ||
@@ -22,31 +34,57 @@ export function computeSingleLagTrend(
 }
 
 export function computeLagTrends<T>(
-  prevLagMap: Record<string, number | undefined>,
+  prevLagMap: LagMap,
   source: Record<string, T | undefined>,
-  selectLag: (value: T | undefined) => number | undefined,
+  selectLag: (value: T | undefined) => LagValue,
   pollingEnabled = true
 ): Record<string, LagTrend> {
   if (!pollingEnabled) return {};
 
-  const trends: Record<string, LagTrend> = {};
-  const nextKeys = new Set(Object.keys(source));
+  return Object.fromEntries(
+    Object.keys(source).map((key) => [
+      key,
+      computeSingleLagTrend(prevLagMap[key], selectLag(source[key])),
+    ])
+  );
+}
 
-  Object.keys(prevLagMap).forEach((key) => {
-    if (!nextKeys.has(key)) {
-      // eslint-disable-next-line no-param-reassign
-      delete prevLagMap[key];
-    }
-  });
+export function computePartitionsLagTrends(
+  prevPartitionsMap: PartitionsLagMap,
+  topicPartitions: TopicPartitions,
+  isPolling: boolean
+): Record<string, Record<string, LagTrend>> {
+  return Object.fromEntries(
+    Object.entries(topicPartitions).map(([topicName, topicLag]) => [
+      topicName,
+      computeLagTrends(
+        prevPartitionsMap[topicName] ?? {},
+        topicLag?.partitions ?? {},
+        (lag) => lag,
+        isPolling
+      ),
+    ])
+  );
+}
 
-  Object.entries(source).forEach(([key, value]) => {
-    const next = selectLag(value);
-    trends[key] = computeSingleLagTrend(prevLagMap[key], next);
-    // eslint-disable-next-line no-param-reassign
-    prevLagMap[key] = next;
-  });
+export function buildNextLagMap<T>(
+  source: Record<string, T | undefined>,
+  selectLag: (value: T | undefined) => LagValue
+): LagMap {
+  return Object.fromEntries(
+    Object.keys(source).map((key) => [key, selectLag(source[key])])
+  );
+}
 
-  return trends;
+export function buildNextPartitionsLagMap(
+  topicPartitions: TopicPartitions
+): PartitionsLagMap {
+  return Object.fromEntries(
+    Object.entries(topicPartitions).map(([topicName, topicLag]) => [
+      topicName,
+      buildNextLagMap(topicLag?.partitions ?? {}, (lag) => lag),
+    ])
+  );
 }
 
 export const LagContainer = styled.div<{ $lagTrend: LagTrend }>`
