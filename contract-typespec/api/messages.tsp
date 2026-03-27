@@ -225,6 +225,8 @@ model CreateTopicMessage {
   value?: string | null;
   keySerde?: string | null;
   valueSerde?: string | null;
+  keySerdeProperties?: Record<unknown>;
+  valueSerdeProperties?: Record<unknown>;
 }
 
 enum MessageFormat {
@@ -244,4 +246,11 @@ model SerdeDescription {
 
   schema?: string;
   additionalProperties?: Record<unknown>;
+  parameters?: SerdeParameter[];
+}
+
+model SerdeParameter {
+  name: string;
+  visibleName?: string;
+  allowedValues?: string[]
 }

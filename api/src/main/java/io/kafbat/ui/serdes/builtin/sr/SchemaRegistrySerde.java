@@ -24,17 +24,21 @@ import io.confluent.kafka.schemaregistry.json.JsonSchema;
 import io.confluent.kafka.schemaregistry.json.JsonSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
+import io.kafbat.ui.exception.UnknownSchemaTypeException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.SchemaRegistryDeserializePropertiesDTO;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
 import io.kafbat.ui.serde.api.SchemaDescription;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.service.ssl.SkipSecurityProvider;
 import io.kafbat.ui.util.jsonschema.AvroJsonSchemaConverter;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +53,13 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private static final ObjectMapper OM = new ObjectMapper();
 
   public static final String NAME = "SchemaRegistry";
+  public static final String SUBJECT_PARAMETER_NAME = "subject";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
 
   private static final String SCHEMA_REGISTRY = "schemaRegistry";
   private static final int DEFAULT_MAX_SUBJECTS_CACHE_SIZE = 1024;
+  private static final int DEFAULT_ALL_SUBJECTS_CACHE_TTL_SECONDS = 30;
 
   private SchemaRegistryClient schemaRegistryClient;
   private List<String> schemaRegistryUrls;
@@ -64,6 +70,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private Map<SchemaType, MessageFormatter> schemaRegistryFormatters;
 
   private Cache<Integer, List<String>> idToSubjectsCache;
+  private Cache<String, Collection<String>> allSubjectsCache;
 
   @Override
   public boolean canBeAutoConfigured(PropertyResolver kafkaClusterProperties,
@@ -106,7 +113,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             .orElse(false),
         formatterProperties,
         kafkaClusterProperties.getProperty("schemaRegistryMaxSubjectsCacheSize", Integer.class)
-            .orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
+            .orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE),
+        kafkaClusterProperties.getProperty("schemaRegistryAllSubjectsCacheTtlSeconds", Integer.class)
+            .orElse(DEFAULT_ALL_SUBJECTS_CACHE_TTL_SECONDS)
     );
   }
 
@@ -144,7 +153,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         serdeProperties.getProperty("checkSchemaExistenceForDeserialize", Boolean.class)
             .orElse(false),
         formatterProperties,
-        serdeProperties.getProperty("maxSubjectsCacheSize", Integer.class).orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE)
+        serdeProperties.getProperty("maxSubjectsCacheSize", Integer.class).orElse(DEFAULT_MAX_SUBJECTS_CACHE_SIZE),
+        serdeProperties.getProperty("allSubjectsCacheTtlSeconds", Integer.class)
+            .orElse(DEFAULT_ALL_SUBJECTS_CACHE_TTL_SECONDS)
     );
   }
 
@@ -156,7 +167,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize) {
     configure(schemaRegistryUrls, schemaRegistryClient, keySchemaNameTemplate, valueSchemaNameTemplate,
-        checkTopicSchemaExistenceForDeserialize, FormatterProperties.EMPTY, DEFAULT_MAX_SUBJECTS_CACHE_SIZE);
+        checkTopicSchemaExistenceForDeserialize, FormatterProperties.EMPTY, DEFAULT_MAX_SUBJECTS_CACHE_SIZE,
+        DEFAULT_ALL_SUBJECTS_CACHE_TTL_SECONDS);
   }
 
   @VisibleForTesting
@@ -167,7 +179,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       String valueSchemaNameTemplate,
       boolean checkTopicSchemaExistenceForDeserialize,
       FormatterProperties formatterProperties,
-      int maxSubjectsCacheSize) {
+      int maxSubjectsCacheSize,
+      int allSubjectsCacheTtlSeconds) {
     this.schemaRegistryUrls = schemaRegistryUrls;
     this.schemaRegistryClient = schemaRegistryClient;
     this.keySchemaNameTemplate = keySchemaNameTemplate;
@@ -176,6 +189,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     this.checkSchemaExistenceForDeserialize = checkTopicSchemaExistenceForDeserialize;
     this.idToSubjectsCache = Caffeine.newBuilder()
         .maximumSize(maxSubjectsCacheSize)
+        .build();
+    this.allSubjectsCache = Caffeine.newBuilder()
+        .expireAfterWrite(Duration.ofSeconds(allSubjectsCacheTtlSeconds))
+        .maximumSize(1)
         .build();
   }
 
@@ -240,8 +257,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @Override
   public boolean canSerialize(String topic, Target type) {
-    String subject = schemaSubject(topic, type);
-    return getSchemaBySubject(subject).isPresent();
+    return !getSchemaSubjects(topic, type).isEmpty();
   }
 
   @Override
@@ -268,7 +284,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     URI basePath = new URI(schemaRegistryUrls.getFirst())
         .resolve(Integer.toString(schema.getId()));
     SchemaType schemaType = SchemaType.fromString(schema.getSchemaType())
-        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + schema.getSchemaType()));
+        .orElseThrow(() -> new UnknownSchemaTypeException(schema.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> new ProtobufSchemaConverter()
           .convert(basePath, ((ProtobufSchema) parsedSchema).toDescriptor())
@@ -307,6 +323,40 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return String.format(type == Target.KEY ? keySchemaNameTemplate : valueSchemaNameTemplate, topic);
   }
 
+  @SneakyThrows
+  List<String> getSchemaSubjects(String topic, Target type) {
+    var allSubjects = allSubjectsCache.get("all", k -> {
+      try {
+        return schemaRegistryClient.getAllSubjects();
+      } catch (Exception e) {
+        throw new RuntimeException("Error fetching all subjects from Schema Registry", e);
+      }
+    });
+    if (allSubjects == null || allSubjects.isEmpty()) {
+      return List.of();
+    }
+
+    String defaultSubject = schemaSubject(topic, type);
+    String topicPrefix = topic + "-";
+    // Exclude subjects for the opposite type
+    String excludeSuffix = type == Target.KEY ? "-value" : "-key";
+
+    return allSubjects.stream()
+        .filter(subject -> {
+          if (subject.endsWith(excludeSuffix)) {
+            return false;
+          }
+
+          boolean isDefaultSubject = subject.equals(defaultSubject);
+          boolean isTopicName = subject.startsWith(topicPrefix);
+          boolean isNotKeyOrValue =
+              !subject.endsWith("-key") && !subject.endsWith("-value");
+
+          return isDefaultSubject || isTopicName || isNotKeyOrValue;
+        })
+        .toList();
+  }
+
   @Override
   public Serializer serializer(String topic, Target type) {
     String subject = schemaSubject(topic, type);
@@ -317,7 +367,44 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .orElseThrow(() -> new IllegalStateException(
             String.format("Schema found for id %s, subject '%s'", meta.getId(), subject)));
     SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
-        .orElseThrow(() -> new IllegalStateException("Unknown schema type: " + meta.getSchemaType()));
+        .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
+    return switch (schemaType) {
+      case PROTOBUF -> input ->
+          serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
+      case AVRO -> input ->
+          serializeAvro((AvroSchema) schema, meta.getId(), input);
+      case JSON -> input ->
+          serializeJson((JsonSchema) schema, meta.getId(), input);
+    };
+  }
+
+  @Override
+  public Serializer serializer(String topic, Target type, Map<String, Object> properties) {
+    if (properties != null) {
+      Object subjectObj = properties.get(SUBJECT_PARAMETER_NAME);
+      if (subjectObj instanceof String explicitSubject && !explicitSubject.isEmpty()) {
+        return serializerWithSubject(topic, type, explicitSubject);
+      }
+    }
+    return serializer(topic, type);
+  }
+
+  @Override
+  public List<SerdeParameter> getParameters(String topic, Target type) {
+    return List.of(
+        new SerdeParameter(SUBJECT_PARAMETER_NAME, SUBJECT_PARAMETER_NAME, getSchemaSubjects(topic, type))
+    );
+  }
+
+  private Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
+    SchemaMetadata meta = getSchemaBySubject(explicitSubject)
+        .orElseThrow(() -> new ValidationException(
+            String.format("No schema for subject '%s' found", explicitSubject)));
+    ParsedSchema schema = getSchemaById(meta.getId())
+        .orElseThrow(() -> new IllegalStateException(
+            String.format("Schema not found for id %s, subject '%s'", meta.getId(), explicitSubject)));
+    SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
+        .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> input ->
           serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
