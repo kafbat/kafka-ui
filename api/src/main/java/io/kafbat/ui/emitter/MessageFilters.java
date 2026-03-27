@@ -27,13 +27,13 @@ import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
-import javax.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 

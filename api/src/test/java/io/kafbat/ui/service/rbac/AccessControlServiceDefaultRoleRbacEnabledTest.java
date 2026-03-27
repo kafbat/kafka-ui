@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -51,6 +52,7 @@ public class AccessControlServiceDefaultRoleRbacEnabledTest extends AbstractInte
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
 
     RoleBasedAccessControlProperties properties = mock();
     defaultRole = MockedRbacUtils.getDefaultRole();

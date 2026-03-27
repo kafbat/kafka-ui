@@ -3,7 +3,7 @@ package io.kafbat.ui.emitter;
 import io.kafbat.ui.model.TopicMessageConsumingDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.model.TopicMessageNextPageCursorDTO;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import reactor.core.publisher.FluxSink;
 
 class ConsumingStats {

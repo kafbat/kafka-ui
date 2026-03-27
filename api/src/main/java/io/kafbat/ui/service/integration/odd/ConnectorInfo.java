@@ -4,13 +4,13 @@ import static io.kafbat.ui.connect.model.Connector.TypeEnum.SINK;
 import static io.kafbat.ui.connect.model.Connector.TypeEnum.SOURCE;
 
 import io.kafbat.ui.connect.model.Connector;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import org.apache.commons.collections.CollectionUtils;
 import org.opendatadiscovery.oddrn.JdbcUrlParser;
 import org.opendatadiscovery.oddrn.model.HivePath;

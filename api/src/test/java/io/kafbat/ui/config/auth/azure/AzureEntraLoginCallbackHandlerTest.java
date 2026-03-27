@@ -25,13 +25,11 @@ import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
-@ExtendWith(MockitoExtension.class)
 class AzureEntraLoginCallbackHandlerTest {
 
   // These are not real tokens. It was generated using fake values with an invalid signature,
@@ -68,6 +66,7 @@ class AzureEntraLoginCallbackHandlerTest {
 
   @BeforeEach
   void beforeEach() {
+    MockitoAnnotations.openMocks(this);
     azureEntraLoginCallbackHandler = new AzureEntraLoginCallbackHandler();
     azureEntraLoginCallbackHandler.setTokenCredential(tokenCredential);
   }

@@ -6,14 +6,14 @@ import static io.prometheus.metrics.model.snapshots.SummarySnapshot.SummaryDataP
 
 import io.prometheus.metrics.model.snapshots.CounterSnapshot;
 import io.prometheus.metrics.model.snapshots.DataPointSnapshot;
-import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.GaugeSnapshot.GaugeDataPointSnapshot;
+import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import io.prometheus.metrics.model.snapshots.HistogramSnapshot;
 import io.prometheus.metrics.model.snapshots.Labels;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.SummarySnapshot;
-import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
 import io.prometheus.metrics.model.snapshots.UnknownSnapshot.UnknownDataPointSnapshot;
+import io.prometheus.metrics.model.snapshots.UnknownSnapshot;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;

@@ -3,6 +3,7 @@ package io.kafbat.ui.service;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;

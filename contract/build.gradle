@@ -60,6 +60,7 @@ tasks.register('generateBackendApi', GenerateTask) {
                      skipDefaultInterface                : "true",
                      useTags                             : "true",
                      useSpringBoot3                      : "true",
+                     useJakartaEe                        : "true",
                      dateLibrary                         : "java8",
                      generateConstructorWithAllArgs      : "false",
                      generatedConstructorWithRequiredArgs: "false",

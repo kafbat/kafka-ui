@@ -10,13 +10,13 @@ import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
 import io.kafbat.ui.serdes.SerdeInstance;
 import io.kafbat.ui.serdes.SerdesInitializer;
+import jakarta.annotation.Nullable;
+import jakarta.validation.ValidationException;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nullable;
-import javax.validation.ValidationException;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 

@@ -18,10 +18,10 @@ class ProtoExtractorTest {
         syntax = "proto3";
         package test;
 
-        import "google/protobuf/timestamp.proto";
-        import "google/protobuf/duration.proto";
-        import "google/protobuf/struct.proto";
-        import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
         message TestMsg {
             map<string, int32> mapField = 100;

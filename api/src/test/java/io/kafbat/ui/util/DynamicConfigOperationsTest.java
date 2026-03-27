@@ -9,13 +9,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.config.ClustersProperties;
+import jakarta.annotation.Nullable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

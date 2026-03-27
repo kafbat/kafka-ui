@@ -1,0 +1,5456 @@
+openapi: 3.0.0
+info:
+  title: Kafbat UI Api Service
+  contact:
+    name: API Support
+    email: support@kafbat.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.2.0
+tags:
+  - name: Unmapped
+  - name: ApplicationConfig
+  - name: Clusters
+  - name: Brokers
+  - name: Topics
+  - name: Acls
+  - name: Messages
+  - name: Consumer Groups
+  - name: Schemas
+  - name: Kafka Connect
+  - name: Ksql
+  - name: ClientQuotas
+  - name: Authorization
+  - name: Graphs
+  - name: PrometheusExpose
+paths:
+  /api/authorization:
+    get:
+      operationId: getUserAuthInfo
+      summary: Get user authorization related info
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationInfo'
+      tags:
+        - Authorization
+  /api/clusters:
+    get:
+      operationId: getClusters
+      summary: getClusters
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cluster'
+      tags:
+        - Clusters
+  /api/clusters/{clusterName}/acls:
+    get:
+      operationId: listAcls
+      summary: listKafkaAcls
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resourceType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/KafkaAclResourceType'
+          explode: false
+        - name: resourceName
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: namePatternType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/KafkaAclNamePatternType'
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KafkaAcl'
+      tags:
+        - Acls
+    post:
+      operationId: createAcl
+      summary: createAcl
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KafkaAcl'
+    delete:
+      operationId: deleteAcl
+      summary: deleteAcl
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KafkaAcl'
+  /api/clusters/{clusterName}/acls/consumer:
+    post:
+      operationId: createConsumerAcl
+      summary: createConsumerAcl
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConsumerAcl'
+  /api/clusters/{clusterName}/acls/csv:
+    get:
+      operationId: getAclAsCsv
+      summary: getAclAsCsv
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resourceType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/KafkaAclResourceType'
+          explode: false
+        - name: resourceName
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: namePatternType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/KafkaAclNamePatternType'
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Acls
+    post:
+      operationId: syncAclsCsv
+      summary: syncAclsCsv
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+  /api/clusters/{clusterName}/acls/producer:
+    post:
+      operationId: createProducerAcl
+      summary: createProducerAcl
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProducerAcl'
+  /api/clusters/{clusterName}/acls/streamapp:
+    post:
+      operationId: createStreamAppAcl
+      summary: createStreamAppAcl
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Acls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStreamAppAcl'
+  /api/clusters/{clusterName}/brokers:
+    get:
+      operationId: getBrokers
+      summary: getBrokers
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Broker'
+      tags:
+        - Brokers
+  /api/clusters/{clusterName}/brokers/csv:
+    get:
+      operationId: getBrokersCsv
+      summary: getBrokersCsv
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Brokers
+  /api/clusters/{clusterName}/brokers/logdirs:
+    get:
+      operationId: getAllBrokersLogdirs
+      summary: getAllBrokersLogdirs
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: broker
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BrokersLogdirs'
+      tags:
+        - Brokers
+  /api/clusters/{clusterName}/brokers/{id}/configs:
+    get:
+      operationId: getBrokerConfig
+      summary: getBrokerConfig
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BrokerConfig'
+      tags:
+        - Brokers
+  /api/clusters/{clusterName}/brokers/{id}/configs/{name}:
+    put:
+      operationId: updateBrokerConfigByName
+      summary: updateBrokerConfigByName
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Brokers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrokerConfigItem'
+  /api/clusters/{clusterName}/brokers/{id}/logdirs:
+    patch:
+      operationId: updateBrokerTopicPartitionLogDir
+      summary: updateBrokerTopicPartitionLogDir
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Brokers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrokerLogdirUpdate'
+  /api/clusters/{clusterName}/brokers/{id}/metrics:
+    get:
+      operationId: getBrokersMetrics
+      summary: getBrokersMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrokerMetrics'
+      tags:
+        - Brokers
+  /api/clusters/{clusterName}/cache:
+    post:
+      operationId: updateClusterInfo
+      summary: updateClusterInfo
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+      tags:
+        - Clusters
+  /api/clusters/{clusterName}/clientquotas:
+    get:
+      operationId: listQuotas
+      summary: listQuotas
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientQuotas'
+      tags:
+        - ClientQuotas
+    post:
+      operationId: upsertClientQuotas
+      summary: upsertClientQuotas
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - ClientQuotas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientQuotas'
+  /api/clusters/{clusterName}/connectors:
+    get:
+      operationId: getAllConnectors
+      summary: getAllConnectors
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ConnectorColumnsToSort'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FullConnectorInfo'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connectors/csv:
+    get:
+      operationId: getAllConnectorsCsv
+      summary: getAllConnectorsCsv
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ConnectorColumnsToSort'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects:
+    get:
+      operationId: getConnects
+      summary: getConnects
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: withStats
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Connect'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/csv:
+    get:
+      operationId: getConnectsCsv
+      summary: getConnects
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: withStats
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/connectors:
+    get:
+      operationId: getConnectors
+      summary: getConnectors
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+      tags:
+        - Kafka Connect
+    post:
+      operationId: createConnector
+      summary: createConnector
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRebalanceInProgressResponse'
+      tags:
+        - Kafka Connect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewConnector'
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}:
+    get:
+      operationId: getConnector
+      summary: getConnector
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+      tags:
+        - Kafka Connect
+    delete:
+      operationId: deleteConnector
+      summary: deleteConnector
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRebalanceInProgressResponse'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/action/{action}:
+    post:
+      operationId: updateConnectorState
+      summary: updateConnectorState
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: action
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectorAction'
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRebalanceInProgressResponse'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/config:
+    get:
+      operationId: getConnectorConfig
+      summary: getConnectorConfig
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorConfig'
+      tags:
+        - Kafka Connect
+    put:
+      operationId: setConnectorConfig
+      summary: setConnectorConfig
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRebalanceInProgressResponse'
+      tags:
+        - Kafka Connect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectorConfig'
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/offsets:
+    delete:
+      operationId: resetConnectorOffsets
+      summary: resetConnectorOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/tasks:
+    get:
+      operationId: getConnectorTasks
+      summary: getConnectorTasks
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}/tasks/{taskId}/action/restart:
+    post:
+      operationId: restartConnectorTask
+      summary: restartConnectorTask
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/plugins:
+    get:
+      operationId: getConnectorPlugins
+      summary: get connector plugins
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConnectorPlugin'
+      tags:
+        - Kafka Connect
+  /api/clusters/{clusterName}/connects/{connectName}/plugins/{pluginName}/config/validate:
+    put:
+      operationId: validateConnectorPluginConfig
+      summary: validate connector plugin configuration
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: connectName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pluginName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorPluginConfigValidationResponse'
+      tags:
+        - Kafka Connect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectorConfig'
+  /api/clusters/{clusterName}/consumer-groups/csv:
+    get:
+      operationId: getConsumerGroupsCsv
+      summary: getConsumerGroupsPage
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ConsumerGroupOrdering'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/consumer-groups/lag:
+    get:
+      operationId: getConsumerGroupsLag
+      summary: getConsumerGroupsLag
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: lastUpdate
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerGroupsLagResponse'
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/consumer-groups/paged:
+    get:
+      operationId: getConsumerGroupsPage
+      summary: getConsumerGroupsPage
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ConsumerGroupOrdering'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerGroupsPageResponse'
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/consumer-groups/{id}:
+    get:
+      operationId: getConsumerGroup
+      summary: getConsumerGroup
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerGroupDetails'
+      tags:
+        - Consumer Groups
+    delete:
+      operationId: deleteConsumerGroup
+      summary: deleteConsumerGroup
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/consumer-groups/{id}/offsets:
+    post:
+      operationId: resetConsumerGroupOffsets
+      summary: resetConsumerGroupOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Consumer Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumerGroupOffsetsReset'
+  /api/clusters/{clusterName}/consumer-groups/{id}/topics/{topicName}:
+    delete:
+      operationId: deleteConsumerGroupOffsets
+      summary: deleteConsumerGroupOffsets
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/graphs:
+    get:
+      operationId: getGraphsList
+      summary: getGraphsList
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphDescriptions'
+      tags:
+        - Graphs
+    post:
+      operationId: getGraphData
+      summary: getGraphData
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrometheusApiQueryResponse'
+      tags:
+        - Graphs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphDataRequest'
+  /api/clusters/{clusterName}/ksql/response:
+    get:
+      operationId: openKsqlResponsePipe
+      summary: openKsqlResponsePipe
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pipeId
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KsqlResponse'
+      tags:
+        - Ksql
+  /api/clusters/{clusterName}/ksql/streams:
+    get:
+      operationId: listStreams
+      summary: listStreams
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KsqlStreamDescription'
+      tags:
+        - Ksql
+  /api/clusters/{clusterName}/ksql/tables:
+    get:
+      operationId: listTables
+      summary: listTables
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KsqlTableDescription'
+      tags:
+        - Ksql
+  /api/clusters/{clusterName}/ksql/v2:
+    post:
+      operationId: executeKsql
+      summary: executeKsql
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KsqlCommandV2Response'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Ksql
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KsqlCommandV2'
+  /api/clusters/{clusterName}/metrics:
+    get:
+      operationId: getClusterMetrics
+      summary: getClusterMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterMetrics'
+      tags:
+        - Clusters
+  /api/clusters/{clusterName}/schemas:
+    post:
+      operationId: createNewSchema
+      summary: createNewSchema
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaSubject'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiDuplicateResponse'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiInvalidParametersResponse'
+      tags:
+        - Schemas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSchemaSubject'
+    get:
+      operationId: getSchemas
+      summary: getSchemas
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SchemaColumnsToSort'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaSubjectsResponse'
+      tags:
+        - Schemas
+  /api/clusters/{clusterName}/schemas/compatibility:
+    get:
+      operationId: getGlobalSchemaCompatibilityLevel
+      summary: getGlobalSchemaCompatibilityLevel
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompatibilityLevel'
+      tags:
+        - Schemas
+    put:
+      operationId: updateGlobalSchemaCompatibilityLevel
+      summary: updateGlobalSchemaCompatibilityLevel
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompatibilityLevel'
+  /api/clusters/{clusterName}/schemas/{subject}:
+    delete:
+      operationId: deleteSchema
+      summary: deleteSchema
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+  /api/clusters/{clusterName}/schemas/{subject}/check:
+    post:
+      operationId: checkSchemaCompatibility
+      summary: checkSchemaCompatibility
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompatibilityCheckResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSchemaSubject'
+  /api/clusters/{clusterName}/schemas/{subject}/compatibility:
+    put:
+      operationId: updateSchemaCompatibilityLevel
+      summary: updateSchemaCompatibilityLevel
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompatibilityLevel'
+  /api/clusters/{clusterName}/schemas/{subject}/latest:
+    get:
+      operationId: getLatestSchema
+      summary: getLatestSchema
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaSubject'
+      tags:
+        - Schemas
+    delete:
+      operationId: deleteLatestSchema
+      summary: deleteLatestSchema
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+  /api/clusters/{clusterName}/schemas/{subject}/versions:
+    get:
+      operationId: getAllVersionsBySubject
+      summary: getAllVersionsBySubject
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SchemaSubject'
+      tags:
+        - Schemas
+  /api/clusters/{clusterName}/schemas/{subject}/versions/{version}:
+    get:
+      operationId: getSchemaByVersion
+      summary: getSchemaByVersion
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaSubject'
+      tags:
+        - Schemas
+    delete:
+      operationId: deleteSchemaByVersion
+      summary: deleteSchemaByVersion
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subject
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Schemas
+  /api/clusters/{clusterName}/stats:
+    get:
+      operationId: getClusterStats
+      summary: getClusterStats
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterStats'
+      tags:
+        - Clusters
+  /api/clusters/{clusterName}/topics:
+    get:
+      operationId: getTopics
+      summary: getTopics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: showInternal
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TopicColumnsToSort'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicsResponse'
+      tags:
+        - Topics
+    post:
+      operationId: createTopic
+      summary: createTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicCreation'
+  /api/clusters/{clusterName}/topics/csv:
+    get:
+      operationId: getTopicsCsv
+      summary: getTopics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: showInternal
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: orderBy
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/TopicColumnsToSort'
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          explode: false
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}:
+    get:
+      operationId: getTopicDetails
+      summary: getTopicDetails
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicDetails'
+      tags:
+        - Topics
+    post:
+      operationId: recreateTopic
+      summary: recreateTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+        '408':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiTimeoutResponse'
+      tags:
+        - Topics
+    patch:
+      operationId: updateTopic
+      summary: updateTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicUpdate'
+    delete:
+      operationId: deleteTopic
+      summary: deleteTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/acls:
+    get:
+      operationId: listTopicAcls
+      summary: listTopicAcls
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KafkaAcl'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/activeproducers:
+    get:
+      operationId: getActiveProducerStates
+      summary: getActiveProducerStates
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopicProducerState'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/analysis:
+    get:
+      operationId: getTopicAnalysis
+      summary: getTopicAnalysis
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicAnalysis'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+    post:
+      operationId: analyzeTopic
+      summary: analyzeTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+    delete:
+      operationId: cancelTopicAnalysis
+      summary: cancelTopicAnalysis
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/clone:
+    post:
+      operationId: cloneTopic
+      summary: cloneTopic
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: newTopicName
+          in: query
+          required: true
+          schema:
+            type: string
+          explode: false
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/config:
+    get:
+      operationId: getTopicConfigs
+      summary: getTopicConfigs
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopicConfig'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/connectors:
+    get:
+      operationId: getTopicConnectors
+      summary: getTopicConnectors
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FullConnectorInfo'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/topics/{topicName}/consumer-groups:
+    get:
+      operationId: getTopicConsumerGroups
+      summary: getTopicConsumerGroups
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsumerGroup'
+      tags:
+        - Consumer Groups
+  /api/clusters/{clusterName}/topics/{topicName}/messages:
+    get:
+      operationId: getTopicMessages
+      summary: getTopicMessages
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seekType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SeekType'
+          explode: false
+        - name: seekTo
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: filterQueryType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/MessageFilterType'
+          explode: false
+        - name: seekDirection
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/SeekDirection'
+          explode: false
+        - name: keySerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: valueSerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopicMessageEvent'
+      tags:
+        - Messages
+    delete:
+      operationId: deleteTopicMessages
+      summary: deleteTopicMessages
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partitions
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Messages
+    post:
+      operationId: sendTopicMessages
+      summary: sendTopicMessages
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTopicMessage'
+  /api/clusters/{clusterName}/topics/{topicName}/messages/v2:
+    get:
+      operationId: getTopicMessagesV2
+      summary: getTopicMessagesV2
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PollingMode'
+          explode: false
+        - name: partitions
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: stringFilter
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: smartFilterId
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          explode: false
+        - name: timestamp
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          explode: false
+        - name: keySerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: valueSerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopicMessageEvent'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Messages
+  /api/clusters/{clusterName}/topics/{topicName}/partitions:
+    patch:
+      operationId: increaseTopicPartitions
+      summary: increaseTopicPartitions
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartitionsIncreaseResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartitionsIncrease'
+  /api/clusters/{clusterName}/topics/{topicName}/replications:
+    patch:
+      operationId: changeReplicationFactor
+      summary: changeReplicationFactor
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplicationFactorChangeResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplicationFactorChange'
+  /api/clusters/{clusterName}/topics/{topicName}/serdes:
+    get:
+      operationId: getSerdes
+      summary: getSerdes
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: use
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SerdeUsage'
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicSerdeSuggestion'
+      tags:
+        - Messages
+  /api/clusters/{clusterName}/topics/{topicName}/smartfilters:
+    post:
+      operationId: registerFilter
+      summary: registerFilter
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageFilterId'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageFilterRegistration'
+  /api/config:
+    get:
+      operationId: getCurrentConfig
+      summary: Gets current application configuration
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationConfig'
+      tags:
+        - ApplicationConfig
+    put:
+      operationId: restartWithConfig
+      summary: Restarts application with specified configuration
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - ApplicationConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestartRequest'
+  /api/config/authentication:
+    get:
+      operationId: getAuthenticationSettings
+      summary: Get authentication methods enabled for the app and other related settings
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppAuthenticationSettings'
+      tags:
+        - ApplicationConfig
+  /api/config/relatedfiles:
+    post:
+      operationId: uploadConfigRelatedFile
+      summary: Upload config related file
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadedFileInfo'
+      tags:
+        - ApplicationConfig
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+  /api/config/validated:
+    put:
+      operationId: validateConfig
+      summary: Restarts application with specified configuration
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationConfigValidation'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - ApplicationConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationConfig'
+  /api/info:
+    get:
+      operationId: getApplicationInfo
+      summary: Gets application info
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationInfo'
+      tags:
+        - ApplicationConfig
+  /api/smartfilters/testexecutions:
+    put:
+      operationId: executeSmartFilterTest
+      summary: executeSmartFilterTest
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartFilterTestExecutionResult'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Messages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmartFilterTestExecution'
+  /login:
+    post:
+      operationId: authenticate
+      summary: Authenticate
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+      tags:
+        - Unmapped
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginForm'
+  /metrics:
+    get:
+      operationId: exposeAllMetrics
+      summary: exposeAllMetrics
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - PrometheusExpose
+  /metrics/{clusterName}:
+    get:
+      operationId: exposeClusterMetrics
+      summary: exposeClusterMetrics
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - PrometheusExpose
+components:
+  schemas:
+    Action:
+      type: string
+      enum:
+        - ALL
+        - VIEW
+        - EDIT
+        - CREATE
+        - DELETE
+        - RESET_OFFSETS
+        - EXECUTE
+        - MODIFY_GLOBAL_COMPATIBILITY
+        - ANALYSIS_VIEW
+        - ANALYSIS_RUN
+        - MESSAGES_READ
+        - MESSAGES_PRODUCE
+        - MESSAGES_DELETE
+        - OPERATE
+        - RESTART
+    ApiDuplicateResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    ApiInvalidParametersResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    ApiNotFoundResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    ApiRebalanceInProgressResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    ApiTimeoutResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    ApiUnauthorized:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+      description: ''
+    AppAuthenticationSettings:
+      type: object
+      properties:
+        authType:
+          $ref: '#/components/schemas/AuthType'
+        oAuthProviders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OAuthProvider'
+    ApplicationConfig:
+      type: object
+      required:
+        - properties
+      properties:
+        properties:
+          type: object
+          properties:
+            auth:
+              type: object
+              properties:
+                type:
+                  type: string
+                oauth2:
+                  type: object
+                  properties:
+                    client:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                          clientId:
+                            type: string
+                          clientSecret:
+                            type: string
+                          clientName:
+                            type: string
+                          redirectUri:
+                            type: string
+                          authorizationGrantType:
+                            type: string
+                          issuerUri:
+                            type: string
+                          authorizationUri:
+                            type: string
+                          tokenUri:
+                            type: string
+                          userInfoUri:
+                            type: string
+                          jwkSetUri:
+                            type: string
+                          userNameAttribute:
+                            type: string
+                          scope:
+                            type: array
+                            items:
+                              type: string
+                          customParams:
+                            type: object
+                            additionalProperties:
+                              type: string
+                        required:
+                          - provider
+                          - clientId
+                    resourceServer:
+                      type: object
+                      properties:
+                        jwt:
+                          type: object
+                          properties:
+                            jwkSetUri:
+                              type: string
+                            jwsAlgorithms:
+                              type: array
+                              items:
+                                type: string
+                            issuerUri:
+                              type: string
+                            publicKeyLocation:
+                              type: string
+                            audiences:
+                              type: array
+                              items:
+                                type: string
+                            authorityPrefix:
+                              type: string
+                            authoritiesClaimDelimiter:
+                              type: string
+                            authoritiesClaimName:
+                              type: string
+                            principalClaimName:
+                              type: string
+                        opaquetoken:
+                          type: object
+                          properties:
+                            clientId:
+                              type: string
+                            clientSecret:
+                              type: string
+                            introspectionUri:
+                              type: string
+              required:
+                - type
+            rbac:
+              type: object
+              properties:
+                roles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      clusters:
+                        type: array
+                        items:
+                          type: string
+                      subjects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            provider:
+                              type: string
+                            type:
+                              type: string
+                            value:
+                              type: string
+                            regex:
+                              type: boolean
+                              default: false
+                      permissions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RbacPermission'
+                defaultRole:
+                  type: object
+                  properties:
+                    permissions:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/RbacPermission'
+            webclient:
+              type: object
+              properties:
+                maxInMemoryBufferSize:
+                  type: string
+                responseTimeoutMs:
+                  type: integer
+                  format: int32
+            kafka:
+              type: object
+              properties:
+                polling:
+                  type: object
+                  properties:
+                    pollTimeoutMs:
+                      type: integer
+                      format: int32
+                    maxPageSize:
+                      type: integer
+                      format: int32
+                    defaultPageSize:
+                      type: integer
+                      format: int32
+                    responseTimeoutMs:
+                      type: integer
+                      format: int32
+                adminClientTimeout:
+                  type: integer
+                  format: int32
+                internalTopicPrefix:
+                  type: string
+                defaultMetricsStorage:
+                  $ref: '#/components/schemas/ClusterMetricsStoreConfig'
+                cache:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    connectClusterCacheExpiry:
+                      type: string
+                      format: duration
+                clusters:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      bootstrapServers:
+                        type: string
+                      ssl:
+                        type: object
+                        properties:
+                          truststoreLocation:
+                            type: string
+                          truststorePassword:
+                            type: string
+                          verify:
+                            type: boolean
+                            default: true
+                      schemaRegistry:
+                        type: string
+                      schemaRegistryAuth:
+                        type: object
+                        properties:
+                          username:
+                            type: string
+                          password:
+                            type: string
+                      schemaRegistrySsl:
+                        type: object
+                        properties:
+                          keystoreLocation:
+                            type: string
+                          keystorePassword:
+                            type: string
+                      ksqldbServer:
+                        type: string
+                      ksqldbServerSsl:
+                        type: object
+                        properties:
+                          keystoreLocation:
+                            type: string
+                          keystorePassword:
+                            type: string
+                      ksqldbServerAuth:
+                        type: object
+                        properties:
+                          username:
+                            type: string
+                          password:
+                            type: string
+                      kafkaConnect:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            address:
+                              type: string
+                            username:
+                              type: string
+                            password:
+                              type: string
+                            keystoreLocation:
+                              type: string
+                            keystorePassword:
+                              type: string
+                      metrics:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          port:
+                            type: integer
+                            format: int32
+                          ssl:
+                            type: boolean
+                          username:
+                            type: string
+                          password:
+                            type: string
+                          keystoreLocation:
+                            type: string
+                          keystorePassword:
+                            type: string
+                          prometheusExpose:
+                            type: boolean
+                          store:
+                            $ref: '#/components/schemas/ClusterMetricsStoreConfig'
+                      properties:
+                        type: object
+                        additionalProperties: {}
+                      consumerProperties:
+                        type: object
+                        additionalProperties: {}
+                      producerProperties:
+                        type: object
+                        additionalProperties: {}
+                      readOnly:
+                        type: boolean
+                      serde:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            className:
+                              type: string
+                            filePath:
+                              type: string
+                            properties:
+                              type: object
+                              additionalProperties: {}
+                            topicKeysPattern:
+                              type: string
+                            topicValuesPattern:
+                              type: string
+                      defaultKeySerde:
+                        type: string
+                      defaultValueSerde:
+                        type: string
+                      masking:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - REMOVE
+                                - MASK
+                                - REPLACE
+                            fields:
+                              type: array
+                              items:
+                                type: string
+                            fieldsNamePattern:
+                              type: string
+                            maskingCharsReplacement:
+                              type: array
+                              items:
+                                type: string
+                            replacement:
+                              type: string
+                            topicKeysPattern:
+                              type: string
+                            topicValuesPattern:
+                              type: string
+                      pollingThrottleRate:
+                        type: integer
+                        format: int64
+                      audit:
+                        type: object
+                        properties:
+                          level:
+                            type: string
+                            enum:
+                              - ALL
+                              - ALTER_ONLY
+                          topic:
+                            type: string
+                          auditTopicsPartitions:
+                            type: integer
+                            format: int32
+                          topicAuditEnabled:
+                            type: boolean
+                          consoleAuditEnabled:
+                            type: boolean
+                          auditTopicProperties:
+                            type: object
+                            additionalProperties:
+                              type: string
+    ApplicationConfigValidation:
+      type: object
+      properties:
+        clusters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ClusterConfigValidation'
+    ApplicationInfo:
+      type: object
+      properties:
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+            enum:
+              - DYNAMIC_CONFIG
+        build:
+          type: object
+          properties:
+            commitId:
+              type: string
+            version:
+              type: string
+            buildTime:
+              type: string
+            isLatestRelease:
+              type: boolean
+        latestRelease:
+          type: object
+          properties:
+            versionTag:
+              type: string
+            publishedAt:
+              type: string
+            htmlUrl:
+              type: string
+    ApplicationPropertyValidation:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: boolean
+        errorMessage:
+          type: string
+          description: Contains error message if error = true
+    AuthType:
+      type: string
+      enum:
+        - DISABLED
+        - OAUTH2
+        - LOGIN_FORM
+        - LDAP
+    AuthenticationInfo:
+      type: object
+      required:
+        - rbacEnabled
+      properties:
+        rbacEnabled:
+          type: boolean
+          description: true if role based access control is enabled and granular permission access is required
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+    Broker:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int32
+        host:
+          type: string
+        port:
+          type: integer
+          format: int32
+        bytesInPerSec:
+          type: number
+          format: double
+        bytesOutPerSec:
+          type: number
+          format: double
+        partitionsLeader:
+          type: integer
+          format: int32
+        partitions:
+          type: integer
+          format: int32
+        inSyncPartitions:
+          type: integer
+          format: int32
+        partitionsSkew:
+          type: number
+          format: double
+        leadersSkew:
+          type: number
+          format: double
+    BrokerConfig:
+      type: object
+      required:
+        - name
+        - value
+        - source
+        - isSensitive
+        - isReadOnly
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        source:
+          $ref: '#/components/schemas/ConfigSource'
+        isSensitive:
+          type: boolean
+        isReadOnly:
+          type: boolean
+        synonyms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigSynonym'
+    BrokerConfigItem:
+      type: object
+      properties:
+        value:
+          type: string
+    BrokerDiskUsage:
+      type: object
+      required:
+        - brokerId
+      properties:
+        brokerId:
+          type: integer
+          format: int32
+        segmentSize:
+          type: integer
+          format: int64
+        segmentCount:
+          type: integer
+          format: int32
+    BrokerLogdirUpdate:
+      type: object
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+          format: int32
+        logDir:
+          type: string
+    BrokerLogdirs:
+      type: object
+      properties:
+        name:
+          type: string
+        error:
+          type: string
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicLogdirs'
+    BrokerMetrics:
+      type: object
+      properties:
+        segmentSize:
+          type: integer
+          format: int64
+        segmentCount:
+          type: integer
+          format: int32
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+    BrokerTopicLogdirs:
+      type: object
+      properties:
+        name:
+          type: string
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrokerTopicPartitionLogdir'
+    BrokerTopicPartitionLogdir:
+      type: object
+      properties:
+        partition:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int64
+        offsetLag:
+          type: integer
+          format: int64
+        broker:
+          type: integer
+          format: int32
+    BrokersLogdirs:
+      type: object
+      properties:
+        name:
+          type: string
+        error:
+          type: string
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrokerTopicLogdirs'
+    CleanUpPolicy:
+      type: string
+      enum:
+        - DELETE
+        - COMPACT
+        - COMPACT_DELETE
+        - UNKNOWN
+    ClientQuotas:
+      type: object
+      properties:
+        user:
+          type: string
+        clientId:
+          type: string
+        ip:
+          type: string
+        quotas:
+          type: object
+          additionalProperties:
+            type: number
+            format: decimal
+    Cluster:
+      type: object
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+        defaultCluster:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ServerStatus'
+        lastError:
+          $ref: '#/components/schemas/MetricsCollectionError'
+        brokerCount:
+          type: integer
+          format: int32
+        onlinePartitionCount:
+          type: integer
+          format: int32
+        topicCount:
+          type: integer
+          format: int32
+        bytesInPerSec:
+          type: number
+          format: double
+        bytesOutPerSec:
+          type: number
+          format: double
+        readOnly:
+          type: boolean
+        version:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+            enum:
+              - SCHEMA_REGISTRY
+              - KAFKA_CONNECT
+              - KSQL_DB
+              - TOPIC_DELETION
+              - KAFKA_ACL_VIEW
+              - KAFKA_ACL_EDIT
+              - CLIENT_QUOTA_MANAGEMENT
+              - GRAPHS_ENABLED
+              - FTS_ENABLED
+              - FTS_DEFAULT_ENABLED
+              - MESSAGE_RELATIVE_TIMESTAMP
+        controller:
+          $ref: '#/components/schemas/ControllerType'
+    ClusterConfigValidation:
+      type: object
+      required:
+        - kafka
+      properties:
+        kafka:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+        schemaRegistry:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+        kafkaConnects:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ApplicationPropertyValidation'
+        ksqldb:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+        prometheusStorage:
+          $ref: '#/components/schemas/ApplicationPropertyValidation'
+    ClusterMetrics:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+    ClusterMetricsStoreConfig:
+      type: object
+      properties:
+        prometheus:
+          $ref: '#/components/schemas/PrometheusStorage'
+    ClusterStats:
+      type: object
+      properties:
+        brokerCount:
+          type: integer
+          format: int32
+        zooKeeperStatus:
+          type: integer
+          format: int32
+          deprecated: true
+        activeControllers:
+          type: integer
+          format: int32
+          description: Id of broker which is cluster's controller. null, if controller not known yet.
+        onlinePartitionCount:
+          type: integer
+          format: int32
+        offlinePartitionCount:
+          type: integer
+          format: int32
+        inSyncReplicasCount:
+          type: integer
+          format: int32
+        outOfSyncReplicasCount:
+          type: integer
+          format: int32
+        underReplicatedPartitionCount:
+          type: integer
+          format: int32
+        diskUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrokerDiskUsage'
+        version:
+          type: string
+    CompatibilityCheckResponse:
+      type: object
+      required:
+        - isCompatible
+      properties:
+        isCompatible:
+          type: boolean
+    CompatibilityLevel:
+      type: object
+      required:
+        - compatibility
+      properties:
+        compatibility:
+          type: string
+          enum:
+            - BACKWARD
+            - BACKWARD_TRANSITIVE
+            - FORWARD
+            - FORWARD_TRANSITIVE
+            - FULL
+            - FULL_TRANSITIVE
+            - NONE
+    ConfigSource:
+      type: string
+      enum:
+        - DYNAMIC_TOPIC_CONFIG
+        - DYNAMIC_BROKER_LOGGER_CONFIG
+        - DYNAMIC_BROKER_CONFIG
+        - DYNAMIC_DEFAULT_BROKER_CONFIG
+        - DYNAMIC_CLIENT_METRICS_CONFIG
+        - STATIC_BROKER_CONFIG
+        - DEFAULT_CONFIG
+        - UNKNOWN
+    ConfigSynonym:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        source:
+          $ref: '#/components/schemas/ConfigSource'
+    Connect:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        connectorsCount:
+          type: integer
+          format: int32
+          nullable: true
+        failedConnectorsCount:
+          type: integer
+          format: int32
+          nullable: true
+        tasksCount:
+          type: integer
+          format: int32
+          nullable: true
+        failedTasksCount:
+          type: integer
+          format: int32
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        commit:
+          type: string
+          nullable: true
+        clusterId:
+          type: string
+          nullable: true
+    Connector:
+      type: object
+      required:
+        - name
+        - config
+        - type
+        - status
+        - connect
+      properties:
+        name:
+          type: string
+        config:
+          $ref: '#/components/schemas/ConnectorConfig'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskId'
+        type:
+          $ref: '#/components/schemas/ConnectorType'
+        status:
+          $ref: '#/components/schemas/ConnectorStatus'
+        connect:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+    ConnectorAction:
+      type: string
+      enum:
+        - RESTART
+        - RESTART_ALL_TASKS
+        - RESTART_FAILED_TASKS
+        - PAUSE
+        - RESUME
+        - STOP
+    ConnectorColumnsToSort:
+      type: string
+      enum:
+        - NAME
+        - CONNECT
+        - TYPE
+        - STATUS
+    ConnectorConfig:
+      type: object
+      additionalProperties: {}
+    ConnectorPlugin:
+      type: object
+      properties:
+        class:
+          type: string
+    ConnectorPluginConfig:
+      type: object
+      properties:
+        definition:
+          $ref: '#/components/schemas/ConnectorPluginConfigDefinition'
+        value:
+          $ref: '#/components/schemas/ConnectorPluginConfigValue'
+    ConnectorPluginConfigDefinition:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - BOOLEAN
+            - CLASS
+            - DOUBLE
+            - INT
+            - LIST
+            - LONG
+            - PASSWORD
+            - SHORT
+            - STRING
+        required:
+          type: boolean
+        defaultValue:
+          type: string
+        importance:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+        documentation:
+          type: string
+        group:
+          type: string
+        width:
+          type: string
+          enum:
+            - SHORT
+            - MEDIUM
+            - LONG
+            - NONE
+        displayName:
+          type: string
+        dependents:
+          type: array
+          items:
+            type: string
+        order:
+          type: integer
+          format: int32
+    ConnectorPluginConfigValidationResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        errorCount:
+          type: integer
+          format: int32
+        groups:
+          type: array
+          items:
+            type: string
+        configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectorPluginConfig'
+    ConnectorPluginConfigValue:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        recommendedValues:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+        visible:
+          type: boolean
+    ConnectorState:
+      type: string
+      enum:
+        - RUNNING
+        - FAILED
+        - PAUSED
+        - UNASSIGNED
+        - TASK_FAILED
+        - RESTARTING
+        - STOPPED
+    ConnectorStatus:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          $ref: '#/components/schemas/ConnectorState'
+        workerId:
+          type: string
+        trace:
+          type: string
+    ConnectorTaskStatus:
+      type: string
+      enum:
+        - RUNNING
+        - FAILED
+        - PAUSED
+        - RESTARTING
+        - UNASSIGNED
+    ConnectorType:
+      type: string
+      enum:
+        - SOURCE
+        - SINK
+        - UNKNOWN
+    ConsumerGroup:
+      type: object
+      required:
+        - groupId
+        - inherit
+      properties:
+        groupId:
+          type: string
+        members:
+          type: integer
+          format: int32
+        topics:
+          type: integer
+          format: int32
+        simple:
+          type: boolean
+        partitionAssignor:
+          type: string
+        state:
+          $ref: '#/components/schemas/ConsumerGroupState'
+        coordinator:
+          $ref: '#/components/schemas/Broker'
+        consumerLag:
+          type: integer
+          format: int64
+          description: null if consumer group has no offsets committed
+        inherit:
+          type: string
+          description: Discriminator property for ConsumerGroup.
+      discriminator:
+        propertyName: inherit
+        mapping:
+          details: '#/components/schemas/ConsumerGroupDetails'
+    ConsumerGroupDetails:
+      type: object
+      properties:
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerGroupTopicPartition'
+      allOf:
+        - $ref: '#/components/schemas/ConsumerGroup'
+    ConsumerGroupLag:
+      type: object
+      required:
+        - lag
+        - topics
+      properties:
+        lag:
+          type: integer
+          format: int64
+        topics:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+    ConsumerGroupOffsetsReset:
+      type: object
+      required:
+        - topic
+        - resetType
+      properties:
+        topic:
+          type: string
+        resetType:
+          $ref: '#/components/schemas/ConsumerGroupOffsetsResetType'
+        partitions:
+          type: array
+          items:
+            type: integer
+            format: int32
+        resetToTimestamp:
+          type: integer
+          format: int64
+        partitionsOffsets:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartitionOffset'
+    ConsumerGroupOffsetsResetType:
+      type: string
+      enum:
+        - EARLIEST
+        - LATEST
+        - TIMESTAMP
+        - OFFSET
+    ConsumerGroupOrdering:
+      type: string
+      enum:
+        - NAME
+        - MEMBERS
+        - STATE
+        - MESSAGES_BEHIND
+        - TOPIC_NUM
+    ConsumerGroupState:
+      type: string
+      enum:
+        - UNKNOWN
+        - PREPARING_REBALANCE
+        - COMPLETING_REBALANCE
+        - STABLE
+        - DEAD
+        - EMPTY
+    ConsumerGroupTopicPartition:
+      type: object
+      required:
+        - topic
+        - partition
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+          format: int32
+        currentOffset:
+          type: integer
+          format: int64
+        endOffset:
+          type: integer
+          format: int64
+        consumerLag:
+          type: integer
+          format: int64
+        consumerId:
+          type: string
+        host:
+          type: string
+    ConsumerGroupsLagResponse:
+      type: object
+      required:
+        - updateTimestamp
+        - consumerGroups
+      properties:
+        updateTimestamp:
+          type: integer
+          format: int64
+        consumerGroups:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ConsumerGroupLag'
+    ConsumerGroupsPageResponse:
+      type: object
+      properties:
+        pageCount:
+          type: integer
+          format: int32
+        consumerGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerGroup'
+    ControllerType:
+      type: string
+      enum:
+        - ZOOKEEPER
+        - KRAFT
+    CreateConsumerAcl:
+      type: object
+      properties:
+        principal:
+          type: string
+        host:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+        topicsPrefix:
+          type: string
+        consumerGroups:
+          type: array
+          items:
+            type: string
+        consumerGroupsPrefix:
+          type: string
+    CreateProducerAcl:
+      type: object
+      properties:
+        principal:
+          type: string
+        host:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+        topicsPrefix:
+          type: string
+        transactionalId:
+          type: string
+        transactionsIdPrefix:
+          type: string
+        idempotent:
+          type: boolean
+          default: false
+    CreateStreamAppAcl:
+      type: object
+      properties:
+        principal:
+          type: string
+        host:
+          type: string
+        inputTopics:
+          type: array
+          items:
+            type: string
+        outputTopics:
+          type: array
+          items:
+            type: string
+        applicationId:
+          type: string
+    CreateTopicMessage:
+      type: object
+      required:
+        - partition
+      properties:
+        partition:
+          type: integer
+          format: int32
+        key:
+          type: string
+          nullable: true
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        value:
+          type: string
+          nullable: true
+        keySerde:
+          type: string
+          nullable: true
+        valueSerde:
+          type: string
+          nullable: true
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+        - requestId
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Internal error code (can be used for message formatting & localization on UI)
+        message:
+          type: string
+          description: Error message
+        timestamp:
+          type: number
+          format: decimal
+          description: Response unix timestamp in ms
+        requestId:
+          type: string
+          description: Unique server-defined request id for convenient debugging
+        fieldsErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+        stackTrace:
+          type: string
+    FieldError:
+      type: object
+      required:
+        - fieldName
+      properties:
+        fieldName:
+          type: string
+          description: Name of field that violated format
+        restrictions:
+          type: array
+          items:
+            type: string
+          description: Field format violations description (ex. ["size must be between 0 and 20", "must be a well-formed email address"])
+    FullConnectorInfo:
+      type: object
+      required:
+        - connect
+        - name
+        - status
+      properties:
+        connect:
+          type: string
+        name:
+          type: string
+        connectorClass:
+          type: string
+        type:
+          $ref: '#/components/schemas/ConnectorType'
+        topics:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/ConnectorStatus'
+        tasksCount:
+          type: integer
+        failedTasksCount:
+          type: integer
+    GraphDataRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+    GraphDescription:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Id that should be used to query data on API level
+        type:
+          type: string
+          enum:
+            - range
+            - instant
+        defaultPeriod:
+          type: string
+          description: ISO_8601 duration string (for "range" graphs only)
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphParameter'
+    GraphDescriptions:
+      type: object
+      properties:
+        graphs:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphDescription'
+    GraphParameter:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    KafkaAcl:
+      type: object
+      required:
+        - resourceType
+        - resourceName
+        - namePatternType
+        - principal
+        - host
+        - operation
+        - permission
+      properties:
+        resourceType:
+          $ref: '#/components/schemas/KafkaAclResourceType'
+        resourceName:
+          type: string
+        namePatternType:
+          $ref: '#/components/schemas/KafkaAclNamePatternType'
+        principal:
+          type: string
+        host:
+          type: string
+        operation:
+          type: string
+          enum:
+            - UNKNOWN
+            - ALL
+            - READ
+            - WRITE
+            - CREATE
+            - DELETE
+            - ALTER
+            - DESCRIBE
+            - CLUSTER_ACTION
+            - DESCRIBE_CONFIGS
+            - ALTER_CONFIGS
+            - IDEMPOTENT_WRITE
+            - CREATE_TOKENS
+            - DESCRIBE_TOKENS
+        permission:
+          type: string
+          enum:
+            - ALLOW
+            - DENY
+    KafkaAclNamePatternType:
+      type: string
+      enum:
+        - MATCH
+        - LITERAL
+        - PREFIXED
+    KafkaAclResourceType:
+      type: string
+      enum:
+        - UNKNOWN
+        - TOPIC
+        - GROUP
+        - CLUSTER
+        - TRANSACTIONAL_ID
+        - DELEGATION_TOKEN
+        - USER
+    KsqlCommandV2:
+      type: object
+      required:
+        - ksql
+      properties:
+        ksql:
+          type: string
+        streamsProperties:
+          type: object
+          additionalProperties:
+            type: string
+    KsqlCommandV2Response:
+      type: object
+      required:
+        - pipeId
+      properties:
+        pipeId:
+          type: string
+    KsqlResponse:
+      type: object
+      properties:
+        table:
+          $ref: '#/components/schemas/KsqlTableResponse'
+    KsqlStreamDescription:
+      type: object
+      properties:
+        name:
+          type: string
+        topic:
+          type: string
+        keyFormat:
+          type: string
+        valueFormat:
+          type: string
+    KsqlTableDescription:
+      type: object
+      properties:
+        name:
+          type: string
+        topic:
+          type: string
+        keyFormat:
+          type: string
+        valueFormat:
+          type: string
+        isWindowed:
+          type: boolean
+    KsqlTableResponse:
+      type: object
+      properties:
+        header:
+          type: string
+        columnNames:
+          type: array
+          items:
+            type: string
+        values:
+          type: array
+          items:
+            type: array
+            items: {}
+    LoginForm:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    MessageFilterId:
+      type: object
+      properties:
+        id:
+          type: string
+    MessageFilterRegistration:
+      type: object
+      properties:
+        filterCode:
+          type: string
+    MessageFilterType:
+      type: string
+      enum:
+        - STRING_CONTAINS
+        - CEL_SCRIPT
+    MessageFormat:
+      type: string
+      enum:
+        - AVRO
+        - JSON
+        - PROTOBUF
+        - UNKNOWN
+    Metric:
+      type: object
+      properties:
+        name:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        value:
+          type: number
+          format: decimal
+    MetricsCollectionError:
+      type: object
+      properties:
+        message:
+          type: string
+        stackTrace:
+          type: string
+    NewConnector:
+      type: object
+      required:
+        - name
+        - config
+      properties:
+        name:
+          type: string
+        config:
+          $ref: '#/components/schemas/ConnectorConfig'
+    NewSchemaSubject:
+      type: object
+      required:
+        - subject
+        - schema
+        - schemaType
+      properties:
+        subject:
+          type: string
+          description: should be set for creating/updating schema subject
+        schema:
+          type: string
+        schemaType:
+          $ref: '#/components/schemas/SchemaType'
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaReference'
+    OAuthProvider:
+      type: object
+      required:
+        - clientName
+        - authorizationUri
+      properties:
+        clientName:
+          type: string
+        authorizationUri:
+          type: string
+    Partition:
+      type: object
+      required:
+        - partition
+        - offsetMax
+        - offsetMin
+      properties:
+        partition:
+          type: integer
+          format: int32
+        leader:
+          type: integer
+          format: int32
+        replicas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Replica'
+        offsetMax:
+          type: integer
+          format: int64
+        offsetMin:
+          type: integer
+          format: int64
+    PartitionOffset:
+      type: object
+      required:
+        - partition
+      properties:
+        partition:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int64
+    PartitionsIncrease:
+      type: object
+      properties:
+        totalPartitionsCount:
+          type: integer
+          minimum: 1
+    PartitionsIncreaseResponse:
+      type: object
+      required:
+        - totalPartitionsCount
+        - topicName
+      properties:
+        totalPartitionsCount:
+          type: integer
+        topicName:
+          type: string
+    PollingMode:
+      type: string
+      enum:
+        - FROM_OFFSET
+        - TO_OFFSET
+        - FROM_TIMESTAMP
+        - TO_TIMESTAMP
+        - LATEST
+        - EARLIEST
+        - TAILING
+    PrometheusApiBaseResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - error
+        error:
+          type: string
+        errorType:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+    PrometheusApiQueryResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PrometheusApiQueryResponseData'
+      allOf:
+        - $ref: '#/components/schemas/PrometheusApiBaseResponse'
+    PrometheusApiQueryResponseData:
+      type: object
+      required:
+        - resultType
+      properties:
+        resultType:
+          type: string
+          enum:
+            - matrix
+            - vector
+            - scalar
+            - string
+        result:
+          type: array
+          items: {}
+          description: |2-
+                    Depending on resultType format can vary:
+                    "vector":
+                      [
+                        {
+                          "metric": { "<label_name>": "<label_value>", ... },
+                          "value": [ <unix_time>, "<sample_value>" ],
+                          "histogram": [ <unix_time>, <histogram> ]
+                       }, ...
+                      ]
+                    "matrix":
+                      [
+                        {
+                          "metric": { "<label_name>": "<label_value>", ... },
+                          "values": [ [ <unix_time>, "<sample_value>" ], ... ],
+                          "histograms": [ [ <unix_time>, <histogram> ], ... ]
+                        }, ...
+                      ]
+                    "scalar":
+                      [ <unix_time>, "<scalar_value>" ]
+                    "string":
+                      [ <unix_time>, "<string_value>" ]
+    PrometheusStorage:
+      type: object
+      properties:
+        url:
+          type: string
+        remoteWrite:
+          type: boolean
+        pushGatewayUrl:
+          type: string
+        pushGatewayUsername:
+          type: string
+        pushGatewayPassword:
+          type: string
+        pushGatewayJobName:
+          type: string
+    RbacPermission:
+      type: object
+      properties:
+        resource:
+          $ref: '#/components/schemas/ResourceType'
+        value:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+    Replica:
+      type: object
+      properties:
+        broker:
+          type: integer
+          format: int32
+        leader:
+          type: boolean
+        inSync:
+          type: boolean
+    ReplicationFactorChange:
+      type: object
+      properties:
+        totalReplicationFactor:
+          type: integer
+    ReplicationFactorChangeResponse:
+      type: object
+      required:
+        - totalReplicationFactor
+        - topicName
+      properties:
+        totalReplicationFactor:
+          type: integer
+        topicName:
+          type: string
+    ResourceType:
+      type: string
+      enum:
+        - APPLICATIONCONFIG
+        - CLUSTERCONFIG
+        - TOPIC
+        - CONSUMER
+        - SCHEMA
+        - CONNECT
+        - CONNECTOR
+        - KSQL
+        - ACL
+        - AUDIT
+        - CLIENT_QUOTAS
+    RestartRequest:
+      type: object
+      properties:
+        config:
+          $ref: '#/components/schemas/ApplicationConfig'
+    SchemaColumnsToSort:
+      type: string
+      enum:
+        - SUBJECT
+        - ID
+        - TYPE
+        - COMPATIBILITY
+        - VERSION
+    SchemaReference:
+      type: object
+      required:
+        - name
+        - subject
+        - version
+      properties:
+        name:
+          type: string
+        subject:
+          type: string
+        version:
+          type: integer
+          format: int32
+    SchemaRegistryDeserializeProperties:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+        id:
+          type: integer
+          format: int32
+        subjects:
+          type: array
+          items:
+            type: string
+    SchemaSubject:
+      type: object
+      required:
+        - id
+        - subject
+        - version
+        - schema
+        - compatibilityLevel
+        - schemaType
+      properties:
+        id:
+          type: integer
+          format: int32
+        subject:
+          type: string
+        version:
+          type: string
+        schema:
+          type: string
+        compatibilityLevel:
+          type: string
+        schemaType:
+          $ref: '#/components/schemas/SchemaType'
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaReference'
+    SchemaSubjectsResponse:
+      type: object
+      properties:
+        pageCount:
+          type: integer
+          format: int32
+        schemas:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaSubject'
+    SchemaType:
+      type: string
+      enum:
+        - AVRO
+        - JSON
+        - PROTOBUF
+    SeekDirection:
+      type: string
+      enum:
+        - FORWARD
+        - BACKWARD
+        - TAILING
+    SeekType:
+      type: string
+      enum:
+        - BEGINNING
+        - OFFSET
+        - TIMESTAMP
+        - LATEST
+    SerdeDescription:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        preferred:
+          type: boolean
+          description: This serde was automatically chosen by cluster config. This should be enabled in UI by default. Also it will be used for deserialization if no serdes passed.
+        schema:
+          type: string
+        additionalProperties:
+          type: object
+          additionalProperties: {}
+    SerdeUsage:
+      type: string
+      enum:
+        - SERIALIZE
+        - DESERIALIZE
+    ServerStatus:
+      type: string
+      enum:
+        - ONLINE
+        - OFFLINE
+        - INITIALIZING
+    SmartFilterTestExecution:
+      type: object
+      required:
+        - filterCode
+      properties:
+        filterCode:
+          type: string
+        key:
+          type: string
+        value:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        partition:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int64
+        timestampMs:
+          type: integer
+          format: int64
+    SmartFilterTestExecutionResult:
+      type: object
+      properties:
+        result:
+          type: boolean
+        error:
+          type: string
+    SortOrder:
+      type: string
+      enum:
+        - ASC
+        - DESC
+    Task:
+      type: object
+      required:
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/TaskId'
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        config:
+          $ref: '#/components/schemas/ConnectorConfig'
+    TaskAction:
+      type: string
+      enum:
+        - restart
+    TaskId:
+      type: object
+      properties:
+        connector:
+          type: string
+        task:
+          type: integer
+          format: int32
+    TaskStatus:
+      type: object
+      required:
+        - id
+        - state
+        - workerId
+      properties:
+        id:
+          type: integer
+          format: int32
+        state:
+          $ref: '#/components/schemas/ConnectorTaskStatus'
+        workerId:
+          type: string
+        trace:
+          type: string
+    TimeStampFormat:
+      type: object
+      properties:
+        timeStampFormat:
+          type: string
+    Topic:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        internal:
+          type: boolean
+        partitionCount:
+          type: integer
+          format: int32
+        replicationFactor:
+          type: integer
+          format: int32
+        replicas:
+          type: integer
+          format: int32
+        inSyncReplicas:
+          type: integer
+          format: int32
+        segmentSize:
+          type: integer
+          format: int64
+        segmentCount:
+          type: integer
+          format: int32
+        bytesInPerSec:
+          type: number
+          format: double
+        bytesOutPerSec:
+          type: number
+          format: double
+        underReplicatedPartitions:
+          type: integer
+          format: int32
+        messagesCount:
+          type: integer
+          format: int64
+          nullable: true
+        cleanUpPolicy:
+          $ref: '#/components/schemas/CleanUpPolicy'
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partition'
+    TopicAnalysis:
+      type: object
+      properties:
+        progress:
+          $ref: '#/components/schemas/TopicAnalysisProgress'
+        result:
+          $ref: '#/components/schemas/TopicAnalysisResult'
+    TopicAnalysisProgress:
+      type: object
+      properties:
+        startedAt:
+          type: integer
+          format: int64
+        completenessPercent:
+          type: number
+          format: decimal
+        msgsScanned:
+          type: integer
+          format: int64
+        bytesScanned:
+          type: integer
+          format: int64
+    TopicAnalysisResult:
+      type: object
+      properties:
+        startedAt:
+          type: integer
+          format: int64
+        finishedAt:
+          type: integer
+          format: int64
+        error:
+          type: string
+        totalStats:
+          $ref: '#/components/schemas/TopicAnalysisStats'
+        partitionStats:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicAnalysisStats'
+    TopicAnalysisSizeStats:
+      type: object
+      properties:
+        sum:
+          type: integer
+          format: int64
+        min:
+          type: integer
+          format: int64
+        max:
+          type: integer
+          format: int64
+        avg:
+          type: integer
+          format: int64
+        prctl50:
+          type: integer
+          format: int64
+        prctl75:
+          type: integer
+          format: int64
+        prctl95:
+          type: integer
+          format: int64
+        prctl99:
+          type: integer
+          format: int64
+        prctl999:
+          type: integer
+          format: int64
+    TopicAnalysisStats:
+      type: object
+      properties:
+        partition:
+          type: integer
+          format: int32
+          description: null if this is total stats
+        totalMsgs:
+          type: integer
+          format: int64
+        minOffset:
+          type: integer
+          format: int64
+        maxOffset:
+          type: integer
+          format: int64
+        minTimestamp:
+          type: integer
+          format: int64
+        maxTimestamp:
+          type: integer
+          format: int64
+        nullKeys:
+          type: integer
+          format: int64
+        nullValues:
+          type: integer
+          format: int64
+        approxUniqKeys:
+          type: integer
+          format: int64
+        approxUniqValues:
+          type: integer
+          format: int64
+        keySize:
+          $ref: '#/components/schemas/TopicAnalysisSizeStats'
+        valueSize:
+          $ref: '#/components/schemas/TopicAnalysisSizeStats'
+        hourlyMsgCounts:
+          type: array
+          items:
+            type: object
+            properties:
+              hourStart:
+                type: integer
+                format: int64
+              count:
+                type: integer
+                format: int64
+    TopicColumnsToSort:
+      type: string
+      enum:
+        - NAME
+        - OUT_OF_SYNC_REPLICAS
+        - TOTAL_PARTITIONS
+        - REPLICATION_FACTOR
+        - SIZE
+        - MESSAGES_COUNT
+    TopicConfig:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        defaultValue:
+          type: string
+        source:
+          $ref: '#/components/schemas/ConfigSource'
+        isSensitive:
+          type: boolean
+        isReadOnly:
+          type: boolean
+        synonyms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigSynonym'
+        doc:
+          type: string
+    TopicCreation:
+      type: object
+      required:
+        - name
+        - partitions
+      properties:
+        name:
+          type: string
+        partitions:
+          type: integer
+          format: int32
+        replicationFactor:
+          type: integer
+          format: int32
+        configs:
+          type: object
+          additionalProperties:
+            type: string
+    TopicDetails:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        internal:
+          type: boolean
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partition'
+        partitionCount:
+          type: integer
+          format: int32
+        replicationFactor:
+          type: integer
+          format: int32
+        replicas:
+          type: integer
+          format: int32
+        inSyncReplicas:
+          type: integer
+          format: int32
+        bytesInPerSec:
+          type: number
+          format: double
+        bytesOutPerSec:
+          type: number
+          format: double
+        segmentSize:
+          type: integer
+          format: int64
+        segmentCount:
+          type: integer
+          format: int32
+        underReplicatedPartitions:
+          type: integer
+          format: int32
+        cleanUpPolicy:
+          $ref: '#/components/schemas/CleanUpPolicy'
+        keySerde:
+          type: string
+        valueSerde:
+          type: string
+    TopicLogdirs:
+      type: object
+      properties:
+        name:
+          type: string
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicPartitionLogdir'
+    TopicMessage:
+      type: object
+      required:
+        - partition
+        - offset
+        - timestamp
+      properties:
+        partition:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        timestampType:
+          type: string
+          enum:
+            - NO_TIMESTAMP_TYPE
+            - CREATE_TIME
+            - LOG_APPEND_TIME
+        key:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        value:
+          type: string
+        keyFormat:
+          allOf:
+            - $ref: '#/components/schemas/MessageFormat'
+          deprecated: true
+        valueFormat:
+          allOf:
+            - $ref: '#/components/schemas/MessageFormat'
+          deprecated: true
+        keySize:
+          type: integer
+          format: int64
+        valueSize:
+          type: integer
+          format: int64
+        keySchemaId:
+          type: string
+          deprecated: true
+        valueSchemaId:
+          type: string
+          deprecated: true
+        headersSize:
+          type: integer
+          format: int64
+        keySerde:
+          type: string
+        valueSerde:
+          type: string
+        keyDeserializeProperties:
+          type: object
+          additionalProperties: {}
+        valueDeserializeProperties:
+          type: object
+          additionalProperties: {}
+    TopicMessageConsuming:
+      type: object
+      properties:
+        bytesConsumed:
+          type: integer
+          format: int64
+        elapsedMs:
+          type: integer
+          format: int64
+        isCancelled:
+          type: boolean
+        messagesConsumed:
+          type: integer
+          format: int32
+        filterApplyErrors:
+          type: integer
+          format: int32
+    TopicMessageEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - PHASE
+            - MESSAGE
+            - CONSUMING
+            - DONE
+        message:
+          $ref: '#/components/schemas/TopicMessage'
+        phase:
+          $ref: '#/components/schemas/TopicMessagePhase'
+        consuming:
+          $ref: '#/components/schemas/TopicMessageConsuming'
+        cursor:
+          $ref: '#/components/schemas/TopicMessageNextPageCursor'
+    TopicMessageNextPageCursor:
+      type: object
+      properties:
+        id:
+          type: string
+    TopicMessagePhase:
+      type: object
+      properties:
+        name:
+          type: string
+    TopicPartitionLogdir:
+      type: object
+      properties:
+        partition:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int64
+        offsetLag:
+          type: integer
+          format: int64
+    TopicProducerState:
+      type: object
+      properties:
+        partition:
+          type: integer
+          format: int32
+        producerId:
+          type: integer
+          format: int64
+        producerEpoch:
+          type: integer
+          format: int32
+        lastSequence:
+          type: integer
+          format: int32
+        lastTimestampMs:
+          type: integer
+          format: int64
+        coordinatorEpoch:
+          type: integer
+          format: int32
+        currentTransactionStartOffset:
+          type: integer
+          format: int64
+    TopicSerdeSuggestion:
+      type: object
+      properties:
+        key:
+          type: array
+          items:
+            $ref: '#/components/schemas/SerdeDescription'
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/SerdeDescription'
+    TopicUpdate:
+      type: object
+      properties:
+        configs:
+          type: object
+          additionalProperties:
+            type: string
+    TopicsResponse:
+      type: object
+      properties:
+        pageCount:
+          type: integer
+          format: int32
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Topic'
+    UploadedFileInfo:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          type: string
+    UserInfo:
+      type: object
+      required:
+        - username
+        - permissions
+      properties:
+        username:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPermission'
+    UserPermission:
+      type: object
+      required:
+        - clusters
+        - resource
+        - actions
+      properties:
+        clusters:
+          type: array
+          items:
+            type: string
+        resource:
+          $ref: '#/components/schemas/ResourceType'
+        value:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+servers:
+  - url: http://localhost:8080
+    description: Default endpoint for Kafbat UI API
+    variables: {}

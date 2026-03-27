@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
-import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.JsonSchema;
+import io.modelcontextprotocol.spec.McpSchema;
 import io.swagger.v3.oas.annotations.Operation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,7 +56,11 @@ public class McpSpecificationGenerator {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
     return new AsyncToolSpecification(
-        new McpSchema.Tool(name, description, operationSchema(method, instance)),
+        McpSchema.Tool.builder()
+            .name(name)
+            .description(description)
+            .inputSchema(operationSchema(method, instance))
+            .build(),
         methodCall(method, instance)
     );
   }
