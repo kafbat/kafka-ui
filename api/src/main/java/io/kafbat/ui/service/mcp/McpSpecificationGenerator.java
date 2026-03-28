@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,14 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class McpSpecificationGenerator {
+  private static final String CLUSTER_NAME_PARAM = "clusterName";
+
+  // Write operations that are safe for read-only clusters,
+  // mirroring ReadOnlyModeFilter.SAFE_ENDPOINTS patterns
+  private static final Set<String> READ_ONLY_SAFE_OPERATIONS = Set.of(
+      "analyzeTopic", "cancelTopicAnalysis", "registerFilter"
+  );
+
   private final SchemaGenerator schemaGenerator;
   private final ObjectMapper objectMapper;
   private final ClustersStorage clustersStorage;
@@ -61,14 +70,17 @@ public class McpSpecificationGenerator {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
     Method interfaceMethod = findAnnotatedMethod(method, instance);
-    boolean isWriteOperation = isWriteMethod(interfaceMethod);
+    boolean isWriteOperation = isWriteMethod(interfaceMethod, name);
     return new AsyncToolSpecification(
         new McpSchema.Tool(name, description, operationSchema(method, interfaceMethod)),
         methodCall(method, instance, isWriteOperation)
     );
   }
 
-  private boolean isWriteMethod(Method interfaceMethod) {
+  private boolean isWriteMethod(Method interfaceMethod, String operationId) {
+    if (READ_ONLY_SAFE_OPERATIONS.contains(operationId)) {
+      return false;
+    }
     RequestMapping requestMapping = AnnotationUtils.findAnnotation(interfaceMethod, RequestMapping.class);
     if (requestMapping == null) {
       return false;
@@ -88,8 +100,11 @@ public class McpSpecificationGenerator {
 
     return (ex, args) -> {
       if (isWriteOperation) {
-        String clusterName = (String) args.get("clusterName");
-        if (clusterName != null) {
+        Object clusterNameArg = args.get(CLUSTER_NAME_PARAM);
+        if (clusterNameArg == null) {
+          return Mono.just(toErrorResult("clusterName is required for write operations"));
+        }
+        if (clusterNameArg instanceof String clusterName) {
           var cluster = clustersStorage.getClusterByName(clusterName);
           if (cluster.isPresent() && cluster.get().isReadOnly()) {
             return Mono.just(toErrorResult(new ReadOnlyModeException()));
