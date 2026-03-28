@@ -3,6 +3,8 @@ package io.kafbat.ui.service.mcp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
+import io.kafbat.ui.exception.ReadOnlyModeException;
+import io.kafbat.ui.service.ClustersStorage;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,8 +39,21 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class McpSpecificationGenerator {
+  private static final String CLUSTER_NAME_PARAM = "clusterName";
+
+  private static final Set<RequestMethod> SAFE_HTTP_METHODS = Set.of(
+      RequestMethod.GET, RequestMethod.OPTIONS, RequestMethod.HEAD
+  );
+
+  // Write operations that are safe for read-only clusters,
+  // matching ReadOnlyModeFilter.SAFE_ENDPOINTS patterns
+  private static final Set<String> READ_ONLY_SAFE_OPERATIONS = Set.of(
+      "analyzeTopic", "cancelTopicAnalysis", "registerFilter"
+  );
+
   private final SchemaGenerator schemaGenerator;
   private final ObjectMapper objectMapper;
+  private final ClustersStorage clustersStorage;
 
   public List<AsyncToolSpecification> convertTool(McpTool controller) {
     List<AsyncToolSpecification> result = new ArrayList<>();
@@ -55,18 +73,31 @@ public class McpSpecificationGenerator {
   private AsyncToolSpecification convertOperation(Method method, Operation annotation, McpTool instance) {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
+    boolean writeOperation = isWriteOperation(method, instance, name);
     return new AsyncToolSpecification(
         new McpSchema.Tool(name, description, operationSchema(method, instance)),
-        methodCall(method, instance)
+        methodCall(method, instance, writeOperation)
     );
   }
 
   @SuppressWarnings("unchecked")
   private BiFunction<McpAsyncServerExchange, Map<String, Object>, Mono<CallToolResult>>
-      methodCall(Method method, Object instance) {
+      methodCall(Method method, Object instance, boolean writeOperation) {
 
     return (ex, args) -> Mono.deferContextual(ctx -> {
       try {
+        if (writeOperation) {
+          Object clusterName = args.get(CLUSTER_NAME_PARAM);
+          if (clusterName instanceof String cn) {
+            boolean readOnly = clustersStorage.getClusterByName(cn)
+                .map(cluster -> cluster.isReadOnly())
+                .orElse(false);
+            if (readOnly) {
+              return Mono.just(toErrorResult(new ReadOnlyModeException()));
+            }
+          }
+        }
+
         ServerWebExchange serverWebExchange = ctx.get(ServerWebExchange.class);
         Mono<Object> result = (Mono<Object>) method.invoke(
             instance,
@@ -202,6 +233,26 @@ public class McpSpecificationGenerator {
     );
   }
 
+
+  private boolean isWriteOperation(Method method, McpTool instance, String operationId) {
+    if (READ_ONLY_SAFE_OPERATIONS.contains(operationId)) {
+      return false;
+    }
+    try {
+      Method annotatedMethod = findAnnotatedMethod(method, instance);
+      RequestMapping requestMapping = AnnotationUtils.findAnnotation(annotatedMethod, RequestMapping.class);
+      if (requestMapping != null) {
+        for (RequestMethod rm : requestMapping.method()) {
+          if (!SAFE_HTTP_METHODS.contains(rm)) {
+            return true;
+          }
+        }
+      }
+    } catch (RuntimeException e) {
+      log.warn("Could not determine HTTP method for operation {}, treating as read-only", operationId);
+    }
+    return false;
+  }
 
   private Method findAnnotatedMethod(Method method, McpTool instance) {
     Class<?> declaringClass = AopUtils.getTargetClass(instance);
