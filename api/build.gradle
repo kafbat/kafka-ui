@@ -64,6 +64,7 @@ dependencies {
     implementation libs.confluent.json.schema.serializer
 
     implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
 
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {

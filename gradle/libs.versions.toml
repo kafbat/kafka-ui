@@ -95,6 +95,7 @@ confluent-protobuf-serializer = { module = 'io.confluent:kafka-protobuf-serializ
 confluent-json-schema-serializer = { module = 'io.confluent:kafka-json-schema-serializer', version.ref = 'confluent' }
 
 msgpack-core = { group = "org.msgpack", name = "msgpack-core", version.ref = "msgpack" }
+msgpack-jackson = { group = "org.msgpack", name = "jackson-dataformat-msgpack", version.ref = "msgpack" }
 
 aws-msk-auth = { module = 'software.amazon.msk:aws-msk-iam-auth', version.ref = 'aws-msk-auth' }
 azure-identity = { module = 'com.azure:azure-identity', version.ref = 'azure-identity' }
