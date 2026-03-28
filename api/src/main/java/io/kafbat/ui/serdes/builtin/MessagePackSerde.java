@@ -16,6 +16,9 @@ import org.msgpack.value.Value;
 public class MessagePackSerde implements BuiltInSerde {
   public static final String NAME = "MessagePack";
 
+  public static final String FAILED_TO_DESERIALIZE_MSGPACK_PAYLOAD = "Failed to deserialize MessagePack payload";
+  public static final String FAILED_TO_SERIALIZE_JSON_PAYLOAD = "Failed to parse JSON payload";
+
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
   private static final ObjectMapper MSGPACK_MAPPER = new ObjectMapper(new MessagePackFactory());
 
@@ -31,7 +34,7 @@ public class MessagePackSerde implements BuiltInSerde {
         Value value = unpacker.unpackValue();
         return new DeserializeResult(value.toString(), DeserializeResult.Type.STRING, Map.of());
       } catch (Exception e) {
-        throw new IllegalArgumentException("Failed to deserialize MessagePack payload", e);
+        throw new IllegalArgumentException(FAILED_TO_DESERIALIZE_MSGPACK_PAYLOAD, e);
       }
     };
   }
@@ -46,9 +49,12 @@ public class MessagePackSerde implements BuiltInSerde {
     return inputString -> {
       try {
         JsonNode node = JSON_MAPPER.readTree(inputString);
+        if (node.isMissingNode()) {
+          throw new IllegalArgumentException(FAILED_TO_SERIALIZE_JSON_PAYLOAD);
+        }
         return MSGPACK_MAPPER.writeValueAsBytes(node);
       } catch (JsonProcessingException e) {
-        throw new IllegalArgumentException("Failed to parse JSON payload", e);
+        throw new IllegalArgumentException(FAILED_TO_SERIALIZE_JSON_PAYLOAD, e);
       }
     };
   }

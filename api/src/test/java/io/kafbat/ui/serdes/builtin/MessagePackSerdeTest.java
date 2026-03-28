@@ -12,11 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 public class MessagePackSerdeTest {
-  private static final String TEST_STRING = "{\"items\":[null,true,2]}";
-  private static final String TEST_STRING_WITH_INDENTS = " { \n\t\"items\" : [ null, true , 2]\n}  ";
-  private static final String TEST_STRING_NOT_VALID_JSON = "{\"items\":[null,";
-  private static final byte[] TEST_DATA_WITH_MISSING_BYTE = { (byte) 0x93, 0x01, 0x02 };
-  private static final byte[] TEST_DATA = {
+  private static final String EXTECTED_JSON_STRING = "{\"items\":[null,true,2]}";
+  private static final byte[] EXPECTED_MESSAGE_PACK_BYTES = {
       (byte) 0x81,
       (byte) 0xa5,
       (byte) 0x69,
@@ -56,21 +53,34 @@ public class MessagePackSerdeTest {
 
   @ParameterizedTest
   @EnumSource
-  void deserializesDataAsMessagePackBytes(Serde.Target type) {
+  void deserializesMessagePackBytesAsJsonString(Serde.Target type) {
     var deserializer = msgPackSerde.deserializer("anyTopic", type);
-    var result = deserializer.deserialize(new RecordHeadersImpl(), TEST_DATA);
-    assertThat(result.getResult()).isEqualTo(TEST_STRING);
+
+    var result = deserializer.deserialize(new RecordHeadersImpl(), EXPECTED_MESSAGE_PACK_BYTES);
+
+    assertThat(result.getResult()).isEqualTo(EXTECTED_JSON_STRING);
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
     assertThat(result.getAdditionalProperties()).isEmpty();
   }
 
   @ParameterizedTest
   @EnumSource
-  void deserializesNotValidDataThrowsException(Serde.Target type) {
-    var serializer = msgPackSerde.deserializer("anyTopic", type);
-    assertThatThrownBy(() -> serializer.deserialize(new RecordHeadersImpl(), TEST_DATA_WITH_MISSING_BYTE))
+  void deserializesEmptyBytesThrowException(Serde.Target type) {
+    var deserializer = msgPackSerde.deserializer("anyTopic", type);
+
+    assertThatThrownBy(() -> deserializer.deserialize(new RecordHeadersImpl(), new byte[] {}))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Failed to deserialize MessagePack payload");
+        .hasMessageContaining(MessagePackSerde.FAILED_TO_DESERIALIZE_MSGPACK_PAYLOAD);
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  void deserializesInvalidMsgpackBytesThrowException(Serde.Target type) {
+    var serializer = msgPackSerde.deserializer("anyTopic", type);
+
+    assertThatThrownBy(() -> serializer.deserialize(new RecordHeadersImpl(), new byte[] { (byte) 0x93, 0x01, 0x02 }))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining(MessagePackSerde.FAILED_TO_DESERIALIZE_MSGPACK_PAYLOAD);
   }
 
   @ParameterizedTest
@@ -81,18 +91,31 @@ public class MessagePackSerdeTest {
 
   @ParameterizedTest
   @EnumSource
-  void serializesDataAsMessagePackBytes(Serde.Target type) {
+  void serializesJsonStringAsMessagePackBytes(Serde.Target type) {
     var serializer = msgPackSerde.serializer("anyTopic", type);
-    byte[] bytes = serializer.serialize(TEST_STRING_WITH_INDENTS);
-    assertThat(bytes).isEqualTo(TEST_DATA);
+
+    byte[] bytes = serializer.serialize(" { \n\t\"items\" : [ null, true , 2]\n}  ");
+
+    assertThat(bytes).isEqualTo(EXPECTED_MESSAGE_PACK_BYTES);
   }
 
   @ParameterizedTest
   @EnumSource
-  void serializesNotValidDataThrowsException(Serde.Target type) {
+  void serializesBlankInputThrowsException(Serde.Target type) {
     var serializer = msgPackSerde.serializer("anyTopic", type);
-    assertThatThrownBy(() -> serializer.serialize(TEST_STRING_NOT_VALID_JSON))
+
+    assertThatThrownBy(() -> serializer.serialize(" \n\t"))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Failed to parse JSON payload");
+        .hasMessageContaining(MessagePackSerde.FAILED_TO_SERIALIZE_JSON_PAYLOAD);
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  void serializesJsonWithMissingPartThrowsException(Serde.Target type) {
+    var serializer = msgPackSerde.serializer("anyTopic", type);
+
+    assertThatThrownBy(() -> serializer.serialize("{\"key\": "))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining(MessagePackSerde.FAILED_TO_SERIALIZE_JSON_PAYLOAD);
   }
 }
