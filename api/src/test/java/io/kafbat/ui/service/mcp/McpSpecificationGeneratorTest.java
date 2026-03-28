@@ -38,9 +38,6 @@ import reactor.util.context.Context;
 
 class McpSpecificationGeneratorTest {
   private static final SchemaGenerator SCHEMA_GENERATOR = schemaGenerator();
-  private static final ClustersStorage CLUSTERS_STORAGE = mock(ClustersStorage.class);
-  private static final McpSpecificationGenerator MCP_SPECIFICATION_GENERATOR =
-      new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), CLUSTERS_STORAGE);
 
   private static SchemaGenerator schemaGenerator() {
     SchemaGeneratorConfigBuilder configBuilder =
@@ -48,14 +45,22 @@ class McpSpecificationGeneratorTest {
     return new SchemaGenerator(configBuilder.build());
   }
 
-  @Test
-  void testConvertController() {
-    TopicsController topicsController = new TopicsController(
+  private static McpSpecificationGenerator generatorWith(ClustersStorage storage) {
+    return new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), storage);
+  }
+
+  private static TopicsController topicsController() {
+    return new TopicsController(
         mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
         mock(ClustersProperties.class), mock(KafkaConnectService.class), mock(AclsService.class)
     );
+  }
+
+  @Test
+  void testConvertController() {
+    McpSpecificationGenerator generator = generatorWith(mock(ClustersStorage.class));
     List<AsyncToolSpecification> specifications =
-        MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
+        generator.convertTool(topicsController());
 
     assertThat(specifications).hasSize(17);
     List<McpSchema.Tool> tools = List.of(
@@ -115,37 +120,13 @@ class McpSpecificationGeneratorTest {
 
   @Test
   void writeOperationBlockedOnReadOnlyCluster() {
-    KafkaCluster readOnlyCluster = KafkaCluster.builder()
-        .name("readonly-cluster")
-        .readOnly(true)
-        .build();
-    ClustersStorage storage = mock(ClustersStorage.class);
-    when(storage.getClusterByName(eq("readonly-cluster")))
-        .thenReturn(Optional.of(readOnlyCluster));
+    ClustersStorage storage = readOnlyClusterStorage();
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
 
-    McpSpecificationGenerator generator =
-        new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), storage);
+    AsyncToolSpecification createTopic = findTool(specs, "createTopic");
 
-    TopicsController topicsController = new TopicsController(
-        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
-        mock(ClustersProperties.class), mock(KafkaConnectService.class), mock(AclsService.class)
-    );
-
-    List<AsyncToolSpecification> specs = generator.convertTool(topicsController);
-
-    // Find a write operation (createTopic is POST)
-    AsyncToolSpecification createTopic = specs.stream()
-        .filter(s -> s.tool().name().equals("createTopic"))
-        .findFirst().orElseThrow();
-
-    Map<String, Object> args = new HashMap<>();
-    args.put("clusterName", "readonly-cluster");
-
-    McpAsyncServerExchange mcpExchange = mock(McpAsyncServerExchange.class);
-    ServerWebExchange webExchange = mock(ServerWebExchange.class);
-
-    Mono<CallToolResult> result = createTopic.call().apply(mcpExchange, args)
-        .contextWrite(Context.of(ServerWebExchange.class, webExchange));
+    Mono<CallToolResult> result = invokeTool(createTopic, Map.of("clusterName", "readonly-cluster"));
 
     StepVerifier.create(result)
         .assertNext(callResult -> {
@@ -167,45 +148,124 @@ class McpSpecificationGeneratorTest {
     when(storage.getClusterByName(eq("normal-cluster")))
         .thenReturn(Optional.of(normalCluster));
 
-    McpSpecificationGenerator generator =
-        new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), storage);
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
 
-    TopicsController topicsController = new TopicsController(
-        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
-        mock(ClustersProperties.class), mock(KafkaConnectService.class), mock(AclsService.class)
-    );
+    AsyncToolSpecification createTopic = findTool(specs, "createTopic");
 
-    List<AsyncToolSpecification> specs = generator.convertTool(topicsController);
-
-    // Find a write operation (createTopic is POST)
-    AsyncToolSpecification createTopic = specs.stream()
-        .filter(s -> s.tool().name().equals("createTopic"))
-        .findFirst().orElseThrow();
-
-    Map<String, Object> args = new HashMap<>();
-    args.put("clusterName", "normal-cluster");
-
-    McpAsyncServerExchange mcpExchange = mock(McpAsyncServerExchange.class);
-    ServerWebExchange webExchange = mock(ServerWebExchange.class);
-
-    // For a non-readOnly cluster, the write operation should proceed past the
-    // readOnly check. It will error from unmocked dependencies, but NOT with
-    // a "read-only" error message.
-    Mono<CallToolResult> result = createTopic.call().apply(mcpExchange, args)
-        .contextWrite(Context.of(ServerWebExchange.class, webExchange));
+    Mono<CallToolResult> result = invokeTool(createTopic, Map.of("clusterName", "normal-cluster"));
 
     StepVerifier.create(result)
         .assertNext(callResult -> {
-          // The call proceeds past readOnly check (cluster is not readOnly).
-          // It errors from unmocked controller dependencies (InvocationTargetException),
-          // but the error should NOT be about read-only mode.
           assertThat(callResult.isError()).isTrue();
           String text = ((McpSchema.TextContent) callResult.content().get(0)).text();
           if (text != null) {
             assertThat(text).doesNotContain("read-only");
           }
-          // null text means InvocationTargetException (unmocked deps), which is expected
         })
         .verifyComplete();
+  }
+
+  @Test
+  void readOperationAllowedOnReadOnlyCluster() {
+    ClustersStorage storage = readOnlyClusterStorage();
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
+
+    // getTopics is a GET operation — should NOT be blocked on readOnly cluster
+    AsyncToolSpecification getTopics = findTool(specs, "getTopics");
+
+    Mono<CallToolResult> result = invokeTool(getTopics, Map.of("clusterName", "readonly-cluster"));
+
+    StepVerifier.create(result)
+        .assertNext(callResult -> {
+          // May error from unmocked dependencies, but NOT from readOnly check
+          if (callResult.isError()) {
+            String text = ((McpSchema.TextContent) callResult.content().get(0)).text();
+            if (text != null) {
+              assertThat(text).doesNotContain("read-only");
+            }
+          }
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  void safeWriteOperationAllowedOnReadOnlyCluster() {
+    ClustersStorage storage = readOnlyClusterStorage();
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
+
+    // analyzeTopic is POST but listed in READ_ONLY_SAFE_OPERATIONS
+    AsyncToolSpecification analyzeTopic = findTool(specs, "analyzeTopic");
+
+    Mono<CallToolResult> result = invokeTool(analyzeTopic, Map.of(
+        "clusterName", "readonly-cluster", "topicName", "test-topic"));
+
+    StepVerifier.create(result)
+        .assertNext(callResult -> {
+          if (callResult.isError()) {
+            String text = ((McpSchema.TextContent) callResult.content().get(0)).text();
+            if (text != null) {
+              assertThat(text).doesNotContain("read-only");
+            }
+          }
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  void writeOperationWithUnknownClusterProceeds() {
+    // Unknown cluster returns Optional.empty() — orElse(false) means not readOnly
+    ClustersStorage storage = mock(ClustersStorage.class);
+    when(storage.getClusterByName(eq("unknown-cluster")))
+        .thenReturn(Optional.empty());
+
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
+
+    AsyncToolSpecification createTopic = findTool(specs, "createTopic");
+
+    Mono<CallToolResult> result = invokeTool(createTopic, Map.of("clusterName", "unknown-cluster"));
+
+    StepVerifier.create(result)
+        .assertNext(callResult -> {
+          // Should proceed past readOnly check (unknown cluster defaults to non-readOnly)
+          if (callResult.isError()) {
+            String text = ((McpSchema.TextContent) callResult.content().get(0)).text();
+            if (text != null) {
+              assertThat(text).doesNotContain("read-only");
+            }
+          }
+        })
+        .verifyComplete();
+  }
+
+  // --- helpers ---
+
+  private static ClustersStorage readOnlyClusterStorage() {
+    KafkaCluster readOnlyCluster = KafkaCluster.builder()
+        .name("readonly-cluster")
+        .readOnly(true)
+        .build();
+    ClustersStorage storage = mock(ClustersStorage.class);
+    when(storage.getClusterByName(eq("readonly-cluster")))
+        .thenReturn(Optional.of(readOnlyCluster));
+    return storage;
+  }
+
+  private static AsyncToolSpecification findTool(List<AsyncToolSpecification> specs, String name) {
+    return specs.stream()
+        .filter(s -> s.tool().name().equals(name))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Tool not found: " + name));
+  }
+
+  private static Mono<CallToolResult> invokeTool(
+      AsyncToolSpecification spec, Map<String, Object> args) {
+    McpAsyncServerExchange mcpExchange = mock(McpAsyncServerExchange.class);
+    ServerWebExchange webExchange = mock(ServerWebExchange.class);
+    return spec.call().apply(mcpExchange, new HashMap<>(args))
+        .contextWrite(Context.of(ServerWebExchange.class, webExchange));
   }
 }

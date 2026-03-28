@@ -95,6 +95,8 @@ public class McpSpecificationGenerator {
             if (readOnly) {
               return Mono.just(toErrorResult(new ReadOnlyModeException()));
             }
+          } else if (clusterName != null) {
+            log.warn("Write operation called with non-String clusterName: {}", clusterName.getClass());
           }
         }
 
@@ -248,7 +250,7 @@ public class McpSpecificationGenerator {
           }
         }
       }
-    } catch (RuntimeException e) {
+    } catch (RuntimeException _) {
       log.warn("Could not determine HTTP method for operation {}, treating as read-only", operationId);
     }
     return false;
