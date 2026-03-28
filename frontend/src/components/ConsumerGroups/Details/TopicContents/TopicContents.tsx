@@ -1,11 +1,12 @@
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { ConsumerGroupTopicPartition, SortOrder } from 'generated-sources';
+import {
+  ConsumerGroupTopicLag,
+  ConsumerGroupTopicPartition,
+  SortOrder,
+} from 'generated-sources';
 import React from 'react';
-
-interface Props {
-  topicPartitions: ConsumerGroupTopicPartition[];
-}
+import { LagTrend, LagTrendComponent } from 'lib/consumerGroups';
 
 type OrderByKey = keyof ConsumerGroupTopicPartition;
 interface Headers {
@@ -87,7 +88,17 @@ const consumerIdComparator: ComparatorFunction<ConsumerGroupTopicPartition> = (
   return 0;
 };
 
-const TopicContents: React.FC<Props> = ({ topicPartitions }) => {
+interface Props {
+  topicPartitions: ConsumerGroupTopicPartition[];
+  partitionLags: ConsumerGroupTopicLag | undefined;
+  partitionTrends: Record<string, LagTrend>;
+}
+
+const TopicContents: React.FC<Props> = ({
+  topicPartitions,
+  partitionTrends,
+  partitionLags,
+}) => {
   const [orderBy, setOrderBy] = React.useState<OrderByKey>('partition');
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(SortOrder.DESC);
 
@@ -150,7 +161,14 @@ const TopicContents: React.FC<Props> = ({ topicPartitions }) => {
             <td>{topicPartition.partition}</td>
             <td className="break-spaces">{topicPartition.consumerId}</td>
             <td>{topicPartition.host}</td>
-            <td>{topicPartition.consumerLag}</td>
+            <td>
+              <LagTrendComponent
+                lag={
+                  partitionLags?.partitions?.[String(topicPartition.partition)]
+                }
+                trend={partitionTrends[topicPartition.partition]}
+              />
+            </td>
             <td>{topicPartition.currentOffset}</td>
             <td>{topicPartition.endOffset}</td>
           </tr>
