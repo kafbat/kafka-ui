@@ -132,6 +132,8 @@ public class McpSpecificationGenerator {
       if (cluster.isPresent() && cluster.get().isReadOnly()) {
         return Mono.just(toErrorResult(new ReadOnlyModeException()));
       }
+    } else {
+      return Mono.just(toErrorResult("clusterName must be a string"));
     }
     return null;
   }
