@@ -100,15 +100,9 @@ public class McpSpecificationGenerator {
 
     return (ex, args) -> {
       if (isWriteOperation) {
-        Object clusterNameArg = args.get(CLUSTER_NAME_PARAM);
-        if (clusterNameArg == null) {
-          return Mono.just(toErrorResult("clusterName is required for write operations"));
-        }
-        if (clusterNameArg instanceof String clusterName) {
-          var cluster = clustersStorage.getClusterByName(clusterName);
-          if (cluster.isPresent() && cluster.get().isReadOnly()) {
-            return Mono.just(toErrorResult(new ReadOnlyModeException()));
-          }
+        Mono<CallToolResult> blocked = readOnlyCheckResult(args);
+        if (blocked != null) {
+          return blocked;
         }
       }
       return Mono.deferContextual(ctx -> {
@@ -126,6 +120,20 @@ public class McpSpecificationGenerator {
         }
       });
     };
+  }
+
+  private Mono<CallToolResult> readOnlyCheckResult(Map<String, Object> args) {
+    Object clusterNameArg = args.get(CLUSTER_NAME_PARAM);
+    if (clusterNameArg == null) {
+      return Mono.just(toErrorResult("clusterName is required for write operations"));
+    }
+    if (clusterNameArg instanceof String clusterName) {
+      var cluster = clustersStorage.getClusterByName(clusterName);
+      if (cluster.isPresent() && cluster.get().isReadOnly()) {
+        return Mono.just(toErrorResult(new ReadOnlyModeException()));
+      }
+    }
+    return null;
   }
 
   private Mono<CallToolResult> toCallResult(Object result) {
