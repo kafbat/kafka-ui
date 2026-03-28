@@ -32,7 +32,8 @@ public class MessagePackSerde implements BuiltInSerde {
     return (headers, data) -> {
       try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(data)) {
         Value value = unpacker.unpackValue();
-        return new DeserializeResult(value.toString(), DeserializeResult.Type.STRING, Map.of());
+        JsonNode node = MSGPACK_MAPPER.readTree(value.toJson());
+        return new DeserializeResult(node.toString(), DeserializeResult.Type.STRING, Map.of());
       } catch (Exception e) {
         throw new IllegalArgumentException(FAILED_TO_DESERIALIZE_MSGPACK_PAYLOAD, e);
       }

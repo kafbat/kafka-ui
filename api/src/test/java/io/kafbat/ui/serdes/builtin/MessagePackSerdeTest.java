@@ -12,7 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 public class MessagePackSerdeTest {
-  private static final String EXTECTED_JSON_STRING = "{\"items\":[null,true,2]}";
+  private static final String EXPECTED_JSON_STRING = "{\"items\":[null,true,2]}";
   private static final byte[] EXPECTED_MESSAGE_PACK_BYTES = {
       (byte) 0x81,
       (byte) 0xa5,
@@ -58,7 +58,19 @@ public class MessagePackSerdeTest {
 
     var result = deserializer.deserialize(new RecordHeadersImpl(), EXPECTED_MESSAGE_PACK_BYTES);
 
-    assertThat(result.getResult()).isEqualTo(EXTECTED_JSON_STRING);
+    assertThat(result.getResult()).isEqualTo(EXPECTED_JSON_STRING);
+    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
+    assertThat(result.getAdditionalProperties()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @EnumSource
+  void deserializesMessagePackBytesAsStringWithQuotes(Serde.Target type) {
+    var deserializer = msgPackSerde.deserializer("anyTopic", type);
+
+    var result = deserializer.deserialize(new RecordHeadersImpl(), new byte[] { (byte) 0xA4, 0x74, 0x65, 0x78, 0x74 });
+
+    assertThat(result.getResult()).isEqualTo("\"text\"");
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.STRING);
     assertThat(result.getAdditionalProperties()).isEmpty();
   }
