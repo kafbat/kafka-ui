@@ -14,6 +14,7 @@ import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
+import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.acl.AclsService;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.Test;
 class McpSpecificationGeneratorTest {
   private static final SchemaGenerator SCHEMA_GENERATOR = schemaGenerator();
   private static final McpSpecificationGenerator MCP_SPECIFICATION_GENERATOR =
-      new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper());
+      new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), mock(ClustersStorage.class));
 
   private static SchemaGenerator schemaGenerator() {
     SchemaGeneratorConfigBuilder configBuilder =

@@ -3,6 +3,8 @@ package io.kafbat.ui.service.mcp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
+import io.kafbat.ui.exception.ReadOnlyModeException;
+import io.kafbat.ui.service.ClustersStorage;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -26,6 +28,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,6 +40,7 @@ import reactor.core.publisher.Mono;
 public class McpSpecificationGenerator {
   private final SchemaGenerator schemaGenerator;
   private final ObjectMapper objectMapper;
+  private final ClustersStorage clustersStorage;
 
   public List<AsyncToolSpecification> convertTool(McpTool controller) {
     List<AsyncToolSpecification> result = new ArrayList<>();
@@ -55,30 +60,57 @@ public class McpSpecificationGenerator {
   private AsyncToolSpecification convertOperation(Method method, Operation annotation, McpTool instance) {
     String name = annotation.operationId();
     String description = annotation.description().isEmpty() ? name : annotation.description();
+    Method interfaceMethod = findAnnotatedMethod(method, instance);
+    boolean isWriteOperation = isWriteMethod(interfaceMethod);
     return new AsyncToolSpecification(
-        new McpSchema.Tool(name, description, operationSchema(method, instance)),
-        methodCall(method, instance)
+        new McpSchema.Tool(name, description, operationSchema(method, interfaceMethod)),
+        methodCall(method, instance, isWriteOperation)
     );
+  }
+
+  private boolean isWriteMethod(Method interfaceMethod) {
+    RequestMapping requestMapping = AnnotationUtils.findAnnotation(interfaceMethod, RequestMapping.class);
+    if (requestMapping == null) {
+      return false;
+    }
+    for (RequestMethod requestMethod : requestMapping.method()) {
+      if (requestMethod != RequestMethod.GET && requestMethod != RequestMethod.OPTIONS
+          && requestMethod != RequestMethod.HEAD) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @SuppressWarnings("unchecked")
   private BiFunction<McpAsyncServerExchange, Map<String, Object>, Mono<CallToolResult>>
-      methodCall(Method method, Object instance) {
+      methodCall(Method method, Object instance, boolean isWriteOperation) {
 
-    return (ex, args) -> Mono.deferContextual(ctx -> {
-      try {
-        ServerWebExchange serverWebExchange = ctx.get(ServerWebExchange.class);
-        Mono<Object> result = (Mono<Object>) method.invoke(
-            instance,
-            toParams(args, method.getParameters(), ex, serverWebExchange)
-        );
-        return result.flatMap(this::toCallResult)
-              .onErrorResume((e) -> Mono.just(this.toErrorResult(e)));
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        log.warn("Error invoking method {}: {}", method.getName(), e.getMessage(), e);
-        return Mono.just(this.toErrorResult(e));
+    return (ex, args) -> {
+      if (isWriteOperation) {
+        String clusterName = (String) args.get("clusterName");
+        if (clusterName != null) {
+          var cluster = clustersStorage.getClusterByName(clusterName);
+          if (cluster.isPresent() && cluster.get().isReadOnly()) {
+            return Mono.just(toErrorResult(new ReadOnlyModeException()));
+          }
+        }
       }
-    });
+      return Mono.deferContextual(ctx -> {
+        try {
+          ServerWebExchange serverWebExchange = ctx.get(ServerWebExchange.class);
+          Mono<Object> result = (Mono<Object>) method.invoke(
+              instance,
+              toParams(args, method.getParameters(), ex, serverWebExchange)
+          );
+          return result.flatMap(this::toCallResult)
+                .onErrorResume((e) -> Mono.just(this.toErrorResult(e)));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+          log.warn("Error invoking method {}: {}", method.getName(), e.getMessage(), e);
+          return Mono.just(this.toErrorResult(e));
+        }
+      });
+    };
   }
 
   private Mono<CallToolResult> toCallResult(Object result) {
@@ -172,12 +204,10 @@ public class McpSpecificationGenerator {
     return values;
   }
 
-  private JsonSchema operationSchema(Method method, McpTool instance) {
-    Method annotatedMethod = findAnnotatedMethod(method, instance);
-
+  private JsonSchema operationSchema(Method method, Method interfaceMethod) {
     Map<String, Object> parametersSchemas = new HashMap<>();
     List<String> required = new ArrayList<>();
-    Parameter[] annotatedParameters = annotatedMethod.getParameters();
+    Parameter[] annotatedParameters = interfaceMethod.getParameters();
     Parameter[] methodParameters = method.getParameters();
     for (int i = 0; i < methodParameters.length; i++) {
       Parameter methodParameter = methodParameters[i];
