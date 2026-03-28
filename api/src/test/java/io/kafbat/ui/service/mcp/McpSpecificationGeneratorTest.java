@@ -241,6 +241,26 @@ class McpSpecificationGeneratorTest {
         .verifyComplete();
   }
 
+  @Test
+  void writeOperationWithoutClusterNameReturnsError() {
+    ClustersStorage storage = mock(ClustersStorage.class);
+    McpSpecificationGenerator generator = generatorWith(storage);
+    List<AsyncToolSpecification> specs = generator.convertTool(topicsController());
+
+    AsyncToolSpecification createTopic = findTool(specs, "createTopic");
+
+    // Invoke without clusterName in args
+    Mono<CallToolResult> result = invokeTool(createTopic, Map.of());
+
+    StepVerifier.create(result)
+        .assertNext(callResult -> {
+          assertThat(callResult.isError()).isTrue();
+          String text = ((McpSchema.TextContent) callResult.content().get(0)).text();
+          assertThat(text).contains("clusterName is required");
+        })
+        .verifyComplete();
+  }
+
   // --- helpers ---
 
   private static ClustersStorage readOnlyClusterStorage() {

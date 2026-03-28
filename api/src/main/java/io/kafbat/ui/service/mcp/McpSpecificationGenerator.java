@@ -95,7 +95,9 @@ public class McpSpecificationGenerator {
             if (readOnly) {
               return Mono.just(toErrorResult(new ReadOnlyModeException()));
             }
-          } else if (clusterName != null) {
+          } else if (clusterName == null) {
+            return Mono.just(toErrorResult("clusterName is required for write operations"));
+          } else {
             log.warn("Write operation called with non-String clusterName: {}", clusterName.getClass());
           }
         }
