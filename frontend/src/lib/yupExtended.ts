@@ -60,7 +60,7 @@ export function cacheTest(
   };
 }
 
-yup.addMethod(yup.StringSchema, 'isJsonObject', isJsonObject);
+yup.addMethod<yup.StringSchema>(yup.string, 'isJsonObject', isJsonObject);
 
 export const topicFormValidationSchema = yup.object().shape({
   name: yup
