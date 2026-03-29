@@ -2,18 +2,32 @@ name: "Infra: CVE checks"
 on:
   pull_request:
     types: [ "opened", "reopened", "synchronize" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   push:
     branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   workflow_dispatch:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron: '0 8 15 * *'
 
 permissions:
   contents: read
 
 jobs:
-
   check-cves:
     runs-on: ubuntu-latest
 
@@ -77,7 +91,7 @@ jobs:
 
   notify:
     needs: check-cves
-    if: ${{ always() && needs.build-and-test.result == 'failure' && github.event_name == 'schedule' }}
+    if: ${{ always() && needs.check-cves.result == 'failure' && github.event_name == 'schedule' }}
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
       message: "Attention! CVE checks run failed! Please fix them CVEs :("
