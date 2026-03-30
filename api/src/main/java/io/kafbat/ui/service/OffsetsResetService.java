@@ -2,8 +2,8 @@ package io.kafbat.ui.service;
 
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.kafka.common.ConsumerGroupState.DEAD;
-import static org.apache.kafka.common.ConsumerGroupState.EMPTY;
+import static org.apache.kafka.common.GroupState.DEAD;
+import static org.apache.kafka.common.GroupState.EMPTY;
 
 import com.google.common.base.Preconditions;
 import io.kafbat.ui.exception.NotFoundException;
@@ -104,13 +104,13 @@ public class OffsetsResetService {
                 .filter(cgs -> cgs.containsKey(groupId))
                 .map(cgs -> cgs.get(groupId))
                 .flatMap(cg -> {
-                  if (!Set.of(DEAD, EMPTY).contains(cg.state())) {
+                  if (!Set.of(DEAD, EMPTY).contains(cg.groupState())) {
                     return Mono.error(
                         new ValidationException(
                             String.format(
                                 "Group's offsets can be reset only if group is inactive,"
                                     + " but group is in %s state",
-                                cg.state()
+                                cg.groupState()
                             )
                         )
                     );

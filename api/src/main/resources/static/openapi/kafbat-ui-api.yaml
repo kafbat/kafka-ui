@@ -3828,6 +3828,7 @@ components:
         - DYNAMIC_BROKER_CONFIG
         - DYNAMIC_DEFAULT_BROKER_CONFIG
         - DYNAMIC_CLIENT_METRICS_CONFIG
+        - DYNAMIC_GROUP_CONFIG
         - STATIC_BROKER_CONFIG
         - DEFAULT_CONFIG
         - UNKNOWN
@@ -4452,6 +4453,7 @@ components:
             - DESCRIBE_CONFIGS
             - ALTER_CONFIGS
             - IDEMPOTENT_WRITE
+            - TWO_PHASE_COMMIT
             - CREATE_TOKENS
             - DESCRIBE_TOKENS
         permission:

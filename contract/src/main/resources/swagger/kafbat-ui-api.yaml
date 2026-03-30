@@ -4065,6 +4065,7 @@ components:
         - DYNAMIC_CLIENT_METRICS_CONFIG
         - STATIC_BROKER_CONFIG
         - DEFAULT_CONFIG
+        - DYNAMIC_GROUP_CONFIG
         - UNKNOWN
 
     ConfigSynonym:
@@ -4217,6 +4218,7 @@ components:
             - IDEMPOTENT_WRITE # Cluster
             - CREATE_TOKENS
             - DESCRIBE_TOKENS
+            - TWO_PHASE_COMMIT
         permission:
           type: string
           enum:

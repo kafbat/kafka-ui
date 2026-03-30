@@ -44,7 +44,6 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
-import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
@@ -509,13 +508,9 @@ public class ReactiveAdminClient implements Closeable {
   // NOTE: places whole current topic config with new one. Entries that were present in old config,
   // but missed in new will be set to default
   public Mono<Void> updateTopicConfig(String topicName, Map<String, String> configs) {
-    if (getClusterFeatures().contains(SupportedFeature.INCREMENTAL_ALTER_CONFIGS)) {
-      return getTopicsConfigImpl(List.of(topicName), false)
-          .map(conf -> conf.getOrDefault(topicName, List.of()))
-          .flatMap(currentConfigs -> incrementalAlterConfig(topicName, currentConfigs, configs));
-    } else {
-      return alterConfig(topicName, configs);
-    }
+    return getTopicsConfigImpl(List.of(topicName), false)
+        .map(conf -> conf.getOrDefault(topicName, List.of()))
+        .flatMap(currentConfigs -> incrementalAlterConfig(topicName, currentConfigs, configs));
   }
 
   public Mono<List<String>> listConsumerGroupNames() {
@@ -760,16 +755,6 @@ public class ReactiveAdminClient implements Closeable {
             new ConfigResource(ConfigResource.Type.TOPIC, topicName),
             Stream.concat(configsToDelete, configsToSet).toList()
         )).all());
-  }
-
-  @SuppressWarnings("deprecation")
-  private Mono<Void> alterConfig(String topicName, Map<String, String> configs) {
-    List<ConfigEntry> configEntries = configs.entrySet().stream()
-        .flatMap(cfg -> Stream.of(new ConfigEntry(cfg.getKey(), cfg.getValue())))
-        .collect(toList());
-    Config config = new Config(configEntries);
-    var topicResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName);
-    return toMono(client.alterConfigs(Map.of(topicResource, config)).all());
   }
 
   /**
