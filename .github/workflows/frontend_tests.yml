@@ -44,6 +44,11 @@ jobs:
           cd frontend/
           pnpm lint:CI
 
+      - name: Audit dependencies
+        run: |
+          cd frontend/
+          pnpm audit --prod --audit-level=high
+
       - name: Tests
         run: |
           cd frontend/
