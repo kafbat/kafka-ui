@@ -1,7 +1,6 @@
 [versions]
 spring-boot = '3.5.13'
 nimbus-jose-jwt = '10.8'
-jackson-core = '2.21.2'
 netty = '4.1.132.Final'
 
 aws-msk-auth = '2.3.0'
@@ -62,7 +61,6 @@ springdoc-openapi-webflux = { module = 'org.springdoc:springdoc-openapi-starter-
 spring-starter-security = { module = 'org.springframework.boot:spring-boot-starter-security', version.ref = 'spring-boot' }
 # Temporary overwrite to fix CVE-2025-53864
 nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
-jackson-core = { module = 'com.fasterxml.jackson.core:jackson-core', version.ref = 'jackson-core' }
 
 spring-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation', version.ref = 'spring-boot' }
 spring-starter-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-oauth2-client', version.ref = 'spring-boot' }
