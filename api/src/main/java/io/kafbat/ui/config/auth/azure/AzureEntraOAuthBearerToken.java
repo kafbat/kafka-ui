@@ -60,14 +60,18 @@ public class AzureEntraOAuthBearerToken implements OAuthBearerToken {
     // For delegated (user) tokens, upn contains the user principal name.
     // For client_credentials (app-only) tokens, upn is absent — fall back to appid or sub.
     Object upn = claims.getClaim("upn");
-    if (upn instanceof String s) {
+    if (upn instanceof String s && !s.isBlank()) {
       return s;
     }
     Object appid = claims.getClaim("appid");
-    if (appid instanceof String s) {
+    if (appid instanceof String s && !s.isBlank()) {
       return s;
     }
-    return (String) claims.getClaim("sub");
+    Object sub = claims.getClaim("sub");
+    if (sub instanceof String s && !s.isBlank()) {
+      return s;
+    }
+    throw new SaslAuthenticationException("Unable to resolve principal name from token claims");
   }
 
   public boolean isExpired() {
