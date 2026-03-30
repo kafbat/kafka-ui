@@ -44,16 +44,30 @@ public class AzureEntraOAuthBearerToken implements OAuthBearerToken {
   public Set<String> scope() {
     // Referring to
     // https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims, the
-    // scp
-    // claim is a String which is presented as a space separated list.
-    return Arrays
-        .stream(((String) claims.getClaim("scp")).split(" "))
-        .collect(Collectors.toSet());
+    // scp claim is a String which is presented as a space separated list.
+    // For client_credentials (app-only) tokens, scp is absent — Azure uses "roles" instead.
+    Object scp = claims.getClaim("scp");
+    if (scp instanceof String s && !s.isEmpty()) {
+      return Arrays
+          .stream(s.split(" "))
+          .collect(Collectors.toSet());
+    }
+    return Set.of();
   }
 
   @Override
   public String principalName() {
-    return (String) claims.getClaim("upn");
+    // For delegated (user) tokens, upn contains the user principal name.
+    // For client_credentials (app-only) tokens, upn is absent — fall back to appid or sub.
+    Object upn = claims.getClaim("upn");
+    if (upn instanceof String s) {
+      return s;
+    }
+    Object appid = claims.getClaim("appid");
+    if (appid instanceof String s) {
+      return s;
+    }
+    return (String) claims.getClaim("sub");
   }
 
   public boolean isExpired() {
