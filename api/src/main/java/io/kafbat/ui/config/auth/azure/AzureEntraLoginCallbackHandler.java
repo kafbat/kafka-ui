@@ -26,6 +26,15 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
 
   private static final String TOKEN_AUDIENCE_FORMAT = "%s://%s/.default";
 
+  /**
+   * JAAS config option to override the token scope. When set, this value is used
+   * instead of deriving the scope from the bootstrap server URL. This is required
+   * for services like Confluent Cloud where the OAuth scope is an application
+   * registration URI (e.g. {@code api://<client-id>/.default}) rather than the
+   * bootstrap server hostname.
+   */
+  static final String JAAS_OPTION_SCOPE = "scope";
+
   static TokenCredential tokenCredential = new DefaultAzureCredentialBuilder().build();
 
   private TokenRequestContext tokenRequestContext;
@@ -34,20 +43,42 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
   public void configure(Map<String, ?> configs,
                         String mechanism,
                         List<AppConfigurationEntry> jaasConfigEntries) {
-    tokenRequestContext = buildTokenRequestContext(configs);
+    tokenRequestContext = buildTokenRequestContext(configs, jaasConfigEntries);
   }
 
-  private TokenRequestContext buildTokenRequestContext(Map<String, ?> configs) {
-    URI uri = buildEventHubsServerUri(configs);
-    String tokenAudience = buildTokenAudience(uri);
+  private TokenRequestContext buildTokenRequestContext(Map<String, ?> configs,
+                                                       List<AppConfigurationEntry> jaasConfigEntries) {
+    String customScope = getJaasOption(jaasConfigEntries, JAAS_OPTION_SCOPE);
+
+    String tokenAudience;
+    if (customScope != null && !customScope.isEmpty()) {
+      log.info("Using custom OAuth scope from JAAS config: {}", customScope);
+      tokenAudience = customScope;
+    } else {
+      URI uri = buildBootstrapServerUri(configs);
+      tokenAudience = buildTokenAudience(uri);
+    }
 
     TokenRequestContext request = new TokenRequestContext();
     request.addScopes(tokenAudience);
     return request;
   }
 
+  private String getJaasOption(List<AppConfigurationEntry> jaasConfigEntries, String key) {
+    if (jaasConfigEntries == null) {
+      return null;
+    }
+    for (AppConfigurationEntry entry : jaasConfigEntries) {
+      Object value = entry.getOptions().get(key);
+      if (value instanceof String s) {
+        return s;
+      }
+    }
+    return null;
+  }
+
   @SuppressWarnings("unchecked")
-  private URI buildEventHubsServerUri(Map<String, ?> configs) {
+  private URI buildBootstrapServerUri(Map<String, ?> configs) {
     final List<String> bootstrapServers = (List<String>) configs.get(BOOTSTRAP_SERVERS_CONFIG);
 
     if (bootstrapServers == null) {
