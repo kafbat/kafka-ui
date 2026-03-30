@@ -16,10 +16,7 @@ jobs:
 
       - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
         with:
-          # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ github.token }}
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         with:
