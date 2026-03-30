@@ -25,6 +25,7 @@ jobs:
             frontend:
               - "contract/**"
               - "frontend/**"
+              - ".github/workflows/frontend*"
 
   build-and-test:
     needs: changes
