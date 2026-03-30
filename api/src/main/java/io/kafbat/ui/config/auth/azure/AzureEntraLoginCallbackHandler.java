@@ -51,7 +51,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     String customScope = getJaasOption(jaasConfigEntries, JAAS_OPTION_SCOPE);
 
     String tokenAudience;
-    if (customScope != null && !customScope.isEmpty()) {
+    if (customScope != null) {
       log.info("Using custom OAuth scope from JAAS config: {}", customScope);
       tokenAudience = customScope;
     } else {
@@ -71,7 +71,10 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     for (AppConfigurationEntry entry : jaasConfigEntries) {
       Object value = entry.getOptions().get(key);
       if (value instanceof String s) {
-        return s;
+        String trimmed = s.trim();
+        if (!trimmed.isEmpty()) {
+          return trimmed;
+        }
       }
     }
     return null;

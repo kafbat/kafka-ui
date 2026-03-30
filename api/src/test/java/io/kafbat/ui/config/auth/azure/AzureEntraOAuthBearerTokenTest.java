@@ -37,10 +37,7 @@ class AzureEntraOAuthBearerTokenTest {
           + "-FB_lzC3D4mkJMxKWopQGXnQtizaZjyclGpiUFs3mEauxC7RpsbanitxPFs7FK3mY0MQJk9JNVi1oM-8qfEp8nYT2DwFBhLcIp2z"
           + "Q";
 
-  // Client credentials (app-only) token — no scp or upn claims, has appid and sub
-  // Payload: {"aud":"https://sample.servicebus.windows.net","iss":"https://sts.windows.net/sample/",
-  //   "iat":1698415912,"nbf":1698415913,"exp":1698415914,"appid":"sample-app-id",
-  //   "sub":"Sample Subject","tid":"sample-tid"}
+  // Client credentials (app-only) token — has appid and sub claims, but no scp or upn
   private static final String CLIENT_CREDENTIALS_TOKEN =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
           + ".eyJhdWQiOiJodHRwczovL3NhbXBsZS5zZXJ2aWNlYnVzLndpbmRvd3MubmV0IiwiaXNzIjoiaHR0cHM6Ly9z"
@@ -49,15 +46,21 @@ class AzureEntraOAuthBearerTokenTest {
           + "Ijoic2FtcGxlLXRpZCJ9"
           + ".QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODk";
 
-  // Minimal token — only has required JWT claims (iat, nbf, exp, sub), no scp/upn/appid
-  // Payload: {"aud":"https://sample.servicebus.windows.net","iss":"https://sts.windows.net/sample/",
-  //   "iat":1698415912,"nbf":1698415913,"exp":1698415914,"sub":"Sample Subject"}
+  // Minimal token — only has standard iat/nbf/exp/sub claims, no scp/upn/appid
   private static final String MINIMAL_TOKEN =
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
           + ".eyJhdWQiOiJodHRwczovL3NhbXBsZS5zZXJ2aWNlYnVzLndpbmRvd3MubmV0IiwiaXNzIjoiaHR0cHM6Ly9z"
           + "dHMud2luZG93cy5uZXQvc2FtcGxlLyIsImlhdCI6MTY5ODQxNTkxMiwibmJmIjoxNjk4NDE1OTEzLCJleHAi"
           + "OjE2OTg0MTU5MTQsInN1YiI6IlNhbXBsZSBTdWJqZWN0In0"
           + ".QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODk";
+
+  // Token with no principal claims at all — no upn, appid, or sub
+  private static final String NO_PRINCIPAL_TOKEN =
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+          + ".eyJhdWQiOiJodHRwczovL3NhbXBsZS5zZXJ2aWNlYnVzLndpbmRvd3MubmV0IiwiaXNzIjoiaHR0cHM6Ly9z"
+          + "dHMud2luZG93cy5uZXQvc2FtcGxlLyIsImlhdCI6MTY5ODQxNTkxMiwibmJmIjoxNjk4NDE1OTEzLCJleHAi"
+          + "OjE2OTg0MTU5MTR9"
+          + ".QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVoxMjM0NTY3ODkw";
 
   @Test
   void constructorShouldParseToken() {
@@ -102,6 +105,16 @@ class AzureEntraOAuthBearerTokenTest {
 
     // No upn or appid — should fall back to sub
     assertThat(token.principalName(), is("Sample Subject"));
+  }
+
+  @Test
+  void shouldThrowWhenNoPrincipalClaimsExist() {
+    final AccessToken accessToken = new AccessToken(NO_PRINCIPAL_TOKEN, OffsetDateTime.MIN);
+
+    final AzureEntraOAuthBearerToken token = new AzureEntraOAuthBearerToken(accessToken);
+
+    // No upn, appid, or sub — should throw SaslAuthenticationException
+    assertThrows(SaslAuthenticationException.class, token::principalName);
   }
 
   @Test

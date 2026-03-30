@@ -221,8 +221,7 @@ class AzureEntraLoginCallbackHandlerTest {
   void shouldNotRequireBootstrapServersWhenCustomScopeProvided() throws UnsupportedCallbackException {
     // When a custom scope is set, bootstrap.servers validation should be skipped
     // since we don't need to derive the scope from the server URL
-    Map<String, Object> configs = Map.of("bootstrap.servers",
-        List.of("pkc-xxxxx.westeurope.azure.confluent.cloud:9092"));
+    Map<String, Object> configs = Map.of();
 
     String customScope = "api://some-app-id/.default";
     AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
