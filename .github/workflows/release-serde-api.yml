@@ -33,6 +33,18 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
+      - name: Validate version
+        run: |
+          VERSION="${{ inputs.version }}"
+          if echo "$VERSION" | grep -qi 'SNAPSHOT'; then
+            echo "::error::Version must not contain SNAPSHOT: $VERSION"
+            exit 1
+          fi
+          if ! echo "$VERSION" | grep -Pq '^\d+\.\d+\.\d+$'; then
+            echo "::error::Version must be valid semver (e.g. 1.0.0): $VERSION"
+            exit 1
+          fi
+
       - name: Publish to Maven Central
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
