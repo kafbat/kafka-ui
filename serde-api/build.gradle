@@ -34,18 +34,6 @@ if (release) {
 }
 
 publishing {
-    if (release) {
-        repositories {
-            maven {
-                url "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2"
-                credentials {
-                    username System.getenv("NEXUS_USERNAME")
-                    password System.getenv("NEXUS_PASSWORD")
-                }
-            }
-        }
-    }
-
     publications {
         maven(MavenPublication) {
             groupId = 'io.kafbat.ui'
