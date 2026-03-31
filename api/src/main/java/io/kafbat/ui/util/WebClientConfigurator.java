@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -33,9 +34,10 @@ public class WebClientConfigurator {
   private HttpClient httpClient = HttpClient
       .create()
       .proxyWithSystemProperties();
+  private ObjectMapper objectMapper = defaultOM();
 
   public WebClientConfigurator() {
-    configureObjectMapper(defaultOM());
+    configureObjectMapper(objectMapper);
   }
 
   private static ObjectMapper defaultOM() {
@@ -131,12 +133,27 @@ public class WebClientConfigurator {
   }
 
   public void configureObjectMapper(ObjectMapper mapper) {
+    this.objectMapper = mapper;
     builder.codecs(codecs -> {
       codecs.defaultCodecs()
           .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
       codecs.defaultCodecs()
           .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, MediaType.APPLICATION_JSON));
     });
+  }
+
+  public WebClientConfigurator configureAdditionalDecoderMediaTypes(MediaType... additionalMediaTypes) {
+    builder.codecs(codecs -> {
+      codecs.defaultCodecs()
+          .jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper, MediaType.APPLICATION_JSON));
+      MediaType[] allMediaTypes = Stream.concat(
+          Stream.of(MediaType.APPLICATION_JSON),
+          Stream.of(additionalMediaTypes)
+      ).toArray(MediaType[]::new);
+      codecs.defaultCodecs()
+          .jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper, allMediaTypes));
+    });
+    return this;
   }
 
   public WebClientConfigurator configureCodecs(Consumer<ClientCodecConfigurer> configurer) {

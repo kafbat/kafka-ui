@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import Search from 'components/common/Search/Search';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import {
@@ -13,10 +13,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import Table, { LinkCell, TagCell } from 'components/common/NewTable';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CONSUMER_GROUP_STATE_TOOLTIPS, PER_PAGE } from 'lib/constants';
-import {
-  useConsumerGroups,
-  useGetConsumerGroupsLag,
-} from 'lib/hooks/api/consumers';
+import { useConsumerGroups } from 'lib/hooks/api/consumers';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
@@ -24,11 +21,12 @@ import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
 import { consumerGroupsApiClient } from 'lib/api';
-import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
-import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
-
-import { LagContainer } from './styled';
+import useQueryPersister from 'components/common/NewTable/ColumnFilter/lib/persisters/queryPersister';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
+import { LagTrendComponent } from 'lib/consumerGroups';
+import { useConsumerGroupsLagTrends } from 'components/ConsumerGroups/lib/useConsumerGroupsLagTrends';
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
@@ -50,36 +48,16 @@ const List = () => {
     ...params,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
+    state: searchParams
+      .get(ConsumerGroupOrdering.STATE)
+      ?.split(',') as ConsumerGroupState[],
   });
 
-  const [pollingIntervalSec] = useLocalStorage(
-    'consumer-groups-refresh-rate',
-    0
-  );
-
-  const prevLagRef = useRef<Record<string, number | undefined>>({});
-  const [lagTrends, setLagTrends] = React.useState<Record<string, LagTrend>>(
-    {}
-  );
-
-  const { data: consumerGroupsLag, isSuccess } = useGetConsumerGroupsLag({
+  const { consumerGroupsLag, lagTrends } = useConsumerGroupsLagTrends({
     clusterName,
     ids: consumerGroups.data?.consumerGroups?.map((cg) => cg.groupId) || [],
-    pollingIntervalSec,
+    storageKey: 'consumer-groups-refresh-rate',
   });
-
-  useEffect(() => {
-    if (isSuccess && !!consumerGroupsLag) {
-      const nextTrends = computeLagTrends(
-        prevLagRef.current,
-        consumerGroupsLag.consumerGroups ?? {},
-        (cg) => cg?.lag,
-        pollingIntervalSec > 0
-      );
-
-      setLagTrends(nextTrends);
-    }
-  }, [consumerGroupsLag, isSuccess]);
 
   const columns: ColumnDef<ConsumerGroup>[] = [
     {
@@ -119,24 +97,9 @@ const List = () => {
       cell: ({ row }) => {
         const { groupId } = row.original;
         const lag = consumerGroupsLag?.consumerGroups?.[groupId]?.lag;
-        const trend = lagTrends[groupId];
+        const trend = lagTrends.groupLagTrends[groupId];
 
-        if (lag == null) return 'N/A';
-
-        let trendElement = null;
-
-        if (trend === 'up') {
-          trendElement = '▲';
-        } else if (trend === 'down') {
-          trendElement = '▼';
-        }
-
-        return (
-          <LagContainer $lagTrend={trend}>
-            <span>{lag}</span>
-            {trendElement && <span>{trendElement}</span>}
-          </LagContainer>
-        );
+        return <LagTrendComponent lag={lag} trend={trend} />;
       },
       size: 124,
     },
@@ -165,13 +128,20 @@ const List = () => {
         );
       },
       size: 124,
+      filterFn: 'noop',
       meta: {
+        filterKey: ConsumerGroupOrdering.STATE,
+        filterVariant: 'multi-select',
+        filterValues: Object.keys(ConsumerGroupState).filter(
+          (v) => v !== ConsumerGroupState.UNKNOWN
+        ),
         csvFn: (row) => String(row.state),
       },
     },
   ];
 
   const columnSizingPersister = useLocalStoragePersister('Consumers');
+  const filterPersister = useQueryPersister(columns);
 
   const fetchCsv = async () => {
     return consumerGroupsApiClient.getConsumerGroupsCsv(params);
@@ -191,29 +161,38 @@ const List = () => {
           placeholder="Search by Consumer Group ID"
           extraActions={<Fts resourceName="consumer_groups" />}
         />
-
         <RefreshRateSelect storageKey="consumer-groups-refresh-rate" />
       </ControlPanelWrapper>
-      <Table
-        columns={columns}
-        pageCount={consumerGroups.data?.pageCount || 0}
-        data={consumerGroups.data?.consumerGroups || []}
-        emptyMessage={
-          consumerGroups.isSuccess
-            ? 'No active consumer groups found'
-            : 'Loading...'
-        }
-        serverSideProcessing
-        enableSorting
-        onRowClick={({ original }) =>
-          navigate(
-            clusterConsumerGroupDetailsPath(clusterName, original.groupId)
-          )
-        }
-        enableColumnResizing
-        columnSizingPersister={columnSizingPersister}
-        disabled={consumerGroups.isFetching}
-      />
+      {(consumerGroups.isLoading || consumerGroups.isRefetching) && (
+        <PageLoader offsetY={300} />
+      )}
+      {consumerGroups.error && (
+        <ErrorPage
+          offsetY={300}
+          status={consumerGroups.error.status}
+          onClick={consumerGroups.refetch}
+          text={consumerGroups.error.message}
+        />
+      )}
+      {consumerGroups.isSuccess && (
+        <Table
+          columns={columns}
+          pageCount={consumerGroups.data?.pageCount || 0}
+          filterPersister={filterPersister}
+          data={consumerGroups.data?.consumerGroups || []}
+          emptyMessage="No active consumer groups found"
+          serverSideProcessing
+          enableSorting
+          onRowClick={({ original }) =>
+            navigate(
+              clusterConsumerGroupDetailsPath(clusterName, original.groupId)
+            )
+          }
+          enableColumnResizing
+          columnSizingPersister={columnSizingPersister}
+          disabled={consumerGroups.isFetching}
+        />
+      )}
     </>
   );
 };

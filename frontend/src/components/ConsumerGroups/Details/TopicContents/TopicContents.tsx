@@ -1,11 +1,12 @@
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { ConsumerGroupTopicPartition, SortOrder } from 'generated-sources';
+import {
+  ConsumerGroupTopicLag,
+  ConsumerGroupTopicPartition,
+  SortOrder,
+} from 'generated-sources';
 import React from 'react';
-
-interface Props {
-  consumers: ConsumerGroupTopicPartition[];
-}
+import { LagTrend, LagTrendComponent } from 'lib/consumerGroups';
 
 type OrderByKey = keyof ConsumerGroupTopicPartition;
 interface Headers {
@@ -87,7 +88,17 @@ const consumerIdComparator: ComparatorFunction<ConsumerGroupTopicPartition> = (
   return 0;
 };
 
-const TopicContents: React.FC<Props> = ({ consumers }) => {
+interface Props {
+  topicPartitions: ConsumerGroupTopicPartition[];
+  partitionLags: ConsumerGroupTopicLag | undefined;
+  partitionTrends: Record<string, LagTrend>;
+}
+
+const TopicContents: React.FC<Props> = ({
+  topicPartitions,
+  partitionTrends,
+  partitionLags,
+}) => {
   const [orderBy, setOrderBy] = React.useState<OrderByKey>('partition');
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(SortOrder.DESC);
 
@@ -121,10 +132,12 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
         comparator = consumerIdComparator;
       }
 
-      return consumers.sort((a, b) => comparator(a, b, sortOrder, orderBy));
+      return topicPartitions.sort((a, b) =>
+        comparator(a, b, sortOrder, orderBy)
+      );
     }
-    return consumers;
-  }, [orderBy, sortOrder, consumers]);
+    return topicPartitions;
+  }, [orderBy, sortOrder, topicPartitions]);
 
   return (
     <Table isFullwidth>
@@ -143,14 +156,21 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
         </tr>
       </thead>
       <tbody>
-        {sortedConsumers.map((consumer) => (
-          <tr key={consumer.partition}>
-            <td>{consumer.partition}</td>
-            <td className="break-spaces">{consumer.consumerId}</td>
-            <td>{consumer.host}</td>
-            <td>{consumer.consumerLag}</td>
-            <td>{consumer.currentOffset}</td>
-            <td>{consumer.endOffset}</td>
+        {sortedConsumers.map((topicPartition) => (
+          <tr key={topicPartition.partition}>
+            <td>{topicPartition.partition}</td>
+            <td className="break-spaces">{topicPartition.consumerId}</td>
+            <td>{topicPartition.host}</td>
+            <td>
+              <LagTrendComponent
+                lag={
+                  partitionLags?.partitions?.[String(topicPartition.partition)]
+                }
+                trend={partitionTrends[topicPartition.partition]}
+              />
+            </td>
+            <td>{topicPartition.currentOffset}</td>
+            <td>{topicPartition.endOffset}</td>
           </tr>
         ))}
       </tbody>

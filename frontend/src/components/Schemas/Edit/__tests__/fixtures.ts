@@ -26,4 +26,14 @@ export const schemaVersionWithNonAsciiChars: SchemaSubject = {
   schemaType: SchemaType.JSON,
 };
 
+export const schemaVersionWithTopic: SchemaSubject = {
+  subject: 'test/test',
+  version: '1',
+  id: 29,
+  schema: '13',
+  compatibilityLevel: 'FORWARD_TRANSITIVE',
+  schemaType: SchemaType.JSON,
+  topic: 'avrotest',
+};
+
 export { schemaVersion1 as schemaVersion };
