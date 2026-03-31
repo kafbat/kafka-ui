@@ -53,6 +53,6 @@ jobs:
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           ./gradlew publishToSonatype \
-          closeAndReleaseSonatypeStagingRepositories \
+          closeAndReleaseSonatypeStagingRepository \
           -Prelease=true \
           -Pversion=${{ inputs.version }}
