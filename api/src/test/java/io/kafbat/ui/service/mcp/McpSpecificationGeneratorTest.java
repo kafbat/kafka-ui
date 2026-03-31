@@ -8,12 +8,15 @@ import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
+import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
+import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -35,12 +38,13 @@ class McpSpecificationGeneratorTest {
   @Test
   void testConvertController() {
     TopicsController topicsController = new TopicsController(
-        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class)
+        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
+        mock(ClustersProperties.class), mock(KafkaConnectService.class), mock(AclsService.class)
     );
     List<AsyncToolSpecification> specifications =
         MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
 
-    assertThat(specifications).hasSize(14);
+    assertThat(specifications).hasSize(17);
     List<McpSchema.Tool> tools = List.of(
         new McpSchema.Tool(
             "recreateTopic",
@@ -77,7 +81,8 @@ class McpSpecificationGeneratorTest {
                 "showInternal", Map.of("type", "boolean"),
                 "search", Map.of("type", "string"),
                 "orderBy", SCHEMA_GENERATOR.generateSchema(TopicColumnsToSortDTO.class),
-                "sortOrder", SCHEMA_GENERATOR.generateSchema(SortOrderDTO.class)
+                "sortOrder", SCHEMA_GENERATOR.generateSchema(SortOrderDTO.class),
+                "fts", Map.of("type", "boolean")
             ), List.of("clusterName"), false, null, null)
         ),
         new McpSchema.Tool(

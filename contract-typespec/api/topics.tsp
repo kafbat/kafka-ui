@@ -1,5 +1,7 @@
 import "@typespec/openapi";
 import "./responses.tsp";
+import "./models.tsp";
+import "./acls.tsp";
 
 namespace Api;
 
@@ -20,7 +22,21 @@ interface TopicsApi {
     @query search?: string,
     @query orderBy?: TopicColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): TopicsResponse;
+
+  @get
+  @operationId("getTopicsCsv")
+  @summary("getTopics")
+  @route("csv")
+  getTopicsCsv(
+    @path clusterName: string,
+    @query showInternal?: boolean,
+    @query search?: string,
+    @query orderBy?: TopicColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
 
   @post
   @operationId("createTopic")
@@ -142,6 +158,24 @@ interface TopicsApi {
     @path topicName: string,
     @body partitionsIncrease: PartitionsIncrease,
   ): PartitionsIncreaseResponse | ApiNotFoundResponse;
+
+  @get
+  @route("/{topicName}/connectors")
+  @operationId("getTopicConnectors")
+  @summary("getTopicConnectors")
+  connectors(
+    @path clusterName: string,
+    @path topicName: string
+  ) : FullConnectorInfo[];
+
+  @get
+  @route("/{topicName}/acls")
+  @summary("listTopicAcls")
+  @operationId("listTopicAcls")
+  listTopicAcls(
+    @path clusterName: string,
+    @path topicName: string,
+  ): KafkaAcl[];
 }
 
 model TopicsResponse {
@@ -155,6 +189,7 @@ enum TopicColumnsToSort {
   TOTAL_PARTITIONS,
   REPLICATION_FACTOR,
   SIZE,
+  MESSAGES_COUNT
 }
 
 model Topic {
@@ -169,6 +204,7 @@ model Topic {
   bytesInPerSec?: float64;
   bytesOutPerSec?: float64;
   underReplicatedPartitions?: int32;
+  messagesCount?: int64 | null;
   cleanUpPolicy?: CleanUpPolicy;
   partitions?: Partition[];
 }

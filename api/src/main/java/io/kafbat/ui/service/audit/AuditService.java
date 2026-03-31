@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
+import reactor.util.retry.Retry;
 
 
 @Slf4j
@@ -38,9 +40,11 @@ import reactor.core.publisher.Signal;
 public class AuditService implements Closeable {
 
   private static final AuthenticatedUser UNKNOWN_USER = new AuthenticatedUser("Unknown", Set.of());
-  private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(5);
+  private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(35);
+  private static final Duration TOPIC_BLOCK_TIMEOUT = Duration.ofSeconds(5);
+  private static final Duration REACTIVE_TIMEOUT = Duration.ofSeconds(5);
 
-  private static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
+  public static final String DEFAULT_AUDIT_TOPIC_NAME = "__kui-audit-log";
   private static final int DEFAULT_AUDIT_TOPIC_PARTITIONS = 1;
   private static final Map<String, String> DEFAULT_AUDIT_TOPIC_CONFIG = Map.of(
       "retention.ms", String.valueOf(TimeUnit.DAYS.toMillis(90)),
@@ -58,7 +62,12 @@ public class AuditService implements Closeable {
   public AuditService(AdminClientService adminClientService, ClustersStorage clustersStorage) {
     Map<String, AuditWriter> auditWriters = new HashMap<>();
     for (var cluster : clustersStorage.getKafkaClusters()) {
-      Supplier<ReactiveAdminClient> adminClientSupplier = () -> adminClientService.get(cluster).block(BLOCK_TIMEOUT);
+      Supplier<ReactiveAdminClient> adminClientSupplier = () -> adminClientService.get(cluster)
+          .timeout(REACTIVE_TIMEOUT)
+          .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
+              .maxBackoff(Duration.ofSeconds(10))
+          )
+          .block(BLOCK_TIMEOUT);
       createAuditWriter(cluster, adminClientSupplier,
           () -> MessagesService.createProducer(cluster, AUDIT_PRODUCER_CONFIG))
           .ifPresent(writer -> auditWriters.put(cluster.getName(), writer));
@@ -121,27 +130,34 @@ public class AuditService implements Closeable {
   /**
    * return true if topic created/existing and producing can be enabled.
    */
-  private static boolean createTopicIfNeeded(KafkaCluster cluster,
-                                             Supplier<ReactiveAdminClient> acSupplier,
-                                             String auditTopicName,
-                                             ClustersProperties.AuditProperties auditProps) {
+  @VisibleForTesting
+  static boolean createTopicIfNeeded(KafkaCluster cluster,
+                                     Supplier<ReactiveAdminClient> acSupplier,
+                                     String auditTopicName,
+                                     ClustersProperties.AuditProperties auditProps) {
+    boolean requireAuditTopic = Optional.ofNullable(auditProps.getRequireAuditTopic()).orElse(false);
+
     ReactiveAdminClient ac;
     try {
       ac = acSupplier.get();
     } catch (Exception e) {
-      printAuditInitError(cluster, "Error while connecting to the cluster", e);
-      return false;
+      return handleTopicInitException(requireAuditTopic,
+          "Error while connecting to the cluster to create the audit topic '%s'".formatted(auditTopicName), e,
+          cluster.getName());
     }
-    boolean topicExists;
+
     try {
-      topicExists = ac.listTopics(true).block(BLOCK_TIMEOUT).contains(auditTopicName);
+      boolean topicExists = Objects.requireNonNull(ac.listTopics(true).block(TOPIC_BLOCK_TIMEOUT))
+          .contains(auditTopicName);
+
+      if (topicExists) {
+        return true;
+      }
     } catch (Exception e) {
-      printAuditInitError(cluster, "Error checking audit topic existence", e);
-      return false;
+      return handleTopicInitException(requireAuditTopic,
+          "Error while checking the existence of the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
-    if (topicExists) {
-      return true;
-    }
+
     try {
       int topicPartitions =
           Optional.ofNullable(auditProps.getAuditTopicsPartitions())
@@ -152,23 +168,31 @@ public class AuditService implements Closeable {
           .ifPresent(topicConfig::putAll);
 
       log.info("Creating audit topic '{}' for cluster '{}'", auditTopicName, cluster.getName());
-      ac.createTopic(auditTopicName, topicPartitions, null, topicConfig).block(BLOCK_TIMEOUT);
+      ac.createTopic(auditTopicName, topicPartitions, null, topicConfig).block(TOPIC_BLOCK_TIMEOUT);
       log.info("Audit topic created for cluster '{}'", cluster.getName());
       return true;
     } catch (Exception e) {
-      printAuditInitError(cluster, "Error creating topic '%s'".formatted(auditTopicName), e);
-      return false;
+      return handleTopicInitException(requireAuditTopic,
+          "Error creating the audit topic '%s'".formatted(auditTopicName), e, cluster.getName());
     }
   }
 
-  private static void printAuditInitError(KafkaCluster cluster, String errorMsg, Exception cause) {
+  private static boolean handleTopicInitException(
+      boolean requireAuditTopic,
+      String errorMsg,
+      Exception cause,
+      String cluster
+  ) {
+    if (requireAuditTopic) {
+      throw new RuntimeException(errorMsg, cause);
+    }
+
     log.error("-----------------------------------------------------------------");
-    log.error(
-        "Error initializing Audit for cluster '{}'. Audit will be disabled. See error below: ",
-        cluster.getName()
-    );
+    log.error("Error initializing Audit for cluster '{}'. Audit will be disabled. See error below: ", cluster);
     log.error("{}", errorMsg, cause);
     log.error("-----------------------------------------------------------------");
+
+    return false;
   }
 
   private Mono<AuthenticatedUser> extractUser(Signal<?> sig) {

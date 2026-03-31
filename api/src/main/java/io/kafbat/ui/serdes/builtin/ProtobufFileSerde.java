@@ -69,10 +69,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class ProtobufFileSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "ProtobufFile";
-  }
+  public static final String NAME = "ProtobufFile";
 
   private static final ProtobufSchemaConverter SCHEMA_CONVERTER = new ProtobufSchemaConverter();
 
@@ -112,18 +109,13 @@ public class ProtobufFileSerde implements BuiltInSerde {
         && configuration.defaultKeyMessageDescriptor() == null
         && configuration.messageDescriptorMap().isEmpty()
         && configuration.keyMessageDescriptorMap().isEmpty()) {
-      throw new ValidationException("Neither default, nor per-topic descriptors defined for " + name() + " serde");
+      throw new ValidationException("Neither default, nor per-topic descriptors defined for " + NAME + " serde");
     }
     this.defaultMessageDescriptor = configuration.defaultMessageDescriptor();
     this.defaultKeyMessageDescriptor = configuration.defaultKeyMessageDescriptor();
     this.descriptorPaths = configuration.descriptorPaths();
     this.messageDescriptorMap = configuration.messageDescriptorMap();
     this.keyMessageDescriptorMap = configuration.keyMessageDescriptorMap();
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
   }
 
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {

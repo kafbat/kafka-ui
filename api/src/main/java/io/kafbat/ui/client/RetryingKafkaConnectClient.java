@@ -7,11 +7,13 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.Connector;
+import io.kafbat.ui.connect.model.ConnectorExpand;
 import io.kafbat.ui.connect.model.ConnectorPlugin;
 import io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.ConnectorTopics;
+import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.exception.KafkaConnectConflictResponseException;
@@ -221,13 +223,17 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
-  public Mono<List<String>> getConnectors(String search) throws WebClientResponseException {
-    return withRetryOnConflictOrRebalance(super.getConnectors(search));
+  public Mono<Map<String, ExpandedConnector>> getConnectors(
+      String search, List<ConnectorExpand> expand
+  ) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.getConnectors(search, expand));
   }
 
   @Override
-  public Mono<ResponseEntity<List<String>>> getConnectorsWithHttpInfo(String search) throws WebClientResponseException {
-    return withRetryOnConflictOrRebalance(super.getConnectorsWithHttpInfo(search));
+  public Mono<ResponseEntity<Map<String, ExpandedConnector>>> getConnectorsWithHttpInfo(
+      String search, List<ConnectorExpand> expand
+  ) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.getConnectorsWithHttpInfo(search, expand));
   }
 
   @Override

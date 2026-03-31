@@ -11,6 +11,7 @@ const toggleClusterMenuMock = jest.fn();
 describe('MenuTab component', () => {
   const setupWrapper = (props?: Partial<MenuTabProps>) => (
     <MenuTab
+      onClusterNameClick={() => {}}
       setColorKey={() => {}}
       status={ServerStatus.ONLINE}
       isOpen

@@ -18,12 +18,17 @@ const ClusterTableActionsCell: React.FC<Props> = ({ row }) => {
     );
   }, [data]);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <ActionCanButton
       buttonType="secondary"
       buttonSize="S"
       to={clusterConfigPath(name)}
       canDoAction={hasPermissions}
+      onClick={handleClick}
     >
       Configure
     </ActionCanButton>

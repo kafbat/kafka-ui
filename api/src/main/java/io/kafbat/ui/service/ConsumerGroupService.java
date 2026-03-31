@@ -1,31 +1,42 @@
 package io.kafbat.ui.service;
 
-import static org.apache.commons.lang3.Strings.CI;
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateLag;
 
 import com.google.common.collect.Streams;
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.emitter.EnhancedConsumer;
+import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
+import io.kafbat.ui.model.ConsumerGroupTopicLagDTO;
 import io.kafbat.ui.model.InternalConsumerGroup;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
+import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.SortOrderDTO;
+import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.service.index.ConsumerGroupFilter;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.ApplicationMetrics;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.OffsetSpec;
@@ -34,6 +45,8 @@ import org.apache.kafka.common.ConsumerGroupState;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +54,8 @@ public class ConsumerGroupService {
 
   private final AdminClientService adminClientService;
   private final AccessControlService accessControlService;
+  private final ClustersProperties clustersProperties;
+  private final StatisticsCache statisticsCache;
 
   private Mono<List<InternalConsumerGroup>> getConsumerGroups(
       ReactiveAdminClient ac,
@@ -64,30 +79,117 @@ public class ConsumerGroupService {
         });
   }
 
+  public Mono<ConsumerGroupsPage> getConsumerGroups(
+      KafkaCluster cluster,
+      OptionalInt pageNum,
+      OptionalInt perPage,
+      @Nullable String search,
+      Boolean fts,
+      ConsumerGroupOrderingDTO orderBy,
+      SortOrderDTO sortOrderDto,
+      List<ConsumerGroupStateDTO> states) {
+    return adminClientService.get(cluster).flatMap(ac ->
+        ac.listConsumerGroups()
+            .map(listing -> filterGroups(listing, search, fts))
+            .map(listing -> filterByState(listing, states))
+            .flatMapIterable(lst -> lst)
+            .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
+            .collectList()
+            .flatMap(allGroups ->
+                loadSortedDescriptions(ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
+                    .flatMap(descriptions -> getConsumerGroups(ac, descriptions)
+                        .map(page ->
+                            ConsumerGroupsPage.from(page, allGroups.size(), pageNum, perPage)
+                        )
+                    )
+            )
+    );
+  }
+
+  private Collection<ConsumerGroupListing> filterByState(Collection<ConsumerGroupListing> groups,
+                                                         List<ConsumerGroupStateDTO> states) {
+    if (states.isEmpty()) {
+      return groups;
+    }
+    Set<ConsumerGroupState> kafkaStates = states.stream()
+        .map(this::mapToKafkaState)
+        .collect(Collectors.toSet());
+    return groups.stream()
+        .filter(cg -> kafkaStates.contains(cg.state().orElse(ConsumerGroupState.UNKNOWN)))
+        .toList();
+  }
+
+  private ConsumerGroupState mapToKafkaState(ConsumerGroupStateDTO stateDto) {
+    return switch (stateDto) {
+      case UNKNOWN -> ConsumerGroupState.UNKNOWN;
+      case PREPARING_REBALANCE -> ConsumerGroupState.PREPARING_REBALANCE;
+      case COMPLETING_REBALANCE -> ConsumerGroupState.COMPLETING_REBALANCE;
+      case STABLE -> ConsumerGroupState.STABLE;
+      case DEAD -> ConsumerGroupState.DEAD;
+      case EMPTY -> ConsumerGroupState.EMPTY;
+    };
+  }
+
   public Mono<List<InternalTopicConsumerGroup>> getConsumerGroupsForTopic(KafkaCluster cluster,
                                                                           String topic) {
     return adminClientService.get(cluster)
-        // 1. getting topic's end offsets
         .flatMap(ac -> ac.listTopicOffsets(topic, OffsetSpec.latest(), false)
-            .flatMap(endOffsets -> {
-              var tps = new ArrayList<>(endOffsets.keySet());
-              // 2. getting all consumer groups
-              return describeConsumerGroups(ac)
-                  .flatMap((List<ConsumerGroupDescription> groups) -> {
-                        // 3. trying to find committed offsets for topic
-                        var groupNames = groups.stream().map(ConsumerGroupDescription::groupId).toList();
-                        return ac.listConsumerGroupOffsets(groupNames, tps).map(offsets ->
-                            groups.stream()
-                                // 4. keeping only groups that relates to topic
-                                .filter(g -> isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId())))
-                                .map(g ->
-                                    // 5. constructing results
-                                    InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets))
-                                .toList()
-                        );
-                      }
-                  );
-            }));
+            .flatMap(endOffsets ->
+                describeConsumerGroups(cluster, ac, true).flatMap(groups ->
+                    filterConsumerGroups(cluster, ac, groups, topic, endOffsets)
+                )
+            )
+        );
+  }
+
+  private Mono<List<InternalTopicConsumerGroup>> filterConsumerGroups(
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      List<ConsumerGroupDescription> groups,
+      String topic,
+      Map<TopicPartition, Long> endOffsets) {
+
+    Set<ConsumerGroupState> inactiveStates = Set.of(
+        ConsumerGroupState.DEAD,
+        ConsumerGroupState.EMPTY
+    );
+
+    Map<Boolean, List<ConsumerGroupDescription>> partitioned = groups.stream().collect(
+        Collectors.partitioningBy((g) -> !inactiveStates.contains(g.state()))
+    );
+
+    List<ConsumerGroupDescription> stable = partitioned.get(true).stream()
+        .filter(g -> isConsumerGroupRelatesToTopic(topic, g, false))
+        .toList();
+
+    List<ConsumerGroupDescription> dead = partitioned.get(false);
+    if (!dead.isEmpty()) {
+      Statistics statistics = statisticsCache.get(cluster);
+      if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+        dead = dead.stream().filter(g ->
+                Optional.ofNullable(consumerGroupsStates.get(g.groupId()))
+                    .map(s ->
+                            s.committedOffsets().keySet().stream().anyMatch(tp -> tp.topic().equals(topic))
+                    ).orElse(false)
+        ).toList();
+      }
+    }
+
+    List<ConsumerGroupDescription> filtered =  new ArrayList<>(stable.size() + dead.size());
+    filtered.addAll(stable);
+    filtered.addAll(dead);
+
+    List<TopicPartition> partitions = new ArrayList<>(endOffsets.keySet());
+
+    List<String> groupIds = filtered.stream().map(ConsumerGroupDescription::groupId).toList();
+    return ac.listConsumerGroupOffsets(groupIds, partitions).map(offsets ->
+        filtered.stream().filter(g ->
+            isConsumerGroupRelatesToTopic(topic, g, offsets.containsRow(g.groupId()))
+        ).map(g ->
+            InternalTopicConsumerGroup.create(topic, g, offsets.row(g.groupId()), endOffsets)
+        ).toList());
   }
 
   private boolean isConsumerGroupRelatesToTopic(String topic,
@@ -99,42 +201,139 @@ public class ConsumerGroupService {
     return hasActiveMembersForTopic || hasCommittedOffsets;
   }
 
+  public Mono<Tuple2<Map<String, ConsumerGroupLagDTO>, Optional<Long>>> getConsumerGroupsLag(
+      KafkaCluster cluster, Collection<String> groupNames, boolean includePartitions, Optional<Long> lastUpdate) {
+    Statistics statistics = statisticsCache.get(cluster);
+
+    Map<TopicPartition, Long> endOffsets = statistics.getClusterState().getTopicStates().entrySet().stream()
+        .flatMap(e -> e.getValue().endOffsets().entrySet().stream().map(p ->
+            Map.entry(new TopicPartition(e.getKey(), p.getKey()), p.getValue()))
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    if (statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      boolean select = lastUpdate
+          .map(t -> statistics.getClusterState().getScrapeFinishedAt().isAfter(Instant.ofEpochMilli(t)))
+          .orElse(true);
+
+      if (select) {
+        Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+            statistics.getClusterState().getConsumerGroupsStates();
+
+        return Mono.just(
+            Tuples.of(
+                groupNames.stream()
+                    .map(g -> Optional.ofNullable(consumerGroupsStates.get(g)))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(g -> Map.entry(g.group(), buildConsumerGroup(g, endOffsets, includePartitions)))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                Optional.of(statistics.getClusterState().getScrapeFinishedAt().toEpochMilli())
+            )
+        );
+      }
+
+    }
+
+    return Mono.just(Tuples.of(Map.of(), lastUpdate));
+  }
+
+  private ConsumerGroupLagDTO buildConsumerGroup(
+      ScrapedClusterState.ConsumerGroupState state,
+      Map<TopicPartition, Long> endOffsets,
+      boolean includePartitions
+  ) {
+    var commitedTopicPartitions = Stream.concat(
+        state.description().members().stream()
+            .flatMap(m ->
+                m.assignment().topicPartitions().stream()
+                    .map(t -> Map.entry(t, Optional.<Long>empty()))
+            ),
+        state.committedOffsets().entrySet().stream()
+            .map(o -> Map.entry(o.getKey(), Optional.ofNullable(o.getValue())))
+    ).collect(
+        Collectors.groupingBy(
+            Map.Entry::getKey,
+            Collectors.mapping(Map.Entry::getValue,
+                Collectors.<Optional<Long>>reducing(
+                    Optional.empty(),
+                    (a, b) -> Stream.of(a, b)
+                        .flatMap(Optional::stream)
+                        .max(Long::compare)
+                )
+            )
+        )
+    );
+
+    Map<TopicPartition, Long> topicPartitionsLags = commitedTopicPartitions.entrySet().stream()
+        .map(e ->
+            Map.entry(
+                e.getKey(),
+                calculateLag(e.getValue(), Optional.ofNullable(endOffsets.get(e.getKey()))).orElse(0L)
+            )
+        ).collect(
+            Collectors.groupingBy(
+                Map.Entry::getKey,
+                Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+            )
+        );
+
+    Map<String, Long> topicsLags = topicPartitionsLags.entrySet().stream().collect(
+            Collectors.groupingBy(
+              (e) -> e.getKey().topic(),
+              Collectors.reducing(0L, Map.Entry::getValue, Long::sum)
+            )
+        );
+
+    long lag = topicsLags.values().stream().mapToLong(v -> v).sum();
+
+    Map<String, ConsumerGroupTopicLagDTO> lagByTopicPartition = null;
+
+    if (includePartitions) {
+      lagByTopicPartition = topicPartitionsLags.entrySet()
+          .stream()
+          .collect(Collectors.groupingBy(
+              e -> e.getKey().topic(),   // group by topic name
+              Collectors.collectingAndThen(
+                  Collectors.toMap(
+                      e -> String.valueOf(e.getKey().partition()), // partition as String
+                      Map.Entry::getValue                          // lag
+                  ),
+                  ConsumerGroupTopicLagDTO::new
+              )
+          ));
+    }
+
+    return new ConsumerGroupLagDTO(lag, topicsLags, lagByTopicPartition);
+  }
+
   public record ConsumerGroupsPage(List<InternalConsumerGroup> consumerGroups, int totalPages) {
+    public static ConsumerGroupsPage from(List<InternalConsumerGroup> groups,
+                                          int totalSize,
+                                          OptionalInt pageNum,
+                                          OptionalInt perPage) {
+      return new ConsumerGroupsPage(groups,
+          (totalSize / perPage.orElse(totalSize)) + (totalSize % perPage.orElse(totalSize) == 0 ? 0 : 1)
+      );
+    }
   }
 
   private record GroupWithDescr(InternalConsumerGroup icg, ConsumerGroupDescription cgd) {
   }
 
-  public Mono<ConsumerGroupsPage> getConsumerGroupsPage(
-      KafkaCluster cluster,
-      int pageNum,
-      int perPage,
-      @Nullable String search,
-      ConsumerGroupOrderingDTO orderBy,
-      SortOrderDTO sortOrderDto) {
-    return adminClientService.get(cluster).flatMap(ac ->
-        ac.listConsumerGroups()
-            .map(listing -> search == null
-                ? listing
-                : listing.stream()
-                .filter(g -> CI.contains(g.groupId(), search))
-                .toList()
-            )
-            .flatMapIterable(lst -> lst)
-            .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
-            .collectList()
-            .flatMap(allGroups ->
-                loadSortedDescriptions(ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
-                    .flatMap(descriptions -> getConsumerGroups(ac, descriptions)
-                        .map(page -> new ConsumerGroupsPage(
-                            page,
-                            (allGroups.size() / perPage) + (allGroups.size() % perPage == 0 ? 0 : 1))))));
+
+
+  private Collection<ConsumerGroupListing> filterGroups(Collection<ConsumerGroupListing> groups, String search,
+                                                        Boolean useFts) {
+    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+    boolean fts = ftsProperties.use(useFts);
+    ConsumerGroupFilter filter = new ConsumerGroupFilter(groups, fts, ftsProperties.getConsumers());
+    return filter.find(search);
   }
 
   private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,
                                                                       List<ConsumerGroupListing> groups,
-                                                                      int pageNum,
-                                                                      int perPage,
+                                                                      OptionalInt pageNum,
+                                                                      OptionalInt perPage,
                                                                       ConsumerGroupOrderingDTO orderBy,
                                                                       SortOrderDTO sortOrderDto) {
     return switch (orderBy) {
@@ -185,8 +384,8 @@ public class ConsumerGroupService {
   private Mono<List<ConsumerGroupDescription>> loadDescriptionsByListings(ReactiveAdminClient ac,
                                                                           List<ConsumerGroupListing> listings,
                                                                           Comparator<ConsumerGroupListing> comparator,
-                                                                          int pageNum,
-                                                                          int perPage,
+                                                                          OptionalInt pageNum,
+                                                                          OptionalInt perPage,
                                                                           SortOrderDTO sortOrderDto) {
     List<String> sortedGroups = sortAndPaginate(listings, comparator, pageNum, perPage, sortOrderDto)
         .map(ConsumerGroupListing::groupId)
@@ -197,28 +396,74 @@ public class ConsumerGroupService {
 
   private <T> Stream<T> sortAndPaginate(Collection<T> collection,
                                         Comparator<T> comparator,
-                                        int pageNum,
-                                        int perPage,
+                                        OptionalInt pageNum,
+                                        OptionalInt perPage,
                                         SortOrderDTO sortOrderDto) {
-    return collection.stream()
-        .sorted(sortOrderDto == SortOrderDTO.ASC ? comparator : comparator.reversed())
-        .skip((long) (pageNum - 1) * perPage)
-        .limit(perPage);
+    Stream<T> sorted = collection.stream()
+        .sorted(sortOrderDto == SortOrderDTO.ASC ? comparator : comparator.reversed());
+
+    if (pageNum.isPresent() && perPage.isPresent()) {
+      return sorted
+          .skip((long) (pageNum.getAsInt() - 1) * perPage.getAsInt())
+          .limit(perPage.getAsInt());
+    } else {
+      return sorted;
+    }
   }
 
-  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(ReactiveAdminClient ac) {
+  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      boolean cache) {
     return ac.listConsumerGroupNames()
-        .flatMap(ac::describeConsumerGroups)
-        .map(cgs -> new ArrayList<>(cgs.values()));
+        .flatMap(names -> describeConsumerGroups(names, cluster, ac, cache));
   }
+
+  private Mono<List<ConsumerGroupDescription>> describeConsumerGroups(
+      List<String> groupNames,
+      KafkaCluster cluster,
+      ReactiveAdminClient ac,
+      boolean cache) {
+
+    Statistics statistics = statisticsCache.get(cluster);
+
+    if (cache && statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      List<ConsumerGroupDescription> result = new ArrayList<>();
+      List<String> notFound = new ArrayList<>();
+      Map<String, ScrapedClusterState.ConsumerGroupState> consumerGroupsStates =
+          statistics.getClusterState().getConsumerGroupsStates();
+      for (String groupName : groupNames) {
+        ScrapedClusterState.ConsumerGroupState consumerGroupState = consumerGroupsStates.get(groupName);
+        if (consumerGroupState != null) {
+          result.add(consumerGroupState.description());
+        } else {
+          notFound.add(groupName);
+        }
+      }
+      if (!notFound.isEmpty()) {
+        return ac.describeConsumerGroups(notFound)
+            .map(descriptions -> {
+              result.addAll(descriptions.values());
+              return result;
+            });
+      } else {
+        return Mono.just(result);
+      }
+    } else {
+      return ac.describeConsumerGroups(groupNames)
+          .map(descriptions -> List.copyOf(descriptions.values()));
+    }
+  }
+
+
 
 
   private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(
       ReactiveAdminClient ac,
       List<ConsumerGroupListing> groups,
       Comparator<GroupWithDescr> comparator,
-      int pageNum,
-      int perPage,
+      OptionalInt pageNum,
+      OptionalInt perPage,
       SortOrderDTO sortOrderDto) {
     var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
 

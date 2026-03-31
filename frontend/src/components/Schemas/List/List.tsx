@@ -13,11 +13,20 @@ import Search from 'components/common/Search/Search';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import Table, { LinkCell } from 'components/common/NewTable';
 import { ColumnDef } from '@tanstack/react-table';
-import { Action, SchemaSubject, ResourceType } from 'generated-sources';
+import {
+  Action,
+  SchemaSubject,
+  ResourceType,
+  SchemaColumnsToSort,
+  SortOrder,
+} from 'generated-sources';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { useGetSchemas } from 'lib/hooks/api/schemas';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
@@ -26,20 +35,23 @@ const List: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const {
-    isFetching,
-    isError,
-    data = { pageCount: 1, schemas: [] as SchemaSubject[] },
-  } = useGetSchemas({
+  const { isFtsEnabled } = useFts('schemas');
+  const schemas = useGetSchemas({
     clusterName,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
     search: searchParams.get('q') || '',
+    orderBy: (searchParams.get('sortBy') as SchemaColumnsToSort) ?? undefined,
+    sortOrder:
+      (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
+      undefined,
+    fts: isFtsEnabled,
   });
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
     () => [
       {
+        id: SchemaColumnsToSort.SUBJECT,
         header: 'Subject',
         accessorKey: 'subject',
         // eslint-disable-next-line react/no-unstable-nested-components
@@ -51,10 +63,26 @@ const List: React.FC = () => {
           />
         ),
       },
-      { header: 'Id', accessorKey: 'id', size: 120 },
-      { header: 'Type', accessorKey: 'schemaType', size: 120 },
-      { header: 'Version', accessorKey: 'version', size: 120 },
       {
+        id: SchemaColumnsToSort.ID,
+        header: 'Id',
+        accessorKey: 'id',
+        size: 120,
+      },
+      {
+        id: SchemaColumnsToSort.TYPE,
+        header: 'Type',
+        accessorKey: 'schemaType',
+        size: 120,
+      },
+      {
+        id: SchemaColumnsToSort.VERSION,
+        header: 'Version',
+        accessorKey: 'version',
+        size: 120,
+      },
+      {
+        id: SchemaColumnsToSort.COMPATIBILITY,
         header: 'Compatibility',
         accessorKey: 'compatibilityLevel',
         size: 160,
@@ -84,15 +112,31 @@ const List: React.FC = () => {
         )}
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Schema Name" />
+        <Search
+          key={clusterName}
+          placeholder="Search by Schema Name"
+          extraActions={<Fts resourceName="schemas" />}
+        />
       </ControlPanelWrapper>
-      {isFetching || isError ? (
-        <PageLoader />
-      ) : (
+
+      {(schemas.isLoading || schemas.isRefetching) && (
+        <PageLoader offsetY={300} />
+      )}
+
+      {schemas.error && (
+        <ErrorPage
+          offsetY={300}
+          status={schemas.error.status}
+          onClick={schemas.refetch}
+          text={schemas.error.message}
+        />
+      )}
+
+      {schemas.isSuccess && (
         <Table
           columns={columns}
-          data={data.schemas || []}
-          pageCount={data.pageCount || 1}
+          data={schemas.data?.schemas || []}
+          pageCount={schemas.data?.pageCount || 1}
           emptyMessage="No schemas found"
           onRowClick={(row) =>
             navigate(clusterSchemaPath(clusterName, row.original.subject))

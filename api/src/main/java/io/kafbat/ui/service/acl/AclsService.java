@@ -15,12 +15,14 @@ import static org.apache.kafka.common.resource.ResourceType.TOPIC;
 import static org.apache.kafka.common.resource.ResourceType.TRANSACTIONAL_ID;
 
 import com.google.common.collect.Sets;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.CreateConsumerAclDTO;
 import io.kafbat.ui.model.CreateProducerAclDTO;
 import io.kafbat.ui.model.CreateStreamAppAclDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.AdminClientService;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.index.AclBindingNgramFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -48,8 +50,24 @@ import reactor.core.publisher.Mono;
 public class AclsService {
 
   private final AdminClientService adminClientService;
+  private final ClustersProperties clustersProperties;
+
+  private void validatePrincipal(String principal) {
+    if (principal == null || principal.isEmpty()) {
+      throw new IllegalArgumentException(
+          "expected a string in format principalType:principalName but got " + principal);
+    }
+
+    String[] split = principal.split(":", 2);
+
+    if (split.length != 2) {
+      throw new IllegalArgumentException(
+          "expected a string in format principalType:principalName but got " + principal);
+    }
+  }
 
   public Mono<Void> createAcl(KafkaCluster cluster, AclBinding aclBinding) {
+    validatePrincipal(aclBinding.entry().principal());
     return adminClientService.get(cluster)
         .flatMap(ac -> createAclsWithLogging(ac, List.of(aclBinding)));
   }
@@ -68,18 +86,19 @@ public class AclsService {
         .doOnSuccess(v -> log.info("ACL DELETED: [{}]", aclString));
   }
 
-  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch) {
+  public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch,
+                                   Boolean fts) {
     return adminClientService.get(cluster)
-        .flatMap(c -> c.listAcls(filter))
-        .flatMapIterable(acls -> acls)
-        .filter(acl -> principalSearch == null || acl.entry().principal().contains(principalSearch))
-        .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
+      .flatMap(c -> c.listAcls(filter))
+      .map(lst -> filter(new ArrayList<>(lst), principalSearch, fts))
+      .flatMapMany(Flux::fromIterable)
+      .sort(Comparator.comparing(AclBinding::toString));  //sorting to keep stable order on different calls
   }
 
-  public Mono<String> getAclAsCsvString(KafkaCluster cluster) {
-    return adminClientService.get(cluster)
-        .flatMap(c -> c.listAcls(ResourcePatternFilter.ANY))
-        .map(AclCsv::transformToCsvString);
+  private List<AclBinding> filter(List<AclBinding> acls, String principalSearch, Boolean fts) {
+    boolean useFts = clustersProperties.getFts().use(fts);
+    AclBindingNgramFilter filter = new AclBindingNgramFilter(acls, useFts, clustersProperties.getFts().getAcl());
+    return filter.find(principalSearch);
   }
 
   public Mono<Void> syncAclWithAclCsv(KafkaCluster cluster, String csv) {
@@ -154,6 +173,7 @@ public class AclsService {
   }
 
   public Mono<Void> createConsumerAcl(KafkaCluster cluster, CreateConsumerAclDTO request) {
+    validatePrincipal(request.getPrincipal());
     return adminClientService.get(cluster)
         .flatMap(ac -> createAclsWithLogging(ac, createConsumerBindings(request)))
         .then();
@@ -182,6 +202,7 @@ public class AclsService {
   }
 
   public Mono<Void> createProducerAcl(KafkaCluster cluster, CreateProducerAclDTO request) {
+    validatePrincipal(request.getPrincipal());
     return adminClientService.get(cluster)
         .flatMap(ac -> createAclsWithLogging(ac, createProducerBindings(request)))
         .then();
@@ -223,6 +244,7 @@ public class AclsService {
   }
 
   public Mono<Void> createStreamAppAcl(KafkaCluster cluster, CreateStreamAppAclDTO request) {
+    validatePrincipal(request.getPrincipal());
     return adminClientService.get(cluster)
         .flatMap(ac -> createAclsWithLogging(ac, createStreamAppBindings(request)))
         .then();

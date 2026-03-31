@@ -5,12 +5,15 @@ import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
 import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
+import Tooltip from 'components/common/Tooltip/Tooltip';
+import InfoIcon from 'components/common/Icons/InfoIcon';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
 import { SerdeUsage } from 'generated-sources';
+import { MessageFormData } from 'lib/interfaces/message';
 
 import * as S from './SendMessage.styled';
 import {
@@ -20,18 +23,14 @@ import {
   validateBySchema,
 } from './utils';
 
-interface FormType {
-  key: string;
-  content: string;
-  headers: string;
-  partition: number;
-  keySerde: string;
-  valueSerde: string;
-  keepContents: boolean;
+interface SendMessageProps {
+  closeSidebar: () => void;
+  messageData?: Partial<MessageFormData> | null;
 }
 
-const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
+const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
+  messageData = null,
 }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const { data: topic } = useTopicDetails({ clusterName, topicName });
@@ -41,24 +40,30 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
     use: SerdeUsage.SERIALIZE,
   });
   const sendMessage = useSendMessage({ clusterName, topicName });
-
   const defaultValues = React.useMemo(() => getDefaultValues(serdes), [serdes]);
   const partitionOptions = React.useMemo(
     () => getPartitionOptions(topic?.partitions || []),
     [topic]
   );
+
+  const formDefaults = React.useMemo(
+    () => ({
+      ...defaultValues,
+      partition: Number(partitionOptions[0]?.value || 0),
+      keepContents: false,
+      ...messageData,
+    }),
+    [defaultValues, partitionOptions, messageData]
+  );
+
   const {
     handleSubmit,
     formState: { isSubmitting },
     control,
     setValue,
-  } = useForm<FormType>({
+  } = useForm<MessageFormData>({
     mode: 'onChange',
-    defaultValues: {
-      ...defaultValues,
-      partition: Number(partitionOptions[0].value),
-      keepContents: false,
-    },
+    defaultValues: formDefaults,
   });
 
   const submit = async ({
@@ -69,7 +74,7 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
     headers,
     partition,
     keepContents,
-  }: FormType) => {
+  }: MessageFormData) => {
     let errors: string[] = [];
 
     if (keySerde) {
@@ -132,14 +137,14 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
       <form onSubmit={handleSubmit(submit)}>
         <S.Columns>
           <S.FlexItem>
-            <InputLabel>Partition</InputLabel>
+            <InputLabel id="partitionOptionsLabel">Partition</InputLabel>
             <Controller
               control={control}
               name="partition"
               render={({ field: { name, onChange, value } }) => (
                 <Select
                   id="selectPartitionOptions"
-                  aria-labelledby="selectPartitionOptions"
+                  aria-labelledby="partitionOptionsLabel"
                   name={name}
                   onChange={onChange}
                   minWidth="100%"
@@ -151,14 +156,14 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
           </S.FlexItem>
           <S.Flex>
             <S.FlexItem>
-              <InputLabel>Key Serde</InputLabel>
+              <InputLabel id="keySerdeOptionsLabel">Key Serde</InputLabel>
               <Controller
                 control={control}
                 name="keySerde"
                 render={({ field: { name, onChange, value } }) => (
                   <Select
                     id="selectKeySerdeOptions"
-                    aria-labelledby="selectKeySerdeOptions"
+                    aria-labelledby="keySerdeOptionsLabel"
                     name={name}
                     onChange={onChange}
                     minWidth="100%"
@@ -169,14 +174,14 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
               />
             </S.FlexItem>
             <S.FlexItem>
-              <InputLabel>Value Serde</InputLabel>
+              <InputLabel id="valueSerdeOptionsLabel">Value Serde</InputLabel>
               <Controller
                 control={control}
                 name="valueSerde"
                 render={({ field: { name, onChange, value } }) => (
                   <Select
                     id="selectValueSerdeOptions"
-                    aria-labelledby="selectValueSerdeOptions"
+                    aria-labelledby="valueSerdeOptionsLabel"
                     name={name}
                     onChange={onChange}
                     minWidth="100%"
@@ -187,16 +192,6 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
               />
             </S.FlexItem>
           </S.Flex>
-          <div>
-            <Controller
-              control={control}
-              name="keepContents"
-              render={({ field: { name, onChange, value } }) => (
-                <Switch name={name} onChange={onChange} checked={value} />
-              )}
-            />
-            <InputLabel>Keep contents</InputLabel>
-          </div>
         </S.Columns>
         <S.Columns>
           <div>
@@ -238,17 +233,33 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
             <Controller
               control={control}
               name="headers"
-              render={({ field: { name, onChange } }) => (
+              render={({ field: { name, onChange, value } }) => (
                 <Editor
                   readOnly={isSubmitting}
-                  defaultValue="{}"
                   name={name}
                   onChange={onChange}
+                  value={value || '{}'}
                   height="40px"
                 />
               )}
             />
           </div>
+        </S.Columns>
+        <S.Columns>
+          <S.Flex>
+            <Controller
+              control={control}
+              name="keepContents"
+              render={({ field: { name, onChange, value } }) => (
+                <Switch name={name} onChange={onChange} checked={value} />
+              )}
+            />
+            <InputLabel>Keep contents after producing a message</InputLabel>
+            <Tooltip
+              value={<InfoIcon />}
+              content="When enabled, the form will remain populated after sending a message."
+            />
+          </S.Flex>
         </S.Columns>
         <Button
           buttonSize="M"

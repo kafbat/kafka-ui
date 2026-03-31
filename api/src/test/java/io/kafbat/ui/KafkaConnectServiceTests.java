@@ -13,38 +13,67 @@ import io.kafbat.ui.model.ConnectorPluginDTO;
 import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
+import io.kafbat.ui.model.FullConnectorInfoDTO;
+import io.kafbat.ui.model.InternalTopic;
+import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
 import io.kafbat.ui.model.TaskIdDTO;
+import io.kafbat.ui.model.TopicCreationDTO;
+import io.kafbat.ui.service.ClustersStorage;
+import io.kafbat.ui.service.StatisticsService;
+import io.kafbat.ui.service.TopicsService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 class KafkaConnectServiceTests extends AbstractIntegrationTest {
   private final String connectName = "kafka-connect";
   private final String connectorName = UUID.randomUUID().toString();
+  private final String topicName = "test-topic";
   private final Map<String, Object> config = Map.of(
       "name", connectorName,
       "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
       "tasks.max", "1",
-      "topics", "output-topic",
+      "topics", topicName,
       "file", "/tmp/test",
       "test.password", "******"
   );
 
   @Autowired
   private WebTestClient webTestClient;
-
+  @Autowired
+  private StatisticsService statisticsService;
+  @Autowired
+  private ClustersStorage clustersStorage;
+  @Autowired
+  private TopicsService topicsService;
 
   @BeforeEach
   void setUp() {
+    KafkaCluster kafkaCluster = clustersStorage.getClusterByName(LOCAL).get();
+
+    InternalTopic block = topicsService.getTopicDetails(kafkaCluster, topicName)
+        .onErrorResume(_ -> Mono.empty()).block();
+    if (block == null) {
+      topicsService.createTopic(kafkaCluster,
+          new TopicCreationDTO()
+              .name(topicName)
+              .partitions(1)
+              .configs(Map.of())
+      ).block();
+    }
 
     webTestClient.post()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
@@ -53,12 +82,20 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .config(Map.of(
                 "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
                 "tasks.max", "1",
-                "topics", "output-topic",
+                "topics", topicName,
                 "file", "/tmp/test",
                 "test.password", "test-credentials")))
         .exchange()
         .expectStatus().isOk();
 
+    // Force cache refresh and wait for the consumer to start
+    Awaitility.await().until(() ->
+        statisticsService.updateCache(kafkaCluster).map(v ->
+            Optional.ofNullable(
+                v.getClusterState().getConsumerGroupsStates().get("connect-" + connectorName)
+            ).isPresent()
+        ).block()
+    );
   }
 
   @AfterEach
@@ -76,9 +113,15 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .uri("/api/clusters/{clusterName}/connectors", LOCAL)
             .exchange()
             .expectStatus().isOk()
-            .expectBody()
-            .jsonPath(String.format("$[?(@.name == '%s')]", connectorName))
-            .exists();
+            .expectBodyList(FullConnectorInfoDTO.class)
+            .value(connectors -> {
+              assertThat(connectors)
+                  .anyMatch(connector -> connector.getName().equals(connectorName));
+              FullConnectorInfoDTO createdConnector =
+                  connectors.stream().filter(connector -> connector.getName().equals(connectorName))
+                      .findFirst().orElseThrow();
+              assertThat(createdConnector.getConsumer()).isEqualTo(JsonNullable.of("connect-" + connectorName));
+            });
   }
 
   @Test
@@ -177,6 +220,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
             .task(0)))
         .type(ConnectorTypeDTO.SINK)
         .name(connectorName)
+        .consumer("connect-" + connectorName)
         .config(config);
     webTestClient.get()
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}", LOCAL,
@@ -195,7 +239,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .bodyValue(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "another-topic",
+            "topics", topicName,
             "file", "/tmp/new"
             )
         )
@@ -212,7 +256,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "another-topic",
+            "topics", topicName,
             "file", "/tmp/new",
             "name", connectorName
         ));
@@ -302,7 +346,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "output-topic",
+            "topics", topicName,
             "file", "/tmp/test",
             "name", connectorName,
             "test.password", "******"
@@ -331,7 +375,7 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .isEqualTo(Map.of(
             "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
             "tasks.max", "1",
-            "topics", "output-topic",
+            "topics", topicName,
             "file", "/tmp/test",
             "test.password", "******",
             "name", connectorName
@@ -469,5 +513,14 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .exchange()
         .expectStatus().isBadRequest();
 
+  }
+
+  @Test
+  void shouldReturnConnectorsByTopic() {
+    var path = "/api/clusters/{clusterName}/topics/{topicName}/connectors";
+    webTestClient.get()
+        .uri(path, LOCAL, topicName)
+        .exchange()
+        .expectStatus().isOk();
   }
 }

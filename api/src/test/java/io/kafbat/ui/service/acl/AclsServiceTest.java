@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.CreateConsumerAclDTO;
 import io.kafbat.ui.model.CreateProducerAclDTO;
 import io.kafbat.ui.model.CreateStreamAppAclDTO;
@@ -34,7 +35,7 @@ class AclsServiceTest {
   private final ReactiveAdminClient adminClientMock = mock(ReactiveAdminClient.class);
   private final AdminClientService adminClientService = mock(AdminClientService.class);
 
-  private final AclsService aclsService = new AclsService(adminClientService);
+  private final AclsService aclsService = new AclsService(adminClientService, new ClustersProperties());
 
   @BeforeEach
   void initMocks() {
@@ -91,7 +92,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createConsumerAcl(
@@ -139,7 +142,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createConsumerAcl(
@@ -175,7 +180,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createProducerAcl(
@@ -220,7 +227,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createProducerAcl(
@@ -262,7 +271,9 @@ class AclsServiceTest {
     when(adminClientMock.createAcls(createdCaptor.capture()))
         .thenReturn(Mono.empty());
 
-    var principal = UUID.randomUUID().toString();
+    var principalType = UUID.randomUUID().toString();
+    var principalName = UUID.randomUUID().toString();
+    var principal = String.format("%s:%s", principalType, principalName);
     var host = UUID.randomUUID().toString();
 
     aclsService.createStreamAppAcl(
@@ -296,6 +307,69 @@ class AclsServiceTest {
             new ResourcePattern(ResourceType.TOPIC, "appId1", PatternType.PREFIXED),
             new AccessControlEntry(principal, host, AclOperation.ALL, AclPermissionType.ALLOW)));
   }
+
+
+  @Test
+  void throwsExceptionWhenCreatingConsumerAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createConsumerAcl(
+        CLUSTER,
+        new CreateConsumerAclDTO()
+            .principal(principal)
+            .host(host)
+            .consumerGroups(List.of("cg1"))
+            .topics(List.of("t1"))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingProducerAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createProducerAcl(
+        CLUSTER,
+        new CreateProducerAclDTO()
+            .principal(principal)
+            .host(host)
+            .topics(List.of("t1"))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingStreamAppAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createStreamAppAcl(
+        CLUSTER,
+        new CreateStreamAppAclDTO()
+            .principal(principal)
+            .host(host)
+            .inputTopics(List.of("t1"))
+            .outputTopics(List.of("t2"))
+            .applicationId("appId")
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
+
+  @Test
+  void throwsExceptionWhenCreatingAclWithInvalidPrincipal() {
+    var principal = UUID.randomUUID().toString();
+    var host = UUID.randomUUID().toString();
+    
+    assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> aclsService.createAcl(
+        CLUSTER,
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "t1", PatternType.LITERAL),
+            new AccessControlEntry(principal, host, AclOperation.READ, AclPermissionType.ALLOW))
+        ).block())).isInstanceOf(IllegalArgumentException.class);
+  }
+
 
   @SuppressWarnings("unchecked")
   private ArgumentCaptor<Collection<AclBinding>> captor() {

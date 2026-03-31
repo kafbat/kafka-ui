@@ -11,9 +11,9 @@ jobs:
   check-tasks:
     runs-on: ubuntu-latest
     steps:
-      - uses: kentaro-m/task-completed-checker-action@2ddb65fdd5577bae4a8e82e0564e459677aec893 # infered from @v0.1.2
+      - uses: kentaro-m/task-completed-checker-action@2ddb65fdd5577bae4a8e82e0564e459677aec893 # https://github.com/kentaro-m/task-completed-checker-action/releases/tag/v0.1.2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-      - uses: dekinderfiets/pr-description-enforcer@f6a858878d694ff5b2760380fbcd21129030c5dd # infered from @v0.0.1
+      - uses: dekinderfiets/pr-description-enforcer@f6a858878d694ff5b2760380fbcd21129030c5dd # https://github.com/dekinderfiets/pr-description-enforcer/releases/tag/0.0.1
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"

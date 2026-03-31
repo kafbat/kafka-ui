@@ -28,7 +28,7 @@ Feature: Navigation panel links
     Given Kafka Connect is visible
     When click on Kafka Connect link
     Then Kafka Connect heading visible
-    Then the end of current URL should be "connectors"
+    Then the end of current URL should be "clusters"
 
   Scenario: Navigate to KSQL DB
     Given KSQL DB is visible

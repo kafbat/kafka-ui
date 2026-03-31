@@ -1,16 +1,13 @@
 package io.kafbat.ui.service;
 
-import static org.apache.commons.lang3.Strings.CI;
-
-import com.github.benmanes.caffeine.cache.AsyncCache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.ClusterInfo;
+import io.kafbat.ui.connect.model.ConnectorExpand;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorStatusConnector;
 import io.kafbat.ui.connect.model.ConnectorTopics;
-import io.kafbat.ui.connect.model.TaskStatus;
+import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.exception.ConnectorOffsetsResetException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
@@ -20,22 +17,27 @@ import io.kafbat.ui.model.ConnectorActionDTO;
 import io.kafbat.ui.model.ConnectorDTO;
 import io.kafbat.ui.model.ConnectorPluginConfigValidationResponseDTO;
 import io.kafbat.ui.model.ConnectorPluginDTO;
-import io.kafbat.ui.model.ConnectorStateDTO;
 import io.kafbat.ui.model.ConnectorTaskStatusDTO;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewConnectorDTO;
+import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TaskDTO;
+import io.kafbat.ui.model.TaskIdDTO;
 import io.kafbat.ui.model.connect.InternalConnectorInfo;
+import io.kafbat.ui.service.index.KafkaConnectNgramFilter;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.util.ReactiveFailover;
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
@@ -48,22 +50,16 @@ public class KafkaConnectService {
   private final KafkaConnectMapper kafkaConnectMapper;
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
   private final ClustersProperties clustersProperties;
-
-  private final AsyncCache<ConnectCacheKey, List<InternalConnectorInfo>> cachedConnectors;
-  private final AsyncCache<String, ClusterInfo> cacheClusterInfo;
+  private final StatisticsCache statisticsCache;
 
   public KafkaConnectService(KafkaConnectMapper kafkaConnectMapper,
                              KafkaConfigSanitizer kafkaConfigSanitizer,
-                             ClustersProperties clustersProperties) {
+                             ClustersProperties clustersProperties,
+                             StatisticsCache statisticsCache) {
     this.kafkaConnectMapper = kafkaConnectMapper;
     this.kafkaConfigSanitizer = kafkaConfigSanitizer;
     this.clustersProperties = clustersProperties;
-    this.cachedConnectors = Caffeine.newBuilder()
-        .expireAfterWrite(clustersProperties.getCache().getConnectCacheExpiry())
-        .buildAsync();
-    this.cacheClusterInfo = Caffeine.newBuilder()
-        .expireAfterWrite(clustersProperties.getCache().getConnectClusterCacheExpiry())
-        .buildAsync();
+    this.statisticsCache = statisticsCache;
   }
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster, boolean withStats) {
@@ -75,9 +71,10 @@ public class KafkaConnectService {
               Flux.fromIterable(connects).flatMap(c ->
                   getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci))
               ).flatMap(tuple -> (
-                  getConnectConnectorsFromCache(new ConnectCacheKey(cluster, tuple.getT1()))
+                  getConnectConnectors(cluster, tuple.getT1())
+                      .collectList()
                       .map(connectors ->
-                          kafkaConnectMapper.toKafkaConnect(tuple.getT1(), connectors, tuple.getT2(), withStats)
+                          kafkaConnectMapper.toKafkaConnect(tuple.getT1(), connectors, tuple.getT2(), true)
                       )
               )
           )
@@ -86,88 +83,95 @@ public class KafkaConnectService {
       return Flux.fromIterable(connectClusters.orElse(List.of()))
           .flatMap(c ->
               getClusterInfo(cluster, c.getName()).map(info ->
-                  kafkaConnectMapper.toKafkaConnect(c, List.of(), info, withStats)
+                  kafkaConnectMapper.toKafkaConnect(c, List.of(), info, false)
               )
           );
     }
   }
 
-  private Mono<List<InternalConnectorInfo>> getConnectConnectorsFromCache(ConnectCacheKey key) {
-    if (clustersProperties.getCache().isEnabled()) {
-      return Mono.fromFuture(
-          cachedConnectors.get(key, (t, e) ->
-              getConnectConnectors(t.cluster(), t.connect()).collectList().toFuture()
-          )
-      );
+  public Mono<ClusterInfo> getClusterInfo(KafkaCluster cluster, String connectName) {
+    KafkaConnectState state = statisticsCache.get(cluster).getConnectStates().get(connectName);
+    if (state != null) {
+      return Mono.just(kafkaConnectMapper.toClient(state));
     } else {
-      return getConnectConnectors(key.cluster(), key.connect()).collectList();
+      return api(cluster, connectName).mono(KafkaConnectClientApi::getClusterInfo)
+          .onErrorResume(th -> {
+            log.error("Error on collecting cluster info", th);
+            return Mono.just(new ClusterInfo());
+          });
     }
-  }
-
-  private Mono<ClusterInfo> getClusterInfo(KafkaCluster cluster, String connectName) {
-    return Mono.fromFuture(cacheClusterInfo.get(connectName, (t, e) ->
-        api(cluster, connectName).mono(KafkaConnectClientApi::getClusterInfo)
-            .onErrorResume(th -> {
-              log.error("Error on collecting cluster info" + th.getMessage(), th);
-              return Mono.just(new ClusterInfo());
-            }).toFuture()
-    ));
   }
 
   private Flux<InternalConnectorInfo> getConnectConnectors(
       KafkaCluster cluster,
       ClustersProperties.ConnectCluster connect) {
-    return getConnectorNamesWithErrorsSuppress(cluster, connect.getName()).flatMap(connectorName ->
-        Mono.zip(
-            getConnector(cluster, connect.getName(), connectorName),
-            getConnectorTasks(cluster, connect.getName(), connectorName).collectList()
-        ).map(tuple ->
-            InternalConnectorInfo.builder()
-                .connector(tuple.getT1())
-                .config(null)
-                .tasks(tuple.getT2())
-                .topics(null)
-                .build()
+    return getConnectorsWithErrorsSuppress(cluster, connect.getName()).flatMapMany(connectors ->
+        Flux.fromStream(
+            connectors.values().stream().map(c ->
+                kafkaConnectMapper.fromClient(connect, c, null)
+            ).map(i -> checkConsumerGroup(cluster, i))
         )
     );
   }
 
   public Flux<FullConnectorInfoDTO> getAllConnectors(final KafkaCluster cluster,
-                                                     @Nullable final String search) {
+                                                     @Nullable final String search, Boolean fts) {
     return getConnects(cluster, false)
         .flatMap(connect ->
-            getConnectorNamesWithErrorsSuppress(cluster, connect.getName())
-                .flatMap(connectorName ->
-                    Mono.zip(
-                        getConnector(cluster, connect.getName(), connectorName),
-                        getConnectorConfig(cluster, connect.getName(), connectorName),
-                        getConnectorTasks(cluster, connect.getName(), connectorName).collectList(),
-                        getConnectorTopics(cluster, connect.getName(), connectorName)
-                    ).map(tuple ->
-                        InternalConnectorInfo.builder()
-                            .connector(tuple.getT1())
-                            .config(tuple.getT2())
-                            .tasks(tuple.getT3())
-                            .topics(tuple.getT4().getTopics())
-                            .build())))
-        .map(kafkaConnectMapper::fullConnectorInfo)
-        .filter(matchesSearchTerm(search));
+            getConnectorsWithErrorsSuppress(cluster, connect.getName())
+                .flatMapMany(connectors ->
+                    Flux.fromIterable(connectors.entrySet())
+                        .flatMap(e ->
+                          getConnectorTopics(
+                              cluster,
+                              connect.getName(),
+                              e.getKey()
+                          ).map(topics ->
+                              kafkaConnectMapper.fromClient(connect, e.getValue(), topics.getTopics())
+                          ).map(i -> checkConsumerGroup(cluster, i))
+                        )
+                )
+        ).map(kafkaConnectMapper::fullConnectorInfo)
+        .collectList()
+        .map(lst -> filterConnectors(lst, search, fts))
+        .flatMapMany(Flux::fromIterable);
   }
 
-  private Predicate<FullConnectorInfoDTO> matchesSearchTerm(@Nullable final String search) {
-    if (search == null) {
-      return c -> true;
-    }
-    return connector -> getStringsForSearch(connector)
-        .anyMatch(string -> CI.contains(string, search));
+  public Flux<KafkaConnectState> scrapeAllConnects(KafkaCluster cluster) {
+
+    Optional<List<ClustersProperties.@Valid ConnectCluster>> connectClusters =
+        Optional.ofNullable(cluster.getOriginalProperties().getKafkaConnect());
+
+    return Flux.fromIterable(connectClusters.orElse(List.of())).flatMap(c ->
+        getClusterInfo(cluster, c.getName()).map(info ->
+                kafkaConnectMapper.toKafkaConnect(c, List.of(), info, false)
+        ).onErrorResume((_) -> Mono.just(new ConnectDTO().name(c.getName())))
+    ).flatMap(connect ->
+        getConnectorsWithErrorsSuppress(cluster, connect.getName())
+            .onErrorResume(_ -> Mono.just(Map.of()))
+            .flatMapMany(connectors ->
+                Flux.fromIterable(connectors.entrySet())
+                    .flatMap(e ->
+                        getConnectorTopics(
+                            cluster,
+                            connect.getName(),
+                            e.getKey()
+                        ).map(topics ->
+                            kafkaConnectMapper.fromClient(connect, e.getValue(), topics.getTopics())
+                        )
+                    )
+            ).collectList().map(connectors -> kafkaConnectMapper.toScrapeState(connect, connectors))
+    );
   }
 
-  private Stream<String> getStringsForSearch(FullConnectorInfoDTO fullConnectorInfo) {
-    return Stream.of(
-        fullConnectorInfo.getName(),
-        fullConnectorInfo.getConnect(),
-        fullConnectorInfo.getStatus().getState().getValue(),
-        fullConnectorInfo.getType().getValue());
+  private List<FullConnectorInfoDTO> filterConnectors(
+      List<FullConnectorInfoDTO> connectors,
+      String search,
+      Boolean fts) {
+    boolean useFts = clustersProperties.getFts().use(fts);
+    KafkaConnectNgramFilter filter =
+        new KafkaConnectNgramFilter(connectors, useFts, clustersProperties.getFts().getConnect());
+    return filter.find(search);
   }
 
   public Mono<ConnectorTopics> getConnectorTopics(KafkaCluster cluster, String connectClusterName,
@@ -177,18 +181,20 @@ public class KafkaConnectService {
         .map(result -> result.get(connectorName))
         // old Connect API versions don't have this endpoint, setting empty list for
         // backward-compatibility
-        .onErrorResume(Exception.class, e -> Mono.just(new ConnectorTopics().topics(List.of())));
+        .onErrorResume(Exception.class, _ -> Mono.just(new ConnectorTopics().topics(List.of())));
   }
 
-  public Flux<String> getConnectorNames(KafkaCluster cluster, String connectName) {
+  public Mono<Map<String, ExpandedConnector>> getConnectors(KafkaCluster cluster, String connectName) {
     return api(cluster, connectName)
-        .mono(client -> client.getConnectors(null))
-        .flatMapMany(Flux::fromIterable);
+        .mono(client ->
+            client.getConnectors(null, List.of(ConnectorExpand.INFO, ConnectorExpand.STATUS))
+        );
   }
 
   // returns empty flux if there was an error communicating with Connect
-  public Flux<String> getConnectorNamesWithErrorsSuppress(KafkaCluster cluster, String connectName) {
-    return getConnectorNames(cluster, connectName).onErrorComplete();
+  public Mono<Map<String, ExpandedConnector>> getConnectorsWithErrorsSuppress(
+      KafkaCluster cluster, String connectName) {
+    return getConnectors(cluster, connectName).onErrorComplete();
   }
 
   public Mono<ConnectorDTO> createConnector(KafkaCluster cluster, String connectName,
@@ -213,43 +219,30 @@ public class KafkaConnectService {
 
   private Mono<Boolean> connectorExists(KafkaCluster cluster, String connectName,
                                         String connectorName) {
-    return getConnectorNames(cluster, connectName)
-        .any(name -> name.equals(connectorName));
+    return getConnectors(cluster, connectName)
+        .map(m -> m.containsKey(connectorName));
   }
 
   public Mono<ConnectorDTO> getConnector(KafkaCluster cluster, String connectName,
                                          String connectorName) {
     return api(cluster, connectName)
-        .mono(client -> client.getConnector(connectorName)
-            .map(kafkaConnectMapper::fromClient)
-            .flatMap(connector ->
-                client.getConnectorStatus(connector.getName())
-                    // status request can return 404 if tasks not assigned yet
-                    .onErrorResume(WebClientResponseException.NotFound.class,
-                        e -> emptyStatus(connectorName))
-                    .map(connectorStatus -> {
-                      var status = connectorStatus.getConnector();
-                      var sanitizedConfig = kafkaConfigSanitizer.sanitizeConnectorConfig(connector.getConfig());
-                      ConnectorDTO result = new ConnectorDTO()
-                          .connect(connectName)
-                          .status(kafkaConnectMapper.fromClient(status))
-                          .type(connector.getType())
-                          .tasks(connector.getTasks())
-                          .name(connector.getName())
-                          .config(sanitizedConfig);
-
-                      if (connectorStatus.getTasks() != null) {
-                        boolean isAnyTaskFailed = connectorStatus.getTasks().stream()
-                            .map(TaskStatus::getState)
-                            .anyMatch(TaskStatus.StateEnum.FAILED::equals);
-
-                        if (isAnyTaskFailed) {
-                          result.getStatus().state(ConnectorStateDTO.TASK_FAILED);
-                        }
-                      }
-                      return result;
-                    })
+        .mono(client ->
+            Mono.zip(
+                client.getConnector(connectorName),
+                getConnectorTopics(cluster, connectName, connectorName),
+                client.getConnectorStatus(connectorName).onErrorResume(WebClientResponseException.NotFound.class,
+                    _ -> emptyStatus(connectorName))
             )
+            .map(t ->
+                kafkaConnectMapper.fromClient(
+                    t.getT1(),
+                    cluster.getConnectsConfigs().get(connectName),
+                    connectName,
+                    t.getT2(),
+                    kafkaConfigSanitizer.sanitizeConnectorConfig(t.getT1().getConfig()),
+                    t.getT3()
+                )
+            ).map(c -> checkConsumerGroup(cluster, c))
         );
   }
 
@@ -288,7 +281,7 @@ public class KafkaConnectService {
     return api(cluster, connectName)
         .mono(client -> switch (action) {
               case RESTART -> client.restartConnector(connectorName, false, false);
-              case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, task -> true);
+              case RESTART_ALL_TASKS -> restartTasks(cluster, connectName, connectorName, _ -> true);
               case RESTART_FAILED_TASKS -> restartTasks(cluster, connectName, connectorName,
                   t -> t.getStatus().getState() == ConnectorTaskStatusDTO.FAILED);
               case PAUSE -> client.pauseConnector(connectorName);
@@ -303,20 +296,24 @@ public class KafkaConnectService {
     return getConnectorTasks(cluster, connectName, connectorName)
         .filter(taskFilter)
         .flatMap(t ->
-            restartConnectorTask(cluster, connectName, connectorName, t.getId().getTask()))
-        .then();
+            restartConnectorTask(
+                cluster, connectName, connectorName,
+                Optional.ofNullable(t.getId()).map(TaskIdDTO::getTask).orElseThrow()
+            )
+        ).then();
   }
 
   public Flux<TaskDTO> getConnectorTasks(KafkaCluster cluster, String connectName, String connectorName) {
     return api(cluster, connectName)
         .flux(client ->
             client.getConnectorTasks(connectorName)
-                .onErrorResume(WebClientResponseException.NotFound.class, e -> Flux.empty())
+                .onErrorResume(WebClientResponseException.NotFound.class, _ -> Flux.empty())
                 .map(kafkaConnectMapper::fromClient)
                 .flatMap(task ->
                     client
-                        .getConnectorTaskStatus(connectorName, task.getId().getTask())
-                        .onErrorResume(WebClientResponseException.NotFound.class, e -> Mono.empty())
+                        .getConnectorTaskStatus(connectorName,
+                            Optional.ofNullable(task.getId()).map(TaskIdDTO::getTask).orElseThrow()
+                        ).onErrorResume(WebClientResponseException.NotFound.class, _ -> Mono.empty())
                         .map(kafkaConnectMapper::fromClient)
                         .map(task::status)
                 ));
@@ -359,16 +356,73 @@ public class KafkaConnectService {
     return api(cluster, connectName)
         .mono(client -> client.resetConnectorOffsets(connectorName))
         .onErrorResume(WebClientResponseException.NotFound.class,
-            e -> {
+            _ -> {
               throw new NotFoundException("Connector %s not found in %s".formatted(connectorName, connectName));
             })
         .onErrorResume(WebClientResponseException.BadRequest.class,
-            e -> {
+            _ -> {
               throw new ConnectorOffsetsResetException(
                   "Failed to reset offsets of connector %s of %s. Make sure it is STOPPED first."
                       .formatted(connectorName, connectName));
             });
   }
 
-  record ConnectCacheKey(KafkaCluster cluster, ClustersProperties.ConnectCluster connect) {}
+  public Flux<FullConnectorInfoDTO> getTopicConnectors(KafkaCluster cluster, String topicName) {
+    Map<String, KafkaConnectState> connectStates = this.statisticsCache.get(cluster).getConnectStates();
+    Map<String, List<String>> filteredConnects = new HashMap<>();
+    for (Map.Entry<String, KafkaConnectState> entry : connectStates.entrySet()) {
+      List<KafkaConnectState.ConnectorState> connectors =
+          entry.getValue().getConnectors().stream().filter(c -> c.topics().contains(topicName)).toList();
+      if (!connectors.isEmpty()) {
+        filteredConnects.put(entry.getKey(), connectors.stream().map(KafkaConnectState.ConnectorState::name).toList());
+      }
+    }
+
+    return Flux.fromIterable(filteredConnects.entrySet())
+        .flatMap(entry ->
+            getConnectorsWithErrorsSuppress(cluster, entry.getKey())
+                .map(connectors ->
+                        connectors.entrySet()
+                            .stream()
+                            .filter(c -> entry.getValue().contains(c.getKey()))
+                            .map(c ->
+                                kafkaConnectMapper.fromClient(
+                                    cluster.getConnectsConfigs().get(entry.getKey()), c.getValue(), null)
+                            ).map(i ->
+                                checkConsumerGroup(cluster, i)
+                            ).map(kafkaConnectMapper::fullConnectorInfo).toList()
+                )
+        ).flatMap(Flux::fromIterable);
+  }
+
+  private InternalConnectorInfo checkConsumerGroup(KafkaCluster cluster, InternalConnectorInfo info) {
+    if (info.getConsumer() == null) {
+      return info;
+    }
+
+    return info.toBuilder().consumer(
+        getConsumerGroup(cluster, info.getConsumer()).orElse(null)
+    ).build();
+  }
+
+  private ConnectorDTO checkConsumerGroup(KafkaCluster cluster, ConnectorDTO dto) {
+    if (dto.getConsumer() == null && dto.getConsumer().isPresent()) {
+      return dto;
+    }
+
+    dto.setConsumer(
+        getConsumerGroup(cluster, dto.getConsumer().get())
+            .map(JsonNullable::of)
+            .orElse(JsonNullable.undefined())
+    );
+    return dto;
+  }
+
+  private Optional<String> getConsumerGroup(KafkaCluster cluster, String consumerGroupName) {
+    return Optional.ofNullable(statisticsCache.get(cluster))
+        .map(Statistics::getClusterState)
+        .map(ScrapedClusterState::getConsumerGroupsStates)
+        .map(cg -> cg.get(consumerGroupName))
+        .map(ScrapedClusterState.ConsumerGroupState::group);
+  }
 }

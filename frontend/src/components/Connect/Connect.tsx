@@ -10,6 +10,7 @@ import {
 import useAppParams from 'lib/hooks/useAppParams';
 import Navbar from 'components/common/Navigation/Navbar.styled';
 import Clusters from 'components/Connect/Clusters/Clusters';
+import { TableProvider } from 'components/common/NewTable';
 
 import Connectors from './List/ListPage';
 import Header from './Header/Header';
@@ -18,7 +19,7 @@ const Connect: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
 
   return (
-    <>
+    <TableProvider>
       <Header />
       <Navbar role="navigation">
         <NavLink
@@ -46,7 +47,7 @@ const Connect: React.FC = () => {
         <Route path={kafkaConnectClustersRelativePath} element={<Clusters />} />
         <Route path={clusterConnectorsRelativePath} element={<Connectors />} />
       </Routes>
-    </>
+    </TableProvider>
   );
 };
 

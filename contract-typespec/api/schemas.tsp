@@ -1,5 +1,6 @@
 import "@typespec/openapi";
 import "./responses.tsp";
+import "./models.tsp";
 
 namespace Api;
 
@@ -26,6 +27,9 @@ interface SchemasApi {
     @query page?: int32,
     @query perPage?: int32,
     @query search?: string,
+    @query orderBy?: SchemaColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): SchemaSubjectsResponse;
 
   @delete
@@ -142,6 +146,7 @@ model SchemaSubject {
   compatibilityLevel: string;
   schemaType: SchemaType;
   references?: SchemaReference[];
+  topic?: string | null;
 }
 
 model NewSchemaSubject {
@@ -171,4 +176,12 @@ model CompatibilityCheckResponse {
 model SchemaSubjectsResponse {
   pageCount?: int32;
   schemas?: SchemaSubject[];
+}
+
+enum SchemaColumnsToSort {
+  SUBJECT,
+  ID,
+  TYPE,
+  COMPATIBILITY,
+  VERSION
 }

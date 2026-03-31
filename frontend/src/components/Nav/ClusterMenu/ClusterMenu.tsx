@@ -1,4 +1,4 @@
-import React, { type FC, useState } from 'react';
+import React, { type FC } from 'react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
 import * as S from 'components/Nav/Nav.styled';
 import MenuTab from 'components/Nav/Menu/MenuTab';
@@ -14,7 +14,7 @@ import {
   clusterTopicsPath,
   kafkaConnectPath,
 } from 'lib/paths';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 import { ClusterColorKey } from 'theme/theme';
 import useScrollIntoView from 'lib/hooks/useScrollIntoView';
@@ -34,18 +34,33 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
 }) => {
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
-  const [isOpen, setIsOpen] = useState(!!opened);
+
+  const [isOpen, setIsOpen] = useLocalStorage<boolean>(
+    `clusterMenu-${name}-isOpen`,
+    opened
+  );
   const location = useLocation();
+  const navigate = useNavigate();
   const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
     `clusterColor-${name}`,
     'transparent'
   );
-
   const getIsMenuItemActive = (path: string) => {
     return location.pathname.includes(path);
   };
 
   const { ref } = useScrollIntoView<HTMLUListElement>(opened);
+
+  const handleClusterNameClick = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+    navigate(clusterBrokersPath(name));
+  };
+
+  const handleToggleMenu = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   return (
     <S.ClusterList role="menu" $colorKey={colorKey} ref={ref}>
@@ -53,7 +68,8 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
         title={name}
         status={status}
         isOpen={isOpen}
-        toggleClusterMenu={() => setIsOpen((prev) => !prev)}
+        toggleClusterMenu={handleToggleMenu}
+        onClusterNameClick={handleClusterNameClick}
         setColorKey={setColorKey}
         isActive={opened}
       />

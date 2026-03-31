@@ -29,7 +29,10 @@ public enum MetadataVersion {
   IBP_4_0_IV1(23, "4.0-IV1"),
   IBP_4_0_IV2(24, "4.0-IV2"),
   IBP_4_0_IV3(25, "4.0-IV3"),
-  IBP_4_1_IV0(26, "4.1-IV0");
+  IBP_4_1_IV0(26, "4.1-IV0"),
+  IBP_4_1_IV1(27, "4.1-IV1"),
+  IBP_4_2_IV0(28, "4.2-IV0"),
+  IBP_4_2_IV1(29, "4.2-IV1");
 
   private final int featureLevel;
   private final String release;

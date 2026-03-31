@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { ServerStatus } from 'generated-sources';
 
 export const ColorPickerWrapper = styled.div`
+  position: absolute;
   display: flex;
   visibility: hidden;
 `;
@@ -13,13 +14,14 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
   ({ theme, $variant, $isActive }) => css`
     font-size: 14px;
     font-weight: ${theme.menu[$isActive ? 'primary' : $variant].fontWeight};
-    min-height: 32px;
+    min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    line-height: 17px;
     user-select: none;
     width: 100%;
-    padding: 6px 8px;
+    padding: 4px 8px;
     cursor: pointer;
     text-decoration: none;
     border-radius: 8px;
@@ -35,6 +37,8 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
       color: ${theme.menu[$variant].color.hover};
 
       ${ColorPickerWrapper} {
+        position: absolute;
+        right: 36px;
         visibility: visible;
       }
     }
@@ -50,6 +54,7 @@ export const ContentWrapper = styled.div`
   display: flex;
   align-items: center;
   column-gap: 4px;
+  width: 100%;
 `;
 
 export const Title = styled.div`
@@ -84,6 +89,16 @@ export const StatusIcon = styled.circle.attrs({
     fill: ${statusColor[status]};
   `;
 });
+
+export const ChevronClickArea = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 4px;
+`;
 
 export const ChevronWrapper = styled.svg.attrs({
   viewBox: '0 0 10 6',

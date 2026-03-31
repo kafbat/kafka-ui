@@ -1,0 +1,27 @@
+name: "Playwright E2E: PR tests"
+on:
+  pull_request:
+    types: [ "opened", "reopened", "synchronize" ]
+    paths:
+      - "build.gradle"
+      - "gradle.properties"
+      - "settings.gradle"
+      - "gradle/libs.versions.toml"
+
+      - "contract/**"
+      - "api/**"
+      - "serde-api/**"
+      - "frontend/**"
+      - "e2e-playwright/**"
+
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
+jobs:
+  build-and-test:
+    uses: ./.github/workflows/e2e-playwright-run.yml
+    secrets: inherit
+    with:
+      sha: ${{ github.event.pull_request.head.sha }}

@@ -30,13 +30,9 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
-import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
-import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 import reactor.core.publisher.Mono;
@@ -79,7 +75,7 @@ public class DynamicConfigOperations {
     if (dynamicConfigEnabled()) {
       Path configPath = dynamicConfigFilePath();
       if (!Files.exists(configPath) || !Files.isReadable(configPath)) {
-        log.warn("Dynamic config file {} doesnt exist or not readable", configPath);
+        log.warn("Dynamic config file {} doesnt exist or is not readable", configPath);
         return Optional.empty();
       }
       var propertySource = new CompositePropertySource("dynamicProperties");

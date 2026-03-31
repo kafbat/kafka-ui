@@ -3,7 +3,6 @@ package io.kafbat.ui.service;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
-import java.io.Closeable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +18,7 @@ import reactor.core.scheduler.Schedulers;
 
 @Service
 @Slf4j
-public class AdminClientServiceImpl implements AdminClientService, Closeable {
+public class AdminClientServiceImpl implements AdminClientService {
 
   private static final int DEFAULT_CLIENT_TIMEOUT_MS = 30_000;
 
@@ -27,8 +26,10 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
 
   private final Map<String, ReactiveAdminClient> adminClientCache = new ConcurrentHashMap<>();
   private final int clientTimeout;
+  private final ClustersProperties clustersProperties;
 
   public AdminClientServiceImpl(ClustersProperties clustersProperties) {
+    this.clustersProperties = clustersProperties;
     this.clientTimeout = Optional.ofNullable(clustersProperties.getAdminClientTimeout())
         .orElse(DEFAULT_CLIENT_TIMEOUT_MS);
   }
@@ -53,9 +54,26 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
       );
       return AdminClient.create(properties);
     }).subscribeOn(Schedulers.boundedElastic())
-        .flatMap(ac -> ReactiveAdminClient.create(ac).doOnError(th -> ac.close()))
+        .flatMap(ac -> ReactiveAdminClient.create(ac, clustersProperties.getAdminClient())
+            .doOnError(th -> ac.close())
+        )
         .onErrorMap(th -> new IllegalStateException(
             "Error while creating AdminClient for the cluster " + cluster.getName(), th));
+  }
+
+  @Override
+  public void invalidate(KafkaCluster cluster, Throwable e) {
+    if (e.getClass().getCanonicalName().startsWith("org.apache.kafka.common.errors")) {
+      log.warn("AdminClient for the cluster {} is invalidated due to {}", cluster.getName(), e.getMessage());
+      ReactiveAdminClient client = adminClientCache.remove(cluster.getName());
+      if (client != null) {
+        try {
+          client.close();
+        } catch (Exception ce) {
+          log.info("Error while closing AdminClient for the cluster {}", cluster.getName(), ce);
+        }
+      }
+    }
   }
 
   @Override

@@ -7,7 +7,6 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import com.google.common.annotations.VisibleForTesting;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.util.MetricsUtils;
-import io.prometheus.metrics.expositionformats.OpenMetricsTextFormatWriter;
 import io.prometheus.metrics.expositionformats.PrometheusTextFormatWriter;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import io.prometheus.metrics.model.snapshots.MetricSnapshots;
@@ -30,7 +29,7 @@ public final class PrometheusMetricsExposer {
 
   static {
     PROMETHEUS_EXPOSE_ENDPOINT_HEADERS = new HttpHeaders();
-    PROMETHEUS_EXPOSE_ENDPOINT_HEADERS.set(CONTENT_TYPE, OpenMetricsTextFormatWriter.CONTENT_TYPE);
+    PROMETHEUS_EXPOSE_ENDPOINT_HEADERS.set(CONTENT_TYPE, PrometheusTextFormatWriter.CONTENT_TYPE);
   }
 
   private PrometheusMetricsExposer() {

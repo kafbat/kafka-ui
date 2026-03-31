@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
@@ -61,6 +62,7 @@ import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.ProducerState;
+import org.apache.kafka.clients.admin.QuorumInfo;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -88,7 +90,6 @@ import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
-import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -153,7 +154,7 @@ public class ReactiveAdminClient implements Closeable {
     private static Mono<ConfigRelatedInfo> extract(AdminClient ac) {
       return ReactiveAdminClient.describeClusterImpl(ac, Set.of())
           .flatMap(desc -> {
-            // choosing node from which we will get configs (starting with controller)
+            // choosing the node which we will get configs from (starting with the controller)
             var targetNodeId = Optional.ofNullable(desc.controller)
                 .map(Node::id)
                 .orElse(desc.getNodes().iterator().next().id());
@@ -183,16 +184,22 @@ public class ReactiveAdminClient implements Closeable {
                   final String finalVersion = version.orElse(DEFAULT_UNKNOWN_VERSION);
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
                   return SupportedFeature.forVersion(ac, version)
-                      .map(features -> new ConfigRelatedInfo(finalVersion, features, finalTopicDeletionEnabled));
+                      .map(features -> new ConfigRelatedInfo(
+                          finalVersion,
+                          features,
+                          finalTopicDeletionEnabled
+                      ));
                 });
           })
           .cache(UPDATE_DURATION);
     }
   }
 
-  public static Mono<ReactiveAdminClient> create(AdminClient adminClient) {
+  public static Mono<ReactiveAdminClient> create(AdminClient adminClient, ClustersProperties.AdminClient properties) {
     Mono<ConfigRelatedInfo> configRelatedInfoMono = ConfigRelatedInfo.extract(adminClient);
-    return configRelatedInfoMono.map(info -> new ReactiveAdminClient(adminClient, configRelatedInfoMono, info));
+    return configRelatedInfoMono.map(info ->
+        new ReactiveAdminClient(adminClient, configRelatedInfoMono, properties, info)
+    );
   }
 
 
@@ -209,19 +216,20 @@ public class ReactiveAdminClient implements Closeable {
   // NOTE: if KafkaFuture returns null, that Mono will be empty(!), since Reactor does not support nullable results
   // (see MonoSink.success(..) javadoc for details)
   public static <T> Mono<T> toMono(KafkaFuture<T> future) {
-    return Mono.<T>create(sink -> future.whenComplete((res, ex) -> {
-      if (ex != null) {
-        // KafkaFuture doc is unclear about what exception wrapper will be used
-        // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
-        if (ex instanceof CompletionException || ex instanceof ExecutionException) {
-          sink.error(ex.getCause()); //unwrapping exception
-        } else {
-          sink.error(ex);
-        }
-      } else {
-        sink.success(res);
-      }
-    })).doOnCancel(() -> future.cancel(true))
+    return Mono.<T>create(sink ->
+            future.whenComplete((res, ex) -> {
+              if (ex != null) {
+                // KafkaFuture doc is unclear about what exception wrapper will be used
+                // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
+                if (ex instanceof CompletionException || ex instanceof ExecutionException) {
+                  sink.error(ex.getCause()); //unwrapping exception
+                } else {
+                  sink.error(ex);
+                }
+              } else {
+                sink.success(res);
+              }
+            })).doOnCancel(() -> future.cancel(true))
         // AdminClient is using single thread for kafka communication
         // and by default all downstream operations (like map(..)) on created Mono will be executed on this thread.
         // If some of downstream operation are blocking (by mistake) this can lead to
@@ -235,6 +243,7 @@ public class ReactiveAdminClient implements Closeable {
   @Getter(AccessLevel.PACKAGE) // visible for testing
   private final AdminClient client;
   private final Mono<ConfigRelatedInfo> configRelatedInfoMono;
+  private final ClustersProperties.AdminClient properties;
 
   private volatile ConfigRelatedInfo configRelatedInfo;
 
@@ -280,7 +289,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topicNames,
-        200,
+        properties.getGetTopicsConfigPartitionSize(),
         part -> getTopicsConfigImpl(part, includeDocFixed),
         mapMerger()
     );
@@ -348,7 +357,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topics,
-        200,
+        properties.getDescribeTopicsPartitionSize(),
         this::describeTopicsImpl,
         mapMerger()
     );
@@ -424,9 +433,12 @@ public class ReactiveAdminClient implements Closeable {
     return describeClusterImpl(client, getClusterFeatures());
   }
 
-  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client, Set<SupportedFeature> features) {
+  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client,
+                                                              Set<SupportedFeature> features
+  ) {
     boolean includeAuthorizedOperations =
         features.contains(SupportedFeature.DESCRIBE_CLUSTER_INCLUDE_AUTHORIZED_OPERATIONS);
+
     DescribeClusterResult result = client.describeCluster(
         new DescribeClusterOptions().includeAuthorizedOperations(includeAuthorizedOperations));
     var allOfFuture = KafkaFuture.allOf(
@@ -434,10 +446,10 @@ public class ReactiveAdminClient implements Closeable {
     return toMono(allOfFuture).then(
         Mono.fromCallable(() ->
             new ClusterDescription(
-              result.controller().get(),
-              result.clusterId().get(),
-              result.nodes().get(),
-              result.authorizedOperations().get()
+                result.controller().get(),
+                result.clusterId().get(),
+                result.nodes().get(),
+                result.authorizedOperations().get()
             )
         )
     );
@@ -517,8 +529,8 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds) {
     return partitionCalls(
         groupIds,
-        25,
-        4,
+        properties.getDescribeConsumerGroupsPartitionSize(),
+        properties.getDescribeConsumerGroupsConcurrency(),
         ids -> toMono(client.describeConsumerGroups(ids).all()),
         mapMerger()
     );
@@ -541,8 +553,8 @@ public class ReactiveAdminClient implements Closeable {
 
     Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> merged = partitionCalls(
         consumerGroups,
-        25,
-        4,
+        properties.getListConsumerGroupOffsetsPartitionSize(),
+        properties.getListConsumerGroupOffsetsConcurrency(),
         call,
         mapMerger()
     );
@@ -613,8 +625,8 @@ public class ReactiveAdminClient implements Closeable {
 
   @VisibleForTesting
   static Set<TopicPartition> filterPartitionsWithLeaderCheck(Collection<TopicDescription> topicDescriptions,
-                                                              Predicate<TopicPartition> partitionPredicate,
-                                                              boolean failOnUnknownLeader) {
+                                                             Predicate<TopicPartition> partitionPredicate,
+                                                             boolean failOnUnknownLeader) {
     var goodPartitions = new HashSet<TopicPartition>();
     for (TopicDescription description : topicDescriptions) {
       var goodTopicPartitions = new ArrayList<TopicPartition>();
@@ -710,6 +722,10 @@ public class ReactiveAdminClient implements Closeable {
 
   public Mono<Void> alterClientQuota(ClientQuotaAlteration alteration) {
     return toMono(client.alterClientQuotas(List.of(alteration)).all());
+  }
+
+  public Mono<QuorumInfo> describeMetadataQuorum() {
+    return toMono(client.describeMetadataQuorum().quorumInfo());
   }
 
 

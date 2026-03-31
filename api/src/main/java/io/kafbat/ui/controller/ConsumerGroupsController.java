@@ -3,6 +3,7 @@ package io.kafbat.ui.controller;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.DELETE;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.RESET_OFFSETS;
 import static io.kafbat.ui.model.rbac.permission.ConsumerGroupAction.VIEW;
+import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toMap;
 
 import io.kafbat.ui.api.ConsumerGroupsApi;
@@ -12,6 +13,8 @@ import io.kafbat.ui.model.ConsumerGroupDTO;
 import io.kafbat.ui.model.ConsumerGroupDetailsDTO;
 import io.kafbat.ui.model.ConsumerGroupOffsetsResetDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
+import io.kafbat.ui.model.ConsumerGroupsLagResponseDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
 import io.kafbat.ui.model.PartitionOffsetDTO;
 import io.kafbat.ui.model.SortOrderDTO;
@@ -20,9 +23,12 @@ import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.service.ConsumerGroupService;
 import io.kafbat.ui.service.OffsetsResetService;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 @RestController
 @RequiredArgsConstructor
@@ -95,6 +102,46 @@ public class ConsumerGroupsController extends AbstractController implements Cons
         .doOnEach(sig -> audit(context, sig));
   }
 
+
+
+  @Override
+  public Mono<ResponseEntity<ConsumerGroupsLagResponseDTO>> getConsumerGroupsLag(String clusterName,
+                                                                                 List<String> groupNames,
+                                                                                 Long lastUpdate,
+                                                                                 Boolean includePartitions,
+                                                                                 ServerWebExchange exchange) {
+
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getConsumerGroupsLag")
+        .build();
+
+    Mono<ResponseEntity<ConsumerGroupsLagResponseDTO>> result =
+        consumerGroupService.getConsumerGroupsLag(
+                getCluster(clusterName),
+                groupNames,
+                TRUE.equals(includePartitions),
+                Optional.ofNullable(lastUpdate)
+            ).flatMap(t ->
+                Flux.fromIterable(t.getT1().entrySet())
+                    .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.getKey(), clusterName))
+                    .collectList()
+                    .map(l -> l.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                    .map(l -> Tuples.of(t.getT2(), l))
+            )
+            .map(t ->
+                new ConsumerGroupsLagResponseDTO(
+                    t.getT1().orElse(0L), t.getT2()
+                )
+            )
+            .map(ResponseEntity::ok)
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+
+    return validateAccess(context)
+        .then(result)
+        .doOnEach(sig -> audit(context, sig));
+  }
+
   @Override
   public Mono<ResponseEntity<Flux<ConsumerGroupDTO>>> getTopicConsumerGroups(String clusterName,
                                                                              String topicName,
@@ -120,6 +167,8 @@ public class ConsumerGroupsController extends AbstractController implements Cons
         .doOnEach(sig -> audit(context, sig));
   }
 
+
+
   @Override
   public Mono<ResponseEntity<ConsumerGroupsPageResponseDTO>> getConsumerGroupsPage(
       String clusterName,
@@ -128,6 +177,8 @@ public class ConsumerGroupsController extends AbstractController implements Cons
       String search,
       ConsumerGroupOrderingDTO orderBy,
       SortOrderDTO sortOrderDto,
+      Boolean fts,
+      List<ConsumerGroupStateDTO> state,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -137,16 +188,54 @@ public class ConsumerGroupsController extends AbstractController implements Cons
         .build();
 
     return validateAccess(context).then(
-        consumerGroupService.getConsumerGroupsPage(
+        consumerGroupService.getConsumerGroups(
                 getCluster(clusterName),
-                Optional.ofNullable(page).filter(i -> i > 0).orElse(1),
-                Optional.ofNullable(perPage).filter(i -> i > 0).orElse(defaultConsumerGroupsPageSize),
+                OptionalInt.of(
+                    Optional.ofNullable(page).filter(i -> i > 0).orElse(1)
+                ),
+                OptionalInt.of(
+                    Optional.ofNullable(perPage).filter(i -> i > 0).orElse(defaultConsumerGroupsPageSize)
+                ),
                 search,
+                fts,
                 Optional.ofNullable(orderBy).orElse(ConsumerGroupOrderingDTO.NAME),
-                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC)
+                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC),
+                Optional.ofNullable(state).orElse(List.of())
             )
             .map(this::convertPage)
             .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+
+  @Override
+  public Mono<ResponseEntity<String>> getConsumerGroupsCsv(String clusterName, Integer page,
+                                                           Integer perPage, String search,
+                                                           ConsumerGroupOrderingDTO orderBy,
+                                                           SortOrderDTO sortOrderDto, Boolean fts,
+                                                           List<ConsumerGroupStateDTO> state,
+                                                           ServerWebExchange exchange) {
+
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        // consumer group access validation is within the service
+        .operationName("getConsumerGroupsPage")
+        .build();
+
+    return validateAccess(context).then(
+        consumerGroupService.getConsumerGroups(
+                getCluster(clusterName),
+                OptionalInt.empty(),
+                OptionalInt.empty(),
+                search,
+                fts,
+                Optional.ofNullable(orderBy).orElse(ConsumerGroupOrderingDTO.NAME),
+                Optional.ofNullable(sortOrderDto).orElse(SortOrderDTO.ASC),
+                Optional.ofNullable(state).orElse(List.of())
+            )
+            .map(this::convertPage)
+            .map(ResponseEntity::ok)
+            .flatMap(r -> responseToCsv(r, (g) -> Flux.fromIterable(g.getConsumerGroups())))
     ).doOnEach(sig -> audit(context, sig));
   }
 
@@ -192,7 +281,12 @@ public class ConsumerGroupsController extends AbstractController implements Cons
               );
             }
             Map<Integer, Long> offsets = reset.getPartitionsOffsets().stream()
-                .collect(toMap(PartitionOffsetDTO::getPartition, PartitionOffsetDTO::getOffset));
+                .collect(
+                    toMap(
+                        PartitionOffsetDTO::getPartition,
+                        d -> Optional.ofNullable(d.getOffset()).orElse(0L)
+                    )
+                );
             return offsetsResetService.resetToOffsets(cluster, group, reset.getTopic(), offsets);
           default:
             return Mono.error(

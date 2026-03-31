@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
-public class AclsController extends AbstractController implements AclsApi, McpTool {
+public  class AclsController extends AbstractController implements AclsApi, McpTool {
 
   private final AclsService aclsService;
 
@@ -63,12 +63,15 @@ public class AclsController extends AbstractController implements AclsApi, McpTo
         .thenReturn(ResponseEntity.ok().build());
   }
 
+
+
   @Override
   public Mono<ResponseEntity<Flux<KafkaAclDTO>>> listAcls(String clusterName,
                                                           KafkaAclResourceTypeDTO resourceTypeDto,
                                                           String resourceName,
                                                           KafkaAclNamePatternTypeDTO namePatternTypeDto,
                                                           String search,
+                                                          Boolean fts,
                                                           ServerWebExchange exchange) {
     AccessContext context = AccessContext.builder()
         .cluster(clusterName)
@@ -89,25 +92,20 @@ public class AclsController extends AbstractController implements AclsApi, McpTo
     return validateAccess(context).then(
         Mono.just(
             ResponseEntity.ok(
-                aclsService.listAcls(getCluster(clusterName), filter, search)
+                aclsService.listAcls(getCluster(clusterName), filter, search, fts)
                     .map(ClusterMapper::toKafkaAclDto)))
     ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
-  public Mono<ResponseEntity<String>> getAclAsCsv(String clusterName, ServerWebExchange exchange) {
-    AccessContext context = AccessContext.builder()
-        .cluster(clusterName)
-        .aclActions(AclAction.VIEW)
-        .operationName("getAclAsCsv")
-        .build();
-
-    return validateAccess(context).then(
-        aclsService.getAclAsCsvString(getCluster(clusterName))
-            .map(ResponseEntity::ok)
-            .flatMap(Mono::just)
-            .doOnEach(sig -> audit(context, sig))
-    );
+  public Mono<ResponseEntity<String>> getAclAsCsv(String clusterName,
+                                                  KafkaAclResourceTypeDTO resourceType,
+                                                  String resourceName,
+                                                  KafkaAclNamePatternTypeDTO namePatternType,
+                                                  String search, Boolean fts,
+                                                  ServerWebExchange exchange) {
+    return listAcls(clusterName, resourceType, resourceName, namePatternType, search, fts, exchange)
+        .flatMap(this::responseToCsv);
   }
 
   @Override

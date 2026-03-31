@@ -41,6 +41,32 @@ public class ClustersProperties {
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
   CacheProperties cache = new CacheProperties();
+  ClusterFtsProperties fts = new ClusterFtsProperties();
+
+  AdminClient adminClient = new AdminClient();
+
+  Csv csv = new Csv();
+
+  Boolean messageRelativeTimestamp;
+
+  @Data
+  public static class Csv {
+    String lineDelimeter = "crlf";
+    char quoteCharacter = '"';
+    String quoteStrategy = "required";
+    char fieldSeparator = ',';
+  }
+
+  @Data
+  public static class AdminClient {
+    Integer timeout;
+    int describeConsumerGroupsPartitionSize = 50;
+    int describeConsumerGroupsConcurrency = 4;
+    int listConsumerGroupOffsetsPartitionSize = 50;
+    int listConsumerGroupOffsetsConcurrency = 4;
+    int getTopicsConfigPartitionSize = 200;
+    int describeTopicsPartitionSize = 200;
+  }
 
   @Data
   public static class Cluster {
@@ -54,6 +80,7 @@ public class ClustersProperties {
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+    String schemaRegistryTopicSubjectSuffix = "-value";
 
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
@@ -131,6 +158,7 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+    String consumerNamePattern = "connect-%s";
   }
 
   @Data
@@ -145,7 +173,7 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
-    boolean verifySsl = true;
+    boolean verify = true;
   }
 
   @Data
@@ -201,6 +229,7 @@ public class ClustersProperties {
     Boolean consoleAuditEnabled;
     LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
+    Boolean requireAuditTopic;
 
     public enum LogLevel {
       ALL,
@@ -213,8 +242,39 @@ public class ClustersProperties {
   @AllArgsConstructor
   public static class CacheProperties {
     boolean enabled = true;
-    Duration connectCacheExpiry = Duration.ofMinutes(1);
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class NgramProperties {
+    int ngramMin = 1;
+    int ngramMax = 4;
+    boolean distanceScore = true;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ClusterFtsProperties {
+    boolean enabled = true;
+    boolean defaultEnabled = false;
+    NgramProperties schemas = new NgramProperties(1, 4, true);
+    NgramProperties consumers = new NgramProperties(1, 4, true);
+    NgramProperties connect = new NgramProperties(1, 4, true);
+    NgramProperties acl = new NgramProperties(1, 4, true);
+
+    public boolean use(Boolean request) {
+      if (enabled) {
+        if (Boolean.TRUE.equals(request)) {
+          return true;
+        } else {
+          return request == null && defaultEnabled;
+        }
+      }
+      return false;
+    }
   }
 
   @PostConstruct
@@ -242,7 +302,6 @@ public class ClustersProperties {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();
@@ -261,8 +320,8 @@ public class ClustersProperties {
 
   private void validateClusterNames() {
     // if only one cluster provided it is ok not to set name
-    if (clusters.size() == 1 && !StringUtils.hasText(clusters.get(0).getName())) {
-      clusters.get(0).setName("Default");
+    if (clusters.size() == 1 && !StringUtils.hasText(clusters.getFirst().getName())) {
+      clusters.getFirst().setName("Default");
       return;
     }
 

@@ -161,6 +161,12 @@ model TopicMessage {
   valueDeserializeProperties?: Record<unknown>;
 }
 
+model SchemaRegistryDeserializeProperties {
+    type: string;
+    id: int32;
+    subjects?: string[];
+}
+
 enum SeekType {
   BEGINNING,
   OFFSET,
