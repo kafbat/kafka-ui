@@ -1,0 +1,102 @@
+import { Partition, SerdeDescription } from 'generated-sources';
+import jsf from 'json-schema-faker';
+import Ajv, { DefinedError } from 'ajv';
+import Ajv2019 from 'ajv/dist/2019';
+import Ajv2020 from 'ajv/dist/2020';
+import * as draft6MetaSchema from 'ajv/dist/refs/json-schema-draft-06.json';
+import AjvDraft4 from 'ajv-draft-04';
+import addFormats from 'ajv-formats';
+
+jsf.option('fillProperties', false);
+jsf.option('alwaysFakeOptionals', true);
+jsf.option('failOnInvalidFormat', false);
+
+export const getPreferredDescription = (serdes: SerdeDescription[]) =>
+  serdes.find((s) => s.preferred);
+
+export const getDefaultValues = () => {
+  return {
+    justification: undefined,
+  };
+};
+
+export const getPartitionOptions = (partitions: Partition[]) =>
+  partitions.map(({ partition }) => ({
+    label: `Partition #${partition}`,
+    value: partition,
+  }));
+
+export const getSerdeOptions = (items: SerdeDescription[]) => {
+  return items.reduce<{ label: string; value: string }[]>((acc, { name }) => {
+    if (name) {
+      acc.push({ value: name, label: name });
+    }
+    return acc;
+  }, []);
+};
+
+function upperFirst(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+const getAjvVersionForSchemaRef = (schemaRef: string) => {
+  switch (schemaRef) {
+    case 'https://json-schema.org/draft/2019-09/schema':
+      return new Ajv2019();
+    case 'https://json-schema.org/draft/2020-12/schema':
+      return new Ajv2020();
+    case 'http://json-schema.org/draft-06/schema#':
+      return new Ajv().addMetaSchema(draft6MetaSchema);
+    case 'http://json-schema.org/draft-04/schema#':
+      return new AjvDraft4();
+    default:
+      return new Ajv();
+  }
+};
+
+export const validateBySchema = (
+  value: string,
+  schema: string | undefined,
+  type: 'key' | 'content'
+) => {
+  let errors: string[] = [];
+
+  if (!value || !schema) {
+    return errors;
+  }
+
+  let parsedSchema;
+  let parsedValue;
+
+  try {
+    parsedSchema = JSON.parse(schema);
+  } catch (e) {
+    return [`Error in parsing the "${type}" field schema`];
+  }
+  if (parsedSchema.type === 'string') {
+    return [];
+  }
+  try {
+    parsedValue = JSON.parse(value);
+  } catch (e) {
+    return [`Error in parsing the "${type}" field value`];
+  }
+  try {
+    const schemaRef = parsedSchema.$schema;
+    const ajv = getAjvVersionForSchemaRef(schemaRef);
+    addFormats(ajv);
+    const validate = ajv.compile(parsedSchema);
+    validate(parsedValue);
+    if (validate.errors) {
+      errors = validate.errors.map(
+        ({ schemaPath, message }) =>
+          `${schemaPath.replace('#', upperFirst(type))} - ${message}`
+      );
+    }
+  } catch (e) {
+    const err = e as DefinedError;
+    return [`${upperFirst(type)} ${err.message}`];
+  }
+
+  return errors;
+};

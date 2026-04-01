@@ -41,7 +41,7 @@ const Fields = ({ nestedIdx }: { nestedIdx: number }) => {
                 withError
               />
 
-              {fields.length > 1 && (
+              {fields.length > 0 && (
                 <S.RemoveButton
                   style={{ marginTop: '18px' }}
                   onClick={() => remove(index)}
@@ -97,7 +97,7 @@ const MaskingCharReplacement = ({ nestedIdx }: { nestedIdx: number }) => {
                 withError
               />
 
-              {fields.length > 1 && (
+              {fields.length > 0 && (
                 <S.RemoveButton
                   style={{ marginTop: '18px' }}
                   onClick={() => remove(index)}

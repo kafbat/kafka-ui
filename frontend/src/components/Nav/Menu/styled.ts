@@ -53,7 +53,8 @@ export const ContentWrapper = styled.div`
 `;
 
 export const Title = styled.div`
-  max-width: ${({ theme }) => Number(theme.layout.navBarWidth.replaceAll('px', '')) - 80 + "px"};
+  max-width: ${({ theme }) =>
+    `${Number(theme.layout.navBarWidth.replace('px', '')) - 80}px`};
 `;
 
 export const StatusIconWrapper = styled.svg.attrs({

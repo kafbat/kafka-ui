@@ -10,7 +10,9 @@ interface FieldsSelector {
 
   static FieldsSelector create(ClustersProperties.Masking property) {
     if (StringUtils.hasText(property.getFieldsNamePattern()) && !CollectionUtils.isEmpty(property.getFields())) {
-      throw new ValidationException("You can't provide both fieldNames & fieldsNamePattern for masking");
+      System.out.println("You can't provide both fieldNames & fieldsNamePattern for masking");
+      return null;
+//            throw new ValidationException("You can't provide both fieldNames & fieldsNamePattern for masking");
     }
     if (StringUtils.hasText(property.getFieldsNamePattern())) {
       Pattern pattern = Pattern.compile(property.getFieldsNamePattern());

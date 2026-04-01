@@ -1,0 +1,102 @@
+import { serdesPayload } from 'lib/fixtures/topicMessages';
+import {
+  getDefaultValues,
+  getSerdeOptions,
+  validateBySchema,
+} from 'components/Topics/Topic/DataUnmask/utils';
+import { SerdeDescription } from 'generated-sources';
+
+describe('DataUnmask utils', () => {
+  describe('getDefaultValues', () => {
+    it('should return default values', () => {
+      const actual = getDefaultValues();
+
+      expect(actual.justification).not.toBeUndefined();
+    });
+    it('works even with empty serdes', () => {
+      const actual = getDefaultValues();
+      expect(actual.justification).toBeUndefined();
+    });
+  });
+  describe('getSerdeOptions', () => {
+    it('should return options', () => {
+      const options = getSerdeOptions(serdesPayload.key as SerdeDescription[]);
+      expect(options).toHaveLength(2);
+    });
+    it('should skip options without label', () => {
+      const keySerdes = serdesPayload.key as SerdeDescription[];
+      const payload = [{ ...keySerdes[0], name: undefined }, keySerdes[1]];
+      const options = getSerdeOptions(payload);
+      expect(options).toHaveLength(1);
+    });
+  });
+  describe('validateBySchema', () => {
+    const defaultSchema = '{"type": "integer", "minimum" : 1, "maximum" : 2 }';
+
+    it('should return empty error data if value is empty', () => {
+      expect(validateBySchema('', defaultSchema, 'key')).toHaveLength(0);
+    });
+
+    it('should return empty error data if schema is empty', () => {
+      expect(validateBySchema('My Value', '', 'key')).toHaveLength(0);
+    });
+
+    it('should return parsing error data if schema is not parsed with type of key', () => {
+      const schema = '{invalid';
+      expect(validateBySchema('My Value', schema, 'key')).toEqual([
+        `Error in parsing the "key" field schema`,
+      ]);
+    });
+    it('should return parsing error data if schema is not parsed with type of key', () => {
+      const schema = '{invalid';
+      expect(validateBySchema('My Value', schema, 'content')).toEqual([
+        `Error in parsing the "content" field schema`,
+      ]);
+    });
+    it('should return empty error data if schema type is string', () => {
+      const schema = `{"type": "string"}`;
+      expect(validateBySchema('My Value', schema, 'key')).toHaveLength(0);
+    });
+    it('returns errors on invalid input data', () => {
+      expect(validateBySchema('0', defaultSchema, 'key')).toEqual([
+        'Key/minimum - must be >= 1',
+      ]);
+    });
+    it('returns error on broken key value', () => {
+      expect(validateBySchema('{120', defaultSchema, 'key')).toEqual([
+        'Error in parsing the "key" field value',
+      ]);
+    });
+    it('returns error on broken content value', () => {
+      expect(validateBySchema('{120', defaultSchema, 'content')).toEqual([
+        'Error in parsing the "content" field value',
+      ]);
+    });
+
+    it('should successfully validate when schema references json-schema version draft-07', () => {
+      const schema = `{"type":"object","title":"A","description":"A","$id":"https://example.com/A.json",
+      "$schema":"http://json-schema.org/draft-07/schema#","required":["a"],"properties":{"a":{"type":"number"}}}`;
+      expect(validateBySchema('{"a": 6}', schema, 'key')).toHaveLength(0);
+    });
+    it('should successfully validate when schema references json-schema version draft-06', () => {
+      const schema = `{"type":"object","title":"A","description":"A","$id":"https://example.com/A.json",
+      "$schema":"http://json-schema.org/draft-06/schema#","required":["a"],"properties":{"a":{"type":"number"}}}`;
+      expect(validateBySchema('{"a": 6}', schema, 'key')).toHaveLength(0);
+    });
+    it('should successfully validate when schema references json-schema version draft-04', () => {
+      const schema = `{"type":"object","title":"A","description":"A","id":"https://example.com/A.json",
+      "$schema":"http://json-schema.org/draft-04/schema#","required":["a"],"properties":{"a":{"type":"number"}}}`;
+      expect(validateBySchema('{"a": 6}', schema, 'key')).toHaveLength(0);
+    });
+    it('should successfully validate when schema references json-schema version draft-2019-09', () => {
+      const schema = `{"type":"object","title":"A","description":"A","$id":"https://example.com/A.json",
+      "$schema":"https://json-schema.org/draft/2019-09/schema","required":["a"],"properties":{"a":{"type":"number"}}}`;
+      expect(validateBySchema('{"a": 6}', schema, 'key')).toHaveLength(0);
+    });
+    it('should successfully validate when schema references json-schema version draft-2020-12', () => {
+      const schema = `{"type":"object","title":"A","description":"A","$id":"https://example.com/A.json",
+      "$schema":"https://json-schema.org/draft/2020-12/schema","required":["a"],"properties":{"a":{"type":"number"}}}`;
+      expect(validateBySchema('{"a": 6}', schema, 'key')).toHaveLength(0);
+    });
+  });
+});

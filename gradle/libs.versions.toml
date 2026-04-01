@@ -140,3 +140,7 @@ victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-genera
 
 # CVE fixes
 reactor-netty-http = {module = 'io.projectreactor.netty:reactor-netty-http', version = '1.2.8'}
+
+
+#Sainsburys External Services OpenFiegn
+openfeign = {module = 'org.springframework.cloud:spring-cloud-starter-openfeign'}

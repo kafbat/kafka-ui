@@ -37,12 +37,18 @@ import TopicConsumerGroups from './ConsumerGroups/TopicConsumerGroups';
 import Statistics from './Statistics/Statistics';
 import Edit from './Edit/Edit';
 import SendMessage from './SendMessage/SendMessage';
+import DataUnmask from './DataUnmask/DataUnmask';
 
 const Topic: React.FC = () => {
   const {
     value: isSidebarOpen,
     setFalse: closeSidebar,
     setTrue: openSidebar,
+  } = useBoolean(false);
+  const {
+    value: isMaskSidebarOpen,
+    setFalse: closeMaskSidebar,
+    setTrue: openMaskSidebar,
   } = useBoolean(false);
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
 
@@ -84,6 +90,19 @@ const Topic: React.FC = () => {
           }}
         >
           Produce Message
+        </ActionButton>
+        <ActionButton
+          buttonSize="M"
+          buttonType="primary"
+          onClick={openMaskSidebar}
+          disabled={isReadOnly}
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.MESSAGES_READ,
+            value: topicName,
+          }}
+        >
+          Unmask Messages
         </ActionButton>
         <Dropdown disabled={isReadOnly || data?.internal}>
           <ActionDropdownItem
@@ -235,6 +254,15 @@ const Topic: React.FC = () => {
       >
         <Suspense fallback={<PageLoader />}>
           <SendMessage closeSidebar={closeSidebar} />
+        </Suspense>
+      </SlidingSidebar>
+      <SlidingSidebar
+        open={isMaskSidebarOpen}
+        onClose={closeMaskSidebar}
+        title="Unmask Messages"
+      >
+        <Suspense fallback={<PageLoader />}>
+          <DataUnmask closeSidebar={closeMaskSidebar} />
         </Suspense>
       </SlidingSidebar>
     </>

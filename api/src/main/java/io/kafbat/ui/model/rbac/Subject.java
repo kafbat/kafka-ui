@@ -14,6 +14,8 @@ public class Subject {
   Provider provider;
   String type;
   String value;
+  String createdTime;
+  String expiryTime;
   @JsonProperty("isRegex")
   boolean isRegex;
 
