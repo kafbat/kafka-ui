@@ -52,11 +52,11 @@ public class OAuthTokenCache {
   /**
    * Creates a new OAuth token cache.
    *
-   * @param refreshBufferSeconds Number of seconds before actual expiration to consider token expired.
-   *                            This buffer prevents using tokens that might expire during request processing.
+   * @param refreshBuffer Number of seconds before actual expiration to consider token expired.
+   *                      This buffer prevents using tokens that might expire during request processing.
    */
-  public OAuthTokenCache(Duration refreshBufferSeconds) {
-    this.refreshBufferSeconds = (int) refreshBufferSeconds.toSeconds();
+  public OAuthTokenCache(Duration refreshBuffer) {
+    this.refreshBufferSeconds = (int) refreshBuffer.toSeconds();
 
     this.cache = Caffeine.newBuilder()
         .maximumSize(1) // Only one token needed
@@ -66,8 +66,8 @@ public class OAuthTokenCache {
             // Expire after the effective TTL (actual expiration - buffer)
             long effectiveTtl = Math.max(0, value.getExpiresInSeconds());
             log.debug("OAuth token cached: expires in {}s (actual: {}s, buffer: {}s)",
-                effectiveTtl, value.getExpiresInSeconds() + refreshBufferSeconds.toSeconds(),
-                refreshBufferSeconds.toSeconds());
+                effectiveTtl, value.getExpiresInSeconds() + refreshBufferSeconds,
+                refreshBufferSeconds);
             return TimeUnit.SECONDS.toNanos(effectiveTtl);
           }
 

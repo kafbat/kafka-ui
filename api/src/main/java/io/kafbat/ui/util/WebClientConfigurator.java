@@ -9,6 +9,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.FileInputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -248,8 +250,10 @@ public class WebClientConfigurator {
         .post()
         .uri(oauth.getTokenUrl())
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .bodyValue("grant_type=client_credentials&client_id=" + oauth.getClientId()
-            + "&client_secret=" + oauth.getClientSecret())
+        .bodyValue("grant_type=client_credentials&client_id="
+            + URLEncoder.encode(oauth.getClientId(), StandardCharsets.UTF_8)
+            + "&client_secret="
+            + URLEncoder.encode(oauth.getClientSecret(), StandardCharsets.UTF_8))
         .retrieve()
         .bodyToMono(OAuthTokenResponse.class)
         .doOnNext(response -> log.debug("OAuth token response received: accessToken present: {}, expiresIn: {}s",

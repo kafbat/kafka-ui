@@ -312,7 +312,7 @@ class WebClientConfiguratorOAuthTest {
     }
 
     @Test
-    void shouldUseProxySettingsForTokenRequest() throws InterruptedException {
+    void shouldFetchTokenUsingConfiguredHttpClient() throws InterruptedException {
       // Given: OAuth server returns token
       mockOAuthServer.enqueue(new MockResponse()
           .setResponseCode(200)
@@ -339,7 +339,7 @@ class WebClientConfiguratorOAuthTest {
           .bodyToMono(String.class)
           .block();
 
-      // Then: Token request should be made (verifying httpClient configuration is used)
+      // Then: Token request should be made to the OAuth server
       assertThat(mockOAuthServer.getRequestCount()).isEqualTo(1);
       RecordedRequest tokenRequest = mockOAuthServer.takeRequest();
       assertThat(tokenRequest.getPath()).isEqualTo("/oauth/token");
@@ -526,6 +526,7 @@ class WebClientConfiguratorOAuthTest {
       oauth.setTokenUrl(mockOAuthServer.url("/oauth/token").toString());
       oauth.setClientId("client-id");
       oauth.setClientSecret("client-secret");
+      oauth.setTokenCacheEnabled(true);
       oauth.setMaxRetries(1);
 
       WebClient webClient = new WebClientConfigurator()
