@@ -39,7 +39,7 @@ export const MultiLineTag = styled.div.attrs({ role: 'widget' })<Props>`
   white-space: pre-wrap;
 `;
 
-export const MultiLineChipTag = styled.div.attrs({ role: 'widget' })<Props>`
+export const MultiLineChipTag = styled.div.attrs({ role: 'widget' })`
   border: none;
   border-radius: 16px;
   height: fit-content;
