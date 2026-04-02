@@ -93,7 +93,7 @@ public class KafkaClusterFactory {
       builder.schemaRegistryTopicSubjectSuffix(clusterProperties.getSchemaRegistryTopicSubjectSuffix());
     }
     if (connectClientsConfigured(clusterProperties)) {
-      builder.connectsClients(connectClients(clusterProperties));
+      builder.connectsClients(connectClients(clusterProperties, properties.getKafkaConnectClient()));
       builder.connectsConfigs(connectConfigs(clusterProperties));
     }
     if (ksqlConfigured(clusterProperties)) {
@@ -143,7 +143,8 @@ public class KafkaClusterFactory {
         connectClientsConfigured(clusterProperties)
             ? Flux.fromIterable(clusterProperties.getKafkaConnect())
             .flatMap(c ->
-                KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
+                KafkaServicesValidation.validateConnect(
+                    () -> connectClient(clusterProperties, c, clustersProperties.getKafkaConnectClient()))
                     .map(r -> Tuples.of(c.getName(), r)))
             .collectMap(Tuple2::getT1, Tuple2::getT2)
             .map(Optional::of)
@@ -212,9 +213,11 @@ public class KafkaClusterFactory {
   }
 
   private Map<String, ReactiveFailover<KafkaConnectClientApi>> connectClients(
-      ClustersProperties.Cluster clusterProperties) {
+      ClustersProperties.Cluster clusterProperties,
+      ClustersProperties.KafkaConnect kafkaConnectConfig) {
     Map<String, ReactiveFailover<KafkaConnectClientApi>> connects = new HashMap<>();
-    clusterProperties.getKafkaConnect().forEach(c -> connects.put(c.getName(), connectClient(clusterProperties, c)));
+    clusterProperties.getKafkaConnect().forEach(
+        c -> connects.put(c.getName(), connectClient(clusterProperties, c, kafkaConnectConfig)));
     return connects;
   }
 
@@ -226,7 +229,8 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaConnectClientApi> connectClient(ClustersProperties.Cluster cluster,
-                                                                ClustersProperties.ConnectCluster connectCluster) {
+                                                                ClustersProperties.ConnectCluster connectCluster,
+                                                                ClustersProperties.KafkaConnect kafkaConnectConfig) {
     return ReactiveFailover.create(
         parseUrlList(connectCluster.getAddress()),
         url -> new RetryingKafkaConnectClient(
@@ -234,7 +238,7 @@ public class KafkaClusterFactory {
             cluster.getSsl(),
             webClientMaxBuffSize,
             responseTimeout,
-            clustersProperties.getKafkaConnectClient()
+            kafkaConnectConfig
         ),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No alive connect instances available",
