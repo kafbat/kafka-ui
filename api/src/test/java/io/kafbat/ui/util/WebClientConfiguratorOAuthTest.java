@@ -473,10 +473,13 @@ class WebClientConfiguratorOAuthTest {
       mockOAuthServer.enqueue(new MockResponse()
           .setResponseCode(200)
           .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-          .setBody("{\"access_token\":\"short-lived-token\",\"expires_in\":100}"));
-
+          .setBody("{\"access_token\":\"token-1\",\"expires_in\":30}"));
+      mockOAuthServer.enqueue(new MockResponse()
+          .setResponseCode(200)
+          .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .setBody("{\"access_token\":\"token-2\",\"expires_in\":30}"));
       mockApiServer.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
-
+      mockApiServer.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
       // When: WebClient with large refresh buffer (90s)
       ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
       oauth.setTokenUrl(mockOAuthServer.url("/oauth/token").toString());
@@ -484,20 +487,23 @@ class WebClientConfiguratorOAuthTest {
       oauth.setClientSecret("client-secret");
       oauth.setTokenCacheEnabled(true);
       oauth.setTokenRefreshBufferSeconds(Duration.ofSeconds(90)); // Token effectively expires in 100-90=10s
-
       WebClient webClient = new WebClientConfigurator()
           .configureOAuth(oauth)
           .build();
-
-      // And: Make a request
+      // And: Make two requests. The refresh buffer is larger than expires_in, so the
+      // cached token should be treated as stale immediately.
       webClient.get()
           .uri(mockApiServer.url("/api/resource").toString())
           .retrieve()
           .bodyToMono(String.class)
           .block();
-
-      // Then: Token should be fetched
-      assertThat(mockOAuthServer.getRequestCount()).isEqualTo(1);
+      webClient.get()
+          .uri(mockApiServer.url("/api/resource").toString())
+          .retrieve()
+          .bodyToMono(String.class)
+          .block();
+      // Then: A fresh token should be fetched for the second call
+      assertThat(mockOAuthServer.getRequestCount()).isEqualTo(2);
     }
   }
 
