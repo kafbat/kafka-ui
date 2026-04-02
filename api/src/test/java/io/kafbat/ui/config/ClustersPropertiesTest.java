@@ -3,6 +3,8 @@ package io.kafbat.ui.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +13,14 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
 class ClustersPropertiesTest {
+
+  private static final Validator VALIDATOR;
+
+  static {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      VALIDATOR = validatorFactory.getValidator();
+    }
+  }
 
   @Test
   void clusterNamesShouldBeUniq() {
@@ -118,6 +128,39 @@ class ClustersPropertiesTest {
     assertThat(result.getKafkaConnectClient().getMaxRetries()).isEqualTo(5);
     assertThat(result.getKafkaConnectClient().getRetryBaseDelayMs()).isEqualTo(500L);
     assertThat(result.getKafkaConnectClient().getRetryMaxDelayMs()).isEqualTo(10000L);
+  }
+
+  @Test
+  void kafkaConnectConfigRejectsInvalidValues() {
+    ClustersProperties properties = new ClustersProperties();
+    properties.getKafkaConnectClient().setScrapeConcurrency(0);
+    properties.getKafkaConnectClient().setMaxRetries(-1);
+    properties.getKafkaConnectClient().setRetryBaseDelayMs(0);
+    properties.getKafkaConnectClient().setRetryMaxDelayMs(0);
+
+    var violations = VALIDATOR.validate(properties);
+
+    assertThat(violations)
+        .extracting(v -> v.getPropertyPath().toString())
+        .contains(
+            "kafkaConnectClient.scrapeConcurrency",
+            "kafkaConnectClient.maxRetries",
+            "kafkaConnectClient.retryBaseDelayMs",
+            "kafkaConnectClient.retryMaxDelayMs"
+        );
+  }
+
+  @Test
+  void kafkaConnectConfigRejectsInvalidRetryRange() {
+    ClustersProperties properties = new ClustersProperties();
+    properties.getKafkaConnectClient().setRetryBaseDelayMs(2000);
+    properties.getKafkaConnectClient().setRetryMaxDelayMs(1000);
+
+    var violations = VALIDATOR.validate(properties);
+
+    assertThat(violations)
+        .extracting(v -> v.getMessage())
+        .contains("retryMaxDelayMs must be greater than or equal to retryBaseDelayMs");
   }
 
 }
