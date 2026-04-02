@@ -139,7 +139,7 @@ class OAuthTokenCacheTest {
 
     ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     CountDownLatch latch = new CountDownLatch(threadCount);
-    List<Exception> exceptions = new ArrayList<>();
+    List<Exception> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     for (int i = 0; i < threadCount; i++) {
       final int threadId = i;
