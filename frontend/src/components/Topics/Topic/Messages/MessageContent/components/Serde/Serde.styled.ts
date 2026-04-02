@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Button } from 'components/common/Button/Button';
 
 export const Metadata = styled.span`
   display: flex;
@@ -22,11 +22,11 @@ export const MetadataMeta = styled.p`
   font-size: 12px;
 `;
 
-export const SchemaLink = styled(Link)`
-  cursor: pointer;
-  color: ${({ theme }) => theme.link.color};
-
+export const SchemaButton = styled(Button)`
+  background-color: transparent;
+  gap: 4px;
+  padding: 0;
   &:hover {
-    color: ${({ theme }) => theme.link.hoverColor};
+    background-color: transparent;
   }
 `;

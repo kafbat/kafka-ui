@@ -1,8 +1,13 @@
 import React from 'react';
 import Table from 'components/common/NewTable';
-import { ConsumerGroupTopicPartition } from 'generated-sources';
+import {
+  ConsumerGroupTopicLag,
+  ConsumerGroupTopicPartition,
+} from 'generated-sources';
 import { useSearchParams } from 'react-router-dom';
 import TopicContents from 'components/ConsumerGroups/Details/TopicContents/TopicContents';
+import groupBy from 'lib/functions/groupBy';
+import { LagTrend } from 'lib/consumerGroups';
 
 import {
   getConsumerGroupTopicsTableColumns,
@@ -11,9 +16,21 @@ import {
 
 type TopicsTableProps = {
   partitions: ConsumerGroupTopicPartition[];
+  topicsLagInfo: {
+    lags: Record<string, number | undefined>;
+    trends: Record<string, LagTrend>;
+  };
+  partitionsLagInfo: {
+    lags: Record<string, ConsumerGroupTopicLag | undefined>;
+    trends: Record<string, Record<string, LagTrend>>;
+  };
 };
 
-export const TopicsTable = ({ partitions }: TopicsTableProps) => {
+export const TopicsTable = ({
+  partitions,
+  topicsLagInfo,
+  partitionsLagInfo,
+}: TopicsTableProps) => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
 
@@ -21,7 +38,10 @@ export const TopicsTable = ({ partitions }: TopicsTableProps) => {
   const tableData = getConsumerGroupTopicsTableData({
     partitions,
     searchQuery,
+    lags: topicsLagInfo.lags,
+    lagTrends: topicsLagInfo.trends,
   });
+  const partitionsByTopic = groupBy(partitions || [], 'topic');
 
   return (
     <Table
@@ -29,7 +49,16 @@ export const TopicsTable = ({ partitions }: TopicsTableProps) => {
       columns={columns}
       data={tableData}
       emptyMessage="No topics"
-      renderSubComponent={() => <TopicContents consumers={partitions} />}
+      renderSubComponent={(row) => {
+        const { topicName } = row.row.original;
+        return (
+          <TopicContents
+            topicPartitions={partitionsByTopic[topicName] ?? []}
+            partitionLags={partitionsLagInfo.lags[topicName] ?? {}}
+            partitionTrends={partitionsLagInfo.trends[topicName] ?? {}}
+          />
+        );
+      }}
     />
   );
 };
