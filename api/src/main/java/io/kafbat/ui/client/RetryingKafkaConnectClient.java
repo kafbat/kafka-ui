@@ -54,14 +54,19 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
         .filter(e -> e instanceof WebClientResponseException wce
             && (wce.getStatusCode().value() == 502
                 || wce.getStatusCode().value() == 503
-                || wce.getStatusCode().value() == 429));
+                || wce.getStatusCode().value() == 429))
+        .doBeforeRetry(signal -> log.warn(
+            "Retrying Kafka Connect request after transient error (attempt {}): {}",
+            signal.totalRetries() + 1,
+            signal.failure().getMessage()))
+        .onRetryExhaustedThrow((ignoredSpec, signal) -> signal.failure());
   }
 
   private static Retry conflictCodeRetry() {
     return Retry
         .fixedDelay(MAX_RETRIES, RETRIES_DELAY)
         .filter(e -> e instanceof WebClientResponseException.Conflict)
-        .onRetryExhaustedThrow((spec, signal) ->
+        .onRetryExhaustedThrow((ignoredSpec, signal) ->
             new KafkaConnectConflictResponseException(
                 (WebClientResponseException.Conflict) signal.failure()));
   }

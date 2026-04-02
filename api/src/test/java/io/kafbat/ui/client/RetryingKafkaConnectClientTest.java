@@ -114,9 +114,8 @@ class RetryingKafkaConnectClientTest {
 
     StepVerifier.create(client.getConnectors(null, null))
         .expectErrorSatisfies(e -> {
-          // Reactor's Retry.backoff throws Exceptions.retryExhausted which is an IllegalStateException
-          assertThat(e).isInstanceOf(IllegalStateException.class);
-          assertThat(e.getMessage()).contains("Retries exhausted");
+          assertThat(e).isInstanceOf(WebClientResponseException.BadGateway.class);
+          assertThat(e.getMessage()).contains("502 Bad Gateway");
         })
         .verify(Duration.ofSeconds(10));
 
