@@ -3,6 +3,7 @@ import { CellContext } from '@tanstack/react-table';
 import { FullConnectorInfo } from 'generated-sources';
 import { Link, useParams } from 'react-router-dom';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
+import { MultiLineTag } from 'components/common/Tag/Tag.styled';
 
 const ConsumerGroupCell = ({ row }: CellContext<FullConnectorInfo, string>) => {
   const { consumer } = row.original;
@@ -12,16 +13,15 @@ const ConsumerGroupCell = ({ row }: CellContext<FullConnectorInfo, string>) => {
     return <span>-</span>;
   }
 
+  const toConsumerGroupDetails = clusterConsumerGroupDetailsPath(
+    clusterName,
+    consumer
+  );
+
   return (
-    <Link
-      to={clusterConsumerGroupDetailsPath(
-        clusterName,
-        encodeURIComponent(consumer)
-      )}
-      style={{ color: 'var(--color-primary)' }}
-    >
-      {consumer}
-    </Link>
+    <MultiLineTag color="gray">
+      <Link to={toConsumerGroupDetails}>{consumer}</Link>
+    </MultiLineTag>
   );
 };
 

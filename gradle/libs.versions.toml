@@ -1,7 +1,7 @@
 [versions]
-spring-boot = '3.5.12'
-nimbus-jose-jwt = '10.6'
-jackson-core = '2.21.2'
+spring-boot = '3.5.13'
+nimbus-jose-jwt = '10.8'
+netty = '4.1.132.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -48,7 +48,7 @@ spring-dependency-management = { id = 'io.spring.dependency-management', version
 git-properties = { id = 'com.gorylenko.gradle-git-properties', version = '2.5.3' }
 openapi-validator = {id = "org.openapitools.openapistylevalidator", version = "1.10" }
 openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
-nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '1.1.0' }
+nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '2.0.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
@@ -62,7 +62,6 @@ springdoc-openapi-webflux = { module = 'org.springdoc:springdoc-openapi-starter-
 spring-starter-security = { module = 'org.springframework.boot:spring-boot-starter-security', version.ref = 'spring-boot' }
 # Temporary overwrite to fix CVE-2025-53864
 nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
-jackson-core = { module = 'com.fasterxml.jackson.core:jackson-core', version.ref = 'jackson-core' }
 
 spring-starter-validation = { module = 'org.springframework.boot:spring-boot-starter-validation', version.ref = 'spring-boot' }
 spring-starter-oauth2-client = { module = 'org.springframework.boot:spring-boot-starter-oauth2-client', version.ref = 'spring-boot' }

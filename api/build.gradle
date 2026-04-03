@@ -9,6 +9,16 @@ plugins {
 
 configurations.all {
     resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
+            // uses independent versioning and should not be forced to the core Netty version
+            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
+            // so we can safely exclude it from the resolution strategy
+            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
+                details.useVersion(libs.versions.netty.get())
+                details.because("Fixes CVE-2026-33871 and CVE-2026-33870. Revert when Spring Boot releases a version with the fix")
+            }
+        }
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
                 select(libs.lz4.yawk.get().toString())
@@ -21,10 +31,6 @@ configurations.all {
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
-    implementation(libs.jackson.core){
-        because("Fixes GHSA-72hv-8253-57qq. Revert when Spring boot 3.5.13 is released. See https://github.com/spring-projects/spring-boot/issues/49365/")
-    }
-
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
