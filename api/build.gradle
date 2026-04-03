@@ -69,6 +69,9 @@ dependencies {
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
 
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
+
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
         exclude group: 'io.netty', module: 'netty-tcnative-boringssl-static'

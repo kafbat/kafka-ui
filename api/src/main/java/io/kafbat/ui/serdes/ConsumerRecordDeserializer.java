@@ -79,14 +79,14 @@ public class ConsumerRecordDeserializer {
       return;
     }
     try {
-      var deserResult = keyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
+      var deserResult = keyDeserializer.deserialize(new RecordHeadersImpl(rec.headers()), rec.key().get());
       message.setKey(deserResult.getResult());
       message.setKeySerde(keySerdeName);
       message.setKeyDeserializeProperties(deserResult.getAdditionalProperties());
     } catch (Exception e) {
       log.trace("Error deserializing key for key topic: {}, partition {}, offset {}, with serde {}",
           rec.topic(), rec.partition(), rec.offset(), keySerdeName, e);
-      var deserResult = fallbackKeyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
+      var deserResult = fallbackKeyDeserializer.deserialize(new RecordHeadersImpl(rec.headers()), rec.key().get());
       message.setKey(deserResult.getResult());
       message.setKeySerde(fallbackSerdeName);
     }
