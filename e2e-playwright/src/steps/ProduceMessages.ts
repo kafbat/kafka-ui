@@ -85,7 +85,7 @@ When('Topics TopicName Messages clicked', async function(this: PlaywrightWorld) 
 });
 
 Then('TopicName messages contains key: {string}', async function(this: PlaywrightWorld, expectedKey: string) {
-    await this.locators.topicTopicName.messageValue(expectedKey).click()
+    await this.locators.topicTopicName.messageValue(expectedKey).dispatchEvent('click')
     await this.locators.topicTopicName.keyButton.click();
     await expectVisibility(this.locators.topicTopicName.messageKeyTextbox(expectedKey), "true");
 });
@@ -162,6 +162,7 @@ Given('Topics TopicName AddFilter visible is: {string}', async function(this: Pl
 
 Given('Topics TopicName AddFilter filterCode Json value is: {string}', async function(this: PlaywrightWorld, value: string) {
     const filter = jsonFilter(value);
+    await this.page.waitForTimeout(1000);
     await this.locators.topicTopicName.addFilterFilterCode.click();
     const input = this.locators.topicTopicName.addFilterFilterCodeInput;
     await input.fill(filter);

@@ -31,7 +31,7 @@ export default class TopicsTopickNameLocators {
 
     get addFilters():Locator { return this.page.getByRole('button', { name: 'Add Filters' }) }
     get addFilterHead():Locator { return this.page.getByText('Add Filter').nth(1) }
-    get addFilterFilterCode():Locator { return this.page.locator('.ace_content').first() }
+    get addFilterFilterCode():Locator { return this.page.getByRole('form', { name: 'Filters submit Form' }).locator('.ace_content').first() }
     get addFilterFilterCodeInput():Locator { return this.page.getByRole('form', { name: 'Filters submit Form' }).locator('textarea') }
     get addFilterDisplayName():Locator { return this.page.getByRole('textbox', { name: 'Enter Name' }) }
     get addFilterButton():Locator { return this.page.getByRole('button', { name: 'Add Filter', exact: true }) }
@@ -43,7 +43,7 @@ export default class TopicsTopickNameLocators {
     heading(topicName: string): Locator { return this.page.getByText(`Topics${topicName}`); }
     partitions(value: string):Locator { return this.page.getByRole('group').getByText(value).first(); }
     messageKey(value: string):Locator  { return this.page.getByText(value, { exact: true }); }
-    messageValue(value: string):Locator  { return this.page.getByText(value).first(); }
+    messageValue(value: string):Locator  { return this.page.getByRole('main').getByText(value).first(); }
 
     messageKeyTextbox(value: string):Locator  { return this.page.locator('#schema div').filter({ hasText: value }).nth(1); }
     messageValueTextbox(value: string):Locator  { return this.page.locator('div').filter({ hasText:value }).nth(1); }
