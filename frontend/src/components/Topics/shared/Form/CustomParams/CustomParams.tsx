@@ -46,11 +46,10 @@ const CustomParams: React.FC<CustomParamsProps> = ({
   const removeField = (index: number): void => {
     const itemIndex = existingFields.indexOf(controlledFields[index].name);
     if (itemIndex !== -1) {
-      existingFields.splice(itemIndex, 1);
-      setExistingFields(existingFields);
-      remove(index);
-      trigger('customParams');
+      setExistingFields(existingFields.filter((_, i) => i !== itemIndex));
     }
+    remove(index);
+    trigger('customParams');
   };
 
   return (
