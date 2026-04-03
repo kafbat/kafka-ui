@@ -178,6 +178,54 @@ interface TopicsApi {
   ): KafkaAcl[];
 }
 
+@route("/api/clusters/{clusterName}/partitionreassignments")
+@tag("Topics")
+interface PartitionReassignmentsApi {
+  @post
+  @route("/suggestions")
+  @operationId("generatePartitionAssignment")
+  @summary("generatePartitionAssignment")
+  generatePartitionAssignment(
+    @path clusterName: string,
+    @body command: GeneratePartitionsReassignmentCommand,
+  ): ReassignPartitionsCommand;
+
+  @get
+  @route("/current")
+  @operationId("getCurrentPartitionAssignment")
+  @summary("getCurrentPartitionAssignment")
+  getCurrentPartitionAssignment(
+    @path clusterName: string,
+    @query topics: string[],
+  ): ReassignPartitionsCommand;
+
+  @post
+  @route("/running")
+  @operationId("executePartitionAssignment")
+  @summary("executePartitionAssignment")
+  executePartitionAssignment(
+    @path clusterName: string,
+    @body command: ReassignPartitionsCommand,
+  ): void;
+
+  @get
+  @route("/running")
+  @operationId("getInProgressAssignments")
+  @summary("getInProgressAssignments")
+  getInProgressAssignments(
+    @path clusterName: string,
+  ): InProgressReassignment;
+
+  @delete
+  @route("/running")
+  @operationId("cancelRunningPartitionAssignment")
+  @summary("cancelRunningPartitionAssignment")
+  cancelRunningPartitionAssignment(
+    @path clusterName: string,
+    @body cancellation: PartitionReassignmentCancellation,
+  ): void;
+}
+
 model TopicsResponse {
   pageCount?: int32;
   topics?: Topic[];
@@ -357,4 +405,48 @@ model Replica {
   broker?: int32;
   leader?: boolean;
   inSync?: boolean;
+}
+
+@doc("NOTE! This format is used by kafka-reassign-partitions.sh command-line utility and should not be changed")
+model ReassignPartitionsCommand {
+  version?: int32;
+  partitions?: PartitionReassignmentItem[];
+}
+
+@doc("NOTE! This format is used by kafka-reassign-partitions.sh command-line utility and should not be changed")
+model PartitionReassignmentItem {
+  topic?: string;
+  partition?: int32;
+  replicas?: int32[];
+  log_dirs?: string[];
+}
+
+model GeneratePartitionsReassignmentCommand {
+  broker_ids?: int32[];
+  topics?: ReassignmentTopicRef[];
+}
+
+model ReassignmentTopicRef {
+  topic?: string;
+}
+
+model InProgressReassignment {
+  partitions?: InProgressPartitionReassignment[];
+}
+
+model InProgressPartitionReassignment {
+  topic?: string;
+  partition?: int32;
+  currentReplicas?: int32[];
+  addingReplicas?: int32[];
+  removingReplicas?: int32[];
+}
+
+model PartitionReassignmentCancellation {
+  partitions?: PartitionRef[];
+}
+
+model PartitionRef {
+  topic?: string;
+  partition?: int32;
 }
