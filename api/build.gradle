@@ -31,10 +31,6 @@ configurations.all {
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 dependencies {
-    implementation(libs.jackson.core){
-        because("Fixes GHSA-72hv-8253-57qq. Revert when Spring boot 3.5.13 is released. See https://github.com/spring-projects/spring-boot/issues/49365/")
-    }
-
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
@@ -72,6 +68,9 @@ dependencies {
     implementation libs.confluent.avro.serializer
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
+
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
 
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
