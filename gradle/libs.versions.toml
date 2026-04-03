@@ -17,6 +17,7 @@ avro = '1.12.1'
 byte-buddy = '1.18.1'
 confluent = '7.9.5'
 confluent-ccs = '7.9.5-ccs'
+msgpack = "0.9.11"
 
 mapstruct = '1.6.2'
 lombok = '1.18.42'
@@ -91,6 +92,9 @@ confluent-schema-registry-client = { module = 'io.confluent:kafka-schema-registr
 confluent-avro-serializer = { module = 'io.confluent:kafka-avro-serializer', version.ref = 'confluent' }
 confluent-protobuf-serializer = { module = 'io.confluent:kafka-protobuf-serializer', version.ref = 'confluent' }
 confluent-json-schema-serializer = { module = 'io.confluent:kafka-json-schema-serializer', version.ref = 'confluent' }
+
+msgpack-core = { group = "org.msgpack", name = "msgpack-core", version.ref = "msgpack" }
+msgpack-jackson = { group = "org.msgpack", name = "jackson-dataformat-msgpack", version.ref = "msgpack" }
 
 aws-msk-auth = { module = 'software.amazon.msk:aws-msk-iam-auth', version.ref = 'aws-msk-auth' }
 azure-identity = { module = 'com.azure:azure-identity', version.ref = 'azure-identity' }
