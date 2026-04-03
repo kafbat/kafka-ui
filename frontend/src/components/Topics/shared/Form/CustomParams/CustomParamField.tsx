@@ -71,6 +71,18 @@ const CustomParamField: React.FC<Props> = ({
     }
   }, [existingFields, index, nameValue, setExistingFields, setValue]);
 
+  const onRemove = () => {
+    // We need to purge existingFields from the current value
+    const itemIndex = existingFields.indexOf(nameValue);
+    if (itemIndex !== -1) {
+      const newExistingFields = [...existingFields];
+      newExistingFields.splice(itemIndex, 1);
+      setExistingFields(newExistingFields);
+    }
+    remove(index);
+    trigger('customParams');
+  };
+
   return (
     <C.Column>
       <div>
@@ -118,9 +130,9 @@ const CustomParamField: React.FC<Props> = ({
 
       <S.DeleteButtonWrapper>
         <IconButtonWrapper
-          onClick={() => remove(index)}
+          onClick={onRemove}
           onKeyDown={(e: React.KeyboardEvent) =>
-            e.code === 'Space' && remove(index)
+            e.code === 'Space' && onRemove()
           }
           title={`Delete customParam field ${index}`}
         >
