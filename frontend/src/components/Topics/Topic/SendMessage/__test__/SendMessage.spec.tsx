@@ -89,8 +89,8 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
       preferred: false,
       parameters: [
         {
-          name: 'subjects',
-          visibleName: 'subjects',
+          name: 'subject',
+          visibleName: 'subject',
           allowedValues: ['user-key', 'order-key'],
         },
       ],
@@ -105,8 +105,8 @@ const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
       preferred: false,
       parameters: [
         {
-          name: 'subjects',
-          visibleName: 'subjects',
+          name: 'subject',
+          visibleName: 'subject',
           allowedValues: ['user-value', 'order-value'],
         },
       ],
@@ -428,7 +428,7 @@ describe('SendMessage', () => {
 
       // Parameter field should appear (label from visibleName)
       await waitFor(() => {
-        expect(screen.getByText('subjects')).toBeInTheDocument();
+        expect(screen.getByText('subject')).toBeInTheDocument();
       });
     });
 
@@ -445,7 +445,7 @@ describe('SendMessage', () => {
 
       // Parameter field should appear (label from visibleName)
       await waitFor(() => {
-        expect(screen.getByText('subjects')).toBeInTheDocument();
+        expect(screen.getByText('subject')).toBeInTheDocument();
       });
     });
 
@@ -453,7 +453,7 @@ describe('SendMessage', () => {
       await renderComponent();
 
       // By default, Int32/Int64 are selected (preferred), not SchemaRegistry
-      expect(screen.queryByText('subjects')).not.toBeInTheDocument();
+      expect(screen.queryByText('subject')).not.toBeInTheDocument();
     });
 
     it('should submit with keySerdeProperties when SchemaRegistry key is selected', async () => {
@@ -467,10 +467,10 @@ describe('SendMessage', () => {
 
       // Wait for parameter field to appear and type a value
       await waitFor(() => {
-        expect(screen.getByText('subjects')).toBeInTheDocument();
+        expect(screen.getByText('subject')).toBeInTheDocument();
       });
 
-      const keySubjectInput = screen.getByPlaceholderText('Search subjects...');
+      const keySubjectInput = screen.getByPlaceholderText('Search subject...');
       await userEvent.type(keySubjectInput, 'user-key');
 
       const submitButton = screen.getByRole('button', {
@@ -481,7 +481,7 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           keySerde: 'SchemaRegistry',
-          keySerdeProperties: { subjects: 'user-key' },
+          keySerdeProperties: { subject: 'user-key' },
         })
       );
     });
@@ -499,11 +499,11 @@ describe('SendMessage', () => {
 
       // Wait for parameter field to appear and type a value
       await waitFor(() => {
-        expect(screen.getByText('subjects')).toBeInTheDocument();
+        expect(screen.getByText('subject')).toBeInTheDocument();
       });
 
       const valueSubjectInputs =
-        screen.getAllByPlaceholderText('Search subjects...');
+        screen.getAllByPlaceholderText('Search subject...');
       const valueSubjectInput =
         valueSubjectInputs[valueSubjectInputs.length - 1];
       await userEvent.type(valueSubjectInput, 'user-value');
@@ -516,7 +516,7 @@ describe('SendMessage', () => {
       expect(sendTopicMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           valueSerde: 'SchemaRegistry',
-          valueSerdeProperties: { subjects: 'user-value' },
+          valueSerdeProperties: { subject: 'user-value' },
         })
       );
     });

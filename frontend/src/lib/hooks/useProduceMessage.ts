@@ -2,24 +2,6 @@ import { useState, useCallback } from 'react';
 import { TopicMessage } from 'generated-sources';
 import { MessageFormData } from 'lib/interfaces/message';
 
-const extractSerdeParams = (
-  props?: Record<string, unknown>
-): Record<string, string> | undefined => {
-  if (!props || Object.keys(props).length === 0) return undefined;
-  const result = Object.entries(props).reduce<Record<string, string>>(
-    (acc, [key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        acc[key] = String(value[0]);
-      } else if (value != null && !Array.isArray(value)) {
-        acc[key] = String(value);
-      }
-      return acc;
-    },
-    {}
-  );
-  return Object.keys(result).length > 0 ? result : undefined;
-};
-
 interface UseProduceMessageReturn {
   messageData: Partial<MessageFormData> | null;
   setMessage: (message: TopicMessage) => void;
@@ -56,14 +38,16 @@ export const useProduceMessage = (): UseProduceMessageReturn => {
       data.keySerde = message.keySerde;
     }
 
-    const keyParams = extractSerdeParams(message.keyDeserializeProperties);
-    if (keyParams) {
-      data.keySerdeParams = keyParams;
+    if (message.keyDeserializeProperties?.subjects?.[0]) {
+      data.keySerdeParams = {
+        subject: String(message.keyDeserializeProperties.subjects[0]),
+      };
     }
 
-    const valueParams = extractSerdeParams(message.valueDeserializeProperties);
-    if (valueParams) {
-      data.valueSerdeParams = valueParams;
+    if (message.valueDeserializeProperties?.subjects?.[0]) {
+      data.valueSerdeParams = {
+        subject: String(message.valueDeserializeProperties.subjects[0]),
+      };
     }
 
     setMessageData(data);

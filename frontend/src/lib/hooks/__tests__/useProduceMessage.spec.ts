@@ -95,14 +95,10 @@ describe('useProduceMessage', () => {
     });
 
     expect(result.current.messageData?.keySerdeParams).toEqual({
-      subjects: 'test-topic-key',
-      type: 'AVRO',
-      id: '2',
+      subject: 'test-topic-key',
     });
     expect(result.current.messageData?.valueSerdeParams).toEqual({
-      subjects: 'test-topic-value',
-      type: 'AVRO',
-      id: '1',
+      subject: 'test-topic-value',
     });
   });
 
@@ -118,9 +114,7 @@ describe('useProduceMessage', () => {
       result.current.setMessage(messageWithEmptySubjects);
     });
 
-    expect(
-      result.current.messageData?.valueSerdeParams?.subjects
-    ).toBeUndefined();
+    expect(result.current.messageData?.valueSerdeParams).toBeUndefined();
   });
 
   it('should clear message on callback', () => {

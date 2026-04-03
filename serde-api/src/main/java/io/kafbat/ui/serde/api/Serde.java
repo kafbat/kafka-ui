@@ -121,7 +121,7 @@ public interface Serde extends Closeable {
   /**
    * Returns a list of possible parameters that this serde can use
    * for the given topic and target. Used to populate UI dropdowns.
-   * Default implementation returns an empty Map.
+   * Default implementation returns an empty list.
    *
    * @param topic topic name
    * @param type  {@code Target} for which subjects will be returned.

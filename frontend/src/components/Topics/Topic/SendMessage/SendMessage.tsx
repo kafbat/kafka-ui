@@ -99,12 +99,20 @@ const SendMessage: React.FC<SendMessageProps> = ({
     [valueSerde, serdes.value]
   );
 
+  const prevKeySerde = React.useRef(keySerde);
   React.useEffect(() => {
-    setValue('keySerdeParams', undefined);
+    if (prevKeySerde.current !== keySerde) {
+      setValue('keySerdeParams', undefined);
+      prevKeySerde.current = keySerde;
+    }
   }, [keySerde, setValue]);
 
+  const prevValueSerde = React.useRef(valueSerde);
   React.useEffect(() => {
-    setValue('valueSerdeParams', undefined);
+    if (prevValueSerde.current !== valueSerde) {
+      setValue('valueSerdeParams', undefined);
+      prevValueSerde.current = valueSerde;
+    }
   }, [valueSerde, setValue]);
 
   const renderParameters = (
