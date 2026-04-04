@@ -104,6 +104,15 @@ public class SerdeInstance implements Closeable {
     }
   }
 
+  public boolean couldBePreferable(String topic, Serde.Target type) {
+    try {
+      return wrapWithClassloader(() -> serde.couldBePreferable(topic, type));
+    } catch (Exception e) {
+      log.warn("Error checking if serde '{}' could be preferable for '{}'({})", name, topic, type, e);
+      return false;
+    }
+  }
+
   private Serde.Serializer wrapSerializer(Serde.Serializer serializer) {
     return new Serde.Serializer() {
       @Override

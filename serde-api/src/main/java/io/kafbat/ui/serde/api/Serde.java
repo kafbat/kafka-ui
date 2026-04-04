@@ -124,11 +124,24 @@ public interface Serde extends Closeable {
    * Default implementation returns an empty list.
    *
    * @param topic topic name
-   * @param type  {@code Target} for which subjects will be returned.
+   * @param type  {@code Target} for which parameters will be returned.
    * @return List of applicable parameters.
    */
   default List<SerdeParameter> getParameters(String topic, Target type) {
     return List.of();
+  }
+
+  /**
+   * Indicates whether this serde is a preferable choice for the specified topic and target.
+   * Implementations can use this to influence serde selection when multiple candidates are available.
+   * Default implementation returns {@code true}.
+   *
+   * @param topic topic name
+   * @param type  {@code Target} for which preference is evaluated.
+   * @return {@code true} if this serde should be treated as preferable, otherwise {@code false}.
+   */
+  default boolean couldBePreferable(String topic, Target type) {
+    return true;
   }
 
   /**

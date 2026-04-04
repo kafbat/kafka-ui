@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { expectVisibility, expectVisuallyActive, refreshPageAfterDelay } from "../services/uiHelper";
+import { expectVisibility, expectVisuallyActive } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
 import { getBlankJson } from "../services/templateJsons"
 import { jsonFilter } from "../services/filters"
@@ -85,7 +85,7 @@ When('Topics TopicName Messages clicked', async function(this: PlaywrightWorld) 
 });
 
 Then('TopicName messages contains key: {string}', async function(this: PlaywrightWorld, expectedKey: string) {
-    await this.locators.topicTopicName.messageValue(expectedKey).dispatchEvent('click')
+    await this.locators.topicTopicName.messageValue(expectedKey).click()
     await this.locators.topicTopicName.keyButton.click();
     await expectVisibility(this.locators.topicTopicName.messageKeyTextbox(expectedKey), "true");
 });
@@ -162,7 +162,6 @@ Given('Topics TopicName AddFilter visible is: {string}', async function(this: Pl
 
 Given('Topics TopicName AddFilter filterCode Json value is: {string}', async function(this: PlaywrightWorld, value: string) {
     const filter = jsonFilter(value);
-    await this.page.waitForTimeout(1000);
     await this.locators.topicTopicName.addFilterFilterCode.click();
     const input = this.locators.topicTopicName.addFilterFilterCodeInput;
     await input.fill(filter);

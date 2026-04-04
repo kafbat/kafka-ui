@@ -396,6 +396,11 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     );
   }
 
+  @Override
+  public boolean couldBePreferable(String topic, Target type) {
+    return getSchemaSubjects(topic, type).contains(schemaSubject(topic, type));
+  }
+
   private Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
     SchemaMetadata meta = getSchemaBySubject(explicitSubject)
         .orElseThrow(() -> new ValidationException(
