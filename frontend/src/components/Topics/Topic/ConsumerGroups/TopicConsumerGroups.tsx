@@ -8,8 +8,11 @@ import Table, { LinkCell, TagCell } from 'components/common/NewTable';
 import Search from 'components/common/Search/Search';
 import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
-import { computeLagTrends, LagTrend } from 'lib/consumerGroups';
-import { LagContainer } from 'components/ConsumerGroups/styled';
+import {
+  computeLagTrends,
+  LagTrend,
+  LagTrendComponent,
+} from 'lib/consumerGroups';
 import { useGetConsumerGroupsLag } from 'lib/hooks/api/consumers';
 
 import * as S from './TopicConsumerGroups.styled';
@@ -90,22 +93,7 @@ const TopicConsumerGroups: React.FC = () => {
           consumerGroupsLag?.consumerGroups?.[groupId]?.topics?.[topicName];
         const trend = lagTrends[groupId];
 
-        if (lag == null) return 'N/A';
-
-        let trendElement = null;
-
-        if (trend === 'up') {
-          trendElement = '▲';
-        } else if (trend === 'down') {
-          trendElement = '▼';
-        }
-
-        return (
-          <LagContainer $lagTrend={trend}>
-            <span>{lag}</span>
-            {trendElement && <span>{trendElement}</span>}
-          </LagContainer>
-        );
+        return <LagTrendComponent trend={trend} lag={lag} />;
       },
     },
     {

@@ -7,6 +7,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.ConsumerGroupLagDTO;
 import io.kafbat.ui.model.ConsumerGroupOrderingDTO;
 import io.kafbat.ui.model.ConsumerGroupStateDTO;
+import io.kafbat.ui.model.ConsumerGroupTopicLagDTO;
 import io.kafbat.ui.model.InternalTopicConsumerGroup;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
@@ -236,8 +237,9 @@ class ConsumerGroupServiceTest {
                                    Map<TopicPartition, Long> endOffsets,
                                    long lagPerPartition,
                                    long expectedLag,
-                                   Optional<Instant> scapedInstant,
+                                   Optional<Instant> scrapedInstant,
                                    Optional<Instant> queryInstant,
+                                   boolean includePartitions,
                                    boolean expectedResult) {
     // given
     ClustersProperties.Cluster clusterProperties = new ClustersProperties.Cluster();
@@ -268,7 +270,7 @@ class ConsumerGroupServiceTest {
         ));
 
     ScrapedClusterState state = ScrapedClusterState.builder()
-        .scrapeFinishedAt(scapedInstant.orElse(Instant.now()))
+        .scrapeFinishedAt(scrapedInstant.orElse(Instant.now()))
         .nodesStates(Map.of())
         .topicStates(Map.of(
             topic,
@@ -305,7 +307,7 @@ class ConsumerGroupServiceTest {
 
     Tuple2<Map<String, ConsumerGroupLagDTO>, Optional<Long>> result =
         consumerGroupService.getConsumerGroupsLag(
-            cluster, consumers.keySet(), queryInstant.map(Instant::toEpochMilli)
+            cluster, consumers.keySet(), includePartitions, queryInstant.map(Instant::toEpochMilli)
         ).block();
 
     assertThat(result).isNotNull();
@@ -318,7 +320,18 @@ class ConsumerGroupServiceTest {
         assertThat(dto.getLag()).isEqualTo(expectedLag);
         assertThat(dto.getTopics()).size().isEqualTo(1);
         assertThat(dto.getTopics().get(topic)).isEqualTo(expectedLag);
+
+        if (includePartitions) {
+          assertThat(dto.getTopicPartitions().size()).isEqualTo(1);
+          ConsumerGroupTopicLagDTO topicPartitionsDto = dto.getTopicPartitions().get(topic);
+          assertThat(topicPartitionsDto.getPartitions().size()).isEqualTo(2);
+          assertThat(topicPartitionsDto.getPartitions().values())
+              .allMatch(v -> v.equals(lagPerPartition));
+        } else {
+          assertThat(dto.getTopicPartitions()).isNull();
+        }
       }
+
     } else {
       assertThat(result.getT1()).isEmpty();
       assertThat(result.getT2()).isPresent();
@@ -340,7 +353,19 @@ class ConsumerGroupServiceTest {
             ),
             10L,
             20L,
-            Optional.empty(), Optional.empty(), true
+            Optional.empty(), Optional.empty(), true, true
+        ),
+        Arguments.of(
+            topic,
+            Map.of(
+                new TopicPartition(topic, 0), 100L,
+                new TopicPartition(topic, 1), 100L,
+                new TopicPartition(anotherTopic, 0), 50L,
+                new TopicPartition(anotherTopic, 1), 50L
+            ),
+            10L,
+            20L,
+            Optional.empty(), Optional.empty(), false, true
         ),
         Arguments.of(
             topic,
@@ -350,7 +375,7 @@ class ConsumerGroupServiceTest {
             ),
             0L,
             0L,
-            Optional.empty(), Optional.empty(), true
+            Optional.empty(), Optional.empty(), true, true
         ),
         Arguments.of(
             topic,
@@ -362,6 +387,7 @@ class ConsumerGroupServiceTest {
             0L,
             Optional.of(Instant.now().minusSeconds(10)),
             Optional.of(Instant.now()),
+            true,
             false
         )
     );

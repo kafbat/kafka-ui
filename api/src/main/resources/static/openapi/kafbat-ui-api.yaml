@@ -1200,6 +1200,12 @@ paths:
             type: integer
             format: int64
           explode: false
+        - name: includePartitions
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -4102,6 +4108,10 @@ components:
           additionalProperties:
             type: integer
             format: int64
+        topicPartitions:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ConsumerGroupTopicLag'
     ConsumerGroupOffsetsReset:
       type: object
       required:
@@ -4148,6 +4158,14 @@ components:
         - STABLE
         - DEAD
         - EMPTY
+    ConsumerGroupTopicLag:
+      type: object
+      properties:
+        partitions:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
     ConsumerGroupTopicPartition:
       type: object
       required:
@@ -4280,12 +4298,6 @@ components:
         valueSerde:
           type: string
           nullable: true
-        keySerdeProperties:
-          type: object
-          additionalProperties: {}
-        valueSerdeProperties:
-          type: object
-          additionalProperties: {}
     ErrorResponse:
       type: object
       required:
@@ -4913,23 +4925,6 @@ components:
         additionalProperties:
           type: object
           additionalProperties: {}
-        parameters:
-          type: array
-          items:
-            $ref: '#/components/schemas/SerdeParameter'
-    SerdeParameter:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-        visibleName:
-          type: string
-        allowedValues:
-          type: array
-          items:
-            type: string
     SerdeUsage:
       type: string
       enum:
