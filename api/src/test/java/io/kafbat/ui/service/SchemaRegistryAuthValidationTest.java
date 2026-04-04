@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsRetriever;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ class SchemaRegistryAuthValidationTest {
     oauth.setClientSecret("client-secret");
     cluster.setSchemaRegistryOAuth(oauth);
 
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class,
+    ValidationException exception = assertThrows(
+        ValidationException.class,
         () -> factory.create(new ClustersProperties(), cluster)
     );
 

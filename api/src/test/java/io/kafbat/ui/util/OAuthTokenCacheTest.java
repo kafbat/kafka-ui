@@ -3,6 +3,12 @@ package io.kafbat.ui.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -62,7 +68,6 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldFetchNewTokenAfterExpiry() {
-    // buffer > expiresIn → effectiveExpiresIn = max(0, 1 - 5) = 0 → entry expires immediately
     OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(5));
     AtomicInteger fetchCount = new AtomicInteger();
 
@@ -81,7 +86,6 @@ class OAuthTokenCacheTest {
 
   @Test
   void shouldApplyRefreshBuffer() throws InterruptedException {
-    // Buffer of 90s on a token that expires in 30s → effective TTL = 0 → treated as expired immediately
     OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(90));
     AtomicInteger fetchCount = new AtomicInteger();
 
@@ -128,7 +132,6 @@ class OAuthTokenCacheTest {
       return Mono.just(responseNoExpiry("token-1"));
     }).block();
 
-    // Second call should still use cache (default 3600s TTL applied)
     cache.getToken(() -> {
       fetchCount.incrementAndGet();
       return Mono.just(responseNoExpiry("token-2"));
@@ -153,7 +156,6 @@ class OAuthTokenCacheTest {
     OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
     AtomicInteger fetchCount = new AtomicInteger();
 
-    // First call fails
     cache.getToken(() -> {
       fetchCount.incrementAndGet();
       return Mono.error(new RuntimeException("transient error"));
@@ -169,26 +171,25 @@ class OAuthTokenCacheTest {
   }
 
   @Test
-  void shouldCoordinateConcurrentCacheMisses() throws InterruptedException {
+  void shouldCoordinateConcurrentCacheMisses() throws InterruptedException, ExecutionException {
     OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
     AtomicInteger fetchCount = new AtomicInteger();
     int threadCount = 20;
 
-    Thread[] threads = new Thread[threadCount];
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    List<Future<String>> futures = new ArrayList<>();
     for (int i = 0; i < threadCount; i++) {
-      threads[i] = new Thread(() ->
+      futures.add(executor.submit(() ->
           cache.getToken(() -> {
             fetchCount.incrementAndGet();
             return Mono.just(response("shared-token", 3600));
           }).block()
-      );
+      ));
     }
+    executor.shutdown();
 
-    for (Thread t : threads) {
-      t.start();
-    }
-    for (Thread t : threads) {
-      t.join();
+    for (Future<String> future : futures) {
+      assertThat(future.get()).isEqualTo("shared-token");
     }
 
     assertThat(fetchCount.get()).isEqualTo(1);

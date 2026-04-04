@@ -11,6 +11,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -237,18 +238,20 @@ public class KafkaClusterFactory {
     var oauth = Optional.ofNullable(clusterProperties.getSchemaRegistryOAuth())
         .orElse(new ClustersProperties.OauthConfig());
 
-    boolean basicAuthConfigured = basicAuth.getUsername() != null || basicAuth.getPassword() != null;
-    boolean oauthConfigured = oauth.getTokenUrl() != null
-        && oauth.getClientId() != null && oauth.getClientSecret() != null;
-    boolean oauthPartiallyConfigured = oauth.getTokenUrl() != null
-        || oauth.getClientId() != null || oauth.getClientSecret() != null;
+    boolean basicAuthConfigured = StringUtils.hasText(basicAuth.getUsername())
+        || StringUtils.hasText(basicAuth.getPassword());
+    boolean oauthConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        && StringUtils.hasText(oauth.getClientId())
+        && StringUtils.hasText(oauth.getClientSecret());
+    boolean oauthPartiallyConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        || StringUtils.hasText(oauth.getClientId()) || StringUtils.hasText(oauth.getClientSecret());
     if (oauthPartiallyConfigured && !oauthConfigured) {
-      throw new IllegalArgumentException(
+      throw new ValidationException(
           "Schema Registry authentication misconfiguration: one of the OAuth Parameters are missing. "
       );
     }
     if (basicAuthConfigured && oauthConfigured) {
-      throw new IllegalArgumentException(
+      throw new ValidationException(
           "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
               + "Please configure only one authentication method."
       );
