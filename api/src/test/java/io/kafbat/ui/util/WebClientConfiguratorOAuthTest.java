@@ -3,6 +3,7 @@ package io.kafbat.ui.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.exception.OAuthTokenFetchException;
 import java.io.IOException;
 import java.time.Duration;
 import okhttp3.mockwebserver.MockResponse;
@@ -156,7 +157,7 @@ class WebClientConfiguratorOAuthTest {
               .bodyToMono(String.class)
       )
           .expectErrorMatches(error ->
-              error instanceof RuntimeException
+              error instanceof OAuthTokenFetchException
               && error.getMessage().contains("Failed to obtain OAuth access token")
               && error.getCause() instanceof WebClientResponseException.Unauthorized
           )
@@ -189,7 +190,7 @@ class WebClientConfiguratorOAuthTest {
               .bodyToMono(String.class)
       )
           .expectErrorMatches(error ->
-              error instanceof RuntimeException
+              error instanceof OAuthTokenFetchException
               && error.getMessage().contains("OAuth token response does not contain 'access_token' field")
           )
           .verify();
@@ -309,6 +310,70 @@ class WebClientConfiguratorOAuthTest {
 
       RecordedRequest apiRequest = mockApiServer.takeRequest();
       assertThat(apiRequest.getHeader(HttpHeaders.AUTHORIZATION)).isNull();
+    }
+
+    @Test
+    void shouldIncludeScopeInTokenRequestWhenScopesConfigured() throws InterruptedException {
+      // Given: OAuth server returns a valid token
+      mockOAuthServer.enqueue(new MockResponse()
+          .setResponseCode(200)
+          .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .setBody("{\"access_token\":\"test-token\",\"expires_in\":3600}"));
+
+      mockApiServer.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+
+      // When: OAuth is configured with multiple scopes
+      ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
+      oauth.setTokenUrl(mockOAuthServer.url("/oauth/token").toString());
+      oauth.setClientId("client-id");
+      oauth.setClientSecret("client-secret");
+      oauth.setScopes(new String[] {"schema_registry", "read"});
+
+      WebClient webClient = new WebClientConfigurator()
+          .configureOAuth(oauth)
+          .build();
+
+      webClient.get()
+          .uri(mockApiServer.url("/api/resource").toString())
+          .retrieve()
+          .bodyToMono(String.class)
+          .block();
+
+      // Then: Token request should include space-separated scopes
+      RecordedRequest tokenRequest = mockOAuthServer.takeRequest();
+      assertThat(tokenRequest.getBody().readUtf8())
+          .contains("scope=schema_registry+read");
+    }
+
+    @Test
+    void shouldNotIncludeScopeInTokenRequestWhenScopesNotConfigured() throws InterruptedException {
+      // Given: OAuth server returns a valid token
+      mockOAuthServer.enqueue(new MockResponse()
+          .setResponseCode(200)
+          .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+          .setBody("{\"access_token\":\"test-token\",\"expires_in\":3600}"));
+
+      mockApiServer.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+
+      // When: OAuth is configured without scopes
+      ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
+      oauth.setTokenUrl(mockOAuthServer.url("/oauth/token").toString());
+      oauth.setClientId("client-id");
+      oauth.setClientSecret("client-secret");
+
+      WebClient webClient = new WebClientConfigurator()
+          .configureOAuth(oauth)
+          .build();
+
+      webClient.get()
+          .uri(mockApiServer.url("/api/resource").toString())
+          .retrieve()
+          .bodyToMono(String.class)
+          .block();
+
+      // Then: Token request should not include scope parameter
+      RecordedRequest tokenRequest = mockOAuthServer.takeRequest();
+      assertThat(tokenRequest.getBody().readUtf8()).doesNotContain("scope=");
     }
 
     @Test
@@ -486,7 +551,7 @@ class WebClientConfiguratorOAuthTest {
       oauth.setClientId("client-id");
       oauth.setClientSecret("client-secret");
       oauth.setTokenCacheEnabled(true);
-      oauth.setTokenRefreshBufferSeconds(Duration.ofSeconds(90)); // Token effectively expires in 100-90=10s
+      oauth.setTokenRefreshBuffer(Duration.ofSeconds(90)); // Token effectively expires in 100-90=10s
       WebClient webClient = new WebClientConfigurator()
           .configureOAuth(oauth)
           .build();

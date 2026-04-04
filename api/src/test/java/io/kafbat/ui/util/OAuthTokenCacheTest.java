@@ -3,248 +3,194 @@ package io.kafbat.ui.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 class OAuthTokenCacheTest {
 
-  @Test
-  void shouldReturnEmptyWhenNoTokenCached() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
+  private static OAuthTokenResponse response(String token, long expiresIn) {
+    OAuthTokenResponse r = new OAuthTokenResponse();
+    r.setAccessToken(token);
+    r.setExpiresIn(expiresIn);
+    return r;
+  }
 
-    Optional<String> token = cache.getValidToken();
-
-    assertThat(token).isEmpty();
+  private static OAuthTokenResponse responseNoExpiry(String token) {
+    OAuthTokenResponse r = new OAuthTokenResponse();
+    r.setAccessToken(token);
+    return r;
   }
 
   @Test
-  void shouldReturnCachedTokenWhenValid() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken("test-token-123", 3600);
-    Optional<String> token = cache.getValidToken();
-
-    assertThat(token).isPresent();
-    assertThat(token.get()).isEqualTo("test-token-123");
-  }
-
-  @Test
-  void shouldReturnEmptyWhenTokenExpired() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0)); // No buffer
-
-    // Store token that expires in 1 second
-    cache.storeToken("expiring-token", 1);
-
-    // Wait for expiration
-    Thread.sleep(1100);
-
-    Optional<String> token = cache.getValidToken();
-
-    assertThat(token).isEmpty();
-  }
-
-  @Test
-  void shouldApplyRefreshBuffer() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(300)); // 5 minute buffer
-
-    // Store token that expires in 400 seconds
-    cache.storeToken("test-token", 400);
-
-    // Token should be cached for 400 - 300 = 100 seconds
-    Optional<Instant> expiration = cache.getExpirationTime();
-    assertThat(expiration).isPresent();
-
-    // Effective expiration should be roughly 100 seconds from now
-    long effectiveSeconds = expiration.get().getEpochSecond() - Instant.now().getEpochSecond();
-    assertThat(effectiveSeconds).isBetween(95L, 105L); // Allow 5s variance
-  }
-
-  @Test
-  void shouldInvalidateCache() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken("test-token", 3600);
-    assertThat(cache.getValidToken()).isPresent();
-
-    cache.invalidate();
-
-    assertThat(cache.getValidToken()).isEmpty();
-    assertThat(cache.hasToken()).isFalse();
-  }
-
-  @Test
-  void shouldHandleInvalidationWhenEmpty() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    // Should not throw exception
-    cache.invalidate();
-
-    assertThat(cache.hasToken()).isFalse();
-  }
-
-  @Test
-  void shouldIgnoreNullToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken(null, 3600);
-
-    assertThat(cache.getValidToken()).isEmpty();
-    assertThat(cache.hasToken()).isFalse();
-  }
-
-  @Test
-  void shouldIgnoreEmptyToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken("", 3600);
-
-    assertThat(cache.getValidToken()).isEmpty();
-    assertThat(cache.hasToken()).isFalse();
-  }
-
-  @Test
-  void shouldIgnoreInvalidExpiration() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken("test-token", 0);
-    assertThat(cache.hasToken()).isFalse();
-
-    cache.storeToken("test-token", -100);
-    assertThat(cache.hasToken()).isFalse();
-  }
-
-  @Test
-  void shouldOverwritePreviousToken() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-
-    cache.storeToken("token-1", 3600);
-    assertThat(cache.getValidToken()).contains("token-1");
-
-    cache.storeToken("token-2", 3600);
-    assertThat(cache.getValidToken()).contains("token-2");
-  }
-
-  @Test
-  void shouldBeThreadSafe() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-    int threadCount = 10;
-    int operationsPerThread = 100;
-
-    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-    CountDownLatch latch = new CountDownLatch(threadCount);
-    List<Exception> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
-
-    for (int i = 0; i < threadCount; i++) {
-      final int threadId = i;
-      executor.submit(() -> {
-        try {
-          for (int j = 0; j < operationsPerThread; j++) {
-            cache.storeToken("token-" + threadId + "-" + j, 3600);
-            cache.getValidToken();
-            if (j % 10 == 0) {
-              cache.invalidate();
-            }
-          }
-        } catch (Exception e) {
-          exceptions.add(e);
-        } finally {
-          latch.countDown();
-        }
-      });
-    }
-
-    boolean completed = latch.await(10, TimeUnit.SECONDS);
-
-    executor.shutdown();
-    assertThat(completed).isTrue();
-    assertThat(exceptions).isEmpty();
-  }
-
-  @Test
-  void shouldHandleConcurrentReads() throws InterruptedException {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
-    cache.storeToken("shared-token", 3600);
-
-    int threadCount = 20;
-    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-    CountDownLatch latch = new CountDownLatch(threadCount);
-    List<String> results = new java.util.concurrent.CopyOnWriteArrayList<>();
-
-    for (int i = 0; i < threadCount; i++) {
-      executor.submit(() -> {
-        try {
-          Optional<String> token = cache.getValidToken();
-          token.ifPresent(results::add);
-        } finally {
-          latch.countDown();
-        }
-      });
-    }
-
-    boolean completed = latch.await(5, TimeUnit.SECONDS);
-
-    executor.shutdown();
-    assertThat(completed).isTrue();
-    assertThat(results).hasSize(threadCount);
-    assertThat(results).allMatch(token -> token.equals("shared-token"));
-  }
-
-  @Test
-  void shouldHandleZeroRefreshBuffer() {
+  void shouldFetchTokenOnCacheMiss() {
     OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
 
-    cache.storeToken("test-token", 100);
-
-    Optional<Instant> expiration = cache.getExpirationTime();
-    assertThat(expiration).isPresent();
-
-    // With zero buffer, effective expiration should be ~100 seconds from now
-    long effectiveSeconds = expiration.get().getEpochSecond() - Instant.now().getEpochSecond();
-    assertThat(effectiveSeconds).isBetween(95L, 105L);
+    StepVerifier.create(cache.getToken(() -> Mono.just(response("token-1", 3600))))
+        .expectNext("token-1")
+        .verifyComplete();
   }
 
   @Test
-  void shouldHandleLargeRefreshBuffer() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(5000)); // Buffer larger than expiration
+  void shouldReturnCachedTokenWithoutCallingFetcherAgain() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+    AtomicInteger fetchCount = new AtomicInteger();
 
-    cache.storeToken("test-token", 3600);
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("cached-token", 3600));
+    }).block();
 
-    // Token should be treated as immediately expired since buffer > expires_in
-    // Effective expiration = max(0, 3600 - 5000) = 0
-    Optional<String> token = cache.getValidToken();
-    assertThat(token).isEmpty();
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("new-token", 3600));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(1);
   }
 
   @Test
-  void shouldProvideExpirationInfo() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
+  void shouldReturnCachedTokenValue() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
 
-    assertThat(cache.getExpirationTime()).isEmpty();
+    cache.getToken(() -> Mono.just(response("token-1", 3600))).block();
 
-    cache.storeToken("test-token", 3600);
-
-    Optional<Instant> expiration = cache.getExpirationTime();
-    assertThat(expiration).isPresent();
-    assertThat(expiration.get()).isAfter(Instant.now());
+    String second = cache.getToken(() -> Mono.just(response("token-2", 3600))).block();
+    assertThat(second).isEqualTo("token-1");
   }
 
   @Test
-  void shouldIndicateTokenPresence() {
-    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(60));
+  void shouldFetchNewTokenAfterExpiry() {
+    // buffer > expiresIn → effectiveExpiresIn = max(0, 1 - 5) = 0 → entry expires immediately
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(5));
+    AtomicInteger fetchCount = new AtomicInteger();
 
-    assertThat(cache.hasToken()).isFalse();
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-1", 1));
+    }).block();
 
-    cache.storeToken("test-token", 3600);
-    assertThat(cache.hasToken()).isTrue();
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-2", 3600));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldApplyRefreshBuffer() throws InterruptedException {
+    // Buffer of 90s on a token that expires in 30s → effective TTL = 0 → treated as expired immediately
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(90));
+    AtomicInteger fetchCount = new AtomicInteger();
+
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-1", 30));
+    }).block();
+
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-2", 3600));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldFetchNewTokenAfterInvalidation() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+    AtomicInteger fetchCount = new AtomicInteger();
+
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-1", 3600));
+    }).block();
 
     cache.invalidate();
-    assertThat(cache.hasToken()).isFalse();
+
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-2", 3600));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldUseDefaultExpiryWhenServerOmitsExpiresIn() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+    AtomicInteger fetchCount = new AtomicInteger();
+
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(responseNoExpiry("token-1"));
+    }).block();
+
+    // Second call should still use cache (default 3600s TTL applied)
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(responseNoExpiry("token-2"));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(1);
+  }
+
+  @Test
+  void shouldPropagateFetcherError() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+
+    StepVerifier.create(
+        cache.getToken(() -> Mono.error(new RuntimeException("OAuth server unavailable")))
+    )
+        .expectErrorMessage("OAuth server unavailable")
+        .verify();
+  }
+
+  @Test
+  void shouldRetryAfterFetcherError() {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+    AtomicInteger fetchCount = new AtomicInteger();
+
+    // First call fails
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.error(new RuntimeException("transient error"));
+    }).onErrorResume(e -> Mono.empty()).block();
+
+    // Second call should retry (failed futures are not cached)
+    cache.getToken(() -> {
+      fetchCount.incrementAndGet();
+      return Mono.just(response("token-1", 3600));
+    }).block();
+
+    assertThat(fetchCount.get()).isEqualTo(2);
+  }
+
+  @Test
+  void shouldCoordinateConcurrentCacheMisses() throws InterruptedException {
+    OAuthTokenCache cache = new OAuthTokenCache(Duration.ofSeconds(0));
+    AtomicInteger fetchCount = new AtomicInteger();
+    int threadCount = 20;
+
+    Thread[] threads = new Thread[threadCount];
+    for (int i = 0; i < threadCount; i++) {
+      threads[i] = new Thread(() ->
+          cache.getToken(() -> {
+            fetchCount.incrementAndGet();
+            return Mono.just(response("shared-token", 3600));
+          }).block()
+      );
+    }
+
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+
+    assertThat(fetchCount.get()).isEqualTo(1);
   }
 }

@@ -240,7 +240,13 @@ public class KafkaClusterFactory {
     boolean basicAuthConfigured = basicAuth.getUsername() != null || basicAuth.getPassword() != null;
     boolean oauthConfigured = oauth.getTokenUrl() != null
         && oauth.getClientId() != null && oauth.getClientSecret() != null;
-
+    boolean oauthPartiallyConfigured = oauth.getTokenUrl() != null
+        || oauth.getClientId() != null || oauth.getClientSecret() != null;
+    if (oauthPartiallyConfigured && !oauthConfigured) {
+      throw new IllegalArgumentException(
+          "Schema Registry authentication misconfiguration: one of the OAuth Parameters are missing. "
+      );
+    }
     if (basicAuthConfigured && oauthConfigured) {
       throw new IllegalArgumentException(
           "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
