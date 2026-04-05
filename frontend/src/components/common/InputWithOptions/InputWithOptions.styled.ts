@@ -135,9 +135,9 @@ export const Option = styled.li<OptionProps>`
   }
 `;
 
-export const SelectedOption = styled.li<{ isThemeMode?: boolean }>`
+export const SelectedOption = styled.li<{ $isThemeMode?: boolean }>`
   display: flex;
-  padding-right: ${({ isThemeMode }) => (isThemeMode ? '' : '16px')};
+  padding-right: ${({ $isThemeMode }) => ($isThemeMode ? '' : '16px')};
   list-style-position: inside;
   white-space: nowrap;
   & svg {

@@ -198,7 +198,10 @@ const Details: React.FC = () => {
                     )}
                   </Metrics.Section>
                 </Metrics.Wrapper>
-                <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
+                <ControlPanelWrapper
+                  $hasInput
+                  style={{ margin: '16px 0 20px' }}
+                >
                   <Search placeholder="Search by Topic Name" />
 
                   <RefreshRateSelect

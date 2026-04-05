@@ -33,7 +33,12 @@ export const Button: FC<Props> = ({
     <StyledButton type="button" disabled={disabled || inProgress} {...props}>
       {children}{' '}
       {inProgress ? (
-        <Spinner size={16} borderWidth={2} marginLeft={2} emptyBorderColor />
+        <Spinner
+          $size={16}
+          $borderWidth={2}
+          $marginLeft={2}
+          $emptyBorderColor
+        />
       ) : null}
     </StyledButton>
   );
