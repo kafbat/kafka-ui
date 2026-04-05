@@ -11,6 +11,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -243,14 +244,42 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
-    var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
+    var basicAuth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
-    WebClient webClient = new WebClientConfigurator()
+    var oauth = Optional.ofNullable(clusterProperties.getSchemaRegistryOAuth())
+        .orElse(new ClustersProperties.OauthConfig());
+
+    boolean basicAuthConfigured = StringUtils.hasText(basicAuth.getUsername())
+        || StringUtils.hasText(basicAuth.getPassword());
+    boolean oauthConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        && StringUtils.hasText(oauth.getClientId())
+        && StringUtils.hasText(oauth.getClientSecret());
+    boolean oauthPartiallyConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        || StringUtils.hasText(oauth.getClientId()) || StringUtils.hasText(oauth.getClientSecret());
+    if (oauthPartiallyConfigured && !oauthConfigured) {
+      throw new ValidationException(
+          "Schema Registry authentication misconfiguration: one of the OAuth Parameters are missing. "
+      );
+    }
+    if (basicAuthConfigured && oauthConfigured) {
+      throw new ValidationException(
+          "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
+              + "Please configure only one authentication method."
+      );
+    }
+
+    WebClientConfigurator configurator = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
-        .configureBasicAuth(auth.getUsername(), auth.getPassword())
-        .configureBufferSize(webClientMaxBuffSize)
         .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
-        .build();
+        .configureBufferSize(webClientMaxBuffSize);
+
+    if (basicAuthConfigured) {
+      configurator.configureBasicAuth(basicAuth.getUsername(), basicAuth.getPassword());
+    } else if (oauthConfigured) {
+      configurator.configureOAuth(oauth);
+    }
+
+    WebClient webClient = configurator.build();
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
         url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),

@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -25,9 +26,14 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
+@Slf4j
 public class WebClientConfigurator {
 
   private final WebClient.Builder builder = WebClient.builder();
@@ -125,6 +131,56 @@ public class WebClientConfigurator {
       throw new ValidationException("You specified password but did not specify username");
     }
     return this;
+  }
+
+  public WebClientConfigurator configureOAuth(@Nullable ClustersProperties.OauthConfig oauth) {
+    if (oauth != null && oauth.getTokenUrl() != null
+        && oauth.getClientId() != null && oauth.getClientSecret() != null) {
+
+      int maxRetries = oauth.getMaxRetries() != null ? oauth.getMaxRetries() : 1;
+      HttpClient tokenHttpClient = HttpClient.create().proxyWithSystemProperties();
+      OAuthTokenProvider tokenProvider = new OAuthTokenProvider(oauth, tokenHttpClient);
+
+      log.info("Configuring OAuth with token URL: {}, caching: {}, maxRetries: {}",
+          oauth.getTokenUrl(), Boolean.TRUE.equals(oauth.getTokenCacheEnabled()), maxRetries);
+
+      builder.filter((request, next) ->
+          executeWithOAuthToken(request, next, tokenProvider, maxRetries, 0)
+      );
+    }
+    return this;
+  }
+
+  private Mono<ClientResponse> executeWithOAuthToken(
+      ClientRequest request,
+      ExchangeFunction next,
+      OAuthTokenProvider tokenProvider,
+      int maxRetries,
+      int currentRetryCount) {
+
+    return tokenProvider.getAccessToken()
+        .flatMap(accessToken -> {
+          var modifiedRequest = ClientRequest.from(request)
+              .headers(headers -> headers.setBearerAuth(accessToken))
+              .build();
+
+          return next.exchange(modifiedRequest)
+              .flatMap(response -> {
+                if (response.statusCode().value() == 401) {
+                  tokenProvider.invalidateCache();
+                  if (currentRetryCount < maxRetries) {
+                    log.debug("Received 401 from Schema Registry, invalidating cache (retry {}/{})",
+                        currentRetryCount + 1, maxRetries);
+                    return response.releaseBody()
+                        .then(executeWithOAuthToken(request, next, tokenProvider, maxRetries,
+                            currentRetryCount + 1));
+                  }
+                  log.warn("OAuth authentication failed after {} retries - verify clientId, clientSecret, "
+                      + "and Schema Registry permissions", maxRetries);
+                }
+                return Mono.just(response);
+              });
+        });
   }
 
   public WebClientConfigurator configureBufferSize(DataSize maxBuffSize) {
