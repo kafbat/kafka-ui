@@ -166,14 +166,15 @@ public class WebClientConfigurator {
 
           return next.exchange(modifiedRequest)
               .flatMap(response -> {
-                if (response.statusCode().value() == 401 && currentRetryCount < maxRetries) {
-                  log.debug("Received 401 from Schema Registry, invalidating cache (retry {}/{})",
-                      currentRetryCount + 1, maxRetries);
+                if (response.statusCode().value() == 401) {
                   tokenProvider.invalidateCache();
-                  return response.releaseBody()
-                      .then(executeWithOAuthToken(request, next, tokenProvider, maxRetries,
-                          currentRetryCount + 1));
-                } else if (response.statusCode().value() == 401 && currentRetryCount >= maxRetries) {
+                  if (currentRetryCount < maxRetries) {
+                    log.debug("Received 401 from Schema Registry, invalidating cache (retry {}/{})",
+                        currentRetryCount + 1, maxRetries);
+                    return response.releaseBody()
+                        .then(executeWithOAuthToken(request, next, tokenProvider, maxRetries,
+                            currentRetryCount + 1));
+                  }
                   log.warn("OAuth authentication failed after {} retries - verify clientId, clientSecret, "
                       + "and Schema Registry permissions", maxRetries);
                 }
