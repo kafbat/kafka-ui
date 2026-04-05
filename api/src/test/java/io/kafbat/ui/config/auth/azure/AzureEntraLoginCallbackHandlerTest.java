@@ -17,10 +17,12 @@ import static org.mockito.Mockito.when;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.auth.login.AppConfigurationEntry;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,6 +107,84 @@ class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
+  void shouldUseCustomScopeFromJaasConfig() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("pkc-xxxxx.westeurope.azure.confluent.cloud:9092"));
+
+    String customScope = "api://f5b9dd55-0589-4b04-9e0c-37775596161e/.default";
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of("scope", customScope));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    final ArgumentCaptor<TokenRequestContext> contextCaptor =
+        ArgumentCaptor.forClass(TokenRequestContext.class);
+
+    verify(tokenCredential, times(1)).getToken(contextCaptor.capture());
+
+    final TokenRequestContext tokenRequestContext = contextCaptor.getValue();
+    assertThat(tokenRequestContext, is(notNullValue()));
+    assertThat(
+        tokenRequestContext.getScopes(),
+        is(List.of(customScope)));
+  }
+
+  @Test
+  void shouldFallBackToBootstrapDerivedScopeWhenJaasHasNoScope() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("test-eh.servicebus.windows.net:9093"));
+
+    // JAAS entry without a scope option
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of("extension_logicalCluster", "lkc-xxxxx"));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    final ArgumentCaptor<TokenRequestContext> contextCaptor =
+        ArgumentCaptor.forClass(TokenRequestContext.class);
+
+    verify(tokenCredential, times(1)).getToken(contextCaptor.capture());
+
+    final TokenRequestContext tokenRequestContext = contextCaptor.getValue();
+    assertThat(
+        tokenRequestContext.getScopes(),
+        is(List.of("https://test-eh.servicebus.windows.net/.default")));
+  }
+
+  @Test
+  void shouldFallBackToBootstrapDerivedScopeWithEmptyJaasList() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("test-eh.servicebus.windows.net:9093"));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, Collections.emptyList());
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    final ArgumentCaptor<TokenRequestContext> contextCaptor =
+        ArgumentCaptor.forClass(TokenRequestContext.class);
+
+    verify(tokenCredential, times(1)).getToken(contextCaptor.capture());
+
+    assertThat(
+        contextCaptor.getValue().getScopes(),
+        is(List.of("https://test-eh.servicebus.windows.net/.default")));
+  }
+
+  @Test
   void shouldProvideErrorToCallbackWithTokenError() throws UnsupportedCallbackException {
     Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
 
@@ -135,6 +215,33 @@ class AzureEntraLoginCallbackHandlerTest {
 
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
         configs, null, null));
+  }
+
+  @Test
+  void shouldNotRequireBootstrapServersWhenCustomScopeProvided() throws UnsupportedCallbackException {
+    // When a custom scope is set, bootstrap.servers validation should be skipped
+    // since we don't need to derive the scope from the server URL
+    Map<String, Object> configs = Map.of();
+
+    String customScope = "api://some-app-id/.default";
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of("scope", customScope));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    final ArgumentCaptor<TokenRequestContext> contextCaptor =
+        ArgumentCaptor.forClass(TokenRequestContext.class);
+    verify(tokenCredential, times(1)).getToken(contextCaptor.capture());
+
+    assertThat(
+        contextCaptor.getValue().getScopes(),
+        is(List.of(customScope)));
   }
 
   @Test
