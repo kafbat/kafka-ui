@@ -28,16 +28,16 @@ class SchemaRegistryAuthValidationTest {
     ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
     cluster.setSchemaRegistry("http://localhost:8081");
 
-    ClustersProperties.SchemaRegistryAuth basicAuth = new ClustersProperties.SchemaRegistryAuth();
-    basicAuth.setUsername("user");
-    basicAuth.setPassword("pass");
-    cluster.setSchemaRegistryAuth(basicAuth);
-
     ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
     oauth.setTokenUrl("http://localhost:8080/token");
     oauth.setClientId("client-id");
     oauth.setClientSecret("client-secret");
-    cluster.setSchemaRegistryOAuth(oauth);
+
+    ClustersProperties.SchemaRegistryAuth basicAuth = new ClustersProperties.SchemaRegistryAuth();
+    basicAuth.setUsername("user");
+    basicAuth.setPassword("pass");
+    basicAuth.setOauth(oauth);
+    cluster.setSchemaRegistryAuth(basicAuth);
 
     ValidationException exception = assertThrows(
         ValidationException.class,
@@ -46,6 +46,7 @@ class SchemaRegistryAuthValidationTest {
 
     assertTrue(exception.getMessage().contains("both basic auth and OAuth are configured"));
   }
+
   @Test
   void shouldThrowExceptionWhenOAuthIsPartiallyConfigured() {
     ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
@@ -53,7 +54,10 @@ class SchemaRegistryAuthValidationTest {
 
     ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
     oauth.setTokenUrl("http://localhost:8080/token");
-    cluster.setSchemaRegistryOAuth(oauth);
+
+    ClustersProperties.SchemaRegistryAuth auth = new ClustersProperties.SchemaRegistryAuth();
+    auth.setOauth(oauth);
+    cluster.setSchemaRegistryAuth(auth);
 
     ValidationException exception = assertThrows(
         ValidationException.class,
@@ -89,7 +93,10 @@ class SchemaRegistryAuthValidationTest {
     oauth.setTokenUrl("http://localhost:8080/token");
     oauth.setClientId("client-id");
     oauth.setClientSecret("client-secret");
-    cluster.setSchemaRegistryOAuth(oauth);
+
+    ClustersProperties.SchemaRegistryAuth auth = new ClustersProperties.SchemaRegistryAuth();
+    auth.setOauth(oauth);
+    cluster.setSchemaRegistryAuth(auth);
 
     factory.create(new ClustersProperties(), cluster);
   }

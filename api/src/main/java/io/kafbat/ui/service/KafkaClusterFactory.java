@@ -235,7 +235,7 @@ public class KafkaClusterFactory {
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
     var basicAuth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
-    var oauth = Optional.ofNullable(clusterProperties.getSchemaRegistryOAuth())
+    var oauth = Optional.ofNullable(basicAuth.getOauth())
         .orElse(new ClustersProperties.OauthConfig());
 
     boolean basicAuthConfigured = StringUtils.hasText(basicAuth.getUsername())

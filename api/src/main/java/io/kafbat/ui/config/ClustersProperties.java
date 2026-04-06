@@ -79,7 +79,6 @@ public class ClustersProperties {
 
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
-    OauthConfig schemaRegistryOAuth;
     KeystoreConfig schemaRegistrySsl;
 
     String ksqldbServer;
@@ -165,6 +164,7 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+    OauthConfig oauth;
   }
 
   @Data

@@ -138,7 +138,7 @@ public class WebClientConfigurator {
         && oauth.getClientId() != null && oauth.getClientSecret() != null) {
 
       int maxRetries = oauth.getMaxRetries() != null ? oauth.getMaxRetries() : 1;
-      HttpClient tokenHttpClient = HttpClient.create().proxyWithSystemProperties();
+      HttpClient tokenHttpClient = this.httpClient;
       OAuthTokenProvider tokenProvider = new OAuthTokenProvider(oauth, tokenHttpClient);
 
       log.info("Configuring OAuth with token URL: {}, caching: {}, maxRetries: {}",
