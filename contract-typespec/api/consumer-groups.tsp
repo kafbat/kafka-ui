@@ -20,7 +20,8 @@ interface ConsumerGroupsApi {
     @query search?: string,
     @query orderBy?: ConsumerGroupOrdering,
     @query sortOrder?: SortOrder,
-    @query fts?: boolean
+    @query fts?: boolean,
+    @query state?: ConsumerGroupState[]
   ): ConsumerGroupsPageResponse;
 
   @get
@@ -31,6 +32,7 @@ interface ConsumerGroupsApi {
     @path clusterName: string,
     @query ids: Array<string>,
     @query lastUpdate?: int64,
+    @query includePartitions?: boolean
   ): ConsumerGroupsLagResponse;
 
   @get
@@ -44,7 +46,8 @@ interface ConsumerGroupsApi {
     @query search?: string,
     @query orderBy?: ConsumerGroupOrdering,
     @query sortOrder?: SortOrder,
-    @query fts?: boolean
+    @query fts?: boolean,
+    @query state?: ConsumerGroupState[]
   ): CsvResponse;
 
   @get
@@ -156,6 +159,11 @@ model ConsumerGroupsLagResponse {
 model ConsumerGroupLag {
     lag: int64;
     topics: Record<int64>;
+    topicPartitions?: Record<ConsumerGroupTopicLag>;
+}
+
+model ConsumerGroupTopicLag {
+    partitions?: Record<int64>;
 }
 
 enum ConsumerGroupOffsetsResetType {

@@ -3213,6 +3213,12 @@ components:
         valueSerde:
           type: string
           nullable: true
+        keySerdeProperties:
+          type: object
+          additionalProperties: {}
+        valueSerdeProperties:
+          type: object
+          additionalProperties: {}
       required:
         - partition
 

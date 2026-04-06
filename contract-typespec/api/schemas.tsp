@@ -146,6 +146,7 @@ model SchemaSubject {
   compatibilityLevel: string;
   schemaType: SchemaType;
   references?: SchemaReference[];
+  topic?: string | null;
 }
 
 model NewSchemaSubject {
