@@ -156,33 +156,31 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
             </S.MetadataValue>
           </S.Metadata>
         </S.DataCell>
-        <td style={{ width: '5%' }}>
-          {vEllipsisOpen && (
-            <Dropdown>
-              <DropdownItem
-                aria-label="Copy to clipboard"
-                onClick={copyToClipboard}
-              >
-                Copy to clipboard
-              </DropdownItem>
-              <DropdownItem aria-label="Save as a file" onClick={saveFile}>
-                Save as a file
-              </DropdownItem>
-              <ActionDropdownItem
-                aria-label="Reproduce message"
-                onClick={() => {
-                  openSidebarWithMessage(message);
-                }}
-                permission={{
-                  resource: ResourceType.TOPIC,
-                  action: Action.MESSAGES_PRODUCE,
-                  value: topicName,
-                }}
-              >
-                Reproduce message
-              </ActionDropdownItem>
-            </Dropdown>
-          )}
+        <td style={{ width: '5%', opacity: vEllipsisOpen ? 1 : 0 }}>
+          <Dropdown>
+            <DropdownItem
+              aria-label="Copy to clipboard"
+              onClick={copyToClipboard}
+            >
+              Copy to clipboard
+            </DropdownItem>
+            <DropdownItem aria-label="Save as a file" onClick={saveFile}>
+              Save as a file
+            </DropdownItem>
+            <ActionDropdownItem
+              aria-label="Reproduce message"
+              onClick={() => {
+                openSidebarWithMessage(message);
+              }}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.MESSAGES_PRODUCE,
+                value: topicName,
+              }}
+            >
+              Reproduce message
+            </ActionDropdownItem>
+          </Dropdown>
         </td>
       </S.ClickableRow>
       {isOpen && (
