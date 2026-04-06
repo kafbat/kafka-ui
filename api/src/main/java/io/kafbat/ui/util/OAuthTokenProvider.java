@@ -11,10 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-/**
- * Handles OAuth 2.0 client credentials token acquisition and caching for a single OAuth config.
- * Reuses a single WebClient instance across all token requests.
- */
 @Slf4j
 public class OAuthTokenProvider {
 

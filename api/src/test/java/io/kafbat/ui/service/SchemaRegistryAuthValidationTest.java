@@ -46,6 +46,22 @@ class SchemaRegistryAuthValidationTest {
 
     assertTrue(exception.getMessage().contains("both basic auth and OAuth are configured"));
   }
+  @Test
+  void shouldThrowExceptionWhenOAuthIsPartiallyConfigured() {
+    ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
+    cluster.setSchemaRegistry("http://localhost:8081");
+
+    ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
+    oauth.setTokenUrl("http://localhost:8080/token");
+    cluster.setSchemaRegistryOAuth(oauth);
+
+    ValidationException exception = assertThrows(
+        ValidationException.class,
+        () -> factory.create(new ClustersProperties(), cluster)
+    );
+
+    assertTrue(exception.getMessage().contains("one of the OAuth Parameters are missing"));
+  }
 
   @Test
   void shouldNotThrowExceptionWhenOnlyBasicAuthConfigured() {

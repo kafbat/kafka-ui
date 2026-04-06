@@ -55,10 +55,6 @@ public class OAuthTokenCache {
     log.debug("Created OAuth token cache with {}s refresh buffer", refreshBufferSeconds);
   }
 
-  /**
-   * Returns a cached token, or fetches one via {@code fetcher} if none is cached.
-   * Concurrent callers on a cache miss share the same in-flight fetch.
-   */
   public Mono<String> getToken(Supplier<Mono<OAuthTokenResponse>> fetcher) {
     return Mono.fromFuture(
         cache.get(CACHE_KEY, (key, executor) ->
@@ -78,10 +74,6 @@ public class OAuthTokenCache {
     ).map(TokenWithExpiry::accessToken);
   }
 
-  /**
-   * Invalidates the cached token, forcing the next request to fetch a fresh one.
-   * Typically called after receiving a 401 Unauthorized response.
-   */
   public void invalidate() {
     cache.synchronous().invalidateAll();
     log.debug("OAuth token cache invalidated");
