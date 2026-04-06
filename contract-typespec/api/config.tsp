@@ -160,7 +160,7 @@ model ApplicationConfig {
             tokenCacheEnabled?: boolean = true;
             @format("duration")
             tokenRefreshBuffer?: string;
-            maxRetries?: intC32 = 1;
+            maxRetries?: int32 = 1;
           };
         };
         schemaRegistrySsl?: {
