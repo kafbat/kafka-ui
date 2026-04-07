@@ -1,0 +1,99 @@
+services:
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:7.8.0
+    container_name: schemaregistry
+    ports:
+      - "8085:8085"
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: http://schemaregistry:8085
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
+
+  # Init container to create topics
+  init-topic:
+    image: confluentinc/cp-kafka:7.8.0
+    container_name: init-topic
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka to be ready...' &&
+        cub kafka-ready -b kafka:29092 1 60 &&
+        echo 'Creating test topics...' &&
+        kafka-topics --create --topic topic-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic topic-record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic proto-topic-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic proto-record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic proto-topic-record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic json-topic-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic json-record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        kafka-topics --create --topic json-topic-record-strategy-topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&
+        echo 'Topics created successfully!'
+      "
+    restart: "no"
+
+  # Init container to produce Avro messages with different subject name strategies
+  init-avro:
+    build:
+      context: ./init
+      dockerfile: Dockerfile
+    container_name: init-avro
+    depends_on:
+      - kafka
+      - schemaregistry
+      - init-topic
+    volumes:
+      - ./schemas:/schemas:ro
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_URL: http://schemaregistry:8085
+    restart: "no"
+
+  kafbat-ui:
+    container_name: kafbat-ui
+    build:
+      context: ../../../api
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: build/libs/api-0.0.1-SNAPSHOT.jar
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - schemaregistry
+    volumes:
+      - ./config/application.yml:/application.yml:ro
+    environment:
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/application.yml
