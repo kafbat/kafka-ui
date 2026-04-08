@@ -97,6 +97,7 @@ public class ClustersProperties {
     Map<String, Object> consumerProperties;
     Map<String, Object> producerProperties;
     boolean readOnly = false;
+    boolean disableMessageViewing = false;
 
     Long pollingThrottleRate;
 

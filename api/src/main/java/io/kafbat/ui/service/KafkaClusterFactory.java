@@ -80,6 +80,7 @@ public class KafkaClusterFactory {
     builder.consumerProperties(convertProperties(clusterProperties.getConsumerProperties()));
     builder.producerProperties(convertProperties(clusterProperties.getProducerProperties()));
     builder.readOnly(clusterProperties.isReadOnly());
+    builder.disableMessageViewing(clusterProperties.isDisableMessageViewing());
     builder.exposeMetricsViaPrometheusEndpoint(exposeMetricsViaPrometheusEndpoint(clusterProperties));
     builder.masking(DataMasking.create(clusterProperties.getMasking()));
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));

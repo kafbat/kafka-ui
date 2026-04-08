@@ -29,6 +29,7 @@ public class InternalClusterState {
   private BigDecimal bytesInPerSec;
   private BigDecimal bytesOutPerSec;
   private Boolean readOnly;
+  private Boolean disableMessageViewing;
   private ControllerType controller;
 
   public InternalClusterState(KafkaCluster cluster, Statistics statistics) {
@@ -79,6 +80,7 @@ public class InternalClusterState {
     outOfSyncReplicasCount = partitionsStats.getOutOfSyncReplicasCount();
     underReplicatedPartitionCount = partitionsStats.getUnderReplicatedPartitionCount();
     readOnly = cluster.isReadOnly();
+    disableMessageViewing = cluster.isDisableMessageViewing();
     controller = statistics.getController();
   }
 

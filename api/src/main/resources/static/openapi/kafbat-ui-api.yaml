@@ -3712,6 +3712,8 @@ components:
           format: double
         readOnly:
           type: boolean
+        disableMessageViewing:
+          type: boolean
         version:
           type: string
         features:

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -45,13 +46,22 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class MessagesController extends AbstractController implements MessagesApi, McpTool {
 
+  private static final String MESSAGES_DISABLED = "Message viewing is disabled for this cluster";
+
   private final MessagesService messagesService;
   private final DeserializationService deserializationService;
+
+  private void validateMessageViewingEnabled(String clusterName) {
+    if (getCluster(clusterName).isDisableMessageViewing()) {
+      throw new AccessDeniedException(MESSAGES_DISABLED);
+    }
+  }
 
   @Override
   public Mono<ResponseEntity<Void>> deleteTopicMessages(
       String clusterName, String topicName, @Valid List<Integer> partitions,
       ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
 
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -105,6 +115,8 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                              String valueSerde,
                                                                              String cursor,
                                                                              ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
+
     var contextBuilder = AccessContext.builder()
         .cluster(clusterName)
         .operationName("getTopicMessages");
@@ -142,6 +154,7 @@ public class MessagesController extends AbstractController implements MessagesAp
   public Mono<ResponseEntity<Void>> sendTopicMessages(
       String clusterName, String topicName, @Valid Mono<CreateTopicMessageDTO> createTopicMessage,
       ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
 
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -161,6 +174,8 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                  String topicName,
                                                                  SerdeUsageDTO use,
                                                                  ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
+
     var context = AccessContext.builder()
         .cluster(clusterName)
         .topicActions(topicName, TopicAction.VIEW)
@@ -187,7 +202,7 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                  String topicName,
                                                                  Mono<MessageFilterRegistrationDTO> registration,
                                                                  ServerWebExchange exchange) {
-
+    validateMessageViewingEnabled(clusterName);
 
     final Mono<Void> validateAccess = accessControlService.validateAccess(AccessContext.builder()
         .cluster(clusterName)

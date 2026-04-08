@@ -29,6 +29,7 @@ public class KafkaCluster {
   private final Properties consumerProperties;
   private final Properties producerProperties;
   private final boolean readOnly;
+  private final boolean disableMessageViewing;
   private final boolean exposeMetricsViaPrometheusEndpoint;
   private final DataMasking masking;
   private final PollingSettings pollingSettings;

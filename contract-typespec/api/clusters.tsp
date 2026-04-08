@@ -44,6 +44,7 @@ model Cluster {
   bytesInPerSec?: float64;
   bytesOutPerSec?: float64;
   readOnly?: boolean;
+  disableMessageViewing?: boolean;
   version?: string;
   features?: ClusterFeature[];
   controller?: ControllerType;
