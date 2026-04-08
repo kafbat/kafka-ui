@@ -153,7 +153,7 @@ const Details: React.FC = () => {
                     <Metrics.Indicator label="State">
                       <Tooltip
                         value={
-                          <Tag color={getTagColor(consumerGroup?.state)}>
+                          <Tag $color={getTagColor(consumerGroup?.state)}>
                             {consumerGroup?.state}
                           </Tag>
                         }

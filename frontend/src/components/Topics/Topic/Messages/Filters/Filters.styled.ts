@@ -9,14 +9,14 @@ import { PollingMode } from 'generated-sources';
 import { isModeOptionWithInput } from './utils';
 
 interface SavedFilterProps {
-  selected: boolean;
+  $selected: boolean;
 }
 interface MessageLoadingProps {
-  isLive: boolean;
+  $isLive: boolean;
 }
 
 interface MessageLoadingSpinnerProps {
-  isFetching: boolean;
+  $isFetching: boolean;
 }
 
 export const FilterModeTypeSelectorWrapper = styled.div`
@@ -140,7 +140,7 @@ export const SavedFilterName = styled.div`
   color: ${({ theme }) => theme.savedFilter.filterName};
 `;
 
-export const FilterButtonWrapper = styled.div<{ isEdit: boolean }>`
+export const FilterButtonWrapper = styled.div<{ $isEdit: boolean }>`
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
@@ -199,8 +199,8 @@ export const SavedFilter = styled.div.attrs({
     background-color: ${({ theme }) => theme.layout.stuffColor};
   }
 
-  background-color: ${({ selected, theme }) =>
-    selected ? theme.layout.stuffColor : 'transparent'};
+  background-color: ${({ $selected, theme }) =>
+    $selected ? theme.layout.stuffColor : 'transparent'};
 `;
 
 export const ActiveSmartFilter = styled.div`
@@ -294,7 +294,7 @@ export const MessageLoading = styled.div.attrs({
 })<MessageLoadingProps>`
   color: ${({ theme }) => theme.heading.h3.color};
   font-size: ${({ theme }) => theme.heading.h3.fontSize};
-  display: ${({ isLive }) => (isLive ? 'flex' : 'none')};
+  display: ${({ $isLive }) => ($isLive ? 'flex' : 'none')};
   justify-content: space-around;
   width: 260px;
 `;
@@ -308,7 +308,7 @@ export const StopLoading = styled.button`
 `;
 
 export const MessageLoadingSpinner = styled.div<MessageLoadingSpinnerProps>`
-  display: ${({ isFetching }) => (isFetching ? 'block' : 'none')};
+  display: ${({ $isFetching }) => ($isFetching ? 'block' : 'none')};
   border: 3px solid ${({ theme }) => theme.pageLoader.borderColor};
   border-bottom: 3px solid ${({ theme }) => theme.pageLoader.borderBottomColor};
   border-radius: 50%;
@@ -327,7 +327,9 @@ export const MessageLoadingSpinner = styled.div<MessageLoadingSpinnerProps>`
 `;
 
 // styled component lib bug it does not pick up the generic
-export const FilterModeTypeSelect = styled(Select<PollingMode>)<{$value?: PollingMode}>`
+export const FilterModeTypeSelect = styled(Select<PollingMode>)<{
+  $value?: PollingMode;
+}>`
   border-top-right-radius: ${({ $value }) =>
     !$value || !isModeOptionWithInput($value) ? '4px' : '0'};
   border-bottom-right-radius: ${({ $value }) =>
