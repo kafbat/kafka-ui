@@ -2,18 +2,32 @@ name: "Infra: CVE checks"
 on:
   pull_request:
     types: [ "opened", "reopened", "synchronize" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   push:
     branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'api/**'
+      - 'gradle/**'
+      - 'Dockerfile'
+      - 'build.gradle'
+      - 'settings.gradle'
   workflow_dispatch:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron: '0 8 15 * *'
 
 permissions:
   contents: read
 
 jobs:
-
   check-cves:
     runs-on: ubuntu-latest
 
