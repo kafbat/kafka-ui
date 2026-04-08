@@ -5,10 +5,8 @@ export const Spinner = styled.div<SpinnerProps>`
   border-width: ${(props) => props.$borderWidth}px;
   border-style: solid;
   border-color: ${({ theme }) => theme.pageLoader.borderColor};
-  border-bottom-color: ${(props) =>
-    props.$emptyBorderColor
-      ? 'transparent'
-      : props.theme.pageLoader.borderBottomColor};
+  border-bottom-color: ${({ $emptyBorderColor, theme }) =>
+    $emptyBorderColor ? 'transparent' : theme.pageLoader.borderBottomColor};
   border-radius: 50%;
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;

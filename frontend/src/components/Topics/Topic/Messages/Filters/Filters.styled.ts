@@ -327,11 +327,11 @@ export const MessageLoadingSpinner = styled.div<MessageLoadingSpinnerProps>`
 `;
 
 // styled component lib bug it does not pick up the generic
-export const FilterModeTypeSelect = styled(Select<PollingMode>)`
-  border-top-right-radius: ${(props) =>
-    !props.value || !isModeOptionWithInput(props.value) ? '4px' : '0'};
-  border-bottom-right-radius: ${(props) =>
-    !props.value || !isModeOptionWithInput(props.value) ? '4px' : '0'};
+export const FilterModeTypeSelect = styled(Select<PollingMode>)<{$value?: PollingMode}>`
+  border-top-right-radius: ${({ $value }) =>
+    !$value || !isModeOptionWithInput($value) ? '4px' : '0'};
+  border-bottom-right-radius: ${({ $value }) =>
+    !$value || !isModeOptionWithInput($value) ? '4px' : '0'};
   user-select: none;
 `;
 

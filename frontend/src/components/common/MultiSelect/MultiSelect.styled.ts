@@ -10,8 +10,8 @@ const MultiSelect = styled(ReactMultiSelect)<{
   font-size: 14px;
   .search input {
     color: ${({ theme }) => theme.input.color.normal};
-    background-color: ${(props) =>
-      props.theme.input.backgroundColor.normal} !important;
+    background-color: ${({ theme }) =>
+      theme.input.backgroundColor.normal} !important;
   }
   .select-item {
     color: ${({ theme }) => theme.select.color.normal};
