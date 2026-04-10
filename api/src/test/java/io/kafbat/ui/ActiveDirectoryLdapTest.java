@@ -10,9 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+@DirtiesContext
 @ContextConfiguration(initializers = {ActiveDirectoryLdapTest.Initializer.class})
 public class ActiveDirectoryLdapTest extends AbstractActiveDirectoryIntegrationTest {
   private static final ActiveDirectoryContainer ACTIVE_DIRECTORY = new ActiveDirectoryContainer(false);
