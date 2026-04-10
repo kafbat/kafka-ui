@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import lombok.RequiredArgsConstructor;
@@ -100,9 +101,9 @@ public class McpSpecificationGenerator {
 
     return (ex, args) -> {
       if (isWriteOperation) {
-        Mono<CallToolResult> blocked = readOnlyCheckResult(args);
-        if (blocked != null) {
-          return blocked;
+        Optional<CallToolResult> blocked = readOnlyCheckResult(args);
+        if (blocked.isPresent()) {
+          return Mono.just(blocked.get());
         }
       }
       return Mono.deferContextual(ctx -> {
@@ -122,20 +123,20 @@ public class McpSpecificationGenerator {
     };
   }
 
-  private Mono<CallToolResult> readOnlyCheckResult(Map<String, Object> args) {
+  private Optional<CallToolResult> readOnlyCheckResult(Map<String, Object> args) {
     Object clusterNameArg = args.get(CLUSTER_NAME_PARAM);
     if (clusterNameArg == null) {
-      return Mono.just(toErrorResult("clusterName is required for write operations"));
+      return Optional.of(toErrorResult("clusterName is required for write operations"));
     }
     if (clusterNameArg instanceof String clusterName) {
       var cluster = clustersStorage.getClusterByName(clusterName);
       if (cluster.isPresent() && cluster.get().isReadOnly()) {
-        return Mono.just(toErrorResult(new ReadOnlyModeException()));
+        return Optional.of(toErrorResult(new ReadOnlyModeException()));
       }
     } else {
-      return Mono.just(toErrorResult("clusterName must be a string"));
+      return Optional.of(toErrorResult("clusterName must be a string"));
     }
-    return null;
+    return Optional.empty();
   }
 
   private Mono<CallToolResult> toCallResult(Object result) {
