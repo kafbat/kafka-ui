@@ -204,6 +204,20 @@ class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
+  void shouldProvideErrorToCallbackWhenTokenAcquisitionReturnsEmpty() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of("test-eh.servicebus.windows.net:9093"));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.empty());
+
+    azureEntraLoginCallbackHandler.configure(configs, null, null);
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    verify(oauthBearerTokenCallBack, times(1))
+        .error("invalid_grant", "Token acquisition returned empty result.", null);
+    verify(oauthBearerTokenCallBack, times(0)).token(any());
+  }
+
+  @Test
   void shouldThrowExceptionWithNullBootstrapServers() {
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
         Map.of(), null, null));
@@ -212,6 +226,14 @@ class AzureEntraLoginCallbackHandlerTest {
   @Test
   void shouldThrowExceptionWithMultipleBootstrapServers() {
     Map<String, Object> configs = Map.of("bootstrap.servers", List.of("server1", "server2"));
+
+    assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
+        configs, null, null));
+  }
+
+  @Test
+  void shouldThrowExceptionWithEmptyBootstrapServersList() {
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of());
 
     assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
         configs, null, null));

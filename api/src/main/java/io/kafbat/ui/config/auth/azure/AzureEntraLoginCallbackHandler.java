@@ -9,6 +9,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AppConfigurationEntry;
@@ -64,6 +65,7 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     return request;
   }
 
+  @Nullable
   private String getJaasOption(List<AppConfigurationEntry> jaasConfigEntries, String key) {
     if (jaasConfigEntries == null) {
       return null;
@@ -90,10 +92,10 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
       throw new IllegalArgumentException(message);
     }
 
-    if (bootstrapServers.size() > 1) {
+    if (bootstrapServers.size() != 1) {
       final String message =
           BOOTSTRAP_SERVERS_CONFIG
-              + " contains multiple bootstrap servers. Only a single bootstrap server is supported.";
+              + " must contain exactly one bootstrap server, but found " + bootstrapServers.size() + ".";
       log.error(message);
       throw new IllegalArgumentException(message);
     }
@@ -125,6 +127,10 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
           .retry(ACCESS_TOKEN_REQUEST_MAX_RETRIES)
           .block();
 
+      if (token == null) {
+        oauthCallback.error("invalid_grant", "Token acquisition returned empty result.", null);
+        return;
+      }
       oauthCallback.token(token);
     } catch (RuntimeException e) {
       final String message =
