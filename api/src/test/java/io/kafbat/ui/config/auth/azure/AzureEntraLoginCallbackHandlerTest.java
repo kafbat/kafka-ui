@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AppConfigurationEntry;
+import org.apache.kafka.common.security.auth.SaslExtensions;
+import org.apache.kafka.common.security.auth.SaslExtensionsCallback;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 import org.junit.jupiter.api.BeforeEach;
@@ -270,6 +272,92 @@ class AzureEntraLoginCallbackHandlerTest {
   void shouldThrowExceptionWithUnsupportedCallback() {
     assertThrows(UnsupportedCallbackException.class, () -> azureEntraLoginCallbackHandler.handle(
         new Callback[] {mock(Callback.class)}));
+  }
+
+  @Test
+  void shouldHandleSaslExtensionsCallback() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("pkc-xxxxx.westeurope.azure.confluent.cloud:9092"));
+
+    String customScope = "api://f5b9dd55-0589-4b04-9e0c-37775596161e/.default";
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of(
+            "scope", customScope,
+            "extension_logicalCluster", "lkc-xxxxx",
+            "extension_identityPoolId", "pool-yyyyy"));
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+
+    SaslExtensionsCallback extensionsCallback = new SaslExtensionsCallback();
+    azureEntraLoginCallbackHandler.handle(new Callback[] {extensionsCallback});
+
+    SaslExtensions extensions = extensionsCallback.extensions();
+    assertThat(extensions, is(notNullValue()));
+    assertThat(extensions.map().get("logicalCluster"), is("lkc-xxxxx"));
+    assertThat(extensions.map().get("identityPoolId"), is("pool-yyyyy"));
+  }
+
+  @Test
+  void shouldReturnEmptyExtensionsWhenNoExtensionOptionsInJaas() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("pkc-xxxxx.westeurope.azure.confluent.cloud:9092"));
+
+    String customScope = "api://f5b9dd55-0589-4b04-9e0c-37775596161e/.default";
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of("scope", customScope));
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+
+    SaslExtensionsCallback extensionsCallback = new SaslExtensionsCallback();
+    azureEntraLoginCallbackHandler.handle(new Callback[] {extensionsCallback});
+
+    SaslExtensions extensions = extensionsCallback.extensions();
+    assertThat(extensions, is(notNullValue()));
+    assertThat(extensions.map().isEmpty(), is(true));
+  }
+
+  @Test
+  void shouldReturnEmptyExtensionsWhenNullJaasEntries() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("test-eh.servicebus.windows.net:9093"));
+
+    azureEntraLoginCallbackHandler.configure(configs, null, null);
+
+    SaslExtensionsCallback extensionsCallback = new SaslExtensionsCallback();
+    azureEntraLoginCallbackHandler.handle(new Callback[] {extensionsCallback});
+
+    SaslExtensions extensions = extensionsCallback.extensions();
+    assertThat(extensions, is(notNullValue()));
+    assertThat(extensions.map().isEmpty(), is(true));
+  }
+
+  @Test
+  void shouldHandleBothTokenAndExtensionsCallbacksTogether() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("pkc-xxxxx.westeurope.azure.confluent.cloud:9092"));
+
+    String customScope = "api://f5b9dd55-0589-4b04-9e0c-37775596161e/.default";
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of(
+            "scope", customScope,
+            "extension_logicalCluster", "lkc-xxxxx"));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+
+    SaslExtensionsCallback extensionsCallback = new SaslExtensionsCallback();
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack, extensionsCallback});
+
+    verify(oauthBearerTokenCallBack, times(1)).token(any(OAuthBearerToken.class));
+    assertThat(extensionsCallback.extensions().map().get("logicalCluster"), is("lkc-xxxxx"));
   }
 
   @Test

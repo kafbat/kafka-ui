@@ -7,6 +7,7 @@ import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import java.net.URI;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -15,6 +16,8 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.AppConfigurationEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler;
+import org.apache.kafka.common.security.auth.SaslExtensions;
+import org.apache.kafka.common.security.auth.SaslExtensionsCallback;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerToken;
 import org.apache.kafka.common.security.oauthbearer.OAuthBearerTokenCallback;
 
@@ -36,15 +39,27 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
    */
   static final String JAAS_OPTION_SCOPE = "scope";
 
+  /**
+   * Prefix for JAAS config options that should be forwarded as SASL extensions.
+   * For example, {@code extension_logicalCluster="lkc-xxxxx"} in the JAAS config
+   * becomes the SASL extension {@code logicalCluster=lkc-xxxxx}. This is required
+   * by Confluent Cloud to route OAUTHBEARER requests to the correct logical cluster
+   * and identity pool.
+   */
+  static final String EXTENSION_PREFIX = "extension_";
+
   static TokenCredential tokenCredential = new DefaultAzureCredentialBuilder().build();
 
   private TokenRequestContext tokenRequestContext;
+
+  private SaslExtensions saslExtensions = SaslExtensions.empty();
 
   @Override
   public void configure(Map<String, ?> configs,
                         String mechanism,
                         List<AppConfigurationEntry> jaasConfigEntries) {
     tokenRequestContext = buildTokenRequestContext(configs, jaasConfigEntries);
+    saslExtensions = buildSaslExtensions(jaasConfigEntries);
   }
 
   private TokenRequestContext buildTokenRequestContext(Map<String, ?> configs,
@@ -82,6 +97,34 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
     return null;
   }
 
+  /**
+   * Extracts SASL extensions from JAAS config options with the {@code extension_} prefix.
+   * These extensions are sent to the broker during the SASL/OAUTHBEARER handshake.
+   * Confluent Cloud requires {@code logicalCluster} and {@code identityPoolId} extensions
+   * to route requests to the correct cluster and identity pool.
+   */
+  private SaslExtensions buildSaslExtensions(List<AppConfigurationEntry> jaasConfigEntries) {
+    if (jaasConfigEntries == null) {
+      return SaslExtensions.empty();
+    }
+    Map<String, String> extensions = new HashMap<>();
+    for (AppConfigurationEntry entry : jaasConfigEntries) {
+      for (Map.Entry<String, ?> option : entry.getOptions().entrySet()) {
+        if (option.getKey().startsWith(EXTENSION_PREFIX) && option.getValue() instanceof String value) {
+          String extensionName = option.getKey().substring(EXTENSION_PREFIX.length());
+          String trimmed = value.trim();
+          if (!extensionName.isEmpty() && !trimmed.isEmpty()) {
+            extensions.put(extensionName, trimmed);
+          }
+        }
+      }
+    }
+    if (!extensions.isEmpty()) {
+      log.info("Loaded {} SASL extension(s) from JAAS config: {}", extensions.size(), extensions.keySet());
+    }
+    return new SaslExtensions(extensions);
+  }
+
   @SuppressWarnings("unchecked")
   private URI buildBootstrapServerUri(Map<String, ?> configs) {
     final List<String> bootstrapServers = (List<String>) configs.get(BOOTSTRAP_SERVERS_CONFIG);
@@ -110,10 +153,13 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
   @Override
   public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
     for (Callback callback : callbacks) {
-      if (!(callback instanceof OAuthBearerTokenCallback oauthCallback)) {
+      if (callback instanceof OAuthBearerTokenCallback oauthCallback) {
+        handleOAuthCallback(oauthCallback);
+      } else if (callback instanceof SaslExtensionsCallback extensionsCallback) {
+        extensionsCallback.extensions(saslExtensions);
+      } else {
         throw new UnsupportedCallbackException(callback);
       }
-      handleOAuthCallback(oauthCallback);
     }
   }
 
