@@ -73,12 +73,12 @@ public class StatisticsService {
   private static Mono<Optional<QuorumInfo>> loadQuorumInfo(ReactiveAdminClient ac) {
     return ac.describeMetadataQuorum()
         .map(Optional::of)
-        .onErrorResume(t ->
-            t instanceof UnsupportedVersionException
-                || t instanceof ClusterAuthorizationException
-                ? Mono.just(Optional.empty())
-                : Mono.error(t)
-        );
+        .onErrorResume(UnsupportedVersionException.class, th -> Mono.just(Optional.empty()))
+        .onErrorResume(ClusterAuthorizationException.class, th -> {
+          log.warn("ClusterAuthorizationException calling describeMetadataQuorum — "
+              + "controller type may be reported incorrectly", th);
+          return Mono.just(Optional.empty());
+        });
   }
 
   private Statistics createStats(ClusterDescription description,

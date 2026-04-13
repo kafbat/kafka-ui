@@ -242,6 +242,40 @@ class AzureEntraLoginCallbackHandlerTest {
   }
 
   @Test
+  void shouldThrowExceptionWithBlankBootstrapServer() {
+    Map<String, Object> configs = Map.of("bootstrap.servers", List.of("  "));
+
+    assertThrows(IllegalArgumentException.class, () -> azureEntraLoginCallbackHandler.configure(
+        configs, null, null));
+  }
+
+  @Test
+  void shouldFallBackToBootstrapDerivedScopeWhenScopeIsWhitespace() throws UnsupportedCallbackException {
+    Map<String, Object> configs = Map.of("bootstrap.servers",
+        List.of("test-eh.servicebus.windows.net:9093"));
+
+    // JAAS entry with whitespace-only scope — should be treated as absent
+    AppConfigurationEntry jaasEntry = new AppConfigurationEntry(
+        "org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule",
+        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+        Map.of("scope", "   "));
+
+    when(tokenCredential.getToken(any(TokenRequestContext.class))).thenReturn(Mono.just(accessToken));
+    when(accessToken.getToken()).thenReturn(VALID_SAMPLE_TOKEN);
+
+    azureEntraLoginCallbackHandler.configure(configs, null, List.of(jaasEntry));
+    azureEntraLoginCallbackHandler.handle(new Callback[] {oauthBearerTokenCallBack});
+
+    final ArgumentCaptor<TokenRequestContext> contextCaptor =
+        ArgumentCaptor.forClass(TokenRequestContext.class);
+    verify(tokenCredential, times(1)).getToken(contextCaptor.capture());
+
+    assertThat(
+        contextCaptor.getValue().getScopes(),
+        is(List.of("https://test-eh.servicebus.windows.net/.default")));
+  }
+
+  @Test
   void shouldNotRequireBootstrapServersWhenCustomScopeProvided() throws UnsupportedCallbackException {
     // When a custom scope is set, bootstrap.servers validation should be skipped
     // since we don't need to derive the scope from the server URL

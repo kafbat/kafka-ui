@@ -143,7 +143,14 @@ public class AzureEntraLoginCallbackHandler implements AuthenticateCallbackHandl
       throw new IllegalArgumentException(message);
     }
 
-    return URI.create("https://" + bootstrapServers.get(0));
+    String server = bootstrapServers.get(0).trim();
+    if (server.isEmpty()) {
+      final String message = BOOTSTRAP_SERVERS_CONFIG + " must contain a non-blank bootstrap server.";
+      log.error(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    return URI.create("https://" + server);
   }
 
   private String buildTokenAudience(URI uri) {
