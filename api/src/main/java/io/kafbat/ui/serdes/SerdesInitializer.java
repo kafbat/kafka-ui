@@ -141,8 +141,6 @@ public class SerdesInitializer {
             .orElse(null),
         Optional.ofNullable(clusterProperties.getDefaultValueSerde())
             .map(name -> Preconditions.checkNotNull(registeredSerdes.get(name), "Default value serde not found"))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(SchemaRegistrySerde.NAME)))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(ProtobufFileSerde.NAME)))
             .orElse(null),
         createFallbackSerde()
     );
