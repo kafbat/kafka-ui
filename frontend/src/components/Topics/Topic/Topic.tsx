@@ -82,7 +82,7 @@ const Topic: React.FC = () => {
     topicName,
   });
 
-  const { isReadOnly, isTopicDeletionAllowed } =
+  const { isReadOnly, isTopicDeletionAllowed, disableMessageViewing } =
     React.useContext(ClusterContext);
 
   const deleteTopicHandler = async () => {
@@ -216,17 +216,19 @@ const Topic: React.FC = () => {
             >
               Overview
             </NavLink>
-            <ActionNavLink
-              to={clusterTopicMessagesRelativePath}
-              className={({ isActive }) => (isActive ? 'is-active' : '')}
-              permission={{
-                resource: ResourceType.TOPIC,
-                action: Action.MESSAGES_READ,
-                value: topicName,
-              }}
-            >
-              Messages
-            </ActionNavLink>
+            {!disableMessageViewing && (
+              <ActionNavLink
+                to={clusterTopicMessagesRelativePath}
+                className={({ isActive }) => (isActive ? 'is-active' : '')}
+                permission={{
+                  resource: ResourceType.TOPIC,
+                  action: Action.MESSAGES_READ,
+                  value: topicName,
+                }}
+              >
+                Messages
+              </ActionNavLink>
+            )}
             <NavLink
               to={clusterTopicConsumerGroupsRelativePath}
               className={({ isActive }) => (isActive ? 'is-active' : '')}
@@ -278,10 +280,12 @@ const Topic: React.FC = () => {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route index element={<Overview />} />
-                <Route
-                  path={clusterTopicMessagesRelativePath}
-                  element={<Messages />}
-                />
+                {!disableMessageViewing && (
+                  <Route
+                    path={clusterTopicMessagesRelativePath}
+                    element={<Messages />}
+                  />
+                )}
                 <Route
                   path={clusterTopicSettingsRelativePath}
                   element={<Settings />}

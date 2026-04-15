@@ -61,6 +61,7 @@ describe('TopicTable Components', () => {
           isTopicDeletionAllowed,
           ftsEnabled: false,
           ftsDefaultEnabled: false,
+          disableMessageViewing: false,
         }}
       >
         <WithRoute path={clusterTopicsPath()}>

@@ -48,6 +48,7 @@ const ClusterPage: React.FC = () => {
     const features = cluster?.features || [];
     return {
       isReadOnly: cluster?.readOnly || false,
+      disableMessageViewing: cluster?.disableMessageViewing || false,
       hasKafkaConnectConfigured: features.includes(
         ClusterFeaturesEnum.KAFKA_CONNECT
       ),

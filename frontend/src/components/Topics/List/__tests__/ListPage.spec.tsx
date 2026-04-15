@@ -21,6 +21,7 @@ describe('ListPage Component', () => {
           isTopicDeletionAllowed: true,
           ftsEnabled: false,
           ftsDefaultEnabled: false,
+          disableMessageViewing: false,
         }}
       >
         <WithRoute path={clusterTopicsPath()}>

@@ -79,6 +79,7 @@ describe('Details', () => {
           isTopicDeletionAllowed: true,
           ftsEnabled: false,
           ftsDefaultEnabled: false,
+          disableMessageViewing: false,
         }}
       >
         <WithRoute path={getNonExactPath(clusterTopicPath())}>
