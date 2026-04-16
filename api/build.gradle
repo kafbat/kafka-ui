@@ -106,7 +106,8 @@ dependencies {
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
-    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.mcp.core
+    implementation libs.mcp.json.jackson
     implementation libs.victools.jsonschema.generator
 
 
@@ -182,6 +183,7 @@ tasks.withType(Checkstyle).configureEach {
 checkstyle {
     toolVersion = libs.versions.checkstyle.get()
     configFile = rootProject.file('etc/checkstyle/checkstyle.xml')
+    configProperties = ['org.checkstyle.google.suppressionfilter.config': rootProject.file('etc/checkstyle/checkstyle-suppressions.xml').absolutePath]
     ignoreFailures = false
     maxWarnings = 0
     maxErrors = 0
