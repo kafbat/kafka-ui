@@ -6,6 +6,7 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_PRODUCE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 
 import io.kafbat.ui.api.MessagesApi;
+import io.kafbat.ui.exception.MessageViewingDisabledException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
@@ -34,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -46,14 +46,12 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class MessagesController extends AbstractController implements MessagesApi, McpTool {
 
-  private static final String MESSAGES_DISABLED = "Message viewing is disabled for this cluster";
-
   private final MessagesService messagesService;
   private final DeserializationService deserializationService;
 
   private void validateMessageViewingEnabled(String clusterName) {
     if (getCluster(clusterName).isDisableMessageViewing()) {
-      throw new AccessDeniedException(MESSAGES_DISABLED);
+      throw new MessageViewingDisabledException();
     }
   }
 
