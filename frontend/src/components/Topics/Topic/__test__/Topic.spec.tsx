@@ -69,7 +69,11 @@ const topic: Topic = {
 const defaultPath = clusterTopicPath(mockClusterName, topic.name);
 
 describe('Details', () => {
-  const renderComponent = (isReadOnly = false, path = defaultPath) => {
+  const renderComponent = (
+    isReadOnly = false,
+    path = defaultPath,
+    disableMessageViewing = false
+  ) => {
     render(
       <ClusterContext.Provider
         value={{
@@ -79,7 +83,7 @@ describe('Details', () => {
           isTopicDeletionAllowed: true,
           ftsEnabled: false,
           ftsDefaultEnabled: false,
-          disableMessageViewing: false,
+          disableMessageViewing,
         }}
       >
         <WithRoute path={getNonExactPath(clusterTopicPath())}>
@@ -267,6 +271,25 @@ describe('Details', () => {
         'Statistics',
         'StatisticsMock'
       );
+    });
+  });
+
+  describe('when disableMessageViewing is true', () => {
+    it('does not render the Messages tab', () => {
+      renderComponent(false, defaultPath, true);
+      expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+    });
+
+    it('does not render Messages route when navigated to directly', () => {
+      renderComponent(false, clusterTopicMessagesPath(), true);
+      expect(screen.queryByText('MessagesMock')).not.toBeInTheDocument();
+    });
+
+    it('still renders other tabs', () => {
+      renderComponent(false, defaultPath, true);
+      expect(screen.getByText('Overview')).toBeInTheDocument();
+      expect(screen.getByText('Consumers')).toBeInTheDocument();
+      expect(screen.getByText('Settings')).toBeInTheDocument();
     });
   });
 });

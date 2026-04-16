@@ -37,6 +37,7 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class AbstractIntegrationTest {
   public static final String LOCAL = "local";
   public static final String SECOND_LOCAL = "secondLocal";
+  public static final String MESSAGE_VIEWING_DISABLED_LOCAL = "messageViewingDisabledLocal";
 
   private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
   private static final int JMX_PORT = 5555;
@@ -131,6 +132,10 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.1.schemaRegistry", schemaRegistry.getUrl());
       System.setProperty("kafka.clusters.1.kafkaConnect.0.name", "kafka-connect");
       System.setProperty("kafka.clusters.1.kafkaConnect.0.address", kafkaConnect.getTarget());
+
+      System.setProperty("kafka.clusters.2.name", MESSAGE_VIEWING_DISABLED_LOCAL);
+      System.setProperty("kafka.clusters.2.bootstrapServers", kafka.getBootstrapServers());
+      System.setProperty("kafka.clusters.2.disableMessageViewing", "true");
 
       System.setProperty("dynamic.config.enabled", "true");
       System.setProperty("config.related.uploads.dir", tmpDir.toString());
