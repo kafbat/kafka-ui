@@ -7,6 +7,9 @@ on:
         description: 'Original github.event_name'
         required: true
         type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -31,3 +34,11 @@ jobs:
       - name: "Tests"
         run: |
           ./gradlew :api:test
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # https://github.com/codecov/codecov-action/releases/tag/v5.4.3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: api/build/reports/jacoco/test/jacocoTestReport.xml
+          flags: backend
+          fail_ci_if_error: false

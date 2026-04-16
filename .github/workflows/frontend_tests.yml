@@ -2,6 +2,9 @@ name: "Frontend: build and test"
 
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -44,14 +47,20 @@ jobs:
           cd frontend/
           pnpm lint:CI
 
-      - name: Audit dependencies
-        run: |
-          cd frontend/
-          pnpm audit --prod --audit-level=high
-
       - name: Tests
         run: |
           cd frontend/
           pnpm test:CI
 
-      # TODO check frontend sonar results in sonarcloud after migration to gradle
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # https://github.com/codecov/codecov-action/releases/tag/v5.4.3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+
+      - name: Audit dependencies
+        run: |
+          cd frontend/
+          pnpm audit --prod --audit-level=high
