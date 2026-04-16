@@ -512,6 +512,7 @@ class ConsumerGroupServiceTest {
                 .topicStates(topicStates)
                 .build()
         )
+        .status(ServerStatusDTO.ONLINE)
         .build();
 
     StatisticsCache cache = Mockito.mock(StatisticsCache.class);
