@@ -158,30 +158,30 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
         </S.DataCell>
         <td style={{ width: '5%' }}>
           <div style={{ visibility: vEllipsisOpen ? 'visible' : 'hidden' }}>
-          <Dropdown>
-            <DropdownItem
-              aria-label="Copy to clipboard"
-              onClick={copyToClipboard}
-            >
-              Copy to clipboard
-            </DropdownItem>
-            <DropdownItem aria-label="Save as a file" onClick={saveFile}>
-              Save as a file
-            </DropdownItem>
-            <ActionDropdownItem
-              aria-label="Reproduce message"
-              onClick={() => {
-                openSidebarWithMessage(message);
-              }}
-              permission={{
-                resource: ResourceType.TOPIC,
-                action: Action.MESSAGES_PRODUCE,
-                value: topicName,
-              }}
-            >
-              Reproduce message
-            </ActionDropdownItem>
-          </Dropdown>
+            <Dropdown>
+              <DropdownItem
+                aria-label="Copy to clipboard"
+                onClick={copyToClipboard}
+              >
+                Copy to clipboard
+              </DropdownItem>
+              <DropdownItem aria-label="Save as a file" onClick={saveFile}>
+                Save as a file
+              </DropdownItem>
+              <ActionDropdownItem
+                aria-label="Reproduce message"
+                onClick={() => {
+                  openSidebarWithMessage(message);
+                }}
+                permission={{
+                  resource: ResourceType.TOPIC,
+                  action: Action.MESSAGES_PRODUCE,
+                  value: topicName,
+                }}
+              >
+                Reproduce message
+              </ActionDropdownItem>
+            </Dropdown>
           </div>
         </td>
       </S.ClickableRow>
