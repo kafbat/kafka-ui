@@ -94,11 +94,18 @@ public class ConsumerGroupService {
       if (consumerGroupState != null) {
         Map<TopicPartition, Long> groupOffsets = consumerGroupState.committedOffsets();
         Map<TopicPartition, Long> endOffsets = new HashMap<>();
+        boolean cacheComplete = true;
         for (TopicPartition topicPartition : groupOffsets.keySet()) {
           var topicState = cachedTopicStates.get(topicPartition.topic());
-          if (topicState != null) {
-            endOffsets.put(topicPartition, topicState.endOffsets().get(topicPartition.partition()));
+          if (topicState == null || !topicState.endOffsets().containsKey(topicPartition.partition())) {
+            cacheComplete = false;
+            break;
           }
+          endOffsets.put(topicPartition, topicState.endOffsets().get(topicPartition.partition()));
+        }
+        if (!cacheComplete) {
+          missed.add(consumerGroup);
+          continue;
         }
         result.put(
             consumerGroup.groupId(),
