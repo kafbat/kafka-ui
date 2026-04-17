@@ -2,6 +2,7 @@
   "name": "kafbat-e2e-playwright",
   "version": "1.0.0",
   "main": "index.js",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "debug": "cross-env ENV=stage PWDEBUG=1 DEBUG=pw:api cucumber-js --config=config/cucumber.js",
     "pretest": "npx ts-node src/helper/report/init.ts",
