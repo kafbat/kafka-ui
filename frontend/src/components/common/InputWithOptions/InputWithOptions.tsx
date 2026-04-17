@@ -79,6 +79,7 @@ const InputWithOptions = ({
               value={option.value}
               key={option.value}
               $disabled={option.disabled}
+              aria-disabled={option.disabled || undefined}
               onClick={() => updateSelectedOption(option)}
               tabIndex={0}
             >
