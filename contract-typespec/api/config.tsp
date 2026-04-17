@@ -69,6 +69,7 @@ model ApplicationConfig {
     auth?: {
       type: string;
       oauth2?: {
+        insecureSsl?: boolean = false;
         client?: Record<{
             provider: string;
             clientId: string;
