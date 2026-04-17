@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "contract/**"
+      - "contract-typespec/**"
       - "frontend/**"
 
 permissions:
@@ -17,3 +18,5 @@ concurrency:
 jobs:
   build-and-test:
     uses: ./.github/workflows/frontend_tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
