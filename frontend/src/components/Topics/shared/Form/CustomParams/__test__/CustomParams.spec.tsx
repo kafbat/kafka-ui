@@ -30,7 +30,7 @@ const expectOptionAvailability = async (
   if (disabled) {
     expect(selectedOption).toHaveAttribute('aria-disabled', 'true');
   } else {
-    expect(selectedOption).not.toHaveAttribute('aria-disabled');
+    expect(selectedOption).toHaveAttribute('aria-disabled', 'false');
   }
 
   expect(selectedOption).toHaveStyleRule(

@@ -5,7 +5,7 @@ const MultiSelect = styled(ReactMultiSelect)<{
   $minWidth?: string;
   $height?: string;
 }>`
-  min-width: ${({ $minWidth }) => $minWidth || '200px;'};
+  min-width: ${({ $minWidth }) => $minWidth ?? '200px;'};
   height: ${({ $height }) => $height ?? '32px'};
   font-size: 14px;
   .search input {
