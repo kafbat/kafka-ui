@@ -156,26 +156,28 @@ const TopicContents: React.FC<Props> = ({
         </tr>
       </thead>
       <tbody>
-        {sortedConsumers.map((consumer) => {
-          const consumerId = consumer.consumerId || 'no-id';
-          const consumerHost = consumer.host || 'no-host';
-          const key = `${consumer.topic}-${consumer.partition}-${consumerId}-${consumerHost}`;
+        {sortedConsumers.map((topicPartition) => {
+          const consumerId = topicPartition.consumerId || 'no-id';
+          const host = topicPartition.host || 'no-host';
+          const key = `${topicPartition.topic}-${topicPartition.partition}-${consumerId}-${host}`;
 
           return (
             <tr key={key}>
-              <td>{consumer.partition}</td>
-              <td className="break-spaces">{consumer.consumerId}</td>
-              <td>{consumer.host}</td>
+              <td>{topicPartition.partition}</td>
+              <td className="break-spaces">{topicPartition.consumerId}</td>
+              <td>{topicPartition.host}</td>
               <td>
-              <LagTrendComponent
-                lag={
-                  partitionLags?.partitions?.[String(topicPartition.partition)]
-                }
-                trend={partitionTrends[topicPartition.partition]}
-              />
-            </td>
-              <td>{consumer.currentOffset}</td>
-              <td>{consumer.endOffset}</td>
+                <LagTrendComponent
+                  lag={
+                    partitionLags?.partitions?.[
+                      String(topicPartition.partition)
+                    ]
+                  }
+                  trend={partitionTrends[topicPartition.partition]}
+                />
+              </td>
+              <td>{topicPartition.currentOffset}</td>
+              <td>{topicPartition.endOffset}</td>
             </tr>
           );
         })}
