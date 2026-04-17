@@ -37,6 +37,7 @@ const Select = <T extends object>(
     onChange,
     isThemeMode,
     formatSelectedOption,
+    minWidth,
     ...props
   }: SelectProps<T>,
   ref?: React.Ref<HTMLUListElement>
@@ -85,6 +86,7 @@ const Select = <T extends object>(
         role="listbox"
         $selectSize={selectSize}
         $disabled={disabled}
+        $minWidth={minWidth}
         onClick={showOptionsHandler}
         onKeyDown={showOptionsHandler}
         $isThemeMode={isThemeMode}
