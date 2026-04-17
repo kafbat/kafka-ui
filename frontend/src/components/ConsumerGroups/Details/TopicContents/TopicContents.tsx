@@ -166,7 +166,14 @@ const TopicContents: React.FC<Props> = ({
               <td>{consumer.partition}</td>
               <td className="break-spaces">{consumer.consumerId}</td>
               <td>{consumer.host}</td>
-              <td>{consumer.consumerLag}</td>
+              <td>
+              <LagTrendComponent
+                lag={
+                  partitionLags?.partitions?.[String(topicPartition.partition)]
+                }
+                trend={partitionTrends[topicPartition.partition]}
+              />
+            </td>
               <td>{consumer.currentOffset}</td>
               <td>{consumer.endOffset}</td>
             </tr>
