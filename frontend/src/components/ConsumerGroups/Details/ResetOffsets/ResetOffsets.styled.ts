@@ -9,9 +9,10 @@ export const OffsetsWrapper = styled.div`
 `;
 
 export const DatePickerInput = styled(DatePicker).attrs({
-  showTimeInput: true,
-  timeInputLabel: 'Time:',
-  dateFormat: 'MMMM d, yyyy h:mm aa',
+  showTimeSelect: true,
+  timeFormat: 'HH:mm:ss',
+  timeIntervals: 1,
+  dateFormat: 'MMMM d, yyyy HH:mm:ss',
 })`
   height: 40px;
   border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;

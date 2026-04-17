@@ -135,10 +135,15 @@ const Filters: React.FC<FiltersProps> = ({
               ) : (
                 <S.DatePickerInput
                   selected={date}
-                  onChange={setTimeStamp}
+                  onChange={(newDate: Date | null) => {
+                    if (newDate && !date) {
+                      newDate.setHours(0, 0, 0, 0);
+                    }
+                    setTimeStamp(newDate);
+                  }}
                   showTimeInput
                   timeInputLabel="Time:"
-                  dateFormat="MMM d, yyyy"
+                  dateFormat="MMM d, yyyy HH:mm:ss"
                   placeholderText="Select timestamp"
                 />
               ))}
