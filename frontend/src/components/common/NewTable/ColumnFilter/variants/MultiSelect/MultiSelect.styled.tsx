@@ -1,10 +1,7 @@
 import styled from 'styled-components';
 import { MultiSelect as ReactMultiSelect } from 'react-multi-select-component';
 
-export const SelectPanel = styled(ReactMultiSelect)<{
-  minWidth?: string;
-  height?: string;
-}>`
+export const SelectPanel = styled(ReactMultiSelect)`
   min-width: 160px;
   font-size: 14px;
   padding-right: 12px;
