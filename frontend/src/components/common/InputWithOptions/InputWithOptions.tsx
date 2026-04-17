@@ -56,7 +56,7 @@ const InputWithOptions = ({
   useClickOutside(selectContainerRef, clickOutsideHandler);
 
   return (
-    <S.Wrapper inputSize={inputSize} ref={selectContainerRef}>
+    <S.Wrapper $inputSize={inputSize} ref={selectContainerRef}>
       <S.Input
         {...rest}
         role="listitem"
@@ -64,7 +64,7 @@ const InputWithOptions = ({
         onFocus={() => setShowOptions(true)}
         autoComplete="off"
         placeholder={placeholder}
-        inputSize={inputSize}
+        $inputSize={inputSize}
         onChange={(e) => {
           onChange?.(e.target.value);
           setSelectedOption(e.target.value);
@@ -78,7 +78,7 @@ const InputWithOptions = ({
               role="option"
               value={option.value}
               key={option.value}
-              disabled={option.disabled}
+              $disabled={option.disabled}
               onClick={() => updateSelectedOption(option)}
               tabIndex={0}
             >

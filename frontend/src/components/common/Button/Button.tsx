@@ -2,14 +2,14 @@ import React, { type ButtonHTMLAttributes, type FC } from 'react';
 import { Link } from 'react-router-dom';
 import Spinner from 'components/common/Spinner/Spinner';
 
-import StyledButton, { ButtonProps } from './Button.styled';
+import StyledButton from './Button.styled';
 
-export interface Props
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    ButtonProps {
+export interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   to?: string | object;
   inProgress?: boolean;
   className?: string;
+  buttonType: 'primary' | 'secondary' | 'danger' | 'text';
+  buttonSize: 'S' | 'M' | 'L';
 }
 
 export const Button: FC<Props> = ({
@@ -17,12 +17,20 @@ export const Button: FC<Props> = ({
   children,
   disabled,
   inProgress,
+  buttonType,
+  buttonSize,
   ...props
 }) => {
   if (to) {
     return (
       <Link to={to} className={props.className}>
-        <StyledButton disabled={disabled} type="button" {...props}>
+        <StyledButton
+          disabled={disabled}
+          type="button"
+          $buttonType={buttonType}
+          $buttonSize={buttonSize}
+          {...props}
+        >
           {children}
         </StyledButton>
       </Link>
@@ -30,7 +38,13 @@ export const Button: FC<Props> = ({
   }
 
   return (
-    <StyledButton type="button" disabled={disabled || inProgress} {...props}>
+    <StyledButton
+      type="button"
+      disabled={disabled || inProgress}
+      $buttonType={buttonType}
+      $buttonSize={buttonSize}
+      {...props}
+    >
       {children}{' '}
       {inProgress ? (
         <Spinner
