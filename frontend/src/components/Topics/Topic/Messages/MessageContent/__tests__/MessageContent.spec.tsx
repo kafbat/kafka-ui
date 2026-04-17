@@ -29,7 +29,7 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
   );
 };
 
-global.TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('MessageContent screen', () => {
   beforeEach(() => {

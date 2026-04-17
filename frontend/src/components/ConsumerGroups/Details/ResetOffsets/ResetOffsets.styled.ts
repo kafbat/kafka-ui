@@ -8,11 +8,7 @@ export const OffsetsWrapper = styled.div`
   gap: 16px;
 `;
 
-export const DatePickerInput = styled(DatePicker).attrs({
-  showTimeInput: true,
-  timeInputLabel: 'Time:',
-  dateFormat: 'MMMM d, yyyy h:mm aa',
-})`
+export const DatePickerInput = styled(DatePicker)`
   height: 40px;
   border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
   border-radius: 4px;
