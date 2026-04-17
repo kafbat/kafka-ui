@@ -1,6 +1,7 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
@@ -188,6 +189,13 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 springBoot {
