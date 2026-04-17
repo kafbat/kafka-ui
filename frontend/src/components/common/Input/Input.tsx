@@ -6,9 +6,7 @@ import { ErrorMessage } from '@hookform/error-message';
 import * as S from './Input.styled';
 import { InputLabel } from './InputLabel.styled';
 
-export interface InputProps
-  extends
-    React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name?: string;
   hookFormOptions?: RegisterOptions;
   inputSize?: 'S' | 'M' | 'L';

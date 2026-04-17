@@ -33,7 +33,8 @@ const StyledButton = styled.button<ButtonProps>`
   &:active {
     background: ${({ $buttonType, theme }) =>
       theme.button[$buttonType].backgroundColor.active};
-    color: ${({ $buttonType, theme }) => theme.button[$buttonType].color.active};
+    color: ${({ $buttonType, theme }) =>
+      theme.button[$buttonType].color.active};
   }
 
   &:disabled {
