@@ -46,7 +46,7 @@ jobs:
           path: /tmp/kafka-ui-e2e-image.tar
           retention-days: 1
 
-  test:
+  tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
