@@ -5,8 +5,7 @@ import Spinner from 'components/common/Spinner/Spinner';
 import StyledButton, { ButtonProps } from './Button.styled';
 
 export interface Props
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    ButtonProps {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, ButtonProps {
   to?: string | object;
   inProgress?: boolean;
   className?: string;
