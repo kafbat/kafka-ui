@@ -32,6 +32,9 @@ public class ClusterSerdes implements Closeable {
                                                                Predicate<SerdeInstance> additionalCheck) {
     // iterating over serdes in the same order they were added in config
     for (SerdeInstance serdeInstance : serdes.values()) {
+      if (!serdeInstance.couldBePreferable(topic, type)) {
+        continue;
+      }
       var pattern = type == Serde.Target.KEY
           ? serdeInstance.topicKeyPattern
           : serdeInstance.topicValuePattern;

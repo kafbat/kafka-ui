@@ -2,29 +2,42 @@ name: "Backend: PR: Build and test"
 
 on:
 
-  pull_request_target:
+  pull_request:
     types: [ "opened", "reopened", "synchronize" ]
-    paths:
-      - "build.gradle"
-      - "gradle.properties"
-      - "settings.gradle"
-      - "gradle/libs.versions.toml"
-
-      - "contract/**"
-      - "api/**"
-      - "serde-api/**"
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # https://github.com/dorny/paths-filter/releases/tag/v3.0.2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - "build.gradle"
+              - "gradle.properties"
+              - "settings.gradle"
+              - "gradle/libs.versions.toml"
+              - "contract/**"
+              - "contract-typespec/**"
+              - "api/**"
+              - "serde-api/**"
+
   build-and-test:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     uses: ./.github/workflows/backend_tests.yml
     with:
       event_name: ${{ github.event_name }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

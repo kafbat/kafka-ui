@@ -14,7 +14,24 @@ permissions:
 
 jobs:
 
-  check-cves:
+  check-frontend-cves:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        with:
+          token: ${{ github.token }}
+
+      - name: Run frontend dependency CVE checks
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # https://github.com/aquasecurity/trivy-action/releases/tag/v0.35.0
+        with:
+          scan-type: "fs"
+          scan-ref: "frontend"
+          severity: "CRITICAL,HIGH"
+          format: "table"
+          exit-code: "1"
+
+  check-docker-cves:
     runs-on: ubuntu-latest
 
     steps:
@@ -67,8 +84,8 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
-      - name: Run CVE checks
-        uses: aquasecurity/trivy-action@dc5a429b52fcf669ce959baa2c2dd26090d2a6c4 # https://github.com/aquasecurity/trivy-action/releases/tag/0.33.1
+      - name: Run Docker image CVE checks
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # https://github.com/aquasecurity/trivy-action/releases/tag/v0.35.0
         with:
           image-ref: "ghcr.io/kafbat/kafka-ui:latest"
           severity: "CRITICAL,HIGH"
@@ -76,8 +93,8 @@ jobs:
           exit-code: "1"
 
   notify:
-    needs: check-cves
-    if: ${{ always() && needs.build-and-test.result == 'failure' && github.event_name == 'schedule' }}
+    needs: [ check-frontend-cves, check-docker-cves ]
+    if: ${{ always() && (needs.check-frontend-cves.result == 'failure' || needs.check-docker-cves.result == 'failure') && github.event_name == 'schedule' }}
     uses: ./.github/workflows/infra_discord_hook.yml
     with:
       message: "Attention! CVE checks run failed! Please fix them CVEs :("

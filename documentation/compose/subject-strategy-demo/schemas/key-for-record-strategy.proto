@@ -1,0 +1,6 @@
+syntax = "proto3";
+package io.kafbat.test;
+
+message ProtoUserKey {
+  string user_id = 1;
+}

@@ -411,12 +411,6 @@ const baseTheme = {
       color: Colors.neutral[85],
     },
   },
-  lag: {
-    down: Colors.green[70],
-    up: Colors.orange[20],
-    same: Colors.neutral[90],
-    none: Colors.neutral[90],
-  },
 };
 
 export const theme = {
@@ -973,6 +967,12 @@ export const theme = {
       border: Colors.brand[10],
       cross: Colors.brand[30],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[90],
+    none: Colors.neutral[90],
   },
 };
 
@@ -1654,5 +1654,11 @@ export const darkTheme: ThemeType = {
       border: Colors.brand[60],
       cross: Colors.brand[30],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[0],
+    none: Colors.neutral[0],
   },
 };

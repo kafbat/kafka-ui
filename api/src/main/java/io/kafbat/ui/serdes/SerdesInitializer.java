@@ -14,6 +14,7 @@ import io.kafbat.ui.serdes.builtin.ConsumerOffsetsSerde;
 import io.kafbat.ui.serdes.builtin.HexSerde;
 import io.kafbat.ui.serdes.builtin.Int32Serde;
 import io.kafbat.ui.serdes.builtin.Int64Serde;
+import io.kafbat.ui.serdes.builtin.MessagePackSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufRawSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
@@ -52,6 +53,7 @@ public class SerdesInitializer {
             .put(AvroEmbeddedSerde.NAME, AvroEmbeddedSerde.class)
             .put(Base64Serde.NAME, Base64Serde.class)
             .put(HexSerde.NAME, HexSerde.class)
+            .put(MessagePackSerde.NAME, MessagePackSerde.class)
             .put(UuidBinarySerde.NAME, UuidBinarySerde.class)
             .put(ProtobufRawSerde.NAME, ProtobufRawSerde.class)
 
@@ -139,8 +141,6 @@ public class SerdesInitializer {
             .orElse(null),
         Optional.ofNullable(clusterProperties.getDefaultValueSerde())
             .map(name -> Preconditions.checkNotNull(registeredSerdes.get(name), "Default value serde not found"))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(SchemaRegistrySerde.NAME)))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(ProtobufFileSerde.NAME)))
             .orElse(null),
         createFallbackSerde()
     );
