@@ -1,0 +1,19 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+
+flags:
+  backend:
+    paths:
+      - api/
+    carryforward: true
+  frontend:
+    paths:
+      - frontend/src/
+    carryforward: true
