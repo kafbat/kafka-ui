@@ -31,14 +31,14 @@ export const isValidJsonObject = (value?: string) => {
   return false;
 };
 
-const isJsonObject = (message?: string) => {
-  return yup.string().test(
+function isJsonObject(this: yup.StringSchema, message?: string) {
+  return this.test(
     'isJsonObject',
     // eslint-disable-next-line no-template-curly-in-string
     message || '${path} is not JSON object',
     isValidJsonObject
   );
-};
+}
 /**
  * due to yup rerunning all the object validiation during any render,
  * it makes sense to cache the async results
