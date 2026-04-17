@@ -13,7 +13,7 @@ permissions:
   statuses: write
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,12 +21,40 @@ jobs:
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
+
       - name: Set up JDK
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
           cache: 'gradle'
+
+      - name: Build with Gradle
+        run: |
+          ./gradlew build -x test \
+          -Pbuild-docker-images=true \
+          -Pinclude-frontend=true \
+          -Pversion=latest
+
+      - name: Dump docker image
+        run: docker image save ghcr.io/kafbat/kafka-ui:latest > /tmp/kafka-ui-e2e-image.tar
+
+      - name: Upload docker image
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        with:
+          name: kafka-ui-e2e-image
+          path: /tmp/kafka-ui-e2e-image.tar
+          retention-days: 1
+
+  tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        with:
+          token: ${{ github.token }}
+          ref: ${{ inputs.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # https://github.com/actions/setup-node/releases/tag/v3.9.1
@@ -55,13 +83,14 @@ jobs:
         working-directory: ./e2e-playwright
         run: npx playwright install --with-deps
 
-      - name: Build with Gradle
-        id: build_app
-        run: |
-          ./gradlew build -x test \
-          -Pbuild-docker-images=true \
-          -Pinclude-frontend=true \
-          -Pversion=latest
+      - name: Download docker image
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
+        with:
+          name: kafka-ui-e2e-image
+          path: /tmp
+
+      - name: Load docker image
+        run: docker image load -i /tmp/kafka-ui-e2e-image.tar
 
       - name: Run docker-compose
         run: docker compose -f ./documentation/compose/e2e-tests.yaml up -d
@@ -77,5 +106,3 @@ jobs:
           name: playwright-results
           path: ./e2e-playwright/test-results/
           retention-days: 7
-
-
