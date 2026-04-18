@@ -24,6 +24,7 @@ jobs:
           filters: |
             frontend:
               - "contract/**"
+              - "contract-typespec/**"
               - "frontend/**"
               - ".github/workflows/frontend*"
 
