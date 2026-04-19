@@ -31,15 +31,16 @@ const Search: React.FC<SearchProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
 
+  const qParam = searchParams.get('q') || '';
+
   useEffect(() => {
     // Only update input if uncontrolled and searchParams 'q' is different
     if (onChange && value !== undefined) return;
 
-    const qParam = searchParams.get('q') || '';
     if (ref.current !== null && ref.current.value !== qParam) {
       ref.current.value = qParam;
     }
-  }, [searchParams, onChange, value]);
+  }, [qParam, onChange, value]);
 
   const handleChange = useDebouncedCallback((e) => {
     if (ref.current != null) {
