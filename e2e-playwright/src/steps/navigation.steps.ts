@@ -62,12 +62,12 @@ Given('Kafka Connect is visible', async function() {
   await expect(this.locators.panel.kafkaConnectLink).toBeVisible();
 });
 
-When('click on Kafka Connect link', async function() {
+When('click on Kafka Connect link', async function(this: PlaywrightWorld) {
   await this.locators.panel.kafkaConnectLink.click();
 });
 
-Then('Kafka Connect heading visible', async function() {
-  await this.locators.connectors.clustersTab.waitFor({ state: 'visible' });
+Then('Kafka Connect heading visible', async function(this: PlaywrightWorld) {
+  await this.locators.connectors.heading.waitFor({ state: 'visible' });
 });
 
 Given('KSQL DB is visible', async function() {

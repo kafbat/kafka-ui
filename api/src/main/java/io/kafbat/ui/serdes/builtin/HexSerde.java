@@ -2,19 +2,14 @@ package io.kafbat.ui.serdes.builtin;
 
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.HexFormat;
 import java.util.Map;
-import java.util.Optional;
 
 public class HexSerde implements BuiltInSerde {
+  public static final String NAME = "Hex";
 
   private HexFormat deserializeHexFormat;
-
-  public static String name() {
-    return "Hex";
-  }
 
   @Override
   public void autoConfigure(PropertyResolver kafkaClusterProperties, PropertyResolver globalProperties) {
@@ -35,16 +30,6 @@ public class HexSerde implements BuiltInSerde {
     if (uppercase) {
       deserializeHexFormat = deserializeHexFormat.withUpperCase();
     }
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
   }
 
   @Override

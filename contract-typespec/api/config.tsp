@@ -68,7 +68,7 @@ model ApplicationConfig {
   properties: {
     auth?: {
       type: string;
-      oauth2: {
+      oauth2?: {
         client?: Record<{
             provider: string;
             clientId: string;
@@ -138,8 +138,6 @@ model ApplicationConfig {
       cache?: {
         enabled?: boolean;
         @format("duration")
-        connectCacheExpiry?: string;
-        @format("duration")
         connectClusterCacheExpiry?: string;
       };
       clusters?: {
@@ -148,12 +146,22 @@ model ApplicationConfig {
         ssl?: {
           truststoreLocation?: string;
           truststorePassword?: string;
-          verifySsl?: boolean = true;
+          verify?: boolean = true;
         };
         schemaRegistry?: string;
         schemaRegistryAuth?: {
           username?: string;
           password?: string;
+          oauth?: {
+            tokenUrl?: string;
+            clientId?: string;
+            clientSecret?: string;
+            scopes?: string[];
+            tokenCacheEnabled?: boolean = true;
+            @format("duration")
+            tokenRefreshBuffer?: string;
+            maxRetries?: int32 = 1;
+          };
         };
         schemaRegistrySsl?: {
           keystoreLocation?: string;
@@ -296,6 +304,7 @@ enum ResourceType {
   CONSUMER,
   SCHEMA,
   CONNECT,
+  CONNECTOR,
   KSQL,
   ACL,
   AUDIT,

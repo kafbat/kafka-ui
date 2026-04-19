@@ -60,9 +60,11 @@ type ScewProps = CellContext<
   BrokersTableRow['replicasSkew'] | BrokersTableRow['leadersSkew']
 >;
 
+export const getSkewValue = (skew: number | undefined) =>
+  skew ? `${skew.toFixed(2)}%` : '-';
 export const Skew = ({ getValue }: ScewProps) => {
   const skew = getValue();
-  const value = skew ? `${skew.toFixed(2)}%` : '-';
+  const value = getSkewValue(skew);
 
   return (
     <ColoredCell

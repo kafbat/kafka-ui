@@ -3,39 +3,19 @@ package io.kafbat.ui.serdes.builtin;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.RecordHeaders;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.util.Map;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.SeekableByteArrayInput;
 import org.apache.avro.generic.GenericDatumReader;
 
 public class AvroEmbeddedSerde implements BuiltInSerde {
-
-  public static String name() {
-    return "Avro (Embedded)";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    return Optional.empty();
-  }
+  public static final String NAME = "Avro (Embedded)";
 
   @Override
   public boolean canDeserialize(String topic, Target type) {
     return true;
-  }
-
-  @Override
-  public boolean canSerialize(String topic, Target type) {
-    return false;
   }
 
   @Override

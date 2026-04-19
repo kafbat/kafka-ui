@@ -7,7 +7,6 @@ import io.kafbat.ui.config.ClustersProperties;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
 

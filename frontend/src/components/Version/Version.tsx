@@ -9,10 +9,15 @@ import * as S from './Version.styled';
 
 const Version: React.FC = () => {
   const { currentTimezone } = useTimezone();
-  const { data: latestVersionInfo = {} } = useLatestVersion();
+  const { data: latestVersionInfo, isLoading } = useLatestVersion();
+
+  if (isLoading || !latestVersionInfo?.build) {
+    return null;
+  }
+
   const { buildTime, commitId, isLatestRelease, version } =
     latestVersionInfo.build;
-  const { versionTag } = latestVersionInfo?.latestRelease || '';
+  const { versionTag } = latestVersionInfo?.latestRelease || {};
 
   const currentVersion =
     isLatestRelease && version?.match(versionTag)
@@ -24,7 +29,7 @@ const Version: React.FC = () => {
 
   return (
     <S.Wrapper>
-      {!isLatestRelease && (
+      {isLatestRelease === false && (
         <S.OutdatedWarning
           title={`Your app version is outdated. Latest version is ${
             versionTag || 'UNKNOWN'

@@ -7,11 +7,12 @@ on:
         description: 'Original github.event_name'
         required: true
         type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
 jobs:
   tests:
@@ -19,19 +20,25 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
         with:
-          token: ${{ github.token }}
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # infered from @v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
         with:
-          java-version: '21'
+          java-version-file: '.java-version'
           distribution: 'zulu'
           cache: 'gradle'
 
       - name: "Tests"
         run: |
           ./gradlew :api:test
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # https://github.com/codecov/codecov-action/releases/tag/v5.4.3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: api/build/reports/jacoco/test/jacocoTestReport.xml
+          flags: backend
+          fail_ci_if_error: false

@@ -378,6 +378,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -702,6 +707,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TopicSerdeSuggestion'
+
+  /api/clusters/{clusterName}/topics/{topicName}/connectors:
+    get:
+      operationId: getTopicConnectors
+      summary: getTopicConnectors
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FullConnectorInfo'
+      tags:
+        - Topics
 
   /api/smartfilters/testexecutions:
     put:
@@ -1046,6 +1078,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -1218,6 +1255,12 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
+
       responses:
         200:
           description: OK
@@ -1534,6 +1577,11 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/SortOrder'
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -2066,6 +2114,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: fts
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         200:
           description: OK
@@ -2577,6 +2630,8 @@ components:
               - KAFKA_ACL_EDIT # create & delete ACLs
               - CLIENT_QUOTA_MANAGEMENT
               - GRAPHS_ENABLED
+              - FTS_ENABLED
+              - FTS_DEFAULT_ENABLED
       required:
         - name
         - status
@@ -3158,6 +3213,12 @@ components:
         valueSerde:
           type: string
           nullable: true
+        keySerdeProperties:
+          type: object
+          additionalProperties: {}
+        valueSerdeProperties:
+          type: object
+          additionalProperties: {}
       required:
         - partition
 
@@ -3619,6 +3680,10 @@ components:
               $ref: '#/components/schemas/ConnectorStatus'
             connect:
               type: string
+            topics:
+              type: array
+              items:
+                type: string
           required:
             - type
             - status
@@ -3629,6 +3694,7 @@ components:
       enum:
         - SOURCE
         - SINK
+        - UNKNOWN
 
     ConsumerGroupOffsetsReset:
       type: object
@@ -3696,6 +3762,8 @@ components:
         state:
           $ref: '#/components/schemas/ConnectorState'
         workerId:
+          type: string
+        trace:
           type: string
       required:
         - state
@@ -4095,6 +4163,7 @@ components:
         - CONSUMER
         - SCHEMA
         - CONNECT
+        - CONNECTOR
         - KSQL
         - ACL
         - AUDIT

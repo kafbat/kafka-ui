@@ -144,6 +144,9 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
                   render={({ field: { onChange, onBlur, value, ref } }) => (
                     <S.DatePickerInput
                       ref={ref}
+                      showTimeInput
+                      timeInputLabel="Time:"
+                      dateFormat="MMMM d, yyyy h:mm aa"
                       selected={getDateInCurrentTimezone(
                         new Date(value as number)
                       )}

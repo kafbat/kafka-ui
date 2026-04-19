@@ -1,10 +1,31 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
     alias(libs.plugins.spring.dependency.management)
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
+            // uses independent versioning and should not be forced to the core Netty version
+            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
+            // so we can safely exclude it from the resolution strategy
+            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
+                details.useVersion(libs.versions.netty.get())
+                details.because("Fixes CVE-2026-33871 and CVE-2026-33870. Revert when Spring Boot releases a version with the fix")
+            }
+        }
+        capabilitiesResolution {
+            withCapability("org.lz4:lz4-java") {
+                select(libs.lz4.yawk.get().toString())
+            }
+        }
+    }
 }
 
 
@@ -26,11 +47,17 @@ dependencies {
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
+    // For Swagger UI Webflux
+    implementation libs.springdoc.openapi.webflux
+
     compileOnly libs.spring.boot.devtools
 
     implementation libs.spring.security.ldap
 
-    implementation libs.kafka.clients
+    implementation (libs.kafka.clients) {
+        // TODO: Remove once client would fix CVE
+        exclude group: "org.lz4", module: "lz4-java"
+    }
 
     implementation libs.apache.avro
     implementation libs.apache.commons
@@ -42,6 +69,9 @@ dependencies {
     implementation libs.confluent.avro.serializer
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
+
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
 
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
@@ -58,6 +88,8 @@ dependencies {
     implementation libs.lucene.queryparser
     implementation libs.lucene.analysis.common
 
+    implementation libs.fastcsv
+
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-webflux'
@@ -72,9 +104,11 @@ dependencies {
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
+    implementation libs.lz4.yawk
 
     implementation libs.modelcontextprotocol.spring.webflux
     implementation libs.victools.jsonschema.generator
+
 
     // Google Managed Service for Kafka IAM support
     implementation (libs.google.managed.kafka.login.handler) {
@@ -117,6 +151,7 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.wiremock
     testImplementation libs.prometheus.metrics.core
 }
 
@@ -124,16 +159,14 @@ generateGrammarSource {
     maxHeapSize = "64m"
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
-
-
 
 sourceSets {
     main {
         java {
-            srcDirs += generateGrammarSource.outputDirectory
+
         }
         resources {
             srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
@@ -156,6 +189,13 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 springBoot {
@@ -171,6 +211,28 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
+tasks.register('copyOpenApiSpecForSwagger', Copy) {
+    dependsOn ':contract-typespec:build'
+
+    if (useTypeSpec) {
+        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
+    } else {
+        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
+    }
+    outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
+
+    from useTypeSpec ?
+        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
+        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    into "src/main/resources/static/openapi/"
+    rename { "kafbat-ui-api.yaml" }
+}
+
+
+tasks.named("processResources") {
+    dependsOn("copyOpenApiSpecForSwagger")
+}
+
 if (buildDockerImages) {
     tasks.build.finalizedBy buildDockerImageTask
 }
@@ -180,3 +242,4 @@ if (includeFrontend) {
         dependsOn(":frontend:buildFrontend")
     }
 }
+

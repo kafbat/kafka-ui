@@ -32,6 +32,9 @@ public class ClusterSerdes implements Closeable {
                                                                Predicate<SerdeInstance> additionalCheck) {
     // iterating over serdes in the same order they were added in config
     for (SerdeInstance serdeInstance : serdes.values()) {
+      if (!serdeInstance.couldBePreferable(topic, type)) {
+        continue;
+      }
       var pattern = type == Serde.Target.KEY
           ? serdeInstance.topicKeyPattern
           : serdeInstance.topicValuePattern;
@@ -64,12 +67,12 @@ public class ClusterSerdes implements Closeable {
 
   public SerdeInstance suggestSerdeForSerialize(String topic, Serde.Target type) {
     return findSerdeByPatternsOrDefault(topic, type, s -> s.canSerialize(topic, type))
-        .orElse(serdes.get(StringSerde.name()));
+        .orElse(serdes.get(StringSerde.NAME));
   }
 
   public SerdeInstance suggestSerdeForDeserialize(String topic, Serde.Target type) {
     return findSerdeByPatternsOrDefault(topic, type, s -> s.canDeserialize(topic, type))
-        .orElse(serdes.get(StringSerde.name()));
+        .orElse(serdes.get(StringSerde.NAME));
   }
 
   @Override

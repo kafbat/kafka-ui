@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Discord on Failure
-        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9 # infered from @v0.3.2
+        uses: Ilshidur/action-discord@0c4b27844ba47cb1c7bee539c8eead5284ce9fa9 # https://github.com/Ilshidur/action-discord/releases/tag/0.3.2
         with:
           args: ${{ inputs.message }}
         env:

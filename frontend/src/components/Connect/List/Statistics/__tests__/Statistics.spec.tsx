@@ -1,19 +1,36 @@
 import React from 'react';
 import { render } from 'lib/testHelpers';
 import { screen, within } from '@testing-library/react';
-import Statistics from 'components/Connect/List/Statistics/Statistics';
-import { FullConnectorInfo } from 'generated-sources';
+import ConnectorsStatistics from 'components/Connect/List/Statistics/Statistics';
+import { useConnectors } from 'lib/hooks/api/kafkaConnect';
 import { connectors } from 'lib/fixtures/kafkaConnect';
+import { FullConnectorInfo } from 'generated-sources';
+import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
+
+jest.mock('lib/hooks/api/kafkaConnect');
+jest.mock('lib/hooks/useAppParams', () => ({
+  __esModule: true,
+  default: () => ({ clusterName: 'test-cluster' }),
+}));
+
+const useConnectorsMock = useConnectors as jest.MockedFunction<
+  typeof useConnectors
+>;
+
+type RenderComponentProps = {
+  data: FullConnectorInfo[] | undefined;
+  isLoading: boolean;
+};
 
 describe('Kafka Connect Connectors Statistics', () => {
-  async function renderComponent({
-    data,
-    isLoading,
-  }: {
-    data: FullConnectorInfo[] | undefined;
-    isLoading: boolean;
-  }) {
-    render(<Statistics connectors={data ?? []} isLoading={isLoading} />);
+  function renderComponent({ data = [], isLoading }: RenderComponentProps) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useConnectorsMock.mockReturnValue({ data, isLoading } as any);
+    render(
+      <FilteredConnectorsProvider initialData={data}>
+        <ConnectorsStatistics isLoading={isLoading} />
+      </FilteredConnectorsProvider>
+    );
   }
 
   describe('when data loading', () => {

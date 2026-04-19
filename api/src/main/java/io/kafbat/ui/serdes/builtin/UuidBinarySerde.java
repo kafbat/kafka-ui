@@ -3,20 +3,15 @@ package io.kafbat.ui.serdes.builtin;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
-import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 
 public class UuidBinarySerde implements BuiltInSerde {
-
-  public static String name() {
-    return "UUIDBinary";
-  }
+  public static final String NAME = "UUIDBinary";
 
   private boolean mostSignificantBitsFirst = true;
 
@@ -26,16 +21,6 @@ public class UuidBinarySerde implements BuiltInSerde {
                         PropertyResolver globalProperties) {
     serdeProperties.getProperty("mostSignificantBitsFirst", Boolean.class)
         .ifPresent(msb -> UuidBinarySerde.this.mostSignificantBitsFirst = msb);
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type) {
-    return Optional.empty();
   }
 
   @Override

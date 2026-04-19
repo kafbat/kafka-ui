@@ -10,6 +10,7 @@ on:
       - "gradle/libs.versions.toml"
 
       - "contract/**"
+      - "contract-typespec/**"
       - "api/**"
       - "serde-api/**"
 
@@ -20,10 +21,12 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-and-test:
     uses: ./.github/workflows/backend_tests.yml
     with:
       event_name: ${{ github.event_name }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -11,7 +11,7 @@ public class ConsumerGroupFilter extends NgramFilter<ConsumerGroupListing> {
   private final List<Tuple2<List<String>, ConsumerGroupListing>> groups;
 
   public ConsumerGroupFilter(Collection<ConsumerGroupListing> groups) {
-    this(groups, true, new ClustersProperties.NgramProperties(1, 4));
+    this(groups, true, new ClustersProperties.NgramProperties(1, 4, true));
   }
 
   public ConsumerGroupFilter(

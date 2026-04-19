@@ -29,6 +29,7 @@ interface SchemasApi {
     @query search?: string,
     @query orderBy?: SchemaColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): SchemaSubjectsResponse;
 
   @delete
@@ -145,6 +146,7 @@ model SchemaSubject {
   compatibilityLevel: string;
   schemaType: SchemaType;
   references?: SchemaReference[];
+  topic?: string | null;
 }
 
 model NewSchemaSubject {

@@ -1,11 +1,14 @@
 package io.kafbat.ui.serdes.builtin.sr;
 
+import static io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde.SUBJECT_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.schemaregistry.json.JsonSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
@@ -127,7 +130,8 @@ class SchemaRegistrySerdeTest {
     assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
     assertThat(result.getAdditionalProperties())
         .contains(Map.entry("type", "AVRO"))
-        .contains(Map.entry("schemaId", schemaId));
+        .contains(Map.entry("id", schemaId))
+        .contains(Map.entry("subjects", List.of(topic + "-value")));
   }
 
   @Nested
@@ -285,6 +289,7 @@ class SchemaRegistrySerdeTest {
             }"""
     );
 
+    // Note: f_optional_to_test_not_filled_case is omitted since default showNullValues=false
     String jsonPayload = """
         {
           "f_int": 123,
@@ -342,12 +347,20 @@ class SchemaRegistrySerdeTest {
                    "type": { "type": "long", "logicalType": "timestamp-micros" }
                  },
                  {
+                   "name": "lt_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "timestamp-nanos" }
+                 },
+                 {
                    "name": "lt_local_timestamp_millis",
                    "type": { "type": "long", "logicalType": "local-timestamp-millis" }
                  },
                  {
                    "name": "lt_local_timestamp_micros",
                    "type": { "type": "long", "logicalType": "local-timestamp-micros" }
+                 },
+                 {
+                   "name": "lt_local_timestamp_nanos",
+                   "type": { "type": "long", "logicalType": "local-timestamp-nanos" }
                  }
                ]
             }"""
@@ -362,8 +375,10 @@ class SchemaRegistrySerdeTest {
           "lt_uuid": "a37b75ca-097c-5d46-6119-f0637922e908",
           "lt_timestamp_millis": "2007-12-03T10:15:30.123Z",
           "lt_timestamp_micros": "2007-12-03T10:15:30.123456Z",
+          "lt_timestamp_nanos": "2007-12-03T10:15:30.123456789Z",
           "lt_local_timestamp_millis": "2017-12-03T10:15:30.123",
-          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456"
+          "lt_local_timestamp_micros": "2017-12-03T10:15:30.123456",
+          "lt_local_timestamp_nanos": "2017-12-03T10:15:30.123456789"
         }
         """;
 
@@ -382,4 +397,450 @@ class SchemaRegistrySerdeTest {
     assertJsonsEqual(jsonInput, deserializedJson);
   }
 
+  @Nested
+  class ConfigurableAvroDisplayOptions {
+
+    @Test
+    void showNullValuesWhenEnabled() throws Exception {
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, false),
+          1024,
+          0
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nullable_field", "type": ["null", "string"], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-nulls";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      // Serialize with null value
+      String jsonInput = """
+          {
+            "id": "test-id"
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With showNullValues=true, the null field should be present in output
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nullable_field": null
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void useFullyQualifiedNamesWhenEnabled() throws Exception {
+      serde.configure(
+          List.of("wontbeused"), registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(false, true),
+          1024,
+          0
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "optional_string", "type": ["null", "string"], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-fqn";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "optional_string": { "string": "hello" }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With useFullyQualifiedNames=true, union types should use full names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "optional_string": { "string": "hello" }
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void useShortNamesWhenFlagDisabled() throws Exception {
+      // Default: useFullyQualifiedNames=false (empty map = defaults)
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nested", "type": ["null", {
+                     "type": "record",
+                     "name": "NestedRecord",
+                     "fields": [{"name": "value", "type": "int"}]
+                   }], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-short-names";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "nested": { "NestedRecord": { "value": 42 } }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With useFullyQualifiedNames=false, should use short names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nested": { "NestedRecord": { "value": 42 } }
+          }
+          """, result.getResult());
+    }
+
+    @Test
+    void bothFlagsEnabledTogether() throws Exception {
+      serde.configure(
+          List.of("wontbeused"),
+          registryClient,
+          "%s-key",
+          "%s-value",
+          true,
+          new FormatterProperties(true, true),
+          1024,
+          0
+      );
+
+      AvroSchema schema = new AvroSchema(
+          """
+               {
+                 "type": "record",
+                 "namespace": "io.kafbat.test",
+                 "name": "TestRecord",
+                 "fields": [
+                   {"name": "id", "type": "string"},
+                   {"name": "nullable_field", "type": ["null", "string"], "default": null},
+                   {"name": "nested", "type": ["null", {
+                     "type": "record",
+                     "name": "NestedRecord",
+                     "fields": [{"name": "value", "type": "int"}]
+                   }], "default": null}
+                 ]
+              }"""
+      );
+
+      String topic = "test-both-flags";
+      int schemaId = registryClient.register(topic + "-value", schema);
+
+      String jsonInput = """
+          {
+            "id": "test-id",
+            "nested": { "io.kafbat.test.NestedRecord": { "value": 42 } }
+          }
+          """;
+
+      byte[] data = toBytesWithMagicByteAndSchemaId(schemaId, jsonInput, schema);
+      var result = serde.deserializer(topic, Serde.Target.VALUE).deserialize(null, data);
+
+      // With both flags: show nulls and use fully qualified names
+      assertJsonsEqual("""
+          {
+            "id": "test-id",
+            "nullable_field": null,
+            "nested": { "io.kafbat.test.NestedRecord": { "value": 42 } }
+          }
+          """, result.getResult());
+    }
+  }
+
+  @Nested
+  class GetSchemaSubjectsTests {
+
+    List<String> resolveSubjects(String topic, Serde.Target target) {
+      var parameters = serde.getParameters(topic, target);
+      return parameters.stream()
+          .filter(p -> p.getName().equals(SUBJECT_PARAMETER_NAME))
+          .findFirst().orElseThrow().getAllowedValues();
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectForTopicNameStrategy() {
+      String topic = "test-topic";
+      registryClient.register(topic + "-key", new AvroSchema("\"int\""));
+      registryClient.register(topic + "-value", new AvroSchema("\"string\""));
+
+      var keySubjects = resolveSubjects(topic, Serde.Target.KEY);
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(keySubjects).containsExactly(topic + "-key");
+      assertThat(valueSubjects).containsExactly(topic + "-value");
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectsForTopicRecordNameStrategy() {
+      String topic = "orders";
+      // TopicRecordNameStrategy: topic-RecordName
+      registryClient.register("orders-OrderCreated", new AvroSchema("\"int\""));
+      registryClient.register("orders-OrderUpdated", new AvroSchema("\"string\""));
+
+      var parameters = serde.getParameters(topic, Serde.Target.VALUE);
+      assertThat(parameters).hasSize(1);
+      assertThat(parameters.getFirst().getAllowedValues()).contains("orders-OrderCreated", "orders-OrderUpdated");
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectsForRecordNameStrategy() {
+      String topic = "any-topic";
+      // RecordNameStrategy: fully qualified name (no -key or -value suffix)
+      registryClient.register("com.example.User", new AvroSchema("\"int\""));
+      registryClient.register("com.example.Order", new AvroSchema("\"string\""));
+
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(subjects).contains("com.example.User", "com.example.Order");
+    }
+
+    @Test
+    @SneakyThrows
+    void excludesOppositeTypeSubjects() {
+      String topic = "test-topic";
+      registryClient.register(topic + "-key", new AvroSchema("\"int\""));
+      registryClient.register(topic + "-value", new AvroSchema("\"string\""));
+
+      var keySubjects = resolveSubjects(topic, Serde.Target.KEY);
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      // KEY should not include -value subjects
+      assertThat(keySubjects).doesNotContain(topic + "-value");
+      // VALUE should not include -key subjects
+      assertThat(valueSubjects).doesNotContain(topic + "-key");
+    }
+
+    @Test
+    @SneakyThrows
+    void includesMultipleApplicableSubjects() {
+      String topic = "events";
+      // Register subjects for all three strategies
+      registryClient.register("events-key", new AvroSchema("\"int\""));
+      registryClient.register("events-value", new AvroSchema("\"string\""));
+      registryClient.register("events-UserCreated", new AvroSchema("\"int\""));
+      registryClient.register("com.example.Event", new AvroSchema("\"string\""));
+
+      var valueSubjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(valueSubjects).contains(
+          "events-value",       // TopicNameStrategy
+          "events-UserCreated", // TopicRecordNameStrategy
+          "com.example.Event"   // RecordNameStrategy
+      );
+    }
+
+    @Test
+    void returnsEmptyListWhenNoSubjectsExist() {
+      String topic = "nonexistent-topic";
+
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(subjects).isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectsForAvroSchema() {
+      String topic = "avro-topic";
+      registryClient.register(topic + "-value", new AvroSchema("\"int\""));
+
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(subjects).contains(topic + "-value");
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectsForProtobufSchema() {
+      String topic = "proto-topic";
+      ProtobufSchema protoSchema = new ProtobufSchema(
+          """
+              syntax = "proto3";
+              message TestMessage {
+                string field1 = 1;
+              }
+              """
+      );
+      registryClient.register(topic + "-value", protoSchema);
+
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(subjects).contains(topic + "-value");
+    }
+
+    @Test
+    @SneakyThrows
+    void returnsSubjectsForJsonSchema() {
+      String topic = "json-topic";
+      JsonSchema jsonSchema = new JsonSchema(
+          """
+              {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {
+                  "field1": { "type": "string" }
+                }
+              }
+              """
+      );
+      registryClient.register(topic + "-value", jsonSchema);
+
+      var subjects = resolveSubjects(topic, Serde.Target.VALUE);
+
+      assertThat(subjects).contains(topic + "-value");
+    }
+  }
+
+  @Nested
+  class SerializerWithSubjectTests {
+
+    private static final AvroSchema AVRO_RECORD_SCHEMA = new AvroSchema(
+        """
+            {
+              "type": "record",
+              "name": "TestRecord",
+              "fields": [
+                {"name": "field1", "type": "string"}
+              ]
+            }
+            """
+    );
+
+    private static final ProtobufSchema PROTOBUF_SCHEMA = new ProtobufSchema(
+        """
+            syntax = "proto3";
+            message TestRecord {
+              string field1 = 1;
+            }
+            """
+    );
+
+    private static final JsonSchema JSON_SCHEMA = new JsonSchema(
+        """
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "properties": {
+                "field1": { "type": "string" }
+              }
+            }
+            """
+    );
+
+    @Test
+    @SneakyThrows
+    void serializerWithSubjectUsesExplicitAvroSubject() {
+      String topic = "test-topic";
+      String explicitSubject = "com.example.CustomRecord";
+      registryClient.register(explicitSubject, AVRO_RECORD_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
+      String jsonInput = "{\"field1\": \"test value\"}";
+      byte[] result = serializer.serialize(jsonInput);
+
+      // Verify the result has the magic byte and schema id
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerWithSubjectUsesExplicitProtobufSubject() {
+      String topic = "test-topic";
+      String explicitSubject = "events-UserCreated";
+      registryClient.register(explicitSubject, PROTOBUF_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
+      String jsonInput = "{\"field1\": \"test value\"}";
+      byte[] result = serializer.serialize(jsonInput);
+
+      // Verify the result has the magic byte and schema id
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerWithSubjectUsesExplicitJsonSchemaSubject() {
+      String topic = "test-topic";
+      String explicitSubject = "io.kafbat.TestJson";
+      registryClient.register(explicitSubject, JSON_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", explicitSubject));
+      String jsonInput = "{\"field1\": \"test value\"}";
+      byte[] result = serializer.serialize(jsonInput);
+
+      // Verify the result has the magic byte and schema id
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    void serializerWithSubjectThrowsWhenSubjectNotFound() {
+      String topic = "test-topic";
+      String nonexistentSubject = "nonexistent.Subject";
+
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(
+          () -> serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", nonexistentSubject))
+      )).isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
+          .hasMessageContaining(nonexistentSubject);
+    }
+  }
+
 }
+
