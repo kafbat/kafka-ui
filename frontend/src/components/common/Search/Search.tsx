@@ -40,7 +40,7 @@ const Search: React.FC<SearchProps> = ({
     if (ref.current !== null && ref.current.value !== qParam) {
       ref.current.value = qParam;
     }
-  }, [qParam, onChange, value]);
+  }, [qParam]);
 
   const handleChange = useDebouncedCallback((e) => {
     if (ref.current != null) {
