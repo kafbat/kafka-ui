@@ -1,8 +1,7 @@
 import React from 'react';
-import BytesFormatted, {
-  sizes,
-} from 'components/common/BytesFormatted/BytesFormatted';
+import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import { render, screen } from '@testing-library/react';
+import { sizes } from 'components/common/BytesFormatted/utils';
 
 describe('BytesFormatted', () => {
   it('renders Bytes correctly', () => {

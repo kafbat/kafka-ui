@@ -15,6 +15,12 @@ interface ConnectInstancesApi {
   getConnects(@path clusterName: string, @query withStats?: boolean): Connect[];
 
   @get
+  @operationId("getConnectsCsv")
+  @summary("getConnects")
+  @route("/csv")
+  getConnectsCsv(@path clusterName: string, @query withStats?: boolean): CsvResponse;
+
+  @get
   @route("/{connectName}/plugins")
   @summary("get connector plugins")
   @operationId("getConnectorPlugins")
@@ -47,7 +53,20 @@ interface ConnectorsApi {
     @query search?: string,
     @query orderBy?: ConnectorColumnsToSort,
     @query sortOrder?: SortOrder,
+    @query fts?: boolean
   ): FullConnectorInfo[];
+
+  @get
+  @operationId("getAllConnectorsCsv")
+  @summary("getAllConnectorsCsv")
+  @route("/csv")
+  getAllConnectorsCsv(
+    @path clusterName: string,
+    @query search?: string,
+    @query orderBy?: ConnectorColumnsToSort,
+    @query sortOrder?: SortOrder,
+    @query fts?: boolean
+  ): CsvResponse;
 }
 
 // /api/clusters/{clusterName}/connects/{connectName}/connectors
@@ -163,6 +182,7 @@ model Connect {
   version?: string | null;
   commit?: string | null;
   clusterId?: string | null;
+  consumerNamePattern?: string;
 }
 
 model ConnectorConfig is Record<unknown>;
@@ -193,6 +213,7 @@ model NewConnector {
 enum ConnectorType {
   SOURCE,
   SINK,
+  UNKNOWN,
 }
 
 enum ConnectorTaskStatus {
@@ -216,6 +237,7 @@ enum ConnectorState {
 model ConnectorStatus {
   state: ConnectorState;
   workerId?: string;
+  trace?: string;
 }
 
 model Connector {
@@ -224,6 +246,8 @@ model Connector {
   type: ConnectorType;
   status: ConnectorStatus;
   connect: string;
+  topics?: string[];
+  consumer?: string | null;
 }
 
 enum ConnectorAction {
@@ -295,6 +319,7 @@ model FullConnectorInfo {
   status: ConnectorStatus;
   tasksCount?: integer;
   failedTasksCount?: integer;
+  consumer?: string | null;
 }
 
 enum ConnectorColumnsToSort {

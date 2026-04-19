@@ -8,15 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Int32Serde implements BuiltInSerde {
-
-  public static String name() {
-    return "Int32";
-  }
-
-  @Override
-  public Optional<String> getDescription() {
-    return Optional.empty();
-  }
+  public static final String NAME = "Int32";
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Target type) {

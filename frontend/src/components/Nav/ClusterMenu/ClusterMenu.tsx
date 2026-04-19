@@ -1,4 +1,4 @@
-import React, { type FC, useEffect, useState } from 'react';
+import React, { type FC } from 'react';
 import { Cluster, ClusterFeaturesEnum } from 'generated-sources';
 import * as S from 'components/Nav/Nav.styled';
 import MenuTab from 'components/Nav/Menu/MenuTab';
@@ -35,18 +35,16 @@ const ClusterMenu: FC<ClusterMenuProps> = ({
   const hasFeatureConfigured = (key: ClusterFeaturesEnum) =>
     features?.includes(key);
 
-  const [isOpen, setIsOpen] = useState(opened);
+  const [isOpen, setIsOpen] = useLocalStorage<boolean>(
+    `clusterMenu-${name}-isOpen`,
+    opened
+  );
   const location = useLocation();
   const navigate = useNavigate();
   const [colorKey, setColorKey] = useLocalStorage<ClusterColorKey>(
     `clusterColor-${name}`,
     'transparent'
   );
-
-  useEffect(() => {
-    if (opened) setIsOpen(true);
-  }, [opened]);
-
   const getIsMenuItemActive = (path: string) => {
     return location.pathname.includes(path);
   };

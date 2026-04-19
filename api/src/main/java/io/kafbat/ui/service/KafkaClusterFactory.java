@@ -11,6 +11,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.emitter.PollingSettings;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -30,8 +31,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
@@ -47,6 +51,10 @@ public class KafkaClusterFactory {
 
   private static final DataSize DEFAULT_WEBCLIENT_BUFFER = DataSize.parse("20MB");
   private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
+
+  // Confluent Schema Registry API content types (used by WarpStream and other compatible implementations)
+  private static final MediaType SR_V1_JSON = MediaType.parseMediaType("application/vnd.schemaregistry.v1+json");
+  private static final MediaType SR_JSON = MediaType.parseMediaType("application/vnd.schemaregistry+json");
 
   private final DataSize webClientMaxBuffSize;
   private final Duration responseTimeout;
@@ -80,9 +88,11 @@ public class KafkaClusterFactory {
 
     if (schemaRegistryConfigured(clusterProperties)) {
       builder.schemaRegistryClient(schemaRegistryClient(clusterProperties));
+      builder.schemaRegistryTopicSubjectSuffix(clusterProperties.getSchemaRegistryTopicSubjectSuffix());
     }
     if (connectClientsConfigured(clusterProperties)) {
       builder.connectsClients(connectClients(clusterProperties));
+      builder.connectsConfigs(connectConfigs(clusterProperties));
     }
     if (ksqlConfigured(clusterProperties)) {
       builder.ksqlClient(ksqlClient(clusterProperties));
@@ -206,6 +216,13 @@ public class KafkaClusterFactory {
     return connects;
   }
 
+  private Map<String, ClustersProperties.ConnectCluster> connectConfigs(ClustersProperties.Cluster clusterProperties) {
+    return clusterProperties.getKafkaConnect().stream().collect(Collectors.toMap(
+        ClustersProperties.ConnectCluster::getName,
+        Function.identity()
+    ));
+  }
+
   private ReactiveFailover<KafkaConnectClientApi> connectClient(ClustersProperties.Cluster cluster,
                                                                 ClustersProperties.ConnectCluster connectCluster) {
     return ReactiveFailover.create(
@@ -227,13 +244,42 @@ public class KafkaClusterFactory {
   }
 
   private ReactiveFailover<KafkaSrClientApi> schemaRegistryClient(ClustersProperties.Cluster clusterProperties) {
-    var auth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
+    var basicAuth = Optional.ofNullable(clusterProperties.getSchemaRegistryAuth())
         .orElse(new ClustersProperties.SchemaRegistryAuth());
-    WebClient webClient = new WebClientConfigurator()
+    var oauth = Optional.ofNullable(basicAuth.getOauth())
+        .orElse(new ClustersProperties.OauthConfig());
+
+    boolean basicAuthConfigured = StringUtils.hasText(basicAuth.getUsername())
+        || StringUtils.hasText(basicAuth.getPassword());
+    boolean oauthConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        && StringUtils.hasText(oauth.getClientId())
+        && StringUtils.hasText(oauth.getClientSecret());
+    boolean oauthPartiallyConfigured = StringUtils.hasText(oauth.getTokenUrl())
+        || StringUtils.hasText(oauth.getClientId()) || StringUtils.hasText(oauth.getClientSecret());
+    if (oauthPartiallyConfigured && !oauthConfigured) {
+      throw new ValidationException(
+          "Schema Registry authentication misconfiguration: one of the OAuth Parameters are missing. "
+      );
+    }
+    if (basicAuthConfigured && oauthConfigured) {
+      throw new ValidationException(
+          "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
+              + "Please configure only one authentication method."
+      );
+    }
+
+    WebClientConfigurator configurator = new WebClientConfigurator()
         .configureSsl(clusterProperties.getSsl(), clusterProperties.getSchemaRegistrySsl())
-        .configureBasicAuth(auth.getUsername(), auth.getPassword())
-        .configureBufferSize(webClientMaxBuffSize)
-        .build();
+        .configureAdditionalDecoderMediaTypes(SR_V1_JSON, SR_JSON)
+        .configureBufferSize(webClientMaxBuffSize);
+
+    if (basicAuthConfigured) {
+      configurator.configureBasicAuth(basicAuth.getUsername(), basicAuth.getPassword());
+    } else if (oauthConfigured) {
+      configurator.configureOAuth(oauth);
+    }
+
+    WebClient webClient = configurator.build();
     return ReactiveFailover.create(
         parseUrlList(clusterProperties.getSchemaRegistry()),
         url -> new KafkaSrClientApi(new ApiClient(webClient, null, null).setBasePath(url)),

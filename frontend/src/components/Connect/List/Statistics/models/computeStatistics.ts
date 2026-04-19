@@ -1,6 +1,6 @@
 import { ConnectorState, FullConnectorInfo } from 'generated-sources';
 
-interface Statistic {
+export interface Statistic {
   connectorsCount: number;
   failedConnectorsCount: number;
   tasksCount: number;

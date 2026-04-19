@@ -1,13 +1,12 @@
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { ConsumerGroupTopicPartition, SortOrder } from 'generated-sources';
+import {
+  ConsumerGroupTopicLag,
+  ConsumerGroupTopicPartition,
+  SortOrder,
+} from 'generated-sources';
 import React from 'react';
-
-import { ContentBox, TopicContentWrapper } from './TopicContent.styled';
-
-interface Props {
-  consumers: ConsumerGroupTopicPartition[];
-}
+import { LagTrend, LagTrendComponent } from 'lib/consumerGroups';
 
 type OrderByKey = keyof ConsumerGroupTopicPartition;
 interface Headers {
@@ -89,7 +88,17 @@ const consumerIdComparator: ComparatorFunction<ConsumerGroupTopicPartition> = (
   return 0;
 };
 
-const TopicContents: React.FC<Props> = ({ consumers }) => {
+interface Props {
+  topicPartitions: ConsumerGroupTopicPartition[];
+  partitionLags: ConsumerGroupTopicLag | undefined;
+  partitionTrends: Record<string, LagTrend>;
+}
+
+const TopicContents: React.FC<Props> = ({
+  topicPartitions,
+  partitionTrends,
+  partitionLags,
+}) => {
   const [orderBy, setOrderBy] = React.useState<OrderByKey>('partition');
   const [sortOrder, setSortOrder] = React.useState<SortOrder>(SortOrder.DESC);
 
@@ -123,46 +132,57 @@ const TopicContents: React.FC<Props> = ({ consumers }) => {
         comparator = consumerIdComparator;
       }
 
-      return consumers.sort((a, b) => comparator(a, b, sortOrder, orderBy));
+      return topicPartitions.sort((a, b) =>
+        comparator(a, b, sortOrder, orderBy)
+      );
     }
-    return consumers;
-  }, [orderBy, sortOrder, consumers]);
+    return topicPartitions;
+  }, [orderBy, sortOrder, topicPartitions]);
 
   return (
-    <TopicContentWrapper>
-      <td colSpan={3}>
-        <ContentBox>
-          <Table isFullwidth>
-            <thead>
-              <tr>
-                {TABLE_HEADERS_MAP.map((header) => (
-                  <TableHeaderCell
-                    key={header.orderBy}
-                    title={header.title}
-                    orderBy={orderBy}
-                    sortOrder={sortOrder}
-                    orderValue={header.orderBy}
-                    handleOrderBy={handleOrder}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedConsumers.map((consumer) => (
-                <tr key={consumer.partition}>
-                  <td>{consumer.partition}</td>
-                  <td>{consumer.consumerId}</td>
-                  <td>{consumer.host}</td>
-                  <td>{consumer.consumerLag}</td>
-                  <td>{consumer.currentOffset}</td>
-                  <td>{consumer.endOffset}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </ContentBox>
-      </td>
-    </TopicContentWrapper>
+    <Table isFullwidth>
+      <thead>
+        <tr>
+          {TABLE_HEADERS_MAP.map((header) => (
+            <TableHeaderCell
+              key={header.orderBy}
+              title={header.title}
+              orderBy={orderBy}
+              sortOrder={sortOrder}
+              orderValue={header.orderBy}
+              handleOrderBy={handleOrder}
+            />
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sortedConsumers.map((topicPartition) => {
+          const consumerId = topicPartition.consumerId || 'no-id';
+          const host = topicPartition.host || 'no-host';
+          const key = `${topicPartition.topic}-${topicPartition.partition}-${consumerId}-${host}`;
+
+          return (
+            <tr key={key}>
+              <td>{topicPartition.partition}</td>
+              <td className="break-spaces">{topicPartition.consumerId}</td>
+              <td>{topicPartition.host}</td>
+              <td>
+                <LagTrendComponent
+                  lag={
+                    partitionLags?.partitions?.[
+                      String(topicPartition.partition)
+                    ]
+                  }
+                  trend={partitionTrends[topicPartition.partition]}
+                />
+              </td>
+              <td>{topicPartition.currentOffset}</td>
+              <td>{topicPartition.endOffset}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </Table>
   );
 };
 

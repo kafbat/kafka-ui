@@ -60,9 +60,8 @@ const Config: React.FC = () => {
     }
   };
 
-  const hasCredentials = JSON.stringify(config, null, '\t').includes(
-    '"******"'
-  );
+  const hasCredentials =
+    config && JSON.stringify(config, null, '\t').includes('"******"');
   return (
     <ConnectEditWrapperStyled>
       {hasCredentials && (

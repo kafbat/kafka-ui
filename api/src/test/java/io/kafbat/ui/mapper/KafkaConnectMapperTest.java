@@ -42,8 +42,13 @@ class KafkaConnectMapperTest {
 
       ConnectorDTO connectorDto = new ConnectorDTO();
       connectorDto.setName(UUID.randomUUID().toString());
+
+      String traceMessage = connectorState == ConnectorStateDTO.FAILED
+          ? "Test error trace for failed connector"
+          : null;
+
       connectorDto.setStatus(
-          new ConnectorStatusDTO(connectorState, UUID.randomUUID().toString())
+          new ConnectorStatusDTO(connectorState, UUID.randomUUID().toString(), traceMessage)
       );
 
       List<TaskDTO> tasks = new ArrayList<>();

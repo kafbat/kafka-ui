@@ -1,14 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { FC, useMemo } from 'react';
 import * as Statistics from 'components/common/Statistics';
-import { FullConnectorInfo } from 'generated-sources';
+import { useFilteredConnectors } from 'components/Connect/model/FilteredConnectorsProvider';
 
 import { computeStatistics } from './models/computeStatistics';
 
-type Props = {
-  connectors: FullConnectorInfo[];
+interface ConnectorsStatisticsProps {
   isLoading: boolean;
-};
-const ConnectorsStatistics = ({ connectors, isLoading }: Props) => {
+}
+const ConnectorsStatistics: FC<ConnectorsStatisticsProps> = ({ isLoading }) => {
+  const connectors = useFilteredConnectors();
+
   const statistics = useMemo(() => {
     return computeStatistics(connectors);
   }, [connectors]);

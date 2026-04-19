@@ -2,11 +2,9 @@ package io.kafbat.ui.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.kafbat.ui.service.ReactiveAdminClient;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartitionInfo;

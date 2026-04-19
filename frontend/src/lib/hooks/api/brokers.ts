@@ -1,52 +1,66 @@
 import { brokersApiClient as api } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
-import { BrokerConfigItem } from 'generated-sources';
+import { BrokerConfigItem, Broker } from 'generated-sources';
+import { apiFetch, ServerResponse } from 'lib/errorHandling';
 
 interface UpdateBrokerConfigProps {
   name: string;
   brokerConfigItem: BrokerConfigItem;
 }
 
-export function useBrokers(clusterName: ClusterName) {
-  return useQuery(
-    ['clusters', clusterName, 'brokers'],
-    () => api.getBrokers({ clusterName }),
-    { refetchInterval: 5000 }
-  );
+export function useBrokers(
+  clusterName: ClusterName,
+  queryOptions?: Omit<
+    UseQueryOptions<Broker[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<Broker[], ServerResponse>({
+    queryKey: ['clusters', clusterName, 'brokers'],
+    queryFn: () => apiFetch(() => api.getBrokers({ clusterName })),
+    refetchInterval: 5000,
+    ...queryOptions,
+  });
 }
 
 export function useBrokerMetrics(clusterName: ClusterName, brokerId: number) {
-  return useQuery(
-    ['clusters', clusterName, 'brokers', brokerId, 'metrics'],
-    () =>
+  return useSuspenseQuery({
+    queryKey: ['clusters', clusterName, 'brokers', brokerId, 'metrics'],
+    queryFn: () =>
       api.getBrokersMetrics({
         clusterName,
         id: brokerId,
-      })
-  );
+      }),
+  });
 }
 
 export function useBrokerLogDirs(clusterName: ClusterName, brokerId: number) {
-  return useQuery(
-    ['clusters', clusterName, 'brokers', brokerId, 'logDirs'],
-    () =>
+  return useSuspenseQuery({
+    queryKey: ['clusters', clusterName, 'brokers', brokerId, 'logDirs'],
+    queryFn: () =>
       api.getAllBrokersLogdirs({
         clusterName,
         broker: [brokerId],
-      })
-  );
+      }),
+  });
 }
 
 export function useBrokerConfig(clusterName: ClusterName, brokerId: number) {
-  return useQuery(
-    ['clusters', clusterName, 'brokers', brokerId, 'settings'],
-    () =>
+  return useSuspenseQuery({
+    queryKey: ['clusters', clusterName, 'brokers', brokerId, 'settings'],
+    queryFn: () =>
       api.getBrokerConfig({
         clusterName,
         id: brokerId,
-      })
-  );
+      }),
+  });
 }
 
 export function useUpdateBrokerConfigByName(
@@ -54,22 +68,16 @@ export function useUpdateBrokerConfigByName(
   brokerId: number
 ) {
   const client = useQueryClient();
-  return useMutation(
-    (payload: UpdateBrokerConfigProps) =>
+  return useMutation({
+    mutationFn: (payload: UpdateBrokerConfigProps) =>
       api.updateBrokerConfigByName({
         ...payload,
         clusterName,
         id: brokerId,
       }),
-    {
-      onSuccess: () =>
-        client.invalidateQueries([
-          'clusters',
-          clusterName,
-          'brokers',
-          brokerId,
-          'settings',
-        ]),
-    }
-  );
+    onSuccess: () =>
+      client.invalidateQueries({
+        queryKey: ['clusters', clusterName, 'brokers', brokerId, 'settings'],
+      }),
+  });
 }

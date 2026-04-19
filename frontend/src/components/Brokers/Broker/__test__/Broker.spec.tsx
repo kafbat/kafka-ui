@@ -41,9 +41,11 @@ describe('Broker Component', () => {
   beforeEach(() => {
     (useBrokers as jest.Mock).mockImplementation(() => ({
       data: brokersPayload,
+      isSuccess: true,
     }));
     (useClusterStats as jest.Mock).mockImplementation(() => ({
       data: clusterStatsPayload,
+      isSuccess: true,
     }));
   });
   const renderComponent = (path = clusterBrokerPath(clusterName, brokerId)) =>

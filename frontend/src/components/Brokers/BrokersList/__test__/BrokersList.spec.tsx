@@ -5,9 +5,12 @@ import { clusterBrokerPath, clusterBrokersPath } from 'lib/paths';
 import BrokersList from 'components/Brokers/BrokersList/BrokersList';
 import userEvent from '@testing-library/user-event';
 import { useBrokers } from 'lib/hooks/api/brokers';
-import { useClusterStats } from 'lib/hooks/api/clusters';
+import { useClusters, useClusterStats } from 'lib/hooks/api/clusters';
 import { brokersPayload } from 'lib/fixtures/brokers';
-import { clusterStatsPayload } from 'lib/fixtures/clusters';
+import {
+  clusterStatsPayload,
+  onlineClusterPayload,
+} from 'lib/fixtures/clusters';
 
 const mockedUsedNavigate = jest.fn();
 
@@ -21,6 +24,7 @@ jest.mock('lib/hooks/api/brokers', () => ({
 }));
 jest.mock('lib/hooks/api/clusters', () => ({
   useClusterStats: jest.fn(),
+  useClusters: jest.fn(),
 }));
 
 describe('BrokersList Component', () => {
@@ -43,10 +47,28 @@ describe('BrokersList Component', () => {
     describe('when the brokers are loaded', () => {
       beforeEach(() => {
         (useBrokers as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: brokersPayload,
+          refetch: jest.fn(),
         }));
         (useClusterStats as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: clusterStatsPayload,
+          refetch: jest.fn(),
+        }));
+        (useClusters as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
+          data: [onlineClusterPayload],
+          refetch: jest.fn(),
         }));
       });
       it('renders', async () => {
@@ -66,10 +88,15 @@ describe('BrokersList Component', () => {
       });
       it('shows warning when offlinePartitionCount > 0', async () => {
         (useClusterStats as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: {
             ...clusterStatsPayload,
             offlinePartitionCount: 1345,
           },
+          refetch: jest.fn(),
         }));
         renderComponent();
         const onlineWidgets = screen.getAllByText(
@@ -82,11 +109,16 @@ describe('BrokersList Component', () => {
       });
       it('shows right count when offlinePartitionCount > 0', async () => {
         (useClusterStats as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: {
             ...clusterStatsPayload,
             inSyncReplicasCount: testInSyncReplicasCount,
             outOfSyncReplicasCount: testOutOfSyncReplicasCount,
           },
+          refetch: jest.fn(),
         }));
         renderComponent();
         const onlineWidgetDef = screen.getByText(testInSyncReplicasCount);
@@ -98,11 +130,16 @@ describe('BrokersList Component', () => {
       });
       it('shows right count when inSyncReplicasCount: undefined && outOfSyncReplicasCount: 1', async () => {
         (useClusterStats as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: {
             ...clusterStatsPayload,
             inSyncReplicasCount: undefined,
             outOfSyncReplicasCount: testOutOfSyncReplicasCount,
           },
+          refetch: jest.fn(),
         }));
         renderComponent();
         const onlineWidget = screen.getByText(
@@ -112,11 +149,16 @@ describe('BrokersList Component', () => {
       });
       it(`shows right count when inSyncReplicasCount: ${testInSyncReplicasCount} outOfSyncReplicasCount: undefined`, async () => {
         (useClusterStats as jest.Mock).mockImplementation(() => ({
+          isLoading: false,
+          isRefetching: false,
+          isSuccess: true,
+          error: null,
           data: {
             ...clusterStatsPayload,
             inSyncReplicasCount: testInSyncReplicasCount,
             outOfSyncReplicasCount: undefined,
           },
+          refetch: jest.fn(),
         }));
         renderComponent();
         const onlineWidgetDef = screen.getByText(testInSyncReplicasCount);
@@ -131,10 +173,28 @@ describe('BrokersList Component', () => {
         const testActiveControllers = 0;
         beforeEach(() => {
           (useBrokers as jest.Mock).mockImplementation(() => ({
+            isLoading: false,
+            isRefetching: false,
+            isSuccess: true,
+            error: null,
             data: brokersPayload,
+            refetch: jest.fn(),
           }));
           (useClusterStats as jest.Mock).mockImplementation(() => ({
+            isLoading: false,
+            isRefetching: false,
+            isSuccess: true,
+            error: null,
             data: clusterStatsPayload,
+            refetch: jest.fn(),
+          }));
+          (useClusters as jest.Mock).mockImplementation(() => ({
+            isLoading: false,
+            isRefetching: false,
+            isSuccess: true,
+            error: null,
+            data: [onlineClusterPayload],
+            refetch: jest.fn(),
           }));
         });
 
@@ -146,10 +206,15 @@ describe('BrokersList Component', () => {
         });
         it(`Correct display even if there is no active cluster: ${testActiveControllers} `, async () => {
           (useClusterStats as jest.Mock).mockImplementation(() => ({
+            isLoading: false,
+            isRefetching: false,
+            isSuccess: true,
+            error: null,
             data: {
               ...clusterStatsPayload,
               activeControllers: testActiveControllers,
             },
+            refetch: jest.fn(),
           }));
           renderComponent();
           await waitFor(() =>
@@ -163,9 +228,15 @@ describe('BrokersList Component', () => {
       beforeEach(() => {
         (useBrokers as jest.Mock).mockImplementation(() => ({
           data: brokersPayload,
+          isSuccess: true,
         }));
         (useClusterStats as jest.Mock).mockImplementation(() => ({
           data: { ...clusterStatsPayload, diskUsage: undefined },
+          isSuccess: true,
+        }));
+        (useClusters as jest.Mock).mockImplementation(() => ({
+          data: [onlineClusterPayload],
+          isSuccess: true,
         }));
       });
 
@@ -173,6 +244,7 @@ describe('BrokersList Component', () => {
         beforeEach(() => {
           (useBrokers as jest.Mock).mockImplementation(() => ({
             data: [],
+            isSuccess: true,
           }));
         });
 

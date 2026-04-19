@@ -1,7 +1,8 @@
 # The tag is ignored when a sha is included but the reason to add it are:
 # 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
 # 2. Helps dependabot during discovery of upgrades
-FROM azul/zulu-openjdk-alpine:21.0.8-jre-headless@sha256:9c7b4b7850bd4cdd78f91b369accc5b55beffa9a073b9a2bb94caa42606b9444
+# We include the SHA to ensure image immutability
+FROM azul/zulu-openjdk-alpine:25.0.2-jre-headless@sha256:ff319ed64315a5deed026bb6c8d78b8c446d2de2a9f525b4cf6f819b847fc709
 
 RUN apk add --no-cache \
     # snappy codec

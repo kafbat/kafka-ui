@@ -1,16 +1,25 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useSearchParams } from 'react-router-dom';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
+import InputWithOptions from 'components/common/InputWithOptions/InputWithOptions';
 import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
+import Tooltip from 'components/common/Tooltip/Tooltip';
+import InfoIcon from 'components/common/Icons/InfoIcon';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
 import { InputLabel } from 'components/common/Input/InputLabel.styled';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
-import { SerdeUsage } from 'generated-sources';
+import {
+  SerdeDescription,
+  SerdeParameter,
+  SerdeUsage,
+} from 'generated-sources';
+import { MessageFormData } from 'lib/interfaces/message';
 
 import * as S from './SendMessage.styled';
 import {
@@ -20,20 +29,28 @@ import {
   validateBySchema,
 } from './utils';
 
-interface FormType {
-  key: string;
-  content: string;
-  headers: string;
-  partition: number;
-  keySerde: string;
-  valueSerde: string;
-  keepContents: boolean;
+interface SendMessageProps {
+  closeSidebar: () => void;
+  messageData?: Partial<MessageFormData> | null;
 }
 
-const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
+const getSerdeParameters = (
+  serdeName: string | undefined,
+  serdeList: SerdeDescription[] | undefined
+): SerdeParameter[] => {
+  if (!serdeName || !serdeList) return [];
+  const serde = serdeList.find((s) => s.name === serdeName);
+  return serde?.parameters ?? [];
+};
+
+const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
+  messageData = null,
 }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
+  const [searchParams] = useSearchParams();
+  const urlKeySerde = searchParams.get('keySerde');
+  const urlValueSerde = searchParams.get('valueSerde');
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const { data: serdes = {} } = useSerdes({
     clusterName,
@@ -41,44 +58,120 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
     use: SerdeUsage.SERIALIZE,
   });
   const sendMessage = useSendMessage({ clusterName, topicName });
-
   const defaultValues = React.useMemo(() => getDefaultValues(serdes), [serdes]);
   const partitionOptions = React.useMemo(
     () => getPartitionOptions(topic?.partitions || []),
     [topic]
   );
+
+  const formDefaults = React.useMemo(
+    () => ({
+      ...defaultValues,
+      ...(urlKeySerde ? { keySerde: urlKeySerde } : {}),
+      ...(urlValueSerde ? { valueSerde: urlValueSerde } : {}),
+      partition: Number(partitionOptions[0]?.value || 0),
+      keepContents: false,
+      ...messageData,
+    }),
+    [defaultValues, partitionOptions, messageData, urlKeySerde, urlValueSerde]
+  );
+
   const {
     handleSubmit,
     formState: { isSubmitting },
     control,
     setValue,
-  } = useForm<FormType>({
+  } = useForm<MessageFormData>({
     mode: 'onChange',
-    defaultValues: {
-      ...defaultValues,
-      partition: Number(partitionOptions[0].value),
-      keepContents: false,
-    },
+    defaultValues: formDefaults,
   });
 
+  const keySerde = useWatch({ control, name: 'keySerde' });
+  const valueSerde = useWatch({ control, name: 'valueSerde' });
+
+  const keySerdeParameters = React.useMemo(
+    () => getSerdeParameters(keySerde, serdes.key),
+    [keySerde, serdes.key]
+  );
+
+  const valueSerdeParameters = React.useMemo(
+    () => getSerdeParameters(valueSerde, serdes.value),
+    [valueSerde, serdes.value]
+  );
+
+  const prevKeySerde = React.useRef(keySerde);
+  React.useEffect(() => {
+    if (prevKeySerde.current !== keySerde) {
+      setValue('keySerdeParams', undefined);
+      prevKeySerde.current = keySerde;
+    }
+  }, [keySerde, setValue]);
+
+  const prevValueSerde = React.useRef(valueSerde);
+  React.useEffect(() => {
+    if (prevValueSerde.current !== valueSerde) {
+      setValue('valueSerdeParams', undefined);
+      prevValueSerde.current = valueSerde;
+    }
+  }, [valueSerde, setValue]);
+
+  const renderParameters = (
+    parameters: SerdeParameter[],
+    prefix: 'keySerdeParams' | 'valueSerdeParams'
+  ) => {
+    return parameters.map((param) => {
+      if (!param.allowedValues || param.allowedValues.length === 0) return null;
+      const fieldName = `${prefix}.${param.name}`;
+      const label = param.visibleName || param.name;
+      const options = param.allowedValues.map((v) => ({
+        label: v,
+        value: v,
+      }));
+      return (
+        <div key={fieldName}>
+          <InputLabel>{label}</InputLabel>
+          <Controller
+            control={control}
+            name={fieldName as keyof MessageFormData}
+            render={({ field: { name, onChange, value } }) => (
+              <InputWithOptions
+                name={name}
+                onChange={onChange}
+                minWidth="100%"
+                options={options}
+                value={value as string}
+                placeholder={`Search ${label.toLowerCase()}...`}
+                inputSize="L"
+              />
+            )}
+          />
+        </div>
+      );
+    });
+  };
+
   const submit = async ({
-    keySerde,
-    valueSerde,
+    keySerde: formKeySerde,
+    valueSerde: formValueSerde,
     key,
     content,
     headers,
     partition,
+    keySerdeParams,
+    valueSerdeParams,
     keepContents,
-  }: FormType) => {
+  }: MessageFormData) => {
     let errors: string[] = [];
 
-    if (keySerde) {
-      const selectedKeySerde = serdes.key?.find((k) => k.name === keySerde);
+    if (formKeySerde) {
+      const selectedKeySerde = serdes.key?.find((k) => k.name === formKeySerde);
       errors = validateBySchema(key, selectedKeySerde?.schema, 'key');
     }
 
-    if (valueSerde) {
-      const selectedValue = serdes.value?.find((v) => v.name === valueSerde);
+    if (formValueSerde) {
+      const selectedValue = serdes.value?.find(
+        (v) => v.name === formValueSerde
+      );
       errors = [
         ...errors,
         ...validateBySchema(content, selectedValue?.schema, 'content'),
@@ -114,8 +207,14 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
         value: content || null,
         headers: parsedHeaders,
         partition: partition || 0,
-        keySerde,
-        valueSerde,
+        keySerde: formKeySerde,
+        valueSerde: formValueSerde,
+        ...(keySerdeParams && Object.keys(keySerdeParams).length > 0
+          ? { keySerdeProperties: keySerdeParams }
+          : {}),
+        ...(valueSerdeParams && Object.keys(valueSerdeParams).length > 0
+          ? { valueSerdeProperties: valueSerdeParams }
+          : {}),
       });
       if (!keepContents) {
         setValue('key', defaultValues.key || '');
@@ -132,14 +231,14 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
       <form onSubmit={handleSubmit(submit)}>
         <S.Columns>
           <S.FlexItem>
-            <InputLabel>Partition</InputLabel>
+            <InputLabel id="partitionOptionsLabel">Partition</InputLabel>
             <Controller
               control={control}
               name="partition"
               render={({ field: { name, onChange, value } }) => (
                 <Select
                   id="selectPartitionOptions"
-                  aria-labelledby="selectPartitionOptions"
+                  aria-labelledby="partitionOptionsLabel"
                   name={name}
                   onChange={onChange}
                   minWidth="100%"
@@ -151,52 +250,48 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
           </S.FlexItem>
           <S.Flex>
             <S.FlexItem>
-              <InputLabel>Key Serde</InputLabel>
-              <Controller
-                control={control}
-                name="keySerde"
-                render={({ field: { name, onChange, value } }) => (
-                  <Select
-                    id="selectKeySerdeOptions"
-                    aria-labelledby="selectKeySerdeOptions"
-                    name={name}
-                    onChange={onChange}
-                    minWidth="100%"
-                    options={getSerdeOptions(serdes.key || [])}
-                    value={value}
-                  />
-                )}
-              />
+              <div>
+                <InputLabel id="keySerdeOptionsLabel">Key Serde</InputLabel>
+                <Controller
+                  control={control}
+                  name="keySerde"
+                  render={({ field: { name, onChange, value } }) => (
+                    <Select
+                      id="selectKeySerdeOptions"
+                      aria-labelledby="keySerdeOptionsLabel"
+                      name={name}
+                      onChange={onChange}
+                      minWidth="100%"
+                      options={getSerdeOptions(serdes.key || [])}
+                      value={value}
+                    />
+                  )}
+                />
+              </div>
+              {renderParameters(keySerdeParameters, 'keySerdeParams')}
             </S.FlexItem>
             <S.FlexItem>
-              <InputLabel>Value Serde</InputLabel>
-              <Controller
-                control={control}
-                name="valueSerde"
-                render={({ field: { name, onChange, value } }) => (
-                  <Select
-                    id="selectValueSerdeOptions"
-                    aria-labelledby="selectValueSerdeOptions"
-                    name={name}
-                    onChange={onChange}
-                    minWidth="100%"
-                    options={getSerdeOptions(serdes.value || [])}
-                    value={value}
-                  />
-                )}
-              />
+              <div>
+                <InputLabel id="valueSerdeOptionsLabel">Value Serde</InputLabel>
+                <Controller
+                  control={control}
+                  name="valueSerde"
+                  render={({ field: { name, onChange, value } }) => (
+                    <Select
+                      id="selectValueSerdeOptions"
+                      aria-labelledby="valueSerdeOptionsLabel"
+                      name={name}
+                      onChange={onChange}
+                      minWidth="100%"
+                      options={getSerdeOptions(serdes.value || [])}
+                      value={value}
+                    />
+                  )}
+                />
+              </div>
+              {renderParameters(valueSerdeParameters, 'valueSerdeParams')}
             </S.FlexItem>
           </S.Flex>
-          <div>
-            <Controller
-              control={control}
-              name="keepContents"
-              render={({ field: { name, onChange, value } }) => (
-                <Switch name={name} onChange={onChange} checked={value} />
-              )}
-            />
-            <InputLabel>Keep contents</InputLabel>
-          </div>
         </S.Columns>
         <S.Columns>
           <div>
@@ -238,17 +333,33 @@ const SendMessage: React.FC<{ closeSidebar: () => void }> = ({
             <Controller
               control={control}
               name="headers"
-              render={({ field: { name, onChange } }) => (
+              render={({ field: { name, onChange, value } }) => (
                 <Editor
                   readOnly={isSubmitting}
-                  defaultValue="{}"
                   name={name}
                   onChange={onChange}
+                  value={value || '{}'}
                   height="40px"
                 />
               )}
             />
           </div>
+        </S.Columns>
+        <S.Columns>
+          <S.Flex>
+            <Controller
+              control={control}
+              name="keepContents"
+              render={({ field: { name, onChange, value } }) => (
+                <Switch name={name} onChange={onChange} checked={value} />
+              )}
+            />
+            <InputLabel>Keep contents after producing a message</InputLabel>
+            <Tooltip
+              value={<InfoIcon />}
+              content="When enabled, the form will remain populated after sending a message."
+            />
+          </S.Flex>
         </S.Columns>
         <Button
           buttonSize="M"

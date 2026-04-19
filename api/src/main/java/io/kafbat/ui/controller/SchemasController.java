@@ -1,14 +1,12 @@
 package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.SchemasApi;
-import io.kafbat.ui.api.model.SchemaColumnsToSort;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.mapper.KafkaSrMapper;
 import io.kafbat.ui.mapper.KafkaSrMapperImpl;
 import io.kafbat.ui.model.CompatibilityCheckResponseDTO;
 import io.kafbat.ui.model.CompatibilityLevelDTO;
-import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewSchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaColumnsToSortDTO;
@@ -25,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -217,13 +216,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
                                                                     @Valid String search,
                                                                     SchemaColumnsToSortDTO orderBy,
                                                                     SortOrderDTO sortOrder,
+                                                                    Boolean fts,
                                                                     ServerWebExchange serverWebExchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
         .operationName("getSchemas")
         .build();
 
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
+    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
+    boolean useFts = ftsProperties.use(fts);
 
     return schemaRegistryService
         .getAllSubjectNames(getCluster(clusterName))
@@ -234,7 +235,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
           int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
-          SchemasFilter filter = new SchemasFilter(subjects, fts.isEnabled(), fts.getSchemas());
+          SchemasFilter filter = new SchemasFilter(subjects, useFts, ftsProperties.getSchemas());
           List<String> filteredSubjects = new ArrayList<>(filter.find(search));
 
           var totalPages = (filteredSubjects.size() / pageSize)
@@ -242,11 +243,15 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
           List<String> subjectsToRetrieve;
           boolean paginate = true;
-          var schemaComparator = getComparatorForSchema(orderBy);
-          final Comparator<SubjectWithCompatibilityLevel> comparator =
-              sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
-                  ? schemaComparator : schemaComparator.reversed();
+
+          var schemaComparator = Optional.ofNullable(orderBy).map(this::getComparatorForSchema);
+          var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
+              ? schemaComparator : schemaComparator.map(Comparator::reversed);
+
           if (orderBy == null || SchemaColumnsToSortDTO.SUBJECT.equals(orderBy)) {
+            if (orderBy != null) {
+              filteredSubjects.sort(Comparator.nullsFirst(Comparator.naturalOrder()));
+            }
             if (SortOrderDTO.DESC.equals(sortOrder)) {
               filteredSubjects.sort(Comparator.nullsFirst(Comparator.reverseOrder()));
             }
@@ -272,11 +277,13 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   private List<SubjectWithCompatibilityLevel> paginateSchemas(
       List<SubjectWithCompatibilityLevel> subjects,
-      Comparator<SubjectWithCompatibilityLevel> comparator,
+      Optional<Comparator<SubjectWithCompatibilityLevel>> comparator,
       boolean paginate,
       int pageSize,
       int subjectToSkip) {
-    subjects.sort(comparator);
+
+    comparator.ifPresent(subjects::sort);
+
     if (paginate) {
       return subjects.subList(subjectToSkip, Math.min(subjectToSkip + pageSize, subjects.size()));
     } else {

@@ -1,15 +1,20 @@
 import React from 'react';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import { TopicMessage } from 'generated-sources';
+import { Action, ResourceType, TopicMessage } from 'generated-sources';
 import MessageToggleIcon from 'components/common/Icons/MessageToggleIcon';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import { Dropdown, DropdownItem } from 'components/common/Dropdown';
-import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { ActionDropdownItem } from 'components/common/ActionComponent';
+import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { JSONPath } from 'jsonpath-plus';
 import Ellipsis from 'components/common/Ellipsis/Ellipsis';
 import WarningRedIcon from 'components/common/Icons/WarningRedIcon';
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { useTimezone } from 'lib/hooks/useTimezones';
+import useAppParams from 'lib/hooks/useAppParams';
+import { RouteParamsClusterTopic } from 'lib/paths';
+import { useTopicActions } from 'components/contexts/TopicActionsContext';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
@@ -25,8 +30,14 @@ export interface Props {
   message: TopicMessage;
 }
 
-const Message: React.FC<Props> = ({
-  message: {
+const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
+  const { currentTimezone } = useTimezone();
+  const { topicName } = useAppParams<RouteParamsClusterTopic>();
+  const { openSidebarWithMessage } = useTopicActions();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { messageRelativeTimestamp } = React.useContext(ClusterContext);
+
+  const {
     timestamp,
     timestampType,
     offset,
@@ -38,12 +49,10 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
-  },
-  keyFilters,
-  contentFilters,
-}) => {
-  const { currentTimezone } = useTimezone();
-  const [isOpen, setIsOpen] = React.useState(false);
+    valueDeserializeProperties,
+    keyDeserializeProperties,
+  } = message;
+
   const savedMessageJson = {
     Value: value,
     Offset: offset,
@@ -94,6 +103,12 @@ const Message: React.FC<Props> = ({
     );
   };
 
+  const messageTimestamp = formatTimestamp({
+    timestamp,
+    timezone: currentTimezone.value,
+    withMilliseconds: true,
+  });
+
   return (
     <>
       <S.ClickableRow
@@ -109,13 +124,11 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <div>
-            {formatTimestamp({
-              timestamp,
-              timezone: currentTimezone.value,
-              withMilliseconds: true,
-            })}
-          </div>
+          {messageRelativeTimestamp ? (
+            <Tooltip value={timeAgo(timestamp)} content={messageTimestamp} />
+          ) : (
+            <div>{messageTimestamp}</div>
+          )}
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>
@@ -146,10 +159,28 @@ const Message: React.FC<Props> = ({
         <td style={{ width: '5%' }}>
           {vEllipsisOpen && (
             <Dropdown>
-              <DropdownItem onClick={copyToClipboard}>
+              <DropdownItem
+                aria-label="Copy to clipboard"
+                onClick={copyToClipboard}
+              >
                 Copy to clipboard
               </DropdownItem>
-              <DropdownItem onClick={saveFile}>Save as a file</DropdownItem>
+              <DropdownItem aria-label="Save as a file" onClick={saveFile}>
+                Save as a file
+              </DropdownItem>
+              <ActionDropdownItem
+                aria-label="Reproduce message"
+                onClick={() => {
+                  openSidebarWithMessage(message);
+                }}
+                permission={{
+                  resource: ResourceType.TOPIC,
+                  action: Action.MESSAGES_PRODUCE,
+                  value: topicName,
+                }}
+              >
+                Reproduce message
+              </ActionDropdownItem>
             </Dropdown>
           )}
         </td>
@@ -165,6 +196,8 @@ const Message: React.FC<Props> = ({
           contentSize={valueSize}
           keySerde={keySerde}
           valueSerde={valueSerde}
+          valueDeserializeProperties={valueDeserializeProperties}
+          keyDeserializeProperties={keyDeserializeProperties}
         />
       )}
     </>
