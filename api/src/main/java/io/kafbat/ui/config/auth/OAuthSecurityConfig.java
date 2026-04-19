@@ -1,5 +1,6 @@
 package io.kafbat.ui.config.auth;
-
+import java.util.List;
+import java.util.Collection;
 import io.kafbat.ui.config.auth.logout.OAuthLogoutSuccessHandler;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
@@ -47,6 +48,7 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import org.springframework.security.access.AccessDeniedException;
 
 @Configuration
 @ConditionalOnProperty(value = "auth.type", havingValue = "OAUTH2")
@@ -150,12 +152,16 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .flatMap(user -> {
           var provider = getProviderByProviderId(request.getClientRegistration().getRegistrationId());
           final var extractor = getExtractor(provider, acs);
-          if (extractor == null) {
-            return Mono.just(user);
-          }
+         if (extractor == null) {
+          // No extractor means no groups can be resolved — treat as empty
+          checkUserHasRoles(List.of(), acs);
+          return Mono.just(user);
+}
 
           return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
-              .map(groups -> new RbacOidcUser(user, groups));
+          .map(groups -> {checkUserHasRoles(groups, acs);
+           return new RbacOidcUser(user, groups);
+          });
         });
   }
 
@@ -170,11 +176,14 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
           var provider = getProviderByProviderId(request.getClientRegistration().getRegistrationId());
           final var extractor = getExtractor(provider, acs);
           if (extractor == null) {
+            checkUserHasRoles(List.of(), acs);
             return Mono.just(user);
           }
 
-          return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
-              .map(groups -> new RbacOAuth2User(user, groups));
+          return extractor.extract(acs, user, Map.of("request", request, "provider", provider)).map(groups -> {
+          checkUserHasRoles(groups, acs);
+          return new RbacOAuth2User(user, groups);
+        });
         });
   }
 
@@ -206,6 +215,19 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   private OAuthProperties.OAuth2Provider getProviderByProviderId(final String providerId) {
     return properties.getClient().get(providerId);
+  }
+
+  void checkUserHasRoles(Collection<String> groups, AccessControlService acs) {
+    if (!acs.isRbacEnabled()) {
+      return;
+    }
+    boolean hasRole = acs.getRoles().stream()
+        .anyMatch(role -> groups.contains(role.getName()));
+    if (!hasRole && acs.getDefaultRole() == null) {
+      throw new AccessDeniedException(
+          "Access denied: authenticated user has no roles assigned."
+      );
+    }
   }
 
 }

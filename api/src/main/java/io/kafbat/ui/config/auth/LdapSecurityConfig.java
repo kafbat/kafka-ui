@@ -43,6 +43,7 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+import org.springframework.security.access.AccessDeniedException;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -77,7 +78,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     }
 
     if (rbacEnabled) {
-      authProvider.setUserDetailsContextMapper(new RbacUserDetailsMapper());
+      authProvider.setUserDetailsContextMapper(new RbacUserDetailsMapper(acs));
     }
 
     return authProvider;
@@ -183,14 +184,35 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     return provider;
   }
 
-  private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
-    @Override
-    public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
-                                          Collection<? extends GrantedAuthority> authorities) {
-      UserDetails userDetails = super.mapUserFromContext(ctx, username, authorities);
-      return new RbacLdapUser(userDetails);
-    }
+   static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
+
+  private final AccessControlService acs;
+
+  RbacUserDetailsMapper(AccessControlService acs) {
+    this.acs = acs;
   }
+
+  @Override
+  public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
+                                        Collection<? extends GrantedAuthority> authorities) {
+    UserDetails userDetails = super.mapUserFromContext(ctx, username, authorities);
+    RbacLdapUser rbacUser = new RbacLdapUser(userDetails);
+
+    // Issue #798: deny login if RBAC is enabled and user has no matching roles
+    if (acs.isRbacEnabled()) {
+      boolean hasRole = acs.getRoles().stream()
+          .anyMatch(role -> rbacUser.groups().contains(role.getName()));
+      if (!hasRole && acs.getDefaultRole() == null) {
+        throw new AccessDeniedException(
+            "Access denied: authenticated user '" + username + "' has no roles assigned. "
+            + "Configure RBAC roles or a default role to grant access."
+        );
+      }
+    }
+
+    return rbacUser;
+  }
+}
 
 }
 
