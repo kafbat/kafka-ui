@@ -95,7 +95,6 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
 
   React.useEffect(() => {
     onSelectedPartitionsChange([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicValue]);
 
   const onSubmit = async (data: ConsumerGroupOffsetsReset) => {

@@ -4,8 +4,7 @@ import AlertIcon from 'components/common/Icons/AlertIcon';
 
 import * as S from './AlertBadge.styled';
 
-interface AlertBadgeProps {}
-function AlertBadge({ children }: PropsWithChildren<AlertBadgeProps>) {
+function AlertBadge({ children }: PropsWithChildren) {
   return <S.Container role="alert">{children}</S.Container>;
 }
 

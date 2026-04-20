@@ -82,7 +82,7 @@ export const showServerError = async (
   let body: Record<string, string> = {};
   try {
     body = await response.json();
-  } catch (e) {
+  } catch {
     // do nothing;
   }
   if (response.status) {
