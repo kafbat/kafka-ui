@@ -128,7 +128,7 @@ assertj = { module = 'org.assertj:assertj-core', version.ref = 'assertj' }
 jsonschemavalidator = { module = 'com.github.java-json-tools:json-schema-validator', version.ref = 'json-schema-validator' }
 
 # test scope
-bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
+bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.84' }
 
 # Google Managed Service for Apache Kafka support
 google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
