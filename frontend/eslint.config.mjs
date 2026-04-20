@@ -52,12 +52,12 @@ export default tseslint.config(
     ],
   },
   ...compat.extends(
+    'eslint:recommended',
     'airbnb',
     'airbnb-typescript',
     'plugin:@typescript-eslint/recommended',
     'plugin:jest-dom/recommended',
     'plugin:prettier/recommended',
-    'eslint:recommended',
     'plugin:react/recommended',
     'prettier'
   ),
