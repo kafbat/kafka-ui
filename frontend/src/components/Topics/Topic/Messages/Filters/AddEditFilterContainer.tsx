@@ -35,7 +35,7 @@ export interface AddEditFilterContainerProps {
   setSmartFilter: (filter: AdvancedFilter, persisted?: boolean) => void;
 }
 
-interface AddMessageFilters extends Omit<AdvancedFilter, 'filterCode'> {}
+type AddMessageFilters = Omit<AdvancedFilter, 'filterCode'>;
 
 function codeToName(code: string) {
   if (code.length > 32) {
@@ -152,7 +152,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
         setSmartFilter(filterValue);
         closeSideBar();
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };

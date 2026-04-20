@@ -91,7 +91,7 @@ export const validateBySchema = (
 
   try {
     parsedSchema = JSON.parse(schema);
-  } catch (e) {
+  } catch {
     return [`Error in parsing the "${type}" field schema`];
   }
   if (parsedSchema.type === 'string') {
@@ -99,7 +99,7 @@ export const validateBySchema = (
   }
   try {
     parsedValue = JSON.parse(value);
-  } catch (e) {
+  } catch {
     return [`Error in parsing the "${type}" field value`];
   }
   try {
