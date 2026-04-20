@@ -17,13 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # https://github.com/actions/setup-java/releases/tag/v4
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -40,7 +40,7 @@ jobs:
         run: docker image save ghcr.io/kafbat/kafka-ui:latest > /tmp/kafka-ui-e2e-image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # https://github.com/actions/upload-artifact/releases/tag/v4
         with:
           name: kafka-ui-e2e-image
           path: /tmp/kafka-ui-e2e-image.tar
@@ -51,13 +51,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # https://github.com/actions/setup-node/releases/tag/v3.9.1
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # https://github.com/actions/setup-node/releases/tag/v6.4.0
         with:
           node-version: 18
           cache-dependency-path: ./e2e-playwright/package-lock.json
@@ -68,7 +68,7 @@ jobs:
         run: npm install
 
       - name: Cache Playwright browser binaries
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # https://github.com/actions/cache/releases/tag/v4.3.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -84,7 +84,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Download docker image
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # https://github.com/actions/download-artifact/releases/tag/v4
         with:
           name: kafka-ui-e2e-image
           path: /tmp
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload report
         if: failure()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # https://github.com/actions/upload-artifact/releases/tag/v4
         with:
           name: playwright-results
           path: ./e2e-playwright/test-results/

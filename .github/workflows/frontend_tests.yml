@@ -17,14 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@078e9d416474b29c0c387560859308974f7e9c53 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         with:
           version: 10.26.1
 
       - name: Install node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # https://github.com/actions/setup-node/releases/tag/v4
         with:
           node-version: "22.12.0"
           cache: "pnpm"
@@ -47,16 +47,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@078e9d416474b29c0c387560859308974f7e9c53 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         with:
           version: 10.26.1
 
       - name: Install node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # https://github.com/actions/setup-node/releases/tag/v4
         with:
           node-version: "22.12.0"
           cache: "pnpm"
@@ -78,7 +78,7 @@ jobs:
           pnpm test:CI
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # https://github.com/codecov/codecov-action/releases/tag/v5.4.3
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # https://github.com/codecov/codecov-action/releases/tag/v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: frontend/coverage/lcov.info
@@ -89,14 +89,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@078e9d416474b29c0c387560859308974f7e9c53 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         with:
           version: 10.26.1
 
       - name: Install node
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # https://github.com/actions/setup-node/releases/tag/v4
         with:
           node-version: "22.12.0"
           cache: "pnpm"
