@@ -63,7 +63,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: matrix.registry == 'ecr'
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4.1.0
         with:
           aws-region: us-east-1 # This region only for public ECR
           role-to-assume: ${{ secrets.AWS_ROLE }}
