@@ -1,8 +1,9 @@
 package io.kafbat.ui.config.auth;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Role;
@@ -35,7 +36,8 @@ class LdapSecurityConfigRoleCheckTest {
   /**
    * Directly tests the role-check logic by constructing an RbacLdapUser
    * with the given authorities and checking if access is granted or denied.
-   * This avoids calling super.mapUserFromContext() which requires a real LDAP context.
+   * This avoids calling super.mapUserFromContext() which requires a real LDAP
+   * context.
    */
   private void checkAccess(Collection<GrantedAuthority> authorities) {
     UserDetails userDetails = new User("testuser", "", authorities);
@@ -53,16 +55,14 @@ class LdapSecurityConfigRoleCheckTest {
   @Test
   void whenRbacDisabled_userWithNoGroups_isAllowed() {
     when(acs.isRbacEnabled()).thenReturn(false);
-    assertThatNoException().isThrownBy(() ->
-        checkAccess(List.of()));
+    assertThatNoException().isThrownBy(() -> checkAccess(List.of()));
   }
 
   @Test
   void whenRbacEnabled_userWithMatchingGroup_isAllowed() {
     when(acs.isRbacEnabled()).thenReturn(true);
     when(acs.getRoles()).thenReturn(List.of(roleNamed("dev")));
-    assertThatNoException().isThrownBy(() ->
-        checkAccess(List.of(new SimpleGrantedAuthority("dev"))));
+    assertThatNoException().isThrownBy(() -> checkAccess(List.of(new SimpleGrantedAuthority("dev"))));
   }
 
   @Test
@@ -70,8 +70,7 @@ class LdapSecurityConfigRoleCheckTest {
     when(acs.isRbacEnabled()).thenReturn(true);
     when(acs.getRoles()).thenReturn(List.of(roleNamed("admin")));
     when(acs.getDefaultRole()).thenReturn(null);
-    assertThatThrownBy(() ->
-        checkAccess(List.of(new SimpleGrantedAuthority("viewer"))))
+    assertThatThrownBy(() -> checkAccess(List.of(new SimpleGrantedAuthority("viewer"))))
         .isInstanceOf(AccessDeniedException.class);
   }
 
@@ -80,8 +79,7 @@ class LdapSecurityConfigRoleCheckTest {
     when(acs.isRbacEnabled()).thenReturn(true);
     when(acs.getRoles()).thenReturn(List.of(roleNamed("admin")));
     when(acs.getDefaultRole()).thenReturn(null);
-    assertThatThrownBy(() ->
-        checkAccess(List.of()))
+    assertThatThrownBy(() -> checkAccess(List.of()))
         .isInstanceOf(AccessDeniedException.class);
   }
 
@@ -90,8 +88,7 @@ class LdapSecurityConfigRoleCheckTest {
     when(acs.isRbacEnabled()).thenReturn(true);
     when(acs.getRoles()).thenReturn(List.of(roleNamed("admin")));
     when(acs.getDefaultRole()).thenReturn(new DefaultRole());
-    assertThatNoException().isThrownBy(() ->
-        checkAccess(List.of()));
+    assertThatNoException().isThrownBy(() -> checkAccess(List.of()));
   }
 
   private Role roleNamed(String name) {
