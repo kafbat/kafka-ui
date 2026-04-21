@@ -104,19 +104,21 @@ const Topic: React.FC = () => {
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}
       >
-        <ActionButton
-          buttonSize="M"
-          buttonType="primary"
-          onClick={openSidebar}
-          disabled={isReadOnly}
-          permission={{
-            resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_PRODUCE,
-            value: topicName,
-          }}
-        >
-          Produce Message
-        </ActionButton>
+        {!disableMessageViewing && (
+          <ActionButton
+            buttonSize="M"
+            buttonType="primary"
+            onClick={openSidebar}
+            disabled={isReadOnly}
+            permission={{
+              resource: ResourceType.TOPIC,
+              action: Action.MESSAGES_PRODUCE,
+              value: topicName,
+            }}
+          >
+            Produce Message
+          </ActionButton>
+        )}
         <Dropdown disabled={isReadOnly || data?.internal}>
           <ActionDropdownItem
             onClick={() => navigate(clusterTopicEditRelativePath)}
@@ -311,19 +313,21 @@ const Topic: React.FC = () => {
           </TopicActionsProvider>
         </>
       )}
-      <SlidingSidebar
-        open={isSidebarOpen}
-        onClose={handleCloseSidebar}
-        title="Produce Message"
-      >
-        <Suspense fallback={<PageLoader />}>
-          <SendMessage
-            key={messageData ? 'with-message' : 'empty'}
-            closeSidebar={closeSidebar}
-            messageData={messageData}
-          />
-        </Suspense>
-      </SlidingSidebar>
+      {!disableMessageViewing && (
+        <SlidingSidebar
+          open={isSidebarOpen}
+          onClose={handleCloseSidebar}
+          title="Produce Message"
+        >
+          <Suspense fallback={<PageLoader />}>
+            <SendMessage
+              key={messageData ? 'with-message' : 'empty'}
+              closeSidebar={closeSidebar}
+              messageData={messageData}
+            />
+          </Suspense>
+        </SlidingSidebar>
+      )}
     </>
   );
 };
