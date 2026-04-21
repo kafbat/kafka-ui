@@ -25,7 +25,7 @@ jobs:
           tag='${{ github.event.pull_request.number }}'
           echo "tag=${tag}" >> $GITHUB_OUTPUT
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # https://github.com/actions/setup-java/releases/tag/v4.6.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -50,13 +50,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
         with:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE }}
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
+        uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97a1f8cae877e99aabe25db5e # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.1.0
         with:
           registry-type: 'public'
       - name: Build and push

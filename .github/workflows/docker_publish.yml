@@ -25,7 +25,7 @@ jobs:
     steps:
 
       - name: Download docker image
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
+        uses: actions/download-artifact@d3f86a106a0bea5b636e7a6e63ea32bea3f23689 # https://github.com/actions/download-artifact/releases/tag/v4.1.8
         with:
           name: image
           path: /tmp
@@ -63,7 +63,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: matrix.registry == 'ecr'
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
         with:
           aws-region: us-east-1 # This region only for public ECR
           role-to-assume: ${{ secrets.AWS_ROLE }}
@@ -71,7 +71,7 @@ jobs:
       - name: Login to public ECR
         if: matrix.registry == 'ecr'
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
+        uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97a1f8cae877e99aabe25db5e # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.1.0
         with:
           registry-type: public
 
