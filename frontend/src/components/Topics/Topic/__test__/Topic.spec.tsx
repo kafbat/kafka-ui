@@ -291,5 +291,17 @@ describe('Details', () => {
       expect(screen.getByText('Consumers')).toBeInTheDocument();
       expect(screen.getByText('Settings')).toBeInTheDocument();
     });
+
+    it('does not render the Produce Message button', () => {
+      renderComponent(false, defaultPath, true);
+      expect(
+        screen.queryByRole('button', { name: 'Produce Message' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('does not render the SendMessage sidebar', () => {
+      renderComponent(false, defaultPath, true);
+      expect(screen.queryByText('SendMessageMock')).not.toBeInTheDocument();
+    });
   });
 });
