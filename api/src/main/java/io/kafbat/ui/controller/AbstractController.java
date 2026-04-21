@@ -1,6 +1,7 @@
 package io.kafbat.ui.controller;
 
 import io.kafbat.ui.exception.ClusterNotFoundException;
+import io.kafbat.ui.exception.MessageViewingDisabledException;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.service.ClustersStorage;
@@ -26,6 +27,12 @@ public abstract class AbstractController {
     return clustersStorage.getClusterByName(name)
         .orElseThrow(() -> new ClusterNotFoundException(
             String.format("Cluster with name '%s' not found", name)));
+  }
+
+  protected void validateMessageViewingEnabled(String clusterName) {
+    if (!getCluster(clusterName).isEnableMessageViewing()) {
+      throw new MessageViewingDisabledException();
+    }
   }
 
   protected Mono<Void> validateAccess(AccessContext context) {

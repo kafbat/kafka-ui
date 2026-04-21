@@ -2615,7 +2615,7 @@ components:
           type: number
         readOnly:
           type: boolean
-        disableMessageViewing:
+        enableMessageViewing:
           type: boolean
         version:
           type: string

@@ -82,7 +82,7 @@ const Topic: React.FC = () => {
     topicName,
   });
 
-  const { isReadOnly, isTopicDeletionAllowed, disableMessageViewing } =
+  const { isReadOnly, isTopicDeletionAllowed, enableMessageViewing } =
     React.useContext(ClusterContext);
 
   const deleteTopicHandler = async () => {
@@ -104,7 +104,7 @@ const Topic: React.FC = () => {
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}
       >
-        {!disableMessageViewing && (
+        {enableMessageViewing && (
           <ActionButton
             buttonSize="M"
             buttonType="primary"
@@ -136,24 +136,26 @@ const Topic: React.FC = () => {
             </DropdownItemHint>
           </ActionDropdownItem>
 
-          <ActionDropdownItem
-            onClick={clearTopicMessagesHandler}
-            confirm="Are you sure want to clear topic messages?"
-            disabled={!canCleanup}
-            danger
-            permission={{
-              resource: ResourceType.TOPIC,
-              action: Action.MESSAGES_DELETE,
-              value: topicName,
-            }}
-          >
-            Clear messages
-            <DropdownItemHint>
-              Clearing messages is only allowed for topics
-              <br />
-              with DELETE policy
-            </DropdownItemHint>
-          </ActionDropdownItem>
+          {enableMessageViewing && (
+            <ActionDropdownItem
+              onClick={clearTopicMessagesHandler}
+              confirm="Are you sure want to clear topic messages?"
+              disabled={!canCleanup}
+              danger
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.MESSAGES_DELETE,
+                value: topicName,
+              }}
+            >
+              Clear messages
+              <DropdownItemHint>
+                Clearing messages is only allowed for topics
+                <br />
+                with DELETE policy
+              </DropdownItemHint>
+            </ActionDropdownItem>
+          )}
 
           <ActionDropdownItem
             onClick={recreateTopic.mutateAsync}
@@ -218,7 +220,7 @@ const Topic: React.FC = () => {
             >
               Overview
             </NavLink>
-            {!disableMessageViewing && (
+            {enableMessageViewing && (
               <ActionNavLink
                 to={clusterTopicMessagesRelativePath}
                 className={({ isActive }) => (isActive ? 'is-active' : '')}
@@ -282,7 +284,7 @@ const Topic: React.FC = () => {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route index element={<Overview />} />
-                {!disableMessageViewing && (
+                {enableMessageViewing && (
                   <Route
                     path={clusterTopicMessagesRelativePath}
                     element={<Messages />}
@@ -313,7 +315,7 @@ const Topic: React.FC = () => {
           </TopicActionsProvider>
         </>
       )}
-      {!disableMessageViewing && (
+      {enableMessageViewing && (
         <SlidingSidebar
           open={isSidebarOpen}
           onClose={handleCloseSidebar}

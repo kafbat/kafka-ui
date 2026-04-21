@@ -72,7 +72,7 @@ describe('Details', () => {
   const renderComponent = (
     isReadOnly = false,
     path = defaultPath,
-    disableMessageViewing = false
+    enableMessageViewing = true
   ) => {
     render(
       <ClusterContext.Provider
@@ -83,7 +83,7 @@ describe('Details', () => {
           isTopicDeletionAllowed: true,
           ftsEnabled: false,
           ftsDefaultEnabled: false,
-          disableMessageViewing,
+          enableMessageViewing,
         }}
       >
         <WithRoute path={getNonExactPath(clusterTopicPath())}>
@@ -274,34 +274,39 @@ describe('Details', () => {
     });
   });
 
-  describe('when disableMessageViewing is true', () => {
+  describe('when enableMessageViewing is false', () => {
     it('does not render the Messages tab', () => {
-      renderComponent(false, defaultPath, true);
+      renderComponent(false, defaultPath, false);
       expect(screen.queryByText('Messages')).not.toBeInTheDocument();
     });
 
     it('does not render Messages route when navigated to directly', () => {
-      renderComponent(false, clusterTopicMessagesPath(), true);
+      renderComponent(false, clusterTopicMessagesPath(), false);
       expect(screen.queryByText('MessagesMock')).not.toBeInTheDocument();
     });
 
     it('still renders other tabs', () => {
-      renderComponent(false, defaultPath, true);
+      renderComponent(false, defaultPath, false);
       expect(screen.getByText('Overview')).toBeInTheDocument();
       expect(screen.getByText('Consumers')).toBeInTheDocument();
       expect(screen.getByText('Settings')).toBeInTheDocument();
     });
 
     it('does not render the Produce Message button', () => {
-      renderComponent(false, defaultPath, true);
+      renderComponent(false, defaultPath, false);
       expect(
         screen.queryByRole('button', { name: 'Produce Message' })
       ).not.toBeInTheDocument();
     });
 
     it('does not render the SendMessage sidebar', () => {
-      renderComponent(false, defaultPath, true);
+      renderComponent(false, defaultPath, false);
       expect(screen.queryByText('SendMessageMock')).not.toBeInTheDocument();
+    });
+
+    it('does not render the Clear messages dropdown item', () => {
+      renderComponent(false, defaultPath, false);
+      expect(screen.queryByText('Clear messages')).not.toBeInTheDocument();
     });
   });
 });

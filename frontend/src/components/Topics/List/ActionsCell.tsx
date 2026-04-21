@@ -15,7 +15,7 @@ import { ActionDropdownItem } from 'components/common/ActionComponent';
 const ActionsCell: React.FC<CellContext<Topic, unknown>> = ({ row }) => {
   const { name, internal, cleanUpPolicy } = row.original;
 
-  const { isReadOnly, isTopicDeletionAllowed } =
+  const { isReadOnly, isTopicDeletionAllowed, enableMessageViewing } =
     React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
 
@@ -33,24 +33,26 @@ const ActionsCell: React.FC<CellContext<Topic, unknown>> = ({ row }) => {
 
   return (
     <Dropdown disabled={disabled}>
-      <ActionDropdownItem
-        disabled={isCleanupDisabled}
-        onClick={clearTopicMessagesHandler}
-        confirm="Are you sure want to clear topic messages?"
-        danger
-        permission={{
-          resource: ResourceType.TOPIC,
-          action: Action.MESSAGES_DELETE,
-          value: name,
-        }}
-      >
-        Clear Messages
-        <DropdownItemHint>
-          Clearing messages is only allowed for topics
-          <br />
-          with DELETE policy
-        </DropdownItemHint>
-      </ActionDropdownItem>
+      {enableMessageViewing && (
+        <ActionDropdownItem
+          disabled={isCleanupDisabled}
+          onClick={clearTopicMessagesHandler}
+          confirm="Are you sure want to clear topic messages?"
+          danger
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.MESSAGES_DELETE,
+            value: name,
+          }}
+        >
+          Clear Messages
+          <DropdownItemHint>
+            Clearing messages is only allowed for topics
+            <br />
+            with DELETE policy
+          </DropdownItemHint>
+        </ActionDropdownItem>
+      )}
       <ActionDropdownItem
         disabled={!isTopicDeletionAllowed}
         onClick={recreateTopic.mutateAsync}

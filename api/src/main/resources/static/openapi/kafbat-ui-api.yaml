@@ -3712,7 +3712,7 @@ components:
           format: double
         readOnly:
           type: boolean
-        disableMessageViewing:
+        enableMessageViewing:
           type: boolean
         version:
           type: string

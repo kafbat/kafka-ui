@@ -11,7 +11,7 @@ import { ActionDropdownItem } from 'components/common/ActionComponent';
 const ActionsCell: React.FC<CellContext<Partition, unknown>> = ({ row }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const { data } = useTopicDetails({ clusterName, topicName });
-  const { isReadOnly } = React.useContext(ClusterContext);
+  const { isReadOnly, enableMessageViewing } = React.useContext(ClusterContext);
   const { partition } = row.original;
 
   const clearMessages = useClearTopicMessages(clusterName, [partition]);
@@ -20,7 +20,7 @@ const ActionsCell: React.FC<CellContext<Partition, unknown>> = ({ row }) => {
     await clearMessages.mutateAsync(topicName);
   };
   const disabled =
-    data?.internal || isReadOnly || data?.cleanUpPolicy !== 'DELETE';
+    data?.internal || isReadOnly || !enableMessageViewing || data?.cleanUpPolicy !== 'DELETE';
   return (
     <Dropdown disabled={disabled}>
       <ActionDropdownItem

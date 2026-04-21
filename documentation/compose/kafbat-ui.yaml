@@ -4,7 +4,7 @@ services:
 
   kafbat-ui:
     container_name: kafbat-ui
-    image: ghcr.io/kafbat/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:1
     ports:
       - 8080:8080
     depends_on:
@@ -20,11 +20,12 @@ services:
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schemaregistry0:8085
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect0:8083
-      KAFKA_CLUSTERS_0_DISABLEMESSAGEVIEWING: 'true'
+      KAFKA_CLUSTERS_0_ENABLEMESSAGEVIEWING: 'false'
       KAFKA_CLUSTERS_1_NAME: secondLocal
       KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS: kafka1:29092
       KAFKA_CLUSTERS_1_METRICS_PORT: 9998
       KAFKA_CLUSTERS_1_SCHEMAREGISTRY: http://schemaregistry1:8085
+      KAFKA_CLUSTERS_1_ENABLEMESSAGEVIEWING: 'false'
       KAFKA_CLUSTERS_0_METRICS_STORE_PROMETHEUS_URL: "http://prometheus:9090"
       KAFKA_CLUSTERS_0_METRICS_STORE_PROMETHEUS_REMOTEWRITE: 'true'
       KAFKA_CLUSTERS_0_METRICS_STORE_KAFKA_TOPIC: "kafka_metrics"

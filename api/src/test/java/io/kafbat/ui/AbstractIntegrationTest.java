@@ -135,7 +135,7 @@ public abstract class AbstractIntegrationTest {
 
       System.setProperty("kafka.clusters.2.name", MESSAGE_VIEWING_DISABLED_LOCAL);
       System.setProperty("kafka.clusters.2.bootstrapServers", kafka.getBootstrapServers());
-      System.setProperty("kafka.clusters.2.disableMessageViewing", "true");
+      System.setProperty("kafka.clusters.2.enableMessageViewing", "false");
 
       System.setProperty("dynamic.config.enabled", "true");
       System.setProperty("config.related.uploads.dir", tmpDir.toString());

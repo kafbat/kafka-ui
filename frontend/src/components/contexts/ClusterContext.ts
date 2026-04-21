@@ -8,7 +8,7 @@ export interface ContextProps {
   ftsEnabled: boolean;
   ftsDefaultEnabled: boolean;
   messageRelativeTimestamp?: boolean;
-  disableMessageViewing: boolean;
+  enableMessageViewing: boolean;
 }
 
 export const initialValue: ContextProps = {
@@ -19,7 +19,7 @@ export const initialValue: ContextProps = {
   ftsEnabled: false,
   ftsDefaultEnabled: false,
   messageRelativeTimestamp: false,
-  disableMessageViewing: false,
+  enableMessageViewing: true,
 };
 const ClusterContext = React.createContext(initialValue);
 

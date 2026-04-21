@@ -6,7 +6,6 @@ import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_PRODUCE;
 import static io.kafbat.ui.model.rbac.permission.TopicAction.MESSAGES_READ;
 
 import io.kafbat.ui.api.MessagesApi;
-import io.kafbat.ui.exception.MessageViewingDisabledException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
@@ -48,12 +47,6 @@ public class MessagesController extends AbstractController implements MessagesAp
 
   private final MessagesService messagesService;
   private final DeserializationService deserializationService;
-
-  private void validateMessageViewingEnabled(String clusterName) {
-    if (getCluster(clusterName).isDisableMessageViewing()) {
-      throw new MessageViewingDisabledException();
-    }
-  }
 
   @Override
   public Mono<ResponseEntity<Void>> deleteTopicMessages(

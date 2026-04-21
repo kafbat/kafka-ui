@@ -23,7 +23,7 @@ const defaultContextValues = {
   isTopicDeletionAllowed: true,
   ftsEnabled: false,
   ftsDefaultEnabled: false,
-  disableMessageViewing: false,
+  enableMessageViewing: true,
 };
 
 jest.mock('lib/hooks/api/topics', () => ({

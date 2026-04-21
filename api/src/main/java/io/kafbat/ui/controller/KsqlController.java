@@ -33,6 +33,7 @@ public class KsqlController extends AbstractController implements KsqlApi, McpTo
   public Mono<ResponseEntity<KsqlCommandV2ResponseDTO>> executeKsql(String clusterName,
                                                                     Mono<KsqlCommandV2DTO> ksqlCmdDo,
                                                                     ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
     return ksqlCmdDo.flatMap(
             command -> {
               var context = AccessContext.builder()
@@ -58,6 +59,7 @@ public class KsqlController extends AbstractController implements KsqlApi, McpTo
   public Mono<ResponseEntity<Flux<KsqlResponseDTO>>> openKsqlResponsePipe(String clusterName,
                                                                           String pipeId,
                                                                           ServerWebExchange exchange) {
+    validateMessageViewingEnabled(clusterName);
     var context = AccessContext.builder()
         .cluster(clusterName)
         .ksqlActions(KsqlAction.EXECUTE)
