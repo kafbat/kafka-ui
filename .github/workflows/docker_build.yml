@@ -24,7 +24,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Download artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
+        uses: actions/download-artifact@d3f86a106a0bea5b636e7a6e63ea32bea3f23689 # https://github.com/actions/download-artifact/releases/tag/v4.1.8
         with:
           name: kafbat-ui-${{ inputs.version }}
           path: api/build/libs
@@ -81,7 +81,7 @@ jobs:
           docker image save kafka-ui:temp > /tmp/image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.0
         with:
           name: image
           path: /tmp/image.tar
