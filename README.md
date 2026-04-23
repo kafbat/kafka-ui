@@ -150,6 +150,36 @@ The info endpoint (build info) is located at `/actuator/info`.
 
 All environment variables and configuration properties can be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
+## Disable Message Viewing
+
+You can disable all message viewing functionality for specific clusters using the `enableMessageViewing` property. When set to `false`, the following restrictions are applied:
+
+- The **Messages tab** is hidden from the topic detail view
+- The **Produce Message** button and send message sidebar are hidden
+- The **Clear Messages** action is removed from topic actions
+- The **KSQL** endpoints are blocked
+- API calls to read, produce, or delete messages return a `MESSAGE_VIEWING_DISABLED` error
+
+This is useful in environments where message content is sensitive and should not be accessible through the UI, even for users with full topic permissions.
+
+### Environment variable
+
+```
+KAFKA_CLUSTERS_<INDEX>_ENABLEMESSAGEVIEWING=false
+```
+
+### YAML configuration
+
+```yaml
+kafka:
+  clusters:
+    - name: my-cluster
+      bootstrapServers: localhost:9092
+      enableMessageViewing: false
+```
+
+The default value is `true` (message viewing is enabled).
+
 # Contributing
 
 Please refer to the [contributing guide](https://ui.docs.kafbat.io/development/contributing); we'll guide you from there.
