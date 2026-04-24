@@ -73,6 +73,7 @@ model ApplicationConfig {
             provider: string;
             clientId: string;
             clientSecret?: string;
+            clientAuthenticationMethod?: string;
             clientName?: string;
             redirectUri?: string;
             authorizationGrantType?: string;

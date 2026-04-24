@@ -24,6 +24,7 @@ public final class OAuthPropertiesConverter {
       var registration = new Registration();
       registration.setClientId(provider.getClientId());
       registration.setClientSecret(provider.getClientSecret());
+      registration.setClientAuthenticationMethod(provider.getClientAuthenticationMethod());
       registration.setClientName(provider.getClientName());
       registration.setScope(Optional.ofNullable(provider.getScope()).orElse(Set.of()));
       registration.setRedirectUri(provider.getRedirectUri());
@@ -75,4 +76,3 @@ public final class OAuthPropertiesConverter {
     return GOOGLE.equalsIgnoreCase(provider.getCustomParams().get(TYPE));
   }
 }
-
