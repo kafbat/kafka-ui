@@ -2,8 +2,10 @@ package io.kafbat.ui.service;
 
 import static io.kafbat.ui.api.model.ControllerType.KRAFT;
 import static io.kafbat.ui.api.model.ControllerType.UNAVAILABLE;
+import static io.kafbat.ui.api.model.ControllerType.ZOOKEEPER;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
+import io.kafbat.ui.api.model.ControllerType;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.mapper.QuorumInfoMapper;
 import io.kafbat.ui.model.ClusterFeature;
@@ -19,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.admin.QuorumInfo;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
@@ -37,11 +40,6 @@ public class StatisticsService {
   private final StatisticsCache cache;
   private final ClustersProperties clustersProperties;
   private final QuorumInfoMapper quorumInfoMapper;
-  private static final Set<Class<? extends Throwable>> QUORUM_INFO_IGNORABLE_EXCEPTIONS = Set.of(
-      UnsupportedVersionException.class,
-      ClusterAuthorizationException.class
-  );
-
 
   public Mono<Statistics> updateCache(KafkaCluster c) {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
@@ -58,32 +56,38 @@ public class StatisticsService {
                             loadClusterState(description, ac),
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
-                        ).flatMap(t ->
+                                .map(quorumInfo -> Pair.of(KRAFT, quorumInfo))
+                                .onErrorResume(t -> {
+                                  if (t instanceof UnsupportedVersionException) {
+                                    return Mono.just(Pair.of(ZOOKEEPER, Optional.empty()));
+                                  }
+                                  else if (t instanceof ClusterAuthorizationException) {
+                                    return Mono.just(Pair.of(UNAVAILABLE, Optional.empty()));
+                                  }
+                                  return Mono.error(t);
+                                })))
+                        .flatMap(t ->
                             scrapeMetrics(cluster, t.getT2(), description)
                                 .map(metrics -> createStats(description,
                                     t.getT1(),
                                     t.getT2(),
                                     t.getT3(),
                                     metrics,
-                                    t.getT4(),
+                                    t.getT4().getLeft(),
+                                    t.getT4().getRight(),
                                     ac))
                         )
                     )
             ).doOnError(e ->
                 log.error("Failed to collect cluster {} info", cluster.getName(), e)
             ).doOnError(e -> adminClientService.invalidate(cluster, e))
-            .onErrorResume(t -> Mono.just(Statistics.statsUpdateError(t))));
+            .onErrorResume(t -> Mono.just(Statistics.statsUpdateError(t)));
   }
 
   @NotNull
   private static Mono<Optional<QuorumInfo>> loadQuorumInfo(ReactiveAdminClient ac) {
     return ac.describeMetadataQuorum()
-        .map(Optional::of)
-        .onErrorResume(t ->
-            QUORUM_INFO_IGNORABLE_EXCEPTIONS.contains(t.getClass())
-                ? Mono.just(Optional.empty())
-                : Mono.error(t)
-        );
+        .map(Optional::of);
   }
 
   private Statistics createStats(ClusterDescription description,
@@ -91,6 +95,7 @@ public class StatisticsService {
                                  ScrapedClusterState scrapedClusterState,
                                  List<KafkaConnectState> connects,
                                  Metrics metrics,
+                                 ControllerType controllerType,
                                  Optional<QuorumInfo> quorumInfo,
                                  ReactiveAdminClient ac) {
     var stats = Statistics.builder()
@@ -105,7 +110,7 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(quorumInfo.isPresent() ? KRAFT : UNAVAILABLE);
+        .controller(controllerType);
 
     quorumInfo.ifPresent(i -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(i)));
 
