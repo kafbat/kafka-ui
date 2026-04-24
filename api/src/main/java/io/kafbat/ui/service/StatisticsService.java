@@ -79,15 +79,7 @@ public class StatisticsService {
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
                                 .map(quorumInfo -> (ClusterInfo)new KRaftClusterInfo(quorumInfo))
-                                .onErrorResume(t -> {
-                                  if (t instanceof UnsupportedVersionException) {
-                                    return Mono.just(new ZooKeeperClusterInfo());
-                                  }
-                                  else if (t instanceof ClusterAuthorizationException) {
-                                    return Mono.just(new UnknownClusterInfo());
-                                  }
-                                  return Mono.error(t);
-                                })))
+                                .onErrorResume(StatisticsService::handleQuorumInfoErrors)))
                         .flatMap(t ->
                             scrapeMetrics(cluster, t.getT2(), description)
                                 .map(metrics -> createStats(description,
@@ -103,6 +95,17 @@ public class StatisticsService {
                 log.error("Failed to collect cluster {} info", cluster.getName(), e)
             ).doOnError(e -> adminClientService.invalidate(cluster, e))
             .onErrorResume(t -> Mono.just(Statistics.statsUpdateError(t)));
+  }
+
+  @NotNull
+  private static Mono<? extends ClusterInfo> handleQuorumInfoErrors(Throwable quorumInfoFetchError) {
+    if (quorumInfoFetchError instanceof UnsupportedVersionException) {
+      return Mono.just(new ZooKeeperClusterInfo());
+    }
+    else if (quorumInfoFetchError instanceof ClusterAuthorizationException) {
+      return Mono.just(new UnknownClusterInfo());
+    }
+    return Mono.error(quorumInfoFetchError);
   }
 
   @NotNull
