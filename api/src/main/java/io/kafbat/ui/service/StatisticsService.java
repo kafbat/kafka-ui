@@ -44,28 +44,28 @@ public class StatisticsService {
 
   private sealed interface ClusterInfo {
     ControllerType getType();
-  };
+  }
 
   private record KRaftClusterInfo(QuorumInfo quorumInfo) implements ClusterInfo {
     @Override
     public ControllerType getType() {
       return KRAFT;
     }
-  };
+  }
 
   private record ZooKeeperClusterInfo() implements ClusterInfo {
     @Override
     public ControllerType getType() {
       return ZOOKEEPER;
     }
-  };
+  }
 
   private record UnknownClusterInfo() implements ClusterInfo {
     @Override
     public ControllerType getType() {
       return UNKNOWN;
     }
-  };
+  }
 
   private Mono<Statistics> getStatistics(KafkaCluster cluster) {
     return adminClientService.get(cluster).flatMap(ac ->
