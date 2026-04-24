@@ -103,5 +103,6 @@ model BrokerDiskUsage {
 
 enum ControllerType {
     ZOOKEEPER,
-    KRAFT
+    KRAFT,
+    UNAVAILABLE
 }

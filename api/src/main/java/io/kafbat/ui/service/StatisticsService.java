@@ -1,7 +1,7 @@
 package io.kafbat.ui.service;
 
 import static io.kafbat.ui.api.model.ControllerType.KRAFT;
-import static io.kafbat.ui.api.model.ControllerType.ZOOKEEPER;
+import static io.kafbat.ui.api.model.ControllerType.UNAVAILABLE;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
 import io.kafbat.ui.config.ClustersProperties;
@@ -105,7 +105,7 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(quorumInfo.isPresent() ? KRAFT : ZOOKEEPER);
+        .controller(quorumInfo.isPresent() ? KRAFT : UNAVAILABLE);
 
     quorumInfo.ifPresent(i -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(i)));
 
