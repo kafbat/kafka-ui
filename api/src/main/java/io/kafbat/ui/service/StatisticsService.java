@@ -1,7 +1,7 @@
 package io.kafbat.ui.service;
 
 import static io.kafbat.ui.api.model.ControllerType.KRAFT;
-import static io.kafbat.ui.api.model.ControllerType.UNAVAILABLE;
+import static io.kafbat.ui.api.model.ControllerType.UNKNOWN;
 import static io.kafbat.ui.api.model.ControllerType.ZOOKEEPER;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
@@ -16,12 +16,9 @@ import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.admin.QuorumInfo;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
@@ -45,6 +42,31 @@ public class StatisticsService {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
   }
 
+  private sealed interface ClusterInfo {
+    ControllerType getType();
+  };
+
+  private record KRaftClusterInfo(QuorumInfo quorumInfo) implements ClusterInfo {
+    @Override
+    public ControllerType getType() {
+      return KRAFT;
+    }
+  };
+
+  private record ZooKeeperClusterInfo() implements ClusterInfo {
+    @Override
+    public ControllerType getType() {
+      return ZOOKEEPER;
+    }
+  };
+
+  private record UnknownClusterInfo() implements ClusterInfo {
+    @Override
+    public ControllerType getType() {
+      return UNKNOWN;
+    }
+  };
+
   private Mono<Statistics> getStatistics(KafkaCluster cluster) {
     return adminClientService.get(cluster).flatMap(ac ->
         ac.describeCluster()
@@ -56,13 +78,13 @@ public class StatisticsService {
                             loadClusterState(description, ac),
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
-                                .map(quorumInfo -> Pair.of(KRAFT, quorumInfo))
+                                .map(quorumInfo -> (ClusterInfo)new KRaftClusterInfo(quorumInfo))
                                 .onErrorResume(t -> {
                                   if (t instanceof UnsupportedVersionException) {
-                                    return Mono.just(Pair.of(ZOOKEEPER, Optional.empty()));
+                                    return Mono.just(new ZooKeeperClusterInfo());
                                   }
                                   else if (t instanceof ClusterAuthorizationException) {
-                                    return Mono.just(Pair.of(UNAVAILABLE, Optional.empty()));
+                                    return Mono.just(new UnknownClusterInfo());
                                   }
                                   return Mono.error(t);
                                 })))
@@ -73,8 +95,7 @@ public class StatisticsService {
                                     t.getT2(),
                                     t.getT3(),
                                     metrics,
-                                    t.getT4().getLeft(),
-                                    t.getT4().getRight(),
+                                    t.getT4(),
                                     ac))
                         )
                     )
@@ -85,9 +106,8 @@ public class StatisticsService {
   }
 
   @NotNull
-  private static Mono<Optional<QuorumInfo>> loadQuorumInfo(ReactiveAdminClient ac) {
-    return ac.describeMetadataQuorum()
-        .map(Optional::of);
+  private static Mono<QuorumInfo> loadQuorumInfo(ReactiveAdminClient ac) {
+    return ac.describeMetadataQuorum();
   }
 
   private Statistics createStats(ClusterDescription description,
@@ -95,8 +115,7 @@ public class StatisticsService {
                                  ScrapedClusterState scrapedClusterState,
                                  List<KafkaConnectState> connects,
                                  Metrics metrics,
-                                 ControllerType controllerType,
-                                 Optional<QuorumInfo> quorumInfo,
+                                 ClusterInfo clusterInfo,
                                  ReactiveAdminClient ac) {
     var stats = Statistics.builder()
         .status(ServerStatusDTO.ONLINE)
@@ -110,9 +129,12 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(controllerType);
+        .controller(clusterInfo.getType());
 
-    quorumInfo.ifPresent(i -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(i)));
+    if (clusterInfo instanceof KRaftClusterInfo(QuorumInfo quorumInfo))
+    {
+      stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(quorumInfo));
+    }
 
     return stats.build();
   }
