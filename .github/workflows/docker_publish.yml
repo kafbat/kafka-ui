@@ -25,14 +25,14 @@ jobs:
     steps:
 
       - name: Download docker image
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # https://github.com/actions/download-artifact/releases/tag/v4
         with:
           name: image
           path: /tmp
 
       # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
-        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # https://github.com/docker/setup-docker-action/releases/tag/v4.6.0
+        uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # https://github.com/docker/setup-docker-action/releases/tag/v4.6.0
         with:
           daemon-config: |
             {
@@ -47,7 +47,7 @@ jobs:
 
       - name: Login to docker.io
         if: matrix.registry == 'docker.io'
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # https://github.com/docker/login-action/releases/tag/v3.6.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # https://github.com/docker/login-action/releases/tag/v3.6.0
         with:
           registry: ${{ matrix.registry }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Login to ghcr.io
         if: matrix.registry == 'ghcr.io'
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # https://github.com/docker/login-action/releases/tag/v3.6.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # https://github.com/docker/login-action/releases/tag/v3.6.0
         with:
           registry: ${{ matrix.registry }}
           username: ${{ github.actor }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: matrix.registry == 'ecr'
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
         with:
           aws-region: us-east-1 # This region only for public ECR
           role-to-assume: ${{ secrets.AWS_ROLE }}
@@ -71,7 +71,7 @@ jobs:
       - name: Login to public ECR
         if: matrix.registry == 'ecr'
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
+        uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
         with:
           registry-type: public
 
