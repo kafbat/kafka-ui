@@ -1,12 +1,18 @@
 package io.kafbat.ui.config.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.auth.logout.OAuthLogoutSuccessHandler;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +50,7 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -57,17 +64,30 @@ import reactor.netty.http.client.HttpClient;
 @Slf4j
 public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
+  private static final Duration OIDC_DISCOVERY_TIMEOUT = Duration.ofSeconds(15);
   private final OAuthProperties properties;
 
   /**
    * WebClient configured to use system proxy properties (http.proxyHost/https.proxyHost,
-   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts).
+   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts) and optionally
+   * skip TLS certificate verification when auth.oauth2.insecure-ssl=true.
    * Created as a bean to ensure system properties are read after context initialization.
    */
   @Bean(name = "oauthWebClient")
   public WebClient oauthWebClient() {
+    HttpClient httpClient = HttpClient.create().proxyWithSystemProperties();
+    if (properties.isInsecureSsl()) {
+      try {
+        var context = SslContextBuilder.forClient()
+            .trustManager(InsecureTrustManagerFactory.INSTANCE)
+            .build();
+        httpClient = httpClient.secure(t -> t.sslContext(context));
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to initialize OAuth insecure SSL context", e);
+      }
+    }
     return WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
         .build();
   }
 
@@ -179,10 +199,16 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
+  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository(
+      @Qualifier("oauthWebClient") WebClient webClient
+  ) {
+    Map<String, OidcDiscoveryResponse> discoveredOidcMetadata = enrichOidcMetadataIfInsecureSsl(webClient);
     final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
-    final List<ClientRegistration> registrations =
-        new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
+    final Map<String, ClientRegistration> mappedRegistrations =
+       new OAuth2ClientPropertiesMapper(props).asClientRegistrations();
+    final List<ClientRegistration> registrations = new ArrayList<>(mappedRegistrations.size());
+    mappedRegistrations.forEach((providerId, registration) ->
+        registrations.add(enrichClientRegistrationWithOidcMetadata(registration, discoveredOidcMetadata.get(providerId))));
     if (registrations.isEmpty()) {
       throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
     }
@@ -208,5 +234,155 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     return properties.getClient().get(providerId);
   }
 
-}
+  private Map<String, OidcDiscoveryResponse> enrichOidcMetadataIfInsecureSsl(WebClient webClient) {
+    Map<String, OidcDiscoveryResponse> discoveredMetadata = new HashMap<>();
+    if (!properties.isInsecureSsl()) {
+      return discoveredMetadata;
+    }
 
+    properties.getClient().forEach((providerId, provider) ->
+        enrichProviderOidcMetadata(webClient, discoveredMetadata, providerId, provider));
+    return discoveredMetadata;
+  }
+
+  private void enrichProviderOidcMetadata(
+      WebClient webClient,
+      Map<String, OidcDiscoveryResponse> discoveredMetadata,
+      String providerId,
+      OAuthProperties.OAuth2Provider provider
+  ) {
+    if (!StringUtils.hasText(provider.getIssuerUri())) {
+      return;
+    }
+
+    final boolean discoveryRequired = !hasCompleteOidcEndpoints(provider);
+    final String openIdConfigUri = provider.getIssuerUri().replaceAll("/$", "")
+        + "/.well-known/openid-configuration";
+
+    final OidcDiscoveryResponse metadata = resolveOidcMetadata(
+        webClient,
+        providerId,
+        openIdConfigUri,
+        discoveryRequired
+    );
+    if (metadata != null) {
+      applyMissingEndpoints(provider, metadata);
+      discoveredMetadata.put(providerId, metadata);
+    }
+
+    // Prevent OAuth2ClientPropertiesMapper from performing issuer discovery via RestTemplate,
+    // which would ignore auth.oauth2.insecure-ssl and fail on self-signed certs.
+    provider.setIssuerUri(null);
+  }
+
+  private OidcDiscoveryResponse resolveOidcMetadata(
+      WebClient webClient,
+      String providerId,
+      String openIdConfigUri,
+      boolean discoveryRequired
+  ) {
+    final OidcDiscoveryResponse metadata;
+    try {
+      metadata = webClient.get()
+          .uri(openIdConfigUri)
+          .retrieve()
+          .bodyToMono(OidcDiscoveryResponse.class)
+          .block(OIDC_DISCOVERY_TIMEOUT);
+    } catch (Exception e) {
+      if (!discoveryRequired) {
+        log.warn(
+            "Unable to resolve OIDC discovery metadata for provider [%s] from [%s]. "
+                    .formatted(providerId, openIdConfigUri)
+                + "Continuing because provider endpoints are fully specified; "
+                + "OIDC logout endpoint may be unavailable.",
+            e
+        );
+        return null;
+      }
+      throw new IllegalStateException(
+          "Unable to resolve OIDC discovery metadata for provider [%s] from [%s]"
+              .formatted(providerId, openIdConfigUri),
+          e
+      );
+    }
+
+    if (metadata == null) {
+      if (!discoveryRequired) {
+        log.warn(
+            "Empty OIDC discovery metadata for provider [%s] from [%s]. "
+                    .formatted(providerId, openIdConfigUri)
+                + "Continuing because provider endpoints are fully specified; "
+                + "OIDC logout endpoint may be unavailable."
+        );
+        return null;
+      }
+      throw new IllegalStateException(
+          "Empty OIDC discovery metadata for provider [%s] from [%s]"
+              .formatted(providerId, openIdConfigUri)
+      );
+    }
+    return metadata;
+  }
+
+  private void applyMissingEndpoints(OAuthProperties.OAuth2Provider provider, OidcDiscoveryResponse metadata) {
+    if (!StringUtils.hasText(provider.getAuthorizationUri())) {
+      provider.setAuthorizationUri(metadata.authorizationEndpoint());
+    }
+    if (!StringUtils.hasText(provider.getTokenUri())) {
+      provider.setTokenUri(metadata.tokenEndpoint());
+    }
+    if (!StringUtils.hasText(provider.getJwkSetUri())) {
+      provider.setJwkSetUri(metadata.jwksUri());
+    }
+    if (!StringUtils.hasText(provider.getUserInfoUri())) {
+      provider.setUserInfoUri(metadata.userInfoEndpoint());
+    }
+  }
+
+  private boolean hasCompleteOidcEndpoints(OAuthProperties.OAuth2Provider provider) {
+    return StringUtils.hasText(provider.getAuthorizationUri())
+        && StringUtils.hasText(provider.getTokenUri())
+        && StringUtils.hasText(provider.getJwkSetUri())
+        && StringUtils.hasText(provider.getUserInfoUri());
+  }
+
+  private ClientRegistration enrichClientRegistrationWithOidcMetadata(
+      ClientRegistration registration,
+      OidcDiscoveryResponse metadata
+  ) {
+    if (metadata == null) {
+      return registration;
+    }
+
+    Map<String, Object> providerMetadata = new HashMap<>(registration.getProviderDetails().getConfigurationMetadata());
+    if (StringUtils.hasText(metadata.endSessionEndpoint())) {
+      providerMetadata.put("end_session_endpoint", metadata.endSessionEndpoint());
+    }
+    if (StringUtils.hasText(metadata.issuer())) {
+      providerMetadata.put("issuer", metadata.issuer());
+    }
+
+    if (providerMetadata.equals(registration.getProviderDetails().getConfigurationMetadata())
+        && Objects.equals(registration.getProviderDetails().getIssuerUri(), metadata.issuer())) {
+      return registration;
+    }
+
+    var builder = ClientRegistration.withClientRegistration(registration)
+        .providerConfigurationMetadata(providerMetadata);
+    if (StringUtils.hasText(metadata.issuer())) {
+      builder.issuerUri(metadata.issuer());
+    }
+    return builder.build();
+  }
+
+  private record OidcDiscoveryResponse(
+      @JsonProperty("issuer") String issuer,
+      @JsonProperty("authorization_endpoint") String authorizationEndpoint,
+      @JsonProperty("token_endpoint") String tokenEndpoint,
+      @JsonProperty("jwks_uri") String jwksUri,
+      @JsonProperty("userinfo_endpoint") String userInfoEndpoint,
+      @JsonProperty("end_session_endpoint") String endSessionEndpoint
+  ) {
+  }
+
+}
