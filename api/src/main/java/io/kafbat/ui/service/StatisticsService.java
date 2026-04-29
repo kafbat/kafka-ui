@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.QuorumInfo;
+import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -72,11 +73,12 @@ public class StatisticsService {
   private static Mono<Optional<QuorumInfo>> loadQuorumInfo(ReactiveAdminClient ac) {
     return ac.describeMetadataQuorum()
         .map(Optional::of)
-        .onErrorResume(t ->
-            t instanceof UnsupportedVersionException
-                ? Mono.just(Optional.empty())
-                : Mono.error(t)
-        );
+        .onErrorResume(UnsupportedVersionException.class, th -> Mono.just(Optional.empty()))
+        .onErrorResume(ClusterAuthorizationException.class, th -> {
+          log.warn("ClusterAuthorizationException calling describeMetadataQuorum — "
+              + "controller type may be reported incorrectly", th);
+          return Mono.just(Optional.empty());
+        });
   }
 
   private Statistics createStats(ClusterDescription description,
