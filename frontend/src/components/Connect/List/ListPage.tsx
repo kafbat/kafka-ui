@@ -35,7 +35,7 @@ const ListPage: React.FC = () => {
   return (
     <FilteredConnectorsProvider>
       <ConnectorsStatistics isLoading={isLoadingConnectors} />
-      <S.Search hasInput>
+      <S.Search $hasInput>
         <Search
           key={clusterName}
           placeholder="Search by Connect Name, Status or Type"
