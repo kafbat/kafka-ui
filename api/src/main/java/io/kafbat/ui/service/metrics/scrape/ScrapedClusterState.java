@@ -4,6 +4,7 @@ import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
@@ -32,6 +33,7 @@ import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import reactor.core.publisher.Mono;
 
 @Builder(toBuilder = true)
@@ -130,15 +132,36 @@ public class ScrapedClusterState implements AutoCloseable {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
-        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
+        ac.listConsumerGroups()
+            .map(l -> l.stream().map(ConsumerGroupListing::groupId).toList())
+            .onErrorResume(ClusterAuthorizationException.class, th -> {
+              log.warn("Skipping consumer groups scrape because cluster authorization is missing", th);
+              return Mono.just(List.of());
+            }),
         ac.describeTopics(),
         ac.getTopicsConfig()
+            .onErrorResume(ClusterAuthorizationException.class, th -> {
+              log.warn("Skipping topic configs scrape because cluster authorization is missing", th);
+              return Mono.just(Map.of());
+            })
     ).flatMap(phase1 ->
         Mono.zip(
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
-            ac.describeConsumerGroups(phase1.getT2()),
-            ac.listConsumerGroupOffsets(phase1.getT2(), null)
+            phase1.getT2().isEmpty()
+                ? Mono.just(Map.<String, ConsumerGroupDescription>of())
+                : ac.describeConsumerGroups(phase1.getT2())
+                    .onErrorResume(ClusterAuthorizationException.class, th -> {
+                      log.warn("Skipping consumer group descriptions because cluster authorization is missing", th);
+                      return Mono.just(Map.of());
+                    }),
+            phase1.getT2().isEmpty()
+                ? Mono.just(ImmutableTable.<String, TopicPartition, Long>of())
+                : ac.listConsumerGroupOffsets(phase1.getT2(), null)
+                    .onErrorResume(ClusterAuthorizationException.class, th -> {
+                      log.warn("Skipping consumer group offsets because cluster authorization is missing", th);
+                      return Mono.just(ImmutableTable.of());
+                    })
         ).map(phase2 ->
             create(
                 clusterDescription,

@@ -85,6 +85,21 @@ interface MessagesApi {
     @query valueSerde?: string,
     @query cursor?: string,
   ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
+
+  @get
+  @route("/messages/download")
+  @operationId("downloadMessages")
+  @summary("Download last topic messages as ZIP")
+  downloadMessages(
+    @path clusterName: string,
+    @path topicName: string,
+    @query limit?: int32,
+    @query partitions?: int32[],
+    @query stringFilter?: string,
+    @query smartFilterId?: string,
+    @query keySerde?: string,
+    @query valueSerde?: string,
+  ): ZipResponse | ApiNotFoundResponse | ApiBadRequestResponse;
 }
 
 @route("/api/smartfilters/testexecutions")

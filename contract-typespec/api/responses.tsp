@@ -75,3 +75,9 @@ model CsvResponse is Response<200> {
     @header contentType: "text/csv";
     @body _: string;
 }
+
+model ZipResponse is Response<200> {
+  @header contentType: "application/zip";
+  @header contentDisposition: string;
+  @body _: bytes;
+}

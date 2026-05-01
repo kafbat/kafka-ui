@@ -4,7 +4,12 @@ const Navbar = styled.nav`
   display: flex;
   border-bottom: 1px ${({ theme }) => theme.primaryTab.borderColor.nav} solid;
   height: ${({ theme }) => theme.primaryTab.height};
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   & a {
+    flex: 0 0 auto;
     height: 40px;
     min-width: 96px;
     padding: 0 16px;

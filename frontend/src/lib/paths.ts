@@ -154,6 +154,8 @@ export const clusterTopicCopyPath = (
 // Topics topic
 export const clusterTopicSettingsRelativePath = 'settings';
 export const clusterTopicMessagesRelativePath = 'messages';
+export const clusterTopicDownloadRelativePath = 'download';
+export const clusterTopicUploadRelativePath = 'upload';
 export const clusterTopicConsumerGroupsRelativePath = 'consumer-groups';
 export const clusterTopicStatisticsRelativePath = 'statistics';
 export const clusterTopicConnectorsRelativePath = 'connectors';
@@ -179,6 +181,19 @@ export const clusterTopicMessagesPath = (
     clusterName,
     topicName
   )}/${clusterTopicMessagesRelativePath}`;
+export const clusterTopicDownloadPath = (
+  clusterName: ClusterName = RouteParams.clusterName,
+  topicName: TopicName = RouteParams.topicName
+) =>
+  `${clusterTopicPath(
+    clusterName,
+    topicName
+  )}/${clusterTopicDownloadRelativePath}`;
+export const clusterTopicUploadPath = (
+  clusterName: ClusterName = RouteParams.clusterName,
+  topicName: TopicName = RouteParams.topicName
+) =>
+  `${clusterTopicPath(clusterName, topicName)}/${clusterTopicUploadRelativePath}`;
 export const clusterTopicEditPath = (
   clusterName: ClusterName = RouteParams.clusterName,
   topicName: TopicName = RouteParams.topicName

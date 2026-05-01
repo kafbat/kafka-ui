@@ -4,11 +4,13 @@ import {
   clusterTopicAclsRelativePath,
   clusterTopicConnectorsRelativePath,
   clusterTopicConsumerGroupsRelativePath,
+  clusterTopicDownloadRelativePath,
   clusterTopicEditRelativePath,
   clusterTopicMessagesRelativePath,
   clusterTopicSettingsRelativePath,
   clusterTopicsPath,
   clusterTopicStatisticsRelativePath,
+  clusterTopicUploadRelativePath,
   RouteParamsClusterTopic,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -50,6 +52,8 @@ import Edit from './Edit/Edit';
 import Connectors from './Connectors/Connectors';
 import SendMessage from './SendMessage/SendMessage';
 import Acls from './Acls/Acls';
+import Download from './Download/Download';
+import Upload from './Upload/Upload';
 
 const Topic: React.FC = () => {
   const {
@@ -227,6 +231,28 @@ const Topic: React.FC = () => {
             >
               Messages
             </ActionNavLink>
+            <ActionNavLink
+              to={clusterTopicDownloadRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.MESSAGES_READ,
+                value: topicName,
+              }}
+            >
+              Download
+            </ActionNavLink>
+            <ActionNavLink
+              to={clusterTopicUploadRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.MESSAGES_PRODUCE,
+                value: topicName,
+              }}
+            >
+              Upload
+            </ActionNavLink>
             <NavLink
               to={clusterTopicConsumerGroupsRelativePath}
               className={({ isActive }) => (isActive ? 'is-active' : '')}
@@ -281,6 +307,14 @@ const Topic: React.FC = () => {
                 <Route
                   path={clusterTopicMessagesRelativePath}
                   element={<Messages />}
+                />
+                <Route
+                  path={clusterTopicDownloadRelativePath}
+                  element={<Download />}
+                />
+                <Route
+                  path={clusterTopicUploadRelativePath}
+                  element={<Upload />}
                 />
                 <Route
                   path={clusterTopicSettingsRelativePath}

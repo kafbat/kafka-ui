@@ -306,6 +306,7 @@ public class ReactiveAdminClient implements Closeable {
             new DescribeConfigsOptions().includeSynonyms(true).includeDocumentation(includeDoc)).values(),
         UnknownTopicOrPartitionException.class,
         UnknownServerException.class,
+        ClusterAuthorizationException.class,
         TopicAuthorizationException.class
     ).map(config -> config.entrySet().stream()
         .collect(toMap(
@@ -430,7 +431,16 @@ public class ReactiveAdminClient implements Closeable {
   }
 
   public Mono<ClusterDescription> describeCluster() {
-    return describeClusterImpl(client, getClusterFeatures());
+    Set<SupportedFeature> features = getClusterFeatures();
+    return describeClusterImpl(client, features)
+        .onErrorResume(ClusterAuthorizationException.class, th -> {
+          if (features.contains(SupportedFeature.DESCRIBE_CLUSTER_INCLUDE_AUTHORIZED_OPERATIONS)) {
+            log.warn("Retrying describeCluster without authorized operations because cluster authorization is missing",
+                th);
+            return describeClusterImpl(client, Set.of());
+          }
+          return Mono.error(th);
+        });
   }
 
   private static Mono<ClusterDescription> describeClusterImpl(AdminClient client,

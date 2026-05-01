@@ -26,14 +26,36 @@ import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.service.DeserializationService;
 import io.kafbat.ui.service.MessagesService;
+import io.kafbat.ui.service.MessagesService.DownloadFormat;
+import io.kafbat.ui.service.MessagesService.UploadKeyMode;
+import io.kafbat.ui.service.MessagesService.UploadMessagesOptions;
+import io.kafbat.ui.service.MessagesService.UploadMessagesResult;
+import io.kafbat.ui.service.MessagesService.UploadParseMode;
+import io.kafbat.ui.service.MessagesService.UploadPartitionStrategy;
+import io.kafbat.ui.service.MessagesService.UploadSourceFile;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -73,6 +95,88 @@ public class MessagesController extends AbstractController implements MessagesAp
     return smartFilterTestExecutionDto
         .map(MessagesService::execSmartFilterTest)
         .map(ResponseEntity::ok);
+  }
+
+  @Override
+  public Mono<ResponseEntity<Resource>> downloadMessages(String clusterName,
+                                                         String topicName,
+                                                         Integer limit,
+                                                         List<Integer> partitions,
+                                                         String stringFilter,
+                                                         String smartFilterId,
+                                                         String keySerde,
+                                                         String valueSerde,
+                                                         ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .topicActions(topicName, MESSAGES_READ)
+        .operationName("downloadMessages")
+        .build();
+
+    return validateAccess(context).then(
+        Mono.defer(() -> {
+          int downloadLimit = messagesService.resolveDownloadLimit(limit);
+          PollingModeDTO pollingMode = resolveDownloadMode(exchange);
+          DownloadFormat format = DownloadFormat.fromRequest(firstQueryParam(exchange, "format"));
+          String fileName = messagesService.downloadFileName(topicName, downloadLimit, pollingMode, format);
+          return messagesService.downloadMessagesAsZip(
+                  getCluster(clusterName),
+                  topicName,
+                  downloadLimit,
+                  Optional.ofNullable(partitions).orElse(List.of()),
+                  stringFilter,
+                  smartFilterId,
+                  keySerde,
+                  valueSerde,
+                  pollingMode,
+                  queryParamAsLong(exchange, "offset"),
+                  queryParamAsLong(exchange, "timestamp"),
+                  queryParamAsLong(exchange, "timestampTo"),
+                  format
+              )
+              .map(zipBytes -> ResponseEntity.ok()
+                  .contentType(MediaType.parseMediaType("application/zip"))
+                  .contentLength(zipBytes.length)
+                  .header(
+                      HttpHeaders.CONTENT_DISPOSITION,
+                      ContentDisposition.attachment()
+                          .filename(fileName, StandardCharsets.UTF_8)
+                          .build()
+                          .toString()
+                  )
+                  .body((Resource) new ByteArrayResource(zipBytes)));
+        })
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @PostMapping(
+      value = "/api/clusters/{clusterName}/topics/{topicName}/messages/upload",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+  )
+  public Mono<ResponseEntity<UploadMessagesResult>> uploadMessages(
+      @PathVariable String clusterName,
+      @PathVariable String topicName,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .topicActions(topicName, MESSAGES_PRODUCE)
+        .operationName("uploadMessages")
+        .build();
+
+    return validateAccess(context).then(
+      exchange.getMultipartData()
+        .flatMap(parts -> Flux.fromIterable(uploadFileParts(parts))
+          .flatMap(this::toUploadedSourceFile)
+          .collectList()
+          .flatMap(uploadFiles -> messagesService.uploadMessages(
+            getCluster(clusterName),
+            topicName,
+            uploadFiles,
+            uploadOptions(parts)
+          ))
+        )
+        .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Deprecated(forRemoval = true, since = "1.1.0")
@@ -196,5 +300,104 @@ public class MessagesController extends AbstractController implements MessagesAp
     return validateAccess.then(registration)
         .map(reg -> messagesService.registerMessageFilter(reg.getFilterCode()))
         .map(id -> ResponseEntity.ok(new MessageFilterIdDTO().id(id)));
+  }
+
+  private Mono<UploadSourceFile> toUploadedSourceFile(FilePart filePart) {
+    return filePart.content()
+        .reduce(new ByteArrayOutputStream(), (outputStream, dataBuffer) -> {
+          byte[] bytes = new byte[dataBuffer.readableByteCount()];
+          dataBuffer.read(bytes);
+          DataBufferUtils.release(dataBuffer);
+          outputStream.writeBytes(bytes);
+          return outputStream;
+        })
+        .map(outputStream -> new UploadSourceFile(filePart.filename(), outputStream.toByteArray()));
+  }
+
+  private List<FilePart> uploadFileParts(MultiValueMap<String, Part> parts) {
+    List<FilePart> files = Optional.ofNullable(parts.get("files"))
+        .orElse(List.of())
+        .stream()
+        .filter(FilePart.class::isInstance)
+        .map(FilePart.class::cast)
+        .toList();
+    if (files.isEmpty()) {
+      throw new ValidationException("At least one upload file is required");
+    }
+    return files;
+  }
+
+  private UploadMessagesOptions uploadOptions(MultiValueMap<String, Part> parts) {
+    return new UploadMessagesOptions(
+        UploadParseMode.fromRequest(partValue(parts, "parseMode")),
+        UploadPartitionStrategy.fromRequest(partValue(parts, "partitionStrategy")),
+        UploadKeyMode.fromRequest(partValue(parts, "keyMode")),
+        partInteger(parts, "partition"),
+        partIntegers(parts, "partitions"),
+        partValue(parts, "keySerde"),
+        partValue(parts, "valueSerde"),
+        partValue(parts, "headersJson"),
+        partBoolean(parts, "includeMetadataHeaders", true),
+        partBoolean(parts, "dryRun", false),
+        partInteger(parts, "messageLimit")
+    );
+  }
+
+  private List<Integer> partIntegers(MultiValueMap<String, Part> parts, String name) {
+    return Optional.ofNullable(parts.get(name))
+        .orElse(List.of())
+        .stream()
+        .map(this::formFieldValue)
+        .filter(value -> value != null && !value.isBlank())
+        .map(Integer::valueOf)
+        .toList();
+  }
+
+  private Integer partInteger(MultiValueMap<String, Part> parts, String name) {
+    String value = partValue(parts, name);
+    return value == null || value.isBlank() ? null : Integer.valueOf(value);
+  }
+
+  private boolean partBoolean(MultiValueMap<String, Part> parts, String name, boolean defaultValue) {
+    String value = partValue(parts, name);
+    return value == null || value.isBlank() ? defaultValue : Boolean.parseBoolean(value);
+  }
+
+  private String partValue(MultiValueMap<String, Part> parts, String name) {
+    return formFieldValue(parts.getFirst(name));
+  }
+
+  private String formFieldValue(Part part) {
+    return part instanceof FormFieldPart formFieldPart ? formFieldPart.value() : null;
+  }
+
+  private PollingModeDTO resolveDownloadMode(ServerWebExchange exchange) {
+    String value = Optional.ofNullable(firstQueryParam(exchange, "downloadMode"))
+        .orElseGet(() -> firstQueryParam(exchange, "mode"));
+    if (value == null || value.isBlank()) {
+      return PollingModeDTO.LATEST;
+    }
+    try {
+      return PollingModeDTO.valueOf(value.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException e) {
+      throw new ValidationException("Unsupported download mode: " + value);
+    }
+  }
+
+  private Long queryParamAsLong(ServerWebExchange exchange, String name) {
+    String value = firstQueryParam(exchange, name);
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    try {
+      return Long.valueOf(value);
+    } catch (NumberFormatException e) {
+      throw new ValidationException("Query parameter '" + name + "' must be a number");
+    }
+  }
+
+  private String firstQueryParam(ServerWebExchange exchange, String name) {
+    MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
+    return queryParams.getFirst(name);
   }
 }

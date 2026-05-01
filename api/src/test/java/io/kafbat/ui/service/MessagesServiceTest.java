@@ -15,12 +15,17 @@ import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.zip.ZipInputStream;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +82,78 @@ class MessagesServiceTest extends AbstractIntegrationTest {
                 new ConsumerPosition(PollingModeDTO.TAILING, NON_EXISTING_TOPIC, List.of(), null, null),
                 null, null, 1, "String", "String"))
         .expectError(TopicNotFoundException.class)
+        .verify();
+  }
+
+  @Test
+  void downloadLastMessagesAsZipReturnsOneTextFilePerMessage() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    try (var producer = KafkaTestProducer.forKafka(kafka)) {
+      producer.send(testTopic, "download-message-0");
+      producer.send(testTopic, "download-message-1");
+      producer.send(testTopic, "download-message-2").get();
+    }
+
+    byte[] zip = messagesService.downloadLastMessagesAsZip(
+        cluster,
+        testTopic,
+        2,
+        List.of(),
+        null,
+        null,
+        StringSerde.NAME,
+        StringSerde.NAME
+    ).block();
+
+    Map<String, String> entries = unzip(zip);
+    assertThat(entries).hasSize(2);
+    assertThat(entries)
+        .containsKeys(
+            "2Offset-0Partition-" + testTopic + "-Topic.txt",
+            "1Offset-0Partition-" + testTopic + "-Topic.txt"
+        );
+    assertThat(entries.get("2Offset-0Partition-" + testTopic + "-Topic.txt"))
+        .contains("Topic: " + testTopic)
+        .contains("Partition: 0")
+        .contains("Offset: 2")
+        .contains("Payload:")
+        .contains("download-message-2");
+  }
+
+  @Test
+  void downloadLastMessagesAsZipReturnsReadmeForEmptyTopic() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    byte[] zip = messagesService.downloadLastMessagesAsZip(
+        cluster,
+        testTopic,
+        10,
+        List.of(),
+        null,
+        null,
+        StringSerde.NAME,
+        StringSerde.NAME
+    ).block();
+
+    assertThat(unzip(zip)).containsEntry("README.txt", "No messages were found for topic " + testTopic + ".");
+  }
+
+  @Test
+  void downloadLastMessagesAsZipRejectsInvalidLimit() {
+    StepVerifier.create(messagesService.downloadLastMessagesAsZip(
+            cluster,
+            "topic",
+            0,
+            List.of(),
+            null,
+            null,
+            StringSerde.NAME,
+            StringSerde.NAME
+        ))
+        .expectErrorMatches(e -> e.getMessage().contains("Download limit must be between 1 and"))
         .verify();
   }
 
@@ -163,6 +240,17 @@ class MessagesServiceTest extends AbstractIntegrationTest {
   private void createTopicWithCleanup(NewTopic newTopic) {
     createTopic(newTopic);
     createdTopics.add(newTopic.name());
+  }
+
+  private Map<String, String> unzip(byte[] zip) throws IOException {
+    Map<String, String> entries = new LinkedHashMap<>();
+    try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(zip), StandardCharsets.UTF_8)) {
+      for (var entry = zipInputStream.getNextEntry(); entry != null; entry = zipInputStream.getNextEntry()) {
+        entries.put(entry.getName(), new String(zipInputStream.readAllBytes(), StandardCharsets.UTF_8));
+        zipInputStream.closeEntry();
+      }
+    }
+    return entries;
   }
 
   @Test

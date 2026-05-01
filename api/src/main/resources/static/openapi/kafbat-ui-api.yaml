@@ -2592,6 +2592,88 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTopicMessage'
+  /api/clusters/{clusterName}/topics/{topicName}/messages/download:
+    get:
+      operationId: downloadMessages
+      summary: Download last topic messages as ZIP
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: partitions
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+        - name: stringFilter
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: smartFilterId
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: keySerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: valueSerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          headers:
+            content-disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Messages
   /api/clusters/{clusterName}/topics/{topicName}/messages/v2:
     get:
       operationId: getTopicMessagesV2
@@ -3306,6 +3388,29 @@ components:
                             type: string
                           password:
                             type: string
+                          oauth:
+                            type: object
+                            properties:
+                              tokenUrl:
+                                type: string
+                              clientId:
+                                type: string
+                              clientSecret:
+                                type: string
+                              scopes:
+                                type: array
+                                items:
+                                  type: string
+                              tokenCacheEnabled:
+                                type: boolean
+                                default: true
+                              tokenRefreshBuffer:
+                                type: string
+                                format: duration
+                              maxRetries:
+                                type: integer
+                                format: int32
+                                default: 1
                       schemaRegistrySsl:
                         type: object
                         properties:

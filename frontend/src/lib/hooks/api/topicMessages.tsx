@@ -28,6 +28,82 @@ interface UseTopicMessagesProps {
   topicName: TopicName;
 }
 
+interface DownloadMessagesZipProps {
+  clusterName: ClusterName;
+  topicName: TopicName;
+  limit: number;
+  partitions?: Array<number | string>;
+  stringFilter?: string;
+  smartFilterId?: string;
+  keySerde?: string;
+  valueSerde?: string;
+  downloadMode?: string;
+  offset?: string;
+  timestamp?: string;
+  timestampTo?: string;
+  format?: string;
+}
+
+export interface UploadMessagesFileResult {
+  fileName: string;
+  extractedEntries: number;
+  parsedMessages: number;
+}
+
+export interface UploadMessagePreview {
+  sourceFile: string;
+  entryName: string;
+  partition?: number | null;
+  key?: string | null;
+  valueBytes: number;
+  valuePreview: string;
+}
+
+export interface UploadMessagesResult {
+  dryRun: boolean;
+  filesReceived: number;
+  entriesRead: number;
+  messagesParsed: number;
+  messagesProduced: number;
+  failures: number;
+  files: UploadMessagesFileResult[];
+  previews: UploadMessagePreview[];
+  errors: string[];
+}
+
+interface UploadMessagesProps {
+  clusterName: ClusterName;
+  topicName: TopicName;
+  files: File[];
+  parseMode: string;
+  partitionStrategy: string;
+  keyMode: string;
+  partition?: string;
+  partitions?: Array<number | string>;
+  keySerde?: string;
+  valueSerde?: string;
+  headersJson?: string;
+  includeMetadataHeaders: boolean;
+  dryRun: boolean;
+  messageLimit?: string;
+}
+
+const zipFileNameFromHeader = (contentDisposition: string | null) => {
+  if (!contentDisposition) return undefined;
+
+  const utf8FileName = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+  const fileName = /filename="?([^";]+)"?/i.exec(contentDisposition);
+  const encodedFileName = utf8FileName?.[1] || fileName?.[1];
+
+  if (!encodedFileName) return undefined;
+
+  try {
+    return decodeURIComponent(encodedFileName.replace(/"/g, ''));
+  } catch {
+    return encodedFileName.replace(/"/g, '');
+  }
+};
+
 export const useTopicMessages = ({
   clusterName,
   topicName,
@@ -198,6 +274,136 @@ export function useSerdes(props: GetSerdesRequest) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
+  });
+}
+
+export function useDownloadMessagesZip() {
+  return useMutation({
+    mutationFn: async ({
+      clusterName,
+      topicName,
+      limit,
+      partitions,
+      stringFilter,
+      smartFilterId,
+      keySerde,
+      valueSerde,
+      downloadMode,
+      offset,
+      timestamp,
+      timestampTo,
+      format,
+    }: DownloadMessagesZipProps) => {
+      const requestParams = new URLSearchParams({
+        limit: limit.toString(),
+      });
+
+      if (partitions?.length) {
+        requestParams.set('partitions', partitions.join(','));
+      }
+
+      const optionalParams: Array<[string, string | undefined]> = [
+        ['stringFilter', stringFilter],
+        ['smartFilterId', smartFilterId],
+        ['keySerde', keySerde],
+        ['valueSerde', valueSerde],
+        ['downloadMode', downloadMode],
+        ['offset', offset],
+        ['timestamp', timestamp],
+        ['timestampTo', timestampTo],
+        ['format', format],
+      ];
+
+      optionalParams.forEach(([key, value]) => {
+        if (value) requestParams.set(key, value);
+      });
+
+      const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
+        clusterName
+      )}/topics/${encodeURIComponent(
+        topicName
+      )}/messages/download?${requestParams.toString()}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: BASE_PARAMS.credentials as RequestCredentials,
+      });
+
+      if (!response.ok) {
+        await showServerError(response);
+        throw new Error('Failed to download messages ZIP');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      const fallbackFileName = `${topicName}-last-${limit}-messages.zip`;
+
+      anchor.href = downloadUrl;
+      anchor.download =
+        zipFileNameFromHeader(response.headers.get('content-disposition')) ||
+        fallbackFileName;
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(downloadUrl);
+    },
+  });
+}
+
+export function useUploadMessages() {
+  return useMutation({
+    mutationFn: async ({
+      clusterName,
+      topicName,
+      files,
+      parseMode,
+      partitionStrategy,
+      keyMode,
+      partition,
+      partitions,
+      keySerde,
+      valueSerde,
+      headersJson,
+      includeMetadataHeaders,
+      dryRun,
+      messageLimit,
+    }: UploadMessagesProps): Promise<UploadMessagesResult> => {
+      const formData = new FormData();
+
+      files.forEach((file) => formData.append('files', file));
+      formData.set('parseMode', parseMode);
+      formData.set('partitionStrategy', partitionStrategy);
+      formData.set('keyMode', keyMode);
+      formData.set('includeMetadataHeaders', includeMetadataHeaders.toString());
+      formData.set('dryRun', dryRun.toString());
+
+      if (partition) formData.set('partition', partition);
+      if (keySerde) formData.set('keySerde', keySerde);
+      if (valueSerde) formData.set('valueSerde', valueSerde);
+      if (headersJson) formData.set('headersJson', headersJson);
+      if (messageLimit) formData.set('messageLimit', messageLimit);
+      partitions?.forEach((item) => formData.append('partitions', item.toString()));
+
+      const response = await fetch(
+        `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
+          clusterName
+        )}/topics/${encodeURIComponent(topicName)}/messages/upload`,
+        {
+          method: 'POST',
+          credentials: BASE_PARAMS.credentials as RequestCredentials,
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        await showServerError(response);
+        throw new Error('Failed to upload messages');
+      }
+
+      return response.json();
+    },
   });
 }
 

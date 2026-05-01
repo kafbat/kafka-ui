@@ -191,6 +191,7 @@ const Filters: React.FC<FiltersProps> = ({
         gap="10px"
         alignItems="center"
         justifyContent="flex-start"
+        flexWrap="wrap"
         padding="8px 0 5px"
       >
         <Button
