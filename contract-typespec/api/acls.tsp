@@ -22,6 +22,7 @@ interface AclApi {
 
   @route("/csv")
   @summary("getAclAsCsv")
+  @doc("Export ACLs as CSV.")
   @get
   @operationId("getAclAsCsv")
   getAclAsCsv(
@@ -35,6 +36,7 @@ interface AclApi {
 
   @route("/csv")
   @summary("syncAclsCsv")
+  @doc("Sync ACLs from a CSV definition.")
   @post
   @operationId("syncAclsCsv")
   syncAclsCsv(@path clusterName: string, @body content: string): void | ApiBadRequestResponse;
@@ -42,12 +44,13 @@ interface AclApi {
   @post
   @operationId("createAcl")
   @summary("createAcl")
+  @doc("Create a new ACL entry in a Kafka cluster.")
   createAcl(@path clusterName: string, @body acl: KafkaAcl): void | ApiBadRequestResponse;
 
-  @summary("deleteAcl")
   @delete
   @operationId("deleteAcl")
   @summary("deleteAcl")
+  @doc("Delete an ACL entry from a Kafka cluster.")
   deleteAcl(
     @path clusterName: string,
     @body acl: KafkaAcl,
@@ -57,6 +60,7 @@ interface AclApi {
   @post
   @operationId("createConsumerAcl")
   @summary("createConsumerAcl")
+  @doc("Create ACL entries for a consumer.")
   createConsumerAcl(
     @path clusterName: string,
     @body payload: CreateConsumerAcl,
@@ -64,6 +68,7 @@ interface AclApi {
 
   @route("/producer")
   @summary("createProducerAcl")
+  @doc("Create ACL entries for a producer.")
   @operationId("createProducerAcl")
   @post
   createProducerAcl(
@@ -73,6 +78,7 @@ interface AclApi {
 
   @route("/streamapp")
   @summary("createStreamAppAcl")
+  @doc("Create ACL entries for a Kafka Streams application.")
   @post
   @operationId("createStreamAppAcl")
   createStreamAppAcl(
