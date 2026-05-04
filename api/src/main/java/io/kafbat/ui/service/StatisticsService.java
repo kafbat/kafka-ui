@@ -82,7 +82,9 @@ public class StatisticsService {
       return Mono.just(new LoadQuorumInfoResult(Optional.empty(), ZOOKEEPER));
     }
     else if (quorumInfoFetchError instanceof ClusterAuthorizationException) {
-      final String message = "Failed to fetch quorum info.";
+      final String message = "Failed to fetch quorum info due to ClusterAuthorizationException." +
+          " In some managed Kafka offerings (e.g. Confluent Cloud), it is prohibited to fetch the quorum information from a cluster, regardless of your role configuration." +
+          " In that case, this error is expected behavior.";
       log.warn(message, quorumInfoFetchError);
       return Mono.just(new LoadQuorumInfoResult(Optional.empty(), UNKNOWN));
     }
