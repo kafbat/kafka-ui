@@ -65,8 +65,7 @@ public class StatisticsService {
                                     t.getT2(),
                                     t.getT3(),
                                     metrics,
-                                    t.getT4().controllerType,
-                                    t.getT4().quorumInfo,
+                                    t.getT4(),
                                     ac))
                         )
                     )
@@ -101,8 +100,7 @@ public class StatisticsService {
                                  ScrapedClusterState scrapedClusterState,
                                  List<KafkaConnectState> connects,
                                  Metrics metrics,
-                                 ControllerType controllerType,
-                                 Optional<QuorumInfo> quorumInfo,
+                                 LoadQuorumInfoResult loadQuorumInfoResult,
                                  ReactiveAdminClient ac) {
     var stats = Statistics.builder()
         .status(ServerStatusDTO.ONLINE)
@@ -116,9 +114,9 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(controllerType);
+        .controller(loadQuorumInfoResult.controllerType);
 
-    quorumInfo.ifPresent(info -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(info)));
+    loadQuorumInfoResult.quorumInfo.ifPresent(info -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(info)));
 
     return stats.build();
   }
