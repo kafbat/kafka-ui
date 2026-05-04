@@ -16,6 +16,7 @@ import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,30 +43,7 @@ public class StatisticsService {
     return getStatistics(c).doOnSuccess(m -> cache.replace(c, m));
   }
 
-  private sealed interface ClusterInfo {
-    ControllerType getType();
-  }
-
-  private record KRaftClusterInfo(QuorumInfo quorumInfo) implements ClusterInfo {
-    @Override
-    public ControllerType getType() {
-      return KRAFT;
-    }
-  }
-
-  private record ZooKeeperClusterInfo() implements ClusterInfo {
-    @Override
-    public ControllerType getType() {
-      return ZOOKEEPER;
-    }
-  }
-
-  private record UnknownClusterInfo() implements ClusterInfo {
-    @Override
-    public ControllerType getType() {
-      return UNKNOWN;
-    }
-  }
+  private record LoadQuorumInfoResult(Optional<QuorumInfo> quorumInfo, ControllerType controllerType) {}
 
   private Mono<Statistics> getStatistics(KafkaCluster cluster) {
     return adminClientService.get(cluster).flatMap(ac ->
@@ -78,7 +56,7 @@ public class StatisticsService {
                             loadClusterState(description, ac),
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
-                                .map(quorumInfo -> (ClusterInfo)new KRaftClusterInfo(quorumInfo))
+                                .map(quorumInfo -> new LoadQuorumInfoResult(Optional.of(quorumInfo), KRAFT))
                                 .onErrorResume(StatisticsService::handleQuorumInfoErrors)))
                         .flatMap(t ->
                             scrapeMetrics(cluster, t.getT2(), description)
@@ -87,7 +65,8 @@ public class StatisticsService {
                                     t.getT2(),
                                     t.getT3(),
                                     metrics,
-                                    t.getT4(),
+                                    t.getT4().controllerType,
+                                    t.getT4().quorumInfo,
                                     ac))
                         )
                     )
@@ -98,12 +77,14 @@ public class StatisticsService {
   }
 
   @NotNull
-  private static Mono<? extends ClusterInfo> handleQuorumInfoErrors(Throwable quorumInfoFetchError) {
+  private static Mono<LoadQuorumInfoResult> handleQuorumInfoErrors(Throwable quorumInfoFetchError) {
     if (quorumInfoFetchError instanceof UnsupportedVersionException) {
-      return Mono.just(new ZooKeeperClusterInfo());
+      return Mono.just(new LoadQuorumInfoResult(Optional.empty(), ZOOKEEPER));
     }
     else if (quorumInfoFetchError instanceof ClusterAuthorizationException) {
-      return Mono.just(new UnknownClusterInfo());
+      final String message = "Failed to fetch quorum info.";
+      log.warn(message, quorumInfoFetchError);
+      return Mono.just(new LoadQuorumInfoResult(Optional.empty(), UNKNOWN));
     }
     return Mono.error(quorumInfoFetchError);
   }
@@ -118,7 +99,8 @@ public class StatisticsService {
                                  ScrapedClusterState scrapedClusterState,
                                  List<KafkaConnectState> connects,
                                  Metrics metrics,
-                                 ClusterInfo clusterInfo,
+                                 ControllerType controllerType,
+                                 Optional<QuorumInfo> quorumInfo,
                                  ReactiveAdminClient ac) {
     var stats = Statistics.builder()
         .status(ServerStatusDTO.ONLINE)
@@ -132,12 +114,9 @@ public class StatisticsService {
                 Collectors.toMap(KafkaConnectState::getName, c -> c)
             )
         )
-        .controller(clusterInfo.getType());
+        .controller(controllerType);
 
-    if (clusterInfo instanceof KRaftClusterInfo(QuorumInfo quorumInfo))
-    {
-      stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(quorumInfo));
-    }
+    quorumInfo.ifPresent(info -> stats.quorumInfo(quorumInfoMapper.toInternalQuorumInfo(info)));
 
     return stats.build();
   }
