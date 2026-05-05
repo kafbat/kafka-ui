@@ -1,15 +1,12 @@
-package io.kafbat.ui.model.sainsburys;
+package io.kafbat.ui.model.sainsburys.confluent;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -17,13 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SchemaMetadataResponse {
+public class SearchParameters {
 
-  private @Nullable SearchParameters searchParameters;
+  private @Nullable Boolean includeDeleted;
 
-  @Valid
-  private List<String> types = new ArrayList<>();
+  private @Nullable Integer limit;
 
-  @Valid
-  private List<@Valid Entity> entities = new ArrayList<>();
+  private @Nullable Integer offset;
 }
+
+

@@ -1,6 +1,5 @@
-package io.kafbat.ui.config;
+package io.kafbat.ui.config.sainsburys;
 
-import feign.auth.BasicAuthRequestInterceptor;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

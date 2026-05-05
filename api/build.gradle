@@ -85,6 +85,10 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.12.200'
     implementation 'io.github.boostchicken:spring-data-dynamodb:5.2.5'
 
+    // Custom Sainsburys Retryable
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
     // Annotation processors
     implementation libs.lombok
     implementation libs.mapstruct

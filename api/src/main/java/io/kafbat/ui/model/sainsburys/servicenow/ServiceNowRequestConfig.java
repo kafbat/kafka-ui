@@ -1,20 +1,20 @@
-package io.kafbat.ui.model.sainsburys;
+package io.kafbat.ui.model.sainsburys.servicenow;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import java.io.Serializable;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 @Builder
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ServiceNowCreate implements Serializable {
+@Configuration
+@ConfigurationProperties(prefix = "kit.external.services.service-now.requests.content")
+public class ServiceNowRequestConfig implements Serializable {
 
   private String u_assigned_to;
   private String u_assignment_group;

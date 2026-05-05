@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
+import io.kafbat.ui.service.sainsburys.DynamoClusterProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +31,15 @@ import org.springframework.stereotype.Component;
 public class DeserializationService implements Closeable {
 
   private final Map<String, ClusterSerdes> clusterSerdes = new ConcurrentHashMap<>();
+  private final DynamoClusterProperties dynamoClusterProperties;
+
+  @Value("${kit.masking.feature.enabled: false }")
+  private boolean isMaskingEnabled;
 
   public DeserializationService(Environment env,
                                 ClustersStorage clustersStorage,
-                                ClustersProperties clustersProperties) {
+                                ClustersProperties clustersProperties, DynamoClusterProperties dynamoClusterProperties) {
+    this.dynamoClusterProperties = dynamoClusterProperties;
     var serdesInitializer = new SerdesInitializer();
     for (int i = 0; i < clustersProperties.getClusters().size(); i++) {
       var clusterProperties = clustersProperties.getClusters().get(i);
@@ -99,6 +106,10 @@ public class DeserializationService implements Closeable {
     var keySerde = getSerdeForDeserialize(cluster, topic, Serde.Target.KEY, keySerdeName);
     var valueSerde = getSerdeForDeserialize(cluster, topic, Serde.Target.VALUE, valueSerdeName);
     var fallbackSerde = getSerdesFor(cluster).getFallbackSerde();
+    var consumerRecordDeserializer=cluster.getMasking().getMaskerForTopic(topic);
+    if(isMaskingEnabled){
+      consumerRecordDeserializer=cluster.getMasking().getMaskerForTopic(topic, dynamoClusterProperties.retrieveDynamoMasks(cluster.getName()));
+    }
     return new ConsumerRecordDeserializer(
         keySerde.getName(),
         keySerde.deserializer(topic, Serde.Target.KEY),
@@ -107,7 +118,7 @@ public class DeserializationService implements Closeable {
         fallbackSerde.getName(),
         fallbackSerde.deserializer(topic, Serde.Target.KEY),
         fallbackSerde.deserializer(topic, Serde.Target.VALUE),
-        cluster.getMasking().getMaskerForTopic(topic)
+        consumerRecordDeserializer
     );
   }
 

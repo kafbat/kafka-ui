@@ -1,8 +1,8 @@
 package io.kafbat.ui.client;
 
-import io.kafbat.ui.config.HttpFeignConfig;
-import io.kafbat.ui.config.ServiceNowAuthConfig;
-import io.kafbat.ui.model.sainsburys.ServiceNowCreate;
+import io.kafbat.ui.config.sainsburys.HttpFeignConfig;
+import io.kafbat.ui.config.sainsburys.ServiceNowAuthConfig;
+import io.kafbat.ui.model.sainsburys.servicenow.ServiceNowCreate;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

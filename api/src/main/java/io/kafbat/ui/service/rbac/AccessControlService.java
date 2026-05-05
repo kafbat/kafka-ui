@@ -20,6 +20,7 @@ import io.kafbat.ui.service.rbac.extractor.GithubAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.GoogleAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
+import io.kafbat.ui.service.sainsburys.DynamoClusterProperties;
 import jakarta.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
@@ -55,6 +57,11 @@ public class AccessControlService {
   private final InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
   private final RoleBasedAccessControlProperties properties;
   private final Environment environment;
+
+  private final DynamoClusterProperties dynamoClusterProperties;
+
+  @Value("${kit.masking.feature.enabled: false }")
+  private boolean isMaskingEnabled;
 
   @Getter
   private boolean rbacEnabled = false;
@@ -146,7 +153,7 @@ public class AccessControlService {
         .stream()
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
-    
+
     return isAccessible || properties.getDefaultRole() != null;
   }
 
@@ -209,7 +216,13 @@ public class AccessControlService {
     if (!rbacEnabled) {
       return Collections.emptyList();
     }
-    return Collections.unmodifiableList(properties.getRoles());
+
+    List<Role> rbacRoles = properties.getRoles();
+    if(isMaskingEnabled){
+      // KIT custom Data Unmasking role
+      rbacRoles.addAll(dynamoClusterProperties.retrieveDynamoRBACUserRoles());
+    }
+    return Collections.unmodifiableList(rbacRoles);
   }
 
   public DefaultRole getDefaultRole() {

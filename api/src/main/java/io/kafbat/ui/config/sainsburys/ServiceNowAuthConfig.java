@@ -1,4 +1,4 @@
-package io.kafbat.ui.config;
+package io.kafbat.ui.config.sainsburys;
 
 import feign.auth.BasicAuthRequestInterceptor;
 import org.springframework.beans.factory.annotation.Value;

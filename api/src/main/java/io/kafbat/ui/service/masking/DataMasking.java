@@ -23,7 +23,7 @@ public class DataMasking {
   private static final JsonMapper JSON_MAPPER = new JsonMapper();
 
   @Value
-  static class Mask {
+  public static class Mask {
     @Nullable
     Pattern topicKeysPattern;
     @Nullable
@@ -70,9 +70,46 @@ public class DataMasking {
         .value(valMasker.apply(msg.getValue()));
   }
 
+  public UnaryOperator<TopicMessageDTO> getMaskerForTopic(String topic, List<Mask> maskList) {
+    var keyMasker = getMaskingFunction(topic, Serde.Target.KEY, maskList);
+    var valMasker = getMaskingFunction(topic, Serde.Target.VALUE, maskList);
+    return msg -> msg
+        .key(keyMasker.apply(msg.getKey()))
+        .value(valMasker.apply(msg.getValue()));
+  }
+
   @VisibleForTesting
   UnaryOperator<String> getMaskingFunction(String topic, Serde.Target target) {
     var targetMasks = masks.stream().filter(m -> m.shouldBeApplied(topic, target)).toList();
+    if (targetMasks.isEmpty()) {
+      return UnaryOperator.identity();
+    }
+    return inputStr -> {
+      if (inputStr == null) {
+        return null;
+      }
+      try {
+        JsonNode json = JSON_MAPPER.readTree(inputStr);
+        if (json.isContainerNode()) {
+          for (Mask targetMask : targetMasks) {
+            json = targetMask.policy.applyToJsonContainer((ContainerNode<?>) json);
+          }
+          return json.toString();
+        }
+      } catch (JsonProcessingException jsonException) {
+        //just ignore
+      }
+      // if we can't parse input as json or parsed json is not object/array
+      // we just apply first found policy
+      // (there is no need to apply all of them, because they will just override each other)
+      return targetMasks.get(0).policy.applyToString(inputStr);
+    };
+  }
+
+  @VisibleForTesting
+  UnaryOperator<String> getMaskingFunction(String topic, Serde.Target target, List<Mask> maskList) {
+    maskList.addAll(masks);
+    var targetMasks = maskList.stream().filter(m -> m.shouldBeApplied(topic, target)).toList();
     if (targetMasks.isEmpty()) {
       return UnaryOperator.identity();
     }

@@ -6,12 +6,25 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableDynamoDBRepositories(basePackages = "io.kafbat.ui.repository")
 public class DynamoDBConfig {
+
+  @Value("${aws.region}")
+  private String region;
+  @Value("${aws.credentials.access-key}")
+  private String accessKey;
+  @Value("${aws.credentials.secret-key}")
+  private String secretKey;
+  @Value("${aws.dynamodb.endpoint}")
+  private String endpoint;
+
+
+
   /**
    * Configures the Amazon DynamoDB client to connect to a local instance.
    * This is typically used for development and testing purposes.
@@ -22,9 +35,9 @@ public class DynamoDBConfig {
   public AmazonDynamoDB amazonDynamoDB() {
     return AmazonDynamoDBClientBuilder.standard()
         .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
-            "http://localhost:4566", "ue-central-1"))
+            endpoint, region))
         .withCredentials(new AWSStaticCredentialsProvider(
-            new BasicAWSCredentials("test", "test")))
+            new BasicAWSCredentials(accessKey, secretKey)))
         .build();
   }
 }
