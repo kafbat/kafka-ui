@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "contract/**"
+      - "contract-typespec/**"
       - "frontend/**"
 
 permissions:
