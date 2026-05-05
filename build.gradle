@@ -45,6 +45,7 @@ sonar {
         property "sonar.organization", "kafbat"
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.exclusions", "**/e2e-tests/**/*"
+        property "sonar.cpd.exclusions", "**/transport/WebFluxStreamableServerTransportProvider.java"
     }
 }
 
