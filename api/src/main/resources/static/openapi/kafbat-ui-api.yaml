@@ -3732,6 +3732,8 @@ components:
               - MESSAGE_RELATIVE_TIMESTAMP
         controller:
           $ref: '#/components/schemas/ControllerType'
+        bootstrapServers:
+          type: string
     ClusterConfigValidation:
       type: object
       required:

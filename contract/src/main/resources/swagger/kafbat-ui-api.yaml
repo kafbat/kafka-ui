@@ -2617,6 +2617,9 @@ components:
           type: boolean
         version:
           type: string
+        bootstrapServers:
+          type: string
+          description: Comma-separated host:port list the cluster was configured with.
         features:
           type: array
           items:
