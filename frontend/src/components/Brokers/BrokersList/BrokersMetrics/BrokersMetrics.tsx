@@ -14,8 +14,14 @@ type BrokersMetricsProps = {
   underReplicatedPartitionCount: number | undefined;
   version: string | undefined;
   controller: ControllerType | undefined;
+  /** Comma-separated `host:port` list the cluster was configured with. */
+  bootstrapServers: string | undefined;
 };
 
+/**
+ * Cluster overview header. Renders the "Uptime" and "Partitions" indicator
+ * groups for the currently selected cluster.
+ */
 export const BrokersMetrics = ({
   brokerCount,
   version,
@@ -26,6 +32,7 @@ export const BrokersMetrics = ({
   underReplicatedPartitionCount,
   onlinePartitionCount,
   controller,
+  bootstrapServers,
 }: BrokersMetricsProps) => {
   const replicas = (inSyncReplicasCount ?? 0) + (outOfSyncReplicasCount ?? 0);
   const areAllInSync = inSyncReplicasCount && replicas === inSyncReplicasCount;
@@ -52,6 +59,10 @@ export const BrokersMetrics = ({
         </Metrics.Indicator>
 
         <Metrics.Indicator label="Version">{version}</Metrics.Indicator>
+
+        <Metrics.Indicator label="Bootstrap Servers">
+          {bootstrapServers ?? '—'}
+        </Metrics.Indicator>
       </Metrics.Section>
 
       <Metrics.Section title="Partitions">

@@ -9,6 +9,7 @@ import { useClusters, useClusterStats } from 'lib/hooks/api/clusters';
 import { brokersPayload } from 'lib/fixtures/brokers';
 import {
   clusterStatsPayload,
+  offlineClusterPayload,
   onlineClusterPayload,
 } from 'lib/fixtures/clusters';
 
@@ -75,6 +76,14 @@ describe('BrokersList Component', () => {
         renderComponent();
         expect(screen.getByRole('table')).toBeInTheDocument();
         expect(screen.getAllByRole('row').length).toEqual(3);
+      });
+      it('renders the configured bootstrap servers', () => {
+        (useClusters as jest.Mock).mockImplementation(() => ({
+          data: [onlineClusterPayload, offlineClusterPayload],
+        }));
+        renderComponent();
+        expect(screen.getByText('Bootstrap Servers')).toBeInTheDocument();
+        expect(screen.getByText('offline-host:9092')).toBeInTheDocument();
       });
       it('opens broker when row clicked', async () => {
         renderComponent();
