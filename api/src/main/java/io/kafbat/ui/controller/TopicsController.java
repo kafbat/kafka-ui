@@ -12,11 +12,15 @@ import io.kafbat.ui.api.TopicsApi;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.FullConnectorInfoDTO;
+import io.kafbat.ui.model.GeneratePartitionsReassignmentCommandDTO;
+import io.kafbat.ui.model.InProgressReassignmentDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.InternalTopicConfig;
 import io.kafbat.ui.model.KafkaAclDTO;
+import io.kafbat.ui.model.PartitionReassignmentCancellationDTO;
 import io.kafbat.ui.model.PartitionsIncreaseDTO;
 import io.kafbat.ui.model.PartitionsIncreaseResponseDTO;
+import io.kafbat.ui.model.ReassignPartitionsCommandDTO;
 import io.kafbat.ui.model.ReplicationFactorChangeDTO;
 import io.kafbat.ui.model.ReplicationFactorChangeResponseDTO;
 import io.kafbat.ui.model.SortOrderDTO;
@@ -37,12 +41,16 @@ import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.mcp.McpTool;
+import io.kafbat.ui.service.reassign.ReassignmentService;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
@@ -62,6 +70,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
 
   private final TopicsService topicsService;
   private final TopicAnalysisService topicAnalysisService;
+  private final ReassignmentService reassignmentService;
   private final ClusterMapper clusterMapper;
   private final ClustersProperties clustersProperties;
   private final KafkaConnectService kafkaConnectService;
@@ -449,5 +458,93 @@ public class TopicsController extends AbstractController implements TopicsApi, M
     return validateAccess(context)
         .then(Mono.just(ResponseEntity.ok(job)))
         .doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<ReassignPartitionsCommandDTO>> generatePartitionAssignment(
+      String clusterName,
+      Mono<GeneratePartitionsReassignmentCommandDTO> reassignCmdDto,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("generatePartitionAssignment")
+        .build();
+
+    return validateAccess(context).then(
+        reassignCmdDto.flatMap(generateDto ->
+            reassignmentService.generate(
+                getCluster(clusterName),
+                generateDto.getTopics().stream().map(t -> t.getTopic()).collect(Collectors.toSet()),
+                generateDto.getBrokerIds()))
+            .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<ReassignPartitionsCommandDTO>> getCurrentPartitionAssignment(
+      String clusterName,
+      List<String> topics,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getCurrentPartitionAssignment")
+        .build();
+
+    return validateAccess(context).then(
+        reassignmentService.getCurrentAssignment(getCluster(clusterName), new HashSet<>(topics))
+            .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> executePartitionAssignment(
+      String clusterName,
+      Mono<ReassignPartitionsCommandDTO> cmdDto,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("executePartitionAssignment")
+        .build();
+
+    return validateAccess(context).then(
+        cmdDto.flatMap(cmd -> reassignmentService.executeReassignment(getCluster(clusterName), cmd))
+            .thenReturn(ResponseEntity.ok().<Void>build())
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<InProgressReassignmentDTO>> getInProgressAssignments(
+      String clusterName,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getInProgressAssignments")
+        .build();
+
+    return validateAccess(context).then(
+        reassignmentService.getInProgressAssignments(getCluster(clusterName))
+            .map(ResponseEntity::ok)
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Void>> cancelRunningPartitionAssignment(
+      String clusterName,
+      Mono<PartitionReassignmentCancellationDTO> cancelDto,
+      ServerWebExchange exchange) {
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("cancelRunningPartitionAssignment")
+        .build();
+
+    return validateAccess(context).then(
+        cancelDto.flatMap(dto ->
+            reassignmentService.cancelReassignment(
+                getCluster(clusterName),
+                dto.getPartitions().stream()
+                    .map(p -> new TopicPartition(p.getTopic(), p.getPartition()))
+                    .collect(Collectors.toSet())))
+            .thenReturn(ResponseEntity.ok().<Void>build())
+    ).doOnEach(sig -> audit(context, sig));
   }
 }

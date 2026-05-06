@@ -1536,6 +1536,117 @@ paths:
                 $ref: '#/components/schemas/ClusterMetrics'
       tags:
         - Clusters
+  /api/clusters/{clusterName}/partitionreassignments/current:
+    get:
+      operationId: getCurrentPartitionAssignment
+      summary: getCurrentPartitionAssignment
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topics
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReassignPartitionsCommand'
+      tags:
+        - Topics
+  /api/clusters/{clusterName}/partitionreassignments/running:
+    post:
+      operationId: executePartitionAssignment
+      summary: executePartitionAssignment
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReassignPartitionsCommand'
+    get:
+      operationId: getInProgressAssignments
+      summary: getInProgressAssignments
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InProgressReassignment'
+      tags:
+        - Topics
+    delete:
+      operationId: cancelRunningPartitionAssignment
+      summary: cancelRunningPartitionAssignment
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartitionReassignmentCancellation'
+  /api/clusters/{clusterName}/partitionreassignments/suggestions:
+    post:
+      operationId: generatePartitionAssignment
+      summary: generatePartitionAssignment
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReassignPartitionsCommand'
+      tags:
+        - Topics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratePartitionsReassignmentCommand'
   /api/clusters/{clusterName}/schemas:
     post:
       operationId: createNewSchema
@@ -4373,6 +4484,18 @@ components:
         consumer:
           type: string
           nullable: true
+    GeneratePartitionsReassignmentCommand:
+      type: object
+      properties:
+        broker_ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReassignmentTopicRef'
     GraphDataRequest:
       type: object
       properties:
@@ -4422,6 +4545,36 @@ components:
       properties:
         name:
           type: string
+    InProgressPartitionReassignment:
+      type: object
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+          format: int32
+        currentReplicas:
+          type: array
+          items:
+            type: integer
+            format: int32
+        addingReplicas:
+          type: array
+          items:
+            type: integer
+            format: int32
+        removingReplicas:
+          type: array
+          items:
+            type: integer
+            format: int32
+    InProgressReassignment:
+      type: object
+      properties:
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InProgressPartitionReassignment'
     KafkaAcl:
       type: object
       required:
@@ -4662,6 +4815,39 @@ components:
         offset:
           type: integer
           format: int64
+    PartitionReassignmentCancellation:
+      type: object
+      properties:
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartitionRef'
+    PartitionReassignmentItem:
+      type: object
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+          format: int32
+        replicas:
+          type: array
+          items:
+            type: integer
+            format: int32
+        log_dirs:
+          type: array
+          items:
+            type: string
+      description: NOTE! This format is used by kafka-reassign-partitions.sh command-line utility and should not be changed
+    PartitionRef:
+      type: object
+      properties:
+        topic:
+          type: string
+        partition:
+          type: integer
+          format: int32
     PartitionsIncrease:
       type: object
       properties:
@@ -4776,6 +4962,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Action'
+    ReassignPartitionsCommand:
+      type: object
+      properties:
+        version:
+          type: integer
+          format: int32
+        partitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartitionReassignmentItem'
+      description: NOTE! This format is used by kafka-reassign-partitions.sh command-line utility and should not be changed
+    ReassignmentTopicRef:
+      type: object
+      properties:
+        topic:
+          type: string
     Replica:
       type: object
       properties:

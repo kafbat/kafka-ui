@@ -18,6 +18,7 @@ import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
+import io.kafbat.ui.service.reassign.ReassignmentService;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.util.List;
@@ -38,13 +39,14 @@ class McpSpecificationGeneratorTest {
   @Test
   void testConvertController() {
     TopicsController topicsController = new TopicsController(
-        mock(TopicsService.class), mock(TopicAnalysisService.class), mock(ClusterMapper.class),
+        mock(TopicsService.class), mock(TopicAnalysisService.class),
+        mock(ReassignmentService.class), mock(ClusterMapper.class),
         mock(ClustersProperties.class), mock(KafkaConnectService.class), mock(AclsService.class)
     );
     List<AsyncToolSpecification> specifications =
         MCP_SPECIFICATION_GENERATOR.convertTool(topicsController);
 
-    assertThat(specifications).hasSize(17);
+    assertThat(specifications).hasSize(22);
     List<McpSchema.Tool> tools = List.of(
         new McpSchema.Tool(
             "recreateTopic",

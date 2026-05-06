@@ -71,6 +71,7 @@ class TopicsServicePaginationTest {
       new TopicsController(
           mockTopicsService,
           mock(TopicAnalysisService.class),
+          mock(io.kafbat.ui.service.reassign.ReassignmentService.class),
           clusterMapper,
           clustersProperties,
           kafkaConnectService,
