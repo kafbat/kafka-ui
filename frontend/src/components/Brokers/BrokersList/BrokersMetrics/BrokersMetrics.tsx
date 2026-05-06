@@ -1,6 +1,8 @@
 import React from 'react';
 import * as Metrics from 'components/common/Metrics';
 import { ControllerType } from 'generated-sources';
+import CopyIcon from 'components/common/Icons/CopyIcon';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './BrokersMetrics.styled';
 
@@ -40,6 +42,11 @@ export const BrokersMetrics = ({
 
   const isActiveControllerUnKnown = typeof activeControllers === 'undefined';
 
+  const { copyToClipboard: copyBootstrapServers } = useDataSaver(
+    'bootstrap-servers',
+    bootstrapServers ?? ''
+  );
+
   return (
     <Metrics.Wrapper>
       <Metrics.Section title="Uptime">
@@ -61,7 +68,18 @@ export const BrokersMetrics = ({
         <Metrics.Indicator label="Version">{version}</Metrics.Indicator>
 
         <Metrics.Indicator label="Bootstrap Servers">
-          {bootstrapServers ?? '—'}
+          <S.BootstrapServersValue>
+            {bootstrapServers ?? '—'}
+            <S.CopyButton
+              type="button"
+              aria-label="Copy bootstrap servers"
+              title="Copy bootstrap servers"
+              onClick={copyBootstrapServers}
+              disabled={!bootstrapServers}
+            >
+              <CopyIcon />
+            </S.CopyButton>
+          </S.BootstrapServersValue>
         </Metrics.Indicator>
       </Metrics.Section>
 
