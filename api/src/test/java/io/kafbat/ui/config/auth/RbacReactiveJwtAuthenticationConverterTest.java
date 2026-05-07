@@ -37,7 +37,7 @@ class RbacReactiveJwtAuthenticationConverterTest {
   void setUp() {
     accessControlService = new AccessControlServiceMock(properties.getRoles()).getMock();
     converter = new RbacReactiveJwtAuthenticationConverter(
-        accessControlService, "roles", "username");
+        accessControlService, "roles", "username", null, null);
   }
 
   @Test
@@ -146,7 +146,7 @@ class RbacReactiveJwtAuthenticationConverterTest {
   @Test
   void nullRolesClaimConfigStillExtractsUsername() {
     var converterNoRoles = new RbacReactiveJwtAuthenticationConverter(
-        accessControlService, null, "username");
+        accessControlService, null, "username", null, null);
 
     Jwt jwt = buildJwt(Map.of(
         "username", "john@kafka.com"

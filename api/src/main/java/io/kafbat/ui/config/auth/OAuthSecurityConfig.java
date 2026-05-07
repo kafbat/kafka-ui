@@ -120,7 +120,11 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
           j.jwtDecoder(jwtDecoder);
           if (rbacProps != null) {
             j.jwtAuthenticationConverter(new RbacReactiveJwtAuthenticationConverter(
-                accessControlService, rbacProps.getRolesClaim(), rbacProps.getUsernameClaim()));
+                accessControlService,
+                rbacProps.getRolesClaim(),
+                rbacProps.getUsernameClaim(),
+                rbacProps.getEntityTypeClaim(),
+                rbacProps.getDefaultRole()));
           }
         }));
       } else if (resourceServer.getOpaquetoken() != null

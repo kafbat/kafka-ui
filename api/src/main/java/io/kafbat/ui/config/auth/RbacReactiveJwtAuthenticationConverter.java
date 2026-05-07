@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -19,22 +18,43 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@RequiredArgsConstructor
 public class RbacReactiveJwtAuthenticationConverter
     implements Converter<Jwt, Mono<AbstractAuthenticationToken>> {
 
   private final AccessControlService accessControlService;
   private final String rolesClaim;
   private final String usernameClaim;
+  private final String entityTypeClaim;
+  private final String defaultRole;
+
+  public RbacReactiveJwtAuthenticationConverter(
+      AccessControlService accessControlService,
+      String rolesClaim,
+      String usernameClaim,
+      String entityTypeClaim,
+      String defaultRole) {
+    this.accessControlService = accessControlService;
+    this.rolesClaim = rolesClaim;
+    this.usernameClaim = usernameClaim;
+    this.entityTypeClaim = entityTypeClaim;
+    this.defaultRole = defaultRole;
+  }
 
   @Override
   public Mono<AbstractAuthenticationToken> convert(Jwt jwt) {
     String username = extractUsername(jwt);
     Collection<String> tokenRoles = extractTokenRoles(jwt);
+    String entityType = extractEntityType(jwt);
 
-    log.debug("JWT principal: [{}], token roles: [{}]", username, tokenRoles);
+    log.debug("JWT principal: [{}], token roles: [{}], entity type: [{}]",
+        username, tokenRoles, entityType);
 
-    Set<String> matchedGroups = matchRbacRoles(username, tokenRoles);
+    Set<String> matchedGroups = matchRbacRoles(username, tokenRoles, entityType);
+
+    if (matchedGroups.isEmpty() && defaultRole != null) {
+      log.debug("No RBAC roles matched, applying default role: [{}]", defaultRole);
+      matchedGroups = Set.of(defaultRole);
+    }
 
     log.debug("Matched RBAC groups: [{}]", matchedGroups);
 
@@ -76,7 +96,16 @@ public class RbacReactiveJwtAuthenticationConverter
     return Collections.emptyList();
   }
 
-  private Set<String> matchRbacRoles(String username, Collection<String> tokenRoles) {
+  private String extractEntityType(Jwt jwt) {
+    if (entityTypeClaim == null) {
+      return null;
+    }
+    Object claim = jwt.getClaim(entityTypeClaim);
+    return claim != null ? claim.toString() : null;
+  }
+
+  private Set<String> matchRbacRoles(String username, Collection<String> tokenRoles,
+                                     String entityType) {
     List<Role> roles = accessControlService.getRoles();
 
     Set<String> usernameMatches = roles.stream()
@@ -95,8 +124,20 @@ public class RbacReactiveJwtAuthenticationConverter
         .map(Role::getName)
         .collect(Collectors.toSet());
 
+    Set<String> entityTypeMatches = Collections.emptySet();
+    if (entityType != null) {
+      entityTypeMatches = roles.stream()
+          .filter(role -> role.getSubjects().stream()
+              .filter(s -> s.getProvider().equals(Provider.OAUTH))
+              .filter(s -> "entity-type".equals(s.getType()))
+              .anyMatch(s -> s.matches(entityType)))
+          .map(Role::getName)
+          .collect(Collectors.toSet());
+    }
+
     Set<String> combined = new HashSet<>(usernameMatches);
     combined.addAll(roleMatches);
+    combined.addAll(entityTypeMatches);
     return combined;
   }
 }

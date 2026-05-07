@@ -21,6 +21,8 @@ public class OAuthProperties {
   public static class ResourceServerRbac {
     private String rolesClaim;
     private String usernameClaim;
+    private String entityTypeClaim;
+    private String defaultRole;
   }
 
   @PostConstruct

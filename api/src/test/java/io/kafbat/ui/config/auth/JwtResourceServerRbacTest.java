@@ -75,6 +75,19 @@ class JwtResourceServerRbacTest {
     return acs;
   }
 
+  private AccessControlService buildAccessControlServiceWithEntityType() {
+    AccessControlService acs = mock(AccessControlService.class);
+    when(acs.isRbacEnabled()).thenReturn(true);
+    when(acs.getOauthExtractors()).thenReturn(Collections.<ProviderAuthorityExtractor>emptySet());
+
+    Role streamingRole = buildRole("streaming-role", "streaming", "role");
+    Role adminRole = buildRole("admin-role", "admin@company.com", "user");
+    Role serviceRole = buildRole("service-role", "nebula", "entity-type");
+
+    when(acs.getRoles()).thenReturn(List.of(streamingRole, adminRole, serviceRole));
+    return acs;
+  }
+
   private ReactiveJwtDecoder buildJwtDecoder() {
     return NimbusReactiveJwtDecoder
         .withJwkSetUri("http://localhost:" + wireMockServer.port() + "/.well-known/jwks.json")
@@ -84,10 +97,10 @@ class JwtResourceServerRbacTest {
   @Test
   void validJwtWithMatchingRolesProducesAuthenticatedToken() throws Exception {
     AccessControlService acs = buildAccessControlService();
-    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei");
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
     ReactiveJwtDecoder decoder = buildJwtDecoder();
 
-    String tokenValue = buildSignedJwt("trey@example.com", List.of("streaming"));
+    String tokenValue = buildSignedJwt("trey@example.com", List.of("streaming"), null);
     Jwt jwt = decoder.decode(tokenValue).block();
 
     assertThat(jwt).isNotNull();
@@ -105,10 +118,10 @@ class JwtResourceServerRbacTest {
   @Test
   void validJwtWithUsernameMatchProducesAuthenticatedToken() throws Exception {
     AccessControlService acs = buildAccessControlService();
-    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei");
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
     ReactiveJwtDecoder decoder = buildJwtDecoder();
 
-    String tokenValue = buildSignedJwt("admin@company.com", List.of());
+    String tokenValue = buildSignedJwt("admin@company.com", List.of(), null);
     Jwt jwt = decoder.decode(tokenValue).block();
 
     assertThat(jwt).isNotNull();
@@ -123,10 +136,10 @@ class JwtResourceServerRbacTest {
   @Test
   void validJwtWithNoMatchingRolesProducesEmptyGroups() throws Exception {
     AccessControlService acs = buildAccessControlService();
-    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei");
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
     ReactiveJwtDecoder decoder = buildJwtDecoder();
 
-    String tokenValue = buildSignedJwt("nobody@unknown.com", List.of("unmatched"));
+    String tokenValue = buildSignedJwt("nobody@unknown.com", List.of("unmatched"), null);
     Jwt jwt = decoder.decode(tokenValue).block();
 
     assertThat(jwt).isNotNull();
@@ -149,10 +162,10 @@ class JwtResourceServerRbacTest {
   @Test
   void jwtWithBothRoleAndUsernameMatchProducesUnionOfGroups() throws Exception {
     AccessControlService acs = buildAccessControlService();
-    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei");
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
     ReactiveJwtDecoder decoder = buildJwtDecoder();
 
-    String tokenValue = buildSignedJwt("admin@company.com", List.of("streaming"));
+    String tokenValue = buildSignedJwt("admin@company.com", List.of("streaming"), null);
     Jwt jwt = decoder.decode(tokenValue).block();
 
     assertThat(jwt).isNotNull();
@@ -166,10 +179,10 @@ class JwtResourceServerRbacTest {
   @Test
   void principalImplementsRbacUser() throws Exception {
     AccessControlService acs = buildAccessControlService();
-    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei");
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
     ReactiveJwtDecoder decoder = buildJwtDecoder();
 
-    String tokenValue = buildSignedJwt("trey@example.com", List.of("streaming"));
+    String tokenValue = buildSignedJwt("trey@example.com", List.of("streaming"), null);
     Jwt jwt = decoder.decode(tokenValue).block();
 
     AbstractAuthenticationToken authToken = converter.convert(jwt).block();
@@ -180,19 +193,109 @@ class JwtResourceServerRbacTest {
     assertThat(rbacUser.groups()).contains("streaming-role");
   }
 
-  private String buildSignedJwt(String username, List<String> roles) throws Exception {
+  @Test
+  void jwtWithEntityTypeMatchProducesCorrectRole() throws Exception {
+    AccessControlService acs = buildAccessControlServiceWithEntityType();
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", "tet", null);
+    ReactiveJwtDecoder decoder = buildJwtDecoder();
+
+    String tokenValue = buildSignedJwt("svc-account", List.of(), "nebula");
+    Jwt jwt = decoder.decode(tokenValue).block();
+
+    assertThat(jwt).isNotNull();
+    AbstractAuthenticationToken authToken = converter.convert(jwt).block();
+
+    assertThat(authToken).isNotNull();
+    RbacJwtUser principal = (RbacJwtUser) authToken.getPrincipal();
+    assertThat(principal.groups()).containsExactly("service-role");
+  }
+
+  @Test
+  void jwtWithEntityTypeAndRoleMatchProducesUnion() throws Exception {
+    AccessControlService acs = buildAccessControlServiceWithEntityType();
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", "tet", null);
+    ReactiveJwtDecoder decoder = buildJwtDecoder();
+
+    String tokenValue = buildSignedJwt("svc-account", List.of("streaming"), "nebula");
+    Jwt jwt = decoder.decode(tokenValue).block();
+
+    assertThat(jwt).isNotNull();
+    AbstractAuthenticationToken authToken = converter.convert(jwt).block();
+
+    assertThat(authToken).isNotNull();
+    RbacJwtUser principal = (RbacJwtUser) authToken.getPrincipal();
+    assertThat(principal.groups()).containsExactlyInAnyOrder("streaming-role", "service-role");
+  }
+
+  @Test
+  void jwtWithNoMatchFallsBackToDefaultRole() throws Exception {
+    AccessControlService acs = buildAccessControlService();
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, "viewer");
+    ReactiveJwtDecoder decoder = buildJwtDecoder();
+
+    String tokenValue = buildSignedJwt("nobody@unknown.com", List.of("unmatched"), null);
+    Jwt jwt = decoder.decode(tokenValue).block();
+
+    assertThat(jwt).isNotNull();
+    AbstractAuthenticationToken authToken = converter.convert(jwt).block();
+
+    assertThat(authToken).isNotNull();
+    RbacJwtUser principal = (RbacJwtUser) authToken.getPrincipal();
+    assertThat(principal.groups()).containsExactly("viewer");
+  }
+
+  @Test
+  void jwtWithNoMatchAndNoDefaultProducesEmptyGroups() throws Exception {
+    AccessControlService acs = buildAccessControlService();
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, null);
+    ReactiveJwtDecoder decoder = buildJwtDecoder();
+
+    String tokenValue = buildSignedJwt("nobody@unknown.com", List.of("unmatched"), null);
+    Jwt jwt = decoder.decode(tokenValue).block();
+
+    assertThat(jwt).isNotNull();
+    AbstractAuthenticationToken authToken = converter.convert(jwt).block();
+
+    assertThat(authToken).isNotNull();
+    RbacJwtUser principal = (RbacJwtUser) authToken.getPrincipal();
+    assertThat(principal.groups()).isEmpty();
+  }
+
+  @Test
+  void defaultRoleNotAppliedWhenRolesMatch() throws Exception {
+    AccessControlService acs = buildAccessControlService();
+    var converter = new RbacReactiveJwtAuthenticationConverter(acs, "ter", "tei", null, "viewer");
+    ReactiveJwtDecoder decoder = buildJwtDecoder();
+
+    String tokenValue = buildSignedJwt("trey@example.com", List.of("streaming"), null);
+    Jwt jwt = decoder.decode(tokenValue).block();
+
+    assertThat(jwt).isNotNull();
+    AbstractAuthenticationToken authToken = converter.convert(jwt).block();
+
+    assertThat(authToken).isNotNull();
+    RbacJwtUser principal = (RbacJwtUser) authToken.getPrincipal();
+    assertThat(principal.groups()).containsExactly("streaming-role");
+    assertThat(principal.groups()).doesNotContain("viewer");
+  }
+
+  private String buildSignedJwt(String username, List<String> roles, String entityType)
+      throws Exception {
     JWSSigner signer = new RSASSASigner(rsaKey);
-    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+    var claimsBuilder = new JWTClaimsSet.Builder()
         .subject(username)
         .claim("tei", username)
         .claim("ter", roles)
         .issueTime(new Date())
-        .expirationTime(new Date(System.currentTimeMillis() + 300_000))
-        .build();
+        .expirationTime(new Date(System.currentTimeMillis() + 300_000));
+
+    if (entityType != null) {
+      claimsBuilder.claim("tet", entityType);
+    }
 
     SignedJWT signed = new SignedJWT(
         new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
-        claims);
+        claimsBuilder.build());
     signed.sign(signer);
     return signed.serialize();
   }
