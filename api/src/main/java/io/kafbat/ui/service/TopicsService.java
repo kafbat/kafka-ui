@@ -20,6 +20,7 @@ import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.PartitionsIncreaseDTO;
 import io.kafbat.ui.model.PartitionsIncreaseResponseDTO;
 import io.kafbat.ui.model.ReplicationFactorChangeDTO;
+import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.ReplicationFactorChangeResponseDTO;
 import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TopicCreationDTO;
@@ -469,6 +470,9 @@ public class TopicsService {
 
   public Mono<List<InternalTopic>> getTopics(KafkaCluster cluster, String search, Boolean showInternal, Boolean fts) {
     Statistics stats = statisticsCache.get(cluster);
+    if (stats.getStatus() == ServerStatusDTO.INITIALIZING || stats.getStatus() == ServerStatusDTO.OFFLINE) {
+      return Mono.just(List.of());
+    }
     ScrapedClusterState clusterState = stats.getClusterState();
     boolean useFts = clustersProperties.getFts().use(fts);
     try {

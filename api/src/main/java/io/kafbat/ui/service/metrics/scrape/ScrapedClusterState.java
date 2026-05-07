@@ -4,6 +4,7 @@ import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
@@ -14,6 +15,7 @@ import io.kafbat.ui.service.index.FilterTopicIndex;
 import io.kafbat.ui.service.index.LuceneTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -125,20 +127,46 @@ public class ScrapedClusterState implements AutoCloseable {
         .build();
   }
 
+  private static final Duration SCRAPE_CALL_TIMEOUT = Duration.ofSeconds(30);
+
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
                                                  ReactiveAdminClient ac, ClustersProperties clustersProperties) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
-            .map(InternalLogDirStats::new),
-        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
-        ac.describeTopics(),
+            .map(InternalLogDirStats::new)
+            .timeout(SCRAPE_CALL_TIMEOUT)
+            .doOnError(e -> log.warn("Failed to describe log dirs", e))
+            .onErrorReturn(new InternalLogDirStats(Map.of())),
+        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList())
+            .timeout(SCRAPE_CALL_TIMEOUT)
+            .doOnError(e -> log.warn("Failed to list consumer groups", e))
+            .onErrorReturn(List.of()),
+        ac.describeTopics()
+            .timeout(SCRAPE_CALL_TIMEOUT)
+            .doOnError(e -> log.warn("Failed to describe topics", e))
+            .onErrorReturn(Map.of()),
         ac.getTopicsConfig()
+            .timeout(SCRAPE_CALL_TIMEOUT)
+            .doOnError(e -> log.warn("Failed to get topics config", e))
+            .onErrorReturn(Map.of())
     ).flatMap(phase1 ->
         Mono.zip(
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
-            ac.describeConsumerGroups(phase1.getT2()),
+            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest())
+                .timeout(SCRAPE_CALL_TIMEOUT)
+                .doOnError(e -> log.warn("Failed to list latest offsets", e))
+                .onErrorReturn(Map.of()),
+            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest())
+                .timeout(SCRAPE_CALL_TIMEOUT)
+                .doOnError(e -> log.warn("Failed to list earliest offsets", e))
+                .onErrorReturn(Map.of()),
+            ac.describeConsumerGroups(phase1.getT2())
+                .timeout(SCRAPE_CALL_TIMEOUT)
+                .doOnError(e -> log.warn("Failed to describe consumer groups", e))
+                .onErrorReturn(Map.of()),
             ac.listConsumerGroupOffsets(phase1.getT2(), null)
+                .timeout(SCRAPE_CALL_TIMEOUT)
+                .doOnError(e -> log.warn("Failed to list consumer group offsets", e))
+                .onErrorReturn(ImmutableTable.of())
         ).map(phase2 ->
             create(
                 clusterDescription,
