@@ -19,7 +19,7 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
     steps:
-      - uses: dorny/paths-filter@7267a8516b6f92bdb098633903c7f4657d1eb4ab # https://github.com/dorny/paths-filter/releases/tag/v3.0.3
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # https://github.com/dorny/paths-filter/releases/tag/v3.0.3
         id: filter
         with:
           filters: |

@@ -26,7 +26,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Set up JDK
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # https://github.com/actions/setup-java/releases/tag/v4.6.0
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # https://github.com/actions/setup-java/releases/tag/v4.6.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -43,7 +43,7 @@ jobs:
           -Pversion=$version
 
       - name: Upload jar
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # https://github.com/actions/upload-artifact/releases/tag/v4.6.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # https://github.com/actions/upload-artifact/releases/tag/v4.6.0
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
