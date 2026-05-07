@@ -59,7 +59,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # https://github.com/actions/setup-node/releases/tag/v4.2.0
         with:
-          node-version: 18
+          node-version: "22.12.0"
           cache-dependency-path: ./e2e-playwright/package-lock.json
           cache: 'npm'
 
@@ -68,7 +68,7 @@ jobs:
         run: npm install
 
       - name: Cache Playwright browser binaries
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # https://github.com/actions/cache/releases/tag/v4.3.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
