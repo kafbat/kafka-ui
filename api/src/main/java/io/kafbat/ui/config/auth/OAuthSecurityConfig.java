@@ -78,7 +78,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
       ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
       ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
-      @Qualifier("oauthWebClient") WebClient webClient
+      @Qualifier("oauthWebClient") WebClient webClient,
+      AccessControlService accessControlService
   ) {
     log.info("Configuring OAUTH2 authentication.");
 
@@ -109,10 +110,19 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     if (properties.getResourceServer() != null) {
       OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
       if (resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null) {
-        builder.oauth2ResourceServer(c -> c.jwt(j ->
-            j.jwtDecoder(NimbusReactiveJwtDecoder.withJwkSetUri(resourceServer.getJwt().getJwkSetUri())
-                .webClient(webClient)
-                .build())));
+        var jwtDecoder = NimbusReactiveJwtDecoder
+            .withJwkSetUri(resourceServer.getJwt().getJwkSetUri())
+            .webClient(webClient)
+            .build();
+        var rbacProps = properties.getResourceServerRbac();
+
+        builder.oauth2ResourceServer(c -> c.jwt(j -> {
+          j.jwtDecoder(jwtDecoder);
+          if (rbacProps != null) {
+            j.jwtAuthenticationConverter(new RbacReactiveJwtAuthenticationConverter(
+                accessControlService, rbacProps.getRolesClaim(), rbacProps.getUsernameClaim()));
+          }
+        }));
       } else if (resourceServer.getOpaquetoken() != null
           && resourceServer.getOpaquetoken().getIntrospectionUri() != null) {
         OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
