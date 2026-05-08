@@ -60,7 +60,7 @@ public class AccessControlService {
 
   private final DynamoClusterProperties dynamoClusterProperties;
 
-  @Value("${kit.masking.feature.enabled: false }")
+  @Value("${sainsburys.masking.feature.enabled: false }")
   private boolean isMaskingEnabled;
 
   @Getter
@@ -220,6 +220,7 @@ public class AccessControlService {
     List<Role> rbacRoles = properties.getRoles();
     if(isMaskingEnabled){
       // KIT custom Data Unmasking role
+      rbacRoles.removeIf(r->r.getName().contains("unmask"));
       rbacRoles.addAll(dynamoClusterProperties.retrieveDynamoRBACUserRoles());
     }
     return Collections.unmodifiableList(rbacRoles);

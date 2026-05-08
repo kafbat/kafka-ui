@@ -57,19 +57,19 @@ public class MaskingUpdateSchedule {
   private final DynamoClusterProperties dynamoClusterProperties;
   private final DynamoMaskingEntityRepository dynamoMaskingEntityRepository;
 
-  @Value("${kit.masking.feature.enabled: false }")
+  @Value("${sainsburys.masking.feature.enabled: false }")
   private boolean isMaskingEnabled;
 
-  @Value("${kit.masking.rule.chars-replacement: X, x, x, - }")
+  @Value("${sainsburys.masking.rule.chars-replacement: X, x, x, - }")
   private List<String> defaultMaskingCharsReplacement;
 
-  @Value("${kit.masking.rule.topic-replacement: [CONFIDENTIAL] }")
+  @Value("${sainsburys.masking.rule.topic-replacement: [CONFIDENTIAL] }")
   private String defaultMaskingTopicReplacement;
 
-  @Value("${kit.masking.rule.tags.schema-field: sainsburys.dataClassification }")
+  @Value("${sainsburys.masking.rule.tags.schema-field: sainsburys.dataClassification }")
   private String schemaDataClassificationTag;
 
-  @Value("${kit.masking.date.format: yyyy-MM-dd HH:mm:ss.SSS }")
+  @Value("${sainsburys.masking.date.format: yyyy-MM-dd HH:mm:ss.SSS }")
   private String dateFormat;
 
   public MaskingUpdateSchedule(ConfluentApiClient confluentApiClient,
@@ -83,7 +83,7 @@ public class MaskingUpdateSchedule {
     this.dynamoMaskingEntityRepository = dynamoMaskingEntityRepository;
   }
 
-  @Scheduled(fixedRateString = "${kit.masking.scheduler.update-masking-tags-rate-millis:3000000}", initialDelay = 10000)
+  @Scheduled(fixedRateString = "${sainsburys.masking.scheduler.update-masking-tags-rate-millis:3000000}", initialDelay = 10000)
   protected void executeMasking(){
     try{
       if(isMaskingEnabled){
@@ -102,7 +102,6 @@ public class MaskingUpdateSchedule {
                     .forEach(tag ->{
                       log.info("Tag found for cluster: {}, tag: {}", cluster.getName(), tag);
                       maskProcessor(cluster, clusterAuth, tag, isMetadataUpdated);
-//                      maskProcessor(clusterBaseUrl, clusterAuth, tag, kafkaDTO, isMetadataUpdated);
                     });
               }
             });
@@ -270,7 +269,7 @@ public class MaskingUpdateSchedule {
     }
   }
 
-  @Scheduled(fixedRateString = "${kit.masking.scheduler.update-rbac-rate-millis:3000000}", initialDelay = 10000)
+  @Scheduled(fixedRateString = "${sainsburys.masking.scheduler.update-rbac-rate-millis:3000000}", initialDelay = 10000)
   protected void executeUnmaskingRBACRevoke(){
     try{
       if(isMaskingEnabled){

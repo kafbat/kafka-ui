@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@DynamoDBTable(tableName = "kit-kafbat-masking")
+@DynamoDBTable(tableName = "sainsburys-kafbat-masking")
 public class DynamoMaskingEntity {
   @DynamoDBHashKey(attributeName = "partitionKey")
   private String name;

@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ServiceNowAuthConfig {
-  @Value("${kit.external.services.service-now.authentication.api-key}")
+  @Value("${sainsburys.external.services.service-now.authentication.api-key}")
   private String apiKey;
 
-  @Value("${kit.external.services.service-now.authentication.api-secret}")
+  @Value("${sainsburys.external.services.service-now.authentication.api-secret}")
   private String apiSecret;
 
   @Bean

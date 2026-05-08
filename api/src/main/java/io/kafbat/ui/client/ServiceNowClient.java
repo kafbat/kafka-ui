@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name="servicenow-client", url="${kit.external.services.service-now.base-url}", configuration = {
+@FeignClient(name="servicenow-client", url="${sainsburys.external.services.service-now.base-url}", configuration = {
     HttpFeignConfig.class, ServiceNowAuthConfig.class})
 public interface ServiceNowClient {
-  @PostMapping(path = "${kit.external.services.service-now.operations.create}")
+  @PostMapping(path = "${sainsburys.external.services.service-now.operations.create}")
   ResponseEntity<Object> createAuditTicket(@RequestBody ServiceNowCreate payload);
 }

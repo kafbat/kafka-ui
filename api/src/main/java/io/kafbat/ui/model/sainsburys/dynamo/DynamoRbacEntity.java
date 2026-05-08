@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@DynamoDBTable(tableName = "kit-kafbat-rbac")
+@DynamoDBTable(tableName = "sainsburys-kafbat-rbac")
 public class DynamoRbacEntity {
   @DynamoDBHashKey(attributeName = "partitionKey")
   private String name;

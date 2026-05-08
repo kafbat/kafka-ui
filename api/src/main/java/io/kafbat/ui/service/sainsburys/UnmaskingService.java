@@ -56,16 +56,16 @@ public class UnmaskingService {
   private final ServiceNowRequestConfig serviceNowRequestConfig;
   private final DynamoRbacEntityRepository dynamoRbacEntityRepository;
 
-  @Value("${kit.masking.rule.time-to-live: 3600000}")
+  @Value("${sainsburys.masking.rule.time-to-live: 3600000}")
   private Long timeToLive;
 
-  @Value("${kit.masking.date.format: yyyy-MM-dd HH:mm:ss.SSS }")
+  @Value("${sainsburys.masking.date.format: yyyy-MM-dd HH:mm:ss.SSS }")
   private String dateFormat;
 
-  @Value("${kit.masking.subject.type: user }")
+  @Value("${sainsburys.masking.subject.type: user }")
   private String subjectType;
 
-  @Value("${kit.masking.cluster.unmasked-prefix:unmasked-}")
+  @Value("${sainsburys.masking.cluster.unmasked-prefix:unmasked-}")
   private String unmaskedClusterPrefix;
 
   public UnmaskingService(AdminClientService adminClientService, ServiceNowClient serviceNowClient,

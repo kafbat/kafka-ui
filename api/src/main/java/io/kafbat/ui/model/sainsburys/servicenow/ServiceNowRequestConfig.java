@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 @NoArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix = "kit.external.services.service-now.requests.content")
+@ConfigurationProperties(prefix = "sainsburys.external.services.service-now.requests.content")
 public class ServiceNowRequestConfig implements Serializable {
 
   private String u_assigned_to;
