@@ -19,3 +19,68 @@ logging:
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
 
+sainsburys:
+  external:
+    services:
+      service-now:
+        base-url: ${SAINSBURYS_EXTERNAL_SERVICES_SERVICENOW_BASE_URL}
+        authentication:
+          api-key: ${SAINSBURYS_EXTERNAL_SERVICES_SERVICENOW_AUTH_KEY}
+          api-secret: ${SAINSBURYS_EXTERNAL_SERVICES_SERVICENOW_AUTH_SECRET}
+        operations:
+          create: '/api/now/v1/import/u_generic_incident_inbound'
+        requests:
+          content:
+            u_assigned_to: ${SAINSBURYS_EXTERNAL_SERVICES_SERVICENOW_EMAIL_ADDRESS}
+            u_assignment_group: CORE Kafka Tech Support
+            u_business_service: Not Configured
+            u_caller_id: '' #Kafbat user principal is populated internally
+            u_category: Software
+            u_subcategory: Application
+            u_cmdb_ci: Kafka - Kafbat UI
+            u_comments: Kafbat Data Unmasking Incident
+            u_description: 'Kafka Cluster: <kafka_cluster>
+              Kafka Topic: <kafka_topic>
+              Justification: <justification>'
+            u_impact: 4 #Low Impact Status
+            u_urgency: 4 #Low urgency Status
+            u_impacted_parties: KafbatUI Services
+            u_location_not_found: true
+            u_undefined_location: Ticket raised for audit KafbatUI
+            u_short_description: Kafbat Data Unmasking Request
+            u_state: 6 #Resolved state in ServiceNow - No action required
+            u_work_notes: Audit incident for kafbat data unmasking.
+
+      confluent-api:
+        base-url: 'http://localhost:8080'
+        operations:
+          retrieve:
+            tagdefs: '/catalog/v1/types/tagdefs?deleted=false'
+            topic: '/catalog/v1/search/basic?type=kafka_topic'
+            topic.fields: '/api/v1/search/topics/fields'
+            schema: '/api/v1/search/entities?type=sr_field'
+            subject: '/subjects/{topic}-value/versions/latest'
+
+  masking:
+    feature:
+      enabled: ${SAINSBURYS_DATA_MASKING_FEATURE_ENABLED}
+    rule:
+      cluster:
+        unmasked-prefix: 'unmasked-'
+      time-to-live: 3600000 #60 minutes in millis
+      chars-replacement:
+        - X
+        - x
+        - x
+        - -
+      topic-replacement: '[CONFIDENTIAL]'
+      tags:
+        schema-field: sainsburys.dataClassification #avro schema field masking custom tag
+    scheduler:
+      update-masking-tags-rate-millis: ${SAINSBURYS_MASKING_SCHEDULER_MILLIS} #60 minutes in millis
+      update-rbac-rate-millis: ${SAINSBURYS_RBAC_SCHEDULER_MILLIS} #60 minutes in millis
+    subject:
+      type: user
+
+    date:
+      format: 'yyyy-MM-dd HH:mm:ss.SSS'
