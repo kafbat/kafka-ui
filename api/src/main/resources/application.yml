@@ -18,6 +18,8 @@ logging:
     io.kafbat.ui: DEBUG
     reactor.netty.http.server.AccessLog: INFO
     org.hibernate.validator: WARN
+aws:
+  region: eu-west-1
 
 sainsburys:
   external:

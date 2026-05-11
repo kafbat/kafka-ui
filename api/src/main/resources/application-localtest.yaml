@@ -13,6 +13,9 @@ kafka:
 
 dynamic.config.enabled: true
 
+aws:
+  region: eu-west-1
+
 sainsburys:
   external:
     services:

@@ -1,4 +1,4 @@
-package io.kafbat.ui.model.sainsburys.dynamo;
+package io.kafbat.ui.model.sainsburys.  dynamo;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
