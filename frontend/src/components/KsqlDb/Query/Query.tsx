@@ -17,7 +17,7 @@ const Query = () => {
 
   const sse = useKsqlkDbSSE({ clusterName, pipeId });
 
-  const isFetching = executeQuery.isLoading || sse.isFetching;
+  const isFetching = executeQuery.isPending || sse.isFetching;
 
   const submitHandler = async (values: FormValues) => {
     const filtered = values.streamsProperties.filter(({ key }) => key != null);

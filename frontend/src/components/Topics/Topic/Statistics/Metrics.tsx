@@ -16,6 +16,7 @@ import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import { calculateTimer, formatTimestamp } from 'lib/dateTimeHelpers';
 import { Action, ResourceType } from 'generated-sources';
 import { ActionButton } from 'components/common/ActionComponent';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './Statistics.styles';
 import Total from './Indicators/Total';
@@ -25,6 +26,7 @@ import { LabelValue } from './Statistics.styles';
 
 const Metrics: React.FC = () => {
   const params = useAppParams<RouteParamsClusterTopic>();
+  const { currentTimezone } = useTimezone();
 
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const analyzeTopic = useAnalyzeTopic(params);
@@ -69,10 +71,14 @@ const Metrics: React.FC = () => {
         <List>
           <Label>Started at</Label>
           <LabelValue>
-            {formatTimestamp(data.progress.startedAt, {
-              hour: 'numeric',
-              minute: 'numeric',
-              second: 'numeric',
+            {formatTimestamp({
+              timestamp: data.progress.startedAt,
+              format: {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+              },
+              timezone: currentTimezone.value,
             })}
           </LabelValue>
           <Label>Passed since start</Label>
@@ -94,13 +100,20 @@ const Metrics: React.FC = () => {
     return null;
   }
 
-  const totalStats = data.result.totalStats || {};
+  const { totalStats } = data.result;
   const partitionStats = data.result.partitionStats || [];
+  const isEmptyTopic =
+    totalStats?.totalMsgs == null && partitionStats.length === 0;
 
   return (
     <>
       <S.ActionsBar>
-        <S.CreatedAt>{formatTimestamp(data?.result?.finishedAt)}</S.CreatedAt>
+        <S.CreatedAt>
+          {formatTimestamp({
+            timezone: currentTimezone.value,
+            timestamp: data?.result?.finishedAt,
+          })}
+        </S.CreatedAt>
         <ActionButton
           onClick={async () => {
             await analyzeTopic.mutateAsync();
@@ -117,16 +130,26 @@ const Metrics: React.FC = () => {
           Restart Analysis
         </ActionButton>
       </S.ActionsBar>
-      <Informers.Wrapper>
-        <Total {...totalStats} />
-        {totalStats.keySize && (
-          <SizeStats stats={totalStats.keySize} title="Key size" />
-        )}
-        {totalStats.valueSize && (
-          <SizeStats stats={totalStats.valueSize} title="Value size" />
-        )}
-      </Informers.Wrapper>
-      <PartitionTable data={partitionStats} />
+      {isEmptyTopic ? (
+        <Informers.Wrapper>
+          <Informers.LightText>
+            No data available. The topic appears to be empty.
+          </Informers.LightText>
+        </Informers.Wrapper>
+      ) : (
+        <>
+          <Informers.Wrapper>
+            <Total {...(totalStats || {})} />
+            {totalStats?.keySize && (
+              <SizeStats stats={totalStats.keySize} title="Key size" />
+            )}
+            {totalStats?.valueSize && (
+              <SizeStats stats={totalStats.valueSize} title="Value size" />
+            )}
+          </Informers.Wrapper>
+          <PartitionTable data={partitionStats} />
+        </>
+      )}
     </>
   );
 };

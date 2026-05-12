@@ -7,6 +7,7 @@ import Table, {
   LinkCell,
   TagCell,
 } from 'components/common/NewTable';
+import { TableProvider } from 'components/common/NewTable/Provider';
 import { screen } from '@testing-library/dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import userEvent from '@testing-library/user-event';
@@ -101,12 +102,14 @@ interface Props extends TableProps<Datum> {
 const renderComponent = (props: Partial<Props> = {}) => {
   render(
     <WithRoute path="/*">
-      <Table
-        columns={columns}
-        data={data}
-        renderSubComponent={ExpandedRow}
-        {...props}
-      />
+      <TableProvider>
+        <Table
+          columns={columns}
+          data={data}
+          renderSubComponent={ExpandedRow}
+          {...props}
+        />
+      </TableProvider>
     </WithRoute>,
     { initialEntries: [props.path || ''] }
   );
@@ -145,7 +148,7 @@ describe('Table', () => {
   it('renders TimestampCell', () => {
     renderComponent();
     expect(
-      screen.getByText(formatTimestamp(data[0].timestamp))
+      screen.getByText(formatTimestamp({ timestamp: data[0].timestamp }))
     ).toBeInTheDocument();
   });
 
@@ -282,7 +285,10 @@ describe('Table', () => {
       });
       expect(screen.getAllByRole('row').length).toEqual(data.length + 1);
       const th = screen.getByRole('columnheader', { name: 'Text' });
+      const sortingElement = screen.getByText('Text');
+
       expect(th).toBeInTheDocument();
+      expect(sortingElement).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
       // Check initial sort order by text column is descending
@@ -293,7 +299,7 @@ describe('Table', () => {
       expect(rows[1].textContent?.indexOf('sit')).toBeGreaterThan(-1);
 
       // Disable sorting by text column
-      await userEvent.click(th);
+      await userEvent.click(sortingElement);
       rows = screen.getAllByRole('row');
       expect(rows[1].textContent?.indexOf('lorem')).toBeGreaterThan(-1);
       expect(rows[2].textContent?.indexOf('ipsum')).toBeGreaterThan(-1);
@@ -301,7 +307,7 @@ describe('Table', () => {
       expect(rows[4].textContent?.indexOf('sit')).toBeGreaterThan(-1);
 
       // Sort by text column ascending
-      await userEvent.click(th);
+      await userEvent.click(sortingElement);
       rows = screen.getAllByRole('row');
       expect(rows[1].textContent?.indexOf('dolor')).toBeGreaterThan(-1);
       expect(rows[2].textContent?.indexOf('ipsum')).toBeGreaterThan(-1);

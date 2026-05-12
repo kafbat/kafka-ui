@@ -72,6 +72,39 @@ const DESCMixin = (color: string) => `
   }
 `;
 
+export const TableHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const ColumnResizer = styled.div<{ $isResizing?: boolean }>`
+  ${({
+    $isResizing,
+    theme: {
+      table: { resizer },
+    },
+  }) => {
+    return css`
+      opacity: ${$isResizing ? 1 : 0};
+      position: absolute;
+      top: 4px;
+      right: 0;
+      height: calc(100% - 8px);
+      width: 4px;
+      border-radius: 2px;
+      background-color: ${resizer.background.normal};
+
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      &:hover {
+        background-color: ${resizer.background.hover};
+      }
+    `;
+  }};
+`;
+
 export const Th = styled.th<ThProps>(
   ({
     theme: {
@@ -95,13 +128,19 @@ export const Th = styled.th<ThProps>(
   background: ${th.backgroundColor.normal};
   width: ${expander ? '5px' : 'auto'};
   white-space: nowrap;
+  position: relative;
+  user-select: none;
 
-  & > div {
+  & > ${TableHeaderContent} {
     cursor: default;
     color: ${th.color.normal};
     ${sortable ? sortableMixin(th.color.sortable, th.color.hover) : ''}
     ${sortable && sortOrder === 'asc' && ASCMixin(th.color.active)}
     ${sortable && sortOrder === 'desc' && DESCMixin(th.color.active)}
+  }
+
+  &:hover > ${ColumnResizer} {
+    opacity: 1;
   }
 `
 );
@@ -112,13 +151,22 @@ interface RowProps {
 }
 
 export const Row = styled.tr<RowProps>(
-  ({ theme: { table }, expanded, clickable }) => `
-  cursor: ${clickable ? 'pointer' : 'default'};
-  background-color: ${table.tr.backgroundColor[expanded ? 'hover' : 'normal']};
-  &:hover {
-    background-color: ${table.tr.backgroundColor.hover};
-  }
-`
+  ({ theme: { table }, expanded, clickable }) => css`
+    cursor: ${clickable ? 'pointer' : 'default'};
+    background-color: ${table.tr.backgroundColor[
+      expanded ? 'hover' : 'normal'
+    ]};
+    & .show-on-hover {
+      visibility: hidden;
+    }
+    &:hover {
+      background-color: ${table.tr.backgroundColor.hover};
+
+      & .show-on-hover {
+        visibility: visible;
+      }
+    }
+  `
 );
 
 export const ExpandedRowInfo = styled.div`
@@ -227,7 +275,9 @@ export const Ellipsis = styled.div`
 
 export const TableWrapper = styled.div<{ $disabled: boolean }>(
   ({ $disabled }) => css`
+    overflow: clip;
     overflow-x: auto;
+    overflow-y: visible;
     ${$disabled &&
     css`
       pointer-events: none;

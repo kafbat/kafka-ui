@@ -50,8 +50,8 @@ class TopicAnalysisServiceTest extends AbstractIntegrationTest {
         producer.send(
             new ProducerRecord<>(
                 topic,
-                RandomStringUtils.randomAlphabetic(5),
-                RandomStringUtils.randomAlphabetic(10)));
+                RandomStringUtils.secure().nextAlphabetic(5),
+                RandomStringUtils.secure().nextAlphabetic(10)));
       }
     }
   }

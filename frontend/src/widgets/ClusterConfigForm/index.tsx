@@ -181,7 +181,7 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
               <Button
                 buttonSize="L"
                 buttonType="danger"
-                inProgress={deleteCluster.isLoading}
+                inProgress={deleteCluster.isPending}
                 onClick={confirmClusterDelete}
               >
                 Delete

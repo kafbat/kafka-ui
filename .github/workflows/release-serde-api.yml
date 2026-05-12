@@ -1,6 +1,13 @@
 name: "Infra: Release: Serde API"
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+        description: Serde API version to release. Must not be a SNAPSHOT.
+        default: 1.x.0
 
 permissions:
   contents: read
@@ -10,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # infered from @v4
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
         with:
           fetch-depth: 0
           token: ${{ github.token }}
@@ -20,22 +27,32 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # infered from @v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
         with:
-          java-version: '21'
+          java-version-file: '.java-version'
           distribution: 'zulu'
           cache: 'gradle'
 
-      - id: install-secret-key
-        name: Install GPG secret key
+      - name: Validate version
         run: |
-          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+          VERSION="${{ inputs.version }}"
+          if echo "$VERSION" | grep -qi 'SNAPSHOT'; then
+            echo "::error::Version must not contain SNAPSHOT: $VERSION"
+            exit 1
+          fi
+          if ! echo "$VERSION" | grep -Pq '^\d+\.\d+\.\d+$'; then
+            echo "::error::Version must be valid semver (e.g. 1.0.0): $VERSION"
+            exit 1
+          fi
 
       - name: Publish to Maven Central
-        # TODO fix me next publish, I'm broken :(
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
-          mvn source:jar javadoc:jar package gpg:sign \
-          -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
-          -Dserver.username=${{ secrets.NEXUS_USERNAME }} \
-          -Dserver.password=${{ secrets.NEXUS_PASSWORD }} \
-          central-publishing:publish -pl serde-api -s settings.xml
+          ./gradlew publishToSonatype \
+          closeAndReleaseSonatypeStagingRepository \
+          -Prelease=true \
+          -Pversion=${{ inputs.version }}

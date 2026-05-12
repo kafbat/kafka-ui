@@ -7,8 +7,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -87,11 +85,10 @@ class CustomSerdeLoader {
     // we assume that location's content does not change during serdes creation
     // so, we can reuse already created classloaders
     return classloaders.computeIfAbsent(location, l ->
-        AccessController.doPrivileged(
-            (PrivilegedAction<URLClassLoader>) () ->
-                new ChildFirstClassloader(
-                    archives.toArray(URL[]::new),
-                    CustomSerdeLoader.class.getClassLoader())));
+            new ChildFirstClassloader(
+                archives.toArray(URL[]::new),
+                CustomSerdeLoader.class.getClassLoader())
+    );
   }
 
   //---------------------------------------------------------------------------------

@@ -5,6 +5,7 @@ export const Wrapper = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  width: min-content;
 `;
 
 export const MessageTooltip = styled.div`

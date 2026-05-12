@@ -83,7 +83,7 @@ class OffsetsInfo {
   long summaryOffsetsRange() {
     MutableLong cnt = new MutableLong();
     nonEmptyPartitions.forEach(tp -> cnt.add(endOffsets.get(tp) - beginOffsets.get(tp)));
-    return cnt.getValue();
+    return cnt.get().longValue();
   }
 
   public Set<TopicPartition> allTargetPartitions() {

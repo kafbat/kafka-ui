@@ -35,6 +35,7 @@ const Colors = {
     '40': '#5CD685',
     '50': '#33CC66',
     '60': '#29A352',
+    '70': '#34C759',
   },
   brand: {
     '0': '#FFFFFF',
@@ -61,9 +62,15 @@ const Colors = {
     '55': '#CF1717',
     '60': '#B81414',
   },
+  orange: {
+    '10': '#BF83401A',
+    '20': '#FF8D28',
+    '100': '#FF9D00',
+  },
   yellow: {
     '10': '#FFEECC',
     '20': '#FFDD57',
+    '30': '#FFD439',
   },
   blue: {
     '10': '#e3f2fd',
@@ -266,7 +273,7 @@ const baseTheme = {
     infoIcon: Colors.neutral[30],
     closeCircleIcon: Colors.neutral[30],
     deleteIcon: Colors.red[20],
-    warningIcon: Colors.yellow[20],
+    warningIcon: Colors.yellow[30],
     warningRedIcon: {
       rectFill: Colors.red[10],
       pathFill: Colors.red[50],
@@ -300,6 +307,13 @@ const baseTheme = {
       active: '#FFBDB8',
     },
     menuIcon: Colors.brand[70],
+    filterIcon: {
+      normal: Colors.brand[70],
+    },
+    ftsIcon: {
+      normal: Colors.neutral[30],
+      active: Colors.brand[70],
+    },
   },
   textArea: {
     borderColor: {
@@ -401,6 +415,29 @@ const baseTheme = {
 
 export const theme = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[90],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[5],
+    },
+    statistic: {
+      background: Colors.neutral[0],
+      count: {
+        color: Colors.neutral[90],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   logo: {
     color: Colors.brand[90],
   },
@@ -433,6 +470,9 @@ export const theme = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[30],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[70],
@@ -445,7 +485,7 @@ export const theme = {
   },
   dropdown: {
     backgroundColor: Colors.brand[0],
-    borderColor: Colors.brand[5],
+    borderColor: Colors.brand[10],
     shadow: Colors.transparency[20],
     item: {
       color: {
@@ -455,6 +495,12 @@ export const theme = {
       backgroundColor: {
         default: Colors.neutral[0],
         hover: Colors.neutral[5],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[20],
       },
     },
   },
@@ -563,16 +609,19 @@ export const theme = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[0],
+    },
     primary: {
       backgroundColor: {
-        normal: Colors.brand[0],
-        hover: hexToRgba(Colors.brand[95], 0.03),
-        active: hexToRgba(Colors.brand[95], 0.05),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[80],
-        hover: Colors.brand[90],
-        active: Colors.brand[70],
+        normal: Colors.neutral[50],
+        hover: Colors.neutral[90],
+        active: Colors.neutral[95],
       },
       statusIconColor: {
         online: Colors.green[40],
@@ -678,6 +727,28 @@ export const theme = {
       },
       info: Colors.neutral[90],
     },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[90],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[30],
+            active: Colors.neutral[90],
+            hover: Colors.neutral[90],
+          },
+        },
+      },
+    },
+    resizer: {
+      background: {
+        normal: Colors.neutral[30],
+        active: Colors.neutral[90],
+        hover: Colors.neutral[90],
+      },
+    },
   },
   primaryTab: {
     height: '41px',
@@ -707,11 +778,11 @@ export const theme = {
   select: {
     backgroundColor: {
       normal: Colors.neutral[0],
-      hover: Colors.neutral[10],
+      hover: Colors.neutral[5],
       active: Colors.neutral[10],
     },
     color: {
-      normal: Colors.neutral[90],
+      normal: Colors.neutral[70],
       hover: Colors.neutral[90],
       active: Colors.neutral[90],
       disabled: Colors.neutral[30],
@@ -723,8 +794,15 @@ export const theme = {
       disabled: Colors.neutral[10],
     },
     optionList: {
+      borderColor: Colors.neutral[10],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[0],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],
@@ -777,11 +855,11 @@ export const theme = {
   },
   scrollbar: {
     trackColor: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[5],
       active: Colors.neutral[5],
     },
     thumbColor: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[15],
       active: Colors.neutral[50],
     },
   },
@@ -890,6 +968,12 @@ export const theme = {
       cross: Colors.brand[30],
     },
   },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[90],
+    none: Colors.neutral[90],
+  },
 };
 
 export type ThemeType = typeof theme;
@@ -898,6 +982,29 @@ export type ClusterColorKey =
 
 export const darkTheme: ThemeType = {
   ...baseTheme,
+  alertBadge: {
+    background: Colors.orange[10],
+    content: {
+      color: Colors.neutral[0],
+    },
+    icon: {
+      color: Colors.orange[100],
+    },
+  },
+  kafkaConectClusters: {
+    statistics: {
+      background: Colors.neutral[95],
+    },
+    statistic: {
+      background: Colors.neutral[90],
+      count: {
+        color: Colors.neutral[0],
+      },
+      header: {
+        color: Colors.neutral[50],
+      },
+    },
+  },
   auth_page: {
     backgroundColor: Colors.neutral[90],
     fontFamily: baseTheme.auth_page.fontFamily,
@@ -962,6 +1069,9 @@ export const darkTheme: ThemeType = {
   pageHeading: {
     height: '64px',
     dividerColor: Colors.neutral[50],
+    title: {
+      color: Colors.brand[50],
+    },
     backLink: {
       color: {
         normal: Colors.brand[30],
@@ -984,6 +1094,12 @@ export const darkTheme: ThemeType = {
       backgroundColor: {
         default: Colors.neutral[85],
         hover: Colors.neutral[80],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[70],
       },
     },
   },
@@ -1092,16 +1208,19 @@ export const darkTheme: ThemeType = {
     },
   },
   menu: {
+    header: {
+      backgroundColor: Colors.brand[90],
+    },
     primary: {
       backgroundColor: {
-        normal: Colors.brand[90],
-        hover: hexToRgba(Colors.brand[0], 0.05),
-        active: hexToRgba(Colors.brand[0], 0.1),
+        normal: 'transparent',
+        hover: 'transparent',
+        active: 'transparent',
       },
       color: {
-        normal: Colors.brand[20],
+        normal: Colors.brand[50],
         hover: Colors.brand[0],
-        active: Colors.brand[10],
+        active: Colors.brand[20],
       },
       statusIconColor: {
         online: Colors.green[40],
@@ -1207,6 +1326,28 @@ export const darkTheme: ThemeType = {
       },
       info: Colors.neutral[0],
     },
+    filter: {
+      multiSelect: {
+        value: {
+          color: Colors.neutral[10],
+        },
+        closeIcon: {},
+        filterIcon: {
+          fill: {
+            normal: Colors.neutral[50],
+            hover: Colors.neutral[0],
+            active: Colors.brand[30],
+          },
+        },
+      },
+    },
+    resizer: {
+      background: {
+        normal: Colors.neutral[50],
+        hover: Colors.neutral[0],
+        active: Colors.brand[30],
+      },
+    },
   },
   primaryTab: {
     height: '41px',
@@ -1250,7 +1391,7 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[70],
     },
     color: {
-      normal: Colors.neutral[0],
+      normal: Colors.neutral[20],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
       disabled: Colors.neutral[60],
@@ -1262,8 +1403,15 @@ export const darkTheme: ThemeType = {
       disabled: Colors.neutral[70],
     },
     optionList: {
+      borderColor: Colors.neutral[70],
       scrollbar: {
         backgroundColor: Colors.neutral[30],
+      },
+    },
+    multiSelectOption: {
+      checkbox: {
+        backgroundColor: Colors.neutral[90],
+        borderColor: Colors.neutral[50],
       },
     },
     label: Colors.neutral[50],
@@ -1416,6 +1564,10 @@ export const darkTheme: ThemeType = {
       normal: Colors.neutral[5],
     },
     menuIcon: Colors.brand[0],
+    ftsIcon: {
+      normal: Colors.neutral[50],
+      active: Colors.brand[10],
+    },
   },
   textArea: {
     ...baseTheme.textArea,
@@ -1502,5 +1654,11 @@ export const darkTheme: ThemeType = {
       border: Colors.brand[60],
       cross: Colors.brand[30],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[0],
+    none: Colors.neutral[0],
   },
 };

@@ -17,17 +17,17 @@ public class CustomWebFilter implements WebFilter {
 
     final String path = exchange.getRequest().getPath().pathWithinApplication().value();
 
+    ServerWebExchange filterExchange = exchange;
+
     if (path.startsWith("/ui") || path.isEmpty() || path.equals("/")) {
-      return chain.filter(
-          exchange.mutate().request(
-              exchange.getRequest().mutate()
-                  .path(basePath + "/index.html")
-                  .contextPath(basePath)
-                  .build()
-          ).build()
-      );
+      filterExchange = exchange.mutate().request(
+          exchange.getRequest().mutate()
+              .path(basePath + "/index.html")
+              .contextPath(basePath)
+              .build()
+      ).build();
     }
 
-    return chain.filter(exchange);
+    return chain.filter(filterExchange).contextWrite(ctx -> ctx.put(ServerWebExchange.class, exchange));
   }
 }

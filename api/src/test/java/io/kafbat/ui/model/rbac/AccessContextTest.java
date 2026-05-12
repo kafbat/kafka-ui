@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 import io.kafbat.ui.model.rbac.AccessContext.ResourceAccess;
 import io.kafbat.ui.model.rbac.AccessContext.SingleResourceAccess;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
+import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
@@ -46,6 +48,10 @@ class AccessContextTest {
 
   @Nested
   class SingleResourceAccessTest {
+
+    public static final String CONNECT_NAME = "my-connect";
+    public static final String CONNECTOR_NAME = "my-connector";
+    public static final String FULL_CONNECTOR_NAME = String.join("/", CONNECT_NAME, CONNECTOR_NAME);
 
     @Test
     void allowsAccessForResourceWithNameIfUserHasAllNeededPermissions() {
@@ -98,10 +104,146 @@ class AccessContextTest {
       assertThat(allowed).isFalse();
     }
 
+    @Test
+    void shouldMapActionAliases() {
+      SingleResourceAccess sra =
+          new SingleResourceAccess(Resource.CONNECT, List.of(ConnectAction.OPERATE));
+
+      var allowed = sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, null, List.of("restart"))
+          )
+      );
+
+      assertThat(allowed).isTrue();
+    }
+
+    @Test
+    void allowsAccessForConnectorWithSpecificNameIfUserHasPermissionToConnectOrConnector() {
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW, ConnectorAction.OPERATE),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW, ConnectAction.OPERATE))
+      );
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(
+                  Resource.CONNECTOR, FULL_CONNECTOR_NAME,
+                  ConnectorAction.VIEW, ConnectorAction.OPERATE
+              )
+          )
+      )).isTrue();
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW, ConnectAction.OPERATE)
+          )
+      )).isTrue();
+
+    }
+
+    @Test
+    void allowsAccessForConnectorWithWildcardPatternIfUserHasPermission() {
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW))
+      );
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(
+                  Resource.CONNECTOR, CONNECT_NAME + "/.*",
+                  ConnectorAction.VIEW, ConnectorAction.EDIT
+              )
+          )
+      )).isTrue();
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW, ConnectAction.EDIT)))
+      ).isTrue();
+    }
+
+    @Test
+    void deniesAccessForConnectorIfUserLacksRequiredPermission() {
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.DELETE),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.DELETE))
+      );
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(
+                  Resource.CONNECTOR, FULL_CONNECTOR_NAME,
+                  ConnectorAction.VIEW, ConnectorAction.EDIT
+              )
+          )
+      )).isFalse();
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(
+                  Resource.CONNECT, CONNECT_NAME,
+                  ConnectAction.VIEW, ConnectAction.EDIT
+              )
+          )
+      )).isFalse();
+
+    }
+
+    @Test
+    void allowsAccessForConnectorWithMultipleWildcardPatterns() {
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.RESET_OFFSETS),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.RESET_OFFSETS))
+      );
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, ".*/my-.*", ConnectorAction.RESET_OFFSETS),
+              permission(Resource.CONNECTOR, "my-.*/.*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, "my-.*", ConnectorAction.RESET_OFFSETS),
+              permission(Resource.CONNECT, ".*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
+    }
+
+    @Test
+    void testConnectorActionHierarchy() {
+      // Test that EDIT includes VIEW permission
+      SingleResourceAccess sra = new SingleResourceAccess(
+          FULL_CONNECTOR_NAME, Resource.CONNECTOR, List.of(ConnectorAction.VIEW),
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.VIEW))
+      );
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECTOR, CONNECT_NAME + "/.*", ConnectorAction.VIEW)
+          )
+      )).isTrue();
+
+      assertThat(sra.isAccessible(
+          List.of(
+              permission(Resource.CONNECT, CONNECT_NAME, ConnectAction.VIEW)
+          )
+      )).isTrue();
+    }
+
     private Permission permission(Resource res, @Nullable String namePattern, PermissibleAction... actions) {
+      return permission(
+          res, namePattern, Stream.of(actions).map(PermissibleAction::name).toList()
+      );
+    }
+
+    private Permission permission(Resource res, @Nullable String namePattern, List<String> actions) {
       Permission p = new Permission();
       p.setResource(res.name());
-      p.setActions(Stream.of(actions).map(PermissibleAction::name).toList());
+      p.setActions(actions);
       p.setValue(namePattern);
       p.validate();
       p.transform();

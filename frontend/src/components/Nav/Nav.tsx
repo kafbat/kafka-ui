@@ -1,5 +1,6 @@
-import { useClusters } from 'lib/hooks/api/clusters';
 import React, { type FC } from 'react';
+import { useClusters } from 'lib/hooks/api/clusters';
+import useCurrentClusterName from 'lib/hooks/useCurrentClusterName';
 
 import * as S from './Nav.styled';
 import MenuItem from './Menu/MenuItem';
@@ -7,6 +8,7 @@ import ClusterMenu from './ClusterMenu/ClusterMenu';
 
 const Nav: FC = () => {
   const clusters = useClusters();
+  const clusterName = useCurrentClusterName();
 
   return (
     <aside aria-label="Sidebar Menu">
@@ -20,7 +22,7 @@ const Nav: FC = () => {
             name={cluster.name}
             status={cluster.status}
             features={cluster.features}
-            singleMode={clusters.data.length === 1}
+            opened={clusters.data.length === 1 || cluster.name === clusterName}
           />
         ))}
     </aside>

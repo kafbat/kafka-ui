@@ -4,6 +4,7 @@ import static io.kafbat.ui.config.ClustersProperties.TruststoreConfig;
 
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
+import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
@@ -140,5 +141,18 @@ public final class KafkaServicesValidation {
         .onErrorResume(KafkaServicesValidation::invalid);
   }
 
+  public static Mono<ApplicationPropertyValidationDTO> validatePrometheusStore(
+      Supplier<ReactiveFailover<PrometheusClientApi>> clientSupplier) {
+    ReactiveFailover<PrometheusClientApi> client;
+    try {
+      client = clientSupplier.get();
+    } catch (Exception e) {
+      log.error("Error creating Prometheus client", e);
+      return invalid("Error creating Prometheus client: " + e.getMessage());
+    }
+    return client.mono(c -> c.query("1", null, null))
+        .then(valid())
+        .onErrorResume(KafkaServicesValidation::invalid);
+  }
 
 }

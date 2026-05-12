@@ -47,7 +47,11 @@ describe('TopicForm', () => {
       'spinbutton',
       'Time to retain data (in ms)'
     );
+    expectByRoleAndNameToBeInDocument('button', '1 hour');
+    expectByRoleAndNameToBeInDocument('button', '3 hours');
+    expectByRoleAndNameToBeInDocument('button', '6 hours');
     expectByRoleAndNameToBeInDocument('button', '12 hours');
+    expectByRoleAndNameToBeInDocument('button', '1 day');
     expectByRoleAndNameToBeInDocument('button', '2 days');
     expectByRoleAndNameToBeInDocument('button', '7 days');
     expectByRoleAndNameToBeInDocument('button', '4 weeks');

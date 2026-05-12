@@ -1,12 +1,20 @@
-export const formatTimestamp = (
-  timestamp?: number | string | Date,
-  format: Intl.DateTimeFormatOptions = { hourCycle: 'h23' }
-): string => {
+import { getSystemTimezone } from 'lib/hooks/useTimezones';
+
+export const formatTimestamp = ({
+  timestamp,
+  format = { hourCycle: 'h23' },
+  timezone,
+  withMilliseconds,
+}: {
+  timestamp: number | string | Date | undefined;
+  format?: Intl.DateTimeFormatOptions;
+  timezone?: string;
+  withMilliseconds?: boolean;
+}): string => {
   if (!timestamp) {
     return '';
   }
 
-  // empty array gets the default one from the browser
   const date = new Date(timestamp);
   // invalid date
   if (Number.isNaN(date.getTime())) {
@@ -15,7 +23,21 @@ export const formatTimestamp = (
 
   // browser support
   const language = navigator.language || navigator.languages[0];
-  return date.toLocaleString(language || [], format);
+
+  const finalTimezone = timezone || getSystemTimezone().value;
+
+  const formatOptions: Intl.DateTimeFormatOptions = {
+    ...format,
+    timeZone: finalTimezone,
+  };
+
+  let formattedTimestamp = date.toLocaleString(language || [], formatOptions);
+
+  if (withMilliseconds) {
+    formattedTimestamp += `.${date.getMilliseconds()}`;
+  }
+
+  return formattedTimestamp;
 };
 
 export const formatMilliseconds = (input = 0) => {
@@ -54,4 +76,46 @@ export const calculateTimer = (startedAt: number) => {
   const minutes = Math.floor(elapsedMillis / 60000);
 
   return `${passedTime(minutes)}:${passedTime(seconds)}`;
+};
+
+export const timeAgo = (
+  timestamp: number | string | Date | undefined
+): string => {
+  if (!timestamp) {
+    return '';
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  const language = navigator.language || navigator.languages[0];
+  const rtf = new Intl.RelativeTimeFormat(language, { numeric: 'auto' });
+
+  if (diffSeconds < 60) {
+    return rtf.format(-diffSeconds, 'second');
+  }
+
+  if (diffMinutes < 60) {
+    return rtf.format(-diffMinutes, 'minute');
+  }
+
+  if (diffHours < 24) {
+    return rtf.format(-diffHours, 'hour');
+  }
+
+  if (diffDays < 30) {
+    return rtf.format(-diffDays, 'day');
+  }
+
+  // Fall back to formatted date for older timestamps
+  return date.toLocaleDateString(language);
 };

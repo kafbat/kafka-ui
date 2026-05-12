@@ -3,23 +3,33 @@ import WarningIcon from 'components/common/Icons/WarningIcon';
 import { gitCommitPath } from 'lib/paths';
 import { useLatestVersion } from 'lib/hooks/api/latestVersion';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './Version.styled';
 
 const Version: React.FC = () => {
-  const { data: latestVersionInfo = {} } = useLatestVersion();
+  const { currentTimezone } = useTimezone();
+  const { data: latestVersionInfo, isLoading } = useLatestVersion();
+
+  if (isLoading || !latestVersionInfo?.build) {
+    return null;
+  }
+
   const { buildTime, commitId, isLatestRelease, version } =
     latestVersionInfo.build;
-  const { versionTag } = latestVersionInfo?.latestRelease || '';
+  const { versionTag } = latestVersionInfo?.latestRelease || {};
 
   const currentVersion =
     isLatestRelease && version?.match(versionTag)
       ? versionTag
-      : formatTimestamp(buildTime);
+      : formatTimestamp({
+          timestamp: buildTime,
+          timezone: currentTimezone.value,
+        });
 
   return (
     <S.Wrapper>
-      {!isLatestRelease && (
+      {isLatestRelease === false && (
         <S.OutdatedWarning
           title={`Your app version is outdated. Latest version is ${
             versionTag || 'UNKNOWN'

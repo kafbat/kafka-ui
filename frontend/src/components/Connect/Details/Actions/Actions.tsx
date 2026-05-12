@@ -75,6 +75,8 @@ const Actions: React.FC = () => {
       () => resetConnectorOffsetsMutation.mutateAsync()
     );
 
+  const connectorPath = `${routerProps.connectName}/${routerProps.connectorName}`;
+
   return (
     <S.ConnectorActionsWrapperStyled>
       <Dropdown
@@ -90,8 +92,13 @@ const Actions: React.FC = () => {
           <ActionDropdownItem
             onClick={pauseConnectorHandler}
             permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -102,8 +109,13 @@ const Actions: React.FC = () => {
           <ActionDropdownItem
             onClick={stopConnectorHandler}
             permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -115,8 +127,13 @@ const Actions: React.FC = () => {
           <ActionDropdownItem
             onClick={resumeConnectorHandler}
             permission={{
+              resource: ResourceType.CONNECTOR,
+              action: Action.OPERATE,
+              value: connectorPath,
+            }}
+            fallbackPermission={{
               resource: ResourceType.CONNECT,
-              action: Action.EDIT,
+              action: Action.OPERATE,
               value: routerProps.connectName,
             }}
           >
@@ -126,8 +143,13 @@ const Actions: React.FC = () => {
         <ActionDropdownItem
           onClick={restartConnectorHandler}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -136,8 +158,13 @@ const Actions: React.FC = () => {
         <ActionDropdownItem
           onClick={restartAllTasksHandler}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -146,8 +173,13 @@ const Actions: React.FC = () => {
         <ActionDropdownItem
           onClick={restartFailedTasksHandler}
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.OPERATE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
-            action: Action.RESTART,
+            action: Action.OPERATE,
             value: routerProps.connectName,
           }}
         >
@@ -162,6 +194,11 @@ const Actions: React.FC = () => {
           }
           danger
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.RESET_OFFSETS,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
             action: Action.RESET_OFFSETS,
             value: routerProps.connectName,
@@ -173,6 +210,11 @@ const Actions: React.FC = () => {
           onClick={deleteConnectorHandler}
           danger
           permission={{
+            resource: ResourceType.CONNECTOR,
+            action: Action.DELETE,
+            value: connectorPath,
+          }}
+          fallbackPermission={{
             resource: ResourceType.CONNECT,
             action: Action.DELETE,
             value: routerProps.connectName,

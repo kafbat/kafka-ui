@@ -1,6 +1,9 @@
 package io.kafbat.ui.service.integration.odd;
 
-import io.kafbat.ui.model.ConnectorTypeDTO;
+import static io.kafbat.ui.connect.model.Connector.TypeEnum.SINK;
+import static io.kafbat.ui.connect.model.Connector.TypeEnum.SOURCE;
+
+import io.kafbat.ui.connect.model.Connector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +22,7 @@ record ConnectorInfo(List<String> inputs,
                      List<String> outputs) {
 
   static ConnectorInfo extract(String className,
-                               ConnectorTypeDTO type,
+                               Connector.TypeEnum type,
                                Map<String, Object> config,
                                List<String> topicsFromApi, // can be empty for old Connect API versions
                                UnaryOperator<String> topicOddrnBuilder) {
@@ -40,7 +43,7 @@ record ConnectorInfo(List<String> inputs,
     };
   }
 
-  private static ConnectorInfo extractFileIoConnector(ConnectorTypeDTO type,
+  private static ConnectorInfo extractFileIoConnector(Connector.TypeEnum type,
                                                       List<String> topics,
                                                       Map<String, Object> config,
                                                       UnaryOperator<String> topicOddrnBuilder) {
@@ -50,7 +53,7 @@ record ConnectorInfo(List<String> inputs,
     );
   }
 
-  private static ConnectorInfo extractJdbcSink(ConnectorTypeDTO type,
+  private static ConnectorInfo extractJdbcSink(Connector.TypeEnum type,
                                                List<String> topics,
                                                Map<String, Object> config,
                                                UnaryOperator<String> topicOddrnBuilder) {
@@ -103,7 +106,7 @@ record ConnectorInfo(List<String> inputs,
     return new ConnectorInfo(inputs, List.of());
   }
 
-  private static ConnectorInfo extractS3Sink(ConnectorTypeDTO type,
+  private static ConnectorInfo extractS3Sink(Connector.TypeEnum type,
                                              List<String> topics,
                                              Map<String, Object> config,
                                              UnaryOperator<String> topicOrrdnBuilder) {
@@ -119,20 +122,20 @@ record ConnectorInfo(List<String> inputs,
     );
   }
 
-  private static List<String> extractInputs(ConnectorTypeDTO type,
+  private static List<String> extractInputs(Connector.TypeEnum type,
                                             List<String> topicsFromApi,
                                             Map<String, Object> config,
                                             UnaryOperator<String> topicOrrdnBuilder) {
-    return type == ConnectorTypeDTO.SINK
+    return type == SINK
         ? extractTopicsOddrns(config, topicsFromApi, topicOrrdnBuilder)
         : List.of();
   }
 
-  private static List<String> extractOutputs(ConnectorTypeDTO type,
+  private static List<String> extractOutputs(Connector.TypeEnum type,
                                              List<String> topicsFromApi,
                                              Map<String, Object> config,
                                              UnaryOperator<String> topicOrrdnBuilder) {
-    return type == ConnectorTypeDTO.SOURCE
+    return type == SOURCE
         ? extractTopicsOddrns(config, topicsFromApi, topicOrrdnBuilder)
         : List.of();
   }

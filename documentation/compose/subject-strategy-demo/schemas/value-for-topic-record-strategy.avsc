@@ -1,0 +1,10 @@
+{
+  "namespace": "io.kafbat.test",
+  "type": "record",
+  "name": "EventRecord",
+  "fields": [
+    {"name": "eventId", "type": "string"},
+    {"name": "eventType", "type": "string"},
+    {"name": "timestamp", "type": "long"}
+  ]
+}

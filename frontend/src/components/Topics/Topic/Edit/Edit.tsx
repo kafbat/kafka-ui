@@ -92,7 +92,7 @@ const Edit: React.FC = () => {
           topicName={topicName}
           retentionBytes={defaultValues.retentionBytes}
           inSyncReplicas={Number(defaultValues.minInSyncReplicas)}
-          isSubmitting={updateTopic.isLoading}
+          isSubmitting={updateTopic.isPending}
           cleanUpPolicy={topic?.cleanUpPolicy}
           isEditing
           onSubmit={methods.handleSubmit(onSubmit)}

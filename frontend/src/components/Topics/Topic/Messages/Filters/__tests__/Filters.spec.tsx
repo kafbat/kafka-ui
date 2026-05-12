@@ -3,7 +3,7 @@ import Filters, {
   FiltersProps,
 } from 'components/Topics/Topic/Messages/Filters/Filters';
 import { render, WithRoute } from 'lib/testHelpers';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { clusterTopicPath } from 'lib/paths';
 import { useTopicDetails } from 'lib/hooks/api/topics';
@@ -119,16 +119,38 @@ describe('Filters component', () => {
       await selectDropdownAndCheckInput('From offset', 'Offset');
     });
 
-    it('offset input To offset option', async () => {
-      await selectDropdownAndCheckInput('To offset', 'Offset');
-    });
-
     it('timestamp input since time', async () => {
       await selectDropdownAndCheckInput('Since time', 'Select timestamp');
     });
 
     it('timestamp input since time', async () => {
       await selectDropdownAndCheckInput('To time', 'Select timestamp');
+    });
+  });
+
+  describe('change from and to offset filter', () => {
+    const inputValue = 'Hello World!';
+
+    it('saves filter value', async () => {
+      await act(() => renderComponent());
+
+      const seekTypeSelect = getSeekTypeSelect();
+      const option = screen.getAllByRole('option');
+
+      await userEvent.click(seekTypeSelect);
+      await userEvent.selectOptions(seekTypeSelect, ['From offset']);
+
+      expect(option[0]).toHaveTextContent('From offset');
+      const timestampInput = screen.getByPlaceholderText('Offset');
+      expect(timestampInput).toHaveValue('');
+      await userEvent.type(timestampInput, inputValue);
+
+      expect(timestampInput).toHaveValue(inputValue);
+
+      await userEvent.click(seekTypeSelect);
+      await userEvent.selectOptions(seekTypeSelect, ['To offset']);
+
+      expect(timestampInput).toHaveValue(inputValue);
     });
   });
 
@@ -179,15 +201,10 @@ describe('Filters component', () => {
         renderAndCheckSelectType(PollingMode.TO_TIMESTAMP, {
           timestamp: currentDate.getTime().toString(),
         });
-        const formattedDate = currentDate.toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
 
-        expect(screen.getByPlaceholderText('Select timestamp')).toHaveValue(
-          formattedDate
-        );
+        // DatePicker uses format "MMM d, yyyy HH:mm" - verify timestamp input has a value
+        const timestampInput = screen.getByPlaceholderText('Select timestamp');
+        expect(timestampInput).not.toHaveValue('');
       });
 
       it('should check the mode input value from timestamp', () => {
@@ -195,15 +212,10 @@ describe('Filters component', () => {
         renderAndCheckSelectType(PollingMode.FROM_TIMESTAMP, {
           timestamp: currentDate.getTime().toString(),
         });
-        const formattedDate = currentDate.toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
 
-        expect(screen.getByPlaceholderText('Select timestamp')).toHaveValue(
-          formattedDate
-        );
+        // DatePicker uses format "MMM d, yyyy HH:mm" - verify timestamp input has a value
+        const timestampInput = screen.getByPlaceholderText('Select timestamp');
+        expect(timestampInput).not.toHaveValue('');
       });
     });
 

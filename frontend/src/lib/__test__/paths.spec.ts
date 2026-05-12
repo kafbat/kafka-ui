@@ -240,17 +240,22 @@ describe('Paths', () => {
       paths.clusterConnectsPath(RouteParams.clusterName)
     );
   });
-  it('clusterConnectorsPath', () => {
+  it('kafkaConnectConnectorsPath', () => {
     expect(paths.clusterConnectorsPath(clusterName)).toEqual(
-      `${paths.clusterPath(clusterName)}/connectors`
+      `${paths.clusterPath(clusterName)}/kafka-connect/connectors`
     );
     expect(paths.clusterConnectorsPath()).toEqual(
       paths.clusterConnectorsPath(RouteParams.clusterName)
     );
   });
+  it('kafkaConnectConnectorsPath', () => {
+    expect(paths.kafkaConnectClustersPath(clusterName)).toEqual(
+      `${paths.clusterPath(clusterName)}/kafka-connect/clusters`
+    );
+  });
   it('clusterConnectorNewPath', () => {
     expect(paths.clusterConnectorNewPath(clusterName)).toEqual(
-      `${paths.clusterConnectorsPath(clusterName)}/create-new`
+      `${paths.clusterPath(clusterName)}/create-new`
     );
     expect(paths.clusterConnectorNewPath()).toEqual(
       paths.clusterConnectorNewPath(RouteParams.clusterName)

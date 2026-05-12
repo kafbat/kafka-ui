@@ -186,7 +186,7 @@ describe('Topics hooks', () => {
       });
       const message: CreateTopicMessage = {
         partition: 0,
-        content: 'Hello World',
+        value: 'Hello World',
       };
       await act(() => {
         result.current.mutateAsync(message);

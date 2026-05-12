@@ -5,10 +5,10 @@ import {
   clusterSchemaEditPageRelativePath,
   clusterSchemaSchemaComparePageRelativePath,
   clusterSchemasPath,
+  clusterTopicPath,
 } from 'lib/paths';
 import ClusterContext from 'components/contexts/ClusterContext';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import { Button } from 'components/common/Button/Button';
 import { TableTitle } from 'components/common/table/TableTitle/TableTitle.styled';
 import useAppParams from 'lib/hooks/useAppParams';
@@ -24,6 +24,8 @@ import {
   useGetLatestSchema,
   useGetSchemasVersions,
 } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import LatestVersionItem from './LatestVersion/LatestVersionItem';
 import SchemaVersion from './SchemaVersion/SchemaVersion';
@@ -32,16 +34,11 @@ const Details: React.FC = () => {
   const navigate = useNavigate();
   const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName, subject } = useAppParams<ClusterSubjectParam>();
-  const { data: versions = [], isFetching: areVersionsFetching } =
-    useGetSchemasVersions({
-      clusterName,
-      subject,
-    });
-  const {
-    data: schema,
-    isFetching: isSchemaFetching,
-    isError: isErrorLatestSchema,
-  } = useGetLatestSchema({
+  const versions = useGetSchemasVersions({
+    clusterName,
+    subject,
+  });
+  const schema = useGetLatestSchema({
     clusterName,
     subject,
   });
@@ -65,29 +62,34 @@ const Details: React.FC = () => {
     navigate('../');
   };
 
-  if (isSchemaFetching || areVersionsFetching || isErrorLatestSchema) {
-    return <PageLoader />;
-  }
-
   return (
     <>
-      <PageHeading
-        text={schema?.subject || ''}
+      <ResourcePageHeading
+        text={schema.data?.subject || subject}
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}
       >
+        {!!schema.data?.topic && (
+          <Button
+            buttonType="secondary"
+            buttonSize="M"
+            to={clusterTopicPath(clusterName, schema.data.topic)}
+          >
+            {`Go to topic "${schema.data.topic}"`}
+          </Button>
+        )}
+        <Button
+          buttonSize="M"
+          buttonType="primary"
+          to={{
+            pathname: clusterSchemaSchemaComparePageRelativePath,
+            search: `leftVersion=${versions.data?.[0]?.version}&rightVersion=${versions.data?.[0]?.version}`,
+          }}
+        >
+          Compare Versions
+        </Button>
         {!isReadOnly && (
           <>
-            <Button
-              buttonSize="M"
-              buttonType="primary"
-              to={{
-                pathname: clusterSchemaSchemaComparePageRelativePath,
-                search: `leftVersion=${versions[0]?.version}&rightVersion=${versions[0]?.version}`,
-              }}
-            >
-              Compare Versions
-            </Button>
             <ActionButton
               buttonSize="M"
               buttonType="primary"
@@ -120,19 +122,36 @@ const Details: React.FC = () => {
             </Dropdown>
           </>
         )}
-      </PageHeading>
-      {schema && <LatestVersionItem schema={schema} />}
-      <TableTitle>Old versions</TableTitle>
-      {areVersionsFetching ? (
-        <PageLoader />
-      ) : (
-        <Table
-          columns={columns}
-          data={versions}
-          getRowCanExpand={() => true}
-          renderSubComponent={SchemaVersion}
-          enableSorting
+      </ResourcePageHeading>
+
+      {(schema.isLoading ||
+        schema.isRefetching ||
+        versions.isLoading ||
+        versions.isRefetching) && <PageLoader />}
+
+      {(schema.error || versions.error) && (
+        <ErrorPage
+          status={schema.error?.status || versions.error?.status}
+          onClick={() => {
+            schema.refetch();
+            versions.refetch();
+          }}
+          resourceName={`Schema ${subject}`}
         />
+      )}
+
+      {schema.isSuccess && versions.isSuccess && (
+        <>
+          {schema.data && <LatestVersionItem schema={schema.data} />}
+          <TableTitle>Old versions</TableTitle>
+          <Table
+            columns={columns}
+            data={versions.data || []}
+            getRowCanExpand={() => true}
+            renderSubComponent={SchemaVersion}
+            enableSorting
+          />
+        </>
       )}
     </>
   );

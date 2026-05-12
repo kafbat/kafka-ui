@@ -7,10 +7,13 @@ import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.DefaultRole;
 import io.kafbat.ui.model.rbac.Permission;
+import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.Subject;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -60,9 +64,10 @@ public class AccessControlService {
   @Getter
   private Set<ProviderAuthorityExtractor> oauthExtractors = Collections.emptySet();
 
+
   @PostConstruct
   public void init() {
-    if (CollectionUtils.isEmpty(properties.getRoles())) {
+    if (CollectionUtils.isEmpty(properties.getRoles()) && properties.getDefaultRole() == null) {
       log.trace("No roles provided, disabling RBAC");
       return;
     }
@@ -75,18 +80,19 @@ public class AccessControlService {
             .map(Subject::getProvider)
             .distinct()
             .map(provider -> switch (provider) {
-              case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
-              case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
-              case OAUTH_GITHUB -> new GithubAuthorityExtractor();
-              case OAUTH -> new OauthAuthorityExtractor();
-              default -> null;
-            })
-            .filter(Objects::nonNull)
+                  case OAUTH_COGNITO -> new CognitoAuthorityExtractor();
+                  case OAUTH_GOOGLE -> new GoogleAuthorityExtractor();
+                  case OAUTH_GITHUB -> new GithubAuthorityExtractor();
+                  case OAUTH -> new OauthAuthorityExtractor();
+                  default -> null;
+                }
+            ).filter(Objects::nonNull)
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
-    if (!properties.getRoles().isEmpty()
+    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
+    if (hasRolesConfigured
         && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
         && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
       log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
@@ -114,12 +120,20 @@ public class AccessControlService {
   }
 
   private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
-    return properties.getRoles()
-        .stream()
-        .filter(filterRole(user))
-        .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
-        .flatMap(role -> role.getPermissions().stream())
-        .toList();
+    List<Role> filteredRoles = properties.getRoles()
+            .stream()
+            .filter(filterRole(user))
+            .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+            .toList();
+
+    // if no roles are found, check if default role is set
+    if (filteredRoles.isEmpty() && properties.getDefaultRole() != null) {
+      return properties.getDefaultRole().getPermissions();
+    }
+
+    return filteredRoles.stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .toList();
   }
 
   public static Mono<AuthenticatedUser> getUser() {
@@ -132,10 +146,12 @@ public class AccessControlService {
 
   private boolean isClusterAccessible(String clusterName, AuthenticatedUser user) {
     Assert.isTrue(StringUtils.isNotEmpty(clusterName), "cluster value is empty");
-    return properties.getRoles()
+    boolean isAccessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
         .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
+    
+    return isAccessible || properties.getDefaultRole() != null;
   }
 
   public Mono<Boolean> isClusterAccessible(ClusterDTO cluster) {
@@ -185,10 +201,33 @@ public class AccessControlService {
   }
 
   public Mono<Boolean> isConnectAccessible(String connectName, String clusterName) {
+    if (!rbacEnabled) {
+      return Mono.just(true);
+    }
+    return getUser().map(user -> {
+      List<Permission> permissions = getUserPermissions(user, clusterName);
+      // Check direct connect VIEW permission
+      boolean hasConnectPermission = AccessContext.builder()
+          .cluster(clusterName)
+          .connectActions(connectName, ConnectAction.VIEW)
+          .build()
+          .isAccessible(permissions);
+      if (hasConnectPermission) {
+        return true;
+      }
+      // Also show connect if user has any connector VIEW permission for it
+      return permissions.stream()
+          .filter(p -> p.getResource() == Resource.CONNECTOR)
+          .filter(p -> p.getParsedActions().contains(ConnectorAction.VIEW))
+          .anyMatch(p -> connectorPermissionMatchesConnect(p.getValue(), connectName));
+    });
+  }
+
+  public Mono<Boolean> isConnectorAccessible(String connectName, String connectorName, String clusterName) {
     return isAccessible(
         AccessContext.builder()
             .cluster(clusterName)
-            .connectActions(connectName, ConnectAction.VIEW)
+            .connectorActions(connectName, connectorName, ConnectorAction.VIEW)
             .build()
     );
   }
@@ -200,8 +239,25 @@ public class AccessControlService {
     return Collections.unmodifiableList(properties.getRoles());
   }
 
+  public DefaultRole getDefaultRole() {
+    return properties.getDefaultRole();
+  }
+
   private Predicate<Role> filterRole(AuthenticatedUser user) {
     return role -> user.groups().contains(role.getName());
+  }
+
+  /**
+   * Checks if a connector permission value matches a given connect name.
+   * Connector permission values are in format "connectPattern/connectorPattern".
+   * This extracts the connect pattern and checks if connectName matches it.
+   */
+  private boolean connectorPermissionMatchesConnect(String permissionValue, String connectName) {
+    if (permissionValue == null || !permissionValue.contains("/")) {
+      return false;
+    }
+    String connectPattern = permissionValue.substring(0, permissionValue.indexOf('/'));
+    return Pattern.compile(connectPattern).matcher(connectName).matches();
   }
 
 }

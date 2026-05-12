@@ -10,7 +10,6 @@ import io.kafbat.ui.exception.TopicNotFoundException;
 import io.kafbat.ui.exception.TopicRecreationException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ClusterFeature;
-import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalReplica;
@@ -25,7 +24,10 @@ import io.kafbat.ui.model.ReplicationFactorChangeResponseDTO;
 import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TopicCreationDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,20 +74,19 @@ public class TopicsService {
     return adminClientService.get(c)
         .flatMap(ac ->
             ac.describeTopics(topics).zipWith(ac.getTopicsConfig(topics, false),
-                (descriptions, configs) -> {
-                  statisticsCache.update(c, descriptions, configs);
-                  return getPartitionOffsets(descriptions, ac).map(offsets -> {
-                    var metrics = statisticsCache.get(c);
-                    return createList(
-                        topics,
-                        descriptions,
-                        configs,
-                        offsets,
-                        metrics.getMetrics(),
-                        metrics.getLogDirInfo()
-                    );
-                  });
-                })).flatMap(Function.identity());
+                (descriptions, configs) ->
+                    getPartitionOffsets(descriptions, ac).map(offsets -> {
+                      statisticsCache.update(c, descriptions, configs, offsets, clustersProperties);
+                      var stats = statisticsCache.get(c);
+                      return createList(
+                          topics,
+                          descriptions,
+                          configs,
+                          offsets,
+                          stats.getMetrics(),
+                          stats.getClusterState()
+                      );
+                    }))).flatMap(Function.identity());
   }
 
   private Mono<InternalTopic> loadTopic(KafkaCluster c, String topicName) {
@@ -123,7 +124,7 @@ public class TopicsService {
                                          Map<String, List<ConfigEntry>> configs,
                                          InternalPartitionsOffsets partitionsOffsets,
                                          Metrics metrics,
-                                         InternalLogDirStats logDirInfo) {
+                                         ScrapedClusterState clusterState) {
     return orderedNames.stream()
         .filter(descriptions::containsKey)
         .map(t -> InternalTopic.from(
@@ -131,7 +132,10 @@ public class TopicsService {
             configs.getOrDefault(t, List.of()),
             partitionsOffsets,
             metrics,
-            logDirInfo,
+            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(TopicState::segmentStats)
+                .orElse(null),
+            Optional.ofNullable(clusterState.getTopicStates().get(t)).map(TopicState::partitionsSegmentStats)
+                .orElse(Map.of()),
             clustersProperties.getInternalTopicPrefix()
         ))
         .collect(toList());
@@ -165,7 +169,8 @@ public class TopicsService {
         .flatMap(ac -> ac.describeTopic(topicName)
             .switchIfEmpty(Mono.error(new TopicNotFoundException()))
             .then(ac.getTopicsConfig(List.of(topicName), true))
-            .map(m -> m.values().stream().findFirst().orElse(List.of())));
+            .map(m -> m.values().stream().findFirst().orElse(List.of())))
+            .doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
   private Mono<InternalTopic> createTopic(KafkaCluster c, ReactiveAdminClient adminClient, TopicCreationDTO topicData) {
@@ -174,6 +179,7 @@ public class TopicsService {
             topicData.getPartitions(),
             topicData.getReplicationFactor(),
             topicData.getConfigs())
+        .doOnError(e -> adminClientService.invalidate(c, e))
         .thenReturn(topicData)
         .onErrorMap(t -> new TopicMetadataException(t.getMessage(), t))
         .then(loadTopicAfterCreation(c, topicData.getName()));
@@ -224,7 +230,8 @@ public class TopicsService {
                 .then(loadTopic(cluster, topicName)));
   }
 
-  public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName, Mono<TopicUpdateDTO> topicUpdate) {
+  public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName,
+                                         Mono<TopicUpdateDTO> topicUpdate) {
     return topicUpdate
         .flatMap(t -> updateTopic(cl, topicName, t));
   }
@@ -240,7 +247,7 @@ public class TopicsService {
   }
 
   /**
-   * Change topic replication factor, works on brokers versions 5.4.x and higher
+   * Change topic replication factor. Works on brokers versions 5.4.x and higher.
    */
   public Mono<ReplicationFactorChangeResponseDTO> changeReplicationFactor(
       KafkaCluster cluster,
@@ -288,6 +295,18 @@ public class TopicsService {
     Map<Integer, Integer> brokersUsage = getBrokersMap(cluster, currentAssignment);
     int currentReplicationFactor = topic.getReplicationFactor();
 
+    // Get online nodes
+    List<Integer> onlineNodes = statisticsCache.get(cluster).getClusterDescription().getNodes()
+        .stream().map(Node::id).toList();
+
+    // keep only online nodes
+    for (Map.Entry<Integer, List<Integer>> parition : currentAssignment.entrySet()) {
+      parition.getValue().retainAll(onlineNodes);
+    }
+
+    brokersUsage.keySet().retainAll(onlineNodes);
+
+
     // If we should to increase Replication factor
     if (replicationFactorChange.getTotalReplicationFactor() > currentReplicationFactor) {
       // For each partition
@@ -320,28 +339,35 @@ public class TopicsService {
         var partition = assignmentEntry.getKey();
         var brokers = assignmentEntry.getValue();
 
+        // Copy from online nodes if all nodes are offline
+        if (brokers.isEmpty()) {
+          brokers = new ArrayList<>(onlineNodes);
+        }
+
         // Get brokers list sorted by usage in reverse order
         var brokersUsageList = brokersUsage.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .map(Map.Entry::getKey)
             .toList();
 
+        Integer leader = topic.getPartitions().get(partition).getLeader();
+
         // Iterate brokers and try to remove them from assignment
         // while partition replicas count != requested replication factor
         for (Integer broker : brokersUsageList) {
-          // Check is the broker the leader of partition
-          if (!topic.getPartitions().get(partition).getLeader()
-              .equals(broker)) {
-            brokers.remove(broker);
-            brokersUsage.merge(broker, -1, Integer::sum);
-          }
           if (brokers.size() == replicationFactorChange.getTotalReplicationFactor()) {
             break;
+          }
+          // Check is the broker the leader of partition
+          if (leader == null || !leader.equals(broker)) {
+            brokers.remove(broker);
+            brokersUsage.merge(broker, -1, Integer::sum);
           }
         }
         if (brokers.size() != replicationFactorChange.getTotalReplicationFactor()) {
           throw new ValidationException("Something went wrong during removing replicas");
         }
+        currentAssignment.put(partition, brokers);
       }
     } else {
       throw new ValidationException("Replication factor already equals requested");
@@ -374,7 +400,7 @@ public class TopicsService {
             c -> 0
         ));
     currentAssignment.values().forEach(brokers -> brokers
-        .forEach(broker -> result.put(broker, result.get(broker) + 1)));
+        .forEach(broker -> result.put(broker, result.getOrDefault(broker, 0) + 1)));
 
     return result;
   }
@@ -441,21 +467,19 @@ public class TopicsService {
     );
   }
 
-  public Mono<List<InternalTopic>> getTopicsForPagination(KafkaCluster cluster) {
+  public Mono<List<InternalTopic>> getTopics(KafkaCluster cluster, String search, Boolean showInternal, Boolean fts) {
     Statistics stats = statisticsCache.get(cluster);
-    return filterExisting(cluster, stats.getTopicDescriptions().keySet())
-        .map(lst -> lst.stream()
-            .map(topicName ->
-                InternalTopic.from(
-                    stats.getTopicDescriptions().get(topicName),
-                    stats.getTopicConfigs().getOrDefault(topicName, List.of()),
-                    InternalPartitionsOffsets.empty(),
-                    stats.getMetrics(),
-                    stats.getLogDirInfo(),
-                    clustersProperties.getInternalTopicPrefix()
-                    ))
-            .collect(toList())
-        );
+    ScrapedClusterState clusterState = stats.getClusterState();
+    boolean useFts = clustersProperties.getFts().use(fts);
+    try {
+      return Mono.just(
+          clusterState.getTopicIndex().find(search, showInternal, useFts, null)
+      ).flatMap(lst -> filterExisting(cluster, lst)).map(lst ->
+        lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
+      );
+    } catch (Exception e) {
+      return Mono.error(e);
+    }
   }
 
   public Mono<Map<TopicPartition, List<ProducerState>>> getActiveProducersState(KafkaCluster cluster, String topic) {
@@ -463,13 +487,14 @@ public class TopicsService {
         .flatMap(ac -> ac.getActiveProducersState(topic));
   }
 
-  private Mono<List<String>> filterExisting(KafkaCluster cluster, Collection<String> topics) {
+  private Mono<List<InternalTopic>> filterExisting(KafkaCluster cluster, Collection<InternalTopic> topics) {
     return adminClientService.get(cluster)
         .flatMap(ac -> ac.listTopics(true))
-        .map(existing -> existing
+        .map(existing -> topics
             .stream()
-            .filter(topics::contains)
-            .collect(toList()));
+            .filter(s -> existing.contains(s.getName()))
+            .collect(toList())
+        ).doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
 }

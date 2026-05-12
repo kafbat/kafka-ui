@@ -31,8 +31,8 @@ class SerdesInitializerTest {
       Map.of(
           "BuiltIn1", BuiltInSerdeWithAutoconfigure.class,
           "BuiltIn2", BuiltInSerdeMock2NoAutoConfigure.class,
-          Int32Serde.name(), Int32Serde.class,
-          StringSerde.name(), StringSerde.class
+          Int32Serde.NAME, Int32Serde.class,
+          StringSerde.NAME, StringSerde.class
       ),
       customSerdeLoaderMock
   );

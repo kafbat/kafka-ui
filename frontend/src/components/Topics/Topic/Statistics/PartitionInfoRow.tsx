@@ -8,6 +8,7 @@ import {
 } from 'components/common/PropertiesList/PropertiesList.styled';
 import { TopicAnalysisStats } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { useTimezone } from 'lib/hooks/useTimezones';
 
 import * as S from './Statistics.styles';
 
@@ -25,6 +26,9 @@ const PartitionInfoRow: React.FC<{ row: Row<TopicAnalysisStats> }> = ({
     keySize,
     valueSize,
   } = row.original;
+
+  const { currentTimezone } = useTimezone();
+
   return (
     <S.PartitionInfo>
       <div>
@@ -35,9 +39,19 @@ const PartitionInfoRow: React.FC<{ row: Row<TopicAnalysisStats> }> = ({
           <Label>Total size</Label>
           <BytesFormatted value={(keySize?.sum || 0) + (valueSize?.sum || 0)} />
           <Label>Min. timestamp</Label>
-          <span>{formatTimestamp(minTimestamp)}</span>
+          <span>
+            {formatTimestamp({
+              timestamp: minTimestamp,
+              timezone: currentTimezone.value,
+            })}
+          </span>
           <Label>Max. timestamp</Label>
-          <span>{formatTimestamp(maxTimestamp)}</span>
+          <span>
+            {formatTimestamp({
+              timestamp: maxTimestamp,
+              timezone: currentTimezone.value,
+            })}
+          </span>
           <Label>Null keys amount</Label>
           <span>{nullKeys}</span>
           <Label>Null values amount</Label>
@@ -74,13 +88,13 @@ const PartitionInfoRow: React.FC<{ row: Row<TopicAnalysisStats> }> = ({
       <div>
         <Heading level={4}>Values sizes</Heading>
         <List>
-          <Label>Total key size</Label>
+          <Label>Total value size</Label>
           <BytesFormatted value={valueSize?.sum} />
-          <Label>Min key size</Label>
+          <Label>Min value size</Label>
           <BytesFormatted value={valueSize?.min} />
-          <Label>Max key size</Label>
+          <Label>Max value size</Label>
           <BytesFormatted value={valueSize?.max} />
-          <Label>Avg key size</Label>
+          <Label>Avg value size</Label>
           <BytesFormatted value={valueSize?.avg} />
           <Label>Percentile 50</Label>
           <BytesFormatted value={valueSize?.prctl50} />

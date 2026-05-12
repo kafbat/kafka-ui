@@ -1,10 +1,31 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
     alias(libs.plugins.spring.dependency.management)
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
+            // uses independent versioning and should not be forced to the core Netty version
+            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
+            // so we can safely exclude it from the resolution strategy
+            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
+                details.useVersion(libs.versions.netty.get())
+                details.because("Fixes CVE-2026-33871 and CVE-2026-33870. Revert when Spring Boot releases a version with the fix")
+            }
+        }
+        capabilitiesResolution {
+            withCapability("org.lz4:lz4-java") {
+                select(libs.lz4.yawk.get().toString())
+            }
+        }
+    }
 }
 
 
@@ -14,20 +35,33 @@ dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation libs.spring.starter.security
+    implementation(libs.spring.starter.security){
+        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-53864. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
+    implementation(libs.nimbus.jose.jwt){
+        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
+    }
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
     implementation libs.spring.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
+
+    // For Swagger UI Webflux
+    implementation libs.springdoc.openapi.webflux
+
     compileOnly libs.spring.boot.devtools
 
     implementation libs.spring.security.ldap
 
-    implementation libs.kafka.clients
+    implementation (libs.kafka.clients) {
+        // TODO: Remove once client would fix CVE
+        exclude group: "org.lz4", module: "lz4-java"
+    }
 
     implementation libs.apache.avro
     implementation libs.apache.commons
+    implementation libs.apache.commons.text
     implementation libs.apache.commons.pool2
     implementation libs.apache.datasketches
 
@@ -36,6 +70,9 @@ dependencies {
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
 
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
+
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
         exclude group: 'io.netty', module: 'netty-tcnative-boringssl-static'
@@ -43,8 +80,15 @@ dependencies {
 
     implementation libs.jackson.databind.nullable
     implementation libs.cel
+    implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
+
+    implementation libs.lucene
+    implementation libs.lucene.queryparser
+    implementation libs.lucene.analysis.common
+
+    implementation libs.fastcsv
 
     implementation libs.opendatadiscovery.oddrn
     implementation(libs.opendatadiscovery.client) {
@@ -53,14 +97,17 @@ dependencies {
         exclude group: 'io.projectreactor.ipc', module: 'reactor-netty'
     }
 
-    runtimeOnly libs.micrometer.registry.prometheus
+    runtimeOnly(libs.micrometer.registry.prometheus) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("Micrometer uses protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project. See https://github.com/prometheus/client_java/issues/1431")
+    }
 
     // CVE Fixes
     implementation libs.apache.commons.compress
     implementation libs.okhttp3.logging.intercepter
-    implementation libs.json.smart
-    implementation libs.netty.common
-    implementation libs.netty.handler
+    implementation libs.lz4.yawk
+
+    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.victools.jsonschema.generator
 
 
     // Google Managed Service for Kafka IAM support
@@ -70,6 +117,13 @@ dependencies {
     implementation (libs.google.oauth.client) {
         because("CVE Fix: It is excluded above because of a vulnerability")
     }
+
+    implementation libs.prometheus.metrics.core
+    implementation libs.prometheus.metrics.textformats
+    implementation (libs.prometheus.metrics.exporter.pushgateway) {
+        exclude group: 'com.google.protobuf', module: 'protobuf-java' because("PushGW lib pulls protobuf-java 4.x, which is incompatible with protobuf-java 3.x used by various dependencies of this project.")
+    }
+    implementation libs.snappy
 
     // Annotation processors
     implementation libs.lombok
@@ -97,26 +151,32 @@ dependencies {
 
     testImplementation libs.okhttp3
     testImplementation libs.okhttp3.mockwebserver
+    testImplementation libs.wiremock
+    testImplementation libs.prometheus.metrics.core
 }
 
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-package", "ksql"]
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
 }
 
 sourceSets {
     main {
-        antlr {
-            srcDirs = ["src/main/antlr4"]
-        }
         java {
-            srcDirs += generateGrammarSource.outputDirectory
+
+        }
+        resources {
+            srcDirs += project(":frontend").layout.buildDirectory.dir("vite")
         }
     }
 }
 
 tasks.withType(Checkstyle).configureEach {
     exclude '**/ksql/**'
+    exclude '**/promql/**'
 }
 
 checkstyle {
@@ -129,6 +189,13 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 springBoot {
@@ -144,20 +211,35 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
     images.add("ghcr.io/kafbat/kafka-ui:${project.version}")
 }
 
+tasks.register('copyOpenApiSpecForSwagger', Copy) {
+    dependsOn ':contract-typespec:build'
+
+    if (useTypeSpec) {
+        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
+    } else {
+        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
+    }
+    outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
+
+    from useTypeSpec ?
+        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
+        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    into "src/main/resources/static/openapi/"
+    rename { "kafbat-ui-api.yaml" }
+}
+
+
+tasks.named("processResources") {
+    dependsOn("copyOpenApiSpecForSwagger")
+}
+
 if (buildDockerImages) {
     tasks.build.finalizedBy buildDockerImageTask
 }
 
 if (includeFrontend) {
-    tasks.named("build") {
-        dependsOn(":frontend:buildFrontend")
-    }
-
     tasks.named("processResources") {
         dependsOn(":frontend:buildFrontend")
-        from(project(":frontend").layout.buildDirectory.dir("vite")) {
-            into("static")
-        }
-        into("$buildDir/resources/main")
     }
 }
+

@@ -1,12 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Favicons -->
-    <link rel="icon" href="<%= PUBLIC_PATH %>/favicon/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="<%= PUBLIC_PATH %>/favicon/apple-touch-icon.png" />
+    <link
+      rel="icon"
+      href="<%= PUBLIC_PATH %>/favicon/favicon.svg"
+      type="image/svg+xml"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="<%= PUBLIC_PATH %>/favicon/apple-touch-icon.png"
+    />
     <link rel="manifest" href="<%= PUBLIC_PATH %>/manifest.json" />
 
     <title>Kafbat UI</title>
@@ -14,7 +21,7 @@
       window.basePath = '<%= PUBLIC_PATH %>';
 
       window.__assetsPathBuilder = function (importer) {
-        return window.basePath+ "/" + importer;
+        return window.basePath + '/' + importer;
       };
     </script>
     <style>
@@ -27,21 +34,24 @@
 
       @font-face {
         font-family: 'Inter';
-        src: url('<%= PUBLIC_PATH %>/fonts/Inter-Regular.ttf') format('truetype');
+        src: url('<%= PUBLIC_PATH %>/fonts/Inter-Regular.ttf')
+          format('truetype');
         font-weight: 400;
         font-display: swap;
       }
 
       @font-face {
         font-family: 'Roboto Mono';
-        src: url('<%= PUBLIC_PATH %>/fonts/RobotoMono-Medium.ttf') format('truetype');
+        src: url('<%= PUBLIC_PATH %>/fonts/RobotoMono-Medium.ttf')
+          format('truetype');
         font-weight: 500;
         font-display: swap;
       }
 
       @font-face {
         font-family: 'Roboto Mono';
-        src: url('<%= PUBLIC_PATH %>/fonts/RobotoMono-Regular.ttf') format('truetype');
+        src: url('<%= PUBLIC_PATH %>/fonts/RobotoMono-Regular.ttf')
+          format('truetype');
         font-weight: 400;
         font-display: swap;
       }
@@ -51,6 +61,7 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <div id="portal-root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

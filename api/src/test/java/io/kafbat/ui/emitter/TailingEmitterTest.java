@@ -71,7 +71,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
         .untilAsserted(() ->
             assertThat(fluxOutput)
               .filteredOn(msg -> msg.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-              .extracting(msg -> msg.getMessage().getContent())
+              .extracting(msg -> msg.getMessage().getValue())
               .hasSameElementsAs(expectedValues)
         );
   }
@@ -96,7 +96,7 @@ class TailingEmitterTest extends AbstractIntegrationTest {
         .untilAsserted(() ->
             assertThat(fluxOutput)
               .filteredOn(msg -> msg.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-              .extracting(msg -> msg.getMessage().getContent())
+              .extracting(msg -> msg.getMessage().getValue())
               .hasSameElementsAs(expectedValues)
         );
   }
@@ -114,8 +114,8 @@ class TailingEmitterTest extends AbstractIntegrationTest {
             query,
             null,
             0,
-            StringSerde.name(),
-            StringSerde.name());
+            StringSerde.NAME,
+            StringSerde.NAME);
   }
 
   private List<TopicMessageEventDTO> startTailing(String filterQuery) {

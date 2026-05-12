@@ -142,13 +142,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
-                .content("testValue")
-                .valueSerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
+                .value("testValue")
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertThat(polled.getContent()).isEqualTo("testValue");
+          assertThat(polled.getValue()).isEqualTo("testValue");
         });
   }
 
@@ -158,13 +158,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("123")
-                .keySerde(Int32Serde.name())
-                .content("21474836470")
-                .valueSerde(Int64Serde.name())
+                .keySerde(Int32Serde.NAME)
+                .value("21474836470")
+                .valueSerde(Int64Serde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("123");
-          assertThat(polled.getContent()).isEqualTo("21474836470");
+          assertThat(polled.getValue()).isEqualTo("21474836470");
         });
   }
 
@@ -174,13 +174,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
-                .content("testValue")
-                .valueSerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
+                .value("testValue")
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertThat(polled.getContent()).isEqualTo("testValue");
+          assertThat(polled.getValue()).isEqualTo("testValue");
         });
   }
 
@@ -190,13 +190,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
-                .content(null)
-                .valueSerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
+                .value(null)
+                .valueSerde(StringSerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertThat(polled.getContent()).isNull();
+          assertThat(polled.getValue()).isNull();
         });
   }
 
@@ -208,13 +208,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("\"some string\"")
-                .keySerde(SchemaRegistrySerde.name())
-                .content("123")
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value("123")
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("\"some string\"");
-          assertThat(polled.getContent()).isEqualTo("123");
+          assertThat(polled.getValue()).isEqualTo("123");
         });
   }
 
@@ -226,13 +226,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(AVRO_SCHEMA_2_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
         });
   }
 
@@ -243,13 +243,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key("testKey")
-                .keySerde(StringSerde.name())
-                .content(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(StringSerde.NAME)
+                .value(PROTOBUF_SCHEMA_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isEqualTo("testKey");
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
         });
   }
 
@@ -261,14 +261,14 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(AVRO_SCHEMA_2_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
 
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
         });
   }
 
@@ -278,10 +278,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withValueSchema(AVRO_SCHEMA_2)
         .withMsgToSend(
             new CreateTopicMessageDTO()
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // f2 has type int instead of string
-                .content("{ \"f1\": 111, \"f2\": 123 }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .value("{ \"f1\": 111, \"f2\": 123 }")
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -294,13 +294,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(PROTOBUF_SCHEMA_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
         });
   }
 
@@ -311,10 +311,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // f2 field has type object instead of int
-                .content("{ \"f1\" : \"test str\", \"f2\" : {} }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .value("{ \"f1\" : \"test str\", \"f2\" : {} }")
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -327,13 +327,13 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(PROTOBUF_SCHEMA_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(JSON_SCHEMA_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), JSON_SCHEMA_RECORD);
+          assertJsonEqual(polled.getValue(), JSON_SCHEMA_RECORD);
         });
   }
 
@@ -344,10 +344,10 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name())
+                .keySerde(StringSerde.NAME)
                 // 'f2' field has type object instead of string
-                .content("{ \"f1\": 12, \"f2\": {}, \"schema\": \"some txt\" }")
-                .valueSerde(SchemaRegistrySerde.name())
+                .value("{ \"f1\": 12, \"f2\": {}, \"schema\": \"some txt\" }")
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .assertSendThrowsException();
   }
@@ -360,19 +360,19 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(AVRO_SCHEMA_1_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(AVRO_SCHEMA_2_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(AVRO_SCHEMA_2_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), AVRO_SCHEMA_1_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), AVRO_SCHEMA_2_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), AVRO_SCHEMA_2_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(15L);
           assertThat(polled.getValueSize()).isEqualTo(15L);
-          assertThat(polled.getKeyDeserializeProperties().get("schemaId")).isNotNull();
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getKeyDeserializeProperties().get("id")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("AVRO");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
         });
   }
@@ -385,18 +385,18 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(PROTOBUF_SCHEMA_JSON_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(PROTOBUF_SCHEMA_JSON_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(PROTOBUF_SCHEMA_JSON_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), PROTOBUF_SCHEMA_JSON_RECORD);
-          assertJsonEqual(polled.getContent(), PROTOBUF_SCHEMA_JSON_RECORD);
+          assertJsonEqual(polled.getValue(), PROTOBUF_SCHEMA_JSON_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(18L);
           assertThat(polled.getValueSize()).isEqualTo(18L);
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
         });
   }
@@ -409,20 +409,20 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(JSON_SCHEMA_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(JSON_SCHEMA_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
                 .headers(Map.of("header1", List.of("value1")))
         )
         .doAssert(polled -> {
           assertJsonEqual(polled.getKey(), JSON_SCHEMA_RECORD);
-          assertJsonEqual(polled.getContent(), JSON_SCHEMA_RECORD);
+          assertJsonEqual(polled.getValue(), JSON_SCHEMA_RECORD);
           assertThat(polled.getKeySize()).isEqualTo(57L);
           assertThat(polled.getValueSize()).isEqualTo(57L);
           assertThat(polled.getHeadersSize()).isEqualTo(13L);
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("JSON");
-          assertThat(polled.getValueDeserializeProperties().get("schemaId")).isNotNull();
+          assertThat(polled.getValueDeserializeProperties().get("id")).isNotNull();
           assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
         });
   }
@@ -435,9 +435,9 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(JSON_SCHEMA_RECORD)
-                .keySerde(SchemaRegistrySerde.name())
-                .content(JSON_SCHEMA_RECORD)
-                .valueSerde(SchemaRegistrySerde.name())
+                .keySerde(SchemaRegistrySerde.NAME)
+                .value(JSON_SCHEMA_RECORD)
+                .valueSerde(SchemaRegistrySerde.NAME)
                 .headers(Collections.singletonMap("header123", Collections.singletonList(null)))
         )
         .doAssert(polled -> assertThat(polled.getHeaders().get("header123")).containsExactly((String) null));
@@ -450,13 +450,208 @@ class SendAndReadTests extends AbstractIntegrationTest {
         .withMsgToSend(
             new CreateTopicMessageDTO()
                 .key(null)
-                .keySerde(StringSerde.name()) // any serde
-                .content(null)
-                .valueSerde(StringSerde.name()) // any serde
+                .keySerde(StringSerde.NAME) // any serde
+                .value(null)
+                .valueSerde(StringSerde.NAME) // any serde
         )
         .doAssert(polled -> {
           assertThat(polled.getKey()).isNull();
-          assertThat(polled.getContent()).isNull();
+          assertThat(polled.getValue()).isNull();
+        });
+  }
+
+  // Explicit subject tests for TopicRecordNameStrategy and RecordNameStrategy
+  private static final AvroSchema AVRO_RECORD_SCHEMA = new AvroSchema(
+      """
+          {
+            "type": "record",
+            "name": "TestRecord",
+            "fields": [
+              {"name": "field1", "type": "string"},
+              {"name": "field2", "type": "int"}
+            ]
+          }
+          """
+  );
+
+  private static final ProtobufSchema EXPLICIT_PROTOBUF_SCHEMA = new ProtobufSchema(
+      """
+          syntax = "proto3";
+          package io.kafbat.test;
+
+          message ExplicitTestRecord {
+            string field1 = 1;
+            int32 field2 = 2;
+          }
+          """
+  );
+
+  private static final JsonSchema EXPLICIT_JSON_SCHEMA = new JsonSchema(
+      """
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "ExplicitTestRecord",
+            "type": "object",
+            "properties": {
+              "field1": { "type": "string" },
+              "field2": { "type": "integer" }
+            }
+          }
+          """
+  );
+
+  private static final String RECORD_JSON = "{ \"field1\": \"test\", \"field2\": 42 }";
+
+  @Test
+  void sendAvroMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "com.example.TopicRecordNameSubject";
+    new SendAndReadSpec()
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("test-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("test-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
+        });
+  }
+
+  @Test
+  void sendAvroMessageWithRecordNameStrategySubject() {
+    String valueSubject = "io.kafbat.test.UserRecord";
+    new SendAndReadSpec()
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("test-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("test-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
+        });
+  }
+
+  @Test
+  void sendProtobufMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "events-UserCreated";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_PROTOBUF_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("proto-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("proto-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
+        });
+  }
+
+  @Test
+  void sendProtobufMessageWithRecordNameStrategySubject() {
+    String valueSubject = "io.kafbat.test.ExplicitTestRecord";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_PROTOBUF_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("proto-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("proto-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("PROTOBUF");
+        });
+  }
+
+  @Test
+  void sendJsonSchemaMessageWithTopicRecordNameStrategySubject() {
+    String valueSubject = "orders-OrderCreated";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_JSON_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("json-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("json-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
+        });
+  }
+
+  @Test
+  void sendJsonSchemaMessageWithRecordNameStrategySubject() {
+    String valueSubject = "com.example.JsonRecord";
+    new SendAndReadSpec()
+        .withValueSchema(EXPLICIT_JSON_SCHEMA)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key("json-key")
+                .keySerde(StringSerde.NAME)
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertThat(polled.getKey()).isEqualTo("json-key");
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("JSON");
+        });
+  }
+
+  @Test
+  void sendMessageWithDifferentStrategiesForKeyAndValue() {
+    // Key uses RecordNameStrategy, Value uses TopicRecordNameStrategy
+    String keySubject = "com.example.KeyRecord";
+    String valueSubject = "events-ValueRecord";
+    new SendAndReadSpec()
+        .withKeySchema(AVRO_RECORD_SCHEMA)
+        .withValueSchema(AVRO_RECORD_SCHEMA)
+        .withExplicitKeySubject(keySubject)
+        .withExplicitValueSubject(valueSubject)
+        .withMsgToSend(
+            new CreateTopicMessageDTO()
+                .key(RECORD_JSON)
+                .keySerde(SchemaRegistrySerde.NAME)
+                .keySerdeProperties(java.util.Map.of("subject", keySubject))
+                .value(RECORD_JSON)
+                .valueSerde(SchemaRegistrySerde.NAME)
+                .valueSerdeProperties(java.util.Map.of("subject", valueSubject))
+        )
+        .doAssert(polled -> {
+          assertJsonEqual(polled.getKey(), RECORD_JSON);
+          assertJsonEqual(polled.getValue(), RECORD_JSON);
+          assertThat(polled.getKeyDeserializeProperties().get("type")).isEqualTo("AVRO");
+          assertThat(polled.getValueDeserializeProperties().get("type")).isEqualTo("AVRO");
         });
   }
 
@@ -470,6 +665,8 @@ class SendAndReadTests extends AbstractIntegrationTest {
     CreateTopicMessageDTO msgToSend;
     ParsedSchema keySchema;
     ParsedSchema valueSchema;
+    String explicitKeySubject;
+    String explicitValueSubject;
 
     public SendAndReadSpec withMsgToSend(CreateTopicMessageDTO msg) {
       this.msgToSend = msg;
@@ -486,16 +683,28 @@ class SendAndReadTests extends AbstractIntegrationTest {
       return this;
     }
 
+    public SendAndReadSpec withExplicitKeySubject(String subject) {
+      this.explicitKeySubject = subject;
+      return this;
+    }
+
+    public SendAndReadSpec withExplicitValueSubject(String subject) {
+      this.explicitValueSubject = subject;
+      return this;
+    }
+
     @SneakyThrows
     private String createTopicAndCreateSchemas() {
       Objects.requireNonNull(msgToSend);
       String topic = UUID.randomUUID().toString();
       createTopic(new NewTopic(topic, 1, (short) 1));
       if (keySchema != null) {
-        schemaRegistry.schemaRegistryClient().register(topic + "-key", keySchema);
+        String keySubject = explicitKeySubject != null ? explicitKeySubject : topic + "-key";
+        schemaRegistry.schemaRegistryClient().register(keySubject, keySchema);
       }
       if (valueSchema != null) {
-        schemaRegistry.schemaRegistryClient().register(topic + "-value", valueSchema);
+        String valueSubject = explicitValueSubject != null ? explicitValueSubject : topic + "-value";
+        schemaRegistry.schemaRegistryClient().register(valueSubject, valueSchema);
       }
       return topic;
     }

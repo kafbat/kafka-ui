@@ -21,7 +21,7 @@ const ActionButton: React.FC<Props> = ({
   const isDisabled = !canDoAction;
 
   const { x, y, refs, strategy, open } = useActionTooltip(
-    isDisabled,
+    isDisabled || disabled,
     placement
   );
 

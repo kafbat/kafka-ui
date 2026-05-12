@@ -97,21 +97,21 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             null,
             null,
             100,
-            StringSerde.name(),
-            StringSerde.name()
+            StringSerde.NAME,
+            StringSerde.NAME
         ).filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
         .map(TopicMessageEventDTO::getMessage);
 
     // both messages should be masked
     StepVerifier.create(msgsFlux)
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
-        .expectNextMatches(msg -> msg.getContent().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
+        .expectNextMatches(msg -> msg.getValue().equals("***"))
         .verifyComplete();
   }
 
   @ParameterizedTest
   @CsvSource({"EARLIEST", "LATEST"})
-  void cursorIsRegisteredAfterPollingIsDoneAndCanBeUsedForNextPagePolling(PollingModeDTO mode) {
+  void cursorIsRegisteredAfterPollingIsDoneAndCanBeUsedForNextPagePolling(PollingModeDTO mode) throws Exception {
     String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
     createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));
 
@@ -119,16 +119,18 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     int pageSize = (msgsToGenerate / 2) + 1;
 
     try (var producer = KafkaTestProducer.forKafka(kafka)) {
-      for (int i = 0; i < msgsToGenerate; i++) {
+      for (int i = 0; i < msgsToGenerate - 1; i++) {
         producer.send(testTopic, "message_" + i);
       }
+      // Wait for the last message to ensure all messages are visible before polling with LATEST mode
+      producer.send(testTopic, "message_" + (msgsToGenerate - 1)).get();
     }
 
     var cursorIdCatcher = new AtomicReference<String>();
     Flux<String> msgsFlux = messagesService.loadMessages(
             cluster, testTopic,
             new ConsumerPosition(mode, testTopic, List.of(), null, null),
-            null, null, pageSize, StringSerde.name(), StringSerde.name())
+            null, null, pageSize, StringSerde.NAME, StringSerde.NAME)
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
             assertThat(evt.getCursor()).isNotNull();
@@ -136,7 +138,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(msgsFlux)
         .expectNextCount(pageSize)
@@ -151,7 +153,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
           }
         })
         .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
-        .map(evt -> evt.getMessage().getContent());
+        .map(evt -> evt.getMessage().getValue());
 
     StepVerifier.create(remainingMsgs)
         .expectNextCount(msgsToGenerate - pageSize)
@@ -230,9 +232,9 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     CreateTopicMessageDTO testMessage = new CreateTopicMessageDTO()
         .key(null)
         .partition(0)
-        .keySerde(StringSerde.name())
-        .content(jsonContent)
-        .valueSerde(ProtobufFileSerde.name());
+        .keySerde(StringSerde.NAME)
+        .value(jsonContent)
+        .valueSerde(ProtobufFileSerde.NAME);
 
     String testTopic = MASKED_TOPICS_PREFIX + UUID.randomUUID();
     createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));

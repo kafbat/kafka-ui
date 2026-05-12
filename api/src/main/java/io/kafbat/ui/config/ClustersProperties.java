@@ -1,10 +1,12 @@
 package io.kafbat.ui.config;
 
-import io.kafbat.ui.model.MetricsConfig;
+import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +38,36 @@ public class ClustersProperties {
 
   PollingProperties polling = new PollingProperties();
 
+  MetricsStorage defaultMetricsStorage = new MetricsStorage();
+
+  CacheProperties cache = new CacheProperties();
+  ClusterFtsProperties fts = new ClusterFtsProperties();
+
+  AdminClient adminClient = new AdminClient();
+
+  Csv csv = new Csv();
+
+  Boolean messageRelativeTimestamp;
+
+  @Data
+  public static class Csv {
+    String lineDelimeter = "crlf";
+    char quoteCharacter = '"';
+    String quoteStrategy = "required";
+    char fieldSeparator = ',';
+  }
+
+  @Data
+  public static class AdminClient {
+    Integer timeout;
+    int describeConsumerGroupsPartitionSize = 50;
+    int describeConsumerGroupsConcurrency = 4;
+    int listConsumerGroupOffsetsPartitionSize = 50;
+    int listConsumerGroupOffsetsConcurrency = 4;
+    int getTopicsConfigPartitionSize = 200;
+    int describeTopicsPartitionSize = 200;
+  }
+
   @Data
   public static class Cluster {
     @NotBlank(message = "field name for for cluster could not be blank")
@@ -48,6 +80,7 @@ public class ClustersProperties {
     String schemaRegistry;
     SchemaRegistryAuth schemaRegistryAuth;
     KeystoreConfig schemaRegistrySsl;
+    String schemaRegistryTopicSubjectSuffix = "-value";
 
     String ksqldbServer;
     KsqldbServerAuth ksqldbServerAuth;
@@ -59,7 +92,7 @@ public class ClustersProperties {
     String defaultKeySerde;
     String defaultValueSerde;
 
-    MetricsConfigData metrics;
+    MetricsConfig metrics;
     Map<String, Object> properties;
     Map<String, Object> consumerProperties;
     Map<String, Object> producerProperties;
@@ -81,8 +114,8 @@ public class ClustersProperties {
   }
 
   @Data
-  @ToString(exclude = "password")
-  public static class MetricsConfigData {
+  @ToString(exclude = {"password", "keystorePassword"})
+  public static class MetricsConfig {
     String type;
     Integer port;
     Boolean ssl;
@@ -90,6 +123,25 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+
+    Boolean prometheusExpose;
+    MetricsStorage store;
+  }
+
+  @Data
+  public static class MetricsStorage {
+    PrometheusStorage prometheus;
+  }
+
+  @Data
+  @ToString(exclude = {"pushGatewayPassword"})
+  public static class PrometheusStorage {
+    String url;
+    String pushGatewayUrl;
+    String pushGatewayUsername;
+    String pushGatewayPassword;
+    String pushGatewayJobName;
+    Boolean remoteWrite;
   }
 
   @Data
@@ -106,6 +158,7 @@ public class ClustersProperties {
     String password;
     String keystoreLocation;
     String keystorePassword;
+    String consumerNamePattern = "connect-%s";
   }
 
   @Data
@@ -113,6 +166,20 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+    OauthConfig oauth;
+  }
+
+  @Data
+  @ToString(exclude = {"clientSecret"})
+  public static class OauthConfig {
+    String tokenUrl;
+    String clientId;
+    String clientSecret;
+    String[] scopes;
+
+    Boolean tokenCacheEnabled = true;
+    Duration tokenRefreshBuffer = Duration.ofSeconds(60);
+    Integer maxRetries = 1;  // Max retries on 401 errors
   }
 
   @Data
@@ -120,7 +187,7 @@ public class ClustersProperties {
   public static class TruststoreConfig {
     String truststoreLocation;
     String truststorePassword;
-    boolean verifySsl = true;
+    boolean verify = true;
   }
 
   @Data
@@ -176,10 +243,51 @@ public class ClustersProperties {
     Boolean consoleAuditEnabled;
     LogLevel level = LogLevel.ALTER_ONLY;
     Map<String, String> auditTopicProperties;
+    Boolean requireAuditTopic;
 
     public enum LogLevel {
       ALL,
       ALTER_ONLY //default
+    }
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CacheProperties {
+    boolean enabled = true;
+    Duration connectClusterCacheExpiry = Duration.ofHours(24);
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class NgramProperties {
+    int ngramMin = 1;
+    int ngramMax = 4;
+    boolean distanceScore = true;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ClusterFtsProperties {
+    boolean enabled = true;
+    boolean defaultEnabled = false;
+    NgramProperties schemas = new NgramProperties(1, 4, true);
+    NgramProperties consumers = new NgramProperties(1, 4, true);
+    NgramProperties connect = new NgramProperties(1, 4, true);
+    NgramProperties acl = new NgramProperties(1, 4, true);
+
+    public boolean use(Boolean request) {
+      if (enabled) {
+        if (Boolean.TRUE.equals(request)) {
+          return true;
+        } else {
+          return request == null && defaultEnabled;
+        }
+      }
+      return false;
     }
   }
 
@@ -195,7 +303,7 @@ public class ClustersProperties {
   private void setMetricsDefaults() {
     for (Cluster cluster : clusters) {
       if (cluster.getMetrics() != null && !StringUtils.hasText(cluster.getMetrics().getType())) {
-        cluster.getMetrics().setType(MetricsConfig.JMX_METRICS_TYPE);
+        cluster.getMetrics().setType(JMX_METRICS_TYPE);
       }
     }
   }
@@ -208,7 +316,6 @@ public class ClustersProperties {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> flattenClusterProperties(@Nullable String prefix,
                                                        @Nullable Map<String, Object> propertiesMap) {
     Map<String, Object> flattened = new HashMap<>();
@@ -227,8 +334,8 @@ public class ClustersProperties {
 
   private void validateClusterNames() {
     // if only one cluster provided it is ok not to set name
-    if (clusters.size() == 1 && !StringUtils.hasText(clusters.get(0).getName())) {
-      clusters.get(0).setName("Default");
+    if (clusters.size() == 1 && !StringUtils.hasText(clusters.getFirst().getName())) {
+      clusters.getFirst().setName("Default");
       return;
     }
 
@@ -236,12 +343,11 @@ public class ClustersProperties {
     for (Cluster clusterProperties : clusters) {
       if (!StringUtils.hasText(clusterProperties.getName())) {
         throw new IllegalStateException(
-            "Application config isn't valid. "
-                + "Cluster names should be provided in case of multiple clusters present");
+          "Application config isn't valid. " + "Cluster names should be provided in case of multiple clusters present"
+        );
       }
       if (!clusterNames.add(clusterProperties.getName())) {
-        throw new IllegalStateException(
-            "Application config isn't valid. Two clusters can't have the same name");
+        throw new IllegalStateException("Application config isn't valid. Two clusters can't have the same name");
       }
     }
   }

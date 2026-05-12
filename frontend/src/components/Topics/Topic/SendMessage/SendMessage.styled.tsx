@@ -26,6 +26,9 @@ export const Flex = styled.div`
   }
 `;
 export const FlexItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 18rem;
   @media screen and (max-width: 1450px) {
     width: 50%;

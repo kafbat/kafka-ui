@@ -3,6 +3,7 @@ package io.kafbat.ui.serdes;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageDTO.TimestampTypeEnum;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.util.ContentUtils;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -69,7 +70,7 @@ public class ConsumerRecordDeserializer {
     rec.headers().iterator()
         .forEachRemaining(header -> {
           String key = header.key();
-          String value = header.value() != null ? new String(header.value()) : null;
+          String value = ContentUtils.convertToString(header.value());
           headers.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
         });
     message.setHeaders(headers);
@@ -80,14 +81,14 @@ public class ConsumerRecordDeserializer {
       return;
     }
     try {
-      var deserResult = keyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
+      var deserResult = keyDeserializer.deserialize(new RecordHeadersImpl(rec.headers()), rec.key().get());
       message.setKey(deserResult.getResult());
       message.setKeySerde(keySerdeName);
       message.setKeyDeserializeProperties(deserResult.getAdditionalProperties());
     } catch (Exception e) {
       log.trace("Error deserializing key for key topic: {}, partition {}, offset {}, with serde {}",
           rec.topic(), rec.partition(), rec.offset(), keySerdeName, e);
-      var deserResult = fallbackKeyDeserializer.deserialize(new RecordHeadersImpl(), rec.key().get());
+      var deserResult = fallbackKeyDeserializer.deserialize(new RecordHeadersImpl(rec.headers()), rec.key().get());
       message.setKey(deserResult.getResult());
       message.setKeySerde(fallbackSerdeName);
     }
@@ -100,7 +101,7 @@ public class ConsumerRecordDeserializer {
     try {
       var deserResult = valueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setValue(deserResult.getResult());
       message.setValueSerde(valueSerdeName);
       message.setValueDeserializeProperties(deserResult.getAdditionalProperties());
     } catch (Exception e) {
@@ -108,7 +109,7 @@ public class ConsumerRecordDeserializer {
           rec.topic(), rec.partition(), rec.offset(), valueSerdeName, e);
       var deserResult = fallbackValueDeserializer.deserialize(
           new RecordHeadersImpl(rec.headers()), rec.value().get());
-      message.setContent(deserResult.getResult());
+      message.setValue(deserResult.getResult());
       message.setValueSerde(fallbackSerdeName);
     }
   }

@@ -40,7 +40,7 @@ describe('Topics Component', () => {
     expect(await screen.findByText(listContainer)).toBeInTheDocument();
   });
 
-  it('should check if the page is  New Topic  rendered', async () => {
+  it('should check if the page is New Topic rendered', async () => {
     setUpComponent(clusterTopicNewPath(clusterName));
     expect(await screen.findByText(newCopyContainer)).toBeInTheDocument();
   });

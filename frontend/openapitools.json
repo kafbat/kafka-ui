@@ -7,7 +7,7 @@
       "fetch": {
         "generatorName": "typescript-fetch",
         "output": "src/generated-sources",
-        "glob": "../contract/src/main/resources/swagger/kafbat-ui-api.yaml",
+        "glob": "../contract-typespec/build/tsp/api/openapi.yaml",
         "additionalProperties": {
           "enumPropertyNaming": "UPPERCASE",
           "typescriptThreePlus": true,

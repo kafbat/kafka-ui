@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -110,7 +111,7 @@ public class MessagesService {
       var result = predicate.test(
           new TopicMessageDTO()
               .key(execData.getKey())
-              .content(execData.getValue())
+              .value(execData.getValue())
               .headers(execData.getHeaders())
               .offset(execData.getOffset())
               .partition(execData.getPartition())
@@ -171,7 +172,9 @@ public class MessagesService {
             cluster,
             topicDescription.name(),
             msg.getKeySerde().get(),
-            msg.getValueSerde().get()
+            msg.getValueSerde().get(),
+            msg.getKeySerdeProperties(),
+            msg.getValueSerdeProperties()
         );
 
     try (KafkaProducer<byte[], byte[]> producer = createProducer(cluster, Map.of())) {
@@ -179,7 +182,7 @@ public class MessagesService {
           topicDescription.name(),
           msg.getPartition(),
           msg.getKey().orElse(null),
-          msg.getContent().orElse(null),
+          msg.getValue().orElse(null),
           msg.getHeaders()
       );
       CompletableFuture<RecordMetadata> cf = new CompletableFuture<>();
@@ -198,8 +201,13 @@ public class MessagesService {
 
   public static KafkaProducer<byte[], byte[]> createProducer(KafkaCluster cluster,
                                                              Map<String, Object> additionalProps) {
+    return createProducer(cluster.getOriginalProperties(), additionalProps);
+  }
+
+  public static KafkaProducer<byte[], byte[]> createProducer(ClustersProperties.Cluster cluster,
+                                                             Map<String, Object> additionalProps) {
     Properties properties = new Properties();
-    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getSsl(), properties);
     properties.putAll(cluster.getProperties());
     properties.putAll(cluster.getProducerProperties());
     properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
@@ -236,7 +244,7 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        cursor.limit()
+        fixPageSize(cursor.limit())
     );
   }
 
@@ -259,7 +267,8 @@ public class MessagesService {
                                                       int limit) {
     var emitter = switch (consumerPosition.pollingMode()) {
       case TO_OFFSET, TO_TIMESTAMP, LATEST -> new BackwardEmitter(
-          () -> consumerGroupService.createConsumer(cluster),
+          () -> consumerGroupService.createConsumer(cluster,
+              Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, limit)),
           consumerPosition,
           limit,
           deserializer,
@@ -268,7 +277,8 @@ public class MessagesService {
           cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
       );
       case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> new ForwardEmitter(
-          () -> consumerGroupService.createConsumer(cluster),
+          () -> consumerGroupService.createConsumer(cluster,
+              Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, limit)),
           consumerPosition,
           limit,
           deserializer,

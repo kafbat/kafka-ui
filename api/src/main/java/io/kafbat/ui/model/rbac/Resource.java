@@ -6,13 +6,19 @@ import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.KsqlAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
 import io.kafbat.ui.model.rbac.permission.SchemaAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -28,7 +34,9 @@ public enum Resource {
 
   SCHEMA(SchemaAction.values()),
 
-  CONNECT(ConnectAction.values()),
+  CONNECT(ConnectAction.values(), ConnectAction.ALIASES),
+
+  CONNECTOR(ConnectorAction.values()),
 
   KSQL(KsqlAction.values()),
 
@@ -38,14 +46,27 @@ public enum Resource {
 
   CLIENT_QUOTAS(ClientQuotaAction.values());
 
-  private final List<PermissibleAction> actions;
+
+  private final Map<String, PermissibleAction> actions;
+  private final Map<String, PermissibleAction> aliases;
+
+  Resource(PermissibleAction[] actions, Map<String, PermissibleAction> aliases) {
+    this.actions = Arrays.stream(actions)
+        .collect(
+            Collectors.toMap(
+                a -> a.name().toLowerCase(),
+                a -> a
+            )
+        );
+    this.aliases = aliases;
+  }
 
   Resource(PermissibleAction[] actions) {
-    this.actions = List.of(actions);
+    this(actions, Map.of());
   }
 
   public List<PermissibleAction> allActions() {
-    return actions;
+    return new ArrayList<>(actions.values());
   }
 
   @Nullable
@@ -54,17 +75,14 @@ public enum Resource {
   }
 
   public List<PermissibleAction> parseActionsWithDependantsUnnest(List<String> actionsToParse) {
-    return actionsToParse.stream()
-        .map(toParse -> actions.stream()
-            .filter(a -> toParse.equalsIgnoreCase(a.name()))
-            .findFirst()
+    return actionsToParse.stream().map(toParse ->
+        Optional.ofNullable(actions.get(toParse.toLowerCase()))
+            .or(() -> Optional.ofNullable(aliases.get(toParse.toLowerCase())))
             .orElseThrow(() -> new IllegalArgumentException(
                 "'%s' actions not applicable for resource %s".formatted(toParse, name())))
-        )
-        // unnesting all dependant actions
-        .flatMap(a -> Stream.concat(Stream.of(a), a.unnestAllDependants()))
-        .distinct()
-        .toList();
+    ).flatMap(a ->
+            Stream.concat(Stream.of(a), a.unnestAllDependants())
+    ).distinct().toList();
   }
 
 }

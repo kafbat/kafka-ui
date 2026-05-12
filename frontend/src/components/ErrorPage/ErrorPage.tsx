@@ -2,23 +2,41 @@ import React from 'react';
 import { Button } from 'components/common/Button/Button';
 
 import * as S from './ErrorPage.styled';
+import { getErrorInfoByCode } from './utils';
 
 interface Props {
   status?: number;
+  offsetY?: number;
   text?: string;
+  resourceName?: string;
   btnText?: string;
+  onClick?: () => void;
 }
 
 const ErrorPage: React.FC<Props> = ({
-  status = 404,
-  text = 'Page is not found',
-  btnText = 'Go Back to Dashboard',
+  status,
+  text,
+  btnText = 'Refresh',
+  onClick,
+  offsetY = 154,
+  resourceName,
 }) => {
+  const {
+    title,
+    icon,
+    text: errorText,
+  } = getErrorInfoByCode(status, resourceName);
   return (
-    <S.Wrapper>
-      <S.Status>{status}</S.Status>
-      <S.Text>{text}</S.Text>
-      <Button buttonType="primary" buttonSize="M" to="/">
+    <S.Wrapper $offsetY={offsetY}>
+      {icon}
+
+      <S.TextContainer>
+        <S.Title>{title}</S.Title>
+
+        <S.Text>{text || errorText}</S.Text>
+      </S.TextContainer>
+
+      <Button buttonType="secondary" buttonSize="M" onClick={onClick}>
         {btnText}
       </Button>
     </S.Wrapper>

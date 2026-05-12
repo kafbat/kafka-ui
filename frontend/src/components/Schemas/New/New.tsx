@@ -16,11 +16,11 @@ import { FormError } from 'components/common/Input/Input.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
 import { Textarea } from 'components/common/Textbox/Textarea.styled';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import useAppParams from 'lib/hooks/useAppParams';
 import yup from 'lib/yupExtended';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCreateSchema } from 'lib/hooks/api/schemas';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import * as S from './New.styled';
 
@@ -71,7 +71,7 @@ const New: React.FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <PageHeading
+      <ResourcePageHeading
         text="Create"
         backText="Schema Registry"
         backTo={clusterSchemasPath(clusterName)}

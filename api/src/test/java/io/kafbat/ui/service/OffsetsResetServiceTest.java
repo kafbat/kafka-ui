@@ -190,7 +190,7 @@ class OffsetsResetServiceTest extends AbstractIntegrationTest {
         msgsCountForPartitions.entrySet().stream()
             .flatMap(e ->
                 IntStream.range(0, e.getValue())
-                    .mapToObj(i -> new ProducerRecord<>(topic, e.getKey(), bytes, bytes))));
+                    .mapToObj(_ -> new ProducerRecord<>(topic, e.getKey(), bytes, bytes))));
   }
 
   private void send(Stream<ProducerRecord<Bytes, Bytes>> toSend) {

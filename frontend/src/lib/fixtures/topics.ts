@@ -17,6 +17,7 @@ export const internalTopicPayload = {
   segmentSize: 0,
   segmentCount: 1,
   underReplicatedPartitions: 0,
+  messagesCount: 0,
   partitions: [
     {
       partition: 0,
@@ -38,6 +39,7 @@ export const externalTopicPayload = {
   segmentSize: 1263,
   segmentCount: 1,
   underReplicatedPartitions: 0,
+  messagesCount: 0,
   partitions: [
     {
       partition: 0,
@@ -64,6 +66,7 @@ export const topicConsumerGroups: ConsumerGroup[] = [
     state: ConsumerGroupState.UNKNOWN,
     coordinator: { id: 1 },
     consumerLag: 9,
+    inherit: '',
   },
   {
     groupId: 'amazon.msk.canary.group.broker-4',
@@ -74,6 +77,7 @@ export const topicConsumerGroups: ConsumerGroup[] = [
     state: ConsumerGroupState.COMPLETING_REBALANCE,
     coordinator: { id: 1 },
     consumerLag: 9,
+    inherit: '',
   },
 ];
 

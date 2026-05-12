@@ -23,6 +23,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 
+@SuppressWarnings("unchecked")
 class AuditWriterTest {
 
   final KafkaProducer<byte[], byte[]> producerMock = Mockito.mock(KafkaProducer.class);

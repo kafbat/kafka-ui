@@ -9,10 +9,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
+import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.IllegalEntityStateException;
 import io.kafbat.ui.exception.NotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.util.KafkaVersion;
+import io.kafbat.ui.util.MetadataVersion;
 import io.kafbat.ui.util.annotation.KafkaClientInternalsDependant;
 import java.io.Closeable;
 import java.time.Duration;
@@ -49,14 +51,18 @@ import org.apache.kafka.clients.admin.ConsumerGroupListing;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeConfigsOptions;
+import org.apache.kafka.clients.admin.FeatureMetadata;
+import org.apache.kafka.clients.admin.FinalizedVersionRange;
 import org.apache.kafka.clients.admin.ListConsumerGroupOffsetsSpec;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.LogDirDescription;
 import org.apache.kafka.clients.admin.NewPartitionReassignment;
 import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.ProducerState;
+import org.apache.kafka.clients.admin.QuorumInfo;
 import org.apache.kafka.clients.admin.RecordsToDelete;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -84,7 +90,6 @@ import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
-import org.apache.kafka.common.requests.DescribeLogDirsResponse;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -96,6 +101,7 @@ import reactor.util.function.Tuples;
 @Slf4j
 @AllArgsConstructor
 public class ReactiveAdminClient implements Closeable {
+  private static final String DEFAULT_UNKNOWN_VERSION = "Unknown";
 
   public enum SupportedFeature {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
@@ -114,8 +120,8 @@ public class ReactiveAdminClient implements Closeable {
       this.predicate = (admin, ver) -> Mono.just(ver != null && ver >= fromVersion);
     }
 
-    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, String kafkaVersionStr) {
-      @Nullable Float kafkaVersion = KafkaVersion.parse(kafkaVersionStr).orElse(null);
+    static Mono<Set<SupportedFeature>> forVersion(AdminClient ac, Optional<String> kafkaVersionStr) {
+      @Nullable Float kafkaVersion = kafkaVersionStr.flatMap(KafkaVersion::parse).orElse(null);
       return Flux.fromArray(SupportedFeature.values())
           .flatMap(f -> f.predicate.apply(ac, kafkaVersion).map(enabled -> Tuples.of(f, enabled)))
           .filter(Tuple2::getT2)
@@ -132,6 +138,10 @@ public class ReactiveAdminClient implements Closeable {
     Collection<Node> nodes;
     @Nullable // null, if ACL is disabled
     Set<AclOperation> authorizedOperations;
+
+    public static ClusterDescription empty() {
+      return new ReactiveAdminClient.ClusterDescription(null, null, List.of(), Set.of());
+    }
   }
 
   @Builder
@@ -144,36 +154,52 @@ public class ReactiveAdminClient implements Closeable {
     private static Mono<ConfigRelatedInfo> extract(AdminClient ac) {
       return ReactiveAdminClient.describeClusterImpl(ac, Set.of())
           .flatMap(desc -> {
-            // choosing node from which we will get configs (starting with controller)
+            // choosing the node which we will get configs from (starting with the controller)
             var targetNodeId = Optional.ofNullable(desc.controller)
                 .map(Node::id)
                 .orElse(desc.getNodes().iterator().next().id());
             return loadBrokersConfig(ac, List.of(targetNodeId))
                 .map(map -> map.isEmpty() ? List.<ConfigEntry>of() : map.get(targetNodeId))
-                .flatMap(configs -> {
-                  String version = "1.0-UNKNOWN";
+                .zipWith(toMono(ac.describeFeatures().featureMetadata()))
+                .flatMap(tuple -> {
+                  List<ConfigEntry> configs = tuple.getT1();
+                  FeatureMetadata featureMetadata = tuple.getT2();
+                  Optional<String> version = Optional.empty();
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
                     if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = entry.value();
+                      version = Optional.ofNullable(entry.value());
                     }
-                    if (entry.name().equals("delete.topic.enable")) {
+                    if (entry.name().equals("delete.topic.enable") && entry.value() != null) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
-                  final String finalVersion = version;
+                  if (version.isEmpty()) {
+                    FinalizedVersionRange metadataVersion =
+                        featureMetadata.finalizedFeatures().get("metadata.version");
+                    if (metadataVersion != null) {
+                      version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel());
+                    }
+                  }
+                  final String finalVersion = version.orElse(DEFAULT_UNKNOWN_VERSION);
                   final boolean finalTopicDeletionEnabled = topicDeletionEnabled;
                   return SupportedFeature.forVersion(ac, version)
-                      .map(features -> new ConfigRelatedInfo(finalVersion, features, finalTopicDeletionEnabled));
+                      .map(features -> new ConfigRelatedInfo(
+                          finalVersion,
+                          features,
+                          finalTopicDeletionEnabled
+                      ));
                 });
           })
           .cache(UPDATE_DURATION);
     }
   }
 
-  public static Mono<ReactiveAdminClient> create(AdminClient adminClient) {
+  public static Mono<ReactiveAdminClient> create(AdminClient adminClient, ClustersProperties.AdminClient properties) {
     Mono<ConfigRelatedInfo> configRelatedInfoMono = ConfigRelatedInfo.extract(adminClient);
-    return configRelatedInfoMono.map(info -> new ReactiveAdminClient(adminClient, configRelatedInfoMono, info));
+    return configRelatedInfoMono.map(info ->
+        new ReactiveAdminClient(adminClient, configRelatedInfoMono, properties, info)
+    );
   }
 
 
@@ -190,19 +216,20 @@ public class ReactiveAdminClient implements Closeable {
   // NOTE: if KafkaFuture returns null, that Mono will be empty(!), since Reactor does not support nullable results
   // (see MonoSink.success(..) javadoc for details)
   public static <T> Mono<T> toMono(KafkaFuture<T> future) {
-    return Mono.<T>create(sink -> future.whenComplete((res, ex) -> {
-      if (ex != null) {
-        // KafkaFuture doc is unclear about what exception wrapper will be used
-        // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
-        if (ex instanceof CompletionException || ex instanceof ExecutionException) {
-          sink.error(ex.getCause()); //unwrapping exception
-        } else {
-          sink.error(ex);
-        }
-      } else {
-        sink.success(res);
-      }
-    })).doOnCancel(() -> future.cancel(true))
+    return Mono.<T>create(sink ->
+            future.whenComplete((res, ex) -> {
+              if (ex != null) {
+                // KafkaFuture doc is unclear about what exception wrapper will be used
+                // (from docs it should be ExecutionException, be we actually see CompletionException, so checking both
+                if (ex instanceof CompletionException || ex instanceof ExecutionException) {
+                  sink.error(ex.getCause()); //unwrapping exception
+                } else {
+                  sink.error(ex);
+                }
+              } else {
+                sink.success(res);
+              }
+            })).doOnCancel(() -> future.cancel(true))
         // AdminClient is using single thread for kafka communication
         // and by default all downstream operations (like map(..)) on created Mono will be executed on this thread.
         // If some of downstream operation are blocking (by mistake) this can lead to
@@ -216,6 +243,7 @@ public class ReactiveAdminClient implements Closeable {
   @Getter(AccessLevel.PACKAGE) // visible for testing
   private final AdminClient client;
   private final Mono<ConfigRelatedInfo> configRelatedInfoMono;
+  private final ClustersProperties.AdminClient properties;
 
   private volatile ConfigRelatedInfo configRelatedInfo;
 
@@ -261,7 +289,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topicNames,
-        200,
+        properties.getGetTopicsConfigPartitionSize(),
         part -> getTopicsConfigImpl(part, includeDocFixed),
         mapMerger()
     );
@@ -329,7 +357,7 @@ public class ReactiveAdminClient implements Closeable {
     // we need to partition calls, because it can lead to AdminClient timeouts in case of large topics count
     return partitionCalls(
         topics,
-        200,
+        properties.getDescribeTopicsPartitionSize(),
         this::describeTopicsImpl,
         mapMerger()
     );
@@ -362,6 +390,7 @@ public class ReactiveAdminClient implements Closeable {
    * This method converts input map into Mono[Map] ignoring keys for which KafkaFutures
    * finished with <code>classes</code> exceptions and empty Monos.
    */
+  @SuppressWarnings("unchecked")
   @SafeVarargs
   static <K, V> Mono<Map<K, V>> toMonoWithExceptionFilter(Map<K, KafkaFuture<V>> values,
                                                           Class<? extends KafkaException>... classes) {
@@ -389,9 +418,9 @@ public class ReactiveAdminClient implements Closeable {
     );
   }
 
-  public Mono<Map<Integer, Map<String, DescribeLogDirsResponse.LogDirInfo>>> describeLogDirs(
+  public Mono<Map<Integer, Map<String, LogDirDescription>>> describeLogDirs(
       Collection<Integer> brokerIds) {
-    return toMono(client.describeLogDirs(brokerIds).all())
+    return toMono(client.describeLogDirs(brokerIds).allDescriptions())
         .onErrorResume(UnsupportedVersionException.class, th -> Mono.just(Map.of()))
         .onErrorResume(ClusterAuthorizationException.class, th -> Mono.just(Map.of()))
         .onErrorResume(th -> true, th -> {
@@ -404,21 +433,24 @@ public class ReactiveAdminClient implements Closeable {
     return describeClusterImpl(client, getClusterFeatures());
   }
 
-  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client, Set<SupportedFeature> features) {
+  private static Mono<ClusterDescription> describeClusterImpl(AdminClient client,
+                                                              Set<SupportedFeature> features
+  ) {
     boolean includeAuthorizedOperations =
         features.contains(SupportedFeature.DESCRIBE_CLUSTER_INCLUDE_AUTHORIZED_OPERATIONS);
+
     DescribeClusterResult result = client.describeCluster(
         new DescribeClusterOptions().includeAuthorizedOperations(includeAuthorizedOperations));
     var allOfFuture = KafkaFuture.allOf(
         result.controller(), result.clusterId(), result.nodes(), result.authorizedOperations());
     return toMono(allOfFuture).then(
         Mono.fromCallable(() ->
-          new ClusterDescription(
-            result.controller().get(),
-            result.clusterId().get(),
-            result.nodes().get(),
-            result.authorizedOperations().get()
-          )
+            new ClusterDescription(
+                result.controller().get(),
+                result.clusterId().get(),
+                result.nodes().get(),
+                result.authorizedOperations().get()
+            )
         )
     );
   }
@@ -497,8 +529,8 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds) {
     return partitionCalls(
         groupIds,
-        25,
-        4,
+        properties.getDescribeConsumerGroupsPartitionSize(),
+        properties.getDescribeConsumerGroupsConcurrency(),
         ids -> toMono(client.describeConsumerGroups(ids).all()),
         mapMerger()
     );
@@ -521,8 +553,8 @@ public class ReactiveAdminClient implements Closeable {
 
     Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> merged = partitionCalls(
         consumerGroups,
-        25,
-        4,
+        properties.getListConsumerGroupOffsetsPartitionSize(),
+        properties.getListConsumerGroupOffsetsConcurrency(),
         call,
         mapMerger()
     );
@@ -593,8 +625,8 @@ public class ReactiveAdminClient implements Closeable {
 
   @VisibleForTesting
   static Set<TopicPartition> filterPartitionsWithLeaderCheck(Collection<TopicDescription> topicDescriptions,
-                                                              Predicate<TopicPartition> partitionPredicate,
-                                                              boolean failOnUnknownLeader) {
+                                                             Predicate<TopicPartition> partitionPredicate,
+                                                             boolean failOnUnknownLeader) {
     var goodPartitions = new HashSet<TopicPartition>();
     for (TopicDescription description : topicDescriptions) {
       var goodTopicPartitions = new ArrayList<TopicPartition>();
@@ -690,6 +722,10 @@ public class ReactiveAdminClient implements Closeable {
 
   public Mono<Void> alterClientQuota(ClientQuotaAlteration alteration) {
     return toMono(client.alterClientQuotas(List.of(alteration)).all());
+  }
+
+  public Mono<QuorumInfo> describeMetadataQuorum() {
+    return toMono(client.describeMetadataQuorum().quorumInfo());
   }
 
 

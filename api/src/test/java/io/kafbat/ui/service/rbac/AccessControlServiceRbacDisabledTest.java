@@ -152,9 +152,8 @@ class AccessControlServiceRbacDisabledTest extends AbstractIntegrationTest {
   void isConnectAccessibleDto() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
-      ConnectDTO connectDto = ConnectDTO.builder()
-          .name(CONNECT_NAME)
-          .build();
+      ConnectDTO connectDto = new ConnectDTO()
+          .name(CONNECT_NAME);
       Mono<Boolean> consumerGroupAccessibleMono =
           accessControlService.isConnectAccessible(connectDto, PROD_CLUSTER);
       StepVerifier.create(consumerGroupAccessibleMono)

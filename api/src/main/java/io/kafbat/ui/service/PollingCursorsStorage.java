@@ -32,7 +32,7 @@ public class PollingCursorsStorage {
   }
 
   public String register(Cursor cursor) {
-    var id = RandomStringUtils.random(8, true, true);
+    var id = RandomStringUtils.secure().next(8, true, true);
     cursorsCache.put(id, cursor);
     return id;
   }

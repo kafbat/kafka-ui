@@ -9,6 +9,7 @@ import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.KsqlAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
@@ -19,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.security.access.AccessDeniedException;
 
 public record AccessContext(String cluster,
@@ -34,26 +37,33 @@ public record AccessContext(String cluster,
 
     Resource resourceType();
 
-    Collection<PermissibleAction> requestedActions();
+    Collection<? extends PermissibleAction> requestedActions();
 
     boolean isAccessible(List<Permission> userPermissions);
+
+    @Nullable
+    ResourceAccess fallback();
   }
 
   record SingleResourceAccess(@Nullable String name,
                               Resource resourceType,
-                              Collection<PermissibleAction> requestedActions) implements ResourceAccess {
+                              Collection<? extends PermissibleAction> requestedActions,
+                              @Nullable ResourceAccess fallback) implements ResourceAccess {
 
-    SingleResourceAccess(@Nullable String name,
-                         Resource resourceType,
-                         Collection<PermissibleAction> requestedActions) {
+    SingleResourceAccess {
       Preconditions.checkArgument(!requestedActions.isEmpty(), "actions not present");
-      this.name = name;
-      this.resourceType = resourceType;
-      this.requestedActions = requestedActions;
     }
 
-    SingleResourceAccess(Resource type, List<PermissibleAction> requestedActions) {
-      this(null, type, requestedActions);
+    SingleResourceAccess(@Nullable String name, Resource type, List<? extends PermissibleAction> requestedActions) {
+      this(name, type, requestedActions, null);
+    }
+
+    SingleResourceAccess(Resource type, List<? extends PermissibleAction> requestedActions, ResourceAccess fallback) {
+      this(null, type, requestedActions, fallback);
+    }
+
+    SingleResourceAccess(Resource type, List<? extends PermissibleAction> requestedActions) {
+      this(null, type, requestedActions, null);
     }
 
     @Override
@@ -77,7 +87,8 @@ public record AccessContext(String cluster,
           .flatMap(p -> p.getParsedActions().stream())
           .collect(Collectors.toSet());
 
-      return allowedActions.containsAll(requestedActions);
+      return allowedActions.containsAll(requestedActions)
+          || Optional.ofNullable(fallback).map(e -> e.isAccessible(userPermissions)).orElse(false);
     }
   }
 
@@ -127,6 +138,18 @@ public record AccessContext(String cluster,
 
     public AccessContextBuilder connectActions(String connect, ConnectAction... actions) {
       accessedResources.add(new SingleResourceAccess(connect, Resource.CONNECT, List.of(actions)));
+      return this;
+    }
+
+    public AccessContextBuilder connectorActions(String connect, String connector, ConnectorAction... actions) {
+      accessedResources.add(
+          new SingleResourceAccess(String.join("/", connect, connector), Resource.CONNECTOR, List.of(actions),
+              new SingleResourceAccess(
+                  connect, Resource.CONNECT,
+                  Stream.of(actions).map(ConnectorAction::getConnectAction).toList()
+              )
+          )
+      );
       return this;
     }
 

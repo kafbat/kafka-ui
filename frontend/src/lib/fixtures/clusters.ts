@@ -1,4 +1,4 @@
-import { Cluster, ServerStatus } from 'generated-sources';
+import { Cluster, ControllerType, ServerStatus } from 'generated-sources';
 
 export const onlineClusterPayload: Cluster = {
   name: 'secondLocal',
@@ -11,6 +11,7 @@ export const onlineClusterPayload: Cluster = {
   bytesOutPerSec: 9.314,
   readOnly: false,
   features: [],
+  controller: ControllerType.KRAFT,
 };
 export const offlineClusterPayload: Cluster = {
   name: 'local',
@@ -23,6 +24,7 @@ export const offlineClusterPayload: Cluster = {
   bytesOutPerSec: 4.14,
   features: [],
   readOnly: true,
+  controller: ControllerType.KRAFT,
 };
 
 export const clustersPayload: Cluster[] = [

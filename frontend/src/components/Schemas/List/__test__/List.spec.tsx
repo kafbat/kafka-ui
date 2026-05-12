@@ -52,7 +52,8 @@ describe('List', () => {
     it('shows progressbar', async () => {
       (useGetSchemas as jest.Mock).mockImplementation(() => ({
         data: {},
-        isError: true,
+        isLoading: true,
+        isSuccess: false,
       }));
       renderComponent();
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
@@ -66,6 +67,7 @@ describe('List', () => {
           data: schemasEmptyPayload,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         renderComponent();
       });
@@ -79,6 +81,7 @@ describe('List', () => {
           data: schemasPayload,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         renderComponent();
       });
@@ -106,6 +109,7 @@ describe('List', () => {
           data: schemasPayload,
           isFetching: false,
           isError: false,
+          isSuccess: true,
         }));
         renderComponent({
           ...contextInitialValue,
@@ -124,6 +128,7 @@ describe('List', () => {
         data: {},
         isError: false,
         isFetching: false,
+        isSuccess: true,
       }));
       renderComponent();
       expect(screen.getByText(GlobalSchemaSelectorText)).toBeInTheDocument();

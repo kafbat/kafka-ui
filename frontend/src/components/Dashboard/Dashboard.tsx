@@ -5,13 +5,15 @@ import { Tag } from 'components/common/Tag/Tag.styled';
 import Switch from 'components/common/Switch/Switch';
 import { useClusters } from 'lib/hooks/api/clusters';
 import { Cluster, ResourceType, ServerStatus } from 'generated-sources';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 import Table, { SizeCell } from 'components/common/NewTable';
 import useBoolean from 'lib/hooks/useBoolean';
-import { clusterNewConfigPath } from 'lib/paths';
+import { clusterBrokersPath, clusterNewConfigPath } from 'lib/paths';
 import { GlobalSettingsContext } from 'components/contexts/GlobalSettingsContext';
 import { ActionCanButton } from 'components/common/ActionComponent';
 import { useGetUserInfo } from 'lib/hooks/api/roles';
+import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
+import { useNavigate } from 'react-router-dom';
 
 import * as S from './Dashboard.styled';
 import ClusterName from './ClusterName';
@@ -19,6 +21,7 @@ import ClusterTableActionsCell from './ClusterTableActionsCell';
 
 const Dashboard: React.FC = () => {
   const { data } = useGetUserInfo();
+  const navigate = useNavigate();
   const clusters = useClusters();
   const { value: showOfflineOnly, toggle } = useBoolean(false);
   const appInfo = React.useContext(GlobalSettingsContext);
@@ -37,13 +40,37 @@ const Dashboard: React.FC = () => {
 
   const columns = React.useMemo<ColumnDef<Cluster>[]>(() => {
     const initialColumns: ColumnDef<Cluster>[] = [
-      { header: 'Cluster name', accessorKey: 'name', cell: ClusterName },
-      { header: 'Version', accessorKey: 'version' },
-      { header: 'Brokers count', accessorKey: 'brokerCount' },
-      { header: 'Partitions', accessorKey: 'onlinePartitionCount' },
-      { header: 'Topics', accessorKey: 'topicCount' },
-      { header: 'Production', accessorKey: 'bytesInPerSec', cell: SizeCell },
-      { header: 'Consumption', accessorKey: 'bytesOutPerSec', cell: SizeCell },
+      {
+        header: 'Cluster name',
+        accessorKey: 'name',
+        cell: ClusterName,
+        meta: { width: '100%' },
+        enableResizing: true,
+      },
+      { header: 'Version', accessorKey: 'version', size: 100 },
+      {
+        header: 'Brokers count',
+        accessorKey: 'brokerCount',
+        size: 120,
+      },
+      {
+        header: 'Partitions',
+        accessorKey: 'onlinePartitionCount',
+        size: 100,
+      },
+      { header: 'Topics', accessorKey: 'topicCount', size: 80 },
+      {
+        header: 'Production',
+        accessorKey: 'bytesInPerSec',
+        cell: SizeCell,
+        size: 100,
+      },
+      {
+        header: 'Consumption',
+        accessorKey: 'bytesOutPerSec',
+        cell: SizeCell,
+        size: 116,
+      },
     ];
 
     if (appInfo.hasDynamicConfig) {
@@ -51,6 +78,7 @@ const Dashboard: React.FC = () => {
         header: '',
         id: 'actions',
         cell: ClusterTableActionsCell,
+        size: 140,
       });
     }
 
@@ -63,6 +91,13 @@ const Dashboard: React.FC = () => {
       (permission) => permission.resource === ResourceType.APPLICATIONCONFIG
     );
   }, [data]);
+
+  const columnSizingPersister = useLocalStoragePersister('KafkaConnect');
+
+  const onRowClick = (row: Row<Cluster>) => {
+    navigate(clusterBrokersPath(row.original.name));
+  };
+
   return (
     <>
       <PageHeading text="Dashboard" />
@@ -99,9 +134,12 @@ const Dashboard: React.FC = () => {
         )}
       </S.Toolbar>
       <Table
+        onRowClick={onRowClick}
         columns={columns}
         data={config?.list}
         enableSorting
+        enableColumnResizing
+        columnSizingPersister={columnSizingPersister}
         emptyMessage={clusters.isFetched ? 'No clusters found' : 'Loading...'}
       />
     </>

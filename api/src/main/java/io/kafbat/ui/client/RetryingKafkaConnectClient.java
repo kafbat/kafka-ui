@@ -1,15 +1,19 @@
 package io.kafbat.ui.client;
 
+import static org.apache.commons.lang3.Strings.CI;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.connect.ApiClient;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.connect.model.Connector;
+import io.kafbat.ui.connect.model.ConnectorExpand;
 import io.kafbat.ui.connect.model.ConnectorPlugin;
 import io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse;
 import io.kafbat.ui.connect.model.ConnectorStatus;
 import io.kafbat.ui.connect.model.ConnectorTask;
 import io.kafbat.ui.connect.model.ConnectorTopics;
+import io.kafbat.ui.connect.model.ExpandedConnector;
 import io.kafbat.ui.connect.model.NewConnector;
 import io.kafbat.ui.connect.model.TaskStatus;
 import io.kafbat.ui.exception.KafkaConnectConflictResponseException;
@@ -22,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.client.RestClientException;
@@ -58,7 +61,7 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
 
       if (e instanceof WebClientResponseException.InternalServerError exception) {
         final var errorMessage = getMessage(exception);
-        return StringUtils.equals(errorMessage,
+        return CI.equals(errorMessage,
             // From https://github.com/apache/kafka/blob/dfc07e0e0c6e737a56a5402644265f634402b864/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/distributed/DistributedHerder.java#L2340
             "Request cannot be completed because a rebalance is expected");
       }
@@ -220,13 +223,17 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   }
 
   @Override
-  public Mono<List<String>> getConnectors(String search) throws WebClientResponseException {
-    return withRetryOnConflictOrRebalance(super.getConnectors(search));
+  public Mono<Map<String, ExpandedConnector>> getConnectors(
+      String search, List<ConnectorExpand> expand
+  ) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.getConnectors(search, expand));
   }
 
   @Override
-  public Mono<ResponseEntity<List<String>>> getConnectorsWithHttpInfo(String search) throws WebClientResponseException {
-    return withRetryOnConflictOrRebalance(super.getConnectorsWithHttpInfo(search));
+  public Mono<ResponseEntity<Map<String, ExpandedConnector>>> getConnectorsWithHttpInfo(
+      String search, List<ConnectorExpand> expand
+  ) throws WebClientResponseException {
+    return withRetryOnConflictOrRebalance(super.getConnectorsWithHttpInfo(search, expand));
   }
 
   @Override

@@ -6,12 +6,12 @@ import { render, WithRoute } from 'lib/testHelpers';
 import {
   clusterBrokersPath,
   clusterConnectorsPath,
-  clusterConnectsPath,
   clusterConsumerGroupsPath,
   clusterKsqlDbPath,
   clusterPath,
   clusterSchemasPath,
   clusterTopicsPath,
+  kafkaConnectPath,
 } from 'lib/paths';
 import { useClusters } from 'lib/hooks/api/clusters';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
@@ -19,7 +19,7 @@ import { onlineClusterPayload } from 'lib/fixtures/clusters';
 const CLusterCompText = {
   Topics: 'Topics',
   Schemas: 'Schemas',
-  Connect: 'Connect',
+  Connect: 'Kafka Connect',
   Brokers: 'Brokers',
   ConsumerGroups: 'ConsumerGroups',
   KsqlDb: 'KsqlDb',
@@ -52,6 +52,7 @@ describe('ClusterPage', () => {
   const renderComponent = async (pathname: string, payload: Cluster[] = []) => {
     (useClusters as jest.Mock).mockImplementation(() => ({
       data: payload,
+      isFetched: true,
     }));
     await render(
       <WithRoute path={`${clusterPath()}/*`}>
@@ -111,7 +112,7 @@ describe('ClusterPage', () => {
     itCorrectlyHandlesConfiguredSchema(
       ClusterFeaturesEnum.KAFKA_CONNECT,
       CLusterCompText.Connect,
-      clusterConnectsPath(onlineClusterPayload.name)
+      kafkaConnectPath(onlineClusterPayload.name)
     );
     itCorrectlyHandlesConfiguredSchema(
       ClusterFeaturesEnum.KAFKA_CONNECT,

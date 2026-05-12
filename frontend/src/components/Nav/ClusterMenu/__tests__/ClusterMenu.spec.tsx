@@ -7,35 +7,51 @@ import { clusterConnectorsPath } from 'lib/paths';
 import { render } from 'lib/testHelpers';
 import { onlineClusterPayload } from 'lib/fixtures/clusters';
 
+/*
+ Due to jsdom doesnt know about scrollIntoView
+*/
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
 describe('ClusterMenu', () => {
-  const setupComponent = (cluster: Cluster, singleMode?: boolean) => (
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const setupComponent = (cluster: Cluster, opened?: boolean) => (
     <ClusterMenu
       name={cluster.name}
       status={cluster.status}
       features={cluster.features}
-      singleMode={singleMode}
+      opened={opened}
     />
   );
   const getMenuItems = () => screen.getAllByRole('menuitem');
-  const getMenuItem = () => screen.getByRole('menuitem');
   const getBrokers = () => screen.getByTitle('Brokers');
-  const getTopics = () => screen.getByTitle('Brokers');
-  const getConsumers = () => screen.getByTitle('Brokers');
+  const getTopics = () => screen.getByTitle('Topics');
+  const getConsumers = () => screen.getByTitle('Consumers');
   const getKafkaConnect = () => screen.getByTitle('Kafka Connect');
   const getCluster = () => screen.getByText(onlineClusterPayload.name);
+
+  const clickChevron = async () => {
+    const chevronSvg = document.querySelector('svg[viewBox="0 0 10 6"]');
+    if (chevronSvg) {
+      await userEvent.click(chevronSvg as Element);
+    }
+  };
 
   it('renders cluster menu with default set of features', async () => {
     render(setupComponent(onlineClusterPayload));
     expect(getCluster()).toBeInTheDocument();
 
     expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
+    await clickChevron();
     expect(getMenuItems().length).toEqual(4);
 
     expect(getBrokers()).toBeInTheDocument();
     expect(getTopics()).toBeInTheDocument();
     expect(getConsumers()).toBeInTheDocument();
   });
+
   it('renders cluster menu with correct set of features', async () => {
     render(
       setupComponent({
@@ -48,7 +64,7 @@ describe('ClusterMenu', () => {
       })
     );
     expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
+    await clickChevron();
     expect(getMenuItems().length).toEqual(7);
 
     expect(getBrokers()).toBeInTheDocument();
@@ -58,6 +74,7 @@ describe('ClusterMenu', () => {
     expect(getKafkaConnect()).toBeInTheDocument();
     expect(screen.getByTitle('KSQL DB')).toBeInTheDocument();
   });
+
   it('renders open cluster menu', () => {
     render(setupComponent(onlineClusterPayload, true), {
       initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)],
@@ -69,6 +86,7 @@ describe('ClusterMenu', () => {
     expect(getTopics()).toBeInTheDocument();
     expect(getConsumers()).toBeInTheDocument();
   });
+
   it('makes Kafka Connect link active', async () => {
     render(
       setupComponent({
@@ -78,7 +96,7 @@ describe('ClusterMenu', () => {
       { initialEntries: [clusterConnectorsPath(onlineClusterPayload.name)] }
     );
     expect(getMenuItems().length).toEqual(1);
-    await userEvent.click(getMenuItem());
+    await clickChevron();
     expect(getMenuItems().length).toEqual(5);
 
     const kafkaConnect = getKafkaConnect();

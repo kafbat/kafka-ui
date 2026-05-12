@@ -9,6 +9,7 @@ import { TopicMessage, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import useAppParams from 'lib/hooks/useAppParams';
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
+import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 
 export const topicMessagePayload: TopicMessage = {
   partition: 29,
@@ -17,7 +18,7 @@ export const topicMessagePayload: TopicMessage = {
   timestampType: TopicMessageTimestampTypeEnum.CREATE_TIME,
   key: 'schema-registry',
   headers: {},
-  content:
+  value:
     '{"host":"schemaregistry1","port":8085,"master_eligibility":true,"scheme":"http","version":1}',
 };
 
@@ -46,7 +47,9 @@ describe('MessagesTable', () => {
       topicName: 'testTopic',
     }));
     return render(
-      <MessagesTable messages={[]} isFetching={false} {...props} />
+      <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+        <MessagesTable messages={[]} isFetching={false} {...props} />
+      </TopicActionsProvider>
     );
   };
 
@@ -102,9 +105,9 @@ describe('MessagesTable', () => {
 
     it('should check the rendering of the messages', () => {
       expect(screen.queryByText(/No messages found/i)).not.toBeInTheDocument();
-      if (mockTopicsMessages[0].content) {
+      if (mockTopicsMessages[0].value) {
         expect(
-          screen.getByText(mockTopicsMessages[0].content)
+          screen.getByText(mockTopicsMessages[0].value)
         ).toBeInTheDocument();
       }
     });

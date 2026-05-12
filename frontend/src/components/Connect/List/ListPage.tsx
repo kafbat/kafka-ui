@@ -1,93 +1,61 @@
-import React, { Suspense } from 'react';
-import useAppParams from 'lib/hooks/useAppParams';
-import { ClusterNameRoute, clusterConnectorNewRelativePath } from 'lib/paths';
-import ClusterContext from 'components/contexts/ClusterContext';
+import React from 'react';
 import Search from 'components/common/Search/Search';
-import * as Metrics from 'components/common/Metrics';
-import PageHeading from 'components/common/PageHeading/PageHeading';
-import Tooltip from 'components/common/Tooltip/Tooltip';
-import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
-import { ConnectorState, Action, ResourceType } from 'generated-sources';
-import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
-import { ActionButton } from 'components/common/ActionComponent';
+import useAppParams from 'lib/hooks/useAppParams';
+import { ClusterNameRoute } from 'lib/paths';
+import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useSearchParams } from 'react-router-dom';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
+import { FullConnectorInfo } from 'generated-sources';
+import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
-import List from './List';
+import * as S from './ListPage.styled';
+import { ConnectorsTable } from './ConnectorsTable/ConnectorsTable';
+import ConnectorsStatistics from './Statistics/Statistics';
+
+const emptyConnectors: FullConnectorInfo[] = [];
 
 const ListPage: React.FC = () => {
-  const { isReadOnly } = React.useContext(ClusterContext);
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const { data: connects = [] } = useConnects(clusterName);
+  const [searchParams] = useSearchParams();
+  const { isFtsEnabled } = useFts('connects');
+  const {
+    data: connectors = emptyConnectors,
+    isLoading,
+    isRefetching,
+    isSuccess,
+    error,
+    refetch,
+  } = useConnectors(clusterName, searchParams.get('q') || '', isFtsEnabled);
 
-  // Fetches all connectors from the API, without search criteria. Used to display general metrics.
-  const { data: connectorsMetrics, isLoading } = useConnectors(clusterName);
-
-  const numberOfFailedConnectors = connectorsMetrics?.filter(
-    ({ status: { state } }) => state === ConnectorState.FAILED
-  ).length;
-
-  const numberOfFailedTasks = connectorsMetrics?.reduce(
-    (acc, metric) => acc + (metric.failedTasksCount ?? 0),
-    0
-  );
+  const isLoadingConnectors = isLoading || isRefetching;
 
   return (
-    <>
-      <PageHeading text="Connectors">
-        {!isReadOnly && (
-          <Tooltip
-            value={
-              <ActionButton
-                buttonType="primary"
-                buttonSize="M"
-                disabled={!connects.length}
-                to={clusterConnectorNewRelativePath}
-                permission={{
-                  resource: ResourceType.CONNECT,
-                  action: Action.CREATE,
-                }}
-              >
-                Create Connector
-              </ActionButton>
-            }
-            showTooltip={!connects.length}
-            content="No Connects available"
-            placement="left"
-          />
-        )}
-      </PageHeading>
-      <Metrics.Wrapper>
-        <Metrics.Section>
-          <Metrics.Indicator
-            label="Connectors"
-            title="Total number of connectors"
-            fetching={isLoading}
-          >
-            {connectorsMetrics?.length || '-'}
-          </Metrics.Indicator>
-          <Metrics.Indicator
-            label="Failed Connectors"
-            title="Number of failed connectors"
-            fetching={isLoading}
-          >
-            {numberOfFailedConnectors ?? '-'}
-          </Metrics.Indicator>
-          <Metrics.Indicator
-            label="Failed Tasks"
-            title="Number of failed tasks"
-            fetching={isLoading}
-          >
-            {numberOfFailedTasks ?? '-'}
-          </Metrics.Indicator>
-        </Metrics.Section>
-      </Metrics.Wrapper>
-      <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Connect Name, Status or Type" />
-      </ControlPanelWrapper>
-      <Suspense fallback={<PageLoader />}>
-        <List />
-      </Suspense>
-    </>
+    <FilteredConnectorsProvider>
+      <ConnectorsStatistics isLoading={isLoadingConnectors} />
+      <S.Search hasInput>
+        <Search
+          key={clusterName}
+          placeholder="Search by Connect Name, Status or Type"
+          extraActions={<Fts resourceName="connects" />}
+        />
+      </S.Search>
+
+      {isLoadingConnectors && <PageLoader offsetY={370} />}
+
+      {error && (
+        <ErrorPage
+          offsetY={370}
+          status={error.status}
+          onClick={refetch}
+          text={error.message}
+        />
+      )}
+
+      {isSuccess && <ConnectorsTable connectors={connectors} />}
+    </FilteredConnectorsProvider>
   );
 };
 

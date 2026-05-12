@@ -5,7 +5,7 @@ interface Props {
 }
 
 function ServiceImage({ serviceName }: Props) {
-  return <img src="serviceImage.png" alt={serviceName} />;
+  return <img src="images/serviceImage.png" alt={serviceName} />;
 }
 
 export default ServiceImage;

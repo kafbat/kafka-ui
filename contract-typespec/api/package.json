@@ -1,0 +1,27 @@
+{
+    "name": "tsp",
+    "version": "0.1.0",
+    "type": "module",
+    "dependencies": {
+        "@typespec/compiler": "1.3.0",
+        "@typespec/http": "1.3.0",
+        "@typespec/openapi": "1.3.0",
+        "@typespec/openapi3": "1.3.0",
+        "@typespec/rest": "0.73.0",
+        "@typespec/sse": "0.73.0",
+        "@typespec/streams": "0.73.0",
+        "build": "^0.1.4"
+    },
+    "scripts": {
+        "build": "tsp compile ."
+    },
+    "private": true,
+    "packageManager": "pnpm@10.26.1",
+    "pnpm": {
+        "overrides": {
+            "js-yaml": ">=4.1.1",
+            "uglify-js": ">=2.6.0",
+            "tmp": ">=0.2.4"
+        }
+    }
+}

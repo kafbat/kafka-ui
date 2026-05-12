@@ -22,7 +22,7 @@ export const Dropdown = styled(ControlledMenu)(
     ${menuSelector.name} {
       border: 1px solid ${dropdown.borderColor};
       box-shadow: 0 4px 16px ${dropdown.shadow};
-      padding: 8px 0;
+      padding: 8px 4px;
       border-radius: 4px;
       font-size: 14px;
       background-color: ${dropdown.backgroundColor};
@@ -71,6 +71,20 @@ export const DropdownButton = styled.button`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+`;
+
+export const SmallButton = styled.div`
+  padding: 4px;
+  margin: 0;
+  min-width: 24px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+
+  &:hover {
+    background-color: ${({ theme: { dropdown } }) =>
+      dropdown.button.backgroundColor.hover};
   }
 `;
 

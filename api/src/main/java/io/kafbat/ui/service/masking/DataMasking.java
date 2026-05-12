@@ -67,7 +67,7 @@ public class DataMasking {
     var valMasker = getMaskingFunction(topic, Serde.Target.VALUE);
     return msg -> msg
         .key(keyMasker.apply(msg.getKey()))
-        .content(valMasker.apply(msg.getContent()));
+        .value(valMasker.apply(msg.getValue()));
   }
 
   @VisibleForTesting

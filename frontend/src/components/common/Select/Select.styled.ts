@@ -75,7 +75,7 @@ export const OptionList = styled.ul`
   max-height: 228px;
   margin-top: 4px;
   background-color: ${({ theme }) => theme.select.backgroundColor.normal};
-  border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
+  border: 1px ${({ theme }) => theme.select.optionList.borderColor} solid;
   border-radius: 4px;
   font-size: 14px;
   line-height: 18px;
@@ -116,11 +116,15 @@ export const Option = styled.li<OptionProps>`
     theme.select.color[disabled ? 'disabled' : 'normal']};
 
   &:hover {
+    color: ${({ theme, disabled }) =>
+      theme.select.color[disabled ? 'disabled' : 'hover']};
     background-color: ${({ theme, disabled }) =>
       theme.select.backgroundColor[disabled ? 'normal' : 'hover']};
   }
 
   &:active {
+    color: ${({ theme, disabled }) =>
+      theme.select.color[disabled ? 'disabled' : 'active']};
     background-color: ${({ theme }) => theme.select.backgroundColor.active};
   }
 `;

@@ -1,0 +1,21 @@
+logging:
+  level:
+    root: INFO
+    io.kafbat.ui: DEBUG
+    reactor.netty.http.server.AccessLog: INFO
+    org.springframework.security: DEBUG
+
+kafka:
+  clusters:
+    - name: local
+      bootstrapServers: localhost:9092
+      schemaRegistry: http://localhost:8085
+      kafka-connect:
+        - name: test
+          address: http://localhost:8083
+  fts:
+    enabled: true
+    default-enabled: true
+
+dynamic.config.enabled: true
+

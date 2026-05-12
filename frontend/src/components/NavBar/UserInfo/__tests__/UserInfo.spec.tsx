@@ -51,6 +51,23 @@ describe('UserInfo', () => {
     expect(logout).toBeInTheDocument();
   });
 
+  it('should render logout link with correct context path', async () => {
+    const username = 'someName';
+    const baseUrl = '/tt-test01';
+    Object.defineProperty(window, 'basePath', {
+      value: baseUrl,
+      writable: true,
+    });
+    (useUserInfo as jest.Mock).mockImplementation(() => ({ username }));
+
+    renderComponent();
+    const dropdown = screen.getByText(username);
+    await userEvent.click(dropdown);
+
+    const logout = screen.getByText('Log out');
+    expect(logout).toHaveAttribute('href', '/tt-test01/logout');
+  });
+
   it('should not render anything if the username does not exists', () => {
     (useUserInfo as jest.Mock).mockImplementation(() => ({
       username: undefined,

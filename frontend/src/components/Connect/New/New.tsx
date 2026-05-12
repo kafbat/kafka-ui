@@ -15,10 +15,10 @@ import Select from 'components/common/Select/Select';
 import { FormError } from 'components/common/Input/Input.styled';
 import Input from 'components/common/Input/Input';
 import { Button } from 'components/common/Button/Button';
-import PageHeading from 'components/common/PageHeading/PageHeading';
 import Heading from 'components/common/heading/Heading.styled';
 import { useConnects, useCreateConnector } from 'lib/hooks/api/kafkaConnect';
 import { Connect } from 'generated-sources';
+import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 
 import * as S from './New.styled';
 
@@ -94,7 +94,7 @@ const New: React.FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <PageHeading
+      <ResourcePageHeading
         text="Create new connector"
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"
