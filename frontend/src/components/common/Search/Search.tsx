@@ -18,6 +18,7 @@ interface SearchProps {
   onChange?: (value: string) => void;
   value?: string;
   extraActions?: ReactNode;
+  debounceMs?: number;
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -26,32 +27,38 @@ const Search: React.FC<SearchProps> = ({
   value,
   onChange,
   extraActions,
+  debounceMs = 500,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
-  const [showIcon, setShowIcon] = useState(!!value || !!searchParams.get('q'));
+  const [showIcon, setShowIcon] = useState(
+    typeof value !== 'undefined' ? !!value : !!searchParams.get('q')
+  );
 
   useEffect(() => {
-    if (ref.current !== null && value) {
+    if (ref.current !== null && typeof value !== 'undefined') {
       ref.current.value = value;
     }
-  }, [value]);
+    setShowIcon(
+      typeof value !== 'undefined' ? !!value : !!searchParams.get('q')
+    );
+  }, [searchParams, value]);
 
-  const handleChange = useDebouncedCallback((e) => {
-    setShowIcon(!!e.target.value);
+  const handleChange = useDebouncedCallback((nextValue: string) => {
+    setShowIcon(!!nextValue);
     if (ref.current != null) {
-      ref.current.value = e.target.value;
+      ref.current.value = nextValue;
     }
     if (onChange) {
-      onChange(e.target.value);
+      onChange(nextValue);
     } else {
-      searchParams.set('q', e.target.value);
+      searchParams.set('q', nextValue);
       if (searchParams.get('page')) {
         searchParams.set('page', '1');
       }
       setSearchParams(searchParams);
     }
-  }, 500);
+  }, debounceMs);
 
   const clearSearchValue = () => {
     if (onChange) {
@@ -64,9 +71,6 @@ const Search: React.FC<SearchProps> = ({
     if (ref.current != null) {
       ref.current.value = '';
     }
-    if (onChange) {
-      onChange('');
-    }
     setShowIcon(false);
   };
 
@@ -74,7 +78,7 @@ const Search: React.FC<SearchProps> = ({
     <Input
       type="text"
       placeholder={placeholder}
-      onChange={handleChange}
+      onChange={({ target: { value: nextValue } }) => handleChange(nextValue)}
       defaultValue={value || searchParams.get('q') || ''}
       inputSize="M"
       disabled={disabled}
