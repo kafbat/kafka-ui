@@ -28,7 +28,7 @@ class ConsumerRecordDeserializerTest {
     Serde.Deserializer deser = (headers, data) -> new DeserializeResult("test", STRING, Map.of());
 
     var recordDeser = new ConsumerRecordDeserializer("test", deser, "test", deser, "test", deser, deser, maskerMock);
-    recordDeser.deserialize(record());
+    recordDeser.deserialize(createRecord());
 
     verify(maskerMock).apply(any(TopicMessageDTO.class));
   }
@@ -63,10 +63,10 @@ class ConsumerRecordDeserializerTest {
     Serde.Deserializer deser = (headers, data) -> new DeserializeResult("test", STRING, Map.of());
 
     var recordDeser = new ConsumerRecordDeserializer("test", deser, "test", deser, "test", deser, deser, maskerMock);
-    ConsumerRecord<Bytes, Bytes> record = record();
-    record.headers().add("headerKey", "headerValue1".getBytes());
-    record.headers().add("headerKey", "headerValue2".getBytes());
-    TopicMessageDTO message = recordDeser.deserialize(record);
+    ConsumerRecord<Bytes, Bytes> consumerRecord = createRecord();
+    consumerRecord.headers().add("headerKey", "headerValue1".getBytes());
+    consumerRecord.headers().add("headerKey", "headerValue2".getBytes());
+    TopicMessageDTO message = recordDeser.deserialize(consumerRecord);
 
     Map<String, List<String>> headers = message.getHeaders();
     assertEquals(1, headers.size());
@@ -80,11 +80,11 @@ class ConsumerRecordDeserializerTest {
     Serde.Deserializer deser = (headers, data) -> new DeserializeResult("test", STRING, Map.of());
 
     var recordDeser = new ConsumerRecordDeserializer("test", deser, "test", deser, "test", deser, deser, maskerMock);
-    ConsumerRecord<Bytes, Bytes> record = record();
-    record.headers().add("headerKey1", "singleValue".getBytes());
-    record.headers().add("headerKey2", "multiValue1".getBytes());
-    record.headers().add("headerKey2", "multiValue2".getBytes());
-    TopicMessageDTO message = recordDeser.deserialize(record);
+    ConsumerRecord<Bytes, Bytes> consumerRecord = createRecord();
+    consumerRecord.headers().add("headerKey1", "singleValue".getBytes());
+    consumerRecord.headers().add("headerKey2", "multiValue1".getBytes());
+    consumerRecord.headers().add("headerKey2", "multiValue2".getBytes());
+    TopicMessageDTO message = recordDeser.deserialize(consumerRecord);
 
     Map<String, List<String>> headers = message.getHeaders();
     assertEquals(1, headers.get("headerKey1").size());
@@ -93,7 +93,7 @@ class ConsumerRecordDeserializerTest {
     assertEquals(List.of("multiValue1", "multiValue2"), headers.get("headerKey2"));
   }
 
-  private ConsumerRecord<Bytes, Bytes> record() {
+  private ConsumerRecord<Bytes, Bytes> createRecord() {
     return new ConsumerRecord<>("t", 1, 1L, Bytes.wrap("t".getBytes()), Bytes.wrap("t".getBytes()));
   }
 
