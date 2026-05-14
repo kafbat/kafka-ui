@@ -11,14 +11,15 @@ jobs:
   separate-env-remove:
     runs-on: ubuntu-latest
     steps:
-      - name: clone
+      - name: clone infra
         run: |
-          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch envs
-      - name: separate environment remove
+          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/infra.git --branch envs
+      - name: remove separate environment
         run: |
-          cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
-          bash separate_env_remove.sh ${{ github.event.inputs.ENV_NAME }}
+          cd infra/scripts
+          bash pr-env-remove.sh ${{ github.event.inputs.ENV_NAME }}
           git config --global user.email "infra@kafbat.io"
           git config --global user.name "infra-tech"
-          git add -A
-          git commit -m "separate env removed: ${{ github.event.inputs.ENV_NAME }}" && git push || true
+          cd ../..
+          git -C infra add -A
+          git -C infra commit -m "separate env removed: ${{ github.event.inputs.ENV_NAME }}" && git -C infra push || true

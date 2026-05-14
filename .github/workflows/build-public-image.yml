@@ -6,8 +6,8 @@ on:
     types: ['labeled']
 
 permissions:
-  id-token: write
   contents: read
+  packages: write
   pull-requests: write
 
 jobs:
@@ -33,10 +33,12 @@ jobs:
       - name: Build
         id: build
         run: |
-          ./mvnw -B -ntp versions:set -DnewVersion=$GITHUB_SHA
-          ./mvnw -B -V -ntp clean package -Pprod -DskipTests
-          export VERSION=$(./mvnw -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          version=${GITHUB_SHA::7}
+          echo "version=$version" >> $GITHUB_OUTPUT
+          ./gradlew clean build \
+            -x test \
+            -Pinclude-frontend=true \
+            -Pversion=$version
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # https://github.com/docker/setup-qemu-action/releases/tag/v3.7.0
       - name: Set up Docker Buildx
@@ -49,33 +51,30 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502  # https://github.com/aws-actions/configure-aws-credentials/releases/tag/v4
+      - name: Login to GHCR
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # https://github.com/docker/login-action/releases/tag/v3
         with:
-          aws-region: us-east-1
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@9238dd443b7a5941caf19ffbe68be34d4dbd61df # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.0.1
-        with:
-          registry-type: 'public'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         id: docker_build_and_push
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # https://github.com/docker/build-push-action/releases/tag/v6.18.0
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: api
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ vars.ECR_REGISTRY }}/${{ github.repository }}:${{ steps.extract_branch.outputs.tag }}
+          tags: ghcr.io/kafbat/kafka-ui-preview:${{ steps.extract_branch.outputs.tag }}
           build-args: |
             JAR_FILE=build/libs/api-${{ steps.build.outputs.version }}.jar
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: make comment with private deployment link
-        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # infered from @v4
+      - name: make comment with image link
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # @v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Image published at ${{ vars.ECR_REGISTRY }}/${{ github.repository }}:${{ steps.extract_branch.outputs.tag }}
+            Image published at `ghcr.io/kafbat/kafka-ui-preview:${{ steps.extract_branch.outputs.tag }}`
     outputs:
       tag: ${{ steps.extract_branch.outputs.tag }}

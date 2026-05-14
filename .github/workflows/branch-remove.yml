@@ -11,19 +11,17 @@ permissions:
 jobs:
   remove:
     runs-on: ubuntu-latest
-    if: ${{ (github.event.label.name == 'status/feature_testing' || github.event.label.name == 'status/feature_testing_public') || (github.event.action == 'closed' && (contains(github.event.pull_request.labels.*.name, 'status/feature_testing') || contains(github.event.pull_request.labels.*.name, 'status/feature_testing_public'))) }}
+    if: ${{ github.event.label.name == 'status/feature_testing' || (github.event.action == 'closed' && contains(github.event.pull_request.labels.*.name, 'status/feature_testing')) }}
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
-        with:
-          token: ${{ github.token }}
-      - name: clone
+      - name: clone infra
         run: |
-          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/ui-infra.git --branch envs
+          git clone https://infra-tech:${{ secrets.INFRA_USER_ACCESS_TOKEN }}@github.com/kafbat/infra.git --branch envs
       - name: remove env
         run: |
-          cd kafka-ui-infra/aws-infrastructure4eks/argocd/scripts
-          ./delete-env.sh pr${{ github.event.pull_request.number }} || true
+          cd infra/scripts
+          bash pr-env-remove.sh pr${{ github.event.pull_request.number }}
           git config --global user.email "infra@kafbat.io"
           git config --global user.name "infra-tech"
-          git add ../kafka-ui-from-branch/
-          git commit -m "removed env:${{ needs.build.outputs.deploy }}" && git push || true
+          cd ../..
+          git -C infra add -A
+          git -C infra commit -m "remove env: pr${{ github.event.pull_request.number }}" && git -C infra push || true
