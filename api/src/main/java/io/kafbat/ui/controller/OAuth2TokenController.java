@@ -6,12 +6,14 @@ import io.kafbat.ui.exception.ValidationException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -31,15 +33,12 @@ public class OAuth2TokenController {
   }
 
   @PostMapping(value = "/api/token", produces = MediaType.APPLICATION_JSON_VALUE)
-  public Mono<ResponseEntity<Map<String, String>>> getToken(
-      @RequestParam String clientId,
-      @RequestParam String clientSecret,
-      @RequestParam(required = false) String scope) {
+  public Mono<ResponseEntity<Map<String, String>>> getToken(@RequestBody TokenRequest request) {
 
-    OAuthProperties.OAuth2Provider provider = findProvider(clientId);
+    OAuthProperties.OAuth2Provider provider = findProvider(request.getClientId());
     if (provider == null) {
       return Mono.error(new NotFoundException(
-          "No OAuth2 provider found for clientId: " + clientId));
+          "No OAuth2 provider found for clientId: " + request.getClientId()));
     }
 
     if (!provider.isApiTokenEnabled()) {
@@ -47,8 +46,8 @@ public class OAuth2TokenController {
           "API token generation is not enabled for this provider"));
     }
 
-    // Validate that the provided secret matches
-    if (!provider.getClientSecret().equals(clientSecret)) {
+    // Null-safe comparison to prevent NPE when clientSecret is absent
+    if (!Objects.equals(provider.getClientSecret(), request.getClientSecret())) {
       return Mono.error(new ValidationException("Invalid client credentials"));
     }
 
@@ -59,11 +58,11 @@ public class OAuth2TokenController {
     }
 
     String requestBody = "grant_type=client_credentials"
-        + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
-        + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
+        + "&client_id=" + URLEncoder.encode(request.getClientId(), StandardCharsets.UTF_8)
+        + "&client_secret=" + URLEncoder.encode(request.getClientSecret(), StandardCharsets.UTF_8);
 
-    if (scope != null && !scope.isBlank()) {
-      requestBody += "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
+    if (request.getScope() != null && !request.getScope().isBlank()) {
+      requestBody += "&scope=" + URLEncoder.encode(request.getScope(), StandardCharsets.UTF_8);
     }
 
     return oauthWebClient
@@ -79,9 +78,9 @@ public class OAuth2TokenController {
           return ResponseEntity.ok(tokenResponse);
         })
         .doOnError(e -> log.error("Failed to obtain OAuth token for clientId {}: {}",
-            clientId, e.getMessage(), e))
+            request.getClientId(), e.getMessage(), e))
         .onErrorResume(e -> Mono.just(ResponseEntity.status(401).body(
-            Map.of("error", "authentication_failed", "message", e.getMessage()))));
+            Map.of("error", "authentication_failed", "message", "Authentication failed"))));
   }
 
   private OAuthProperties.OAuth2Provider findProvider(String clientId) {
@@ -89,5 +88,12 @@ public class OAuth2TokenController {
         .filter(p -> p.getClientId().equals(clientId))
         .findFirst()
         .orElse(null);
+  }
+
+  @Data
+  public static class TokenRequest {
+    private String clientId;
+    private String clientSecret;
+    private String scope;
   }
 }
