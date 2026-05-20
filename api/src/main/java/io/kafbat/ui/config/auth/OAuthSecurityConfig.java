@@ -123,6 +123,29 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
                     .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
                     .build()))));
       }
+    } else {
+      // No explicit resource server configuration.
+      // Enable JWT bearer authentication using the JWK Set URI from the OAuth2 provider,
+      // if available. This allows programmatic API access using OAuth2 tokens obtained
+      // from /api/token, while preserving the existing OAuth2 browser-based login flow.
+      var jwkProviders = properties.getClient().values().stream()
+          .filter(p -> p.getJwkSetUri() != null && !p.getJwkSetUri().isBlank())
+          .toList();
+      if (jwkProviders.size() > 1) {
+        throw new IllegalStateException(
+            "Multiple OAuth2 providers have JWK Set URIs configured. "
+            + "Please configure a single JWT provider or add explicit resource-server JWT config. "
+            + "Providers with JWK Set URIs: " + jwkProviders.stream()
+                .map(p -> p.getProvider() + " (" + p.getJwkSetUri() + ")")
+                .collect(java.util.stream.Collectors.joining(", ")));
+      }
+      jwkProviders.stream().findFirst().ifPresent(provider -> {
+        log.info("Enabling JWT bearer authentication using JWK Set URI: {}", provider.getJwkSetUri());
+        builder.oauth2ResourceServer(c -> c.jwt(j ->
+            j.jwtDecoder(NimbusReactiveJwtDecoder.withJwkSetUri(provider.getJwkSetUri())
+                .webClient(webClient)
+                .build())));
+      });
     }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);

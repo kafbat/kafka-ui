@@ -44,7 +44,8 @@ abstract class AbstractAuthSecurityConfig {
       "/logout",
       "/oauth2/**",
       "/api/config/authentication",
-      "/api/authorization"
+      "/api/authorization",
+      "/api/token"
   };
 
   protected RedirectServerAuthenticationSuccessHandler emptyRedirectSuccessHandler() {
