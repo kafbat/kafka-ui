@@ -52,5 +52,6 @@ public class OAuthProperties {
     private String jwkSetUri;
     private String userNameAttribute;
     private Map<String, String> customParams;
+    private boolean apiTokenEnabled = false;
   }
 }

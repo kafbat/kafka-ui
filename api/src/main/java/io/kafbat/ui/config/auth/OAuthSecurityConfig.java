@@ -123,6 +123,21 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
                     .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
                     .build()))));
       }
+    } else {
+      // No explicit resource server configuration.
+      // Enable JWT bearer authentication using the JWK Set URI from the OAuth2 provider,
+      // if available. This allows programmatic API access using OAuth2 tokens obtained
+      // from /api/token, while preserving the existing OAuth2 browser-based login flow.
+      properties.getClient().values().stream()
+          .filter(p -> p.getJwkSetUri() != null && !p.getJwkSetUri().isBlank())
+          .findFirst()
+          .ifPresent(provider -> {
+            log.info("Enabling JWT bearer authentication using JWK Set URI: {}", provider.getJwkSetUri());
+            builder.oauth2ResourceServer(c -> c.jwt(j ->
+                j.jwtDecoder(NimbusReactiveJwtDecoder.withJwkSetUri(provider.getJwkSetUri())
+                    .webClient(webClient)
+                    .build())));
+          });
     }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
