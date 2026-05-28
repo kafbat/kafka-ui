@@ -3,6 +3,7 @@ package io.kafbat.ui.config.auth.logout;
 import io.kafbat.ui.config.auth.OAuthProperties;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,9 @@ public class OAuthLogoutSuccessHandler implements ServerLogoutSuccessHandler {
 
   public OAuthLogoutSuccessHandler(final OAuthProperties properties,
                                    final List<LogoutSuccessHandler> logoutSuccessHandlers,
-                                   final @Qualifier("defaultOidcLogoutHandler") ServerLogoutSuccessHandler handler) {
+                                   @Autowired(required = false)
+                                   @Qualifier("defaultOidcLogoutHandler")
+                                   final ServerLogoutSuccessHandler handler) {
     this.properties = properties;
     this.logoutSuccessHandlers = logoutSuccessHandlers;
     this.defaultOidcLogoutHandler = handler;
