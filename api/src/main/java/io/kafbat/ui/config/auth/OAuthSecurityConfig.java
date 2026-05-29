@@ -203,9 +203,9 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   @Bean
-  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
+  public ReactiveClientRegistrationRepository clientRegistrationRepository() {
     if (!hasClientRegistrations()) {
-      return null;
+      return registrationId -> Mono.empty();
     }
     final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
     final List<ClientRegistration> registrations =
@@ -215,11 +215,11 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public ServerLogoutSuccessHandler defaultOidcLogoutHandler(
-      Optional<ReactiveClientRegistrationRepository> repository) {
-    if (repository.isEmpty()) {
+      ReactiveClientRegistrationRepository repository) {
+    if (!hasClientRegistrations()) {
       return null;
     }
-    return new OidcClientInitiatedServerLogoutSuccessHandler(repository.get());
+    return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
   }
 
   private boolean hasClientRegistrations() {
