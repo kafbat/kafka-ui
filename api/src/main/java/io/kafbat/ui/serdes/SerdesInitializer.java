@@ -127,7 +127,7 @@ public class SerdesInitializer {
       if (!registeredSerdes.containsKey(name)) {
         BuiltInSerde serde = createSerdeInstance(clazz);
         if (autoConfigureSerde(serde, clusterPropertiesResolver, globalPropertiesResolver)) {
-          registeredSerdes.put(name, new SerdeInstance(name, serde, null, null, null));
+          registeredSerdes.put(name, new SerdeInstance(name, serde, null, null, null, false));
         }
       }
     });
@@ -163,7 +163,8 @@ public class SerdesInitializer {
             new ConsumerOffsetsSerde(),
             pattern,
             pattern,
-            null
+            null,
+            false
         )
     );
   }
@@ -180,13 +181,13 @@ public class SerdesInitializer {
   }
 
   private SerdeInstance mirrorSerde(String name, Pattern pattern, BuiltInSerde serde) {
-    return new SerdeInstance(name, serde, pattern, pattern, null);
+    return new SerdeInstance(name, serde, pattern, pattern, null, false);
   }
 
   private SerdeInstance createFallbackSerde() {
     StringSerde serde = new StringSerde();
     serde.configure(PropertyResolverImpl.empty(), PropertyResolverImpl.empty(), PropertyResolverImpl.empty());
-    return new SerdeInstance("Fallback", serde, null, null, null);
+    return new SerdeInstance("Fallback", serde, null, null, null, false);
   }
 
   @SneakyThrows
@@ -237,7 +238,8 @@ public class SerdesInitializer {
         serde,
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        null
+        null,
+        true
     );
   }
 
@@ -265,7 +267,8 @@ public class SerdesInitializer {
         serde,
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        null
+        null,
+        true
     );
   }
 
@@ -293,7 +296,8 @@ public class SerdesInitializer {
         loaded.getSerde(),
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        loaded.getClassLoader()
+        loaded.getClassLoader(),
+        true
     );
   }
 
