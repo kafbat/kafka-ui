@@ -5,8 +5,10 @@ import { SelectOption } from 'components/common/Select/Select';
 
 import * as S from './InputWithOptions.styled';
 
-export interface InputWithOptionsProps
-  extends Omit<S.StyledInputProps, 'onChange'> {
+export interface InputWithOptionsProps extends Omit<
+  S.StyledInputProps,
+  'onChange'
+> {
   options: SelectOption<string>[];
   value?: string;
   onChange?: (option: string) => void;

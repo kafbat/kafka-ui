@@ -115,7 +115,7 @@ public class RegexBasedProviderAuthorityExtractorTest {
     HashMap<String, Object> additionalParams = new HashMap<>();
 
     OAuthProperties.OAuth2Provider provider = new OAuthProperties.OAuth2Provider();
-    provider.setCustomParams(Map.of("roles-field", "role_definition"));
+    provider.setCustomParams(Map.of());
     additionalParams.put("provider", provider);
 
     Set<String> roles = extractor.extract(accessControlService, oauth2User, additionalParams).block();

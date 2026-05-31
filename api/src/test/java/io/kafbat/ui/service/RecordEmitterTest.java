@@ -323,6 +323,48 @@ class RecordEmitterTest extends AbstractIntegrationTest {
     );
   }
 
+  @Test
+  void forwardEmitterCompletesWithZeroPageSize() {
+    var emitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(emitter))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType()))
+        .thenConsumeWhile(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType())
+            || TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .expectComplete()
+        .verify();
+  }
+
+  @Test
+  void backwardEmitterCompletesWithZeroPageSize() {
+    var emitter = new BackwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(LATEST, TOPIC, List.of(), null, null),
+        0,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(),
+        CURSOR_MOCK
+    );
+
+    StepVerifier.create(Flux.create(emitter))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType()))
+        .thenConsumeWhile(m -> TopicMessageEventDTO.TypeEnum.PHASE.equals(m.getType())
+            || TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .expectNextMatches(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .expectComplete()
+        .verify();
+  }
+
   private void expectEmitter(Consumer<FluxSink<TopicMessageEventDTO>> emitter, List<String> expectedValues) {
     expectEmitter(emitter,
         expectedValues.size(),

@@ -32,6 +32,7 @@ interface ConsumerGroupsApi {
     @path clusterName: string,
     @query ids: Array<string>,
     @query lastUpdate?: int64,
+    @query includePartitions?: boolean
   ): ConsumerGroupsLagResponse;
 
   @get
@@ -158,6 +159,11 @@ model ConsumerGroupsLagResponse {
 model ConsumerGroupLag {
     lag: int64;
     topics: Record<int64>;
+    topicPartitions?: Record<ConsumerGroupTopicLag>;
+}
+
+model ConsumerGroupTopicLag {
+    partitions?: Record<int64>;
 }
 
 enum ConsumerGroupOffsetsResetType {

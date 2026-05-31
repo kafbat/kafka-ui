@@ -218,6 +218,10 @@ export function useMessagesFilters(topicName: string) {
         params.delete(MessagesFilterKeys.activeFilterId);
         return params;
       });
+
+      removeMessagesFiltersField(MessagesFilterKeys.smartFilterId);
+      removeMessagesFiltersField(MessagesFilterKeys.activeFilterId);
+
       return;
     }
 

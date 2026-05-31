@@ -7,6 +7,7 @@ import {
 } from 'lib/hooks/useMessageFiltersStore';
 import EditIcon from 'components/common/Icons/EditIcon';
 import Flexbox from 'components/common/FlexBox/FlexBox';
+import { useActiveFilters } from 'lib/hooks/useMessagesFiltersFields';
 
 import * as S from './Filters.styled';
 
@@ -25,6 +26,11 @@ const SavedFilters: FC<Props> = ({
   setSmartFilter,
   onEdit,
 }) => {
+  const {
+    removeAllActiveFilters,
+    removeFilterIfActive,
+    findWhereFilterIsActive,
+  } = useActiveFilters();
   const filtersList = React.useMemo(() => Object.values(filters), [filters]);
   const clearAll = useMessageFiltersStore((state) => state.removeAll);
   const remove = useMessageFiltersStore((state) => state.remove);
@@ -36,21 +42,26 @@ const SavedFilters: FC<Props> = ({
   };
 
   const deleteFilterHandler = (id: string) => {
-    const isFilterSelected = smartFilter && smartFilter.id === id;
-
+    const activeFilters = findWhereFilterIsActive(id);
     confirm(
       <>
         <p>Are you sure want to remove {id}?</p>
-        {isFilterSelected && (
+        {activeFilters.length > 0 && (
           <>
             <br />
-            <p>Warning: this filter is currently selected.</p>
+            <p>Warning: this filter is currently active in:</p>
+            <ul>
+              {activeFilters.map((filterAttachedTo) => (
+                <li key={filterAttachedTo}>{filterAttachedTo}</li>
+              ))}
+            </ul>
           </>
         )}
       </>,
       () => {
         setSmartFilter(null);
         remove(id);
+        removeFilterIfActive(id);
       }
     );
   };
@@ -60,7 +71,10 @@ const SavedFilters: FC<Props> = ({
       <Flexbox margin="10px 0 0 0" justifyContent="space-between">
         <S.SavedFilterText>Saved Filters</S.SavedFilterText>
         <S.SavedFilterClearAll
-          onClick={clearAll}
+          onClick={() => {
+            clearAll();
+            removeAllActiveFilters();
+          }}
           disabled={filtersList.length === 0}
         >
           Clear all

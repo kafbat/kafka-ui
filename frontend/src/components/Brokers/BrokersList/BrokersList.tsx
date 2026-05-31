@@ -29,7 +29,6 @@ const BrokersList: React.FC = () => {
     error,
     refetch,
     isLoading,
-    isRefetching,
     isSuccess,
   } = useBrokers(clusterName);
 
@@ -90,7 +89,7 @@ const BrokersList: React.FC = () => {
               controller={cluster?.controller}
             />
 
-            {(isLoading || isRefetching) && <PageLoader offsetY={300} />}
+            {isLoading && <PageLoader offsetY={300} />}
 
             {error && (
               <ErrorPage

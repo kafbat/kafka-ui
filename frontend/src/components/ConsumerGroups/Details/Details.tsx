@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
+  clusterConnectConnectorPath,
   clusterConsumerGroupResetRelativePath,
   clusterConsumerGroupsPath,
   ClusterGroupParam,
-  clusterConnectorsPath,
 } from 'lib/paths';
 import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -29,12 +29,19 @@ import ExportIcon from 'components/common/Icons/ExportIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
 import { getConnectorNameFromConsumerGroup } from 'lib/utils/connectorUtils';
+import { LagTrendComponent } from 'lib/consumerGroups';
+import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useGetConsumerGroupLagsInfo } from 'components/ConsumerGroups/Details/useGetConsumerGroupLagsInfo';
 
 import { TopicsTable } from './TopicsTable/TopicsTable';
 
+const isConnect = (groupId: string | undefined) =>
+  groupId?.startsWith('connect-');
+
 const Details: React.FC = () => {
   const navigate = useNavigate();
-  const { isReadOnly } = React.useContext(ClusterContext);
+  const { isReadOnly, hasKafkaConnectConfigured } = useContext(ClusterContext);
   const routeParams = useAppParams<ClusterGroupParam>();
   const { clusterName, consumerGroupID } = routeParams;
 
@@ -44,9 +51,25 @@ const Details: React.FC = () => {
     isSuccess,
     refetch,
     isLoading,
-    isRefetching,
   } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
+
+  const { data: connectors = [] } = useConnectors(
+    clusterName,
+    undefined,
+    undefined,
+    { enabled: hasKafkaConnectConfigured && isConnect(consumerGroup?.groupId) }
+  );
+
+  const connector = connectors.find(
+    (c) => c.consumer === consumerGroup?.groupId
+  );
+
+  const { consumerGroupLagInfo, topicsLagInfo, partitionsLagInfo } =
+    useGetConsumerGroupLagsInfo({
+      consumerGroupID,
+      clusterName,
+    });
 
   const onDelete = async () => {
     await deleteConsumerGroup.mutateAsync();
@@ -113,7 +136,7 @@ const Details: React.FC = () => {
               </ResourcePageHeading>
             </div>
 
-            {(isLoading || isRefetching) && <PageLoader />}
+            {isLoading && <PageLoader />}
 
             {error && (
               <ErrorPage
@@ -125,7 +148,6 @@ const Details: React.FC = () => {
 
             {isSuccess && (
               <>
-                {' '}
                 <Metrics.Wrapper>
                   <Metrics.Section>
                     <Metrics.Indicator label="State">
@@ -156,12 +178,19 @@ const Details: React.FC = () => {
                       {consumerGroup?.coordinator?.id}
                     </Metrics.Indicator>
                     <Metrics.Indicator label="Total lag">
-                      {consumerGroup?.consumerLag}
+                      <LagTrendComponent
+                        lag={consumerGroupLagInfo.lag}
+                        trend={consumerGroupLagInfo.trend}
+                      />
                     </Metrics.Indicator>
-                    {connectorName && (
+                    {connectorName && connector && (
                       <Metrics.Indicator label="Connector">
                         <Link
-                          to={`${clusterConnectorsPath(clusterName)}?search=${encodeURIComponent(connectorName)}`}
+                          to={clusterConnectConnectorPath(
+                            clusterName,
+                            connector.connect,
+                            connectorName
+                          )}
                         >
                           {connectorName}
                         </Link>
@@ -171,8 +200,16 @@ const Details: React.FC = () => {
                 </Metrics.Wrapper>
                 <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
                   <Search placeholder="Search by Topic Name" />
+
+                  <RefreshRateSelect
+                    storageKey={`consumer-group-${consumerGroupID}-refresh-rate`}
+                  />
                 </ControlPanelWrapper>
-                <TopicsTable partitions={consumerGroup?.partitions ?? []} />
+                <TopicsTable
+                  partitions={consumerGroup?.partitions ?? []}
+                  topicsLagInfo={topicsLagInfo}
+                  partitionsLagInfo={partitionsLagInfo}
+                />
               </>
             )}
           </>

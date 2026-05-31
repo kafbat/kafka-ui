@@ -6,6 +6,7 @@ import {
   SchemaRegistryDeserializeProperties,
   TopicMessage,
 } from 'generated-sources';
+import GoToIcon from 'components/common/Icons/GoToIcon';
 
 import * as S from './Serde.styled';
 
@@ -61,7 +62,9 @@ const Serde: FC<{
       <S.MetadataLabel>{title}</S.MetadataLabel>
       <span>
         {schemaLink ? (
-          <S.SchemaLink to={schemaLink}>{serde}</S.SchemaLink>
+          <S.SchemaButton to={schemaLink} buttonType="text" buttonSize="S">
+            {serde} <GoToIcon />
+          </S.SchemaButton>
         ) : (
           <S.MetadataValue>{serde}</S.MetadataValue>
         )}

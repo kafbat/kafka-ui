@@ -11,8 +11,10 @@ import { getConfigUnit } from 'components/Brokers/Broker/Configs/lib/utils';
 import InputCellViewMode from './InputCellViewMode';
 import InputCellEditMode from './InputCellEditMode';
 
-export interface InputCellProps
-  extends CellContext<BrokerConfigsTableRow, BrokerConfig['value']> {
+export interface InputCellProps extends CellContext<
+  BrokerConfigsTableRow,
+  BrokerConfig['value']
+> {
   onUpdate: UpdateBrokerConfigCallback;
 }
 

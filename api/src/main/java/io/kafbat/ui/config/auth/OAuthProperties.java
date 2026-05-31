@@ -40,6 +40,7 @@ public class OAuthProperties {
     private String provider;
     private String clientId;
     private String clientSecret;
+    private String clientAuthenticationMethod;
     private String clientName;
     private String redirectUri;
     private String authorizationGrantType;

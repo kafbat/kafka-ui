@@ -30,8 +30,14 @@ export interface Props {
   message: TopicMessage;
 }
 
-const Message: React.FC<Props> = ({
-  message: {
+const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
+  const { currentTimezone } = useTimezone();
+  const { topicName } = useAppParams<RouteParamsClusterTopic>();
+  const { openSidebarWithMessage } = useTopicActions();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const { messageRelativeTimestamp } = React.useContext(ClusterContext);
+
+  const {
     timestamp,
     timestampType,
     offset,
@@ -45,29 +51,7 @@ const Message: React.FC<Props> = ({
     keySerde,
     valueDeserializeProperties,
     keyDeserializeProperties,
-  },
-  keyFilters,
-  contentFilters,
-}) => {
-  const { currentTimezone } = useTimezone();
-  const { topicName } = useAppParams<RouteParamsClusterTopic>();
-  const { openSidebarWithMessage } = useTopicActions();
-  const [isOpen, setIsOpen] = React.useState(false);
-  const { messageRelativeTimestamp } = React.useContext(ClusterContext);
-
-  const message = {
-    timestamp,
-    timestampType,
-    offset,
-    key,
-    keySize,
-    partition,
-    value,
-    valueSize,
-    headers,
-    valueSerde,
-    keySerde,
-  };
+  } = message;
 
   const savedMessageJson = {
     Value: value,
@@ -173,7 +157,7 @@ const Message: React.FC<Props> = ({
           </S.Metadata>
         </S.DataCell>
         <td style={{ width: '5%' }}>
-          {vEllipsisOpen && (
+          <div style={{ visibility: vEllipsisOpen ? 'visible' : 'hidden' }}>
             <Dropdown>
               <DropdownItem
                 aria-label="Copy to clipboard"
@@ -198,7 +182,7 @@ const Message: React.FC<Props> = ({
                 Reproduce message
               </ActionDropdownItem>
             </Dropdown>
-          )}
+          </div>
         </td>
       </S.ClickableRow>
       {isOpen && (

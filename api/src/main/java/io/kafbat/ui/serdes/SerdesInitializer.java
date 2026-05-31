@@ -14,6 +14,7 @@ import io.kafbat.ui.serdes.builtin.ConsumerOffsetsSerde;
 import io.kafbat.ui.serdes.builtin.HexSerde;
 import io.kafbat.ui.serdes.builtin.Int32Serde;
 import io.kafbat.ui.serdes.builtin.Int64Serde;
+import io.kafbat.ui.serdes.builtin.MessagePackSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufRawSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
@@ -52,6 +53,7 @@ public class SerdesInitializer {
             .put(AvroEmbeddedSerde.NAME, AvroEmbeddedSerde.class)
             .put(Base64Serde.NAME, Base64Serde.class)
             .put(HexSerde.NAME, HexSerde.class)
+            .put(MessagePackSerde.NAME, MessagePackSerde.class)
             .put(UuidBinarySerde.NAME, UuidBinarySerde.class)
             .put(ProtobufRawSerde.NAME, ProtobufRawSerde.class)
 
@@ -125,7 +127,7 @@ public class SerdesInitializer {
       if (!registeredSerdes.containsKey(name)) {
         BuiltInSerde serde = createSerdeInstance(clazz);
         if (autoConfigureSerde(serde, clusterPropertiesResolver, globalPropertiesResolver)) {
-          registeredSerdes.put(name, new SerdeInstance(name, serde, null, null, null));
+          registeredSerdes.put(name, new SerdeInstance(name, serde, null, null, null, false));
         }
       }
     });
@@ -139,8 +141,6 @@ public class SerdesInitializer {
             .orElse(null),
         Optional.ofNullable(clusterProperties.getDefaultValueSerde())
             .map(name -> Preconditions.checkNotNull(registeredSerdes.get(name), "Default value serde not found"))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(SchemaRegistrySerde.NAME)))
-            .or(() -> Optional.ofNullable(registeredSerdes.get(ProtobufFileSerde.NAME)))
             .orElse(null),
         createFallbackSerde()
     );
@@ -163,7 +163,8 @@ public class SerdesInitializer {
             new ConsumerOffsetsSerde(),
             pattern,
             pattern,
-            null
+            null,
+            false
         )
     );
   }
@@ -180,13 +181,13 @@ public class SerdesInitializer {
   }
 
   private SerdeInstance mirrorSerde(String name, Pattern pattern, BuiltInSerde serde) {
-    return new SerdeInstance(name, serde, pattern, pattern, null);
+    return new SerdeInstance(name, serde, pattern, pattern, null, false);
   }
 
   private SerdeInstance createFallbackSerde() {
     StringSerde serde = new StringSerde();
     serde.configure(PropertyResolverImpl.empty(), PropertyResolverImpl.empty(), PropertyResolverImpl.empty());
-    return new SerdeInstance("Fallback", serde, null, null, null);
+    return new SerdeInstance("Fallback", serde, null, null, null, false);
   }
 
   @SneakyThrows
@@ -237,7 +238,8 @@ public class SerdesInitializer {
         serde,
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        null
+        null,
+        true
     );
   }
 
@@ -265,7 +267,8 @@ public class SerdesInitializer {
         serde,
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        null
+        null,
+        true
     );
   }
 
@@ -293,7 +296,8 @@ public class SerdesInitializer {
         loaded.getSerde(),
         nullablePattern(serdeConfig.getTopicKeysPattern()),
         nullablePattern(serdeConfig.getTopicValuesPattern()),
-        loaded.getClassLoader()
+        loaded.getClassLoader(),
+        true
     );
   }
 
