@@ -28,7 +28,7 @@ describe('format Milliseconds', () => {
   it('milliseconds > 0', () => {
     const result = formatMilliseconds(100);
 
-    expect(result).toEqual('100ms' || '0ms');
+    expect(result).toEqual('100ms');
     expect(formatMilliseconds()).toEqual('0ms');
   });
 });

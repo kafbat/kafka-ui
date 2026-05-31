@@ -9,6 +9,7 @@ on:
       - "gradle/libs.versions.toml"
 
       - "contract/**"
+      - "contract-typespec/**"
       - "api/**"
       - "serde-api/**"
       - "frontend/**"

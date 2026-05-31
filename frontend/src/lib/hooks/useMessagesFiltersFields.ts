@@ -17,6 +17,46 @@ type MessagesFilterFieldsType = Pick<
   | 'smartFilterId'
 >;
 
+export const useActiveFilters = () => {
+  const [messageFilters, setMessageFilters] = useLocalStorage<{
+    [resourceName: string]: MessagesFilterFieldsType;
+  }>('message-filters-fields', {});
+
+  const removeFilterIfActive = (activeFilterId: string) => {
+    setMessageFilters((prev) => {
+      const clone = { ...prev };
+      Object.entries(clone).forEach(([k, v]) => {
+        if (v.activeFilterId === activeFilterId) {
+          clone[k] = {};
+        }
+      });
+
+      return clone;
+    });
+  };
+
+  const removeAllActiveFilters = () => {
+    setMessageFilters({});
+  };
+
+  const findWhereFilterIsActive = (activeFilterId: string): string[] => {
+    const filerIsActiveIn = Object.entries(messageFilters)
+      .filter(([, filter]) => filter.activeFilterId === activeFilterId)
+      .map(([name]) => {
+        const [topicName, clusterName] = name.split(':');
+        return `${clusterName}:${topicName}`;
+      });
+    return filerIsActiveIn;
+  };
+
+  return {
+    messageFilters,
+    removeFilterIfActive,
+    removeAllActiveFilters,
+    findWhereFilterIsActive,
+  };
+};
+
 export function useMessagesFiltersFields(resourceName: string) {
   const [messageFilters, setMessageFilters] = useLocalStorage<{
     [resourceName: string]: MessagesFilterFieldsType;

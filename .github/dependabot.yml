@@ -23,6 +23,7 @@ updates:
   groups:
     spring-boot-dependencies:
       patterns:
+        - "org.springframework.boot"
         - "org.springframework.boot:*"
         - "io.spring.dependency-management"
         # We defined this dependency explicitly because Spring uses an older version

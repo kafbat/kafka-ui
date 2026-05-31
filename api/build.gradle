@@ -1,6 +1,7 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
@@ -9,6 +10,16 @@ plugins {
 
 configurations.all {
     resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
+            // uses independent versioning and should not be forced to the core Netty version
+            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
+            // so we can safely exclude it from the resolution strategy
+            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
+                details.useVersion(libs.versions.netty.get())
+                details.because("Fixes CVE-2026-33871 and CVE-2026-33870. Revert when Spring Boot releases a version with the fix")
+            }
+        }
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
                 select(libs.lz4.yawk.get().toString())
@@ -58,6 +69,9 @@ dependencies {
     implementation libs.confluent.avro.serializer
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
+
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
 
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
@@ -175,6 +189,13 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 springBoot {
