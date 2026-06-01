@@ -2,9 +2,11 @@ import React from 'react';
 import { render } from 'lib/testHelpers';
 import PageHeading from 'components/common/PageHeading/PageHeading';
 
+const originalTitle = document.title;
+
 describe('PageHeading', () => {
   afterEach(() => {
-    document.title = '';
+    document.title = originalTitle;
   });
 
   it('sets the browser title from heading content by default', () => {
