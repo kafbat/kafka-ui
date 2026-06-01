@@ -8,7 +8,7 @@ import { Button } from 'components/common/Button/Button';
 
 import * as S from './TopicsCell.styled';
 
-const COLLAPSED_TOPICS_COUNT = 5;
+export const COLLAPSED_TOPICS_COUNT = 5;
 
 const TopicsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
   row,

@@ -17,7 +17,7 @@ const columns: ColumnDef<{ topicName: string }>[] = [
   },
 ];
 
-const COLLAPSED_TOPICS_COUNT = 10;
+export const COLLAPSED_TOPICS_COUNT = 10;
 
 const Topics = () => {
   const routerProps = useAppParams<RouterParamsClusterConnectConnector>();
