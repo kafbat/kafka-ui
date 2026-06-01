@@ -52,11 +52,16 @@ const Search: React.FC<SearchProps> = ({
     if (onChange) {
       onChange(nextValue);
     } else {
-      searchParams.set('q', nextValue);
-      if (searchParams.get('page')) {
-        searchParams.set('page', '1');
-      }
-      setSearchParams(searchParams);
+      setSearchParams((params) => {
+        const nextParams = new URLSearchParams(params);
+
+        nextParams.set('q', nextValue);
+        if (nextParams.get('page')) {
+          nextParams.set('page', '1');
+        }
+
+        return nextParams;
+      });
     }
   }, debounceMs);
 
