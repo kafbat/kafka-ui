@@ -47,6 +47,11 @@ updates:
         - "org.openapitools:*"
         - "com.github.java-json-tools:*"
         - "com.github.victools:*"
+    prometheus:
+      # The Prometheus project generally promises API and feature stability within major versions but does occasionally introduce breaking changes in minor releases
+      # This is a problem grouped under "all"
+      patterns:
+        - "io.prometheus:*"
     # Update Apache Commons libraries together as these dependencies rarely introduce breaking changes
     apache-commons:
       patterns:
