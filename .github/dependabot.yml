@@ -7,7 +7,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  open-pull-requests-limit: 10
+  # The default is 5 which conflicts with the number of groups we have
+  open-pull-requests-limit: 12
   labels:
     - "type/dependencies"
     - "scope/backend"
@@ -20,8 +21,6 @@ updates:
     - dependency-name: "*"
       update-types:
         - "version-update:semver-major"
-  # The default is 5 which conflicts with the number of groups we have
-  open-pull-requests-limit: 12
   groups:
     spring-boot-dependencies:
       patterns:
