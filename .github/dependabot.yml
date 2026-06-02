@@ -38,6 +38,9 @@ updates:
         - "org.mockito:*"
         # Bouncy Castle is only used for testing purposes
         - "org.bouncycastle:bcpkix-jdk18on"
+        - "org.wiremock:*"
+        # byte-buddy is only used to support testing needs and it is declared as a testImplementation
+        - "net.bytebuddy:byte-buddy"
     api-build-tools:
       patterns:
         - "org.openapitools:*"
@@ -66,6 +69,15 @@ updates:
     modelcontextprotocol:
       patterns:
         - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
+    identity-libraries:
+      patterns:
+        - "com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler"
+        - "software.amazon.msk:aws-msk-iam-auth"
+        - "com.azure:azure-identity"
+    compression-libraries:
+      patterns:
+        - "org.xerial.snappy:snappy-java"
+        - "at.yawk.lz4:lz4-java"
     gradle-wrapper:
       patterns:
         - "gradle-wrapper"
