@@ -20,6 +20,8 @@ updates:
     - dependency-name: "*"
       update-types:
         - "version-update:semver-major"
+  # The default is 5 which conflicts with the number of groups we have
+  open-pull-requests-limit: 12
   groups:
     spring-boot-dependencies:
       patterns:
