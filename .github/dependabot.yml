@@ -8,7 +8,7 @@ updates:
     time: "10:00"
     timezone: Europe/London
   # The default is 5 which conflicts with the number of groups we have
-  open-pull-requests-limit: 12
+  open-pull-requests-limit: 14
   labels:
     - "type/dependencies"
     - "scope/backend"
@@ -87,6 +87,10 @@ updates:
     gradle-wrapper:
       patterns:
         - "gradle-wrapper"
+    # Cel is still a 0.x dependency which means that the may introduce breaking changes at any time
+    cel:
+      patterns:
+        - "dev.cel:cel"
     others:
       patterns:
         - "*"
