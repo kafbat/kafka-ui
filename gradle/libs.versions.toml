@@ -1,7 +1,7 @@
 [versions]
 spring-boot = '3.5.13'
 nimbus-jose-jwt = '10.8'
-netty = '4.1.132.Final'
+netty = '4.1.133.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
