@@ -176,6 +176,15 @@ describe('Message component', () => {
     expect(keyFiltered).toBeInTheDocument();
   });
 
+  it('does not crash the row when a preview filter has an invalid JSONPath', () => {
+    const props = {
+      message: { ...mockMessage, value: mockMessageValue as string },
+      contentFilters: [{ field: 'broken', path: '$[?(@.foo.bar.baz)]' }],
+    };
+    renderComponent(props);
+    expect(screen.getByText('broken: Invalid JSONPath')).toBeInTheDocument();
+  });
+
   it('shows action options in dropdown on click', async () => {
     renderComponent();
     const trElement = screen.getByRole('row');

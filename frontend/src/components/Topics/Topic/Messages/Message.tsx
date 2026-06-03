@@ -80,6 +80,18 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     }
   };
 
+  const evaluateFilter = (path: string, json: unknown) => {
+    // A stored preview filter can hold an invalid JSONPath (e.g. saved before
+    // validation existed, or one that only throws against real message data).
+    // Evaluating it during render would otherwise throw and crash the whole
+    // messages page on every load until local storage is cleared manually.
+    try {
+      return JSON.stringify(JSONPath({ path, json, wrap: false }));
+    } catch {
+      return 'Invalid JSONPath';
+    }
+  };
+
   const renderFilteredJson = (
     jsonValue?: string,
     filters?: PreviewFilter[]
@@ -92,10 +104,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
         {filters.map((item) => {
           return (
             <div key={`${item.path}--${item.field}`}>
-              {item.field}:{' '}
-              {JSON.stringify(
-                JSONPath({ path: item.path, json: parsedJson, wrap: false })
-              )}
+              {item.field}: {evaluateFilter(item.path, parsedJson)}
             </div>
           );
         })}
