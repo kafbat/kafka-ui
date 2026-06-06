@@ -3,12 +3,18 @@ import styled, { css } from 'styled-components';
 export const Textarea = styled.textarea(
   ({ theme: { textArea } }) => css`
     border: 1px ${textArea.borderColor.normal} solid;
-    border-radius: 4px;
+    border-radius: 6px;
     width: 100%;
     padding: 12px;
     padding-top: 6px;
     color: ${({ theme }) => theme.default.color.normal};
     background-color: ${({ theme }) => theme.schema.backgroundColor.textarea};
+    box-shadow: ${({ theme }) => theme.surface.shadow};
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease,
+      background-color 120ms ease;
+
     &::placeholder {
       color: ${textArea.color.placeholder.normal};
       font-size: 14px;
@@ -19,6 +25,7 @@ export const Textarea = styled.textarea(
     &:focus {
       outline: none;
       border-color: ${textArea.borderColor.focus};
+      box-shadow: 0 0 0 3px ${({ theme }) => theme.surface.ring};
       &::placeholder {
         color: ${textArea.color.placeholder.normal};
       }

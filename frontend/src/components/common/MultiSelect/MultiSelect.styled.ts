@@ -149,8 +149,19 @@ const MultiSelect = styled(ReactMultiSelect)<{
     background-color: ${({ theme }) =>
       theme.input.backgroundColor.normal} !important;
     border-color: ${({ theme }) => theme.select.borderColor.normal} !important;
+    border-radius: 6px !important;
+    box-shadow: ${({ theme }) => theme.surface.shadow};
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
     &:hover {
       border-color: ${({ theme }) => theme.select.borderColor.hover} !important;
+    }
+
+    &:focus-within {
+      border-color: ${({ theme }) =>
+        theme.select.borderColor.active} !important;
+      box-shadow: 0 0 0 3px ${({ theme }) => theme.surface.ring};
     }
 
     height: ${({ height }) => height ?? '32px'};

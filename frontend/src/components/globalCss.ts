@@ -7,7 +7,7 @@ export default createGlobalStyle(
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      background-color: ${theme.default.backgroundColor};
+      background-color: ${theme.surface.canvas};
       overflow-x: hidden;
       overflow-y: scroll;
       text-rendering: optimizeLegibility;
@@ -45,6 +45,32 @@ export default createGlobalStyle(
       font-family: inherit;
     }
 
+    body {
+      min-height: 100vh;
+      color: ${theme.surface.foreground};
+      background:
+        linear-gradient(180deg, ${theme.surface.panelAlt} 0, transparent 260px),
+        ${theme.surface.canvas};
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    *:focus-visible {
+      outline: 2px solid ${theme.surface.ring};
+      outline-offset: 2px;
+    }
+
+    ::selection {
+      background: ${theme.surface.accentMuted};
+      color: ${theme.surface.foreground};
+    }
+
     code,
     pre {
       font-family: 'Roboto Mono', sans-serif;
@@ -75,6 +101,10 @@ export default createGlobalStyle(
       color: ${theme.link.color};
       cursor: pointer;
       text-decoration: none;
+      transition:
+        color 120ms ease,
+        background-color 120ms ease,
+        border-color 120ms ease;
       &:hover {
         color: ${theme.link.hoverColor};
       }

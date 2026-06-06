@@ -14,17 +14,19 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
   ({ theme, $variant, $isActive }) => css`
     font-size: 14px;
     font-weight: ${theme.menu[$isActive ? 'primary' : $variant].fontWeight};
-    min-height: 28px;
+    min-height: ${$variant === 'primary' ? '36px' : '32px'};
     display: flex;
     align-items: center;
     justify-content: space-between;
     line-height: 17px;
     user-select: none;
     width: 100%;
-    padding: 4px 8px;
+    padding: ${$variant === 'primary' ? '7px 9px' : '6px 10px'};
     cursor: pointer;
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 7px;
+    border: 1px solid
+      ${$isActive ? theme.surface.selectedBorder : 'transparent'};
     background-color: ${$isActive
       ? theme.menu[$variant].backgroundColor.active
       : theme.menu[$variant].backgroundColor.normal};
@@ -35,6 +37,9 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
     &:hover {
       background-color: ${theme.menu[$variant].backgroundColor.hover};
       color: ${theme.menu[$variant].color.hover};
+      border-color: ${$isActive
+        ? theme.surface.selectedBorder
+        : theme.surface.border};
 
       ${ColorPickerWrapper} {
         position: absolute;
@@ -53,12 +58,17 @@ export const MenuItem = styled('li').attrs({ role: 'menuitem' })<{
 export const ContentWrapper = styled.div`
   display: flex;
   align-items: center;
-  column-gap: 4px;
+  column-gap: 8px;
   width: 100%;
+  min-width: 0;
 `;
 
 export const Title = styled.div`
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 export const StatusIconWrapper = styled.svg.attrs({
@@ -66,8 +76,9 @@ export const StatusIconWrapper = styled.svg.attrs({
   xmlns: 'http://www.w3.org/2000/svg',
 })`
   fill: none;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
 `;
 
 export const StatusIcon = styled.circle.attrs({
@@ -97,7 +108,11 @@ export const ChevronClickArea = styled.div`
   cursor: pointer;
   padding: 4px 6px;
   margin: -4px -6px;
-  border-radius: 4px;
+  border-radius: 6px;
+
+  &:hover {
+    background: ${({ theme }) => theme.surface.muted};
+  }
 `;
 
 export const ChevronWrapper = styled.svg.attrs({

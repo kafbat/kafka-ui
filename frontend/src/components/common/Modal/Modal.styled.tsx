@@ -7,6 +7,7 @@ export const ModalOverlay = styled.div`
   right: 0;
   bottom: 0;
   background-color: ${({ theme }) => theme.modal.overlay};
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,7 +28,7 @@ export const ModalContent = styled.div<{
     overflow: auto;
     position: relative;
     border: 1px solid ${modal.border.contrast};
-    box-shadow: 0 4px 20px ${modal.shadow};
+    box-shadow: ${({ theme }) => theme.surface.shadowLg};
   `
 );
 

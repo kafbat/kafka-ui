@@ -6,12 +6,19 @@ interface Props {
 
 export const Table = styled.table<Props>`
   width: ${(props) => (props.isFullwidth ? '100%' : 'auto')};
+  background: ${({ theme }) => theme.surface.panel};
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  box-shadow: ${({ theme }) => theme.surface.shadow};
 
   & td {
     border-top: 1px ${({ theme }) => theme.table.td.borderTop} solid;
     font-size: 14px;
     font-weight: 400;
-    padding: 8px 8px 8px 24px;
+    padding: 12px 16px;
     color: ${({ theme }) => theme.table.td.color.normal};
     vertical-align: middle;
     max-width: 350px;

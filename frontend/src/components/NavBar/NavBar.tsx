@@ -58,20 +58,18 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
   return (
     <S.Navbar role="navigation" aria-label="Page Header">
       <S.NavbarBrand>
-        <S.NavbarBrand>
-          <Button buttonType="text" buttonSize="S" onClick={onBurgerClick}>
-            <MenuIcon />
-          </Button>
+        <Button buttonType="text" buttonSize="S" onClick={onBurgerClick}>
+          <MenuIcon />
+        </Button>
 
-          <S.Hyperlink to="/">
-            <Logo />
-            kafbat UI
-          </S.Hyperlink>
+        <S.Hyperlink to="/">
+          <Logo />
+          kafbat UI
+        </S.Hyperlink>
 
-          <S.NavbarItem>
-            <Version />
-          </S.NavbarItem>
-        </S.NavbarBrand>
+        <S.NavbarItem>
+          <Version />
+        </S.NavbarItem>
       </S.NavbarBrand>
       <S.NavbarSocial>
         <UserTimezone />

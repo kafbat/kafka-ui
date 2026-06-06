@@ -72,7 +72,7 @@ export const Title = styled.span<TitleProps>(
     font-family: Inter, sans-serif;
     font-size: 12px;
     font-style: normal;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 16px;
     letter-spacing: 0;
     text-align: left;
@@ -106,8 +106,9 @@ export const Preview = styled.span`
 `;
 
 export const TableHeaderCell = styled.th`
-  padding: 4px 0 4px 24px;
-  border-bottom-width: 1px;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.surface.border};
   vertical-align: middle;
   text-align: left;
+  background: ${({ theme }) => theme.table.th.backgroundColor.normal};
 `;

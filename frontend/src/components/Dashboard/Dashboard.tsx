@@ -100,7 +100,18 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <PageHeading text="Dashboard" />
+      <PageHeading text="Clusters">
+        {appInfo.hasDynamicConfig && (
+          <ActionCanButton
+            buttonType="primary"
+            buttonSize="M"
+            to={clusterNewConfigPath}
+            canDoAction={hasPermissions}
+          >
+            Configure new cluster
+          </ActionCanButton>
+        )}
+      </PageHeading>
       <Metrics.Wrapper>
         <Metrics.Section>
           <Metrics.Indicator label={<Tag color="green">Online</Tag>}>
@@ -114,24 +125,14 @@ const Dashboard: React.FC = () => {
         </Metrics.Section>
       </Metrics.Wrapper>
       <S.Toolbar>
-        <div>
+        <S.FilterToggle>
           <Switch
             name="switchRoundedDefault"
             checked={showOfflineOnly}
             onChange={toggle}
           />
           <label>Only offline clusters</label>
-        </div>
-        {appInfo.hasDynamicConfig && (
-          <ActionCanButton
-            buttonType="primary"
-            buttonSize="M"
-            to={clusterNewConfigPath}
-            canDoAction={hasPermissions}
-          >
-            Configure new cluster
-          </ActionCanButton>
-        )}
+        </S.FilterToggle>
       </S.Toolbar>
       <Table
         onRowClick={onRowClick}

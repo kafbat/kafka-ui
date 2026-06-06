@@ -76,6 +76,7 @@ export const TableHeaderContent = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 `;
 
 export const ColumnResizer = styled.div<{ $isResizing?: boolean }>`
@@ -88,9 +89,9 @@ export const ColumnResizer = styled.div<{ $isResizing?: boolean }>`
     return css`
       opacity: ${$isResizing ? 1 : 0};
       position: absolute;
-      top: 4px;
+      top: 10px;
       right: 0;
-      height: calc(100% - 8px);
+      height: calc(100% - 20px);
       width: 4px;
       border-radius: 2px;
       background-color: ${resizer.background.normal};
@@ -114,16 +115,16 @@ export const Th = styled.th<ThProps>(
     sortOrder,
     expander,
   }) => `
-  padding: 8px 0 8px 24px;
-  border-bottom-width: 1px;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${th.backgroundColor.normal};
   vertical-align: middle;
   text-align: left;
   font-family: Inter, sans-serif;
   font-size: 12px;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 16px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   text-align: left;
   background: ${th.backgroundColor.normal};
   width: ${expander ? '5px' : 'auto'};
@@ -156,6 +157,8 @@ export const Row = styled.tr<RowProps>(
     background-color: ${table.tr.backgroundColor[
       expanded ? 'hover' : 'normal'
     ]};
+    transition: background-color 120ms ease;
+
     & .show-on-hover {
       visibility: hidden;
     }
@@ -170,10 +173,11 @@ export const Row = styled.tr<RowProps>(
 );
 
 export const ExpandedRowInfo = styled.div`
-  background-color: ${({ theme }) => theme.table.tr.backgroundColor.normal};
-  padding: 24px;
+  background-color: ${({ theme }) => theme.surface.panelAlt};
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  padding: 20px;
   border-radius: 8px;
-  margin: 0 8px 8px 0;
+  margin: 0 8px 12px;
 `;
 
 export const Nowrap = styled.div`
@@ -181,22 +185,27 @@ export const Nowrap = styled.div`
 `;
 
 export const TableActionsBar = styled.div`
-  padding: 8px;
+  padding: 12px;
   background-color: ${({ theme }) => theme.table.actionBar.backgroundColor};
-  margin: 16px 0;
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 8px;
+  margin: 0 0 12px;
   display: flex;
   gap: 8px;
+  box-shadow: ${({ theme }) => theme.surface.shadow};
 `;
 
 export const Table = styled.table(
   ({ theme: { table } }) => `
   width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 
   td {
     border-top: 1px ${table.td.borderTop} solid;
     font-size: 14px;
     font-weight: 400;
-    padding: 8px 8px 8px 24px;
+    padding: 12px 16px;
     color: ${table.td.color.normal};
     vertical-align: middle;
     word-wrap: break-word;
@@ -227,15 +236,23 @@ export const Table = styled.table(
 );
 
 export const EmptyTableMessageCell = styled.td`
-  padding: 16px;
+  padding: 32px;
   text-align: center;
+  color: ${({ theme }) => theme.surface.foregroundMuted};
 `;
 
 export const Pagination = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 16px;
+  align-items: center;
+  padding: 14px 4px 0;
   line-height: 32px;
+  gap: 12px;
+
+  @media screen and (max-width: 768px) {
+    align-items: stretch;
+    flex-direction: column;
+  }
 `;
 
 export const Pages = styled.div`
@@ -244,6 +261,10 @@ export const Pages = styled.div`
   white-space: nowrap;
   flex-wrap: nowrap;
   gap: 8px;
+
+  @media screen and (max-width: 768px) {
+    flex-wrap: wrap;
+  }
 `;
 
 export const GoToPage = styled.label`
@@ -274,10 +295,14 @@ export const Ellipsis = styled.div`
 `;
 
 export const TableWrapper = styled.div<{ $disabled: boolean }>(
-  ({ $disabled }) => css`
-    overflow: clip;
+  ({ theme, $disabled }) => css`
+    overflow: hidden;
     overflow-x: auto;
     overflow-y: visible;
+    background: ${theme.surface.panel};
+    border: 1px solid ${theme.surface.border};
+    border-radius: 8px;
+    box-shadow: ${theme.surface.shadow};
     ${$disabled &&
     css`
       pointer-events: none;

@@ -5,5 +5,6 @@ import styled from 'styled-components';
 const Heading3 = (props: PropsWithChildren) => <Heading level={3} {...props} />;
 
 export const TableTitle = styled(Heading3)`
-  padding: 16px 16px 0;
+  padding: 0 0 12px;
+  color: ${({ theme }) => theme.surface.foreground};
 `;

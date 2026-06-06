@@ -13,6 +13,7 @@ const INPUT_SIZES = {
 
 export const Wrapper = styled.div`
   position: relative;
+
   &:hover {
     svg:first-child {
       fill: ${({ theme }) => theme.input.icon.hover};
@@ -45,14 +46,20 @@ export const Input = styled.input<InputProps>(
   ({ theme: { input }, inputSize, search }) => css`
     background-color: ${input.backgroundColor.normal};
     border: 1px ${input.borderColor.normal} solid;
-    border-radius: 4px;
+    border-radius: 6px;
     color: ${input.color.normal};
     height: ${inputSize && INPUT_SIZES[inputSize]
       ? INPUT_SIZES[inputSize]
       : '40px'};
     width: 100%;
+    padding: 0 12px;
     padding-left: ${search ? '36px' : '12px'};
     font-size: 14px;
+    box-shadow: ${({ theme }) => theme.surface.shadow};
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease,
+      background-color 120ms ease;
 
     &::placeholder {
       color: ${input.color.placeholder.normal};
@@ -64,6 +71,7 @@ export const Input = styled.input<InputProps>(
     &:focus {
       outline: none;
       border-color: ${input.borderColor.focus};
+      box-shadow: 0 0 0 3px ${({ theme }) => theme.surface.ring};
       &::placeholder {
         color: transparent;
       }

@@ -5,11 +5,13 @@ export const Container = styled.main<{ $isSidebarVisible: boolean }>(
     margin-top: ${theme.layout.navBarHeight};
     margin-left: ${$isSidebarVisible ? theme.layout.navBarWidth : 0};
     position: relative;
-    padding-bottom: 30px;
+    min-height: calc(100vh - ${theme.layout.navBarHeight});
+    padding: 20px 24px 40px;
     z-index: 20;
     max-width: calc(
       100vw - ${$isSidebarVisible ? theme.layout.navBarWidth : 0}
     );
+    background: ${theme.surface.canvas};
     transition: ${
       $isSidebarVisible
         ? 'max-width 0.75s ease-in-out'
@@ -20,6 +22,7 @@ export const Container = styled.main<{ $isSidebarVisible: boolean }>(
   @media screen and (max-width: 1024px) {
     margin-left: initial;
     max-width: 100vw;
+    padding: 16px;
   }
   `
 );
@@ -34,7 +37,7 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
     top: ${theme.layout.navBarHeight};
     left: 0;
     bottom: 0;
-    padding: 16px;
+    padding: 14px 12px 18px;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     overflow-y: auto;
@@ -43,7 +46,8 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
       opacity 0.25s,
       transform 0.25s,
       -webkit-transform 0.25s;
-    background: ${theme.default.backgroundColor};
+    background: ${theme.surface.sidebar};
+    box-shadow: ${theme.surface.shadow};
     transform: ${$visible ? 'translateX(0)' : 'translateX(-100%)'};
 
     @media screen and (max-width: 1024px) {
@@ -96,7 +100,7 @@ export const Overlay = styled.div<{ $visible: boolean }>(
         bottom: 0;
         right: 0;
         visibility: visible;
-        opacity: 0.7;
+        opacity: 0.55;
         background-color: ${theme.layout.overlay.backgroundColor};
       }
     `}

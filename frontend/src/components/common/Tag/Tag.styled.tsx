@@ -6,16 +6,17 @@ interface Props {
 }
 
 export const Tag = styled.span.attrs({ role: 'widget' })<Props>`
-  border: none;
-  border-radius: 16px;
-  height: 20px;
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 6px;
+  min-height: 22px;
   line-height: 20px;
   background-color: ${({ theme, color }) => theme.tag.backgroundColor[color]};
   color: ${({ theme }) => theme.tag.color};
   font-size: 12px;
-  display: inline-block;
-  padding-left: 0.75em;
-  padding-right: 0.75em;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.55rem;
   text-align: center;
   width: max-content;
   margin: 2px 0;
@@ -23,13 +24,14 @@ export const Tag = styled.span.attrs({ role: 'widget' })<Props>`
 `;
 
 export const MultiLineTag = styled.div.attrs({ role: 'widget' })<Props>`
-  border: none;
-  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 6px;
   height: fit-content;
   line-height: 20px;
   background-color: ${({ theme, color }) => theme.tag.backgroundColor[color]};
   color: ${({ theme }) => theme.tag.color};
   font-size: 12px;
+  font-weight: 500;
   display: inline-block;
   padding-left: 0.75em;
   padding-right: 0.75em;
@@ -40,8 +42,8 @@ export const MultiLineTag = styled.div.attrs({ role: 'widget' })<Props>`
 `;
 
 export const MultiLineChipTag = styled.div`
-  border: none;
-  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 6px;
   height: fit-content;
   line-height: 20px;
   background-color: ${({ theme }) => theme.chips.backgroundColor.normal};

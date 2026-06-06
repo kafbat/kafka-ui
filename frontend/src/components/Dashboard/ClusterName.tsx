@@ -3,19 +3,17 @@ import { CellContext } from '@tanstack/react-table';
 import { Tag } from 'components/common/Tag/Tag.styled';
 import { Cluster } from 'generated-sources';
 
+import * as S from './Dashboard.styled';
+
 type ClusterNameProps = CellContext<Cluster, unknown>;
 
 const ClusterName: React.FC<ClusterNameProps> = ({ row }) => {
   const { readOnly, name } = row.original;
   return (
-    <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
-      {readOnly && (
-        <Tag color="blue" style={{ marginRight: '0.75em' }}>
-          readonly
-        </Tag>
-      )}
+    <S.ClusterNameCell>
+      {readOnly && <Tag color="blue">readonly</Tag>}
       {name}
-    </div>
+    </S.ClusterNameCell>
   );
 };
 

@@ -7,8 +7,8 @@ interface Props {
 export const StyledLabel = styled.label`
   position: relative;
   display: inline-block;
-  width: 34px;
-  height: 20px;
+  width: 40px;
+  height: 22px;
   margin-right: 8px;
 `;
 export const CheckedIcon = styled.span`
@@ -36,6 +36,7 @@ export const StyledSlider = styled.span<Props>`
     checked ? theme.switch.checked : theme.switch.unchecked};
   transition: 0.4s;
   border-radius: 20px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 
   &:hover {
     background-color: ${({ theme }) => theme.switch.hover};
@@ -44,14 +45,15 @@ export const StyledSlider = styled.span<Props>`
   &::before {
     position: absolute;
     content: '';
-    height: 14px;
-    width: 14px;
-    left: ${({ checked }) => (checked ? '17px' : '3px')};
+    height: 16px;
+    width: 16px;
+    left: ${({ checked }) => (checked ? '21px' : '3px')};
     bottom: 3px;
     background-color: ${({ theme }) => theme.switch.circle};
     transition: 0.4s;
     border-radius: 50%;
     z-index: 11;
+    box-shadow: ${({ theme }) => theme.surface.shadow};
   }
 `;
 

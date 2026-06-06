@@ -5,13 +5,16 @@ export const HeaderStyled = styled.div`
   grid-template-columns: repeat(47, 41.11px);
   grid-template-rows: repeat(4, 41.11px);
   justify-content: center;
-  margin-bottom: 13.5px;
+  margin-bottom: 24px;
+  opacity: 0.7;
 `;
 
 export const HeaderCell = styled.div<{ $sections?: number }>(
   ({ theme, $sections }) => css`
     border: 1.23px solid ${theme.auth_page.header.cellBorderColor};
     border-radius: 75.98px;
+    background: ${theme.surface.panel};
+    box-shadow: ${theme.surface.shadow};
     ${$sections && `grid-column: span ${$sections};`}
   `
 );

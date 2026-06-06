@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 
 export const Breadcrumbs = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  min-width: 0;
 `;
 
 export const BackLink = styled(NavLink)`
@@ -26,30 +27,49 @@ export const BackLink = styled(NavLink)`
 `;
 
 export const Wrapper = styled.div`
-  padding: 16px;
+  padding: 4px 0 18px;
 `;
 
 export const Content = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
+  gap: 16px;
 
   & > div {
     display: flex;
-    gap: 16px;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   & > ${Breadcrumbs} {
     gap: 20px;
   }
+
+  h1 {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: ${({ theme }) => theme.surface.foreground};
+  }
+
+  @media screen and (max-width: 768px) {
+    align-items: stretch;
+    flex-direction: column;
+  }
 `;
 
 export const Title = styled.div`
   color: ${({ theme }) => theme.pageHeading.title.color};
-  font-weight: 500;
-  line-height: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0;
+  margin-bottom: 2px;
+
   & + ${Content} h1 {
-    padding-top: 8px;
-    line-height: 24px;
+    line-height: 34px;
   }
 `;

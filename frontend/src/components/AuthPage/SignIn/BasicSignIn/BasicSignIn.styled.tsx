@@ -15,7 +15,7 @@ export const Form = styled.form`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  gap: 24px;
   width: 100%;
 
   ${Fieldset} div {
@@ -34,8 +34,9 @@ export const Field = styled.div`
 
 export const Label = styled.label`
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 16px;
+  color: ${({ theme }) => theme.surface.foregroundMuted};
 `;
 
 export const ErrorMessage = styled.div`

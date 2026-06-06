@@ -17,6 +17,7 @@ export const Wrapper = styled.div.attrs({ role: 'dialog' })`
 export const Overlay = styled.div(
   ({ theme: { modal } }) => css`
     background-color: ${modal.overlay};
+    backdrop-filter: blur(6px);
     bottom: 0;
     left: 0;
     position: absolute;
@@ -32,16 +33,18 @@ export const Modal = styled.div(
     flex-direction: column;
     width: 560px;
     border-radius: 8px;
+    border: 1px solid ${modal.border.contrast};
 
     background-color: ${confirmModal.backgroundColor};
-    filter: drop-shadow(0px 4px 16px ${modal.shadow});
+    box-shadow: ${({ theme }) => theme.surface.shadowLg};
   `
 );
 
 export const Header = styled.div`
   font-size: 20px;
+  font-weight: 700;
   text-align: start;
-  padding: 16px;
+  padding: 18px 20px;
   width: 100%;
   color: ${({ theme }) => theme.modal.color};
 `;
@@ -57,10 +60,10 @@ export const Content = styled.div(
 );
 
 export const Footer = styled.div`
-  height: 64px;
+  min-height: 68px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px;
+  padding: 16px 20px;
   width: 100%;
 `;

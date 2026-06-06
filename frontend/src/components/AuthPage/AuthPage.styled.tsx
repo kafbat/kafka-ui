@@ -7,8 +7,11 @@ export const AuthPageStyled = styled.div(
     align-items: center;
     justify-content: space-between;
     min-height: 100vh;
-    background-color: ${theme.auth_page.backgroundColor};
+    background:
+      linear-gradient(180deg, ${theme.surface.panelAlt} 0, transparent 360px),
+      ${theme.surface.canvas};
     font-family: ${theme.auth_page.fontFamily};
     overflow-x: hidden;
+    color: ${theme.surface.foreground};
   `
 );

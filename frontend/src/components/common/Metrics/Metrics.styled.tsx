@@ -1,51 +1,60 @@
 import styled, { css } from 'styled-components';
 
 export const Wrapper = styled.div`
-  padding: 1.5rem 1rem;
-  background: ${({ theme }) => theme.metrics.backgroundColor};
-  margin-bottom: 0.5rem !important;
+  padding: 0;
+  background: transparent;
+  margin-bottom: 16px !important;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 `;
 
 export const IndicatorWrapper = styled.div`
-  background-color: ${({ theme }) => theme.default.backgroundColor};
-  height: 68px;
+  background-color: ${({ theme }) => theme.surface.panel};
+  border: 1px solid ${({ theme }) => theme.surface.border};
+  border-radius: 8px;
+  height: 82px;
   width: fit-content;
-  min-width: 150px;
+  min-width: 168px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 12px 16px;
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+  box-shadow: ${({ theme }) => theme.surface.shadow};
   flex-grow: 1;
   color: ${({ theme }) => theme.default.color.normal};
+
+  & > div > span {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    letter-spacing: 0;
+  }
 `;
 
 export const IndicatorTitle = styled.div`
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
   color: ${({ theme }) => theme.metrics.indicator.titleColor};
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 `;
 
 export const IndicatorsWrapper = styled.div`
   display: flex;
-  gap: 2px;
+  gap: 12px;
   flex-wrap: wrap;
   border-radius: 8px;
-  overflow: auto;
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.08);
+  overflow: visible;
   color: ${({ theme }) => theme.metrics.wrapper};
 `;
 
 export const SectionTitle = styled.h5`
   font-weight: 500;
-  margin: 0 0 0.5rem 16px;
+  margin: 0 0 0.5rem;
   font-size: 100%;
   color: ${({ theme }) => theme.metrics.sectionTitle};
 `;

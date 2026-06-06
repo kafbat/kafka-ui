@@ -210,18 +210,40 @@ const baseTheme = {
   },
   layout: {
     minWidth: '1200px',
-    navBarWidth: '240px',
-    navBarHeight: '51px',
+    navBarWidth: '264px',
+    navBarHeight: '64px',
     rightSidebarWidth: '70vw',
     filtersSidebarWidth: '300px',
 
-    mainBackgroundColor: Colors.brand[0],
+    mainBackgroundColor: '#F6F7F9',
     stuffColor: Colors.neutral[5],
-    stuffBorderColor: Colors.neutral[10],
+    stuffBorderColor: '#E4E7EC',
     overlay: {
       backgroundColor: Colors.neutral[50],
     },
     socialLink: Colors.neutral[20],
+  },
+  surface: {
+    canvas: '#F6F7F9',
+    panel: Colors.neutral[0],
+    panelAlt: '#FBFCFD',
+    sidebar: '#FBFCFD',
+    header: hexToRgba(Colors.neutral[0], 0.92),
+    border: '#E4E7EC',
+    borderStrong: '#CED4DA',
+    muted: '#F1F3F5',
+    mutedHover: '#E9ECEF',
+    selected: '#EDF7F4',
+    selectedBorder: '#9AD8CC',
+    accent: '#0F766E',
+    accentMuted: '#DDF7F1',
+    accentText: '#115E59',
+    foreground: '#111827',
+    foregroundMuted: '#667085',
+    foregroundSubtle: '#98A2B3',
+    shadow: '0 1px 2px rgba(16, 24, 40, 0.06)',
+    shadowLg: '0 16px 40px rgba(16, 24, 40, 0.12)',
+    ring: hexToRgba('#0F766E', 0.28),
   },
   alert: {
     color: {
@@ -339,20 +361,20 @@ const baseTheme = {
   },
   tag: {
     backgroundColor: {
-      green: Colors.green[10],
-      gray: Colors.neutral[5],
-      yellow: Colors.yellow[10],
-      white: Colors.neutral[10],
-      red: Colors.red[10],
-      blue: Colors.blue[10],
-      secondary: Colors.neutral[15],
+      green: '#DCFCE7',
+      gray: '#F2F4F7',
+      yellow: '#FEF3C7',
+      white: Colors.neutral[0],
+      red: '#FEE2E2',
+      blue: '#DBEAFE',
+      secondary: '#E9ECEF',
     },
-    color: Colors.neutral[90],
+    color: '#344054',
   },
   switch: {
-    unchecked: Colors.brand[30],
-    hover: Colors.neutral[40],
-    checked: Colors.brand[90],
+    unchecked: '#D0D5DD',
+    hover: '#98A2B3',
+    checked: '#0F766E',
     circle: Colors.neutral[0],
     disabled: Colors.brand[10],
     checkedIcon: {
@@ -439,7 +461,7 @@ export const theme = {
     },
   },
   logo: {
-    color: Colors.brand[90],
+    color: '#0F766E',
   },
   version: {
     currentVersion: {
@@ -451,9 +473,9 @@ export const theme = {
   },
   default: {
     color: {
-      normal: Colors.neutral[90],
+      normal: '#111827',
     },
-    backgroundColor: Colors.brand[0],
+    backgroundColor: '#F6F7F9',
     transparentColor: 'transparent',
   },
   link: {
@@ -465,18 +487,18 @@ export const theme = {
     hoverColor: Colors.brand[50],
   },
   hr: {
-    backgroundColor: Colors.neutral[5],
+    backgroundColor: '#E4E7EC',
   },
   pageHeading: {
-    height: '64px',
-    dividerColor: Colors.neutral[30],
+    height: '72px',
+    dividerColor: '#D0D5DD',
     title: {
-      color: Colors.brand[50],
+      color: '#667085',
     },
     backLink: {
       color: {
-        normal: Colors.brand[70],
-        hover: Colors.brand[60],
+        normal: '#475467',
+        hover: '#0F766E',
       },
     },
   },
@@ -484,23 +506,23 @@ export const theme = {
     borderTop: 'none',
   },
   dropdown: {
-    backgroundColor: Colors.brand[0],
-    borderColor: Colors.brand[10],
-    shadow: Colors.transparency[20],
+    backgroundColor: Colors.neutral[0],
+    borderColor: '#E4E7EC',
+    shadow: 'rgba(16, 24, 40, 0.16)',
     item: {
       color: {
-        normal: Colors.neutral[90],
-        danger: Colors.red[60],
+        normal: '#111827',
+        danger: '#B42318',
       },
       backgroundColor: {
         default: Colors.neutral[0],
-        hover: Colors.neutral[5],
+        hover: '#F6F7F9',
       },
     },
     button: {
       backgroundColor: {
         default: 'transparent',
-        hover: Colors.neutral[20],
+        hover: '#EEF2F6',
       },
     },
   },
@@ -529,10 +551,10 @@ export const theme = {
   button: {
     primary: {
       backgroundColor: {
-        normal: Colors.brand[80],
-        hover: Colors.brand[90],
-        active: Colors.brand[70],
-        disabled: Colors.brand[50],
+        normal: '#111827',
+        hover: '#1F2937',
+        active: '#030712',
+        disabled: '#98A2B3',
       },
       color: {
         normal: Colors.brand[0],
@@ -543,24 +565,24 @@ export const theme = {
     },
     secondary: {
       backgroundColor: {
-        normal: Colors.brand[5],
-        hover: Colors.brand[10],
-        active: Colors.brand[15],
-        disabled: Colors.brand[5],
+        normal: Colors.neutral[0],
+        hover: '#F6F7F9',
+        active: '#EEF2F6',
+        disabled: '#F2F4F7',
       },
       color: {
-        normal: Colors.brand[90],
-        hover: Colors.brand[90],
-        active: Colors.brand[90],
-        disabled: Colors.brand[30],
+        normal: '#344054',
+        hover: '#111827',
+        active: '#111827',
+        disabled: '#98A2B3',
       },
     },
     danger: {
       backgroundColor: {
-        normal: Colors.red[50],
-        hover: Colors.red[55],
-        active: Colors.red[60],
-        disabled: Colors.red[20],
+        normal: '#D92D20',
+        hover: '#B42318',
+        active: '#912018',
+        disabled: '#FCA5A5',
       },
       color: {
         normal: Colors.brand[0],
@@ -571,22 +593,22 @@ export const theme = {
     },
     text: {
       backgroundColor: {
-        normal: Colors.brand[0],
-        hover: Colors.brand[0],
-        active: Colors.brand[0],
-        disabled: Colors.brand[0],
+        normal: 'transparent',
+        hover: '#F2F4F7',
+        active: '#EAECF0',
+        disabled: 'transparent',
       },
       color: {
-        normal: Colors.brand[70],
-        hover: Colors.brand[90],
-        active: Colors.brand[50],
-        disabled: Colors.brand[40],
+        normal: '#475467',
+        hover: '#111827',
+        active: '#0F766E',
+        disabled: '#98A2B3',
       },
     },
     height: {
-      S: '24px',
-      M: '32px',
-      L: '40px',
+      S: '28px',
+      M: '36px',
+      L: '44px',
     },
     fontSize: {
       S: '14px',
@@ -610,39 +632,39 @@ export const theme = {
   },
   menu: {
     header: {
-      backgroundColor: Colors.brand[0],
+      backgroundColor: hexToRgba(Colors.neutral[0], 0.9),
     },
     primary: {
       backgroundColor: {
         normal: 'transparent',
-        hover: 'transparent',
-        active: 'transparent',
+        hover: '#F2F4F7',
+        active: '#EDF7F4',
       },
       color: {
-        normal: Colors.neutral[50],
-        hover: Colors.neutral[90],
-        active: Colors.neutral[95],
+        normal: '#475467',
+        hover: '#111827',
+        active: '#0F766E',
       },
       statusIconColor: {
         online: Colors.green[40],
         offline: Colors.red[50],
         initializing: Colors.yellow[20],
       },
-      chevronIconColor: hexToRgba(Colors.brand[95], 0.5),
-      fontWeight: 500,
+      chevronIconColor: '#98A2B3',
+      fontWeight: 600,
     },
     secondary: {
       backgroundColor: {
         normal: hexToRgba(Colors.brand[95], 0),
-        hover: hexToRgba(Colors.brand[95], 0.03),
-        active: hexToRgba(Colors.brand[95], 0.05),
+        hover: '#F6F7F9',
+        active: '#EDF7F4',
       },
       color: {
-        normal: Colors.brand[50],
-        hover: Colors.brand[90],
-        active: Colors.brand[90],
+        normal: '#667085',
+        hover: '#111827',
+        active: '#0F766E',
       },
-      fontWeight: 400,
+      fontWeight: 500,
     },
   },
   clusterMenu: {
@@ -677,35 +699,35 @@ export const theme = {
     },
     th: {
       backgroundColor: {
-        normal: Colors.neutral[0],
+        normal: '#F8FAFC',
       },
       color: {
-        sortable: Colors.neutral[30],
-        normal: Colors.neutral[60],
-        hover: Colors.brand[50],
-        active: Colors.brand[50],
+        sortable: '#98A2B3',
+        normal: '#667085',
+        hover: '#111827',
+        active: '#0F766E',
       },
       previewColor: {
-        normal: Colors.brand[50],
+        normal: '#0F766E',
       },
     },
     td: {
-      borderTop: Colors.neutral[5],
+      borderTop: '#EEF2F6',
       color: {
-        normal: Colors.neutral[90],
+        normal: '#111827',
       },
     },
     tr: {
       backgroundColor: {
         normal: Colors.neutral[0],
-        hover: Colors.neutral[5],
+        hover: '#F8FAFC',
       },
     },
     link: {
       color: {
-        normal: Colors.neutral[90],
-        hover: Colors.neutral[50],
-        active: Colors.neutral[90],
+        normal: '#111827',
+        hover: '#0F766E',
+        active: '#134E4A',
       },
     },
     colored: {
@@ -715,17 +737,17 @@ export const theme = {
       },
     },
     expander: {
-      normal: Colors.brand[30],
-      hover: Colors.brand[40],
-      active: Colors.brand[50],
-      disabled: Colors.neutral[10],
+      normal: '#98A2B3',
+      hover: '#0F766E',
+      active: '#134E4A',
+      disabled: '#D0D5DD',
     },
     pagination: {
       button: {
-        background: Colors.neutral[90],
-        border: Colors.neutral[80],
+        background: Colors.neutral[0],
+        border: '#D0D5DD',
       },
-      info: Colors.neutral[90],
+      info: '#475467',
     },
     filter: {
       multiSelect: {
@@ -744,9 +766,9 @@ export const theme = {
     },
     resizer: {
       background: {
-        normal: Colors.neutral[30],
-        active: Colors.neutral[90],
-        hover: Colors.neutral[90],
+        normal: '#D0D5DD',
+        active: '#0F766E',
+        hover: '#0F766E',
       },
     },
   },
@@ -778,25 +800,25 @@ export const theme = {
   select: {
     backgroundColor: {
       normal: Colors.neutral[0],
-      hover: Colors.neutral[5],
-      active: Colors.neutral[10],
+      hover: '#F8FAFC',
+      active: '#EEF2F6',
     },
     color: {
-      normal: Colors.neutral[70],
-      hover: Colors.neutral[90],
-      active: Colors.neutral[90],
-      disabled: Colors.neutral[30],
+      normal: '#344054',
+      hover: '#111827',
+      active: '#111827',
+      disabled: '#98A2B3',
     },
     borderColor: {
-      normal: Colors.neutral[30],
-      hover: Colors.neutral[50],
-      active: Colors.neutral[70],
-      disabled: Colors.neutral[10],
+      normal: '#D0D5DD',
+      hover: '#98A2B3',
+      active: '#0F766E',
+      disabled: '#EAECF0',
     },
     optionList: {
-      borderColor: Colors.neutral[10],
+      borderColor: '#E4E7EC',
       scrollbar: {
-        backgroundColor: Colors.neutral[30],
+        backgroundColor: '#D0D5DD',
       },
     },
     multiSelectOption: {
@@ -805,45 +827,45 @@ export const theme = {
         borderColor: Colors.neutral[50],
       },
     },
-    label: Colors.neutral[50],
+    label: '#667085',
   },
   input: {
     borderColor: {
-      normal: Colors.neutral[30],
-      hover: Colors.neutral[50],
-      focus: Colors.neutral[70],
-      disabled: Colors.neutral[10],
+      normal: '#D0D5DD',
+      hover: '#98A2B3',
+      focus: '#0F766E',
+      disabled: '#EAECF0',
     },
     color: {
-      normal: Colors.neutral[90],
+      normal: '#111827',
       placeholder: {
-        normal: Colors.neutral[30],
-        readOnly: Colors.neutral[30],
+        normal: '#98A2B3',
+        readOnly: '#98A2B3',
       },
-      disabled: Colors.neutral[30],
-      readOnly: Colors.neutral[90],
+      disabled: '#98A2B3',
+      readOnly: '#344054',
     },
     backgroundColor: {
       normal: Colors.neutral[0],
-      readOnly: Colors.neutral[5],
+      readOnly: '#F2F4F7',
       disabled: Colors.neutral[0],
     },
-    error: Colors.red[50],
+    error: '#D92D20',
     icon: {
-      color: Colors.neutral[70],
-      hover: Colors.neutral[90],
+      color: '#667085',
+      hover: '#111827',
     },
     label: {
-      color: Colors.neutral[70],
+      color: '#344054',
     },
   },
   metrics: {
-    backgroundColor: Colors.neutral[5],
-    sectionTitle: Colors.neutral[90],
+    backgroundColor: '#F6F7F9',
+    sectionTitle: '#111827',
     indicator: {
-      titleColor: Colors.neutral[50],
-      warningTextColor: Colors.red[50],
-      lightTextColor: Colors.neutral[30],
+      titleColor: '#667085',
+      warningTextColor: '#D92D20',
+      lightTextColor: '#98A2B3',
     },
     wrapper: Colors.neutral[0],
     filters: {
@@ -855,12 +877,12 @@ export const theme = {
   },
   scrollbar: {
     trackColor: {
-      normal: Colors.neutral[5],
-      active: Colors.neutral[5],
+      normal: '#F2F4F7',
+      active: '#F2F4F7',
     },
     thumbColor: {
-      normal: Colors.neutral[15],
-      active: Colors.neutral[50],
+      normal: '#D0D5DD',
+      active: '#98A2B3',
     },
   },
   consumerTopicContent: {
@@ -1038,7 +1060,7 @@ export const darkTheme: ThemeType = {
     },
   },
   logo: {
-    color: '#FDFDFD',
+    color: '#2DD4BF',
   },
   version: {
     currentVersion: {
@@ -1052,8 +1074,30 @@ export const darkTheme: ThemeType = {
     color: {
       normal: Colors.neutral[0],
     },
-    backgroundColor: Colors.brand[90],
+    backgroundColor: '#09090B',
     transparentColor: 'transparent',
+  },
+  surface: {
+    canvas: '#09090B',
+    panel: '#111113',
+    panelAlt: '#18181B',
+    sidebar: '#0F1011',
+    header: hexToRgba('#09090B', 0.88),
+    border: '#27272A',
+    borderStrong: '#3F3F46',
+    muted: '#18181B',
+    mutedHover: '#27272A',
+    selected: '#102A2A',
+    selectedBorder: '#0F766E',
+    accent: '#2DD4BF',
+    accentMuted: '#143C3A',
+    accentText: '#99F6E4',
+    foreground: '#FAFAFA',
+    foregroundMuted: '#A1A1AA',
+    foregroundSubtle: '#71717A',
+    shadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+    shadowLg: '0 18px 45px rgba(0, 0, 0, 0.42)',
+    ring: hexToRgba('#2DD4BF', 0.34),
   },
   link: {
     color: Colors.brand[50],
@@ -1521,10 +1565,23 @@ export const darkTheme: ThemeType = {
     ...baseTheme.code,
     backgroundColor: Colors.neutral[95],
   },
+  tag: {
+    backgroundColor: {
+      green: '#052E1A',
+      gray: '#27272A',
+      yellow: '#422006',
+      white: '#18181B',
+      red: '#450A0A',
+      blue: '#172554',
+      secondary: '#27272A',
+    },
+    color: '#E4E4E7',
+  },
   layout: {
     ...baseTheme.layout,
-    stuffColor: Colors.neutral[75],
-    stuffBorderColor: Colors.neutral[75],
+    mainBackgroundColor: '#09090B',
+    stuffColor: '#18181B',
+    stuffBorderColor: '#27272A',
     socialLink: Colors.neutral[30],
   },
   icons: {
