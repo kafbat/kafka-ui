@@ -18,6 +18,7 @@ import io.kafbat.ui.serdes.builtin.MessagePackSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.ProtobufRawSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
+import io.kafbat.ui.serdes.builtin.TransactionStateSerde;
 import io.kafbat.ui.serdes.builtin.UInt32Serde;
 import io.kafbat.ui.serdes.builtin.UInt64Serde;
 import io.kafbat.ui.serdes.builtin.UuidBinarySerde;
@@ -152,6 +153,7 @@ public class SerdesInitializer {
   private void registerTopicRelatedSerde(Map<String, SerdeInstance> serdes) {
     serdes.putAll(consumerOffsetsSerde());
     serdes.putAll(mirrorMakerSerdes());
+    serdes.putAll(transactionStateSerde());
   }
 
   private Map<String, SerdeInstance> consumerOffsetsSerde() {
@@ -161,6 +163,21 @@ public class SerdesInitializer {
         new SerdeInstance(
             ConsumerOffsetsSerde.NAME,
             new ConsumerOffsetsSerde(),
+            pattern,
+            pattern,
+            null,
+            false
+        )
+    );
+  }
+
+  private Map<String, SerdeInstance> transactionStateSerde() {
+    var pattern = Pattern.compile(TransactionStateSerde.TOPIC_NAME);
+    return Map.of(
+        TransactionStateSerde.NAME,
+        new SerdeInstance(
+            TransactionStateSerde.NAME,
+            new TransactionStateSerde(),
             pattern,
             pattern,
             null,
