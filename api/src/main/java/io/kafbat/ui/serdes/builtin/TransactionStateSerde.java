@@ -19,10 +19,16 @@ import org.apache.kafka.common.protocol.types.Schema;
 import org.apache.kafka.common.protocol.types.Struct;
 import org.apache.kafka.common.protocol.types.Type;
 
+/**
+ * Used deserialization fields from <a href="https://github.com/apache/kafka/tree/3.9/transaction-coordinator/src/main/resources/common/message">Apache github </a>
+ */
 public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
 
   private static final JsonMapper TX_JSON_MAPPER = createMapper();
 
+  /**
+   * Custom mapper to map transaction_status from id to readable format using {@link TransactionStatus} values
+   */
   private static JsonMapper createMapper() {
     var module = new SimpleModule();
     module.addSerializer(Struct.class, new JsonSerializer<Struct>() {
@@ -50,6 +56,7 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
   public static final String TOPIC_NAME = "__transaction_state";
   public static final String NAME = "__transaction_state";
 
+  // fields that are related to kafka 3.9.x
   private static final String TRANSACTIONAL_ID = "transaction_id";
   private static final String PRODUCER_ID = "producer_id";
   private static final String PRODUCER_EPOCH = "producer_epoch";
@@ -74,6 +81,11 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
     };
   }
 
+  /**
+   * Method to deserialize field key, it has only 0 version
+   *
+   * @return {@link io.kafbat.ui.serde.api.Serde.Deserializer}
+   */
   private Deserializer keyDeserializer() {
     final Schema transactionKeySchema = new Schema(
         new Field(TRANSACTIONAL_ID, Type.STRING, "")
@@ -90,6 +102,10 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
     };
   }
 
+  /**
+   * Method to deserialize value, has 0-1 version that are different in compact value type
+   * @return {@link io.kafbat.ui.serde.api.Serde.Deserializer}
+   */
   private Deserializer valueDeserializer() {
     final Schema transactionLogSchemaV0 =
         new Schema(
@@ -125,8 +141,6 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
       String result;
       var bb = ByteBuffer.wrap(data);
       short version = bb.getShort();
-      System.out.println("TransactionLog: version: " + version);
-      System.out.println("TransactionLog: " + bb.remaining());
       result = toJson(
           switch (version) {
             case 0 -> transactionLogSchemaV0.read(bb);
@@ -134,8 +148,6 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
             default -> throw new IllegalArgumentException("Unrecognized version: " + version);
           }
       );
-      System.out.println("TransactionLog: " + bb.remaining());
-
 
       if (bb.remaining() != 0) {
         throw new IllegalArgumentException(
@@ -149,12 +161,18 @@ public class TransactionStateSerde extends StructSerde implements BuiltInSerde {
     };
   }
 
+  /**
+   * Overrides parent method {@link StructSerde} to use custom json serializer
+   */
   @Override
   @SneakyThrows
   protected String toJson(Struct s) {
     return TX_JSON_MAPPER.writeValueAsString(s);
   }
 
+  /**
+   * Enum that contains all transaction states with their ids
+   */
   public enum TransactionStatus {
     EMPTY(0),
     ONGOING(1),

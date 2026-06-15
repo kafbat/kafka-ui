@@ -29,7 +29,6 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 class TransactionStateSerdeTest extends AbstractIntegrationTest {
 
-
   private static String targetTopic;
   private static String transactionalId;
 
@@ -98,7 +97,7 @@ class TransactionStateSerdeTest extends AbstractIntegrationTest {
 
             assertThat(values.isEmpty()).isFalse();
 
-            System.out.println("All values: " + values);
+            // check value structure
             assertThat(values).allSatisfy(v -> {
               assertThat(v).containsKeys(
                   "producer_id",
@@ -110,6 +109,7 @@ class TransactionStateSerdeTest extends AbstractIntegrationTest {
               );
             });
 
+            // checking existence different states
             // 0 - Empty
             assertThat(values).anyMatch(v ->
                 TransactionStateSerde.TransactionStatus.EMPTY.name().equals(v.get("transaction_status"))
@@ -146,6 +146,21 @@ class TransactionStateSerdeTest extends AbstractIntegrationTest {
     return new JsonMapper().readValue(result.getResult(), Map.class);
   }
 
+  // message examples
+  //  key:
+  //  {
+  //    "transaction_id": "my_ksql_1"
+  //  }
+  //  value:
+  //  {
+  //    "producer_id": 1,
+  //      "producer_epoch": 0,
+  //      "transaction_timeout_ms": 60000,
+  //      "transaction_status": "COMPLETE_COMMIT",
+  //      "transaction_partitions": [],
+  //    "transaction_last_update_timestamp_ms": 1781366899882,
+  //      "transaction_start_timestamp_ms": 1781366899725
+  //  }
   private static KafkaConsumer<Bytes, Bytes> createConsumer() {
     Properties props = new Properties();
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "transaction-state-" + UUID.randomUUID());
@@ -162,6 +177,7 @@ class TransactionStateSerdeTest extends AbstractIntegrationTest {
         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
         ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId,
+        //use transactions
         ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true"
     ));
   }
