@@ -1,5 +1,6 @@
 [versions]
 spring-boot = '3.5.14'
+nimbus-jose-jwt = '10.8'
 netty = '4.1.133.Final'
 
 aws-msk-auth = '2.3.0'
