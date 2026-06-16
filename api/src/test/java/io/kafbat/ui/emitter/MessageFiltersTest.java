@@ -20,6 +20,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("AvoidEscapedUnicodeCharacters")
 class MessageFiltersTest {
 
   @Nested
