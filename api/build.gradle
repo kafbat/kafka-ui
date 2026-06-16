@@ -17,7 +17,7 @@ configurations.all {
             // so we can safely exclude it from the resolution strategy
             if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
                 details.useVersion(libs.versions.netty.get())
-                details.because("Fixes CVE-2026-33871 and CVE-2026-33870. Revert when Spring Boot releases a version with the fix")
+                details.because("Fixes CVE-2026-42578 through CVE-2026-44248. Revert when Spring Boot releases a version with the fix")
             }
         }
         capabilitiesResolution {
@@ -35,12 +35,7 @@ dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation(libs.spring.starter.security){
-        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-53864. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
-    }
-    implementation(libs.nimbus.jose.jwt){
-        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
-    }
+    implementation libs.spring.starter.security
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
     implementation libs.spring.starter.oauth2.client
