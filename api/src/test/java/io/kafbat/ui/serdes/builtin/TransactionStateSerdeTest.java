@@ -22,10 +22,10 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.utils.Bytes;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 class TransactionStateSerdeTest extends AbstractIntegrationTest {
 
@@ -84,10 +84,9 @@ class TransactionStateSerdeTest extends AbstractIntegrationTest {
               if (rec.key() == null || rec.value() == null) {
                 continue;
               }
-              System.out.println("record");
               var keyJson = toMapFromJsom(keyDeserializer.deserialize(null, rec.key().get()));
 
-              if (!keyJson.containsKey("transaction_id")) {
+              if (!transactionalId.equals(keyJson.get("transaction_id"))) {
                 continue;
               }
 
