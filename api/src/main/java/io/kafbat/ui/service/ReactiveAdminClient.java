@@ -160,10 +160,21 @@ public class ReactiveAdminClient implements Closeable {
                 .orElse(desc.getNodes().iterator().next().id());
             return loadBrokersConfig(ac, List.of(targetNodeId))
                 .map(map -> map.isEmpty() ? List.<ConfigEntry>of() : map.get(targetNodeId))
-                .zipWith(toMono(ac.describeFeatures().featureMetadata()))
+                .zipWith(
+                    toMono(ac.describeFeatures().featureMetadata())
+                        .map(Optional::of)
+                        .onErrorResume(ClusterAuthorizationException.class, th -> {
+                          log.trace("ClusterAuthorizationException while calling describeFeatures", th);
+                          return Mono.just(Optional.empty());
+                        })
+                        .onErrorResume(UnsupportedVersionException.class, th -> {
+                          log.trace("UnsupportedVersionException while calling describeFeatures", th);
+                          return Mono.just(Optional.empty());
+                        })
+                )
                 .flatMap(tuple -> {
                   List<ConfigEntry> configs = tuple.getT1();
-                  FeatureMetadata featureMetadata = tuple.getT2();
+                  Optional<FeatureMetadata> featureMetadataOpt = tuple.getT2();
                   Optional<String> version = Optional.empty();
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
@@ -174,9 +185,9 @@ public class ReactiveAdminClient implements Closeable {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
                   }
-                  if (version.isEmpty()) {
+                  if (version.isEmpty() && featureMetadataOpt.isPresent()) {
                     FinalizedVersionRange metadataVersion =
-                        featureMetadata.finalizedFeatures().get("metadata.version");
+                        featureMetadataOpt.get().finalizedFeatures().get("metadata.version");
                     if (metadataVersion != null) {
                       version = MetadataVersion.findVersion(metadataVersion.maxVersionLevel());
                     }
