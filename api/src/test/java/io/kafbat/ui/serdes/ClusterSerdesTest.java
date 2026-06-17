@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
