@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # https://github.com/actions/checkout/releases/tag/v7.0.0
         with:
           token: ${{ github.token }}
       - name: Check URLs in files
