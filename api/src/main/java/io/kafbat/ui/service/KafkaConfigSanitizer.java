@@ -75,8 +75,6 @@ public class KafkaConfigSanitizer {
   public Object sanitize(String key, @Nullable Object value) {
     for (Pattern pattern : sanitizeKeysPatterns) {
       if (pattern.matcher(key).matches()) {
-        // The likelihood that a credential matching key contains exactly CONFIG_PROVIDER_REFERENCE pattern is
-        // astronomically low as it is matching against an exact reference to ${ ... : ... }
         if (isConfigProviderReference(value)) {
           return value;
         }
@@ -94,8 +92,8 @@ public class KafkaConfigSanitizer {
    * @return true if provider reference, false otherwise
    */
   private static boolean isConfigProviderReference(@Nullable Object value) {
-    return value instanceof CharSequence
-        && CONFIG_PROVIDER_REFERENCE.matcher((CharSequence) value).matches();
+    return value instanceof CharSequence charsequence
+        && CONFIG_PROVIDER_REFERENCE.matcher(charsequence).find();
   }
 
   public Map<String, Object> sanitizeConnectorConfig(@Nullable Map<String, Object> original) {
