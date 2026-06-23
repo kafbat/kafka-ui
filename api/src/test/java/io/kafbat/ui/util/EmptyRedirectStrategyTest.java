@@ -56,6 +56,20 @@ class EmptyRedirectStrategyTest {
     assertThat(exchange.getResponse().getHeaders().getLocation()).isEqualTo(external);
   }
 
+  @Test
+  void treatsEmptyPathAsRootAndPrependsContextPath() {
+    // An absolute URL with no path component (getPath() == "") hits the empty-path branch,
+    // which falls back to "/" and is therefore made context-relative. This input does not
+    // occur in practice (the success handler only passes path-only URIs), but the branch is
+    // documented here so both paths of createLocation() are covered.
+    var exchange = exchangeWithContextPath("/kafka");
+
+    StepVerifier.create(STRATEGY.sendRedirect(exchange, URI.create("https://auth.example.com")))
+        .verifyComplete();
+
+    assertThat(exchange.getResponse().getHeaders().getLocation()).isEqualTo(URI.create("/kafka/"));
+  }
+
   private static MockServerWebExchange exchangeWithContextPath(String contextPath) {
     return MockServerWebExchange.from(
         MockServerHttpRequest.get(contextPath + "/").contextPath(contextPath));
