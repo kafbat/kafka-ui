@@ -18,6 +18,10 @@ import ErrorPage from 'components/ErrorPage/ErrorPage';
 import { getBrokersTableColumns, getBrokersTableRows } from './lib';
 import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
 
+/**
+ * Per-cluster Brokers page: shows the cluster overview metrics and the list of
+ * brokers, and navigates into a single broker's detail page on row click.
+ */
 const BrokersList: React.FC = () => {
   const navigate = useNavigate();
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
@@ -87,6 +91,7 @@ const BrokersList: React.FC = () => {
               onlinePartitionCount={onlinePartitionCount}
               underReplicatedPartitionCount={underReplicatedPartitionCount}
               controller={cluster?.controller}
+              bootstrapServers={cluster?.bootstrapServers}
             />
 
             {isLoading && <PageLoader offsetY={300} />}

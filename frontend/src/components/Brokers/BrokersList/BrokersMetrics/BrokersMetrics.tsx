@@ -1,6 +1,8 @@
 import React from 'react';
 import * as Metrics from 'components/common/Metrics';
 import { ControllerType } from 'generated-sources';
+import CopyIcon from 'components/common/Icons/CopyIcon';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './BrokersMetrics.styled';
 
@@ -14,8 +16,14 @@ type BrokersMetricsProps = {
   underReplicatedPartitionCount: number | undefined;
   version: string | undefined;
   controller: ControllerType | undefined;
+  /** Comma-separated `host:port` list the cluster was configured with. */
+  bootstrapServers: string | undefined;
 };
 
+/**
+ * Cluster overview header. Renders the "Uptime" and "Partitions" indicator
+ * groups for the currently selected cluster.
+ */
 export const BrokersMetrics = ({
   brokerCount,
   version,
@@ -26,12 +34,18 @@ export const BrokersMetrics = ({
   underReplicatedPartitionCount,
   onlinePartitionCount,
   controller,
+  bootstrapServers,
 }: BrokersMetricsProps) => {
   const replicas = (inSyncReplicasCount ?? 0) + (outOfSyncReplicasCount ?? 0);
   const areAllInSync = inSyncReplicasCount && replicas === inSyncReplicasCount;
   const partitionIsOffline = offlinePartitionCount && offlinePartitionCount > 0;
 
   const isActiveControllerUnKnown = typeof activeControllers === 'undefined';
+
+  const { copyToClipboard: copyBootstrapServers } = useDataSaver(
+    'bootstrap-servers',
+    bootstrapServers ?? ''
+  );
 
   return (
     <Metrics.Wrapper>
@@ -52,6 +66,21 @@ export const BrokersMetrics = ({
         </Metrics.Indicator>
 
         <Metrics.Indicator label="Version">{version}</Metrics.Indicator>
+
+        <Metrics.Indicator label="Bootstrap Servers">
+          <S.BootstrapServersValue>
+            {bootstrapServers ?? '—'}
+            <S.CopyButton
+              type="button"
+              aria-label="Copy bootstrap servers"
+              title="Copy bootstrap servers"
+              onClick={copyBootstrapServers}
+              disabled={!bootstrapServers}
+            >
+              <CopyIcon />
+            </S.CopyButton>
+          </S.BootstrapServersValue>
+        </Metrics.Indicator>
       </Metrics.Section>
 
       <Metrics.Section title="Partitions">

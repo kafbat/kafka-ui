@@ -12,6 +12,7 @@ export const onlineClusterPayload: Cluster = {
   readOnly: false,
   features: [],
   controller: ControllerType.KRAFT,
+  bootstrapServers: 'host1:9092,host2:9092',
 };
 export const offlineClusterPayload: Cluster = {
   name: 'local',
@@ -25,6 +26,7 @@ export const offlineClusterPayload: Cluster = {
   features: [],
   readOnly: true,
   controller: ControllerType.KRAFT,
+  bootstrapServers: 'offline-host:9092',
 };
 
 export const clustersPayload: Cluster[] = [

@@ -47,6 +47,8 @@ model Cluster {
   version?: string;
   features?: ClusterFeature[];
   controller?: ControllerType;
+  @doc("Comma-separated host:port list the cluster was configured with.")
+  bootstrapServers?: string;
 }
 
 alias ClusterFeature =
