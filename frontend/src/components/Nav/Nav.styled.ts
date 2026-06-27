@@ -1,6 +1,10 @@
 import styled from 'styled-components';
 import { ClusterColorKey } from 'theme/theme';
 
+export const SearchWrapper = styled.div`
+  padding: 4px 4px 8px;
+`;
+
 export const List = styled.ul.attrs({ role: 'menu' })`
   & > & {
     padding: 0 0 0 8px;
