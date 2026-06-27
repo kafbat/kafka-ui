@@ -24,9 +24,9 @@ describe('CustomParamsField', () => {
   const remove = jest.fn();
   const setExistingFields = jest.fn();
 
-  const setupComponent = (props: Props) => {
+  const setupComponent = (props: Props, formDefaults: object = {}) => {
     const Wrapper: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
-      const methods = useForm();
+      const methods = useForm({ defaultValues: formDefaults });
       return <FormProvider {...methods}>{children}</FormProvider>;
     };
 
@@ -91,6 +91,47 @@ describe('CustomParamsField', () => {
       await userEvent.type(getRemoveButton(), SPACE_KEY);
       // userEvent.type triggers remove two times as at first it clicks on element and then presses space
       expect(remove).toHaveBeenCalledTimes(2);
+    });
+
+    it('clicking delete removes the field name from existingFields', async () => {
+      const selectedParam = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
+      const otherParam = 'some.other.param';
+      // Initialize the form with the param name so nameValue is set in the component
+      const formDefaults = {
+        customParams: [{ name: selectedParam, value: '' }],
+      };
+
+      setupComponent(
+        {
+          field,
+          isDisabled,
+          index,
+          remove,
+          existingFields: [selectedParam, otherParam],
+          setExistingFields,
+        },
+        formDefaults
+      );
+
+      await userEvent.click(getRemoveButton());
+
+      // setExistingFields should have been called with the selected param removed
+      expect(setExistingFields).toHaveBeenCalledWith([otherParam]);
+      expect(remove).toHaveBeenCalledWith(index);
+    });
+
+    it('clicking delete calls remove even when field has no selected name', async () => {
+      setupComponent({
+        field,
+        isDisabled,
+        index,
+        remove,
+        existingFields: [],
+        setExistingFields,
+      });
+
+      await userEvent.click(getRemoveButton());
+      expect(remove).toHaveBeenCalledWith(index);
     });
 
     it('can select option', async () => {
