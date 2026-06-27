@@ -1,7 +1,7 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
@@ -56,7 +56,6 @@ const Filters: React.FC<FiltersProps> = ({
     offset,
     setOffsetValue,
     search,
-    setSearch,
     partitions: p,
     setPartition,
     smartFilter,
@@ -66,6 +65,11 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
+  const [searchValue, setSearchValue] = useState(search);
+
+  useEffect(() => {
+    setSearchValue(search);
+  }, [search]);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -101,7 +105,7 @@ const Filters: React.FC<FiltersProps> = ({
     if (isLiveMode(mode) && isFetching) {
       abortFetchData();
     }
-    refreshData();
+    refreshData(searchValue);
   };
 
   return (
@@ -185,7 +189,12 @@ const Filters: React.FC<FiltersProps> = ({
           </Button>
         </FlexBox>
 
-        <Search placeholder="Search" value={search} onChange={setSearch} />
+        <Search
+          placeholder="Search"
+          value={searchValue}
+          onChange={setSearchValue}
+          debounceMs={0}
+        />
       </FlexBox>
       <FlexBox
         gap="10px"
