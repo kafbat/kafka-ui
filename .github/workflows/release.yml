@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # https://github.com/actions/checkout/releases/tag/v4.2.2
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
@@ -26,7 +26,7 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Set up JDK
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # https://github.com/actions/setup-java/releases/tag/v4.6.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -50,7 +50,7 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
 
       - name: Archive JAR
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # https://github.com/actions/upload-artifact/releases/tag/v4
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # https://github.com/actions/upload-artifact/releases/tag/v4.6.0
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
@@ -81,7 +81,7 @@ jobs:
     needs: release
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # https://github.com/peter-evans/repository-dispatch/releases/tag/v3
+        uses: peter-evans/repository-dispatch@5fc4efd1a4797ddb68ffd0714a238564e4cc0e6f # https://github.com/peter-evans/repository-dispatch/releases/tag/v4.0.0
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
           repository: kafbat/helm-charts
