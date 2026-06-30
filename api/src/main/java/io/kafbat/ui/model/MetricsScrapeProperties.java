@@ -29,17 +29,24 @@ public class MetricsScrapeProperties {
 
   public static MetricsScrapeProperties create(ClustersProperties.Cluster cluster) {
     var metrics = Objects.requireNonNull(cluster.getMetrics());
+
+    KeystoreConfig keystoreConfig = null;
+    if (metrics.getKeystoreLocation() != null) {
+      keystoreConfig = new KeystoreConfig(
+          metrics.getKeystoreType(),
+          metrics.getKeystoreCertificate(),
+          metrics.getKeystoreLocation(),
+          metrics.getKeystorePassword()
+      );
+    }
+
     return MetricsScrapeProperties.builder()
         .port(metrics.getPort())
         .ssl(Optional.ofNullable(metrics.getSsl()).orElse(false))
         .username(metrics.getUsername())
         .password(metrics.getPassword())
         .truststoreConfig(cluster.getSsl())
-        .keystoreConfig(
-            metrics.getKeystoreLocation() != null
-                ? new KeystoreConfig(metrics.getKeystoreLocation(), metrics.getKeystorePassword())
-                : null
-        )
+        .keystoreConfig(keystoreConfig)
         .build();
   }
 
