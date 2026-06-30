@@ -1,0 +1,35 @@
+spring:
+  ldap:
+    base: "cn={0},ou=people,dc=kafbat,dc=io"
+    admin-user: "cn=admin,dc=kafbat,dc=io"
+    admin-password: "StrongPassword123"
+    user-filter-search-base: "dc=kafbat,dc=io"
+    user-filter-search-filter: "(&(uid={0})(objectClass=inetOrgPerson))"
+    group-filter-search-base: "ou=people,dc=kafbat,dc=io" # required for RBAC
+logging:
+  level:
+    root: info
+
+auth:
+  type: LDAP
+rbac:
+  roles:
+    - name: "roleName"
+      clusters:
+        - local
+      subjects:
+        - provider: ldap
+          type: group
+          value: firstGroup
+        - provider: ldap
+          type: group
+          value: secondGroup
+        - provider: ldap
+          type: user
+          value: jacksmith
+      permissions:
+        - resource: applicationconfig
+          actions: all
+        - resource: topic
+          value: ".*"
+          actions: all
