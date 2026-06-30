@@ -296,4 +296,70 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
         .anyMatch(role -> role.getName().equals(ADMIN_ROLE));
   }
 
+  @Test
+  void validateAclPrincipalModification_allowedNonMatch() {
+    withSecurityContext(() -> {
+      setUpProtectedPrincipalsRole(List.of("User:kafka-ui-service", "User:system-admin"));
+      when(user.groups()).thenReturn(List.of("acl-role"));
+
+      Mono<Void> mono = accessControlService.validateAclPrincipalModification(PROD_CLUSTER, "User:my-tenant");
+
+      StepVerifier.create(mono)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void validateAclPrincipalModification_blockedMatch() {
+    withSecurityContext(() -> {
+      setUpProtectedPrincipalsRole(List.of("User:kafka-ui-service"));
+      when(user.groups()).thenReturn(List.of("acl-role"));
+
+      Mono<Void> mono = accessControlService.validateAclPrincipalModification(PROD_CLUSTER, "User:kafka-ui-service");
+
+      StepVerifier.create(mono)
+          .expectErrorMatches(e -> e instanceof AccessDeniedException
+              && e.getMessage().contains("User:kafka-ui-service"))
+          .verify();
+    });
+  }
+
+  @Test
+  void validateAclPrincipalModification_allowedEmptyList() {
+    withSecurityContext(() -> {
+      setUpProtectedPrincipalsRole(List.of());
+      when(user.groups()).thenReturn(List.of("acl-role"));
+
+      Mono<Void> mono = accessControlService.validateAclPrincipalModification(PROD_CLUSTER, "User:kafka-ui-service");
+
+      StepVerifier.create(mono)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  @Test
+  void validateAclPrincipalModification_multiplePatterns_blockedBySecond() {
+    withSecurityContext(() -> {
+      setUpProtectedPrincipalsRole(List.of("User:kafka-ui-service", "User:system-admin"));
+      when(user.groups()).thenReturn(List.of("acl-role"));
+
+      Mono<Void> mono = accessControlService.validateAclPrincipalModification(PROD_CLUSTER, "User:system-admin");
+
+      StepVerifier.create(mono)
+          .expectErrorMatches(e -> e instanceof AccessDeniedException
+              && e.getMessage().contains("User:system-admin"))
+          .verify();
+    });
+  }
+
+  private void setUpProtectedPrincipalsRole(List<String> patterns) {
+    Role aclRole = MockedRbacUtils.getAclRoleWithProtectedPrincipals("acl-role", PROD_CLUSTER, patterns);
+    List<Role> roles = List.of(aclRole);
+    RoleBasedAccessControlProperties properties = mock();
+    when(properties.getRoles()).thenReturn(roles);
+    ReflectionTestUtils.setField(accessControlService, "properties", properties);
+    ReflectionTestUtils.setField(accessControlService, "rbacEnabled", true);
+  }
 }
