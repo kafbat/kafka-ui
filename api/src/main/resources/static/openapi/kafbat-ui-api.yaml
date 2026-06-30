@@ -4218,6 +4218,7 @@ components:
       enum:
         - ZOOKEEPER
         - KRAFT
+        - UNKNOWN
     CreateConsumerAcl:
       type: object
       properties:

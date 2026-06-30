@@ -150,9 +150,9 @@ describe('Message component', () => {
 
   it('should check open Message Content functionality', async () => {
     renderComponent();
-    const messageToggleIcon = screen.getByRole('button', { hidden: true });
+    const messageRow = screen.getByRole('row');
     expect(screen.queryByText(mockMessageContentText)).not.toBeInTheDocument();
-    await act(() => userEvent.click(messageToggleIcon));
+    await act(() => userEvent.click(messageRow));
     expect(screen.getByText(mockMessageContentText)).toBeInTheDocument();
   });
 

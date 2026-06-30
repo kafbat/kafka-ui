@@ -157,7 +157,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
           </S.Metadata>
         </S.DataCell>
         <td style={{ width: '5%' }}>
-          {vEllipsisOpen && (
+          <div style={{ visibility: vEllipsisOpen ? 'visible' : 'hidden' }}>
             <Dropdown>
               <DropdownItem
                 aria-label="Copy to clipboard"
@@ -182,7 +182,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
                 Reproduce message
               </ActionDropdownItem>
             </Dropdown>
-          )}
+          </div>
         </td>
       </S.ClickableRow>
       {isOpen && (
