@@ -15,6 +15,7 @@ import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
@@ -87,8 +88,13 @@ public class MessageFilters {
     }
 
     for (final var entry : headers.entrySet()) {
-      if (CS.contains(entry.getKey(), searchString) || CS.contains(entry.getValue(), searchString)) {
+      if (CS.contains(entry.getKey(), searchString)) {
         return true;
+      }
+      for (final var value : entry.getValue()) {
+        if (CS.contains(value, searchString)) {
+          return true;
+        }
       }
     }
 
@@ -163,7 +169,7 @@ public class MessageFilters {
         "timestampMs", SimpleType.INT,
         "keyAsText", SimpleType.STRING,
         "valueAsText", SimpleType.STRING,
-        "headers", MapType.create(SimpleType.STRING, SimpleType.STRING),
+        "headers", MapType.create(SimpleType.STRING, ListType.create(SimpleType.STRING)),
         "key", SimpleType.DYN,
         "value", SimpleType.DYN
     );

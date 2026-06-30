@@ -17,7 +17,7 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
         <MessageContent
           messageKey='"test-key"'
           messageContent='{"data": "test"}'
-          headers={{ header: 'test' }}
+          headers={{ header1: ['test'], header2: ['value1', 'value2'] }}
           timestamp={new Date(0)}
           timestampType={TopicMessageTimestampTypeEnum.CREATE_TIME}
           keySerde="SchemaRegistry"
