@@ -207,9 +207,12 @@ public class JsonAvroConversion {
         ObjectNode node = MAPPER.createObjectNode();
         for (Schema.Field field : avroSchema.getFields()) {
           var fieldVal = rec.get(field.name());
-          if (properties.showNullValues() || fieldVal != null) {
-            node.set(field.name(), convertAvroToJson(fieldVal, field.schema(), properties));
-          }
+          node.set(
+              field.name(),
+              fieldVal == null
+                  ? MAPPER.nullNode()
+                  : convertAvroToJson(fieldVal, field.schema(), properties)
+          );
         }
         yield node;
       }
