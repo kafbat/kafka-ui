@@ -60,7 +60,7 @@ describe('Overview', () => {
   });
 
   it('renders replica cell with props', () => {
-    render(<Replica leader />);
+    render(<Replica $leader />);
     const element = screen.getByLabelText('replica-info');
     expect(element).toBeInTheDocument();
     expect(element).toHaveStyleRule(
@@ -71,7 +71,7 @@ describe('Overview', () => {
 
   describe('when replicas out of sync', () => {
     it('should be the appropriate color', () => {
-      render(<Replica outOfSync />);
+      render(<Replica $outOfSync />);
       const element = screen.getByLabelText('replica-info');
       expect(element).toBeInTheDocument();
       expect(element).toHaveStyleRule(

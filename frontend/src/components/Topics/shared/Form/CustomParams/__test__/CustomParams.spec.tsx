@@ -28,9 +28,9 @@ const expectOptionAvailability = async (
   const selectedOption = selectedOptions[0];
 
   if (disabled) {
-    expect(selectedOption).toHaveAttribute('disabled');
+    expect(selectedOption).toHaveAttribute('aria-disabled', 'true');
   } else {
-    expect(selectedOption).toBeEnabled();
+    expect(selectedOption).not.toHaveAttribute('aria-disabled');
   }
 
   expect(selectedOption).toHaveStyleRule(

@@ -22,7 +22,7 @@ const Navbar = styled.nav`
       color: ${({ theme }) => theme.primaryTab.color.active};
     }
     &.is-disabled {
-      color: ${(props) => props.theme.primaryTab.color.disabled};
+      color: ${({ theme }) => theme.primaryTab.color.disabled};
       border-bottom: 1px ${({ theme }) => theme.default.transparentColor};
       cursor: not-allowed;
     }

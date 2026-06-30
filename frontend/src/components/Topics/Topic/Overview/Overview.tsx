@@ -53,8 +53,8 @@ const Overview: React.FC = () => {
           }
           return replicas?.map(({ broker, leader, inSync }: Replica) => (
             <S.Replica
-              leader={leader}
-              outOfSync={!inSync}
+              $leader={leader}
+              $outOfSync={!inSync}
               key={broker}
               title={leader ? 'Leader' : ''}
             >
@@ -128,7 +128,7 @@ const Overview: React.FC = () => {
             <Metrics.LightText> of {data?.replicas}</Metrics.LightText>
           </Metrics.Indicator>
           <Metrics.Indicator label="Type">
-            <Tag color="gray">{data?.internal ? 'Internal' : 'External'}</Tag>
+            <Tag $color="gray">{data?.internal ? 'Internal' : 'External'}</Tag>
           </Metrics.Indicator>
           <Metrics.Indicator label="Segment Size" title="">
             <BytesFormatted value={data?.segmentSize} />
@@ -137,7 +137,7 @@ const Overview: React.FC = () => {
             {data?.segmentCount}
           </Metrics.Indicator>
           <Metrics.Indicator label="Clean Up Policy">
-            <Tag color="gray">{data?.cleanUpPolicy || 'Unknown'}</Tag>
+            <Tag $color="gray">{data?.cleanUpPolicy || 'Unknown'}</Tag>
           </Metrics.Indicator>
           <Metrics.Indicator label="Message Count">
             {messageCount}

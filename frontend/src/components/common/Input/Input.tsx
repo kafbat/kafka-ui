@@ -6,12 +6,10 @@ import { ErrorMessage } from '@hookform/error-message';
 import * as S from './Input.styled';
 import { InputLabel } from './InputLabel.styled';
 
-export interface InputProps
-  extends
-    React.InputHTMLAttributes<HTMLInputElement>,
-    Omit<S.InputProps, 'search'> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name?: string;
   hookFormOptions?: RegisterOptions;
+  inputSize?: 'S' | 'M' | 'L';
   search?: boolean;
   positiveOnly?: boolean;
   withError?: boolean;
@@ -181,8 +179,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         {search && <SearchIcon />}
         <S.Input
           id={fieldId}
-          inputSize={inputSize}
-          search={!!search}
+          $inputSize={inputSize}
+          $search={!!search}
           type={type}
           onKeyPress={keyPressEventHandler}
           onPaste={pasteEventHandler}

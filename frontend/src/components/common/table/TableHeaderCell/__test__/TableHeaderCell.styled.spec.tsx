@@ -14,9 +14,9 @@ describe('TableHeaderCell.Styled', () => {
     ) => {
       render(
         <S.Title
-          isOrderable={'isOrderable' in props ? props.isOrderable : true}
-          isOrdered={'isOrdered' in props ? props.isOrdered : true}
-          sortOrder={props.sortOrder || SortOrder.ASC}
+          $isOrderable={'$isOrderable' in props ? props.$isOrderable : true}
+          $isOrdered={'$isOrdered' in props ? props.$isOrdered : true}
+          $sortOrder={props.$sortOrder || SortOrder.ASC}
         >
           {text || DEFAULT_TITLE_TEXT}
         </S.Title>
@@ -45,7 +45,7 @@ describe('TableHeaderCell.Styled', () => {
     describe('Custom props', () => {
       it('should test the sort order styling of Title Component', () => {
         setUpComponent({
-          sortOrder: SortOrder.DESC,
+          $sortOrder: SortOrder.DESC,
         });
 
         const titleElement = screen.getByText(DEFAULT_TITLE_TEXT);
@@ -65,8 +65,8 @@ describe('TableHeaderCell.Styled', () => {
 
       it('should test the Title Component styling without the ordering', () => {
         setUpComponent({
-          isOrderable: false,
-          isOrdered: false,
+          $isOrderable: false,
+          $isOrdered: false,
         });
 
         const titleElement = screen.getByText(DEFAULT_TITLE_TEXT);

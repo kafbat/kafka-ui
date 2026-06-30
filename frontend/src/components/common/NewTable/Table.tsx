@@ -358,15 +358,15 @@ function Table<TData>({
                   </S.Th>
                 )}
                 {table.getCanSomeRowsExpand() && (
-                  <S.Th expander key={`${headerGroup.id}-expander`} />
+                  <S.Th $expander key={`${headerGroup.id}-expander`} />
                 )}
                 {headerGroup.headers.map((header) => {
                   return (
                     <S.Th
                       key={header.id}
                       colSpan={header.colSpan}
-                      sortable={header.column.getCanSort()}
-                      sortOrder={header.column.getIsSorted()}
+                      $sortable={header.column.getCanSort()}
+                      $sortOrder={header.column.getIsSorted()}
                       style={{
                         width: `calc(var(--header-${header?.id}-size) * 1px)`,
                         maxWidth: header.column.columnDef.maxSize,
@@ -415,11 +415,11 @@ function Table<TData>({
             {table.getRowModel().rows.map((row) => (
               <React.Fragment key={row.id}>
                 <S.Row
-                  expanded={row.getIsExpanded()}
+                  $expanded={row.getIsExpanded()}
                   onClick={handleRowClick(row)}
                   onMouseOver={onRowHover ? handleRowHover(row) : undefined}
                   onMouseLeave={onMouseLeave ? handleMouseLeave : undefined}
-                  clickable={
+                  $clickable={
                     !enableRowSelection &&
                     (row.getCanExpand() || onRowClick !== undefined)
                   }
@@ -464,7 +464,7 @@ function Table<TData>({
                     )}
                 </S.Row>
                 {row.getIsExpanded() && SubComponent && (
-                  <S.Row expanded>
+                  <S.Row $expanded>
                     <td colSpan={row.getVisibleCells().length + 2}>
                       <S.ExpandedRowInfo>
                         <SubComponent row={row} />

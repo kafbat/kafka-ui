@@ -111,7 +111,7 @@ const List: React.FC = () => {
           </>
         )}
       </ResourcePageHeading>
-      <ControlPanelWrapper hasInput>
+      <ControlPanelWrapper $hasInput>
         <Search
           key={clusterName}
           placeholder="Search by Schema Name"

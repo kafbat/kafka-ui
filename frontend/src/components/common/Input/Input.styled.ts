@@ -1,8 +1,8 @@
 import styled, { css } from 'styled-components';
 
 export interface InputProps {
-  inputSize?: 'S' | 'M' | 'L';
-  search: boolean;
+  $inputSize?: 'S' | 'M' | 'L';
+  $search: boolean;
 }
 
 const INPUT_SIZES = {
@@ -42,16 +42,16 @@ export const Wrapper = styled.div`
 `;
 
 export const Input = styled.input<InputProps>(
-  ({ theme: { input }, inputSize, search }) => css`
+  ({ theme: { input }, $inputSize, $search }) => css`
     background-color: ${input.backgroundColor.normal};
     border: 1px ${input.borderColor.normal} solid;
     border-radius: 4px;
     color: ${input.color.normal};
-    height: ${inputSize && INPUT_SIZES[inputSize]
-      ? INPUT_SIZES[inputSize]
+    height: ${$inputSize && INPUT_SIZES[$inputSize]
+      ? INPUT_SIZES[$inputSize]
       : '40px'};
     width: 100%;
-    padding-left: ${search ? '36px' : '12px'};
+    padding-left: ${$search ? '36px' : '12px'};
     font-size: 14px;
 
     &::placeholder {

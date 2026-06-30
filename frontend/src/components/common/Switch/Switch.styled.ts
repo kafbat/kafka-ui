@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 interface Props {
-  checked?: boolean;
+  $checked?: boolean;
 }
 
 export const StyledLabel = styled.label`
@@ -32,8 +32,8 @@ export const StyledSlider = styled.span<Props>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${({ checked, theme }) =>
-    checked ? theme.switch.checked : theme.switch.unchecked};
+  background-color: ${({ $checked, theme }) =>
+    $checked ? theme.switch.checked : theme.switch.unchecked};
   transition: 0.4s;
   border-radius: 20px;
 
@@ -46,7 +46,7 @@ export const StyledSlider = styled.span<Props>`
     content: '';
     height: 14px;
     width: 14px;
-    left: ${({ checked }) => (checked ? '17px' : '3px')};
+    left: ${({ $checked }) => ($checked ? '17px' : '3px')};
     bottom: 3px;
     background-color: ${({ theme }) => theme.switch.circle};
     transition: 0.4s;

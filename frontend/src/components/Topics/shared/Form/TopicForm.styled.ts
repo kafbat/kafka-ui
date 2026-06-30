@@ -32,13 +32,13 @@ export const Label = styled.div`
   }
 `;
 
-export const Button = styled.button<{ isActive: boolean }>`
-  background-color: ${({ theme, ...props }) =>
-    props.isActive
+export const Button = styled.button<{ $isActive: boolean }>`
+  background-color: ${({ theme, $isActive }) =>
+    $isActive
       ? theme.chips.backgroundColor.active
       : theme.chips.backgroundColor.normal};
-  color: ${({ theme, ...props }) =>
-    props.isActive ? theme.chips.color.active : theme.chips.color.normal};
+  color: ${({ theme, $isActive }) =>
+    $isActive ? theme.chips.color.active : theme.chips.color.normal};
   height: 24px;
   padding: 0 5px;
   min-width: 51px;
