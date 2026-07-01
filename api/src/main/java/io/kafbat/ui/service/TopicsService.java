@@ -170,7 +170,7 @@ public class TopicsService {
             .switchIfEmpty(Mono.error(new TopicNotFoundException()))
             .then(ac.getTopicsConfig(List.of(topicName), true))
             .map(m -> m.values().stream().findFirst().orElse(List.of())))
-            .doOnError(e -> adminClientService.invalidate(cluster, e));
+        .doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
   private Mono<InternalTopic> createTopic(KafkaCluster c, ReactiveAdminClient adminClient, TopicCreationDTO topicData) {
@@ -221,19 +221,13 @@ public class TopicsService {
         );
   }
 
-  private Mono<InternalTopic> updateTopic(KafkaCluster cluster,
-                                          String topicName,
-                                          TopicUpdateDTO topicUpdate) {
+  public Mono<InternalTopic> updateTopic(KafkaCluster cluster,
+                                         String topicName,
+                                         TopicUpdateDTO topicUpdate) {
     return adminClientService.get(cluster)
         .flatMap(ac ->
             ac.updateTopicConfig(topicName, topicUpdate.getConfigs())
                 .then(loadTopic(cluster, topicName)));
-  }
-
-  public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName,
-                                         Mono<TopicUpdateDTO> topicUpdate) {
-    return topicUpdate
-        .flatMap(t -> updateTopic(cl, topicName, t));
   }
 
   private Mono<InternalTopic> changeReplicationFactor(
@@ -475,7 +469,7 @@ public class TopicsService {
       return Mono.just(
           clusterState.getTopicIndex().find(search, showInternal, useFts, null)
       ).flatMap(lst -> filterExisting(cluster, lst)).map(lst ->
-        lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
+          lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
       );
     } catch (Exception e) {
       return Mono.error(e);
