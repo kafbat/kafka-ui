@@ -27,7 +27,6 @@ const createResourceCell = (): ColumnDef<KafkaAcl> => {
   return {
     header: 'Resource',
     accessorKey: 'resourceType',
-    // eslint-disable-next-line react/no-unstable-nested-components
     cell: ({ getValue }) => (
       <S.EnumCell>{getValue<string>().toLowerCase()}</S.EnumCell>
     ),
@@ -43,7 +42,6 @@ const createPatternCell = (): ColumnDef<KafkaAcl> => {
   return {
     header: 'Pattern',
     accessorKey: 'resourceName',
-    // eslint-disable-next-line react/no-unstable-nested-components
     cell: ({ getValue, row }) => {
       let chipType;
       if (row.original.namePatternType === KafkaAclNamePatternType.PREFIXED) {
@@ -86,7 +84,6 @@ const createOperationCell = (): ColumnDef<KafkaAcl> => {
   return {
     header: 'Operation',
     accessorKey: 'operation',
-    // eslint-disable-next-line react/no-unstable-nested-components
     cell: ({ getValue }) => (
       <S.EnumCell>{getValue<string>().toLowerCase()}</S.EnumCell>
     ),
@@ -101,7 +98,6 @@ const createParmissionCell = (): ColumnDef<KafkaAcl> => {
   return {
     header: 'Permission',
     accessorKey: 'permission',
-    // eslint-disable-next-line react/no-unstable-nested-components
     cell: ({ getValue }) => (
       <S.Chip
         chipType={
@@ -140,7 +136,6 @@ const createActionsCell = ({
 }): ColumnDef<KafkaAcl> => {
   return {
     id: 'delete',
-    // eslint-disable-next-line react/no-unstable-nested-components
     cell: ({ row }) => {
       return (
         <ActionPermissionWrapper

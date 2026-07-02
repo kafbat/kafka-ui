@@ -13,7 +13,7 @@ export const formatBytes = (
     const multiplier = 10 ** (precision < 0 ? 0 : precision);
 
     return `${Math.round((bytes * multiplier) / 1024 ** pow) / multiplier} ${sizes[pow]}`;
-  } catch (e) {
+  } catch {
     return '-Bytes';
   }
 };

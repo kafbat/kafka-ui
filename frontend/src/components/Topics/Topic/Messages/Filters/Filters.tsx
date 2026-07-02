@@ -78,7 +78,6 @@ const Filters: React.FC<FiltersProps> = ({
           value: currentValue.partition,
         };
 
-        // eslint-disable-next-line no-param-reassign
         acc.dict[label.value] = label;
         acc.list.push(label);
         return acc;

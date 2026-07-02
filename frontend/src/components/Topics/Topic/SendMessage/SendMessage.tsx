@@ -182,7 +182,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
     if (headers) {
       try {
         parsedHeaders = JSON.parse(headers);
-      } catch (error) {
+      } catch {
         errors.push('Wrong header format');
       }
     }
@@ -221,7 +221,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
         setValue('content', defaultValues.content || '');
         closeSidebar();
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };

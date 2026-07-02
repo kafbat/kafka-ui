@@ -20,7 +20,7 @@ const compareVersions = (v1?: string, v2?: string): number => {
     }
 
     return 0;
-  } catch (_) {
+  } catch {
     return 0;
   }
 };

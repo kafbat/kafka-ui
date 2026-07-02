@@ -75,7 +75,7 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
         try {
           await deleteCluster.mutateAsync(config);
           navigate('/');
-        } catch (error) {
+        } catch {
           showAlert('error', {
             id: 'app-config-update-error',
             title: 'Error updating application config',
@@ -90,7 +90,7 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
     try {
       await update.mutateAsync(config);
       navigate('/');
-    } catch (e) {
+    } catch {
       showAlert('error', {
         id: 'app-config-update-error',
         title: 'Error updating application config',
@@ -116,7 +116,7 @@ const ClusterConfigForm: React.FC<ClusterConfigFormProps> = ({
           message: 'Configuration is valid',
         });
       }
-    } catch (e) {
+    } catch {
       showAlert('error', {
         id: 'app-config-validate-error',
         title: 'Error validating application config',

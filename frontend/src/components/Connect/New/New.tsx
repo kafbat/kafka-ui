@@ -82,7 +82,7 @@ const New: React.FC = () => {
           )
         );
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };
