@@ -22,7 +22,7 @@ public class TailingEmitter extends AbstractEmitter {
                         ConsumerRecordDeserializer deserializer,
                         Predicate<TopicMessageDTO> filter,
                         PollingSettings pollingSettings) {
-    super(new MessagesProcessing(deserializer, filter, false, null), pollingSettings);
+    super(new MessagesProcessing(deserializer, filter, false, null, pollingSettings.getMaxBytesConsumed()), pollingSettings);
     this.consumerSupplier = consumerSupplier;
     this.consumerPosition = consumerPosition;
   }
@@ -32,12 +32,14 @@ public class TailingEmitter extends AbstractEmitter {
     log.debug("Starting tailing polling for {}", consumerPosition);
     try (EnhancedConsumer consumer = consumerSupplier.get()) {
       assignAndSeek(consumer);
-      while (!sink.isCancelled()) {
+      while (!sink.isCancelled() && !isBytesLimitReached()) {
         sendPhase(sink, "Polling");
         var polled = poll(sink, consumer);
-        send(sink, polled, null);
+        if (!isBytesLimitReached()) {
+          send(sink, polled, null);
+        }
       }
-      sink.complete();
+      sendFinishStatsAndCompleteSink(sink, null);
       log.debug("Tailing finished");
     } catch (InterruptException kafkaInterruptException) {
       log.debug("Tailing finished due to thread interruption");

@@ -23,6 +23,15 @@ import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
 import { ClusterName } from 'lib/interfaces/cluster';
 
+export interface DownloadTopicMessageParams {
+  clusterName: ClusterName;
+  topicName: TopicName;
+  partition: number;
+  offset: number;
+  keySerde?: string;
+  valueSerde?: string;
+}
+
 interface UseTopicMessagesProps {
   clusterName: ClusterName;
   topicName: TopicName;
@@ -154,6 +163,9 @@ export const useTopicMessages = ({
             case TopicMessageEventTypeEnum.CONSUMING:
               if (consuming) setConsumptionStats(consuming);
               break;
+            case TopicMessageEventTypeEnum.DONE:
+              if (consuming) setConsumptionStats(consuming);
+              break;
             default:
           }
         },
@@ -188,6 +200,40 @@ export const useTopicMessages = ({
     abortFetchData,
   };
 };
+
+export async function downloadTopicMessage({
+  clusterName,
+  topicName,
+  partition,
+  offset,
+  keySerde,
+  valueSerde,
+}: DownloadTopicMessageParams) {
+  const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
+    clusterName
+  )}/topics/${encodeURIComponent(topicName)}/messages/${partition}/${offset}/download`;
+
+  const params = new URLSearchParams();
+  if (keySerde) params.set(MessagesFilterKeys.keySerde, keySerde);
+  if (valueSerde) params.set(MessagesFilterKeys.valueSerde, valueSerde);
+
+  const response = await fetch(`${url}?${params.toString()}`, {
+    credentials: BASE_PARAMS.credentials,
+  });
+
+  if (!response.ok) {
+    throw response;
+  }
+
+  const blob = await response.blob();
+  const link = window.document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = `${topicName}-${partition}-${offset}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(link.href);
+}
 
 export function useSerdes(props: GetSerdesRequest) {
   const { clusterName, topicName, use } = props;

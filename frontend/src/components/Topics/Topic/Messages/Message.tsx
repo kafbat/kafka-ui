@@ -53,19 +53,22 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     keyDeserializeProperties,
   } = message;
 
-  const savedMessageJson = {
-    Value: value,
-    Offset: offset,
-    Key: key,
-    Partition: partition,
-    Headers: headers,
-    Timestamp: timestamp,
-  };
-
-  const savedMessage = JSON.stringify(savedMessageJson, null, '\t');
+  const createSavedMessage = () =>
+    JSON.stringify(
+      {
+        Value: value,
+        Offset: offset,
+        Key: key,
+        Partition: partition,
+        Headers: headers,
+        Timestamp: timestamp,
+      },
+      null,
+      '\t'
+    );
   const { copyToClipboard, saveFile } = useDataSaver(
     'topic-message',
-    savedMessage || ''
+    createSavedMessage
   );
 
   const toggleIsOpen = () => setIsOpen(!isOpen);

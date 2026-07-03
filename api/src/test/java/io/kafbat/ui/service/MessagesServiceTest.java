@@ -109,6 +109,24 @@ class MessagesServiceTest extends AbstractIntegrationTest {
         .verifyComplete();
   }
 
+  @Test
+  void downloadTopicMessageReturnsExactMessageWithSelectedSerdes() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    try (var producer = KafkaTestProducer.forKafka(kafka)) {
+      producer.send(testTopic, "message_0");
+      producer.send(testTopic, "message_1").get();
+    }
+
+    StepVerifier.create(messagesService.downloadTopicMessage(cluster, testTopic, 0, 1, StringSerde.NAME, StringSerde.NAME))
+        .expectNextMatches(msg -> msg.getPartition() == 0
+            && msg.getOffset() == 1L
+            && "message_1".equals(msg.getValue())
+            && StringSerde.NAME.equals(msg.getValueSerde()))
+        .verifyComplete();
+  }
+
   @ParameterizedTest
   @CsvSource({"EARLIEST", "LATEST"})
   void cursorIsRegisteredAfterPollingIsDoneAndCanBeUsedForNextPagePolling(PollingModeDTO mode) throws Exception {

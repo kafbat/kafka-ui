@@ -8,10 +8,15 @@ import reactor.core.publisher.FluxSink;
 
 class ConsumingStats {
 
+  private final long bytesLimit;
   private long bytes = 0;
   private int records = 0;
   private long elapsed = 0;
   private int filterApplyErrors = 0;
+
+  ConsumingStats(long bytesLimit) {
+    this.bytesLimit = bytesLimit;
+  }
 
   void sendConsumingEvt(FluxSink<TopicMessageEventDTO> sink, PolledRecords polledRecords) {
     bytes += polledRecords.bytes();
@@ -26,6 +31,10 @@ class ConsumingStats {
 
   void incFilterApplyError() {
     filterApplyErrors++;
+  }
+
+  boolean bytesLimitReached() {
+    return bytes >= bytesLimit;
   }
 
   void sendFinishEvent(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
@@ -44,6 +53,8 @@ class ConsumingStats {
   private TopicMessageConsumingDTO createConsumingStats() {
     return new TopicMessageConsumingDTO()
         .bytesConsumed(bytes)
+        .bytesLimit(bytesLimit)
+        .bytesLimitReached(bytesLimitReached())
         .elapsedMs(elapsed)
         .isCancelled(false)
         .filterApplyErrors(filterApplyErrors)

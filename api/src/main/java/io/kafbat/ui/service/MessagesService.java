@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -158,6 +159,55 @@ public class MessagesService {
     return withExistingTopic(cluster, topic)
         .publishOn(Schedulers.boundedElastic())
         .flatMap(desc -> sendMessageImpl(cluster, desc, msg));
+  }
+
+  public Mono<TopicMessageDTO> downloadTopicMessage(KafkaCluster cluster,
+                                                    String topic,
+                                                    int partition,
+                                                    long offset,
+                                                    @Nullable String keySerde,
+                                                    @Nullable String valueSerde) {
+    if (partition < 0 || offset < 0) {
+      return Mono.error(new ValidationException("Partition and offset must be non-negative"));
+    }
+
+    return withExistingTopic(cluster, topic)
+        .publishOn(Schedulers.boundedElastic())
+        .flatMap(td -> downloadTopicMessageImpl(cluster, td, partition, offset, keySerde, valueSerde));
+  }
+
+  private Mono<TopicMessageDTO> downloadTopicMessageImpl(KafkaCluster cluster,
+                                                         TopicDescription topicDescription,
+                                                         int partition,
+                                                         long offset,
+                                                         @Nullable String keySerde,
+                                                         @Nullable String valueSerde) {
+    if (partition >= topicDescription.partitions().size()) {
+      return Mono.error(new ValidationException("Invalid partition"));
+    }
+
+    var topicPartition = new TopicPartition(topicDescription.name(), partition);
+    var deserializer = deserializationService.deserializerFor(cluster, topicDescription.name(), keySerde, valueSerde);
+    try (var consumer = consumerGroupService.createConsumer(cluster, Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1))) {
+      consumer.assign(List.of(topicPartition));
+      consumer.seek(topicPartition, offset);
+      long endOffset = consumer.endOffsets(List.of(topicPartition)).get(topicPartition);
+      if (offset >= endOffset) {
+        return Mono.error(new ValidationException("Message not found"));
+      }
+
+      long deadline = System.currentTimeMillis() + cluster.getPollingSettings().getPollTimeout().toMillis();
+      while (System.currentTimeMillis() <= deadline) {
+        for (var rec : consumer.pollEnhanced(cluster.getPollingSettings().getPollTimeout())) {
+          if (rec.partition() == partition && rec.offset() == offset) {
+            return Mono.just(deserializer.deserialize(rec));
+          }
+        }
+      }
+      return Mono.error(new TimeoutException("Message not found"));
+    } catch (Throwable e) {
+      return Mono.error(e);
+    }
   }
 
   private Mono<RecordMetadata> sendMessageImpl(KafkaCluster cluster,

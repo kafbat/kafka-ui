@@ -26,6 +26,7 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
 
     //topic -> partition -> offset
     private final Table<String, Integer, Long> trackingOffsets = HashBasedTable.create();
+    private boolean trackedMessage;
 
     public Tracking(ConsumerRecordDeserializer deserializer,
                     ConsumerPosition originalPosition,
@@ -41,10 +42,15 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
 
     void trackOffset(String topic, int partition, long offset) {
       trackingOffsets.put(topic, partition, offset);
+      trackedMessage = true;
+    }
+
+    private void initOffset(String topic, int partition, long offset) {
+      trackingOffsets.put(topic, partition, offset);
     }
 
     void initOffsets(Map<TopicPartition, Long> initialSeekOffsets) {
-      initialSeekOffsets.forEach((tp, off) -> trackOffset(tp.topic(), tp.partition(), off));
+      initialSeekOffsets.forEach((tp, off) -> initOffset(tp.topic(), tp.partition(), off));
     }
 
     private Map<TopicPartition, Long> getOffsetsMap(int offsetToAdd) {
@@ -74,7 +80,7 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
                           switch (originalPosition.pollingMode()) {
                             case TO_OFFSET, TO_TIMESTAMP, LATEST -> 0;
                             // when doing forward polling we need to start from latest msg's offset + 1
-                            case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> 1;
+                            case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> trackedMessage ? 1 : 0;
                             case TAILING -> throw new IllegalStateException();
                           }
                       )

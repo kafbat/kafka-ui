@@ -35,6 +35,16 @@ export const OffsetSelector = styled(Input)`
   }
 `;
 
+export const ManualDownloadInput = styled(Input)`
+  width: 120px;
+`;
+
+export const ManualDownloadLabel = styled.span`
+  font-size: 14px;
+  color: ${({ theme }) => theme.table.td.color.normal};
+  padding-bottom: 7px;
+`;
+
 export const DatePickerInput = styled(DatePicker)`
   height: 32px;
   border: 1px ${({ theme }) => theme.select.borderColor.normal} solid;
@@ -66,6 +76,19 @@ export const DatePickerInput = styled(DatePicker)`
 export const Message = styled.div`
   font-size: 14px;
   color: ${({ theme }) => theme.metrics.filters.color.normal};
+`;
+
+export const Warning = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  background: ${({ theme }) => theme.alert.color.warning};
+  color: ${({ theme }) => theme.table.td.color.normal};
 `;
 export const Metric = styled.div`
   color: ${({ theme }) => theme.metrics.filters.color.normal};

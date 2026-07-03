@@ -56,10 +56,12 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       TreeMap<TopicPartition, FromToOffset> pollRange = nextPollingRange(new TreeMap<>(), seekOperations);
       log.debug("Starting from offsets {}", pollRange);
 
-      while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached()) {
+      while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached() && !isBytesLimitReached()) {
         var polled = poll(consumer, sink, pollRange);
         send(sink, polled, cursor);
-        pollRange = nextPollingRange(pollRange, seekOperations);
+        if (!isBytesLimitReached()) {
+          pollRange = nextPollingRange(pollRange, seekOperations);
+        }
       }
       if (sink.isCancelled()) {
         log.debug("Polling finished due to sink cancellation");
@@ -87,8 +89,11 @@ abstract class RangePollingEmitter extends AbstractEmitter {
 
     List<ConsumerRecord<Bytes, Bytes>> result = new ArrayList<>();
     Set<TopicPartition> paused = new HashSet<>();
-    while (!sink.isCancelled() && paused.size() < range.size()) {
+    while (!sink.isCancelled() && paused.size() < range.size() && !isBytesLimitReached()) {
       var polledRecords = poll(sink, consumer);
+      if (isBytesLimitReached()) {
+        break;
+      }
       range.forEach((tp, fromTo) -> {
         polledRecords.records(tp).stream()
             .filter(r -> r.offset() < fromTo.to)

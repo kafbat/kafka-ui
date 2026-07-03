@@ -24,7 +24,7 @@ public class BackwardEmitter extends RangePollingEmitter {
         consumerSupplier,
         consumerPosition,
         messagesPerPage,
-        new MessagesProcessing(deserializer, filter, false, messagesPerPage),
+        new MessagesProcessing(deserializer, filter, false, messagesPerPage, pollingSettings.getMaxBytesConsumed()),
         pollingSettings,
         cursor
     );

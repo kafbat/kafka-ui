@@ -2690,6 +2690,66 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       tags:
         - Messages
+  /api/clusters/{clusterName}/topics/{topicName}/messages/{partition}/{offset}/download:
+    get:
+      operationId: downloadTopicMessage
+      summary: downloadTopicMessage
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partition
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: keySerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: valueSerde
+          in: query
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicMessage'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiNotFoundResponse'
+      tags:
+        - Messages
   /api/clusters/{clusterName}/topics/{topicName}/partitions:
     patch:
       operationId: increaseTopicPartitions
@@ -3130,6 +3190,8 @@ components:
                             type: string
                           clientSecret:
                             type: string
+                          clientAuthenticationMethod:
+                            type: string
                           clientName:
                             type: string
                           redirectUri:
@@ -3306,6 +3368,29 @@ components:
                             type: string
                           password:
                             type: string
+                          oauth:
+                            type: object
+                            properties:
+                              tokenUrl:
+                                type: string
+                              clientId:
+                                type: string
+                              clientSecret:
+                                type: string
+                              scopes:
+                                type: array
+                                items:
+                                  type: string
+                              tokenCacheEnabled:
+                                type: boolean
+                                default: true
+                              tokenRefreshBuffer:
+                                type: string
+                                format: duration
+                              maxRetries:
+                                type: integer
+                                format: int32
+                                default: 1
                       schemaRegistrySsl:
                         type: object
                         properties:
@@ -5378,6 +5463,11 @@ components:
         bytesConsumed:
           type: integer
           format: int64
+        bytesLimit:
+          type: integer
+          format: int64
+        bytesLimitReached:
+          type: boolean
         elapsedMs:
           type: integer
           format: int64

@@ -12,7 +12,11 @@ import { Button } from 'components/common/Button/Button';
 import Search from 'components/common/Search/Search';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import { getSerdeOptions } from 'components/Topics/Topic/SendMessage/utils';
-import { useSerdes } from 'lib/hooks/api/topicMessages';
+import {
+  downloadTopicMessage,
+  useSerdes,
+} from 'lib/hooks/api/topicMessages';
+import { showServerError } from 'lib/errorHandling';
 import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { useMessagesFilters } from 'lib/hooks/useMessagesFilters';
@@ -136,6 +140,9 @@ const Filters: React.FC<FiltersProps> = ({
 
   const jsonSaver = useDataSaver(`${baseFileName}.json`, exportedJson);
   const csvSaver = useDataSaver(`${baseFileName}.csv`, exportedCsv);
+  const [downloadPartition, setDownloadPartition] = useState('');
+  const [downloadOffset, setDownloadOffset] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -171,6 +178,33 @@ const Filters: React.FC<FiltersProps> = ({
       abortFetchData();
     }
     refreshData();
+  };
+
+  const parsedDownloadPartition = Number(downloadPartition);
+  const parsedDownloadOffset = Number(downloadOffset);
+  const canDownloadMessage =
+    Number.isInteger(parsedDownloadPartition) &&
+    Number.isInteger(parsedDownloadOffset) &&
+    parsedDownloadPartition >= 0 &&
+    parsedDownloadOffset >= 0;
+
+  const handleDownloadMessage = async () => {
+    if (!canDownloadMessage) return;
+    setIsDownloading(true);
+    try {
+      await downloadTopicMessage({
+        clusterName,
+        topicName,
+        partition: parsedDownloadPartition,
+        offset: parsedDownloadOffset,
+        keySerde,
+        valueSerde,
+      });
+    } catch (error) {
+      showServerError(error as Response);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -306,6 +340,42 @@ const Filters: React.FC<FiltersProps> = ({
             </S.DeleteSmartFilterIcon>
           </S.ActiveSmartFilter>
         )}
+      </FlexBox>
+      <FlexBox
+        gap="8px"
+        alignItems="flex-end"
+        justifyContent="flex-start"
+        padding="0 0 8px"
+        flexWrap="wrap"
+      >
+        <S.ManualDownloadLabel>Download specific message</S.ManualDownloadLabel>
+        <S.ManualDownloadInput
+          id="download-partition"
+          type="number"
+          min="0"
+          inputSize="M"
+          placeholder="Partition"
+          value={downloadPartition}
+          onChange={({ target: { value } }) => setDownloadPartition(value)}
+        />
+        <S.ManualDownloadInput
+          id="download-offset"
+          type="number"
+          min="0"
+          inputSize="M"
+          placeholder="Offset"
+          value={downloadOffset}
+          onChange={({ target: { value } }) => setDownloadOffset(value)}
+        />
+        <Button
+          buttonType="secondary"
+          buttonSize="M"
+          disabled={!canDownloadMessage || isDownloading}
+          inProgress={isDownloading}
+          onClick={handleDownloadMessage}
+        >
+          Download message
+        </Button>
       </FlexBox>
       <FiltersSideBar
         setClose={() => setCreatedEditedSmartId('')}

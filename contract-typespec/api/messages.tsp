@@ -85,6 +85,19 @@ interface MessagesApi {
     @query valueSerde?: string,
     @query cursor?: string,
   ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
+
+  @get
+  @route("/messages/{partition}/{offset}/download")
+  @operationId("downloadTopicMessage")
+  @summary("downloadTopicMessage")
+  downloadTopicMessage(
+    @path clusterName: string,
+    @path topicName: string,
+    @path partition: int32,
+    @path offset: int64,
+    @query keySerde?: string,
+    @query valueSerde?: string,
+  ): TopicMessage | ApiNotFoundResponse | ApiBadRequestResponse;
 }
 
 @route("/api/smartfilters/testexecutions")
@@ -126,6 +139,8 @@ model TimeStampFormat {
 
 model TopicMessageConsuming {
   bytesConsumed?: int64;
+  bytesLimit?: int64;
+  bytesLimitReached?: boolean;
   elapsedMs?: int64;
   isCancelled?: boolean;
   messagesConsumed?: int32;
