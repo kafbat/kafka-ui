@@ -88,7 +88,7 @@ export const Warning = styled.div`
   border-radius: 4px;
   font-size: 14px;
   background: ${({ theme }) => theme.alert.color.warning};
-  color: ${({ theme }) => theme.table.td.color.normal};
+  color: ${({ theme }) => theme.alert.textColor.warning};
 `;
 export const Metric = styled.div`
   color: ${({ theme }) => theme.metrics.filters.color.normal};
