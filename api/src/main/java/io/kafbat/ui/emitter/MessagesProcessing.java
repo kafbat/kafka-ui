@@ -53,31 +53,40 @@ class MessagesProcessing {
     return consumingStats.bytesLimitReached();
   }
 
+  boolean tryConsumeRecord(ConsumerRecord<Bytes, Bytes> record) {
+    return consumingStats.tryConsumeRecord(record);
+  }
+
   void send(FluxSink<TopicMessageEventDTO> sink,
-            Iterable<ConsumerRecord<Bytes, Bytes>> polled,
-            @Nullable Cursor.Tracking cursor) {
-    sortForSending(polled, ascendingSortBeforeSend)
-        .forEach(rec -> {
-          if (!limitReached() && !sink.isCancelled()) {
-            TopicMessageDTO topicMessage = deserializer.deserialize(rec);
-            try {
-              if (filter.test(topicMessage)) {
-                sink.next(
-                    new TopicMessageEventDTO()
-                        .type(TopicMessageEventDTO.TypeEnum.MESSAGE)
-                        .message(topicMessage)
-                );
-                sentMessages++;
-              }
-              if (cursor != null) {
-                cursor.trackOffset(rec.topic(), rec.partition(), rec.offset());
-              }
-            } catch (Exception e) {
-              consumingStats.incFilterApplyError();
-              log.trace("Error applying filter for message {}", topicMessage);
-            }
-          }
-        });
+             Iterable<ConsumerRecord<Bytes, Bytes>> polled,
+             @Nullable Cursor.Tracking cursor,
+             boolean trackConsumption) {
+    for (ConsumerRecord<Bytes, Bytes> rec : sortForSending(polled, ascendingSortBeforeSend)) {
+      if (limitReached() || sink.isCancelled()) {
+        break;
+      }
+      if (trackConsumption && !tryConsumeRecord(rec)) {
+        break;
+      }
+
+      TopicMessageDTO topicMessage = deserializer.deserialize(rec);
+      try {
+        if (filter.test(topicMessage)) {
+          sink.next(
+              new TopicMessageEventDTO()
+                  .type(TopicMessageEventDTO.TypeEnum.MESSAGE)
+                  .message(topicMessage)
+          );
+          sentMessages++;
+        }
+        if (cursor != null) {
+          cursor.trackOffset(rec.topic(), rec.partition(), rec.offset());
+        }
+      } catch (Exception e) {
+        consumingStats.incFilterApplyError();
+        log.trace("Error applying filter for message {}", topicMessage);
+      }
+    }
   }
 
   void sentConsumingInfo(FluxSink<TopicMessageEventDTO> sink, PolledRecords polledRecords) {

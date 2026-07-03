@@ -35,9 +35,8 @@ public class TailingEmitter extends AbstractEmitter {
       while (!sink.isCancelled() && !isBytesLimitReached()) {
         sendPhase(sink, "Polling");
         var polled = poll(sink, consumer);
-        if (!isBytesLimitReached()) {
-          send(sink, polled, null);
-        }
+        sendAndTrackConsumption(sink, polled, null);
+        sendConsuming(sink, polled);
       }
       sendFinishStatsAndCompleteSink(sink, null);
       log.debug("Tailing finished");

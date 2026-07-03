@@ -40,14 +40,20 @@ public record PolledRecords(int count,
   private static int calculatePolledRecSize(Iterable<ConsumerRecord<Bytes, Bytes>> recs) {
     int polledBytes = 0;
     for (ConsumerRecord<Bytes, Bytes> rec : recs) {
-      for (Header header : rec.headers()) {
-        polledBytes +=
-            (header.key() != null ? header.key().getBytes().length : 0)
-                + (header.value() != null ? header.value().length : 0);
-      }
-      polledBytes += rec.key() == null ? 0 : rec.serializedKeySize();
-      polledBytes += rec.value() == null ? 0 : rec.serializedValueSize();
+      polledBytes += calculateRecordSize(rec);
     }
     return polledBytes;
+  }
+
+  static int calculateRecordSize(ConsumerRecord<Bytes, Bytes> rec) {
+    int bytes = 0;
+    for (Header header : rec.headers()) {
+      bytes +=
+          (header.key() != null ? header.key().getBytes().length : 0)
+              + (header.value() != null ? header.value().length : 0);
+    }
+    bytes += rec.key() == null ? 0 : rec.serializedKeySize();
+    bytes += rec.value() == null ? 0 : rec.serializedValueSize();
+    return bytes;
   }
 }

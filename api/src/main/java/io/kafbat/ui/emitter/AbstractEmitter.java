@@ -17,9 +17,7 @@ abstract class AbstractEmitter implements java.util.function.Consumer<FluxSink<T
   }
 
   protected PolledRecords poll(FluxSink<TopicMessageEventDTO> sink, EnhancedConsumer consumer) {
-    var records = consumer.pollEnhanced(pollingSettings.getPollTimeout());
-    sendConsuming(sink, records);
-    return records;
+    return consumer.pollEnhanced(pollingSettings.getPollTimeout());
   }
 
   protected boolean isSendLimitReached() {
@@ -31,9 +29,19 @@ abstract class AbstractEmitter implements java.util.function.Consumer<FluxSink<T
   }
 
   protected void send(FluxSink<TopicMessageEventDTO> sink,
-                      Iterable<ConsumerRecord<Bytes, Bytes>> records,
-                      @Nullable Cursor.Tracking cursor) {
-    messagesProcessing.send(sink, records, cursor);
+                       Iterable<ConsumerRecord<Bytes, Bytes>> records,
+                       @Nullable Cursor.Tracking cursor) {
+    messagesProcessing.send(sink, records, cursor, false);
+  }
+
+  protected void sendAndTrackConsumption(FluxSink<TopicMessageEventDTO> sink,
+                                         Iterable<ConsumerRecord<Bytes, Bytes>> records,
+                                         @Nullable Cursor.Tracking cursor) {
+    messagesProcessing.send(sink, records, cursor, true);
+  }
+
+  protected boolean tryConsumeRecord(ConsumerRecord<Bytes, Bytes> record) {
+    return messagesProcessing.tryConsumeRecord(record);
   }
 
   protected void sendPhase(FluxSink<TopicMessageEventDTO> sink, String name) {

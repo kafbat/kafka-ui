@@ -346,6 +346,7 @@ class RecordEmitterTest extends AbstractIntegrationTest {
 
   @Test
   void forwardEmitterStopsWhenByteLimitReachedAndCanResumeWithoutSkipping() {
+    long bytesLimit = 50;
     var cursor = new Cursor.Tracking(RECORD_DESERIALIZER,
         new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
         NOOP_FILTER,
@@ -358,17 +359,22 @@ class RecordEmitterTest extends AbstractIntegrationTest {
         PARTITIONS * MSGS_PER_PARTITION,
         RECORD_DESERIALIZER,
         NOOP_FILTER,
-        PollingSettings.createDefault(1),
+        PollingSettings.createDefault(bytesLimit),
         cursor
     );
 
-    StepVerifier.create(Flux.create(emitter)
-            .filter(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType())))
-        .expectNextMatches(m -> Boolean.TRUE.equals(m.getConsuming().getBytesLimitReached())
-            && m.getConsuming().getBytesLimit() == 1L
-            && m.getCursor() != null)
-        .expectComplete()
-        .verify();
+    var events = Flux.create(emitter).collectList().block();
+
+    assertThat(events)
+        .filteredOn(m -> TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .hasSizeGreaterThan(0)
+        .hasSizeLessThan(PARTITIONS * MSGS_PER_PARTITION);
+    assertThat(events)
+        .filteredOn(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .singleElement()
+        .matches(m -> Boolean.TRUE.equals(m.getConsuming().getBytesLimitReached())
+            && m.getConsuming().getBytesLimit() == bytesLimit
+            && m.getCursor() != null);
   }
 
   @Test
