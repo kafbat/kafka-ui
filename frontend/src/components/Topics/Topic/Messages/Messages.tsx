@@ -23,7 +23,11 @@ const Messages: React.FC = () => {
         abortFetchData={abortFetchData}
         messages={messages}
       />
-      <MessagesTable messages={messages} isFetching={isFetching} />
+      <MessagesTable
+        messages={messages}
+        isFetching={isFetching}
+        bytesLimitReached={!!consumptionStats?.bytesLimitReached}
+      />
     </>
   );
 };

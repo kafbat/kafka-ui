@@ -28,9 +28,15 @@ export interface Props {
   keyFilters: PreviewFilter[];
   contentFilters: PreviewFilter[];
   message: TopicMessage;
+  showSlowLoadingWarning?: boolean;
 }
 
-const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
+const Message: React.FC<Props> = ({
+  message,
+  keyFilters,
+  contentFilters,
+  showSlowLoadingWarning = false,
+}) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
@@ -120,9 +126,18 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
         onClick={toggleIsOpen}
       >
         <td>
-          <IconButtonWrapper aria-hidden>
-            <MessageToggleIcon isOpen={isOpen} />
-          </IconButtonWrapper>
+          <S.RowToggle>
+            <IconButtonWrapper aria-hidden>
+              <MessageToggleIcon isOpen={isOpen} />
+            </IconButtonWrapper>
+            {showSlowLoadingWarning && (
+              <Tooltip
+                value={<WarningRedIcon />}
+                content="Expanding large messages is slow and can cause browser to stop responding"
+                placement="right"
+              />
+            )}
+          </S.RowToggle>
         </td>
         <td>{offset}</td>
         <td>{partition}</td>

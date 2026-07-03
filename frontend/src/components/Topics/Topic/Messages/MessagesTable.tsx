@@ -17,6 +17,7 @@ import PreviewModal from './PreviewModal';
 export interface MessagesTableProps {
   messages: TopicMessage[];
   isFetching: boolean;
+  bytesLimitReached?: boolean;
 }
 
 interface MessagePreviewProps {
@@ -29,6 +30,7 @@ interface MessagePreviewProps {
 const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,
+  bytesLimitReached = false,
 }) => {
   const paginate = usePaginateTopics();
   const [previewFor, setPreviewFor] = useState<'key' | 'content' | null>(null);
@@ -122,6 +124,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
               message={message}
               keyFilters={keyFilters}
               contentFilters={contentFilters}
+              showSlowLoadingWarning={bytesLimitReached}
             />
           ))}
           {isFetching && !messages.length && (

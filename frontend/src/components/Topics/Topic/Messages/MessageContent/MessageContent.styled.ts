@@ -46,6 +46,13 @@ export const DataCell = styled.td`
 export const ClickableRow = styled.tr`
   cursor: pointer;
 `;
+
+export const RowToggle = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+`;
+
 export const MetadataWrapper = styled.div`
   background-color: ${({ theme }) => theme.topicMetaData.backgroundColor};
   padding: 24px;
