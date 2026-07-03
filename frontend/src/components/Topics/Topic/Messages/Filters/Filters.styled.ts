@@ -36,13 +36,38 @@ export const OffsetSelector = styled(Input)`
 `;
 
 export const ManualDownloadInput = styled(Input)`
-  width: 120px;
+  width: 100%;
 `;
 
-export const ManualDownloadLabel = styled.span`
+export const DownloadPaneDescription = styled.p`
   font-size: 14px;
   color: ${({ theme }) => theme.table.td.color.normal};
-  padding-bottom: 7px;
+  line-height: 1.5;
+  margin: 0;
+`;
+
+export const DownloadPaneForm = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const DownloadPaneField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+export const DownloadPaneLabel = styled.label`
+  font-size: 14px;
+  color: ${({ theme }) => theme.table.td.color.normal};
+`;
+
+export const DownloadPaneActions = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 8px;
 `;
 
 export const DatePickerInput = styled(DatePicker)`

@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 public class PollingSettings {
 
   private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofMillis(1_000);
-  private static final long DEFAULT_MAX_BYTES_CONSUMED = 50L * 1024 * 1024;
+  private static final long DEFAULT_MAX_BYTES_CONSUMED = 5L * 1024 * 1024;
 
   private final Duration pollTimeout;
   private final long maxBytesConsumed;
