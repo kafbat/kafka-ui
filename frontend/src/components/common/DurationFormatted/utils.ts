@@ -67,7 +67,7 @@ export const formatDuration = (value: string | number | undefined): string => {
     }
 
     return `${count} ${unit}${count !== 1 ? 's' : ''}`;
-  } catch (e) {
+  } catch {
     return '0 ms';
   }
 };
