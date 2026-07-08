@@ -25,6 +25,9 @@ public class KafkaConfigSanitizer {
 
   private static final String[] REGEX_PARTS = {"*", "$", "^", "+"};
 
+  private static final Pattern CONFIG_PROVIDER_REFERENCE =
+      Pattern.compile("\\$\\{[^}:]+:([^}:]+:)?[^}]+}");
+
   private static final List<String> DEFAULT_PATTERNS_TO_SANITIZE = ImmutableList.<String>builder()
       .addAll(kafkaConfigKeysToSanitize())
       .add(
@@ -72,10 +75,25 @@ public class KafkaConfigSanitizer {
   public Object sanitize(String key, @Nullable Object value) {
     for (Pattern pattern : sanitizeKeysPatterns) {
       if (pattern.matcher(key).matches()) {
+        if (isConfigProviderReference(value)) {
+          return value;
+        }
         return SANITIZED_VALUE;
       }
     }
     return value;
+  }
+
+  /**
+   *  Checks if config value is an externalized secret / config provider indirection: ${provider:[path:]key}.
+   *  Such a value is only a reference resolved at runtime, not an actual
+   *  secret, so it must not be masked (masking would clobber the reference on re-submit).
+   * @param value config value
+   * @return true if provider reference, false otherwise
+   */
+  private static boolean isConfigProviderReference(@Nullable Object value) {
+    return value instanceof CharSequence charsequence
+        && CONFIG_PROVIDER_REFERENCE.matcher(charsequence).find();
   }
 
   public Map<String, Object> sanitizeConnectorConfig(@Nullable Map<String, Object> original) {
