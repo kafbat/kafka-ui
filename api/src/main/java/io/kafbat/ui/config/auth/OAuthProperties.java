@@ -13,8 +13,11 @@ import org.springframework.util.Assert;
 @ConfigurationProperties("auth.oauth2")
 @Data
 public class OAuthProperties {
+  public static final String DEFAULT_AUTHORIZATION_GRANT_TYPE = "authorization_code";
+  public static final String DEFAULT_REDIRECT_URI = "{baseUrl}/login/oauth2/code/{registrationId}";
   private Map<String, OAuth2Provider> client = new HashMap<>();
   private OAuth2ResourceServerProperties resourceServer = null;
+  private boolean insecureSsl = false;
 
   @PostConstruct
   public void init() {
@@ -24,6 +27,12 @@ public class OAuthProperties {
       }
       if (provider.getScope() == null) {
         provider.setScope(Collections.emptySet());
+      }
+      if (provider.getAuthorizationGrantType() == null) {
+        provider.setAuthorizationGrantType(DEFAULT_AUTHORIZATION_GRANT_TYPE);
+      }
+      if (provider.getRedirectUri() == null) {
+        provider.setRedirectUri(DEFAULT_REDIRECT_URI);
       }
     });
 

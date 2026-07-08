@@ -47,6 +47,8 @@ auth:
   #  type: OAUTH2
   #  type: LDAP
   oauth2:
+    # Set true only for development/testing with self-signed OAuth/OIDC certs.
+    insecure-ssl: false
     client:
       cognito:
         clientId: # CLIENT ID
