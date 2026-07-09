@@ -4,6 +4,7 @@ import com.google.common.base.Throwables;
 import io.kafbat.ui.api.model.ControllerType;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -54,23 +55,9 @@ public class InternalClusterState {
 
     features = statistics.getFeatures();
 
-    bytesInPerSec = statistics
-        .getMetrics()
-        .getIoRates()
-        .brokerBytesInPerSec()
-        .values()
-        .stream()
-        .reduce(BigDecimal::add)
-        .orElse(null);
-
-    bytesOutPerSec = statistics
-        .getMetrics()
-        .getIoRates()
-        .brokerBytesOutPerSec()
-        .values()
-        .stream()
-        .reduce(BigDecimal::add)
-        .orElse(null);
+    var ioRates = statistics.getMetrics().getIoRates();
+    bytesInPerSec = sumWithTopicFallback(ioRates.brokerBytesInPerSec(), ioRates.topicBytesInPerSec());
+    bytesOutPerSec = sumWithTopicFallback(ioRates.brokerBytesOutPerSec(), ioRates.topicBytesOutPerSec());
 
     var partitionsStats = new PartitionsStats(statistics.topicDescriptions().toList());
     onlinePartitionCount = partitionsStats.getOnlinePartitionCount();
@@ -80,6 +67,25 @@ public class InternalClusterState {
     underReplicatedPartitionCount = partitionsStats.getUnderReplicatedPartitionCount();
     readOnly = cluster.isReadOnly();
     controller = statistics.getController();
+  }
+
+  /**
+   * Aggregates a cluster-wide IO rate from the per-broker rates.
+   *
+   * <p>Some brokers do not expose the topic-less {@code BrokerTopicMetrics} aggregate over JMX
+   * (observed with Confluent {@code cp-kafka}), so the per-broker map ends up empty even though
+   * per-topic rates are scraped successfully. Without a fallback the cluster/broker throughput is
+   * reported as {@code null} ("0 bytes") while every topic still shows a non-zero rate. In that
+   * case we fall back to summing the per-topic rates, which by definition equals the all-topics
+   * broker aggregate (bytes in/out are additive across topics, counted once at the leader broker).
+   */
+  @Nullable
+  static BigDecimal sumWithTopicFallback(Map<Integer, BigDecimal> brokerRates,
+                                         Map<String, BigDecimal> topicRates) {
+    return brokerRates.values().stream()
+        .reduce(BigDecimal::add)
+        .or(() -> topicRates.values().stream().reduce(BigDecimal::add))
+        .orElse(null);
   }
 
   @Nullable
