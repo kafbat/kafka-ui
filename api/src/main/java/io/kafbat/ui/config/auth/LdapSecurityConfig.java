@@ -23,6 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
@@ -52,8 +53,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @Slf4j
 public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   private static final Map<String, Object> BASE_ENV_PROPS = Map.of(
-      "java.naming.ldap.factory.socket", CustomSslSocketFactory.class.getName()
-  );
+      "java.naming.ldap.factory.socket", CustomSslSocketFactory.class.getName());
 
   private final LdapProperties props;
 
@@ -64,8 +64,8 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public AbstractLdapAuthenticationProvider authenticationProvider(LdapAuthoritiesPopulator authoritiesExtractor,
-                                                                   @Autowired(required = false) BindAuthenticator ba,
-                                                                   AccessControlService acs) {
+      @Autowired(required = false) BindAuthenticator ba,
+      AccessControlService acs) {
     var rbacEnabled = acs.isRbacEnabled();
 
     AbstractLdapAuthenticationProvider authProvider;
@@ -77,7 +77,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     }
 
     if (rbacEnabled) {
-      authProvider.setUserDetailsContextMapper(new RbacUserDetailsMapper());
+      authProvider.setUserDetailsContextMapper(new RbacUserDetailsMapper(acs));
     }
 
     return authProvider;
@@ -89,13 +89,13 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
 
     if (props.getBase() != null) {
-      ba.setUserDnPatterns(new String[] {props.getBase()});
+      ba.setUserDnPatterns(new String[] { props.getBase() });
     }
 
     if (props.getUserFilterSearchFilter() != null) {
-      LdapUserSearch userSearch =
-          new FilterBasedLdapUserSearch(props.getUserFilterSearchBase(), props.getUserFilterSearchFilter(),
-              ldapContextSource);
+      LdapUserSearch userSearch = new FilterBasedLdapUserSearch(props.getUserFilterSearchBase(),
+          props.getUserFilterSearchFilter(),
+          ldapContextSource);
       ba.setUserSearch(userSearch);
     }
 
@@ -114,8 +114,8 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public LdapAuthoritiesPopulator authoritiesExtractor(ApplicationContext ctx,
-                                                       BaseLdapPathContextSource ldapCtx,
-                                                       AccessControlService acs) {
+      BaseLdapPathContextSource ldapCtx,
+      AccessControlService acs) {
     if (!props.isActiveDirectory()) {
       if (!acs.isRbacEnabled()) {
         return new NullLdapAuthoritiesPopulator();
@@ -144,15 +144,13 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     }
 
     var builder = http.authorizeExchange(spec -> spec
-            .pathMatchers(AUTH_WHITELIST)
-            .permitAll()
-            .anyExchange()
-            .authenticated()
-        )
+        .pathMatchers(AUTH_WHITELIST)
+        .permitAll()
+        .anyExchange()
+        .authenticated())
         .formLogin(form -> form
             .loginPage(LOGIN_URL)
-            .authenticationSuccessHandler(emptyRedirectSuccessHandler())
-        )
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler()))
         .logout(spec -> spec
             .logoutSuccessHandler(redirectLogoutSuccessHandler())
             .requiresLogout(ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/logout")))
@@ -170,8 +168,7 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
 
     ActiveDirectoryLdapAuthenticationProvider provider = new ActiveDirectoryLdapAuthenticationProvider(
         props.getActiveDirectoryDomain(),
-        props.getUrls()
-    );
+        props.getUrls());
 
     provider.setUseAuthenticationRequestCredentials(true);
     provider.setAuthoritiesPopulator(populator);
@@ -183,14 +180,27 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
     return provider;
   }
 
-  private static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
+  static class RbacUserDetailsMapper extends LdapUserDetailsMapper {
+    private final AccessControlService acs;
+
+    RbacUserDetailsMapper(AccessControlService acs) {
+      this.acs = acs;
+    }
+
     @Override
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
-                                          Collection<? extends GrantedAuthority> authorities) {
+        Collection<? extends GrantedAuthority> authorities) {
       UserDetails userDetails = super.mapUserFromContext(ctx, username, authorities);
-      return new RbacLdapUser(userDetails);
+      RbacLdapUser rbacUser = new RbacLdapUser(userDetails);
+      if (acs.isRbacEnabled()) {
+        boolean hasRole = acs.getRoles().stream()
+            .anyMatch(role -> rbacUser.groups().contains(role.getName()));
+        if (!hasRole && acs.getDefaultRole() == null) {
+          throw new AccessDeniedException(
+              "Access denied: authenticated user '" + username + "' has no roles assigned.");
+        }
+      }
+      return rbacUser;
     }
   }
-
 }
-
