@@ -10,11 +10,15 @@ const options = [
   { value: 15, label: '15 sec' },
 ];
 
+export type RefreshRateStorageKey =
+  | 'consumer-groups-refresh-rate'
+  | 'topics-refresh-rate'
+  | 'schemas-refresh-rate'
+  | 'connectors-refresh-rate'
+  | `consumer-group-${string}-refresh-rate`;
+
 type RefreshRateSelectProps = {
-  storageKey:
-    | 'consumer-groups-refresh-rate'
-    | 'topics-refresh-rate'
-    | `consumer-group-${string}-refresh-rate`;
+  storageKey: RefreshRateStorageKey;
 };
 
 export const RefreshRateSelect = ({ storageKey }: RefreshRateSelectProps) => {
