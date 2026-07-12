@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { clusterTopicNewRelativePath } from 'lib/paths';
 import { PER_PAGE } from 'lib/constants';
 import ClusterContext from 'components/contexts/ClusterContext';
@@ -10,6 +11,7 @@ import Switch from 'components/common/Switch/Switch';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import TopicTable from 'components/Topics/List/TopicTable';
+import TableRefresh from 'components/common/TableRefresh/TableRefresh';
 import {
   Action,
   GetTopicsRequest,
@@ -24,12 +26,18 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
 import { topicsApiClient } from 'lib/api';
+import { topicKeys } from 'lib/hooks/api/topics';
 
 const ListPage: React.FC = () => {
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
   const { isReadOnly } = React.useContext(ClusterContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('topics');
+  const queryClient = useQueryClient();
+  const isFetchingTopics =
+    useIsFetching({ queryKey: topicKeys.all(clusterName) }) > 0;
+  const handleRefresh = () =>
+    queryClient.refetchQueries({ queryKey: topicKeys.all(clusterName) });
 
   // Set the search params to the url based on the localStorage value
   React.useEffect(() => {
@@ -111,6 +119,11 @@ const ListPage: React.FC = () => {
           />
           Show Internal Topics
         </label>
+        <TableRefresh
+          storageKey="topics-refresh-rate"
+          onRefresh={handleRefresh}
+          isFetching={isFetchingTopics}
+        />
       </ControlPanelWrapper>
       <Suspense fallback={<PageLoader />}>
         <TopicTable params={params} />
