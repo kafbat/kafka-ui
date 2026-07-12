@@ -12,16 +12,21 @@ class ConsumingStats {
   private int records = 0;
   private long elapsed = 0;
   private int filterApplyErrors = 0;
+  private long lastSentTime = 0;
 
   void sendConsumingEvt(FluxSink<TopicMessageEventDTO> sink, PolledRecords polledRecords) {
     bytes += polledRecords.bytes();
     records += polledRecords.count();
     elapsed += polledRecords.elapsed().toMillis();
-    sink.next(
-        new TopicMessageEventDTO()
-            .type(TopicMessageEventDTO.TypeEnum.CONSUMING)
-            .consuming(createConsumingStats())
-    );
+    long now = System.currentTimeMillis();
+    if (lastSentTime == 0 || now - lastSentTime > 500) {
+      sink.next(
+          new TopicMessageEventDTO()
+              .type(TopicMessageEventDTO.TypeEnum.CONSUMING)
+              .consuming(createConsumingStats())
+      );
+      lastSentTime = now;
+    }
   }
 
   void incFilterApplyError() {
