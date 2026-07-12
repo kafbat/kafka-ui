@@ -35,9 +35,13 @@ const ListPage: React.FC = () => {
   const { isFtsEnabled } = useFts('topics');
   const queryClient = useQueryClient();
   const isFetchingTopics =
-    useIsFetching({ queryKey: topicKeys.all(clusterName) }) > 0;
+    useIsFetching({ queryKey: topicKeys.all(clusterName), type: 'active' }) >
+    0;
   const handleRefresh = () =>
-    queryClient.refetchQueries({ queryKey: topicKeys.all(clusterName) });
+    queryClient.refetchQueries({
+      queryKey: topicKeys.all(clusterName),
+      type: 'active',
+    });
 
   // Set the search params to the url based on the localStorage value
   React.useEffect(() => {

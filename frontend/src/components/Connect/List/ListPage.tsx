@@ -36,11 +36,9 @@ const ListPage: React.FC = () => {
     refetchIntervalInBackground: false,
   });
 
-  const isLoadingConnectors = isLoading;
-
   return (
     <FilteredConnectorsProvider>
-      <ConnectorsStatistics isLoading={isLoadingConnectors} />
+      <ConnectorsStatistics isLoading={isLoading} />
       <S.Search hasInput>
         <Search
           key={clusterName}
@@ -54,7 +52,7 @@ const ListPage: React.FC = () => {
         />
       </S.Search>
 
-      {isLoadingConnectors && <PageLoader offsetY={370} />}
+      {isLoading && <PageLoader offsetY={370} />}
 
       {error && (
         <ErrorPage
