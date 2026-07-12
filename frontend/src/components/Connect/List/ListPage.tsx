@@ -10,6 +10,8 @@ import Fts from 'components/common/Fts/Fts';
 import { FullConnectorInfo } from 'generated-sources';
 import { FilteredConnectorsProvider } from 'components/Connect/model/FilteredConnectorsProvider';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
+import TableRefresh from 'components/common/TableRefresh/TableRefresh';
+import { useRefreshRate } from 'lib/hooks/useRefreshRate';
 
 import * as S from './ListPage.styled';
 import { ConnectorsTable } from './ConnectorsTable/ConnectorsTable';
@@ -21,16 +23,20 @@ const ListPage: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const [searchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('connects');
+  const { refetchInterval } = useRefreshRate('connectors-refresh-rate');
   const {
     data: connectors = emptyConnectors,
     isLoading,
-    isRefetching,
     isSuccess,
+    isFetching,
     error,
     refetch,
-  } = useConnectors(clusterName, searchParams.get('q') || '', isFtsEnabled);
+  } = useConnectors(clusterName, searchParams.get('q') || '', isFtsEnabled, {
+    refetchInterval,
+    refetchIntervalInBackground: false,
+  });
 
-  const isLoadingConnectors = isLoading || isRefetching;
+  const isLoadingConnectors = isLoading;
 
   return (
     <FilteredConnectorsProvider>
@@ -40,6 +46,11 @@ const ListPage: React.FC = () => {
           key={clusterName}
           placeholder="Search by Connect Name, Status or Type"
           extraActions={<Fts resourceName="connects" />}
+        />
+        <TableRefresh
+          storageKey="connectors-refresh-rate"
+          onRefresh={refetch}
+          isFetching={isFetching}
         />
       </S.Search>
 
