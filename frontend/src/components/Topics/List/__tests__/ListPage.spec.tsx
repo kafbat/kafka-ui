@@ -53,7 +53,9 @@ describe('ListPage Component', () => {
       expect(
         screen.getByRole('button', { name: 'Refresh' })
       ).toBeInTheDocument();
-      expect(screen.getByText(/Refresh rate:/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Auto refresh interval' })
+      ).toBeInTheDocument();
     });
   });
 });
