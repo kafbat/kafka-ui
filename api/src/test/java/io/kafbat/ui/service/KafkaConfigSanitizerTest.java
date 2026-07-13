@@ -54,9 +54,22 @@ class KafkaConfigSanitizerTest {
     assertThat(sanitizer.sanitize("consumer.kafka.ui", "secret")).isEqualTo("******");
     assertThat(sanitizer.sanitize("this.is.test.credentials", "secret")).isEqualTo("******");
     assertThat(sanitizer.sanitize("this.is.not.credential", "not.credential"))
-            .isEqualTo("not.credential");
+        .isEqualTo("not.credential");
     assertThat(sanitizer.sanitize("database.password", "no longer credential"))
-            .isEqualTo("no longer credential");
+        .isEqualTo("no longer credential");
+  }
+
+  @Test
+  void doNotObfuscateConfigProviderReferences() {
+    final var sanitizer = new KafkaConfigSanitizer(true, List.of());
+    assertThat(sanitizer.sanitize("database.password", "${file:/data/secrets.properties:db-password}"))
+        .isEqualTo("${file:/data/secrets.properties:db-password}");
+    assertThat(sanitizer.sanitize("password", "${vault:secret/data/connector:password}"))
+        .isEqualTo("${vault:secret/data/connector:password}");
+    assertThat(sanitizer.sanitize("aws.secret.access.key", "${env:AWS_SECRET}"))
+        .isEqualTo("${env:AWS_SECRET}");
+    assertThat(sanitizer.sanitize("password", "${notAReference}")).isEqualTo("******");
+    assertThat(sanitizer.sanitize("password", "plain-secret")).isEqualTo("******");
   }
 
   @Test

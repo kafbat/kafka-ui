@@ -20,6 +20,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("AvoidEscapedUnicodeCharacters")
 class MessageFiltersTest {
 
   @Nested
@@ -47,6 +48,62 @@ class MessageFiltersTest {
 
       assertTrue(
           filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("x1", "some abC")))
+      );
+    }
+
+    @Test
+    void matchesUppercaseUnicodeEscapeInValue() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().value("{\"name\":\"\\u8A66Lipo\"}"))
+      );
+    }
+
+    @Test
+    void matchesUppercaseUnicodeEscapeInKey() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().key("{\"k\":\"\\u8A66\"}").value("unrelated"))
+      );
+    }
+
+    @Test
+    void matchesUppercaseUnicodeEscapeInHeaders() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().key("x").value("y").headers(Map.of("h", "val\\u8A66")))
+      );
+    }
+
+    @Test
+    void matchesLowercaseUnicodeEscapeInValue() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().value("{\"name\":\"\\u8a66Lipo\"}"))
+      );
+    }
+
+    @Test
+    void matchesLowercaseUnicodeEscapeInKey() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().key("{\"k\":\"\\u8a66\"}").value("unrelated"))
+      );
+    }
+
+    @Test
+    void matchesLowercaseUnicodeEscapeInHeaders() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().key("x").value("y").headers(Map.of("h", "val\\u8a66")))
+      );
+    }
+
+    @Test
+    void matchesDirectUnicodeWithoutEscapes() {
+      var cjkFilter = containsStringFilter("\u8A66");
+      assertTrue(
+          cjkFilter.test(msg().value("{\"name\":\"\u8A66Lipo\"}"))
       );
     }
 
