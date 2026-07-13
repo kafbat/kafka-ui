@@ -54,7 +54,7 @@ describe('ListPage Component', () => {
         screen.getByRole('button', { name: 'Refresh' })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: 'Auto refresh interval' })
+        screen.getByRole('button', { name: /Auto refresh interval/ })
       ).toBeInTheDocument();
     });
   });

@@ -14,7 +14,7 @@ describe('TableRefresh', () => {
     render(<TableRefresh storageKey={STORAGE_KEY} onRefresh={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Auto refresh interval' })
+      screen.getByRole('button', { name: /Auto refresh interval/ })
     ).toBeInTheDocument();
   });
 
@@ -43,10 +43,23 @@ describe('TableRefresh', () => {
     expect(screen.getByText('5s')).toBeInTheDocument();
   });
 
+  it('conveys the active interval in the toggle accessible name', () => {
+    render(<TableRefresh storageKey={STORAGE_KEY} onRefresh={jest.fn()} />);
+    expect(
+      screen.getByRole('button', { name: /Auto refresh interval: off/i })
+    ).toBeInTheDocument();
+
+    localStorage.setItem(PREFIXED_KEY, '5');
+    render(<TableRefresh storageKey={STORAGE_KEY} onRefresh={jest.fn()} />);
+    expect(
+      screen.getByRole('button', { name: /Auto refresh interval: every 5s/i })
+    ).toBeInTheDocument();
+  });
+
   it('persists the chosen interval when an option is selected', async () => {
     render(<TableRefresh storageKey={STORAGE_KEY} onRefresh={jest.fn()} />);
     await userEvent.click(
-      screen.getByRole('button', { name: 'Auto refresh interval' })
+      screen.getByRole('button', { name: /Auto refresh interval/ })
     );
     await userEvent.click(screen.getByText('Every 10s'));
     expect(localStorage.getItem(PREFIXED_KEY)).toBe('10');

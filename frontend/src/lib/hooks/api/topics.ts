@@ -67,7 +67,7 @@ export function useTopics(
   props: GetTopicsRequest,
   queryOptions?: Omit<
     UseQueryOptions<TopicsResponse, ServerResponse>,
-    'queryKey' | 'queryFn'
+    'queryKey' | 'queryFn' | 'placeholderData'
   >
 ) {
   const { clusterName, ...filters } = props;

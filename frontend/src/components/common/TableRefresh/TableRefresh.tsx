@@ -36,6 +36,10 @@ const TableRefresh: React.FC<TableRefreshProps> = ({
 }) => {
   const [rate, setRate] = useLocalStorage<number>(storageKey, 0);
   const current = OPTIONS.find((option) => option.value === rate);
+  const intervalLabel =
+    rate > 0
+      ? `Auto refresh interval: every ${current?.label}`
+      : 'Auto refresh interval: off';
 
   return (
     <S.Group>
@@ -49,7 +53,7 @@ const TableRefresh: React.FC<TableRefreshProps> = ({
         Refresh
       </S.RefreshButton>
       <Dropdown
-        aria-label="Auto refresh interval"
+        aria-label={intervalLabel}
         openBtnEl={
           <S.IntervalButton type="button">
             {rate > 0 && <S.Rate>{current?.label}</S.Rate>}
