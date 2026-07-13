@@ -1,5 +1,6 @@
 package io.kafbat.ui.service;
 
+import static io.kafbat.ui.api.model.ControllerType.KRAFT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.AbstractIntegrationTest;
@@ -46,6 +47,9 @@ class StatisticsServiceTest extends AbstractIntegrationTest {
     Statistics updated =
         statisticsService.updateCache(clustersStorage.getClusterByName(LOCAL).get())
             .block();
+
+    assertThat(updated.getController()).isEqualTo(KRAFT);
+    assertThat(updated.getQuorumInfo()).isNotNull();
 
     var kafkaTopicPartitionsGauge = getGaugeSnapshot(
         updated.getMetrics().getInferredMetrics(),

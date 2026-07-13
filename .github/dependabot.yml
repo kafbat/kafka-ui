@@ -7,7 +7,8 @@ updates:
     interval: weekly
     time: "10:00"
     timezone: Europe/London
-  open-pull-requests-limit: 10
+  # The default is 5 which conflicts with the number of groups we have
+  open-pull-requests-limit: 14
   labels:
     - "type/dependencies"
     - "scope/backend"
@@ -38,11 +39,19 @@ updates:
         - "org.mockito:*"
         # Bouncy Castle is only used for testing purposes
         - "org.bouncycastle:bcpkix-jdk18on"
+        - "org.wiremock:*"
+        # byte-buddy is only used to support testing needs and it is declared as a testImplementation
+        - "net.bytebuddy:byte-buddy"
     api-build-tools:
       patterns:
         - "org.openapitools:*"
         - "com.github.java-json-tools:*"
         - "com.github.victools:*"
+    prometheus:
+      # The Prometheus project generally promises API and feature stability within major versions but does occasionally introduce breaking changes in minor releases
+      # This is a problem grouped under "all"
+      patterns:
+        - "io.prometheus:*"
     # Update Apache Commons libraries together as these dependencies rarely introduce breaking changes
     apache-commons:
       patterns:
@@ -66,9 +75,22 @@ updates:
     modelcontextprotocol:
       patterns:
         - "io.modelcontextprotocol.sdk:mcp-spring-webflux"
+    identity-libraries:
+      patterns:
+        - "com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler"
+        - "software.amazon.msk:aws-msk-iam-auth"
+        - "com.azure:azure-identity"
+    compression-libraries:
+      patterns:
+        - "org.xerial.snappy:snappy-java"
+        - "at.yawk.lz4:lz4-java"
     gradle-wrapper:
       patterns:
         - "gradle-wrapper"
+    # Cel is still a 0.x dependency which means that the may introduce breaking changes at any time
+    cel:
+      patterns:
+        - "dev.cel:cel"
     others:
       patterns:
         - "*"
