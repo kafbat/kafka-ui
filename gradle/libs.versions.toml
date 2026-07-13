@@ -15,7 +15,7 @@ apache-commons-compress = '1.28.0'
 assertj = '3.25.3'
 avro = '1.12.1'
 byte-buddy = '1.18.1'
-confluent = '7.9.5'
+confluent = '7.9.8'
 confluent-ccs = '7.9.5-ccs'
 msgpack = "0.9.11"
 
