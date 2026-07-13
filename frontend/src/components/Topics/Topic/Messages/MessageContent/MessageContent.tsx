@@ -72,8 +72,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
     setActiveTab('headers');
   };
 
+  const trimmedContent = messageContent?.trim();
   const contentType =
-    messageContent && messageContent.trim().startsWith('{')
+    trimmedContent &&
+    (trimmedContent.startsWith('{') || trimmedContent.startsWith('['))
       ? SchemaType.JSON
       : SchemaType.PROTOBUF;
 
@@ -109,6 +111,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 buttonSize="M"
                 buttonType="text"
                 onClick={copyToClipboard}
+                aria-label={`Copy ${activeTab} to clipboard`}
               >
                 <ClipboardIcon />
               </Button>
@@ -123,7 +126,13 @@ const MessageContent: React.FC<MessageContentProps> = ({
             <S.Metadata>
               <S.MetadataLabel>Timestamp</S.MetadataLabel>
               <span>
-                <S.MetadataValue>{formatTimestamp(timestamp)}</S.MetadataValue>
+                <S.MetadataValue>
+                  {formatTimestamp({
+                    timestamp,
+                    timezone: currentTimezone.value,
+                    withMilliseconds: true,
+                  })}
+                </S.MetadataValue>
                 <S.MetadataMeta>Timestamp type: {timestampType}</S.MetadataMeta>
               </span>
             </S.Metadata>
