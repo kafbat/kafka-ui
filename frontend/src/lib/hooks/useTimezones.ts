@@ -57,7 +57,7 @@ const generateTimezones = (): Timezone[] => {
           offset,
           UTCOffset: offset.replace('GMT', 'UTC'),
         };
-      } catch (error) {
+      } catch {
         return {
           value: timeZone,
           label: timeZone.replace(/_/g, ' '),
@@ -68,7 +68,7 @@ const generateTimezones = (): Timezone[] => {
     });
     timezones.push(UTCPlain);
     return timezones;
-  } catch (error) {
+  } catch {
     // eslint-disable-next-line no-console
     console.warn(
       'Intl.supportedValuesOf not supported, using fallback timezones'
