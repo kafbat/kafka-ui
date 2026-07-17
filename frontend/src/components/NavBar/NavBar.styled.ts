@@ -29,6 +29,29 @@ export const NavbarBrand = styled.div`
   padding-left: 8px;
 `;
 
+export const EnvironmentBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 8px;
+  padding: 2px 8px;
+  height: 24px;
+
+  border-radius: 20px;
+
+  font-family: Inter, sans-serif;
+  font-style: normal;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+
+  background: ${({ theme }) => theme.primary}; 
+  color: env(ENVIRONMENT_IDENTIFIER_COLOR, rgb(0, 71, 255));
+`;
+
+
 export const SocialLink = styled.a(
   ({ theme: { icons } }) => css`
     display: block;
