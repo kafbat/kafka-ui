@@ -1,0 +1,127 @@
+auth:
+  type: OAUTH2
+  oauth2:
+    client:
+      azure:
+        clientId: 21ae9b5e-6105-41ed-8e50-f885b77ea857
+        clientSecret: ${KAFBAT_CLIENTSECRET}
+        scope: openid
+        client-name: azure
+        provider: azure
+        issuer-uri: "https://login.microsoftonline.com/e11fd634-26b5-47f4-8b8c-908e466e9bdf/v2.0"
+        jwk-set-uri: "https://login.microsoftonline.com/e11fd634-26b5-47f4-8b8c-908e466e9bdf/discovery/v2.0/keys"
+        user-name-attribute: name
+        custom-params:
+          type: oauth
+          roles-field: roles
+spring:
+  codec:
+    max-in-memory-size: 15MB
+kafka:
+  clusters:
+    - name: sc-passthrough-nonprod
+      bootstrapServers: kafka.nonprod.ce.sc.js-devops.co.uk:6969
+      schemaRegistry: https://supply-chain.sr-proxy.stg.ce.sc.js-devops.co.uk
+      defaultValueSerde: SchemaRegistry
+      properties:
+        security.protocol: SASL_SSL
+        sasl.mechanism: OAUTHBEARER
+        sasl.jaas.config: org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required clientId="21ae9b5e-6105-41ed-8e50-f885b77ea857" clientSecret="${KAFBAT_CLIENTSECRET}" scope="api://7abf9235-63b0-4ecf-b86f-47f4640a37e4/.default";
+        sasl.login.callback.handler.class: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+        sasl.oauthbearer.token.endpoint.url: https://login.microsoftonline.com/e11fd634-26b5-47f4-8b8c-908e466e9bdf/oauth2/v2.0/token
+        client.id: sc-passthrough-nonprod-kafkaui
+      audit:
+        topic: _kafbat_auditLogs
+        topic-audit-enabled: true
+        console-audit-enabled: true
+        level: ALL
+rbac:
+  roles:
+    - name: "Admin SC"
+      clusters:
+        - sc-passthrough-nonprod
+      subjects:
+        - provider: oauth
+          type: role
+          value: "admin"
+      permissions:
+        - resource: audit
+          actions: [view]
+        - resource: applicationconfig
+          actions: [all]
+        - resource: clusterconfig
+          actions: [all]
+        - resource: topic
+          value: ".*"
+          actions: [all]
+        - resource: consumer
+          value: ".*"
+          actions: [all]
+        - resource: schema
+          value: ".*"
+          actions: [view]
+        - resource: connect
+          value: ".*"
+          actions: [all]
+        - resource: ksql
+          actions: [all]
+        - resource: acl
+          actions: [view]
+    - name: "ViewOnly SC"
+      clusters:
+        - sc-passthrough-nonprod
+      subjects:
+        - provider: oauth
+          type: role
+          value: "view-only"
+          #Sainsbury's Tech
+      permissions:
+        - resource: audit
+          actions: [view]
+        - resource: clusterconfig
+          actions: [view]
+        - resource: topic
+          value: ".*"
+          actions: [view]
+        - resource: consumer
+          value: ".*"
+          actions: [view]
+        - resource: schema
+          value: ".*"
+          actions: [view]
+        - resource: connect
+          value: ".*"
+          actions: [view]
+        - resource: acl
+          actions: [view]
+    - name: "ViewOnly Rest"
+      clusters:
+        - apps2-sandbox
+        - apps2-dev
+        - apps2-stg
+        - comm-nonprod
+        - logistics-nonprod
+      subjects:
+        - provider: oauth
+          type: role
+          value: "view-only"
+          #Sainsbury's Tech
+      permissions:
+        - resource: audit
+          actions: [view]
+        - resource: clusterconfig
+          actions: [view]
+        - resource: topic
+          value: ".*"
+          actions: [view]
+        - resource: consumer
+          value: ".*"
+          actions: [view]
+        - resource: schema
+          value: ".*"
+          actions: [view]
+        - resource: connect
+          value: ".*"
+          actions: [view]
+        - resource: acl
+          actions: [view]

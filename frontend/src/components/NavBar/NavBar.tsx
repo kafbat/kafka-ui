@@ -20,6 +20,10 @@ interface Props {
   onBurgerClick: () => void;
 }
 
+export const ENVIRONMENT_IDENTIFIER_LABEL =
+  process.env.ENVIRONMENT_IDENTIFIER_LABEL ?? 'LOCAL';
+
+
 export type ThemeDropDownValue = 'auto_theme' | 'light_theme' | 'dark_theme';
 
 const options = [
@@ -58,21 +62,24 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
   return (
     <S.Navbar role="navigation" aria-label="Page Header">
       <S.NavbarBrand>
-        <S.NavbarBrand>
-          <Button buttonType="text" buttonSize="S" onClick={onBurgerClick}>
-            <MenuIcon />
-          </Button>
+        <Button buttonType="text" buttonSize="S" onClick={onBurgerClick}>
+          <MenuIcon />
+        </Button>
 
-          <S.Hyperlink to="/">
-            <Logo />
-            kafbat UI
-          </S.Hyperlink>
+        <S.Hyperlink to="/">
+          <Logo />
+          kafbat UI
+        </S.Hyperlink>
 
-          <S.NavbarItem>
-            <Version />
-          </S.NavbarItem>
-        </S.NavbarBrand>
+        <S.EnvironmentBadge>
+          {ENVIRONMENT_IDENTIFIER_LABEL}
+        </S.EnvironmentBadge>
+
+        <S.NavbarItem>
+          <Version />
+        </S.NavbarItem>
       </S.NavbarBrand>
+
       <S.NavbarSocial>
         <UserTimezone />
 
@@ -82,21 +89,28 @@ const NavBar: React.FC<Props> = ({ onBurgerClick }) => {
           onChange={setThemeMode}
           isThemeMode
         />
-        <S.SocialLink href="https://github.com/kafbat/kafka-ui" target="_blank">
+
+        <S.SocialLink
+          href="https://github.com/kafbat/kafka-ui"
+          target="_blank"
+        >
           <GitHubIcon />
         </S.SocialLink>
+
         <S.SocialLink
           href="https://discord.com/invite/4DWzD7pGE5"
           target="_blank"
         >
           <DiscordIcon />
         </S.SocialLink>
+
         <S.SocialLink
           href="https://producthunt.com/products/ui-for-apache-kafka"
           target="_blank"
         >
           <ProductHuntIcon />
         </S.SocialLink>
+
         <UserInfo />
       </S.NavbarSocial>
     </S.Navbar>
