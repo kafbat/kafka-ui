@@ -491,7 +491,33 @@ class ConsumerGroupServiceTest {
     Mockito.when(client.listOffsets(Mockito.any(), Mockito.any(), Mockito.eq(false)))
         .thenReturn(Mono.just(Map.of(new TopicPartition(topic, 0), 100L)));
 
+    var topicStates = allGroups.values().stream()
+        .flatMap(s -> s.committedOffsets().keySet().stream().map(TopicPartition::topic))
+        .distinct()
+        .map(topicName ->
+            Map.entry(topicName,
+                new ScrapedClusterState.TopicState(
+                  topicName, null, List.of(),
+                  Map.of(0, 0L, 1, 0L),
+                  Map.of(0, 100L, 1, 100L),
+                  null, Map.of()
+                )
+            )
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    Statistics statistics = Statistics.builder()
+        .clusterState(
+            ScrapedClusterState.builder()
+                .consumerGroupsStates(allGroups)
+                .topicStates(topicStates)
+                .build()
+        )
+        .status(ServerStatusDTO.ONLINE)
+        .build();
+
     StatisticsCache cache = Mockito.mock(StatisticsCache.class);
+    Mockito.when(cache.get(cluster)).thenReturn(statistics);
+
     AccessControlService acl = Mockito.mock(AccessControlService.class);
     Mockito.when(acl.isConsumerGroupAccessible(Mockito.any(), Mockito.any()))
         .thenReturn(Mono.just(true));

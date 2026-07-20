@@ -79,6 +79,49 @@ public class ConsumerGroupService {
         });
   }
 
+  private Mono<List<InternalConsumerGroup>> getConsumerGroups(KafkaCluster cluster,
+                                                        ReactiveAdminClient ac,
+                                                        List<ConsumerGroupDescription> descriptions) {
+
+    Statistics statistics = statisticsCache.get(cluster);
+    if (!statistics.getStatus().equals(ServerStatusDTO.ONLINE)) {
+      return getConsumerGroups(ac, descriptions);
+    }
+
+    Map<String, InternalConsumerGroup> result = new HashMap<>();
+
+    var cachedConsumerGroupsStates = statistics.getClusterState().getConsumerGroupsStates();
+    var cachedTopicStates = statistics.getClusterState().getTopicStates();
+    var missed = new ArrayList<ConsumerGroupDescription>();
+
+    for (ConsumerGroupDescription consumerGroup : descriptions) {
+      Optional<InternalConsumerGroup> internalConsumerGroup =
+          getConsumerGroup(consumerGroup, cachedConsumerGroupsStates, cachedTopicStates);
+      if (internalConsumerGroup.isPresent()) {
+        result.put(consumerGroup.groupId(), internalConsumerGroup.get());
+      } else {
+        missed.add(consumerGroup);
+      }
+    }
+
+    Mono<Map<String, InternalConsumerGroup>> consumerGroups = Mono.just(result);
+    if (!missed.isEmpty()) {
+      consumerGroups = getConsumerGroups(ac, missed).map(r -> {
+            var combined = new HashMap<>(result);
+            combined.putAll(r.stream().collect(Collectors.toMap(
+                InternalConsumerGroup::getGroupId,
+                d -> d
+            )));
+            return combined;
+          }
+      );
+    }
+
+    return consumerGroups.map(res ->
+       descriptions.stream().map(d -> res.get(d.groupId())).toList()
+    );
+  }
+
   public Mono<ConsumerGroupsPage> getConsumerGroups(
       KafkaCluster cluster,
       OptionalInt pageNum,
@@ -96,14 +139,43 @@ public class ConsumerGroupService {
             .filterWhen(cg -> accessControlService.isConsumerGroupAccessible(cg.groupId(), cluster.getName()))
             .collectList()
             .flatMap(allGroups ->
-                loadSortedDescriptions(ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
-                    .flatMap(descriptions -> getConsumerGroups(ac, descriptions)
+                loadSortedDescriptions(cluster, ac, allGroups, pageNum, perPage, orderBy, sortOrderDto)
+                    .flatMap(descriptions -> getConsumerGroups(cluster, ac, descriptions)
                         .map(page ->
                             ConsumerGroupsPage.from(page, allGroups.size(), pageNum, perPage)
                         )
                     )
             )
     );
+  }
+
+  private Optional<InternalConsumerGroup> getConsumerGroup(
+      ConsumerGroupDescription consumerGroup,
+      Map<String, ScrapedClusterState.ConsumerGroupState> cachedConsumerGroupsStates,
+      Map<String, ScrapedClusterState.TopicState> cachedTopicStates) {
+    var consumerGroupState = cachedConsumerGroupsStates.get(consumerGroup.groupId());
+    if (consumerGroupState != null) {
+      Map<TopicPartition, Long> groupOffsets = consumerGroupState.committedOffsets();
+      Map<TopicPartition, Long> endOffsets = new HashMap<>();
+      boolean cacheComplete = true;
+
+      for (TopicPartition topicPartition : groupOffsets.keySet()) {
+        var topicState = cachedTopicStates.get(topicPartition.topic());
+        if (topicState == null || !topicState.endOffsets().containsKey(topicPartition.partition())) {
+          cacheComplete = false;
+          break;
+        }
+        endOffsets.put(topicPartition, topicState.endOffsets().get(topicPartition.partition()));
+      }
+
+      if (cacheComplete) {
+        return Optional.of(
+            InternalConsumerGroup.create(consumerGroup, groupOffsets, endOffsets)
+        );
+      }
+    }
+
+    return Optional.empty();
   }
 
   private Collection<ConsumerGroupListing> filterByState(Collection<ConsumerGroupListing> groups,
@@ -330,7 +402,8 @@ public class ConsumerGroupService {
     return filter.find(search);
   }
 
-  private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(ReactiveAdminClient ac,
+  private Mono<List<ConsumerGroupDescription>> loadSortedDescriptions(KafkaCluster cluster,
+                                                                      ReactiveAdminClient ac,
                                                                       List<ConsumerGroupListing> groups,
                                                                       OptionalInt pageNum,
                                                                       OptionalInt perPage,
@@ -368,14 +441,14 @@ public class ConsumerGroupService {
         Comparator<GroupWithDescr> comparator = Comparator.comparingLong(gwd ->
             gwd.icg.getConsumerLag() == null ? 0L : gwd.icg.getConsumerLag());
 
-        yield loadDescriptionsByInternalConsumerGroups(ac, groups, comparator, pageNum, perPage, sortOrderDto);
+        yield loadDescriptionsByInternalConsumerGroups(cluster, ac, groups, comparator, pageNum, perPage, sortOrderDto);
       }
 
       case TOPIC_NUM -> {
 
         Comparator<GroupWithDescr> comparator = Comparator.comparingInt(gwd -> gwd.icg.getTopicNum());
 
-        yield loadDescriptionsByInternalConsumerGroups(ac, groups, comparator, pageNum, perPage, sortOrderDto);
+        yield loadDescriptionsByInternalConsumerGroups(cluster, ac, groups, comparator, pageNum, perPage, sortOrderDto);
 
       }
     };
@@ -459,6 +532,7 @@ public class ConsumerGroupService {
 
 
   private Mono<List<ConsumerGroupDescription>> loadDescriptionsByInternalConsumerGroups(
+      KafkaCluster cluster,
       ReactiveAdminClient ac,
       List<ConsumerGroupListing> groups,
       Comparator<GroupWithDescr> comparator,
@@ -470,7 +544,7 @@ public class ConsumerGroupService {
     return ac.describeConsumerGroups(groupNames)
         .flatMap(descriptionsMap -> {
               List<ConsumerGroupDescription> descriptions = descriptionsMap.values().stream().toList();
-              return getConsumerGroups(ac, descriptions)
+              return getConsumerGroups(cluster, ac, descriptions)
                   .map(icg -> Streams.zip(icg.stream(), descriptions.stream(), GroupWithDescr::new).toList())
                   .map(gwd -> sortAndPaginate(gwd, comparator, pageNum, perPage, sortOrderDto)
                       .map(GroupWithDescr::cgd).toList());
