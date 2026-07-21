@@ -20,7 +20,7 @@ const TopicTable: React.FC<{ params: GetTopicsRequest }> = ({ params }) => {
   const [searchParams] = useSearchParams();
   const { isReadOnly } = React.useContext(ClusterContext);
 
-  const { refetchInterval } = useRefreshRate('topics-refresh-rate');
+  const { refetchInterval } = useRefreshRate('topics-list-refresh-rate');
 
   const { data, error, refetch, isLoading } = useTopics(
     {

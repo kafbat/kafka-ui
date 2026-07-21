@@ -13,6 +13,7 @@ const options = [
 export type RefreshRateStorageKey =
   | 'consumer-groups-refresh-rate'
   | 'topics-refresh-rate'
+  | 'topics-list-refresh-rate'
   | 'schemas-refresh-rate'
   | 'connectors-refresh-rate'
   | `consumer-group-${string}-refresh-rate`;

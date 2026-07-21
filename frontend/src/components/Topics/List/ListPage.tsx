@@ -124,7 +124,7 @@ const ListPage: React.FC = () => {
           Show Internal Topics
         </label>
         <TableRefresh
-          storageKey="topics-refresh-rate"
+          storageKey="topics-list-refresh-rate"
           onRefresh={handleRefresh}
           isFetching={isFetchingTopics}
         />
