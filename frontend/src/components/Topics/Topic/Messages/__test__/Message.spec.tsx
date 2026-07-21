@@ -176,6 +176,17 @@ describe('Message component', () => {
     expect(keyFiltered).toBeInTheDocument();
   });
 
+  it('does not crash when a saved preview filter has an invalid JSONPath', () => {
+    const props = {
+      message: { ...mockMessage, value: mockMessageValue as string },
+      contentFilters: [{ field: 'author', path: '$..[' }],
+    };
+
+    renderComponent(props);
+
+    expect(screen.getByText(mockMessage.offset.toString())).toBeInTheDocument();
+  });
+
   it('shows action options in dropdown on click', async () => {
     renderComponent();
     const trElement = screen.getByRole('row');
