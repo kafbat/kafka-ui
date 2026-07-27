@@ -22,6 +22,7 @@ import io.kafbat.ui.model.CreateStreamAppAclDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.AdminClientService;
 import io.kafbat.ui.service.ReactiveAdminClient;
+import io.kafbat.ui.service.ReactiveAdminClient.SupportedFeature;
 import io.kafbat.ui.service.index.AclBindingNgramFilter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -89,6 +90,7 @@ public class AclsService {
   public Flux<AclBinding> listAcls(KafkaCluster cluster, ResourcePatternFilter filter, String principalSearch,
                                    Boolean fts) {
     return adminClientService.get(cluster)
+      .filter(c -> c.getClusterFeatures().contains(SupportedFeature.AUTHORIZED_SECURITY_ENABLED))
       .flatMap(c -> c.listAcls(filter))
       .map(lst -> filter(new ArrayList<>(lst), principalSearch, fts))
       .flatMapMany(Flux::fromIterable)
