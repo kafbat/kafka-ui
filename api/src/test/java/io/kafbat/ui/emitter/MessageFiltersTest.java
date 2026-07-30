@@ -270,6 +270,17 @@ class MessageFiltersTest {
       assertFalse(f.test(msg().value(msg)));
     }
 
+    @Test
+    void canCompareNumericValueFields() {
+      String msg = "{ \"price\": 399 }";
+
+      assertTrue(celScriptFilter("record.value.price == 399").test(msg().value(msg)));
+      assertTrue(celScriptFilter("record.value.price > 300").test(msg().value(msg)));
+      assertTrue(celScriptFilter("record.value.price >= 399").test(msg().value(msg)));
+      assertTrue(celScriptFilter("record.value.price < 500").test(msg().value(msg)));
+      assertFalse(celScriptFilter("record.value.price > 400").test(msg().value(msg)));
+    }
+
   }
 
   @Test
