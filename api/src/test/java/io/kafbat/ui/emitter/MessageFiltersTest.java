@@ -270,7 +270,7 @@ class MessageFiltersTest {
       assertFalse(f.test(msg().value(msg)));
     }
 
-    `@Test`
+    @Test
     void canCompareNumericValueFields() {
       String msg = "{ \"price\": 399 }";
 
