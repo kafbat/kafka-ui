@@ -5,21 +5,17 @@ import { TOPIC_CUSTOM_PARAMS_PREFIX } from 'lib/constants';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import { ErrorMessage } from '@hookform/error-message';
 import { FormError } from 'components/common/Input/Input.styled';
-import { TopicConfigParams, TopicFormData } from 'lib/interfaces/topic';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 import CustomParamField from './CustomParamField';
 import * as S from './CustomParams.styled';
 
 export interface CustomParamsProps {
-  config?: TopicConfigParams;
   isSubmitting: boolean;
   isEditing?: boolean;
 }
 
-const CustomParams: React.FC<CustomParamsProps> = ({
-  isSubmitting,
-  config,
-}) => {
+const CustomParams: React.FC<CustomParamsProps> = ({ isSubmitting }) => {
   const {
     trigger,
     control,
@@ -59,7 +55,6 @@ const CustomParams: React.FC<CustomParamsProps> = ({
       {controlledFields?.map((field, idx) => (
         <CustomParamField
           key={field.id}
-          config={config}
           field={field}
           remove={removeField}
           index={idx}
