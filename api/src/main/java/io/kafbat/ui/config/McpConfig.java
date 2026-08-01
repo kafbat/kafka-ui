@@ -1,12 +1,11 @@
 package io.kafbat.ui.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.service.mcp.McpSpecificationGenerator;
 import io.kafbat.ui.service.mcp.McpTool;
+import io.kafbat.ui.transport.WebFluxStreamableServerTransportProvider;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
-import io.modelcontextprotocol.server.transport.WebFluxSseServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,22 +23,22 @@ public class McpConfig {
   private final List<McpTool> mcpTools;
   private final McpSpecificationGenerator mcpSpecificationGenerator;
 
-  // SSE transport
+  // Streamable HTTP transport (replaces legacy SSE transport)
   @Bean
-  public WebFluxSseServerTransportProvider sseServerTransport(ObjectMapper mapper) {
-    return new WebFluxSseServerTransportProvider(mapper, "/mcp/message", "/mcp/sse");
+  public WebFluxStreamableServerTransportProvider streamableServerTransport() {
+    return WebFluxStreamableServerTransportProvider.builder()
+        .messageEndpoint("/mcp")
+        .build();
   }
 
-  // Router function for SSE transport used by Spring WebFlux to start an HTTP
-  // server.
-
+  // Router function for Streamable HTTP transport used by Spring WebFlux
   @Bean
-  public RouterFunction<?> mcpRouterFunction(WebFluxSseServerTransportProvider transport) {
+  public RouterFunction<?> mcpRouterFunction(WebFluxStreamableServerTransportProvider transport) {
     return transport.getRouterFunction();
   }
 
   @Bean
-  public McpAsyncServer mcpServer(WebFluxSseServerTransportProvider transport) {
+  public McpAsyncServer mcpServer(WebFluxStreamableServerTransportProvider transport) {
 
     // Configure server capabilities with resource support
     var capabilities = McpSchema.ServerCapabilities.builder()
