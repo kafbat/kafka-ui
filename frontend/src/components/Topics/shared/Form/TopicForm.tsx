@@ -11,7 +11,7 @@ import { StyledForm } from 'components/common/Form/Form.styled';
 import { clusterTopicPath } from 'lib/paths';
 import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
-import { TopicConfigParams, TopicName } from 'lib/interfaces/topic';
+import { TopicName } from 'lib/interfaces/topic';
 import { ClusterName } from 'lib/interfaces/cluster';
 
 import CustomParams from './CustomParams/CustomParams';
@@ -19,7 +19,6 @@ import TimeToRetain from './TimeToRetain';
 import * as S from './TopicForm.styled';
 
 export interface Props {
-  config?: TopicConfigParams;
   topicName?: TopicName;
   partitionCount?: number;
   replicationFactor?: number;
@@ -57,7 +56,6 @@ const RetentionBytesOptions = [
 ];
 
 const TopicForm: React.FC<Props> = ({
-  config,
   retentionBytes,
   topicName,
   isEditing,
@@ -247,7 +245,6 @@ const TopicForm: React.FC<Props> = ({
 
         <S.CustomParamsHeading>Custom parameters</S.CustomParamsHeading>
         <CustomParams
-          config={config}
           isSubmitting={isSubmitting}
           isEditing={isEditing}
         />

@@ -8,14 +8,12 @@ import Input from 'components/common/Input/Input';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
 import * as C from 'components/Topics/shared/Form/TopicForm.styled';
-import { ConfigSource } from 'generated-sources';
 import InputWithOptions from 'components/common/InputWithOptions/InputWithOptions';
-import { TopicConfigParams, TopicFormData } from 'lib/interfaces/topic';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 import * as S from './CustomParams.styled';
 
 export interface Props {
-  config?: TopicConfigParams;
   isDisabled: boolean;
   index: number;
   existingFields: string[];
@@ -29,7 +27,6 @@ const CustomParamField: React.FC<Props> = ({
   isDisabled,
   index,
   remove,
-  config,
   existingFields,
   setExistingFields,
 }) => {
@@ -43,15 +40,14 @@ const CustomParamField: React.FC<Props> = ({
   const nameValue = watch(`customParams.${index}.name`);
   const prevName = useRef(nameValue);
 
+  // Only block params already selected in the form. Kafka DEFAULT_CONFIG /
+  // broker-sourced keys must stay selectable so users can add topic overrides.
   const options = Object.keys(TOPIC_CUSTOM_PARAMS)
     .sort()
     .map((option) => ({
       value: option,
       label: option,
-      disabled:
-        (config &&
-          config[option]?.source !== ConfigSource.DYNAMIC_TOPIC_CONFIG) ||
-        existingFields.includes(option),
+      disabled: existingFields.includes(option),
     }));
 
   React.useEffect(() => {
