@@ -12,6 +12,7 @@ interface ConnectInstancesApi {
   @get
   @operationId("getConnects")
   @summary("getConnects")
+  @doc("List all Kafka Connect instances configured for a cluster.")
   getConnects(@path clusterName: string, @query withStats?: boolean): Connect[];
 
   @get
@@ -48,6 +49,7 @@ interface ConnectorsApi {
   @get
   @operationId("getAllConnectors")
   @summary("getAllConnectors")
+  @doc("Get all connectors across all Kafka Connect instances in a cluster.")
   getAllConnectors(
     @path clusterName: string,
     @query search?: string,
@@ -59,6 +61,7 @@ interface ConnectorsApi {
   @get
   @operationId("getAllConnectorsCsv")
   @summary("getAllConnectorsCsv")
+  @doc("Export all connectors data as CSV.")
   @route("/csv")
   getAllConnectorsCsv(
     @path clusterName: string,
@@ -76,11 +79,13 @@ interface KafkaConnectConnectorsApi {
   @get
   @operationId("getConnectors")
   @summary("getConnectors")
+  @doc("List connectors for a specific Kafka Connect instance.")
   getConnectors(@path clusterName: string, @path connectName: string): string[];
 
   @post
   @operationId("createConnector")
   @summary("createConnector")
+  @doc("Create a new connector in a Kafka Connect instance.")
   createConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -91,6 +96,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}")
   @operationId("getConnector")
   @summary("getConnector")
+  @doc("Get information about a specific connector.")
   getConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -101,6 +107,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}")
   @operationId("deleteConnector")
   @summary("deleteConnector")
+  @doc("Delete a connector from a Kafka Connect instance.")
   deleteConnector(
     @path clusterName: string,
     @path connectName: string,
@@ -111,6 +118,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/action/{action}")
   @operationId("updateConnectorState")
   @summary("updateConnectorState")
+  @doc("Update connector state: restart, pause, stop, or resume.")
   updateConnectorState(
     @path clusterName: string,
     @path connectName: string,
@@ -122,6 +130,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/config")
   @operationId("getConnectorConfig")
   @summary("getConnectorConfig")
+  @doc("Get the configuration for a specific connector.")
   getConnectorConfig(
     @path clusterName: string,
     @path connectName: string,
@@ -132,6 +141,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/config")
   @operationId("setConnectorConfig")
   @summary("setConnectorConfig")
+  @doc("Update or create a connector with the provided configuration.")
   setConnectorConfig(
     @path clusterName: string,
     @path connectName: string,
@@ -143,6 +153,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/tasks")
   @operationId("getConnectorTasks")
   @summary("getConnectorTasks")
+  @doc("Get the tasks for a specific connector.")
   getConnectorTasks(
     @path clusterName: string,
     @path connectName: string,
@@ -153,6 +164,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/tasks/{taskId}/action/restart")
   @operationId("restartConnectorTask")
   @summary("restartConnectorTask")
+  @doc("Restart a specific task of a connector.")
   restartConnectorTask(
     @path clusterName: string,
     @path connectName: string,
@@ -164,6 +176,7 @@ interface KafkaConnectConnectorsApi {
   @route("/{connectorName}/offsets")
   @operationId("resetConnectorOffsets")
   @summary("resetConnectorOffsets")
+  @doc("Reset the offsets for a specific connector.")
   resetConnectorOffsets(
     @path clusterName: string,
     @path connectName: string,
