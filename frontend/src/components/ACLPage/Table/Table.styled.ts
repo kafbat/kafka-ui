@@ -11,7 +11,7 @@ export const DeleteCell = styled.div`
 `;
 
 export const Chip = styled.div<{
-  chipType?: 'default' | 'success' | 'danger' | 'secondary' | string;
+  $chipType?: 'default' | 'success' | 'danger' | 'secondary' | string;
 }>`
   width: fit-content;
   text-transform: capitalize;
@@ -20,8 +20,8 @@ export const Chip = styled.div<{
   line-height: 16px;
   border-radius: 16px;
   color: ${({ theme }) => theme.tag.color};
-  background-color: ${({ theme, chipType }) => {
-    switch (chipType) {
+  background-color: ${({ theme, $chipType }) => {
+    switch ($chipType) {
       case 'success':
         return theme.tag.backgroundColor.green;
       case 'danger':

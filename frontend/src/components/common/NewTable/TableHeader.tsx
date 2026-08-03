@@ -15,8 +15,8 @@ const TableHeader = <T,>(props: TableHeaderProps<T>) => {
     <S.Th
       key={header.id}
       colSpan={header.colSpan}
-      sortable={header.column.getCanSort()}
-      sortOrder={header.column.getIsSorted()}
+      $sortable={header.column.getCanSort()}
+      $sortOrder={header.column.getIsSorted()}
     >
       <S.TableHeaderContent>
         <div

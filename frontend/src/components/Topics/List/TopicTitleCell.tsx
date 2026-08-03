@@ -15,7 +15,7 @@ export const TopicTitleCell: React.FC<CellContext<Topic, unknown>> = ({
       style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
     >
       {internal && (
-        <Tag color="gray" style={{ marginRight: '0.75em' }}>
+        <Tag $color="gray" style={{ marginRight: '0.75em' }}>
           IN
         </Tag>
       )}

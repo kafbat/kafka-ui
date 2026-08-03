@@ -112,6 +112,7 @@ const Filters: React.FC<FiltersProps> = ({
               id="selectSeekType"
               onChange={setMode}
               value={mode}
+              $value={mode}
               selectSize="M"
               minWidth="100px"
               options={ModeOptions}

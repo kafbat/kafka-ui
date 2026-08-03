@@ -47,8 +47,8 @@ const Overview: React.FC<{ tasks: Task[]; connector: Connector }> = ({
           )}
           <Metrics.Indicator label="State">
             <C.Tag
-              color={getTagColor(connector.status.state)}
-              clickable={canShowTrace(connector)}
+              $color={getTagColor(connector.status.state)}
+              $clickable={canShowTrace(connector)}
               onClick={handleStateClick}
             >
               {connector.status.state}

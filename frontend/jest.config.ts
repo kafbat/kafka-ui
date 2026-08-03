@@ -33,4 +33,5 @@ export default {
   ],
   resetMocks: true,
   reporters: ['default', 'github-actions'],
+  globalSetup: '<rootDir>/src/jestGlobalSetup.ts',
 } as Config.InitialOptions;

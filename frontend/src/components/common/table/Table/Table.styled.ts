@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 
 interface Props {
-  isFullwidth?: boolean;
+  $isFullwidth?: boolean;
 }
 
 export const Table = styled.table<Props>`
-  width: ${(props) => (props.isFullwidth ? '100%' : 'auto')};
+  width: ${(props) => (props.$isFullwidth ? '100%' : 'auto')};
 
   & td {
     border-top: 1px ${({ theme }) => theme.table.td.borderTop} solid;

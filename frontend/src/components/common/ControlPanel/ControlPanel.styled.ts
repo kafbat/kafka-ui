@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 interface Props {
-  hasInput?: boolean;
+  $hasInput?: boolean;
 }
 
 export const ControlPanelWrapper = styled.div<Props>`
@@ -14,6 +14,6 @@ export const ControlPanelWrapper = styled.div<Props>`
   gap: 16px;
   color: ${({ theme }) => theme.default.color.normal};
   & > *:first-child {
-    width: ${(props) => (props.hasInput ? '38%' : 'auto')};
+    width: ${(props) => (props.$hasInput ? '38%' : 'auto')};
   }
 `;
