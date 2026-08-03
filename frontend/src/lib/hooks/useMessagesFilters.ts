@@ -63,7 +63,6 @@ export function usePaginateTopics(initSearchParams?: URLSearchParams) {
 
 export function useMessagesFilters(topicName: string) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const refreshData = useRefreshData(searchParams);
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
 
   const storageKey = `${topicName}:${clusterName}`;
@@ -72,6 +71,16 @@ export function useMessagesFilters(topicName: string) {
     setMessagesFiltersField,
     removeMessagesFiltersField,
   } = useMessagesFiltersFields(storageKey);
+
+  const syncSearchValue = (params: URLSearchParams, value: string) => {
+    if (value) {
+      setMessagesFiltersField(MessagesFilterKeys.stringFilter, value);
+      params.set(MessagesFilterKeys.stringFilter, value);
+    } else {
+      removeMessagesFiltersField(MessagesFilterKeys.stringFilter);
+      params.delete(MessagesFilterKeys.stringFilter);
+    }
+  };
 
   useEffect(() => {
     setSearchParams((params) => {
@@ -179,13 +188,21 @@ export function useMessagesFilters(topicName: string) {
 
   const setSearch = (value: string) => {
     setSearchParams((params) => {
-      if (value) {
-        setMessagesFiltersField(MessagesFilterKeys.stringFilter, value);
-        params.set(MessagesFilterKeys.stringFilter, value);
+      syncSearchValue(params, value);
+      return params;
+    });
+  };
+
+  const refreshData = (nextSearch = search) => {
+    setSearchParams((params) => {
+      syncSearchValue(params, nextSearch);
+
+      if (params.get(MessagesFilterKeys.r)) {
+        params.delete(MessagesFilterKeys.r);
       } else {
-        removeMessagesFiltersField(MessagesFilterKeys.stringFilter);
-        params.delete(MessagesFilterKeys.stringFilter);
+        params.set(MessagesFilterKeys.r, 'r');
       }
+
       return params;
     });
   };
