@@ -102,6 +102,7 @@ import reactor.util.function.Tuples;
 @AllArgsConstructor
 public class ReactiveAdminClient implements Closeable {
   private static final String DEFAULT_UNKNOWN_VERSION = "Unknown";
+  private static final String INTER_BROKER_PROTOCOL_VERSION_CONFIG = "inter.broker.protocol.version";
 
   public enum SupportedFeature {
     INCREMENTAL_ALTER_CONFIGS(2.3f),
@@ -164,12 +165,9 @@ public class ReactiveAdminClient implements Closeable {
                 .flatMap(tuple -> {
                   List<ConfigEntry> configs = tuple.getT1();
                   FeatureMetadata featureMetadata = tuple.getT2();
-                  Optional<String> version = Optional.empty();
+                  Optional<String> version = extractKafkaVersion(configs);
                   boolean topicDeletionEnabled = true;
                   for (ConfigEntry entry : configs) {
-                    if (entry.name().contains("inter.broker.protocol.version")) {
-                      version = Optional.ofNullable(entry.value());
-                    }
                     if (entry.name().equals("delete.topic.enable") && entry.value() != null) {
                       topicDeletionEnabled = Boolean.parseBoolean(entry.value());
                     }
@@ -193,6 +191,17 @@ public class ReactiveAdminClient implements Closeable {
           })
           .cache(UPDATE_DURATION);
     }
+
+  }
+
+  @VisibleForTesting
+  static Optional<String> extractKafkaVersion(List<ConfigEntry> configs) {
+    for (ConfigEntry entry : configs) {
+      if (entry.name().equals(INTER_BROKER_PROTOCOL_VERSION_CONFIG) && entry.value() != null) {
+        return Optional.of(entry.value());
+      }
+    }
+    return Optional.empty();
   }
 
   public static Mono<ReactiveAdminClient> create(AdminClient adminClient, ClustersProperties.AdminClient properties) {
