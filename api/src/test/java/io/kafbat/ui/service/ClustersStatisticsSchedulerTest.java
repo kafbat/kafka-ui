@@ -31,8 +31,8 @@ class ClustersStatisticsSchedulerTest {
       if (c.getName().equals(broken.getName())) {
         return Mono.error(new IllegalStateException("boom for " + c.getName()));
       }
-      updated.put(c.getName(), true);
-      return Mono.just(Statistics.empty());
+      return Mono.just(Statistics.empty())
+          .doOnSuccess(ignored -> updated.put(c.getName(), true));
     });
 
     new ClustersStatisticsScheduler(storage, statisticsService).updateStatistics();
