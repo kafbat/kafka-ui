@@ -126,7 +126,16 @@
         "@typescript-eslint/parser": "8.39.0",
         "@typescript-eslint/eslint-plugin": "8.39.0"
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@openapitools/openapi-generator-cli",
+      "@parcel/watcher",
+      "@swc/core",
+      "core-js",
+      "esbuild",
+      "unrs-resolver"
+    ]
   },
   "packageManager": "pnpm@10.26.1"
 }
