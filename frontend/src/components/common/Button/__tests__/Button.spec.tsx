@@ -40,6 +40,24 @@ describe('Button', () => {
     );
   });
 
+  it('uses the button text color for icon strokes', () => {
+    render(
+      <Button buttonType="primary" buttonSize="S">
+        <svg stroke="red" aria-hidden="true" />
+        <svg aria-hidden="true">
+          <path stroke="red" />
+        </svg>
+      </Button>
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveStyleRule('stroke', 'currentColor', {
+      modifier: '& svg[stroke]',
+    });
+    expect(button).toHaveStyleRule('stroke', 'currentColor', {
+      modifier: '& svg [stroke]',
+    });
+  });
+
   it('renders link with large primary button inside', () => {
     render(<Button to="/my-link" buttonType="primary" buttonSize="L" />);
     expect(screen.getByRole('link')).toBeInTheDocument();
