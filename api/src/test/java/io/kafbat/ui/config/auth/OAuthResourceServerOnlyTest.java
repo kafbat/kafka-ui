@@ -94,6 +94,17 @@ class OAuthResourceServerOnlyTest {
     assertThat(config.clientRegistrationRepository()).isNull();
   }
 
+  @Test
+  void returnsNullWhenResourceServerHasOpaqueToken() {
+    var properties = new OAuthProperties();
+    var resourceServer = new OAuth2ResourceServerProperties();
+    resourceServer.getOpaquetoken().setIntrospectionUri("http://localhost/introspect");
+    properties.setResourceServer(resourceServer);
+    var config = new OAuthSecurityConfig(properties);
+
+    assertThat(config.clientRegistrationRepository()).isNull();
+  }
+
   @TestConfiguration
   static class NoClientTestConfig {
 
