@@ -114,7 +114,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
           .logout(spec -> spec.logoutSuccessHandler(logoutHandler));
     }
 
-    if (properties.getResourceServer() != null) {
+    if (isResourceServerUsable(properties.getResourceServer())) {
       OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
       if (resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null) {
         builder.oauth2ResourceServer(c -> c.jwt(j ->
@@ -207,12 +207,29 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     final List<ClientRegistration> registrations =
         new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
     if (registrations.isEmpty()) {
-      if (properties.getResourceServer() == null) {
-        throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
+      if (!isResourceServerUsable(properties.getResourceServer())) {
+        throw new IllegalArgumentException(
+            "OAuth2 authentication is enabled but neither a client registration nor a usable "
+                + "resource-server (jwt.jwk-set-uri or opaquetoken.introspection-uri) is configured.");
       }
       return null;
     }
     return new InMemoryReactiveClientRegistrationRepository(registrations);
+  }
+
+  /**
+   * True when {@code resourceServer} has enough configuration to actually authenticate a
+   * request (JWT decoder or opaque-token introspector) — as opposed to merely being a
+   * non-null but effectively empty configuration block.
+   */
+  private static boolean isResourceServerUsable(@Nullable OAuth2ResourceServerProperties resourceServer) {
+    if (resourceServer == null) {
+      return false;
+    }
+    boolean hasJwt = resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null;
+    boolean hasOpaqueToken = resourceServer.getOpaquetoken() != null
+        && resourceServer.getOpaquetoken().getIntrospectionUri() != null;
+    return hasJwt || hasOpaqueToken;
   }
 
   @Bean

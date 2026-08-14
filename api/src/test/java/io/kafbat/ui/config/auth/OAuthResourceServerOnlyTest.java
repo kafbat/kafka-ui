@@ -1,6 +1,7 @@
 package io.kafbat.ui.config.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +10,7 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +55,43 @@ class OAuthResourceServerOnlyTest {
     assertThat(filterChain).isNotNull();
     // no auth.oauth2.client.* configured -> the bean is legitimately absent
     assertThat(repository.getIfAvailable()).isNull();
+  }
+
+  /**
+   * Plain unit tests for {@link OAuthSecurityConfig#clientRegistrationRepository()} —
+   * no client registrations, exercised directly without booting a Spring context.
+   */
+  @Test
+  void throwsWhenNeitherClientNorUsableResourceServerConfigured() {
+    var properties = new OAuthProperties();
+    // no client, no resource-server at all
+    var config = new OAuthSecurityConfig(properties);
+
+    assertThatThrownBy(config::clientRegistrationRepository)
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void throwsWhenResourceServerPresentButEmpty() {
+    var properties = new OAuthProperties();
+    // resource-server block exists but has neither jwt.jwk-set-uri nor
+    // opaquetoken.introspection-uri configured -> not actually usable
+    properties.setResourceServer(new OAuth2ResourceServerProperties());
+    var config = new OAuthSecurityConfig(properties);
+
+    assertThatThrownBy(config::clientRegistrationRepository)
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void returnsNullWhenResourceServerHasJwt() {
+    var properties = new OAuthProperties();
+    var resourceServer = new OAuth2ResourceServerProperties();
+    resourceServer.getJwt().setJwkSetUri("http://localhost/.well-known/jwks.json");
+    properties.setResourceServer(resourceServer);
+    var config = new OAuthSecurityConfig(properties);
+
+    assertThat(config.clientRegistrationRepository()).isNull();
   }
 
   @TestConfiguration
