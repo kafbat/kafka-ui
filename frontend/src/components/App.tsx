@@ -109,7 +109,7 @@ const App: React.FC = () => {
                         />
                       </Routes>
                     </PageContainer>
-                    <Toaster position="bottom-right" />
+                    <Toaster position="top-right" />
                   </S.Layout>
                   <ConfirmationModal />
                 </ConfirmContextProvider>

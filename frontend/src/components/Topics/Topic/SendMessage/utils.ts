@@ -21,7 +21,7 @@ const generateValueFromSchema = (preferred?: SerdeDescription) => {
   }
   const parsedSchema = JSON.parse(preferred.schema);
   const value = jsf.generate(parsedSchema);
-  return JSON.stringify(value);
+  return JSON.stringify(value, null, 2);
 };
 
 export const getPreferredDescription = (serdes: SerdeDescription[]) =>
