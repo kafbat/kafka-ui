@@ -29,7 +29,10 @@ const TopicConsumerGroups: React.FC = () => {
   const consumerGroups = React.useMemo(
     () =>
       data.filter(
-        (item) => item.groupId.toLocaleLowerCase().indexOf(keyword) > -1
+        (item) =>
+          item.groupId
+            .toLocaleLowerCase()
+            .includes(keyword.trim().toLocaleLowerCase())
       ),
     [data, keyword]
   );
@@ -121,7 +124,7 @@ const TopicConsumerGroups: React.FC = () => {
       <S.SearchWrapper>
         <Search
           onChange={setKeyword}
-          placeholder="Search by Consumer Name"
+          placeholder="Search by Consumer Group ID"
           value={keyword}
         />
 
