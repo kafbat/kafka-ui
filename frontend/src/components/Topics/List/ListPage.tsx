@@ -36,10 +36,8 @@ const ListPage: React.FC = () => {
     if (!searchParams.has('perPage')) {
       searchParams.set('perPage', String(PER_PAGE));
     }
-    if (
-      !!localStorage.getItem('hideInternalTopics') &&
-      !searchParams.has('hideInternal')
-    ) {
+    const hideInternal = localStorage.getItem('hideInternalTopics') !== 'false';
+    if (hideInternal && !searchParams.has('hideInternal')) {
       searchParams.set('hideInternal', 'true');
     }
     setSearchParams(searchParams);
@@ -47,7 +45,7 @@ const ListPage: React.FC = () => {
 
   const handleSwitch = () => {
     if (searchParams.has('hideInternal')) {
-      localStorage.removeItem('hideInternalTopics');
+      localStorage.setItem('hideInternalTopics', 'false');
       searchParams.delete('hideInternal');
     } else {
       localStorage.setItem('hideInternalTopics', 'true');

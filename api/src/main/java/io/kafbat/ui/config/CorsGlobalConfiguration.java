@@ -1,5 +1,7 @@
 package io.kafbat.ui.config;
 
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,13 @@ import reactor.core.publisher.Mono;
 
 @Configuration
 public class CorsGlobalConfiguration {
+
+  private static List<String> allowedOrigins = List.of("*");
+
+  @Value("${auth.cors.allowed-origins:*}")
+  public void setAllowedOrigins(List<String> allowedOrigins) {
+    CorsGlobalConfiguration.allowedOrigins = allowedOrigins;
+  }
 
   @Bean
   public WebFilter corsFilter() {
@@ -34,8 +43,13 @@ public class CorsGlobalConfiguration {
   }
 
   public static void fillCorsHeader(HttpHeaders responseHeaders, ServerHttpRequest request) {
-    responseHeaders.add("Access-Control-Allow-Origin", request.getHeaders().getOrigin());
-    responseHeaders.add("Access-Control-Allow-Credentials", "true");
+    String origin = request.getHeaders().getOrigin();
+    if (origin != null) {
+      if (allowedOrigins.contains("*") || allowedOrigins.contains(origin)) {
+        responseHeaders.add("Access-Control-Allow-Origin", origin);
+        responseHeaders.add("Access-Control-Allow-Credentials", "true");
+      }
+    }
     responseHeaders.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
     responseHeaders.add("Access-Control-Max-Age", "3600");
     responseHeaders.add("Access-Control-Allow-Headers", "Content-Type");

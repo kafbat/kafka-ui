@@ -40,9 +40,9 @@ describe('ListPage Component', () => {
 
       expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
       await userEvent.click(switchInput);
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeTruthy();
+      expect(global.localStorage.getItem('hideInternalTopics')).toBe('false');
       await userEvent.click(switchInput);
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
+      expect(global.localStorage.getItem('hideInternalTopics')).toBe('true');
     });
 
     it('renders the TopicsTable', () => {
