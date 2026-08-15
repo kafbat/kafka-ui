@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,7 +59,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class TopicsController extends AbstractController implements TopicsApi, McpTool {
 
-  private static final Integer DEFAULT_PAGE_SIZE = 25;
+  @Value("${topics.page.size:25}")
+  private int defaultPageSize;
 
   private final TopicsService topicsService;
   private final TopicAnalysisService topicAnalysisService;
@@ -202,7 +204,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
     return topicsService.getTopics(getCluster(clusterName), search, showInternal, fts)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .flatMap(topics -> {
-          int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
+          int pageSize = perPage != null && perPage > 0 ? perPage : defaultPageSize;
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
           ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
           boolean useFts = ftsProperties.use(fts);

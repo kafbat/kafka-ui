@@ -27,6 +27,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,7 +39,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SchemasController extends AbstractController implements SchemasApi, McpTool {
 
-  private static final Integer DEFAULT_PAGE_SIZE = 25;
+  @Value("${schemas.page.size:25}")
+  private int defaultPageSize;
 
   private final KafkaSrMapper kafkaSrMapper = new KafkaSrMapperImpl();
 
@@ -232,7 +234,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
         .filterWhen(schema -> accessControlService.isSchemaAccessible(schema, clusterName))
         .collectList()
         .flatMap(subjects -> {
-          int pageSize = perPage != null && perPage > 0 ? perPage : DEFAULT_PAGE_SIZE;
+          int pageSize = perPage != null && perPage > 0 ? perPage : defaultPageSize;
           int subjectToSkip = ((pageNum != null && pageNum > 0 ? pageNum : 1) - 1) * pageSize;
 
           SchemasFilter filter = new SchemasFilter(subjects, useFts, ftsProperties.getSchemas());
