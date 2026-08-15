@@ -30,9 +30,16 @@ import { useConsumerGroupsLagTrends } from 'components/ConsumerGroups/lib/useCon
 
 const List = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isFtsEnabled } = useFts('consumer_groups');
+
+  React.useEffect(() => {
+    if (!searchParams.has('perPage')) {
+      searchParams.set('perPage', String(PER_PAGE));
+      setSearchParams(searchParams);
+    }
+  }, []);
 
   const params = {
     clusterName,
