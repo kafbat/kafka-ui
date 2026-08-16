@@ -80,11 +80,21 @@ const SendMessage: React.FC<SendMessageProps> = ({
     handleSubmit,
     formState: { isSubmitting },
     control,
+    reset,
     setValue,
   } = useForm<MessageFormData>({
     mode: 'onChange',
     defaultValues: formDefaults,
   });
+
+  // `defaultValues` are only read on mount. Reproduce actions can replace the
+  // message while the sidebar remains mounted, so synchronize the form with
+  // the newly selected message explicitly.
+  React.useEffect(() => {
+    if (messageData) {
+      reset(formDefaults);
+    }
+  }, [messageData, formDefaults, reset]);
 
   const keySerde = useWatch({ control, name: 'keySerde' });
   const valueSerde = useWatch({ control, name: 'valueSerde' });
