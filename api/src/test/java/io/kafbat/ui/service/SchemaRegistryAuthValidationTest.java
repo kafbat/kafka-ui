@@ -7,6 +7,7 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.config.WebclientProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.service.metrics.scrape.jmx.JmxMetricsRetriever;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -109,5 +110,64 @@ class SchemaRegistryAuthValidationTest {
     cluster.setSchemaRegistry("http://localhost:8081");
 
     factory.create(new ClustersProperties(), cluster);
+  }
+
+  @Test
+  void shouldNotThrowExceptionWhenOnlyPropertiesConfigured() {
+    ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
+    cluster.setName("test");
+    cluster.setBootstrapServers("localhost:9092");
+    cluster.setSchemaRegistry("http://localhost:8081");
+
+    ClustersProperties.SchemaRegistryAuth auth = new ClustersProperties.SchemaRegistryAuth();
+    auth.setProperties(Map.of(
+        "bearer.auth.credentials.source", "JWT_ASSERTION",
+        "bearer.auth.client.id", "my-service-account"
+    ));
+    cluster.setSchemaRegistryAuth(auth);
+
+    factory.create(new ClustersProperties(), cluster);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenPropertiesAndBasicAuthConfigured() {
+    ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
+    cluster.setSchemaRegistry("http://localhost:8081");
+
+    ClustersProperties.SchemaRegistryAuth auth = new ClustersProperties.SchemaRegistryAuth();
+    auth.setUsername("user");
+    auth.setPassword("pass");
+    auth.setProperties(Map.of("bearer.auth.credentials.source", "CUSTOM"));
+    cluster.setSchemaRegistryAuth(auth);
+
+    ValidationException exception = assertThrows(
+        ValidationException.class,
+        () -> factory.create(new ClustersProperties(), cluster)
+    );
+
+    assertTrue(exception.getMessage().contains("'properties' cannot be combined with"));
+  }
+
+  @Test
+  void shouldThrowExceptionWhenPropertiesAndOAuthConfigured() {
+    ClustersProperties.Cluster cluster = new ClustersProperties.Cluster();
+    cluster.setSchemaRegistry("http://localhost:8081");
+
+    ClustersProperties.OauthConfig oauth = new ClustersProperties.OauthConfig();
+    oauth.setTokenUrl("http://localhost:8080/token");
+    oauth.setClientId("client-id");
+    oauth.setClientSecret("client-secret");
+
+    ClustersProperties.SchemaRegistryAuth auth = new ClustersProperties.SchemaRegistryAuth();
+    auth.setOauth(oauth);
+    auth.setProperties(Map.of("bearer.auth.credentials.source", "CUSTOM"));
+    cluster.setSchemaRegistryAuth(auth);
+
+    ValidationException exception = assertThrows(
+        ValidationException.class,
+        () -> factory.create(new ClustersProperties(), cluster)
+    );
+
+    assertTrue(exception.getMessage().contains("'properties' cannot be combined with"));
   }
 }
