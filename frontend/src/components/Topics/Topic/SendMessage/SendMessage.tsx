@@ -213,8 +213,8 @@ const SendMessage: React.FC<SendMessageProps> = ({
     }
     try {
       await sendMessage.mutateAsync({
-        key: key || null,
-        value: content || null,
+        key: key ?? null,
+        value: content ?? null,
         headers: parsedHeaders,
         partition: partition || 0,
         keySerde: formKeySerde,
