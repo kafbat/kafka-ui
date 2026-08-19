@@ -11,17 +11,21 @@ import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
 import com.github.victools.jsonschema.generator.SchemaVersion;
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.controller.ClustersController;
 import io.kafbat.ui.controller.TopicsController;
 import io.kafbat.ui.mapper.ClusterMapper;
+import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicUpdateDTO;
+import io.kafbat.ui.service.ClusterService;
 import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
+import io.kafbat.ui.service.rbac.AccessControlService;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -227,6 +231,37 @@ class McpSpecificationGeneratorTest {
           assertThat(result.isError()).isTrue();
           assertThat(((McpSchema.TextContent) result.content().get(0)).text())
               .contains("clusterName is required");
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  void toolBackedByResponseEntityOfFluxReturnsCollectedDataNotReactorInternals() {
+    ClusterDTO cluster = new ClusterDTO();
+    cluster.setName("test-cluster");
+
+    ClusterService clusterService = mock(ClusterService.class);
+    when(clusterService.getClusters()).thenReturn(List.of(cluster));
+
+    ClustersController controller = new ClustersController(clusterService);
+    controller.setClustersStorage(mock(ClustersStorage.class));
+    AccessControlService accessControlService = mock(AccessControlService.class);
+    when(accessControlService.isClusterAccessible(cluster)).thenReturn(Mono.just(true));
+    controller.setAccessControlService(accessControlService);
+
+    McpSpecificationGenerator generator = generatorWith(mock(ClustersStorage.class));
+    AsyncToolSpecification getClusters = findTool(generator.convertTool(controller), "getClusters");
+
+    StepVerifier.create(invokeTool(getClusters, Map.of()))
+        .assertNext(result -> {
+          String text = ((McpSchema.TextContent) result.content().get(0)).text();
+          // Regression check for https://github.com/kafbat/kafka-ui/issues/1454 :
+          // a Flux nested inside a ResponseEntity body used to be serialized via its
+          // Reactor internals ({"scanAvailable":true,"prefetch":-1}) instead of being
+          // collected into the actual list of results.
+          assertThat(text).doesNotContain("scanAvailable", "prefetch");
+          assertThat(text).contains("test-cluster");
+          assertThat(result.isError()).isFalse();
         })
         .verifyComplete();
   }
