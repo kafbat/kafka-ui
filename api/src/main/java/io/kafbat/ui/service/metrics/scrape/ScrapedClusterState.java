@@ -4,6 +4,7 @@ import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
@@ -86,10 +87,32 @@ public class ScrapedClusterState implements AutoCloseable {
         .build();
   }
 
+  // Freshly fetched configs win, but a topic that is absent from (or empty in) the fetched map keeps whatever we
+  // already knew about it. getTopicsConfigImpl() deliberately swallows per-resource errors such as
+  // TopicAuthorizationException, so without this a partial failure blanks those topics' configs, which silently
+  // drops their cleanUpPolicy to UNKNOWN and nulls messagesCount in the topics list.
+  @VisibleForTesting
+  static Map<String, List<ConfigEntry>> mergeTopicConfigs(Map<String, TopicState> previousStates,
+                                                          Map<String, List<ConfigEntry>> fetched) {
+    Map<String, List<ConfigEntry>> merged = new HashMap<>();
+    previousStates.forEach((topic, state) -> {
+      if (state.configs() != null && !state.configs().isEmpty()) {
+        merged.put(topic, state.configs());
+      }
+    });
+    fetched.forEach((topic, configs) -> {
+      if (configs != null && !configs.isEmpty()) {
+        merged.put(topic, configs);
+      }
+    });
+    return merged;
+  }
+
   public ScrapedClusterState updateTopics(Map<String, TopicDescription> descriptions,
                                           Map<String, List<ConfigEntry>> configs,
                                           InternalPartitionsOffsets partitionsOffsets,
                                           ClustersProperties clustersProperties) {
+    Map<String, List<ConfigEntry>> mergedConfigs = mergeTopicConfigs(topicStates, configs);
     var updatedTopicStates = new HashMap<>(topicStates);
     descriptions.forEach((topic, description) -> {
       SegmentStats segmentStats = null;
@@ -103,7 +126,7 @@ public class ScrapedClusterState implements AutoCloseable {
           new TopicState(
               topic,
               description,
-              configs.getOrDefault(topic, List.of()),
+              mergedConfigs.getOrDefault(topic, List.of()),
               partitionsOffsets.topicOffsets(topic, true),
               partitionsOffsets.topicOffsets(topic, false),
               segmentStats,
