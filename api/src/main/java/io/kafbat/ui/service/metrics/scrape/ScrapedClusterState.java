@@ -15,8 +15,10 @@ import io.kafbat.ui.service.index.FilterTopicIndex;
 import io.kafbat.ui.service.index.LuceneTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +45,10 @@ import reactor.core.publisher.Mono;
 public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
+  // When the topic configs held in topicStates were last fully re-described. Deliberately separate from
+  // scrapeFinishedAt, which create() refreshes on every scrape (and which ConsumerGroupService reads to report
+  // offset freshness) - reusing it would restart the expiry window every scrape and the refresh would never fire.
+  Instant topicConfigsRefreshedAt;
   Map<Integer, NodeState> nodesStates;
   Map<String, TopicState> topicStates;
   Map<String, ConsumerGroupState> consumerGroupsStates;
@@ -80,6 +86,8 @@ public class ScrapedClusterState implements AutoCloseable {
   public static ScrapedClusterState empty() {
     return ScrapedClusterState.builder()
         .scrapeFinishedAt(Instant.now())
+        // EPOCH rather than now(), so the very first real scrape always describes configs
+        .topicConfigsRefreshedAt(Instant.EPOCH)
         .nodesStates(Map.of())
         .topicStates(Map.of())
         .consumerGroupsStates(Map.of())
@@ -149,39 +157,75 @@ public class ScrapedClusterState implements AutoCloseable {
         .build();
   }
 
-  public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
-                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties) {
-    // listing topics once and reusing the result for both describeTopics() and getTopicsConfig(): each of the
-    // no-arg overloads used to list topics on its own, so a topic created in between got no configs for a cycle
-    return ac.listTopics(true)
-        .flatMap(topics -> scrape(clusterDescription, ac, clustersProperties, topics));
+  // Which topics need a live describeConfigs on this scrape, and whether that amounts to a full refresh.
+  // Kept as a pure function of (previous state, current topics, expiry, now) so the policy can be tested
+  // without introducing a Clock seam into the scrape.
+  @VisibleForTesting
+  record TopicConfigsRefreshPlan(Set<String> topicsToDescribe, boolean fullRefresh) {
+
+    static TopicConfigsRefreshPlan plan(ScrapedClusterState previous,
+                                        Set<String> currentTopics,
+                                        Duration expiry,
+                                        Instant now) {
+      Instant refreshedAt = previous.getTopicConfigsRefreshedAt();
+      if (expiry == null || expiry.isZero() || expiry.isNegative()
+          || refreshedAt == null || !now.isBefore(refreshedAt.plus(expiry))) {
+        return new TopicConfigsRefreshPlan(currentTopics, true);
+      }
+      // Only topics we have not seen before. Keyed on presence in topicStates rather than on having non-empty
+      // configs: getTopicsConfigImpl() swallows TopicAuthorizationException, so keying on content would
+      // re-describe every DESCRIBE_CONFIGS-denied topic on every scrape - the storm this setting exists to stop.
+      Set<String> unseen = new HashSet<>(currentTopics);
+      unseen.removeAll(previous.getTopicStates().keySet());
+      return new TopicConfigsRefreshPlan(unseen, false);
+    }
+
+    Mono<Map<String, List<ConfigEntry>>> fetch(ReactiveAdminClient ac) {
+      return topicsToDescribe.isEmpty() ? Mono.just(Map.of()) : ac.getTopicsConfig(topicsToDescribe, false);
+    }
+
+    // An incremental fetch must not advance the clock, or a cluster with steady topic churn would keep
+    // postponing the full refresh forever.
+    Instant refreshedAt(Instant previousRefreshedAt, Instant now) {
+      return fullRefresh ? now : previousRefreshedAt;
+    }
   }
 
-  private static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
-                                                  ReactiveAdminClient ac,
-                                                  ClustersProperties clustersProperties,
-                                                  Set<String> topics) {
-    return Mono.zip(
-        ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
-            .map(InternalLogDirStats::new),
-        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
-        ac.describeTopics(topics),
-        ac.getTopicsConfig(topics, false)
-    ).flatMap(phase1 ->
-        Mono.zip(
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
-            ac.describeConsumerGroups(phase1.getT2()),
-            ac.listConsumerGroupOffsets(phase1.getT2(), null)
-        ).map(phase2 ->
-            create(
-                clusterDescription,
-                phase1.getT1(),
-                topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
-                phase2.getT3(),
-                phase2.getT4(),
-                clustersProperties
-            )));
+  public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
+                                                 ReactiveAdminClient ac,
+                                                 ClustersProperties clustersProperties,
+                                                 ScrapedClusterState previous,
+                                                 Duration topicConfigsExpiry) {
+    Instant now = Instant.now();
+    // One listTopics() for both describeTopics() and the config fetch, so a topic created mid-scrape cannot end
+    // up described but config-less, and so the refresh plan can be decided before anything is described.
+    return ac.listTopics(true).flatMap(topics -> {
+      TopicConfigsRefreshPlan plan = TopicConfigsRefreshPlan.plan(previous, topics, topicConfigsExpiry, now);
+      return Mono.zip(
+          ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
+              .map(InternalLogDirStats::new),
+          ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
+          ac.describeTopics(topics),
+          plan.fetch(ac)
+      ).flatMap(phase1 ->
+          Mono.zip(
+              ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
+              ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
+              ac.describeConsumerGroups(phase1.getT2()),
+              ac.listConsumerGroupOffsets(phase1.getT2(), null)
+          ).map(phase2 ->
+              create(
+                  clusterDescription,
+                  phase1.getT1(),
+                  topicStateMap(phase1.getT1(), phase1.getT3(),
+                      mergeTopicConfigs(previous.getTopicStates(), phase1.getT4()),
+                      phase2.getT1(), phase2.getT2()),
+                  phase2.getT3(),
+                  phase2.getT4(),
+                  clustersProperties,
+                  plan.refreshedAt(previous.getTopicConfigsRefreshedAt(), now)
+              )));
+    });
   }
 
   private static Map<String, TopicState> topicStateMap(
@@ -212,7 +256,8 @@ public class ScrapedClusterState implements AutoCloseable {
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
                                             Table<String, TopicPartition, Long> consumerOffsets,
-                                            ClustersProperties clustersProperties) {
+                                            ClustersProperties clustersProperties,
+                                            Instant topicConfigsRefreshedAt) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->
@@ -237,6 +282,7 @@ public class ScrapedClusterState implements AutoCloseable {
 
     return new ScrapedClusterState(
         Instant.now(),
+        topicConfigsRefreshedAt,
         nodesStates,
         topicStates,
         consumerGroupsStates,
