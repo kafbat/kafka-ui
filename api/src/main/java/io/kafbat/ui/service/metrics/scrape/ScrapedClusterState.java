@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -127,12 +128,22 @@ public class ScrapedClusterState implements AutoCloseable {
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
                                                  ReactiveAdminClient ac, ClustersProperties clustersProperties) {
+    // listing topics once and reusing the result for both describeTopics() and getTopicsConfig(): each of the
+    // no-arg overloads used to list topics on its own, so a topic created in between got no configs for a cycle
+    return ac.listTopics(true)
+        .flatMap(topics -> scrape(clusterDescription, ac, clustersProperties, topics));
+  }
+
+  private static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
+                                                  ReactiveAdminClient ac,
+                                                  ClustersProperties clustersProperties,
+                                                  Set<String> topics) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
         ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
-        ac.describeTopics(),
-        ac.getTopicsConfig()
+        ac.describeTopics(topics),
+        ac.getTopicsConfig(topics, false)
     ).flatMap(phase1 ->
         Mono.zip(
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
