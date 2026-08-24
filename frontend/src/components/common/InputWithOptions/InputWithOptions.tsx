@@ -28,13 +28,21 @@ const InputWithOptions = ({
   const [selectedOption, setSelectedOption] = React.useState(value);
   const [showOptions, setShowOptions] = React.useState(false);
 
-  let filteredOptions = options.filter((option) =>
-    option.value.includes(selectedOption.toLowerCase())
+  // A blank-valued option means "clear the selection". It never matches the
+  // filter (''.includes(anything) is false), so keep it pinned to the top
+  // instead of letting it disappear as soon as something is selected.
+  const clearOptions = options.filter((option) => option.value === '');
+
+  let matchedOptions = options.filter(
+    (option) =>
+      option.value !== '' && option.value.includes(selectedOption.toLowerCase())
   );
 
-  if (!filteredOptions.length && selectedOption) {
-    filteredOptions = [{ value: selectedOption, label: selectedOption }];
+  if (!matchedOptions.length && selectedOption) {
+    matchedOptions = [{ value: selectedOption, label: selectedOption }];
   }
+
+  const filteredOptions = [...clearOptions, ...matchedOptions];
 
   const updateSelectedOption = (option: SelectOption<string>) => {
     if (!option.disabled) {
