@@ -23,6 +23,7 @@ import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.avro.data.TimeConversions;
@@ -69,6 +70,7 @@ final class Serialize {
                                Serde.Target target,
                                ProtobufSchema schema,
                                int schemaId,
+                               @Nullable String messageName,
                                String input) {
     // flags are tuned like in ProtobufSerializer by default
     boolean normalizeSchema = false;
@@ -83,7 +85,15 @@ final class Serialize {
         topic, target == Serde.Target.KEY, schema
     );
 
-    DynamicMessage.Builder builder = schema.newMessageBuilder();
+    // when the schema defines multiple messages the user can pick which one to produce;
+    // no-arg newMessageBuilder() would always use the first message in the schema.
+    DynamicMessage.Builder builder = (messageName != null && !messageName.isBlank())
+        ? schema.newMessageBuilder(messageName)
+        : schema.newMessageBuilder();
+    if (builder == null) {
+      throw new ValidationException(
+          "Message type '" + messageName + "' not found in schema id " + schemaId);
+    }
     JsonFormat.parser().merge(input, builder);
     Message message = builder.build();
     MessageIndexes indexes = schema.toMessageIndexes(message.getDescriptorForType().getFullName(), normalizeSchema);
