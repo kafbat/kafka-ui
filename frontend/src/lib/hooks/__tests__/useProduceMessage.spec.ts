@@ -102,6 +102,28 @@ describe('useProduceMessage', () => {
     });
   });
 
+  it('should extract protobuf messageName from deserialize properties', () => {
+    const { result } = renderHook(() => useProduceMessage());
+    const messageWithMessageName: TopicMessage = {
+      ...mockMessage,
+      valueSerde: 'ProtobufFile',
+      keySerde: 'ProtobufFile',
+      valueDeserializeProperties: { messageName: 'test.AddressBook' },
+      keyDeserializeProperties: { messageName: 'test.Person' },
+    };
+
+    act(() => {
+      result.current.setMessage(messageWithMessageName);
+    });
+
+    expect(result.current.messageData?.keySerdeParams).toEqual({
+      messageName: 'test.Person',
+    });
+    expect(result.current.messageData?.valueSerdeParams).toEqual({
+      messageName: 'test.AddressBook',
+    });
+  });
+
   it('should handle empty subjects array in deserialize properties', () => {
     const { result } = renderHook(() => useProduceMessage());
     const messageWithEmptySubjects: TopicMessage = {

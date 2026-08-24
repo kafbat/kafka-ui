@@ -376,6 +376,118 @@ class ProtobufFileSerdeTest {
     assertThat(booksBytes).isEqualTo(addressBookMessageBytes);
   }
 
+  @Test
+  void getParametersReturnsAllMessageTypesFromTopicsProtoFile() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+
+    var parameters = serde.getParameters("persons", Serde.Target.VALUE);
+    assertThat(parameters).hasSize(1);
+    assertThat(parameters.get(0).getName()).isEqualTo("messageName");
+    // all real message definitions from address-book.proto (excluding synthetic map-entry types)
+    assertThat(parameters.get(0).getAllowedValues())
+        .contains("test.Person", "test.AnotherPerson", "test.AddressBook", "test.Person.PhoneNumber");
+  }
+
+  @Test
+  void getParametersReturnsEmptyWhenNoDescriptorApplies() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+    // no default key descriptor and no per-topic key mapping -> nothing to offer
+    assertThat(serde.getParameters("persons", Serde.Target.KEY)).isEmpty();
+  }
+
+  @Test
+  void serializeUsesMessageNamePropertyToPickChosenType() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+
+    // default for "persons" is test.Person, but the user explicitly picks test.AddressBook
+    var bytes = serde.serializer("persons", Serde.Target.VALUE, Map.of("messageName", "test.AddressBook"))
+        .serialize(sampleBookMsgJson);
+    assertThat(bytes).isEqualTo(addressBookMessageBytes);
+  }
+
+  @Test
+  void serializeFallsBackToDefaultWhenMessageNamePropertyMissingOrBlank() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+
+    assertThat(serde.serializer("persons", Serde.Target.VALUE, Map.of())
+        .serialize(samplePersonMsgJson)).isEqualTo(personMessageBytes);
+    assertThat(serde.serializer("persons", Serde.Target.VALUE, Map.of("messageName", "  "))
+        .serialize(samplePersonMsgJson)).isEqualTo(personMessageBytes);
+  }
+
+  @Test
+  void serializeThrowsWhenChosenMessageNameNotInTopicsProtoFile() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+
+    assertThatThrownBy(() ->
+        serde.serializer("persons", Serde.Target.VALUE, Map.of("messageName", "test.NotInFile")))
+        .isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
+        .hasMessageContaining("test.NotInFile");
+  }
+
+  @Test
+  void deserializeExposesUsedMessageNameForReproduce() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            personDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(),
+            Map.of()
+        )
+    );
+
+    var result = serde.deserializer("persons", Serde.Target.VALUE)
+        .deserialize(null, personMessageBytes);
+    assertThat(result.getAdditionalProperties()).containsEntry("messageName", "test.Person");
+  }
+
   @SneakyThrows
   private void assertJsonEquals(String expectedJson, String actualJson) {
     var mapper = new JsonMapper();

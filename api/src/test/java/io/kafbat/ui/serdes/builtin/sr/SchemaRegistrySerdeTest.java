@@ -840,6 +840,75 @@ class SchemaRegistrySerdeTest {
       )).isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
           .hasMessageContaining(nonexistentSubject);
     }
+
+    // Schema with several message definitions (exercises multi-message protobuf handling).
+    private static final ProtobufSchema MULTI_MESSAGE_PROTOBUF_SCHEMA = new ProtobufSchema(
+        """
+            syntax = "proto3";
+            package test.events;
+            message OrderPlacedEvent { string order_id = 1; }
+            message OrderShippedEvent { string order_id = 1; }
+            message AccountUpdatedEvent { string customer_id = 1; string strategy_id = 2; }
+            """
+    );
+
+    @Test
+    @SneakyThrows
+    void getParametersExposesAllProtobufMessageTypes() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      var messageNameParam = serde.getParameters(topic, Serde.Target.VALUE).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+
+      assertThat(messageNameParam.getAllowedValues()).containsExactlyInAnyOrder(
+          "test.events.OrderPlacedEvent",
+          "test.events.OrderShippedEvent",
+          "test.events.AccountUpdatedEvent");
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerUsesChosenMessageTypeInsteadOfFirst() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      // this JSON only fits AccountUpdatedEvent, not the first message (OrderPlacedEvent)
+      String accountJson = "{\"customer_id\": \"c-1\", \"strategy_id\": \"s-1\"}";
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE,
+          java.util.Map.of(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.events.AccountUpdatedEvent"));
+      byte[] result = serializer.serialize(accountJson);
+
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerWithoutMessageNameFailsForNonFirstMessage() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      String accountJson = "{\"customer_id\": \"c-1\", \"strategy_id\": \"s-1\"}";
+
+      // no messageName -> falls back to the first message (OrderPlacedEvent), which has no customer_id
+      var serializer = serde.serializer(topic, Serde.Target.VALUE);
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> serializer.serialize(accountJson)))
+          .hasMessageContaining("customer_id");
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerThrowsForUnknownMessageName() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE,
+          java.util.Map.of(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.events.NoSuchEvent"));
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> serializer.serialize("{}")))
+          .isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
+          .hasMessageContaining("NoSuchEvent");
+    }
   }
 
 }
