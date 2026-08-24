@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.Strings.CS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
@@ -33,9 +34,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 
 @Slf4j
 @UtilityClass
@@ -48,15 +51,34 @@ public class MessageFilters {
   private static final CelRuntime CEL_RUNTIME = createRuntime();
   private static final Object CELL_NULL_VALUE = NullValue.NULL_VALUE;
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER =
+      new ObjectMapper().configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
+  private static final Pattern HEX_IN_UNICODE_ESCAPE = Pattern.compile("(?<=\\\\u)[0-9A-F]{4}");
 
   public static Predicate<TopicMessageDTO> noop() {
     return e -> true;
   }
 
   public static Predicate<TopicMessageDTO> containsStringFilter(String string) {
-    return msg -> CS.contains(msg.getKey(), string)
-        || CS.contains(msg.getValue(), string) || headersContains(msg, string);
+    @Nullable String escapedUpper = escapeNonAscii(string);
+    @Nullable String escapedLower = escapedUpper != null
+        ? HEX_IN_UNICODE_ESCAPE.matcher(escapedUpper).replaceAll(m -> m.group().toLowerCase())
+        : null;
+    return msg -> msgContains(msg, string)
+        || (escapedUpper != null && msgContains(msg, escapedUpper))
+        || (escapedLower != null && msgContains(msg, escapedLower));
+  }
+
+  @Nullable
+  static String escapeNonAscii(String input) {
+    String escaped = StringEscapeUtils.escapeJson(input);
+    return escaped.equals(input) ? null : escaped;
+  }
+
+  private static boolean msgContains(TopicMessageDTO msg, String search) {
+    return CS.contains(msg.getKey(), search)
+        || CS.contains(msg.getValue(), search)
+        || headersContains(msg, search);
   }
 
   private static boolean headersContains(TopicMessageDTO msg, String searchString) {

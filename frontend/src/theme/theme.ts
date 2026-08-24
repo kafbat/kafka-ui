@@ -35,6 +35,7 @@ const Colors = {
     '40': '#5CD685',
     '50': '#33CC66',
     '60': '#29A352',
+    '70': '#34C759',
   },
   brand: {
     '0': '#FFFFFF',
@@ -63,11 +64,13 @@ const Colors = {
   },
   orange: {
     '10': '#BF83401A',
+    '20': '#FF8D28',
     '100': '#FF9D00',
   },
   yellow: {
     '10': '#FFEECC',
     '20': '#FFDD57',
+    '30': '#FFD439',
   },
   blue: {
     '10': '#e3f2fd',
@@ -270,7 +273,7 @@ const baseTheme = {
     infoIcon: Colors.neutral[30],
     closeCircleIcon: Colors.neutral[30],
     deleteIcon: Colors.red[20],
-    warningIcon: Colors.yellow[20],
+    warningIcon: Colors.yellow[30],
     warningRedIcon: {
       rectFill: Colors.red[10],
       pathFill: Colors.red[50],
@@ -306,6 +309,10 @@ const baseTheme = {
     menuIcon: Colors.brand[70],
     filterIcon: {
       normal: Colors.brand[70],
+    },
+    ftsIcon: {
+      normal: Colors.neutral[30],
+      active: Colors.brand[70],
     },
   },
   textArea: {
@@ -488,6 +495,12 @@ export const theme = {
       backgroundColor: {
         default: Colors.neutral[0],
         hover: Colors.neutral[5],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[20],
       },
     },
   },
@@ -955,6 +968,12 @@ export const theme = {
       cross: Colors.brand[30],
     },
   },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[90],
+    none: Colors.neutral[90],
+  },
 };
 
 export type ThemeType = typeof theme;
@@ -1075,6 +1094,12 @@ export const darkTheme: ThemeType = {
       backgroundColor: {
         default: Colors.neutral[85],
         hover: Colors.neutral[80],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[70],
       },
     },
   },
@@ -1539,6 +1564,10 @@ export const darkTheme: ThemeType = {
       normal: Colors.neutral[5],
     },
     menuIcon: Colors.brand[0],
+    ftsIcon: {
+      normal: Colors.neutral[50],
+      active: Colors.brand[10],
+    },
   },
   textArea: {
     ...baseTheme.textArea,
@@ -1625,5 +1654,11 @@ export const darkTheme: ThemeType = {
       border: Colors.brand[60],
       cross: Colors.brand[30],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[0],
+    none: Colors.neutral[0],
   },
 };

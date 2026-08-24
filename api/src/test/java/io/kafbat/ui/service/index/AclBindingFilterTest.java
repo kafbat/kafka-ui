@@ -40,4 +40,45 @@ public class AclBindingFilterTest extends AbstractNgramFilterTest<AclBinding> {
     AclBinding binding = items.getFirst();
     return Map.entry(binding.entry().principal(), binding);
   }
+
+  @Override
+  protected List<AclBinding> sortedItems() {
+    return List.of(
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part-2", PatternType.LITERAL),
+            new AccessControlEntry("s2Principal", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        ),
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part", PatternType.LITERAL),
+            new AccessControlEntry("principal-first-part", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        ),
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part-2", PatternType.LITERAL),
+            new AccessControlEntry("s-principal", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        )
+    );
+  }
+
+  @Override
+  protected String sortedExample(List<AclBinding> items) {
+    return "princ";
+  }
+
+  @Override
+  protected List<AclBinding> sortedResult(List<AclBinding> items) {
+    return List.of(
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part", PatternType.LITERAL),
+            new AccessControlEntry("principal-first-part", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        ),
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part-2", PatternType.LITERAL),
+            new AccessControlEntry("s-principal", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        ),
+        new AclBinding(
+            new ResourcePattern(ResourceType.TOPIC, "res-name-part-2", PatternType.LITERAL),
+            new AccessControlEntry("s2Principal", "*", AclOperation.ALL, AclPermissionType.ALLOW)
+        )
+    );
+  }
 }

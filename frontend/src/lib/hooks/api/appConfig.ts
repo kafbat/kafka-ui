@@ -2,7 +2,11 @@ import {
   appConfigApiClient as appConfig,
   internalApiClient as internalApi,
 } from 'lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import {
   ApplicationConfig,
   ApplicationConfigPropertiesKafkaClusters,
@@ -11,11 +15,11 @@ import {
 import { QUERY_REFETCH_OFF_OPTIONS } from 'lib/constants';
 
 export function useAuthSettings() {
-  return useQuery(
-    ['app', 'authSettings'],
-    () => appConfig.getAuthenticationSettings(),
-    QUERY_REFETCH_OFF_OPTIONS
-  );
+  return useSuspenseQuery({
+    queryKey: ['app', 'authSettings'],
+    queryFn: () => appConfig.getAuthenticationSettings(),
+    ...QUERY_REFETCH_OFF_OPTIONS,
+  });
 }
 
 export function useAuthenticate() {
@@ -28,26 +32,32 @@ export function useAuthenticate() {
 }
 
 export function useAppInfo() {
-  return useQuery(['app', 'info'], async () => {
-    const data = await appConfig.getApplicationInfoRaw();
+  return useSuspenseQuery({
+    queryKey: ['app', 'info'],
+    queryFn: async () => {
+      const data = await appConfig.getApplicationInfoRaw();
 
-    let response: ApplicationInfo = {};
-    try {
-      response = await data.value();
-    } catch {
-      response = {};
-    }
+      let response: ApplicationInfo = {};
+      try {
+        response = await data.value();
+      } catch {
+        response = {};
+      }
 
-    const url = new URL(data.raw.url);
-    return {
-      redirect: url.pathname.includes('auth'),
-      response,
-    };
+      const url = new URL(data.raw.url);
+      return {
+        redirect: url.pathname.includes('auth'),
+        response,
+      };
+    },
   });
 }
 
 export function useAppConfig() {
-  return useQuery(['app', 'config'], () => appConfig.getCurrentConfig());
+  return useSuspenseQuery({
+    queryKey: ['app', 'config'],
+    queryFn: () => appConfig.getCurrentConfig(),
+  });
 }
 
 function aggregateClusters(
@@ -77,8 +87,8 @@ export function useUpdateAppConfig({
   deleteCluster?: boolean;
 }) {
   const client = useQueryClient();
-  return useMutation(
-    async (cluster: ApplicationConfigPropertiesKafkaClusters) => {
+  return useMutation({
+    mutationFn: async (cluster: ApplicationConfigPropertiesKafkaClusters) => {
       const existingConfig = await appConfig.getCurrentConfig();
 
       const clusters = aggregateClusters(
@@ -97,25 +107,25 @@ export function useUpdateAppConfig({
       };
       return appConfig.restartWithConfig({ restartRequest: { config } });
     },
-    {
-      onSuccess: () => client.invalidateQueries(['app', 'config']),
-    }
-  );
+    onSuccess: () => client.invalidateQueries({ queryKey: ['app', 'config'] }),
+  });
 }
 
 export function useAppConfigFilesUpload() {
-  return useMutation((payload: FormData) =>
-    fetch('/api/config/relatedfiles', {
-      method: 'POST',
-      body: payload,
-    }).then((res) => res.json())
-  );
+  return useMutation({
+    mutationFn: (payload: FormData) =>
+      fetch('/api/config/relatedfiles', {
+        method: 'POST',
+        body: payload,
+      }).then((res) => res.json()),
+  });
 }
 
 export function useValidateAppConfig() {
-  return useMutation((config: ApplicationConfigPropertiesKafkaClusters) =>
-    appConfig.validateConfig({
-      applicationConfig: { properties: { kafka: { clusters: [config] } } },
-    })
-  );
+  return useMutation({
+    mutationFn: (config: ApplicationConfigPropertiesKafkaClusters) =>
+      appConfig.validateConfig({
+        applicationConfig: { properties: { kafka: { clusters: [config] } } },
+      }),
+  });
 }

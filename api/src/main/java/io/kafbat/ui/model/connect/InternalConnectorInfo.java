@@ -14,4 +14,5 @@ public class InternalConnectorInfo {
   private final Map<String, Object> config;
   private final List<TaskDTO> tasks;
   private final List<String> topics;
+  private final String consumer;
 }

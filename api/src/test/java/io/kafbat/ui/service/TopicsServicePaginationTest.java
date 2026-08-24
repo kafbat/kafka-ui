@@ -23,6 +23,7 @@ import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.model.Statistics;
 import io.kafbat.ui.model.TopicColumnsToSortDTO;
 import io.kafbat.ui.model.TopicDTO;
+import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.audit.AuditService;
 import io.kafbat.ui.service.rbac.AccessControlService;
@@ -60,12 +61,21 @@ class TopicsServicePaginationTest {
   );
 
   private final TopicsService mockTopicsService = Mockito.mock(TopicsService.class);
+  private final KafkaConnectService kafkaConnectService = Mockito.mock(KafkaConnectService.class);
   private final ClusterMapper clusterMapper = new ClusterMapperImpl();
+  private final AclsService aclService = Mockito.mock(AclsService.class);
 
   private final AccessControlService accessControlService = new AccessControlServiceMock().getMock();
 
   private final TopicsController topicsController =
-      new TopicsController(mockTopicsService, mock(TopicAnalysisService.class), clusterMapper, clustersProperties);
+      new TopicsController(
+          mockTopicsService,
+          mock(TopicAnalysisService.class),
+          clusterMapper,
+          clustersProperties,
+          kafkaConnectService,
+          aclService
+      );
 
   private void init(Map<String, InternalTopic> topicsInCache) {
     KafkaCluster kafkaCluster = buildKafkaCluster(LOCAL_KAFKA_CLUSTER_NAME);
@@ -103,9 +113,9 @@ class TopicsServicePaginationTest {
     when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));
     when(clustersStorage.getClusterByName(isA(String.class)))
         .thenReturn(Optional.of(kafkaCluster));
-    when(mockTopicsService.getTopicsForPagination(isA(KafkaCluster.class), any(), any(), any()))
+    when(mockTopicsService.getTopics(isA(KafkaCluster.class), any(), any(), any()))
         .thenAnswer(a ->
-            topicsService.getTopicsForPagination(
+            topicsService.getTopics(
                 a.getArgument(0),
                 a.getArgument(1),
                 a.getArgument(2),
@@ -127,7 +137,7 @@ class TopicsServicePaginationTest {
   private TopicDescription toTopicDescription(InternalTopic t) {
     return new TopicDescription(
         t.getName(), t.isInternal(),
-        t.getPartitions().values().stream().map(p -> toTopicPartitionInfo(p)).toList()
+        t.getPartitions().values().stream().map(this::toTopicPartitionInfo).toList()
     );
   }
 

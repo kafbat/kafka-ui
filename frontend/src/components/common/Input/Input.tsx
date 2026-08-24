@@ -7,7 +7,8 @@ import * as S from './Input.styled';
 import { InputLabel } from './InputLabel.styled';
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    React.InputHTMLAttributes<HTMLInputElement>,
     Omit<S.InputProps, 'search'> {
   name?: string;
   hookFormOptions?: RegisterOptions;
@@ -17,7 +18,7 @@ export interface InputProps
   label?: React.ReactNode;
   hint?: React.ReactNode;
   clearIcon?: React.ReactNode;
-
+  actions?: React.ReactNode;
   // Some may only accept integer, like `Number of Partitions`
   // some may accept decimal
   integerOnly?: boolean;
@@ -113,6 +114,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     label,
     hint,
     clearIcon,
+    actions,
     ...rest
   } = props;
 
@@ -187,7 +189,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
           ref={ref}
           {...inputOptions}
         />
-        {clearIcon}
+        {search && clearIcon}
+        {actions}
 
         {withError && isHookFormField && (
           <S.FormError>

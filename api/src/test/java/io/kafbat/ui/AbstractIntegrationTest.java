@@ -39,12 +39,21 @@ public abstract class AbstractIntegrationTest {
   public static final String SECOND_LOCAL = "secondLocal";
 
   private static final String CONFLUENT_PLATFORM_VERSION = "7.8.0";
+  private static final int JMX_PORT = 5555;
 
-  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka").withTag(CONFLUENT_PLATFORM_VERSION));
+  public static final DockerImageName KAFKA_IMAGE_NAME = DockerImageName.parse("confluentinc/cp-kafka")
+      .withTag(CONFLUENT_PLATFORM_VERSION);
+
+  public static final ConfluentKafkaContainer kafkaOriginal = new ConfluentKafkaContainer(KAFKA_IMAGE_NAME);
 
   public static final ConfluentKafkaContainer kafka = kafkaOriginal
       .withListener("0.0.0.0:9095", () -> kafkaOriginal.getNetworkAliases().getFirst() + ":9095")
+      .withEnv("KAFKA_JMX_PORT", String.valueOf(JMX_PORT))
+      .withEnv("KAFKA_OPTS",
+          "-Dcom.sun.management.jmxremote "
+        + "-Dcom.sun.management.jmxremote.authenticate=false "
+        + "-Dcom.sun.management.jmxremote.ssl=false "
+        + "-Dcom.sun.management.jmxremote.local.only=false")
       .withNetwork(Network.SHARED);
 
   public static final SchemaRegistryContainer schemaRegistry =
@@ -67,6 +76,7 @@ public abstract class AbstractIntegrationTest {
   public static Path tmpDir;
 
   static {
+    kafka.addExposedPort(JMX_PORT);
     kafka.start();
     schemaRegistry.start();
     kafkaConnect.start();
@@ -103,6 +113,7 @@ public abstract class AbstractIntegrationTest {
       System.setProperty("kafka.clusters.0.masking.0.type", "REPLACE");
       System.setProperty("kafka.clusters.0.masking.0.replacement", "***");
       System.setProperty("kafka.clusters.0.masking.0.topicValuesPattern", "masking-test-.*");
+      System.setProperty("kafka.clusters.0.schemaRegistryAllSubjectsCacheTtlSeconds", "0");
       System.setProperty("kafka.clusters.0.audit.topicAuditEnabled", "true");
       System.setProperty("kafka.clusters.0.audit.consoleAuditEnabled", "true");
 
@@ -111,6 +122,8 @@ public abstract class AbstractIntegrationTest {
           IsolationLevel.READ_COMMITTED.toString());
       System.setProperty("kafka.clusters.0.producerProperties.request.timeout.ms", "45000");
       System.setProperty("kafka.clusters.0.producerProperties.max.block.ms", "80000");
+      System.setProperty("kafka.clusters.0.metrics.prometheusExpose", "true");
+      System.setProperty("kafka.clusters.0.metrics.port", kafka.getMappedPort(JMX_PORT).toString());
 
       System.setProperty("kafka.clusters.1.name", SECOND_LOCAL);
       System.setProperty("kafka.clusters.1.readOnly", "true");

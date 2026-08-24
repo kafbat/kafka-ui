@@ -1,19 +1,36 @@
 name: "Frontend: PR: Build and test"
 
 on:
-  pull_request_target:
+  pull_request:
     types: [ "opened", "reopened", "synchronize" ]
-    paths:
-      - "contract/**"
-      - "frontend/**"
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # https://github.com/dorny/paths-filter/releases/tag/v3.0.2
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - "contract/**"
+              - "contract-typespec/**"
+              - "frontend/**"
+              - ".github/workflows/frontend*"
+
   build-and-test:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     uses: ./.github/workflows/frontend_tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

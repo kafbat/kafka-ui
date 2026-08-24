@@ -59,10 +59,12 @@ describe('TopicTable Components', () => {
           hasKafkaConnectConfigured: true,
           hasSchemaRegistryConfigured: true,
           isTopicDeletionAllowed,
+          ftsEnabled: false,
+          ftsDefaultEnabled: false,
         }}
       >
         <WithRoute path={clusterTopicsPath()}>
-          <TopicTable />
+          <TopicTable params={{ search: '', clusterName: '' }} />
         </WithRoute>
       </ClusterContext.Provider>,
       {

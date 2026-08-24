@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.openapitools.jackson.nullable.JsonNullable;
 import reactor.core.publisher.Mono;
 
 class SchemaRegistryPaginationTest {
@@ -41,7 +42,8 @@ class SchemaRegistryPaginationTest {
     initWithData(subjects.stream().map(s ->
         new SubjectWithCompatibilityLevel(
             new SchemaSubject().subject(s),
-            Compatibility.FULL
+            Compatibility.FULL,
+            s.contains("-value") ? s.replace("-value", "") : null
         )
     ).toList());
   }
@@ -79,7 +81,7 @@ class SchemaRegistryPaginationTest {
                     .toList()
     );
     var schemasFirst25 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            null, null, null, null, null, null, null).block();
+            null, null, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
     assertThat(schemasFirst25).isNotNull();
     assertThat(schemasFirst25.getBody()).isNotNull();
     assertThat(schemasFirst25.getBody().getPageCount()).isEqualTo(4);
@@ -88,7 +90,7 @@ class SchemaRegistryPaginationTest {
             .isSortedAccordingTo(Comparator.comparing(SchemaSubjectDTO::getSubject));
 
     var schemasFirst10 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            null, 10, null, null, null, null, null).block();
+            null, 10, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemasFirst10).isNotNull();
     assertThat(schemasFirst10.getBody()).isNotNull();
@@ -115,6 +117,20 @@ class SchemaRegistryPaginationTest {
   }
 
   @Test
+  void shouldReturnTopic() {
+    init(
+        List.of("topic-1-value")
+    );
+    var schemasSearch7 = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
+        null, null, "1", null, null, null, null).block();
+    assertThat(schemasSearch7).isNotNull();
+    assertThat(schemasSearch7.getBody()).isNotNull();
+    assertThat(schemasSearch7.getBody().getPageCount()).isEqualTo(1);
+    assertThat(schemasSearch7.getBody().getSchemas()).hasSize(1);
+    assertThat(schemasSearch7.getBody().getSchemas().getFirst().getTopic()).isEqualTo(JsonNullable.of("topic-1"));
+  }
+
+  @Test
   void shouldCorrectlyHandleNonPositivePageNumberAndPageSize() {
     init(
                 IntStream.rangeClosed(1, 100)
@@ -123,7 +139,7 @@ class SchemaRegistryPaginationTest {
                         .toList()
     );
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            0, -1, null, null, null, null, null).block();
+            0, -1, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemas).isNotNull();
     assertThat(schemas.getBody()).isNotNull();
@@ -142,7 +158,7 @@ class SchemaRegistryPaginationTest {
     );
 
     var schemas = controller.getSchemas(LOCAL_KAFKA_CLUSTER_NAME,
-            4, 33, null, null, null, null, null).block();
+            4, 33, null, SchemaColumnsToSortDTO.SUBJECT, null, null, null).block();
 
     assertThat(schemas).isNotNull();
     assertThat(schemas.getBody()).isNotNull();
@@ -169,7 +185,7 @@ class SchemaRegistryPaginationTest {
                     .subject("subject" + num)
                     .schemaType(SchemaType.AVRO)
                     .id(num),
-                Compatibility.FULL
+                Compatibility.FULL, null
             )
         ).toList();
 

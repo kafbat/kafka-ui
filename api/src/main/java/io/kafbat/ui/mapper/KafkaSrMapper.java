@@ -28,6 +28,7 @@ public interface KafkaSrMapper {
         .schema(s.getSchema())
         .schemaType(SchemaTypeDTO.fromValue(Optional.ofNullable(s.getSchemaType()).orElse(SchemaType.AVRO).getValue()))
         .references(toDto(s.getReferences()))
+        .topic(s.getTopic())
         .compatibilityLevel(s.getCompatibility().toString());
   }
 

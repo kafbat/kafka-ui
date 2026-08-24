@@ -1,35 +1,35 @@
-import React, { ComponentRef, useEffect, useRef } from 'react';
+import React, {
+  ComponentRef,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import Input from 'components/common/Input/Input';
 import { useSearchParams } from 'react-router-dom';
 import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
-import styled from 'styled-components';
+
+import * as S from './Search.styled';
 
 interface SearchProps {
   placeholder?: string;
   disabled?: boolean;
   onChange?: (value: string) => void;
   value?: string;
+  extraActions?: ReactNode;
 }
 
-const IconButtonWrapper = styled.span.attrs(() => ({
-  role: 'button',
-  tabIndex: 0,
-}))`
-  height: 16px !important;
-  display: inline-block;
-  &:hover {
-    cursor: pointer;
-  }
-`;
 const Search: React.FC<SearchProps> = ({
   placeholder = 'Search',
   disabled = false,
   value,
   onChange,
+  extraActions,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const ref = useRef<ComponentRef<'input'>>(null);
+  const [showIcon, setShowIcon] = useState(!!value || !!searchParams.get('q'));
 
   useEffect(() => {
     if (ref.current !== null && value) {
@@ -38,6 +38,7 @@ const Search: React.FC<SearchProps> = ({
   }, [value]);
 
   const handleChange = useDebouncedCallback((e) => {
+    setShowIcon(!!e.target.value);
     if (ref.current != null) {
       ref.current.value = e.target.value;
     }
@@ -59,12 +60,14 @@ const Search: React.FC<SearchProps> = ({
       searchParams.set('q', '');
       setSearchParams(searchParams);
     }
+
     if (ref.current != null) {
       ref.current.value = '';
     }
     if (onChange) {
       onChange('');
     }
+    setShowIcon(false);
   };
 
   return (
@@ -77,10 +80,19 @@ const Search: React.FC<SearchProps> = ({
       disabled={disabled}
       ref={ref}
       search
-      clearIcon={
-        <IconButtonWrapper onClick={clearSearchValue}>
-          <CloseCircleIcon />
-        </IconButtonWrapper>
+      actions={
+        <S.Actions>
+          {showIcon && (
+            <S.IconButtonWrapper
+              onClick={clearSearchValue}
+              data-testid="search-clear-button"
+            >
+              <CloseCircleIcon />
+            </S.IconButtonWrapper>
+          )}
+
+          {extraActions}
+        </S.Actions>
       }
     />
   );

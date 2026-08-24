@@ -1,7 +1,8 @@
-import React from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
 import {
+  clusterConnectConnectorPath,
   clusterConsumerGroupResetRelativePath,
   clusterConsumerGroupsPath,
   ClusterGroupParam,
@@ -10,14 +11,11 @@ import Search from 'components/common/Search/Search';
 import ClusterContext from 'components/contexts/ClusterContext';
 import * as Metrics from 'components/common/Metrics';
 import { Tag } from 'components/common/Tag/Tag.styled';
-import groupBy from 'lib/functions/groupBy';
-import { Table } from 'components/common/table/Table/Table.styled';
 import getTagColor from 'components/common/Tag/getTagColor';
 import { Dropdown } from 'components/common/Dropdown';
 import { ControlPanelWrapper } from 'components/common/ControlPanel/ControlPanel.styled';
 import { Action, ConsumerGroupState, ResourceType } from 'generated-sources';
 import { ActionDropdownItem } from 'components/common/ActionComponent';
-import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
 import {
   useConsumerGroupDetails,
   useDeleteConsumerGroupMutation,
@@ -25,19 +23,53 @@ import {
 import Tooltip from 'components/common/Tooltip/Tooltip';
 import { CONSUMER_GROUP_STATE_TOOLTIPS } from 'lib/constants';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import { exportTableCSV, TableProvider } from 'components/common/NewTable';
+import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
+import { getConnectorNameFromConsumerGroup } from 'lib/utils/connectorUtils';
+import { LagTrendComponent } from 'lib/consumerGroups';
+import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import { useConnectors } from 'lib/hooks/api/kafkaConnect';
+import { useGetConsumerGroupLagsInfo } from 'components/ConsumerGroups/Details/useGetConsumerGroupLagsInfo';
 
-import ListItem from './ListItem';
+import { TopicsTable } from './TopicsTable/TopicsTable';
+
+const isConnect = (groupId: string | undefined) =>
+  groupId?.startsWith('connect-');
 
 const Details: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const searchValue = searchParams.get('q') || '';
-  const { isReadOnly } = React.useContext(ClusterContext);
+  const { isReadOnly, hasKafkaConnectConfigured } = useContext(ClusterContext);
   const routeParams = useAppParams<ClusterGroupParam>();
   const { clusterName, consumerGroupID } = routeParams;
 
-  const consumerGroup = useConsumerGroupDetails(routeParams);
+  const {
+    data: consumerGroup,
+    error,
+    isSuccess,
+    refetch,
+    isLoading,
+  } = useConsumerGroupDetails(routeParams);
   const deleteConsumerGroup = useDeleteConsumerGroupMutation(routeParams);
+
+  const { data: connectors = [] } = useConnectors(
+    clusterName,
+    undefined,
+    undefined,
+    { enabled: hasKafkaConnectConfigured && isConnect(consumerGroup?.groupId) }
+  );
+
+  const connector = connectors.find(
+    (c) => c.consumer === consumerGroup?.groupId
+  );
+
+  const { consumerGroupLagInfo, topicsLagInfo, partitionsLagInfo } =
+    useGetConsumerGroupLagsInfo({
+      consumerGroupID,
+      clusterName,
+    });
 
   const onDelete = async () => {
     await deleteConsumerGroup.mutateAsync();
@@ -48,112 +80,142 @@ const Details: React.FC = () => {
     navigate(clusterConsumerGroupResetRelativePath);
   };
 
-  const partitionsByTopic = groupBy(
-    consumerGroup.data?.partitions || [],
-    'topic'
-  );
-  const filteredPartitionsByTopic = Object.keys(partitionsByTopic).filter(
-    (el) => el.includes(searchValue)
-  );
-  const currentPartitionsByTopic = searchValue.length
-    ? filteredPartitionsByTopic
-    : Object.keys(partitionsByTopic);
-
-  const hasAssignedTopics = consumerGroup?.data?.topics !== 0;
+  const hasAssignedTopics = consumerGroup?.topics !== 0;
+  const connectorName = getConnectorNameFromConsumerGroup(consumerGroupID);
 
   return (
-    <div>
-      <div>
-        <ResourcePageHeading
-          text={consumerGroupID}
-          backTo={clusterConsumerGroupsPath(clusterName)}
-          backText="Consumers"
-        >
-          {!isReadOnly && (
-            <Dropdown>
-              <ActionDropdownItem
-                onClick={onResetOffsets}
-                permission={{
-                  resource: ResourceType.CONSUMER,
-                  action: Action.RESET_OFFSETS,
-                  value: consumerGroupID,
-                }}
-                disabled={!hasAssignedTopics}
+    <TableProvider>
+      {({ table }) => {
+        const handleExportClick = () => {
+          exportTableCSV(table, { prefix: 'connector-topics' });
+        };
+
+        return (
+          <>
+            <div>
+              <ResourcePageHeading
+                text={consumerGroupID}
+                backTo={clusterConsumerGroupsPath(clusterName)}
+                backText="Consumers"
               >
-                Reset offset
-              </ActionDropdownItem>
-              <ActionDropdownItem
-                confirm="Are you sure you want to delete this consumer group?"
-                onClick={onDelete}
-                danger
-                permission={{
-                  resource: ResourceType.CONSUMER,
-                  action: Action.DELETE,
-                  value: consumerGroupID,
-                }}
-              >
-                Delete consumer group
-              </ActionDropdownItem>
-            </Dropdown>
-          )}
-        </ResourcePageHeading>
-      </div>
-      <Metrics.Wrapper>
-        <Metrics.Section>
-          <Metrics.Indicator label="State">
-            <Tooltip
-              value={
-                <Tag color={getTagColor(consumerGroup.data?.state)}>
-                  {consumerGroup.data?.state}
-                </Tag>
-              }
-              content={
-                CONSUMER_GROUP_STATE_TOOLTIPS[
-                  consumerGroup.data?.state || ConsumerGroupState.UNKNOWN
-                ]
-              }
-              placement="bottom-start"
-            />
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Members">
-            {consumerGroup.data?.members}
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Assigned Topics">
-            {consumerGroup.data?.topics}
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Assigned Partitions">
-            {consumerGroup.data?.partitions?.length}
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Coordinator ID">
-            {consumerGroup.data?.coordinator?.id}
-          </Metrics.Indicator>
-          <Metrics.Indicator label="Total lag">
-            {consumerGroup.data?.consumerLag}
-          </Metrics.Indicator>
-        </Metrics.Section>
-      </Metrics.Wrapper>
-      <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
-        <Search placeholder="Search by Topic Name" />
-      </ControlPanelWrapper>
-      <Table isFullwidth>
-        <thead>
-          <tr>
-            <TableHeaderCell title="Topic" />
-            <TableHeaderCell title="Consumer Lag" />
-          </tr>
-        </thead>
-        <tbody>
-          {currentPartitionsByTopic.map((key) => (
-            <ListItem
-              clusterName={clusterName}
-              consumers={partitionsByTopic[key]}
-              name={key}
-              key={key}
-            />
-          ))}
-        </tbody>
-      </Table>
-    </div>
+                <Button
+                  buttonType="secondary"
+                  buttonSize="M"
+                  onClick={handleExportClick}
+                >
+                  <ExportIcon /> Export CSV
+                </Button>
+
+                {!isReadOnly && (
+                  <Dropdown>
+                    <ActionDropdownItem
+                      onClick={onResetOffsets}
+                      permission={{
+                        resource: ResourceType.CONSUMER,
+                        action: Action.RESET_OFFSETS,
+                        value: consumerGroupID,
+                      }}
+                      disabled={!hasAssignedTopics}
+                    >
+                      Reset offset
+                    </ActionDropdownItem>
+                    <ActionDropdownItem
+                      confirm="Are you sure you want to delete this consumer group?"
+                      onClick={onDelete}
+                      danger
+                      permission={{
+                        resource: ResourceType.CONSUMER,
+                        action: Action.DELETE,
+                        value: consumerGroupID,
+                      }}
+                    >
+                      Delete consumer group
+                    </ActionDropdownItem>
+                  </Dropdown>
+                )}
+              </ResourcePageHeading>
+            </div>
+
+            {isLoading && <PageLoader />}
+
+            {error && (
+              <ErrorPage
+                status={error.status}
+                onClick={refetch}
+                resourceName={`Consumer Group ${consumerGroupID}`}
+              />
+            )}
+
+            {isSuccess && (
+              <>
+                <Metrics.Wrapper>
+                  <Metrics.Section>
+                    <Metrics.Indicator label="State">
+                      <Tooltip
+                        value={
+                          <Tag color={getTagColor(consumerGroup?.state)}>
+                            {consumerGroup?.state}
+                          </Tag>
+                        }
+                        content={
+                          CONSUMER_GROUP_STATE_TOOLTIPS[
+                            consumerGroup?.state || ConsumerGroupState.UNKNOWN
+                          ]
+                        }
+                        placement="bottom-start"
+                      />
+                    </Metrics.Indicator>
+                    <Metrics.Indicator label="Members">
+                      {consumerGroup?.members}
+                    </Metrics.Indicator>
+                    <Metrics.Indicator label="Assigned Topics">
+                      {consumerGroup?.topics}
+                    </Metrics.Indicator>
+                    <Metrics.Indicator label="Assigned Partitions">
+                      {consumerGroup?.partitions?.length}
+                    </Metrics.Indicator>
+                    <Metrics.Indicator label="Coordinator ID">
+                      {consumerGroup?.coordinator?.id}
+                    </Metrics.Indicator>
+                    <Metrics.Indicator label="Total lag">
+                      <LagTrendComponent
+                        lag={consumerGroupLagInfo.lag}
+                        trend={consumerGroupLagInfo.trend}
+                      />
+                    </Metrics.Indicator>
+                    {connectorName && connector && (
+                      <Metrics.Indicator label="Connector">
+                        <Link
+                          to={clusterConnectConnectorPath(
+                            clusterName,
+                            connector.connect,
+                            connectorName
+                          )}
+                        >
+                          {connectorName}
+                        </Link>
+                      </Metrics.Indicator>
+                    )}
+                  </Metrics.Section>
+                </Metrics.Wrapper>
+                <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
+                  <Search placeholder="Search by Topic Name" />
+
+                  <RefreshRateSelect
+                    storageKey={`consumer-group-${consumerGroupID}-refresh-rate`}
+                  />
+                </ControlPanelWrapper>
+                <TopicsTable
+                  partitions={consumerGroup?.partitions ?? []}
+                  topicsLagInfo={topicsLagInfo}
+                  partitionsLagInfo={partitionsLagInfo}
+                />
+              </>
+            )}
+          </>
+        );
+      }}
+    </TableProvider>
   );
 };
 

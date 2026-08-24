@@ -12,10 +12,12 @@ import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -24,18 +26,24 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
+@Slf4j
 public class WebClientConfigurator {
 
   private final WebClient.Builder builder = WebClient.builder();
   private HttpClient httpClient = HttpClient
       .create()
       .proxyWithSystemProperties();
+  private ObjectMapper objectMapper = defaultOM();
 
   public WebClientConfigurator() {
-    configureObjectMapper(defaultOM());
+    configureObjectMapper(objectMapper);
   }
 
   private static ObjectMapper defaultOM() {
@@ -47,7 +55,7 @@ public class WebClientConfigurator {
 
   public WebClientConfigurator configureSsl(@Nullable ClustersProperties.TruststoreConfig truststoreConfig,
                                             @Nullable ClustersProperties.KeystoreConfig keystoreConfig) {
-    if (truststoreConfig != null && !truststoreConfig.isVerifySsl()) {
+    if (truststoreConfig != null && !truststoreConfig.isVerify()) {
       return configureNoSsl();
     }
 
@@ -125,17 +133,81 @@ public class WebClientConfigurator {
     return this;
   }
 
+  public WebClientConfigurator configureOAuth(@Nullable ClustersProperties.OauthConfig oauth) {
+    if (oauth != null && oauth.getTokenUrl() != null
+        && oauth.getClientId() != null && oauth.getClientSecret() != null) {
+
+      int maxRetries = oauth.getMaxRetries() != null ? oauth.getMaxRetries() : 1;
+      HttpClient tokenHttpClient = this.httpClient;
+      OAuthTokenProvider tokenProvider = new OAuthTokenProvider(oauth, tokenHttpClient);
+
+      log.info("Configuring OAuth with token URL: {}, caching: {}, maxRetries: {}",
+          oauth.getTokenUrl(), Boolean.TRUE.equals(oauth.getTokenCacheEnabled()), maxRetries);
+
+      builder.filter((request, next) ->
+          executeWithOAuthToken(request, next, tokenProvider, maxRetries, 0)
+      );
+    }
+    return this;
+  }
+
+  private Mono<ClientResponse> executeWithOAuthToken(
+      ClientRequest request,
+      ExchangeFunction next,
+      OAuthTokenProvider tokenProvider,
+      int maxRetries,
+      int currentRetryCount) {
+
+    return tokenProvider.getAccessToken()
+        .flatMap(accessToken -> {
+          var modifiedRequest = ClientRequest.from(request)
+              .headers(headers -> headers.setBearerAuth(accessToken))
+              .build();
+
+          return next.exchange(modifiedRequest)
+              .flatMap(response -> {
+                if (response.statusCode().value() == 401) {
+                  tokenProvider.invalidateCache();
+                  if (currentRetryCount < maxRetries) {
+                    log.debug("Received 401 from Schema Registry, invalidating cache (retry {}/{})",
+                        currentRetryCount + 1, maxRetries);
+                    return response.releaseBody()
+                        .then(executeWithOAuthToken(request, next, tokenProvider, maxRetries,
+                            currentRetryCount + 1));
+                  }
+                  log.warn("OAuth authentication failed after {} retries - verify clientId, clientSecret, "
+                      + "and Schema Registry permissions", maxRetries);
+                }
+                return Mono.just(response);
+              });
+        });
+  }
+
   public WebClientConfigurator configureBufferSize(DataSize maxBuffSize) {
     builder.codecs(c -> c.defaultCodecs().maxInMemorySize((int) maxBuffSize.toBytes()));
     return this;
   }
 
-  public WebClientConfigurator configureObjectMapper(ObjectMapper mapper) {
+  public void configureObjectMapper(ObjectMapper mapper) {
+    this.objectMapper = mapper;
     builder.codecs(codecs -> {
       codecs.defaultCodecs()
           .jackson2JsonEncoder(new Jackson2JsonEncoder(mapper, MediaType.APPLICATION_JSON));
       codecs.defaultCodecs()
           .jackson2JsonDecoder(new Jackson2JsonDecoder(mapper, MediaType.APPLICATION_JSON));
+    });
+  }
+
+  public WebClientConfigurator configureAdditionalDecoderMediaTypes(MediaType... additionalMediaTypes) {
+    builder.codecs(codecs -> {
+      codecs.defaultCodecs()
+          .jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper, MediaType.APPLICATION_JSON));
+      MediaType[] allMediaTypes = Stream.concat(
+          Stream.of(MediaType.APPLICATION_JSON),
+          Stream.of(additionalMediaTypes)
+      ).toArray(MediaType[]::new);
+      codecs.defaultCodecs()
+          .jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper, allMediaTypes));
     });
     return this;
   }

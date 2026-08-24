@@ -70,3 +70,8 @@ model FieldError {
   @doc("Field format violations description (ex. [\"size must be between 0 and 20\", \"must be a well-formed email address\"])")
   restrictions?: string[];
 }
+
+model CsvResponse is Response<200> {
+    @header contentType: "text/csv";
+    @body _: string;
+}

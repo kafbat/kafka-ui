@@ -1,5 +1,7 @@
 package io.kafbat.ui.model;
 
+import static io.kafbat.ui.util.ConsumerGroupUtil.calculateConsumerLag;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -54,22 +56,6 @@ public class InternalConsumerGroup {
     builder.topicNum(calculateTopicNum(groupOffsets, internalMembers));
     Optional.ofNullable(description.coordinator()).ifPresent(builder::coordinator);
     return builder.build();
-  }
-
-  private static Long calculateConsumerLag(Map<TopicPartition, Long> offsets, Map<TopicPartition, Long> endOffsets) {
-    Long consumerLag = null;
-    // consumerLag should be undefined if no committed offsets found for topic
-    if (!offsets.isEmpty()) {
-      consumerLag = offsets.entrySet().stream()
-          .mapToLong(e ->
-              Optional.ofNullable(endOffsets)
-                  .map(o -> o.get(e.getKey()))
-                  .map(o -> o - e.getValue())
-                  .orElse(0L)
-          ).sum();
-    }
-
-    return consumerLag;
   }
 
   private static Integer calculateTopicNum(Map<TopicPartition, Long> offsets, Collection<InternalMember> members) {

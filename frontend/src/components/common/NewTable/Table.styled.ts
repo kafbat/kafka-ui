@@ -129,6 +129,7 @@ export const Th = styled.th<ThProps>(
   width: ${expander ? '5px' : 'auto'};
   white-space: nowrap;
   position: relative;
+  user-select: none;
 
   & > ${TableHeaderContent} {
     cursor: default;
@@ -144,26 +145,28 @@ export const Th = styled.th<ThProps>(
 `
 );
 
-export const TableHeaderFilter = styled.div`
-  padding: 4px;
-  position: absolute;
-  right: 0px;
-  z-index: 10000;
-`;
-
 interface RowProps {
   clickable?: boolean;
   expanded?: boolean;
 }
 
 export const Row = styled.tr<RowProps>(
-  ({ theme: { table }, expanded, clickable }) => `
-  cursor: ${clickable ? 'pointer' : 'default'};
-  background-color: ${table.tr.backgroundColor[expanded ? 'hover' : 'normal']};
-  &:hover {
-    background-color: ${table.tr.backgroundColor.hover};
-  }
-`
+  ({ theme: { table }, expanded, clickable }) => css`
+    cursor: ${clickable ? 'pointer' : 'default'};
+    background-color: ${table.tr.backgroundColor[
+      expanded ? 'hover' : 'normal'
+    ]};
+    & .show-on-hover {
+      visibility: hidden;
+    }
+    &:hover {
+      background-color: ${table.tr.backgroundColor.hover};
+
+      & .show-on-hover {
+        visibility: visible;
+      }
+    }
+  `
 );
 
 export const ExpandedRowInfo = styled.div`

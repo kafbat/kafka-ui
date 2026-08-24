@@ -27,12 +27,20 @@ function SelectPanel<T, K = string>(props: Props<T, K>) {
     return [];
   });
 
-  const allValues = column.getFacetedUniqueValues();
+  const predefinedValues = column.columnDef.meta?.filterValues;
+  const columnFacetedValues = column.getFacetedUniqueValues();
+
   const sortedOptions = useMemo(() => {
-    const allColumnValues = [...new Set([...allValues.keys()].flat())];
-    const allOptions = allColumnValues.map(toOption);
+    let values = [];
+    if (predefinedValues) {
+      values = predefinedValues;
+    } else {
+      values = [...new Set([...columnFacetedValues.keys()].flat())];
+    }
+    const allOptions = values.map(toOption);
+
     return sortOptionSelectedFirst(selectedOptions, allOptions);
-  }, [allValues]);
+  }, [predefinedValues, columnFacetedValues]);
 
   const onSelect = useCallback((options: Option[]) => {
     column.setFilterValue(options.map(getOptionValue));

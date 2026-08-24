@@ -24,6 +24,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PER_PAGE } from 'lib/constants';
 import { useGetSchemas } from 'lib/hooks/api/schemas';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import useFts from 'components/common/Fts/useFts';
+import Fts from 'components/common/Fts/Fts';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
@@ -32,11 +35,8 @@ const List: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const {
-    isInitialLoading,
-    isError,
-    data = { pageCount: 1, schemas: [] as SchemaSubject[] },
-  } = useGetSchemas({
+  const { isFtsEnabled } = useFts('schemas');
+  const schemas = useGetSchemas({
     clusterName,
     page: Number(searchParams.get('page') || 1),
     perPage: Number(searchParams.get('perPage') || PER_PAGE),
@@ -45,6 +45,7 @@ const List: React.FC = () => {
     sortOrder:
       (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
       undefined,
+    fts: isFtsEnabled,
   });
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
@@ -111,15 +112,31 @@ const List: React.FC = () => {
         )}
       </ResourcePageHeading>
       <ControlPanelWrapper hasInput>
-        <Search placeholder="Search by Schema Name" />
+        <Search
+          key={clusterName}
+          placeholder="Search by Schema Name"
+          extraActions={<Fts resourceName="schemas" />}
+        />
       </ControlPanelWrapper>
-      {isInitialLoading || isError ? (
-        <PageLoader />
-      ) : (
+
+      {(schemas.isLoading || schemas.isRefetching) && (
+        <PageLoader offsetY={300} />
+      )}
+
+      {schemas.error && (
+        <ErrorPage
+          offsetY={300}
+          status={schemas.error.status}
+          onClick={schemas.refetch}
+          text={schemas.error.message}
+        />
+      )}
+
+      {schemas.isSuccess && (
         <Table
           columns={columns}
-          data={data.schemas || []}
-          pageCount={data.pageCount || 1}
+          data={schemas.data?.schemas || []}
+          pageCount={schemas.data?.pageCount || 1}
           emptyMessage="No schemas found"
           onRowClick={(row) =>
             navigate(clusterSchemaPath(clusterName, row.original.subject))

@@ -5,6 +5,9 @@ export interface ContextProps {
   hasKafkaConnectConfigured: boolean;
   hasSchemaRegistryConfigured: boolean;
   isTopicDeletionAllowed: boolean;
+  ftsEnabled: boolean;
+  ftsDefaultEnabled: boolean;
+  messageRelativeTimestamp?: boolean;
 }
 
 export const initialValue: ContextProps = {
@@ -12,6 +15,9 @@ export const initialValue: ContextProps = {
   hasKafkaConnectConfigured: false,
   hasSchemaRegistryConfigured: false,
   isTopicDeletionAllowed: true,
+  ftsEnabled: false,
+  ftsDefaultEnabled: false,
+  messageRelativeTimestamp: false,
 };
 const ClusterContext = React.createContext(initialValue);
 

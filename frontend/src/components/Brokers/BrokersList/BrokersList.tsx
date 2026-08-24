@@ -2,20 +2,35 @@ import React, { useMemo } from 'react';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { useNavigate } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
-import Table from 'components/common/NewTable';
+import Table, {
+  exportTableCSV,
+  TableProvider,
+} from 'components/common/NewTable';
 import { clusterBrokerPath } from 'lib/paths';
 import { useBrokers } from 'lib/hooks/api/brokers';
-import { useClusterStats } from 'lib/hooks/api/clusters';
+import { useClusters, useClusterStats } from 'lib/hooks/api/clusters';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import { Button } from 'components/common/Button/Button';
+import ExportIcon from 'components/common/Icons/ExportIcon';
+import PageLoader from 'components/common/PageLoader/PageLoader';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
-import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
 import { getBrokersTableColumns, getBrokersTableRows } from './lib';
+import { BrokersMetrics } from './BrokersMetrics/BrokersMetrics';
 
 const BrokersList: React.FC = () => {
   const navigate = useNavigate();
   const { clusterName } = useAppParams<{ clusterName: ClusterName }>();
+  const { data: clusterData } = useClusters();
+  const cluster = clusterData?.find(({ name }) => name === clusterName);
   const { data: clusterStats = {} } = useClusterStats(clusterName);
-  const { data: brokers } = useBrokers(clusterName);
+  const {
+    data: brokers,
+    error,
+    refetch,
+    isLoading,
+    isSuccess,
+  } = useBrokers(clusterName);
 
   const {
     brokerCount,
@@ -44,30 +59,62 @@ const BrokersList: React.FC = () => {
   const columns = useMemo(() => getBrokersTableColumns(), []);
 
   return (
-    <>
-      <ResourcePageHeading text="Brokers" />
+    <TableProvider>
+      {({ table }) => {
+        const handleExportClick = () => {
+          exportTableCSV(table, { prefix: 'brokers' });
+        };
 
-      <BrokersMetrics
-        brokerCount={brokerCount}
-        inSyncReplicasCount={inSyncReplicasCount}
-        outOfSyncReplicasCount={outOfSyncReplicasCount}
-        version={version}
-        activeControllers={activeControllers}
-        offlinePartitionCount={offlinePartitionCount}
-        onlinePartitionCount={onlinePartitionCount}
-        underReplicatedPartitionCount={underReplicatedPartitionCount}
-      />
+        return (
+          <>
+            <ResourcePageHeading text="Brokers">
+              <Button
+                buttonType="secondary"
+                buttonSize="M"
+                onClick={handleExportClick}
+              >
+                <ExportIcon /> Export CSV
+              </Button>
+            </ResourcePageHeading>
 
-      <Table
-        columns={columns}
-        data={rows}
-        enableSorting
-        onRowClick={({ original: { brokerId } }) =>
-          navigate(clusterBrokerPath(clusterName, brokerId))
-        }
-        emptyMessage="No clusters are online"
-      />
-    </>
+            <BrokersMetrics
+              brokerCount={brokerCount}
+              inSyncReplicasCount={inSyncReplicasCount}
+              outOfSyncReplicasCount={outOfSyncReplicasCount}
+              version={version}
+              activeControllers={activeControllers}
+              offlinePartitionCount={offlinePartitionCount}
+              onlinePartitionCount={onlinePartitionCount}
+              underReplicatedPartitionCount={underReplicatedPartitionCount}
+              controller={cluster?.controller}
+            />
+
+            {isLoading && <PageLoader offsetY={300} />}
+
+            {error && (
+              <ErrorPage
+                offsetY={300}
+                status={error.status}
+                onClick={refetch}
+                text={error.message}
+              />
+            )}
+
+            {isSuccess && (
+              <Table
+                columns={columns}
+                data={rows}
+                enableSorting
+                onRowClick={({ original: { brokerId } }) =>
+                  navigate(clusterBrokerPath(clusterName, brokerId))
+                }
+                emptyMessage="No clusters are online"
+              />
+            )}
+          </>
+        );
+      }}
+    </TableProvider>
   );
 };
 

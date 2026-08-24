@@ -35,6 +35,8 @@ export const Sidebar = styled.div<{ $visible: boolean }>(
     left: 0;
     bottom: 0;
     padding: 16px;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
     overflow-y: auto;
     transition:
       width 0.25s,

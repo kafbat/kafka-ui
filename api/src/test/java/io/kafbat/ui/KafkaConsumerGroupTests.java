@@ -3,6 +3,7 @@ package io.kafbat.ui;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.model.ConsumerGroupDTO;
+import io.kafbat.ui.model.ConsumerGroupStateDTO;
 import io.kafbat.ui.model.ConsumerGroupsPageResponseDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
 import java.io.Closeable;
@@ -246,5 +247,88 @@ class KafkaConsumerGroupTests extends AbstractIntegrationTest {
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     return new KafkaConsumer<>(props);
+  }
+
+  @Test
+  void shouldFilterConsumerGroupsByState() throws Exception {
+    String prefix = "cgStateFilterTest" + RandomStringUtils.secure().nextAlphabetic(5);
+
+    // Create active consumer groups (STABLE state)
+    try (var closeable = startConsumerGroups(2, prefix + "Active")) {
+      // Create inactive consumer groups (EMPTY state) by creating and closing consumers
+      String topicName = createTopicWithRandomName();
+      String emptyGroup1 = prefix + "Empty1";
+      String emptyGroup2 = prefix + "Empty2";
+
+      // Create consumers, poll, then close to create EMPTY groups
+      try (val consumer1 = createTestConsumerWithGroupId(emptyGroup1)) {
+        consumer1.subscribe(List.of(topicName));
+        consumer1.poll(Duration.ofMillis(100));
+      }
+      try (val consumer2 = createTestConsumerWithGroupId(emptyGroup2)) {
+        consumer2.subscribe(List.of(topicName));
+        consumer2.poll(Duration.ofMillis(100));
+      }
+
+      // Test filtering by STABLE state
+      webTestClient
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?search={prefix}&state=STABLE",
+              LOCAL, prefix)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> {
+            assertThat(page.getConsumerGroups()).isNotEmpty();
+            assertThat(page.getConsumerGroups())
+                .allMatch(cg -> cg.getState() == ConsumerGroupStateDTO.STABLE);
+          });
+
+      // Test filtering by EMPTY state
+      webTestClient
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?search={prefix}&state=EMPTY",
+              LOCAL, prefix)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> {
+            assertThat(page.getConsumerGroups()).isNotEmpty();
+            assertThat(page.getConsumerGroups())
+                .allMatch(cg -> cg.getState() == ConsumerGroupStateDTO.EMPTY);
+          });
+
+      // Test filtering by multiple states (STABLE and EMPTY)
+      webTestClient
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?search={prefix}&state=STABLE&state=EMPTY",
+              LOCAL, prefix)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> {
+            assertThat(page.getConsumerGroups()).hasSizeGreaterThanOrEqualTo(4);
+            assertThat(page.getConsumerGroups())
+                .allMatch(cg -> cg.getState() == ConsumerGroupStateDTO.STABLE
+                    || cg.getState() == ConsumerGroupStateDTO.EMPTY);
+          });
+
+      // Test with no matching state filter
+      webTestClient
+          .get()
+          .uri("/api/clusters/{clusterName}/consumer-groups/paged?search={prefix}&state=DEAD",
+              LOCAL, prefix)
+          .exchange()
+          .expectStatus()
+          .isOk()
+          .expectBody(ConsumerGroupsPageResponseDTO.class)
+          .value(page -> assertThat(page.getConsumerGroups()).isEmpty());
+
+      // Cleanup
+      deleteTopic(topicName);
+    }
   }
 }

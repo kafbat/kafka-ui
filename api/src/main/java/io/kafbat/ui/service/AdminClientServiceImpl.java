@@ -3,7 +3,6 @@ package io.kafbat.ui.service;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
-import java.io.Closeable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +18,7 @@ import reactor.core.scheduler.Schedulers;
 
 @Service
 @Slf4j
-public class AdminClientServiceImpl implements AdminClientService, Closeable {
+public class AdminClientServiceImpl implements AdminClientService {
 
   private static final int DEFAULT_CLIENT_TIMEOUT_MS = 30_000;
 
@@ -60,6 +59,21 @@ public class AdminClientServiceImpl implements AdminClientService, Closeable {
         )
         .onErrorMap(th -> new IllegalStateException(
             "Error while creating AdminClient for the cluster " + cluster.getName(), th));
+  }
+
+  @Override
+  public void invalidate(KafkaCluster cluster, Throwable e) {
+    if (e.getClass().getCanonicalName().startsWith("org.apache.kafka.common.errors")) {
+      log.warn("AdminClient for the cluster {} is invalidated due to {}", cluster.getName(), e.getMessage());
+      ReactiveAdminClient client = adminClientCache.remove(cluster.getName());
+      if (client != null) {
+        try {
+          client.close();
+        } catch (Exception ce) {
+          log.info("Error while closing AdminClient for the cluster {}", cluster.getName(), ce);
+        }
+      }
+    }
   }
 
   @Override

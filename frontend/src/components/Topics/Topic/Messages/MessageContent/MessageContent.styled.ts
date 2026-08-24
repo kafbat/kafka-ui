@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import * as SEditorViewer from 'components/common/EditorViewer/EditorViewer.styled';
+import { Link } from 'react-router-dom';
 
 export const Wrapper = styled.tr`
   background-color: ${({ theme }) => theme.topicMetaData.backgroundColor};
@@ -102,4 +103,14 @@ export const Tab = styled.button<{ $active?: boolean }>(
     }
   `
 );
+
+export const SchemaLink = styled(Link)`
+  cursor: pointer;
+  color: ${({ theme }) => theme.link.color};
+
+  &:hover {
+    color: ${({ theme }) => theme.link.hoverColor};
+  }
+`;
+
 export const Tabs = styled.nav``;

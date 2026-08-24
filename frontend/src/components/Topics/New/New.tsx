@@ -42,7 +42,7 @@ const New: React.FC = () => {
     try {
       await createTopic.createResource(data);
       navigate(`../${data.name}`);
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };
@@ -61,7 +61,7 @@ const New: React.FC = () => {
           partitionCount={Number(partitionCount)}
           replicationFactor={Number(replicationFactor)}
           inSyncReplicas={Number(inSyncReplicas)}
-          isSubmitting={createTopic.isLoading}
+          isSubmitting={createTopic.isPending}
           onSubmit={methods.handleSubmit(onSubmit)}
         />
       </FormProvider>

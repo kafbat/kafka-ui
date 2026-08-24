@@ -3,7 +3,9 @@ package io.kafbat.ui.service.index;
 import static org.apache.lucene.search.BoostAttribute.DEFAULT_BOOST;
 
 import io.kafbat.ui.service.index.TopicsIndex.FieldType;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.IntPoint;
@@ -14,9 +16,10 @@ import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TermRangeQuery;
 
 public class PrefixQueryParser extends QueryParser {
+
+  private final List<String> prefixes = new ArrayList<>();
 
   public PrefixQueryParser(String field, Analyzer analyzer) {
     super(field, analyzer);
@@ -60,7 +63,13 @@ public class PrefixQueryParser extends QueryParser {
         .orElse(FieldType.STRING);
 
     Query query =  switch (fieldType) {
-      case STRING -> new PrefixQuery(term);
+      case STRING -> {
+        if (Objects.equals(term.field(), field)) {
+          prefixes.add(term.text());
+        }
+
+        yield new PrefixQuery(term);
+      }
       case INT -> IntPoint.newExactQuery(term.field(), Integer.parseInt(term.text()));
       case LONG -> LongPoint.newExactQuery(term.field(), Long.parseLong(term.text()));
       case BOOLEAN -> new TermQuery(term);
@@ -72,4 +81,7 @@ public class PrefixQueryParser extends QueryParser {
     return new BoostQuery(query, boost);
   }
 
+  public List<String> getPrefixes() {
+    return prefixes;
+  }
 }
