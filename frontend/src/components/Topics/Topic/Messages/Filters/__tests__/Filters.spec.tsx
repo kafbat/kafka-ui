@@ -14,10 +14,15 @@ import { PollingMode } from 'generated-sources';
 import { ModeOptions } from 'lib/hooks/filterUtils';
 import { MessagesFilterKeysTypes } from 'lib/types';
 import { MessagesFilterKeys } from 'lib/constants';
+import { useSearchParams } from 'react-router-dom';
 
 const closeIconMock = 'closeIconMock';
 const filtersSideBarMock = 'filtersSideBarMock';
 const filterMetricsMock = 'filterMetricsMock';
+
+jest.mock('use-debounce', () => ({
+  useDebouncedCallback: (fn: (value: string) => void) => fn,
+}));
 
 jest.mock('lib/hooks/api/topics', () => ({
   useTopicDetails: jest.fn(),
@@ -44,6 +49,11 @@ jest.mock(
 const clusterName = 'cluster-name';
 const topicName = 'topic-name';
 
+const SearchParamsValue = () => {
+  const [searchParams] = useSearchParams();
+  return <div data-testid="search-params">{searchParams.toString()}</div>;
+};
+
 const renderComponent = (
   props?: Partial<FiltersProps>,
   queryParams?: Partial<Record<MessagesFilterKeysTypes, string>>
@@ -52,7 +62,10 @@ const renderComponent = (
 
   return render(
     <WithRoute path={clusterTopicPath()}>
-      <Filters isFetching={false} abortFetchData={jest.fn()} {...props} />
+      <>
+        <Filters isFetching={false} abortFetchData={jest.fn()} {...props} />
+        <SearchParamsValue />
+      </>
     </WithRoute>,
     {
       initialEntries: [
@@ -125,6 +138,36 @@ describe('Filters component', () => {
 
     it('timestamp input since time', async () => {
       await selectDropdownAndCheckInput('To time', 'Select timestamp');
+    });
+  });
+
+  describe('search refresh behavior', () => {
+    it('clears the field without applying the cleared search until refresh', async () => {
+      renderComponent(
+        {},
+        { [MessagesFilterKeys.stringFilter]: 'searchFilter' }
+      );
+
+      const searchInput = screen.getByPlaceholderText('Search');
+      expect(searchInput).toHaveValue('searchFilter');
+
+      await userEvent.click(screen.getByTestId('search-clear-button'));
+      expect(searchInput).toHaveValue('');
+      expect(screen.getByTestId('search-params')).toHaveTextContent(
+        `${MessagesFilterKeys.stringFilter}=searchFilter`
+      );
+      expect(screen.getByTestId('search-params')).not.toHaveTextContent(
+        `${MessagesFilterKeys.r}=r`
+      );
+
+      await userEvent.click(screen.getByText('Refresh'));
+
+      expect(screen.getByTestId('search-params')).not.toHaveTextContent(
+        MessagesFilterKeys.stringFilter
+      );
+      expect(screen.getByTestId('search-params')).toHaveTextContent(
+        `${MessagesFilterKeys.r}=r`
+      );
     });
   });
 
