@@ -6,7 +6,6 @@ import {
   TopicMessage,
 } from 'generated-sources';
 import React, { ChangeEvent, useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
@@ -24,6 +23,7 @@ import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
 import useDataSaver from 'lib/hooks/useDataSaver';
 import ExportIcon from 'components/common/Icons/ExportIcon';
+import { Dropdown, DropdownItem } from 'components/common/Dropdown';
 
 import * as S from './Filters.styled';
 import {
@@ -45,13 +45,37 @@ interface MessageData {
   Timestamp: Date;
 }
 
-type DownloadFormat = 'json' | 'csv';
+const CSV_COLUMNS = [
+  'Value',
+  'Offset',
+  'Key',
+  'Partition',
+  'Headers',
+  'Timestamp',
+] as const;
 
-function padCurrentDateTimeString(): string {
-  const now: Date = new Date();
-  const dateTimeString: string = format(now, 'yyyy-MM-dd HH:mm:ss');
-  return `_${dateTimeString}`;
-}
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+const toCsvCell = (value: unknown) => {
+  const text = String(value ?? '');
+  const inert = FORMULA_TRIGGER.test(text) ? `'${text}` : text;
+  return `"${inert.replace(/"/g, '""')}"`;
+};
+
+const convertToCSV = (messagesData: MessageData[]) =>
+  [
+    CSV_COLUMNS.join(','),
+    ...messagesData.map((msg) =>
+      CSV_COLUMNS.map((column) =>
+        toCsvCell(
+          column === 'Headers' ? JSON.stringify(msg[column] || {}) : msg[column]
+        )
+      ).join(',')
+    ),
+  ].join('\n');
+
+const fileNameTimestamp = () =>
+  new Date().toISOString().slice(0, 19).replace(/:/g, '-');
 
 export interface FiltersProps {
   phaseMessage?: string;
@@ -92,74 +116,26 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
-  const [showFormatSelector, setShowFormatSelector] = useState(false);
-
-  const formatOptions = [
-    { label: 'Export JSON', value: 'json' as DownloadFormat },
-    { label: 'Export CSV', value: 'csv' as DownloadFormat },
-  ];
-
-  const baseFileName = `topic-messages${padCurrentDateTimeString()}`;
-
-  const savedMessagesJson: MessageData[] = messages.map(
-    (message: TopicMessage) => ({
+  const { json: exportedJson, csv: exportedCsv } = useMemo(() => {
+    const exported: MessageData[] = messages.map((message: TopicMessage) => ({
       Value: message.value,
       Offset: message.offset,
       Key: message.key,
       Partition: message.partition,
       Headers: message.headers,
       Timestamp: message.timestamp,
-    })
-  );
+    }));
 
-  const convertToCSV = useMemo(() => {
-    return (messagesData: MessageData[]) => {
-      const headers = [
-        'Value',
-        'Offset',
-        'Key',
-        'Partition',
-        'Headers',
-        'Timestamp',
-      ] as const;
-      const rows = messagesData.map((msg) =>
-        headers
-          .map((header) => {
-            const value = msg[header];
-            if (header === 'Headers') {
-              return JSON.stringify(value || {});
-            }
-            return String(value ?? '');
-          })
-          .join(',')
-      );
-      return [headers.join(','), ...rows].join('\n');
+    return {
+      json: JSON.stringify(exported, null, '\t'),
+      csv: convertToCSV(exported),
     };
-  }, []);
+  }, [messages]);
 
-  const jsonSaver = useDataSaver(
-    `${baseFileName}.json`,
-    JSON.stringify(savedMessagesJson, null, '\t')
-  );
-  const csvSaver = useDataSaver(
-    `${baseFileName}.csv`,
-    convertToCSV(savedMessagesJson)
-  );
+  const baseFileName = `topic-messages_${fileNameTimestamp()}`;
 
-  const handleFormatSelect = (downloadFormat: DownloadFormat) => {
-    setShowFormatSelector(false);
-
-    // Automatically download after format selection
-    if (downloadFormat === 'json') {
-      jsonSaver.saveFile();
-    } else {
-      csvSaver.saveFile();
-    }
-  };
-
-  const handleDownloadClick = () => {
-    setShowFormatSelector(!showFormatSelector);
-  };
+  const jsonSaver = useDataSaver(`${baseFileName}.json`, exportedJson);
+  const csvSaver = useDataSaver(`${baseFileName}.csv`, exportedCsv);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -280,73 +256,21 @@ const Filters: React.FC<FiltersProps> = ({
 
         <FlexBox gap="8px" alignItems="center">
           <Search placeholder="Search" value={search} onChange={setSearch} />
-          <div style={{ position: 'relative' }}>
-            <Button
-              disabled={isFetching || messages.length === 0}
-              buttonType="secondary"
-              buttonSize="M"
-              onClick={handleDownloadClick}
-              style={{
-                minWidth: '40px',
-                padding: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <ExportIcon />
-              Export
-            </Button>
-            {showFormatSelector && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  zIndex: 1000,
-                  backgroundColor: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  padding: '8px',
-                  minWidth: '120px',
-                }}
-              >
-                {formatOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleFormatSelect(option.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleFormatSelect(option.value);
-                      }
-                    }}
-                    style={{
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      border: 'none',
-                      background: 'transparent',
-                      width: '100%',
-                      textAlign: 'left',
-                    }}
-                    onMouseEnter={(e) => {
-                      const target = e.currentTarget;
-                      target.style.backgroundColor = '#f5f5f5';
-                    }}
-                    onMouseLeave={(e) => {
-                      const target = e.currentTarget;
-                      target.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <Dropdown
+            disabled={isFetching || messages.length === 0}
+            aria-label="Export messages"
+            openBtnEl={
+              <Button buttonType="secondary" buttonSize="M">
+                <ExportIcon />
+                Export
+              </Button>
+            }
+          >
+            <DropdownItem onClick={jsonSaver.saveFile}>
+              Export JSON
+            </DropdownItem>
+            <DropdownItem onClick={csvSaver.saveFile}>Export CSV</DropdownItem>
+          </Dropdown>
         </FlexBox>
       </FlexBox>
       <FlexBox
