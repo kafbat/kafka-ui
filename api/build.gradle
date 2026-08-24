@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.spring.dependency.management)
 }
 
+// CVEs fixed in Netty 4.1.137.Final but not in the 4.1.135.Final managed by Spring Boot 3.5.16.
+// Scoped to dependencies whose affected artifact is actually on our runtime classpath
+def nettyDepsAffectedByCves = [
+        "netty-codec-http", "netty-codec-http2", "netty-codec"
+]
+
 configurations.all {
     resolutionStrategy {
         eachDependency { DependencyResolveDetails details ->
@@ -17,7 +23,8 @@ configurations.all {
             // so we can safely exclude it from the resolution strategy
             if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
                 details.useVersion(libs.versions.netty.get())
-                details.because("Fixes CVE-2026-42578 through CVE-2026-44248. Revert when Spring Boot releases a version with the fix")
+                details.because("Fixes ${nettyDepsAffectedByCves.join(', ')}. " +
+                        "Revert when Spring Boot manages Netty >= ${libs.versions.netty.get()}")
             }
         }
         capabilitiesResolution {
