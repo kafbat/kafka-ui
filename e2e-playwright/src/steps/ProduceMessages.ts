@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Given, When, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { expectVisibility, expectVisuallyActive, refreshPageAfterDelay } from "../services/uiHelper";
+import { expectVisibility, expectVisuallyActive } from "../services/uiHelper";
 import { PlaywrightWorld } from "../support/PlaywrightWorld";
 import { getBlankJson } from "../services/templateJsons"
 import { jsonFilter } from "../services/filters"

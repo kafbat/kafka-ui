@@ -10,6 +10,7 @@ on:
       - "gradle/libs.versions.toml"
 
       - "contract/**"
+      - "contract-typespec/**"
       - "api/**"
       - "serde-api/**"
 
@@ -27,3 +28,5 @@ jobs:
     uses: ./.github/workflows/backend_tests.yml
     with:
       event_name: ${{ github.event_name }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

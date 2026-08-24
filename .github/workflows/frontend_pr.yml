@@ -24,6 +24,7 @@ jobs:
           filters: |
             frontend:
               - "contract/**"
+              - "contract-typespec/**"
               - "frontend/**"
               - ".github/workflows/frontend*"
 
@@ -31,3 +32,5 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     uses: ./.github/workflows/frontend_tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

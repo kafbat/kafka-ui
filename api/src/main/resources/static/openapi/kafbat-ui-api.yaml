@@ -4218,6 +4218,7 @@ components:
       enum:
         - ZOOKEEPER
         - KRAFT
+        - UNKNOWN
     CreateConsumerAcl:
       type: object
       properties:
@@ -4298,6 +4299,12 @@ components:
         valueSerde:
           type: string
           nullable: true
+        keySerdeProperties:
+          type: object
+          additionalProperties: {}
+        valueSerdeProperties:
+          type: object
+          additionalProperties: {}
     ErrorResponse:
       type: object
       required:
@@ -4925,6 +4932,23 @@ components:
         additionalProperties:
           type: object
           additionalProperties: {}
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SerdeParameter'
+    SerdeParameter:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        visibleName:
+          type: string
+        allowedValues:
+          type: array
+          items:
+            type: string
     SerdeUsage:
       type: string
       enum:

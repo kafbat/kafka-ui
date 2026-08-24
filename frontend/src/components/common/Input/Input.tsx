@@ -7,7 +7,8 @@ import * as S from './Input.styled';
 import { InputLabel } from './InputLabel.styled';
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends
+    React.InputHTMLAttributes<HTMLInputElement>,
     Omit<S.InputProps, 'search'> {
   name?: string;
   hookFormOptions?: RegisterOptions;
