@@ -229,6 +229,7 @@ const Filters: React.FC<FiltersProps> = ({
                   inputSize="M"
                   value={offset}
                   placeholder="Offset"
+                  aria-label="Filter offset"
                   onChange={({
                     target: { value },
                   }: ChangeEvent<HTMLInputElement>) => {

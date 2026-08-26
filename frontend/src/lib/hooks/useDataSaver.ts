@@ -2,7 +2,10 @@ import { showAlert, showSuccessAlert } from 'lib/errorHandling';
 
 const useDataSaver = (
   subject: string,
-  data: Record<string, string> | string | (() => Record<string, string> | string)
+  data:
+    | Record<string, string>
+    | string
+    | (() => Record<string, string> | string)
 ) => {
   const getData = () => (typeof data === 'function' ? data() : data);
 

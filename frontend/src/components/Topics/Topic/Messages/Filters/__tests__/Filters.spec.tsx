@@ -96,7 +96,10 @@ describe('Filters component', () => {
       await userEvent.selectOptions(seekTypeSelect, [value]);
 
       expect(option[0]).toHaveTextContent(value);
-      const timestampInput = screen.getByPlaceholderText(placeholder);
+      const timestampInput =
+        placeholder === 'Offset'
+          ? screen.getByLabelText('Filter offset')
+          : screen.getByPlaceholderText(placeholder);
       expect(timestampInput).toHaveValue('');
 
       await userEvent.type(timestampInput, inputValue);
@@ -141,7 +144,7 @@ describe('Filters component', () => {
       await userEvent.selectOptions(seekTypeSelect, ['From offset']);
 
       expect(option[0]).toHaveTextContent('From offset');
-      const timestampInput = screen.getByPlaceholderText('Offset');
+      const timestampInput = screen.getByLabelText('Filter offset');
       expect(timestampInput).toHaveValue('');
       await userEvent.type(timestampInput, inputValue);
 
