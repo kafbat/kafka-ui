@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import com.squareup.wire.schema.ProtoFile;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
@@ -322,6 +323,53 @@ class ProtobufFileSerdeTest {
     var deserializedBook = serde.deserializer("books", Serde.Target.KEY)
         .deserialize(null, addressBookMessageBytes);
     assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+  }
+
+  @Test
+  void deserializeResolvesAnyPayloadUsingTypesFromLoadedProtoFiles() throws Exception {
+    Map<Path, ProtobufSchema> files = ProtobufFileSerde.Configuration.loadSchemas(
+        Optional.empty(),
+        Optional.of(protoFilesDir())
+    );
+    Path messageWithAnyPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
+    var messageWithAnySchema = files.get(messageWithAnyPath);
+    var messageWithAnyDescriptor = messageWithAnySchema.toDescriptor("test.MessageWithAny");
+
+    var payloadBuilder = messageWithAnySchema.newMessageBuilder("test.PayloadMessage");
+    JsonFormat.parser().merge("{ \"id\": \"payload-1\" }", payloadBuilder);
+
+    var payloadField = messageWithAnyDescriptor.findFieldByName("payload");
+    var anyDescriptor = payloadField.getMessageType();
+    var anyMessage = DynamicMessage.newBuilder(anyDescriptor)
+        .setField(anyDescriptor.findFieldByName("type_url"), "type.googleapis.com/test.PayloadMessage")
+        .setField(anyDescriptor.findFieldByName("value"), payloadBuilder.build().toByteString())
+        .build();
+
+    byte[] messageWithAnyBytes = DynamicMessage.newBuilder(messageWithAnyDescriptor)
+        .setField(messageWithAnyDescriptor.findFieldByName("name"), "with any")
+        .setField(payloadField, anyMessage)
+        .build()
+        .toByteArray();
+
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            null,
+            null,
+            Map.of(messageWithAnyDescriptor, messageWithAnyPath),
+            Map.of("any-topic", messageWithAnyDescriptor),
+            Map.of()
+        )
+    );
+
+    var deserialized = serde.deserializer("any-topic", Serde.Target.VALUE)
+        .deserialize(null, messageWithAnyBytes);
+
+    assertJsonEquals(
+        "{\"name\": \"with any\", \"payload\": "
+            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage\", \"id\": \"payload-1\"}}",
+        deserialized.getResult()
+    );
   }
 
   @Test

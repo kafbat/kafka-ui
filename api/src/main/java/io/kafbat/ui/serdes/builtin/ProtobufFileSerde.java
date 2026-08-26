@@ -40,7 +40,6 @@ import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.ProtoParser;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaUtils;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
@@ -77,6 +76,8 @@ public class ProtobufFileSerde implements BuiltInSerde {
   private Map<String, Descriptor> keyMessageDescriptorMap = new HashMap<>();
 
   private Map<Descriptor, Path> descriptorPaths = new HashMap<>();
+
+  private TypeRegistry typeRegistry = TypeRegistry.getEmptyTypeRegistry();
 
   @Nullable
   private Descriptor defaultMessageDescriptor;
@@ -116,6 +117,12 @@ public class ProtobufFileSerde implements BuiltInSerde {
     this.descriptorPaths = configuration.descriptorPaths();
     this.messageDescriptorMap = configuration.messageDescriptorMap();
     this.keyMessageDescriptorMap = configuration.keyMessageDescriptorMap();
+    // TypeRegistry.Builder#add pulls in the descriptor's whole file and its transitive
+    // dependencies, so this covers every type reachable from the configured messages -
+    // which is what google.protobuf.Any fields need to be resolved, in both directions.
+    this.typeRegistry = TypeRegistry.newBuilder()
+        .add(configuration.descriptorPaths().keySet())
+        .build();
   }
 
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {
@@ -141,10 +148,6 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
-    TypeRegistry typeRegistry = TypeRegistry.newBuilder()
-        .add(descriptorPaths.keySet())
-        .build();
-
     return new Serde.Serializer() {
       @SneakyThrows
       @Override
@@ -166,8 +169,11 @@ public class ProtobufFileSerde implements BuiltInSerde {
       @Override
       public DeserializeResult deserialize(RecordHeaders headers, byte[] data) {
         var protoMsg = DynamicMessage.parseFrom(descriptor, new ByteArrayInputStream(data));
-        byte[] jsonFromProto = ProtobufSchemaUtils.toJson(protoMsg);
-        var result = new String(jsonFromProto);
+        var result = JsonFormat.printer()
+            .usingTypeRegistry(typeRegistry)
+            .includingDefaultValueFields()
+            .omittingInsignificantWhitespace()
+            .print(protoMsg);
         return new DeserializeResult(
             result,
             DeserializeResult.Type.JSON,
