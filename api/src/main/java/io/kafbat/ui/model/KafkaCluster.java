@@ -33,7 +33,7 @@ public class KafkaCluster {
   private final boolean exposeMetricsViaPrometheusEndpoint;
   private final DataMasking masking;
   @Builder.Default
-  private final ClusterMessageFilters messageFilters = ClusterMessageFilters.empty();
+  private final ClusterMessageFilters messageFilters = ClusterMessageFilters.EMPTY;
   private final PollingSettings pollingSettings;
   private final MetricsScraper metricsScrapping;
   private final ReactiveFailover<KafkaSrClientApi> schemaRegistryClient;

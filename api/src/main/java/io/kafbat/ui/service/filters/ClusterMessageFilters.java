@@ -23,14 +23,10 @@ public class ClusterMessageFilters {
   public static final ClusterMessageFilters EMPTY = new ClusterMessageFilters(List.of());
 
   private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^a-z0-9]+");
-  private static final Pattern LEADING_OR_TRAILING_DASH = Pattern.compile("^-+|-+$");
+  private static final Pattern LEADING_OR_TRAILING_DASH = Pattern.compile("(?:^-+)|(?:-+$)");
   private static final String ID_PREFIX = "cfg-";
 
   List<PredefinedFilter> filters;
-
-  public static ClusterMessageFilters empty() {
-    return EMPTY;
-  }
 
   public static ClusterMessageFilters create(
       @Nullable List<ClustersProperties.MessageFilterConfig> config) {
