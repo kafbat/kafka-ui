@@ -272,6 +272,19 @@ const maskingsSchema = lazy((value) => {
   return mixed().optional();
 });
 
+const messageFilterSchema = object({
+  displayName: requiredString,
+  filterCode: requiredString,
+  enabledByDefault: boolean(),
+});
+
+const messageFiltersSchema = lazy((value) => {
+  if (Array.isArray(value)) {
+    return array().of(messageFilterSchema);
+  }
+  return mixed().optional();
+});
+
 const formSchema = object({
   name: string()
     .required('required field')
@@ -285,6 +298,7 @@ const formSchema = object({
   serde: serdesSchema,
   kafkaConnect: kafkaConnectsSchema,
   masking: maskingsSchema,
+  messageFilters: messageFiltersSchema,
   metrics: metricsSchema,
 });
 

@@ -117,7 +117,7 @@ public class MessageFilters {
     return topicMessage -> {
       Object programResult;
       try {
-        programResult = program.eval(recordToArgs(topicMessage));
+        programResult = program.eval(evalArgs(topicMessage));
       } catch (CelEvaluationException e) {
         throw new CelException(originalScript, e);
       }
@@ -133,29 +133,32 @@ public class MessageFilters {
     };
   }
 
-  private static Map<String, Map<String, Object>> recordToArgs(TopicMessageDTO topicMessage) {
-    Map<String, Object> args = new HashMap<>();
+  private static Map<String, Object> evalArgs(TopicMessageDTO topicMessage) {
+    Map<String, Object> record = new HashMap<>();
 
-    args.put("partition", topicMessage.getPartition());
-    args.put("offset", topicMessage.getOffset());
+    record.put("partition", topicMessage.getPartition());
+    record.put("offset", topicMessage.getOffset());
 
     if (topicMessage.getTimestamp() != null) {
-      args.put("timestampMs", topicMessage.getTimestamp().toInstant().toEpochMilli());
+      record.put("timestampMs", topicMessage.getTimestamp().toInstant().toEpochMilli());
     }
 
     if (topicMessage.getKey() != null) {
-      args.put("key", parseToJsonOrReturnAsIs(topicMessage.getKey()));
-      args.put("keyAsText", topicMessage.getKey());
+      record.put("key", parseToJsonOrReturnAsIs(topicMessage.getKey()));
+      record.put("keyAsText", topicMessage.getKey());
     }
 
     if (topicMessage.getValue() != null) {
-      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
-      args.put("valueAsText", topicMessage.getValue());
+      record.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
+      record.put("valueAsText", topicMessage.getValue());
     }
 
-    args.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
+    record.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
 
-    return Map.of("record", args);
+    Map<String, Object> args = new HashMap<>();
+    args.put("record", record);
+    args.put("nowMs", System.currentTimeMillis());
+    return args;
   }
 
   private static CelCompiler createCompiler() {
@@ -186,6 +189,7 @@ public class MessageFilters {
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .addLibraries(CelExtensions.strings(), CelExtensions.encoders())
         .addVar(CEL_RECORD_VAR_NAME, recordType)
+        .addVar("nowMs", SimpleType.INT)
         .setResultType(SimpleType.BOOL)
         .setTypeProvider(new CelTypeProvider() {
           @Override

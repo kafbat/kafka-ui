@@ -135,6 +135,9 @@ export const SavedFiltersContainer = styled.div`
 `;
 
 export const SavedFilterName = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   line-height: 20px;
   color: ${({ theme }) => theme.savedFilter.filterName};
@@ -202,6 +205,10 @@ export const SavedFilter = styled.div.attrs({
   background-color: ${({ selected, theme }) =>
     selected ? theme.layout.stuffColor : 'transparent'};
 `;
+
+export const PredefinedFilter = styled(SavedFilter).attrs({
+  role: 'predefinedFilter',
+})``;
 
 export const ActiveSmartFilter = styled.div`
   display: flex;
@@ -338,6 +345,16 @@ export const FilterModeTypeSelect = styled(Select<PollingMode>)`
 export const SavedFilterText = styled.div`
   font-weight: 600;
   color: ${({ theme }) => theme.default.color.normal};
+`;
+
+export const DefaultFilterBadge = styled.span`
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: ${({ theme }) => theme.activeFilter.color};
+  background: ${({ theme }) => theme.activeFilter.backgroundColor};
 `;
 
 export const SavedFilterClearAll = styled.button`

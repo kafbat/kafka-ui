@@ -131,9 +131,15 @@ export function useMessagesFiltersFields(resourceName: string) {
     }
   };
 
+  const hasSmartFilterPreference = Object.prototype.hasOwnProperty.call(
+    messageFilters[resourceName] || {},
+    MessagesFilterKeys.activeFilterId
+  );
+
   return {
     initMessagesFiltersFields,
     removeMessagesFiltersField,
     setMessagesFiltersField,
+    hasSmartFilterPreference,
   };
 }
