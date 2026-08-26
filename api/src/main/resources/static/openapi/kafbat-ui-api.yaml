@@ -2693,7 +2693,7 @@ paths:
   /api/clusters/{clusterName}/topics/{topicName}/messages/{partition}/{offset}/download:
     get:
       operationId: downloadTopicMessage
-      summary: downloadTopicMessage
+      summary: Download a single topic message by partition and offset
       parameters:
         - name: clusterName
           in: path

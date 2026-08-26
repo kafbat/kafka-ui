@@ -89,7 +89,7 @@ interface MessagesApi {
   @get
   @route("/messages/{partition}/{offset}/download")
   @operationId("downloadTopicMessage")
-  @summary("downloadTopicMessage")
+  @summary("Download a single topic message by partition and offset")
   downloadTopicMessage(
     @path clusterName: string,
     @path topicName: string,
