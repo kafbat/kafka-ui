@@ -86,7 +86,7 @@ const SavedFilters: FC<Props> = ({
             {predefinedList.map((filter) => (
               <S.PredefinedFilter
                 key={filter.filterCode}
-                selected={smartFilter?.id === filter.id}
+                selected={smartFilter?.filterCode === filter.filterCode}
                 onClick={() => activateFilter(filter)}
               >
                 <S.SavedFilterName>
@@ -119,7 +119,7 @@ const SavedFilters: FC<Props> = ({
         {filtersList.map((filter) => (
           <S.SavedFilter
             key={Symbol(filter.id).toString()}
-            selected={smartFilter?.id === filter.id}
+            selected={smartFilter?.filterCode === filter.filterCode}
             onClick={() => activateFilter(filter)}
           >
             <S.SavedFilterName>{filter.id}</S.SavedFilterName>

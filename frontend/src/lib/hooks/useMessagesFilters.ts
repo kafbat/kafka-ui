@@ -121,14 +121,21 @@ export function useMessagesFilters(topicName: string) {
     .split(',')
     .filter((v) => v);
 
-  const smartFilterId =
+  const activeFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) || '';
+  const backendSmartFilterId =
+    searchParams.get(MessagesFilterKeys.smartFilterId) || '';
 
-  const savedSmartFilter = useMessageFiltersStore(selectFilter(smartFilterId));
-  const predefinedSmartFilter = predefinedFilters.find(
-    (filter) => filter.id === smartFilterId
+  const savedSmartFilter = useMessageFiltersStore(selectFilter(activeFilterId));
+  const predefinedByBackendId = predefinedFilters.find(
+    (filter) => filter.filterCode === backendSmartFilterId
   );
-  const smartFilter = savedSmartFilter ?? predefinedSmartFilter;
+  const predefinedByName = predefinedFilters.find(
+    (filter) => filter.id === activeFilterId
+  );
+  const smartFilter = backendSmartFilterId
+    ? (predefinedByBackendId ?? savedSmartFilter)
+    : (savedSmartFilter ?? predefinedByName);
 
   /**
    * @description
