@@ -134,29 +134,29 @@ public class MessageFilters {
   }
 
   private static Map<String, Object> evalArgs(TopicMessageDTO topicMessage) {
-    Map<String, Object> record = new HashMap<>();
+    Map<String, Object> recordBindings = new HashMap<>();
 
-    record.put("partition", topicMessage.getPartition());
-    record.put("offset", topicMessage.getOffset());
+    recordBindings.put("partition", topicMessage.getPartition());
+    recordBindings.put("offset", topicMessage.getOffset());
 
     if (topicMessage.getTimestamp() != null) {
-      record.put("timestampMs", topicMessage.getTimestamp().toInstant().toEpochMilli());
+      recordBindings.put("timestampMs", topicMessage.getTimestamp().toInstant().toEpochMilli());
     }
 
     if (topicMessage.getKey() != null) {
-      record.put("key", parseToJsonOrReturnAsIs(topicMessage.getKey()));
-      record.put("keyAsText", topicMessage.getKey());
+      recordBindings.put("key", parseToJsonOrReturnAsIs(topicMessage.getKey()));
+      recordBindings.put("keyAsText", topicMessage.getKey());
     }
 
     if (topicMessage.getValue() != null) {
-      record.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
-      record.put("valueAsText", topicMessage.getValue());
+      recordBindings.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
+      recordBindings.put("valueAsText", topicMessage.getValue());
     }
 
-    record.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
+    recordBindings.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
 
     Map<String, Object> args = new HashMap<>();
-    args.put("record", record);
+    args.put(CEL_RECORD_VAR_NAME, recordBindings);
     args.put("nowMs", System.currentTimeMillis());
     return args;
   }
