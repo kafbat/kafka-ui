@@ -89,9 +89,9 @@ public class ClustersController extends AbstractController implements ClustersAp
         .build();
 
     return validateAccess(context)
-        .thenReturn(ResponseEntity.ok(
+        .then(Mono.fromSupplier(() -> ResponseEntity.ok(
             Flux.fromIterable(clusterService.getMessageFilters(getCluster(clusterName)))
-        ))
+        )))
         .doOnEach(sig -> audit(context, sig));
   }
 }

@@ -107,6 +107,18 @@ export function useMessagesFiltersFields(resourceName: string) {
       }
     };
 
+    const urlHasFilterSelection =
+      params.has(MessagesFilterKeys.activeFilterId) ||
+      params.has(MessagesFilterKeys.smartFilterId);
+    const storedActiveFilterId =
+      topicMessagesFilters?.[MessagesFilterKeys.activeFilterId];
+    const keepStoredSmartFilterPreference =
+      !urlHasFilterSelection &&
+      Object.prototype.hasOwnProperty.call(
+        topicMessagesFilters || {},
+        MessagesFilterKeys.activeFilterId
+      );
+
     // if url params are empty and topicMessagesFilters from local storage are existing then we apply them
     if (params.size === 0 && !!topicMessagesFilters) {
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.mode);
@@ -128,6 +140,12 @@ export function useMessagesFiltersFields(resourceName: string) {
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.valueSerde);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.activeFilterId);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.smartFilterId);
+      if (keepStoredSmartFilterPreference) {
+        setMessagesFiltersField(
+          MessagesFilterKeys.activeFilterId,
+          storedActiveFilterId ?? ''
+        );
+      }
     }
   };
 
