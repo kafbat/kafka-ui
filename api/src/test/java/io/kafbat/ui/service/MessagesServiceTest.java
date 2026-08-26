@@ -119,7 +119,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
       producer.send(testTopic, "message_1").get();
     }
 
-    StepVerifier.create(messagesService.downloadTopicMessage(cluster, testTopic, 0, 1, StringSerde.NAME, StringSerde.NAME))
+    StepVerifier.create(messagesService.downloadTopicMessage(
+            cluster, testTopic, 0, 1, StringSerde.NAME, StringSerde.NAME))
         .expectNextMatches(msg -> msg.getPartition() == 0
             && msg.getOffset() == 1L
             && "message_1".equals(msg.getValue())
