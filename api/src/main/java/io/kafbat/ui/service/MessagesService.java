@@ -41,12 +41,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -187,8 +187,10 @@ public class MessagesService {
     }
 
     var topicPartition = new TopicPartition(topicDescription.name(), partition);
-    var deserializer = deserializationService.deserializerFor(cluster, topicDescription.name(), keySerde, valueSerde);
-    try (var consumer = consumerGroupService.createConsumer(cluster, Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1))) {
+    var deserializer = deserializationService.deserializerFor(
+        cluster, topicDescription.name(), keySerde, valueSerde);
+    try (var consumer = consumerGroupService.createConsumer(
+        cluster, Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1))) {
       consumer.assign(List.of(topicPartition));
       consumer.seek(topicPartition, offset);
       long endOffset = consumer.endOffsets(List.of(topicPartition)).get(topicPartition);
