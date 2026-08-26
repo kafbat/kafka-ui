@@ -13,6 +13,7 @@ import * as S from './Filters.styled';
 
 export interface Props {
   filters: Record<string, AdvancedFilter>;
+  predefinedFilters?: AdvancedFilter[];
   smartFilter?: AdvancedFilter;
   setSmartFilter: (filter: AdvancedFilter | null) => void;
   onEdit: (id: string) => void;
@@ -21,6 +22,7 @@ export interface Props {
 
 const SavedFilters: FC<Props> = ({
   filters,
+  predefinedFilters = [],
   closeSideBar,
   smartFilter,
   setSmartFilter,
@@ -32,6 +34,13 @@ const SavedFilters: FC<Props> = ({
     findWhereFilterIsActive,
   } = useActiveFilters();
   const filtersList = React.useMemo(() => Object.values(filters), [filters]);
+  const predefinedList = React.useMemo(
+    () =>
+      [...predefinedFilters].sort(
+        (a, b) => Number(b.enabledByDefault) - Number(a.enabledByDefault)
+      ),
+    [predefinedFilters]
+  );
   const clearAll = useMessageFiltersStore((state) => state.removeAll);
   const remove = useMessageFiltersStore((state) => state.remove);
   const confirm = useConfirm();
@@ -68,6 +77,29 @@ const SavedFilters: FC<Props> = ({
 
   return (
     <>
+      {predefinedList.length > 0 && (
+        <>
+          <Flexbox margin="10px 0 0 0" justifyContent="space-between">
+            <S.SavedFilterText>Predefined</S.SavedFilterText>
+          </Flexbox>
+          <S.SavedFiltersContainer>
+            {predefinedList.map((filter) => (
+              <S.PredefinedFilter
+                key={filter.filterCode}
+                selected={smartFilter?.id === filter.id}
+                onClick={() => activateFilter(filter)}
+              >
+                <S.SavedFilterName>
+                  {filter.id}
+                  {filter.enabledByDefault && (
+                    <S.DefaultFilterBadge>Default</S.DefaultFilterBadge>
+                  )}
+                </S.SavedFilterName>
+              </S.PredefinedFilter>
+            ))}
+          </S.SavedFiltersContainer>
+        </>
+      )}
       <Flexbox margin="10px 0 0 0" justifyContent="space-between">
         <S.SavedFilterText>Saved Filters</S.SavedFilterText>
         <S.SavedFilterClearAll

@@ -175,6 +175,15 @@ class MessageFiltersTest {
     }
 
     @Test
+    void canCheckNowMsForRelativeTime() {
+      var recent = OffsetDateTime.now().minusHours(1);
+      var old = OffsetDateTime.now().minusDays(2);
+      var f = celScriptFilter("has(record.timestampMs) && record.timestampMs > nowMs - 86400000");
+      assertTrue(f.test(msg().timestamp(recent)));
+      assertFalse(f.test(msg().timestamp(old)));
+    }
+
+    @Test
     void canCheckValueAsText() {
       var f = celScriptFilter("record.valueAsText == 'some text'");
       assertTrue(f.test(msg().value("some text")));

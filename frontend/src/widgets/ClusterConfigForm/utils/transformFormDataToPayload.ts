@@ -149,6 +149,15 @@ export const transformFormDataToPayload = (data: ClusterConfigFormValues) => {
     }));
   }
 
+  // Message filters
+  if (data.messageFilters && data.messageFilters.length > 0) {
+    config.messageFilters = data.messageFilters.map((formData) => ({
+      displayName: formData.displayName,
+      filterCode: formData.filterCode,
+      enabledByDefault: Boolean(formData.enabledByDefault),
+    }));
+  }
+
   config.properties = {
     ...transformCustomProps(data.customAuth),
   };

@@ -16,6 +16,7 @@ import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.model.ClusterConfigValidationDTO;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.prometheus.api.PrometheusClientApi;
+import io.kafbat.ui.service.filters.ClusterMessageFilters;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.service.masking.DataMasking;
 import io.kafbat.ui.service.metrics.scrape.MetricsScraper;
@@ -83,6 +84,7 @@ public class KafkaClusterFactory {
     builder.readOnly(clusterProperties.isReadOnly());
     builder.exposeMetricsViaPrometheusEndpoint(exposeMetricsViaPrometheusEndpoint(clusterProperties));
     builder.masking(DataMasking.create(clusterProperties.getMasking()));
+    builder.messageFilters(ClusterMessageFilters.create(clusterProperties.getMessageFilters()));
     builder.pollingSettings(PollingSettings.create(clusterProperties, properties));
     builder.metricsScrapping(MetricsScraper.create(clusterProperties, jmxMetricsRetriever));
 
