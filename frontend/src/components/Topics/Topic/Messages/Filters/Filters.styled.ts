@@ -207,8 +207,22 @@ export const SavedFilter = styled.div.attrs({
 `;
 
 export const PredefinedFilter = styled(SavedFilter).attrs({
-  role: 'predefinedFilter',
-})``;
+  as: 'button',
+  type: 'button',
+  role: 'button',
+})`
+  width: 100%;
+  border: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+
+  &:focus-visible {
+    outline: 2px solid
+      ${({ theme }) => theme.button.primary.backgroundColor.normal};
+    outline-offset: 1px;
+  }
+`;
 
 export const ActiveSmartFilter = styled.div`
   display: flex;

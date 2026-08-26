@@ -147,17 +147,20 @@ describe('SavedFilter Component', () => {
       expect(screen.getByText('Default')).toBeInTheDocument();
     });
 
+    const getPredefinedFilters = () => [
+      screen.getByRole('button', { name: /Non-heartbeat/ }),
+      screen.getByRole('button', { name: /Since yesterday/ }),
+    ];
+
     it('activates a predefined filter on click', async () => {
-      const predefinedFilters = screen.getAllByRole('predefinedFilter');
-      await userEvent.click(predefinedFilters[0]);
+      await userEvent.click(getPredefinedFilters()[0]);
 
       expect(setSmartFilterMock).toHaveBeenCalledWith(predefined[0]);
       expect(cancelMock).toHaveBeenCalled();
     });
 
     it('does not offer edit or delete for predefined filters', () => {
-      const predefinedFilters = screen.getAllByRole('predefinedFilter');
-      predefinedFilters.forEach((filter) => {
+      getPredefinedFilters().forEach((filter) => {
         expect(within(filter).queryByLabelText('edit')).not.toBeInTheDocument();
         expect(
           within(filter).queryByLabelText('delete')
