@@ -77,7 +77,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
 
   private Map<Descriptor, Path> descriptorPaths = new HashMap<>();
 
-  private TypeRegistry typeRegistry = TypeRegistry.getEmptyTypeRegistry();
+  private Map<Descriptor, TypeRegistry> typeRegistries = new HashMap<>();
 
   @Nullable
   private Descriptor defaultMessageDescriptor;
@@ -117,12 +117,17 @@ public class ProtobufFileSerde implements BuiltInSerde {
     this.descriptorPaths = configuration.descriptorPaths();
     this.messageDescriptorMap = configuration.messageDescriptorMap();
     this.keyMessageDescriptorMap = configuration.keyMessageDescriptorMap();
-    // TypeRegistry.Builder#add pulls in the descriptor's whole file and its transitive
-    // dependencies, so this covers every type reachable from the configured messages -
-    // which is what google.protobuf.Any fields need to be resolved, in both directions.
-    this.typeRegistry = TypeRegistry.newBuilder()
-        .add(configuration.descriptorPaths().keySet())
-        .build();
+    // One registry per descriptor, rather than a single registry built from all of them.
+    // TypeRegistry.Builder#add pulls in the descriptor's whole file plus its transitive
+    // imports, which is what an Any field needs - but it skips a file whose name it has
+    // already seen, and ProtobufSchema names every FileDescriptor it synthesises
+    // "default". A shared registry would therefore keep only the first descriptor's
+    // types and silently drop the rest, picked in HashMap order.
+    this.typeRegistries = configuration.descriptorPaths().keySet().stream()
+        .collect(Collectors.toMap(
+            Function.identity(),
+            descriptor -> TypeRegistry.newBuilder().add(descriptor).build()
+        ));
   }
 
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {
@@ -133,6 +138,10 @@ public class ProtobufFileSerde implements BuiltInSerde {
         :
         Optional.ofNullable(messageDescriptorMap.get(topic))
             .or(() -> Optional.ofNullable(defaultMessageDescriptor));
+  }
+
+  private TypeRegistry typeRegistryFor(Descriptor descriptor) {
+    return typeRegistries.getOrDefault(descriptor, TypeRegistry.getEmptyTypeRegistry());
   }
 
   @Override
@@ -148,6 +157,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    var typeRegistry = typeRegistryFor(descriptor);
     return new Serde.Serializer() {
       @SneakyThrows
       @Override
@@ -164,6 +174,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    var typeRegistry = typeRegistryFor(descriptor);
     return new Serde.Deserializer() {
       @SneakyThrows
       @Override

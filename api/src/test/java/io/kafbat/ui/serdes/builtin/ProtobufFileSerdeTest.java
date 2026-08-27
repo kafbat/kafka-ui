@@ -81,7 +81,7 @@ class ProtobufFileSerdeTest {
   void loadsAllProtoFiledFromTargetDirectory() throws Exception {
     var protoDir = ResourceUtils.getFile("classpath:protobuf-serde/").getPath();
     List<ProtoFile> files = new ProtobufFileSerde.ProtoSchemaLoader(protoDir).load();
-    assertThat(files).hasSize(5);
+    assertThat(files).hasSize(6);
     assertThat(files)
         .map(f -> f.getLocation().getPath())
         .containsExactlyInAnyOrder(
@@ -89,7 +89,8 @@ class ProtobufFileSerdeTest {
             "sensor.proto",
             "address-book.proto",
             "lang-description.proto",
-            "messagewithany.proto"
+            "messagewithany.proto",
+            "messagewithany2.proto"
         );
   }
 
@@ -331,45 +332,65 @@ class ProtobufFileSerdeTest {
         Optional.empty(),
         Optional.of(protoFilesDir())
     );
-    Path messageWithAnyPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
-    var messageWithAnySchema = files.get(messageWithAnyPath);
-    var messageWithAnyDescriptor = messageWithAnySchema.toDescriptor("test.MessageWithAny");
 
-    var payloadBuilder = messageWithAnySchema.newMessageBuilder("test.PayloadMessage");
-    JsonFormat.parser().merge("{ \"id\": \"payload-1\" }", payloadBuilder);
+    // Two Any-carrying messages defined in separate proto files, mapped to separate topics.
+    // ProtobufSchema names every FileDescriptor it synthesises "default", so a TypeRegistry
+    // shared between the two descriptors keeps only the first file's types - which would
+    // leave one of these two topics unable to resolve its payload.
+    Path firstPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
+    Path secondPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany2.proto").toPath();
+    var firstDescriptor = files.get(firstPath).toDescriptor("test.MessageWithAny");
+    var secondDescriptor = files.get(secondPath).toDescriptor("test2.MessageWithAny2");
 
-    var payloadField = messageWithAnyDescriptor.findFieldByName("payload");
-    var anyDescriptor = payloadField.getMessageType();
-    var anyMessage = DynamicMessage.newBuilder(anyDescriptor)
-        .setField(anyDescriptor.findFieldByName("type_url"), "type.googleapis.com/test.PayloadMessage")
-        .setField(anyDescriptor.findFieldByName("value"), payloadBuilder.build().toByteString())
-        .build();
-
-    byte[] messageWithAnyBytes = DynamicMessage.newBuilder(messageWithAnyDescriptor)
-        .setField(messageWithAnyDescriptor.findFieldByName("name"), "with any")
-        .setField(payloadField, anyMessage)
-        .build()
-        .toByteArray();
+    byte[] firstBytes = messageWithAny(
+        files.get(firstPath), firstDescriptor, "test.PayloadMessage", "payload-1");
+    byte[] secondBytes = messageWithAny(
+        files.get(secondPath), secondDescriptor, "test2.PayloadMessage2", "payload-2");
 
     var serde = new ProtobufFileSerde();
     serde.configure(
         new Configuration(
             null,
             null,
-            Map.of(messageWithAnyDescriptor, messageWithAnyPath),
-            Map.of("any-topic", messageWithAnyDescriptor),
+            Map.of(firstDescriptor, firstPath, secondDescriptor, secondPath),
+            Map.of("any-topic", firstDescriptor, "any-topic-2", secondDescriptor),
             Map.of()
         )
     );
 
-    var deserialized = serde.deserializer("any-topic", Serde.Target.VALUE)
-        .deserialize(null, messageWithAnyBytes);
-
     assertJsonEquals(
         "{\"name\": \"with any\", \"payload\": "
             + "{\"@type\": \"type.googleapis.com/test.PayloadMessage\", \"id\": \"payload-1\"}}",
-        deserialized.getResult()
+        serde.deserializer("any-topic", Serde.Target.VALUE).deserialize(null, firstBytes).getResult()
     );
+
+    assertJsonEquals(
+        "{\"name\": \"with any\", \"payload\": "
+            + "{\"@type\": \"type.googleapis.com/test2.PayloadMessage2\", \"id\": \"payload-2\"}}",
+        serde.deserializer("any-topic-2", Serde.Target.VALUE).deserialize(null, secondBytes).getResult()
+    );
+  }
+
+  @SneakyThrows
+  private byte[] messageWithAny(ProtobufSchema schema,
+                                Descriptors.Descriptor descriptor,
+                                String payloadTypeName,
+                                String payloadId) {
+    var payloadBuilder = schema.newMessageBuilder(payloadTypeName);
+    JsonFormat.parser().merge("{ \"id\": \"" + payloadId + "\" }", payloadBuilder);
+
+    var payloadField = descriptor.findFieldByName("payload");
+    var anyDescriptor = payloadField.getMessageType();
+    var anyMessage = DynamicMessage.newBuilder(anyDescriptor)
+        .setField(anyDescriptor.findFieldByName("type_url"), "type.googleapis.com/" + payloadTypeName)
+        .setField(anyDescriptor.findFieldByName("value"), payloadBuilder.build().toByteString())
+        .build();
+
+    return DynamicMessage.newBuilder(descriptor)
+        .setField(descriptor.findFieldByName("name"), "with any")
+        .setField(payloadField, anyMessage)
+        .build()
+        .toByteArray();
   }
 
   @Test
