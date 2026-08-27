@@ -356,10 +356,7 @@ export function useTopicAnalysis(
 
   React.useEffect(() => {
     if (queryResult.error) {
-      const error = queryResult.error as unknown as Response;
-      if (error?.status !== 404) {
-        showServerError(error);
-      }
+      showServerError(queryResult.error as unknown as Response);
     }
   }, [queryResult.error]);
 
