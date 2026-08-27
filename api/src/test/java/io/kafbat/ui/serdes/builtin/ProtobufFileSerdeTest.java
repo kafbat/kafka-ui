@@ -340,12 +340,12 @@ class ProtobufFileSerdeTest {
     Path firstPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
     Path secondPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany2.proto").toPath();
     var firstDescriptor = files.get(firstPath).toDescriptor("test.MessageWithAny");
-    var secondDescriptor = files.get(secondPath).toDescriptor("test2.MessageWithAny2");
+    var secondDescriptor = files.get(secondPath).toDescriptor("test.MessageWithAny2");
 
     byte[] firstBytes = messageWithAny(
         files.get(firstPath), firstDescriptor, "test.PayloadMessage", "payload-1");
     byte[] secondBytes = messageWithAny(
-        files.get(secondPath), secondDescriptor, "test2.PayloadMessage2", "payload-2");
+        files.get(secondPath), secondDescriptor, "test.PayloadMessage2", "payload-2");
 
     var serde = new ProtobufFileSerde();
     serde.configure(
@@ -366,7 +366,7 @@ class ProtobufFileSerdeTest {
 
     assertJsonEquals(
         "{\"name\": \"with any\", \"payload\": "
-            + "{\"@type\": \"type.googleapis.com/test2.PayloadMessage2\", \"id\": \"payload-2\"}}",
+            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage2\", \"id\": \"payload-2\"}}",
         serde.deserializer("any-topic-2", Serde.Target.VALUE).deserialize(null, secondBytes).getResult()
     );
   }
