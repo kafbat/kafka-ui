@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Metrics from 'components/common/Metrics';
+import { ControllerType } from 'generated-sources';
 
 import * as S from './BrokersMetrics.styled';
 
@@ -12,6 +13,7 @@ type BrokersMetricsProps = {
   onlinePartitionCount: number | undefined;
   underReplicatedPartitionCount: number | undefined;
   version: string | undefined;
+  controller: ControllerType | undefined;
 };
 
 export const BrokersMetrics = ({
@@ -23,6 +25,7 @@ export const BrokersMetrics = ({
   offlinePartitionCount,
   underReplicatedPartitionCount,
   onlinePartitionCount,
+  controller,
 }: BrokersMetricsProps) => {
   const replicas = (inSyncReplicasCount ?? 0) + (outOfSyncReplicasCount ?? 0);
   const areAllInSync = inSyncReplicasCount && replicas === inSyncReplicasCount;
@@ -98,6 +101,19 @@ export const BrokersMetrics = ({
 
         <Metrics.Indicator label="Out Of Sync Replicas">
           {outOfSyncReplicasCount}
+        </Metrics.Indicator>
+
+        <Metrics.Indicator label="Controller Type">
+          {(() => {
+            switch (controller) {
+              case ControllerType.KRAFT:
+                return 'KRaft';
+              case ControllerType.ZOOKEEPER:
+                return 'ZooKeeper';
+              default:
+                return 'Unknown';
+            }
+          })()}
         </Metrics.Indicator>
       </Metrics.Section>
     </Metrics.Wrapper>

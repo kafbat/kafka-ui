@@ -3,8 +3,10 @@ package io.kafbat.ui.service;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.SerdeDescriptionDTO;
+import io.kafbat.ui.model.SerdeParameterDTO;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.serdes.ClusterSerdes;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
@@ -52,7 +54,8 @@ public class DeserializationService implements Closeable {
   private Serde.Serializer getSerializer(KafkaCluster cluster,
                                          String topic,
                                          Serde.Target type,
-                                         String serdeName) {
+                                         String serdeName,
+                                         @Nullable Map<String, Object> properties) {
     var serdes = getSerdesFor(cluster.getName());
     var serde = serdes.serdeForName(serdeName)
         .orElseThrow(() -> new ValidationException(
@@ -60,6 +63,9 @@ public class DeserializationService implements Closeable {
     if (!serde.canSerialize(topic, type)) {
       throw new ValidationException(
           String.format("Serde %s can't be applied for '%s' topic's %s serialization", serde, topic, type));
+    }
+    if (properties != null && !properties.isEmpty()) {
+      return serde.serializer(topic, type, properties);
     }
     return serde.serializer(topic, type);
   }
@@ -85,10 +91,12 @@ public class DeserializationService implements Closeable {
   public ProducerRecordCreator producerRecordCreator(KafkaCluster cluster,
                                                      String topic,
                                                      String keySerdeName,
-                                                     String valueSerdeName) {
+                                                     String valueSerdeName,
+                                                     @Nullable Map<String, Object> keyProperties,
+                                                     @Nullable Map<String, Object> valueProperties) {
     return new ProducerRecordCreator(
-        getSerializer(cluster, topic, Serde.Target.KEY, keySerdeName),
-        getSerializer(cluster, topic, Serde.Target.VALUE, valueSerdeName)
+        getSerializer(cluster, topic, Serde.Target.KEY, keySerdeName, keyProperties),
+        getSerializer(cluster, topic, Serde.Target.VALUE, valueSerdeName, valueProperties)
     );
   }
 
@@ -144,12 +152,26 @@ public class DeserializationService implements Closeable {
                                     Serde.Target serdeType,
                                     boolean preferred) {
     var schemaOpt = serdeInstance.getSchema(topic, serdeType);
+
     return new SerdeDescriptionDTO()
         .name(serdeInstance.getName())
         .description(serdeInstance.description().orElse(null))
         .schema(schemaOpt.map(SchemaDescription::getSchema).orElse(null))
+        .parameters(toParametersDto(serdeInstance.getParameters(topic, serdeType)))
         .additionalProperties(schemaOpt.map(SchemaDescription::getAdditionalProperties).orElse(null))
         .preferred(preferred);
+  }
+
+  private SerdeParameterDTO toDto(SerdeParameter p) {
+    return new SerdeParameterDTO(
+        p.getName(),
+        p.getVisibleName(),
+        p.getAllowedValues()
+    );
+  }
+
+  private List<SerdeParameterDTO> toParametersDto(List<SerdeParameter> parameters) {
+    return parameters.stream().map(this::toDto).toList();
   }
 
   @Override

@@ -3,21 +3,25 @@ package io.kafbat.ui.service.rbac.extractor;
 import static io.kafbat.ui.model.rbac.provider.Provider.Name.COGNITO;
 
 import com.google.common.collect.Sets;
+import io.kafbat.ui.config.auth.OAuthProperties;
 import io.kafbat.ui.model.rbac.Role;
 import io.kafbat.ui.model.rbac.provider.Provider;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
 
+  public static final String ROLES_FIELD_PARAM_NAME = "roles-field";
   private static final String COGNITO_GROUPS_ATTRIBUTE_NAME = "cognito:groups";
 
   @Override
@@ -38,7 +42,7 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
     }
 
     var usernameRoles = extractUsernameRoles(acs, principal);
-    var groupRoles = extractGroupRoles(acs, principal);
+    var groupRoles = extractGroupRoles(acs, principal, additionalParams);
 
     return Mono.just(Sets.union(usernameRoles, groupRoles));
   }
@@ -59,8 +63,15 @@ public class CognitoAuthorityExtractor implements ProviderAuthorityExtractor {
     return rolesByUsername;
   }
 
-  private Set<String> extractGroupRoles(AccessControlService acs, DefaultOAuth2User principal) {
-    List<String> groups = principal.getAttribute(COGNITO_GROUPS_ATTRIBUTE_NAME);
+  private Set<String> extractGroupRoles(AccessControlService acs, DefaultOAuth2User principal,
+                                        Map<String, Object> additionalParams) {
+    var provider = (OAuthProperties.OAuth2Provider) additionalParams.get("provider");
+    Assert.notNull(provider, "provider is null");
+
+    var rolesFieldName = Optional.ofNullable(provider.getCustomParams().get(ROLES_FIELD_PARAM_NAME))
+        .orElse(COGNITO_GROUPS_ATTRIBUTE_NAME);
+
+    List<String> groups = principal.getAttribute(rolesFieldName);
     if (groups == null) {
       log.debug("Cognito groups param is not present");
       return Collections.emptySet();

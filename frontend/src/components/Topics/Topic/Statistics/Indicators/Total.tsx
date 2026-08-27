@@ -16,29 +16,39 @@ const Total: React.FC<TopicAnalysisStats> = ({
   approxUniqValues,
 }) => {
   const { currentTimezone } = useTimezone();
+  const offsets =
+    minOffset === undefined || maxOffset === undefined
+      ? 'N/A'
+      : `${minOffset} - ${maxOffset}`;
+  const timestamps =
+    minTimestamp === undefined || maxTimestamp === undefined
+      ? 'N/A'
+      : `${formatTimestamp({ timestamp: minTimestamp, timezone: currentTimezone.value })} - ${formatTimestamp({ timestamp: maxTimestamp, timezone: currentTimezone.value })}`;
 
   return (
     <Metrics.Section title="Messages">
-      <Metrics.Indicator label="Total number">{totalMsgs}</Metrics.Indicator>
-      <Metrics.Indicator label="Offsets min-max">
-        {`${minOffset} - ${maxOffset}`}
+      <Metrics.Indicator label="Total number">
+        {totalMsgs ?? 0}
       </Metrics.Indicator>
+      <Metrics.Indicator label="Offsets min-max">{offsets}</Metrics.Indicator>
       <Metrics.Indicator label="Timestamp min-max">
-        {`${formatTimestamp({ timestamp: minTimestamp, timezone: currentTimezone.value })} - ${formatTimestamp({ timestamp: maxTimestamp, timezone: currentTimezone.value })}`}
+        {timestamps}
       </Metrics.Indicator>
-      <Metrics.Indicator label="Null keys">{nullKeys}</Metrics.Indicator>
+      <Metrics.Indicator label="Null keys">{nullKeys ?? 0}</Metrics.Indicator>
       <Metrics.Indicator
         label="Unique keys"
         title="Approximate number of unique keys"
       >
-        {approxUniqKeys}
+        {approxUniqKeys ?? 0}
       </Metrics.Indicator>
-      <Metrics.Indicator label="Null values">{nullValues}</Metrics.Indicator>
+      <Metrics.Indicator label="Null values">
+        {nullValues ?? 0}
+      </Metrics.Indicator>
       <Metrics.Indicator
         label="Unique values"
         title="Approximate number of unique values"
       >
-        {approxUniqValues}
+        {approxUniqValues ?? 0}
       </Metrics.Indicator>
     </Metrics.Section>
   );

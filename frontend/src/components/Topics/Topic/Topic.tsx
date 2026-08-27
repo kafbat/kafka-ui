@@ -1,6 +1,13 @@
 import React, { Suspense } from 'react';
-import { NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import {
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import {
+  clusterTopicAclsRelativePath,
   clusterTopicConnectorsRelativePath,
   clusterTopicConsumerGroupsRelativePath,
   clusterTopicEditRelativePath,
@@ -10,6 +17,7 @@ import {
   clusterTopicStatisticsRelativePath,
   RouteParamsClusterTopic,
 } from 'lib/paths';
+import { getTopicPageTitle } from 'lib/pageTitles';
 import ClusterContext from 'components/contexts/ClusterContext';
 import {
   ActionButton,
@@ -38,6 +46,7 @@ import useBoolean from 'lib/hooks/useBoolean';
 import { useProduceMessage } from 'lib/hooks/useProduceMessage';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import Messages from './Messages/Messages';
 import Overview from './Overview/Overview';
@@ -47,6 +56,7 @@ import Statistics from './Statistics/Statistics';
 import Edit from './Edit/Edit';
 import Connectors from './Connectors/Connectors';
 import SendMessage from './SendMessage/SendMessage';
+import Acls from './Acls/Acls';
 
 const Topic: React.FC = () => {
   const {
@@ -58,6 +68,7 @@ const Topic: React.FC = () => {
   const { messageData, setMessage, clearMessage } = useProduceMessage();
 
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
+  const { pathname } = useLocation();
 
   const openSidebarWithMessage = (message: TopicMessage) => {
     setMessage(message);
@@ -72,7 +83,8 @@ const Topic: React.FC = () => {
   const navigate = useNavigate();
   const deleteTopic = useDeleteTopic(clusterName);
   const recreateTopic = useRecreateTopic({ clusterName, topicName });
-  const { data } = useTopicDetails({ clusterName, topicName });
+  const { data, error, isSuccess, refetch, isLoading, isRefetching } =
+    useTopicDetails({ clusterName, topicName }, { retry: false });
   const { data: connectors = [] } = useTopicConnectors({
     clusterName,
     topicName,
@@ -99,6 +111,7 @@ const Topic: React.FC = () => {
         text={topicName}
         backText="Topics"
         backTo={clusterTopicsPath(clusterName)}
+        documentTitle={getTopicPageTitle(pathname, clusterName, topicName)}
       >
         <ActionButton
           buttonSize="M"
@@ -191,92 +204,118 @@ const Topic: React.FC = () => {
           </ActionDropdownItem>
         </Dropdown>
       </ResourcePageHeading>
-      <Navbar role="navigation">
-        <NavLink
-          to="."
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-          end
-        >
-          Overview
-        </NavLink>
-        <ActionNavLink
-          to={clusterTopicMessagesRelativePath}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-          permission={{
-            resource: ResourceType.TOPIC,
-            action: Action.MESSAGES_READ,
-            value: topicName,
-          }}
-        >
-          Messages
-        </ActionNavLink>
-        <NavLink
-          to={clusterTopicConsumerGroupsRelativePath}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-        >
-          Consumers
-        </NavLink>
-        <NavLink
-          to={clusterTopicSettingsRelativePath}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-        >
-          Settings
-        </NavLink>
-        <ActionNavLink
-          to={clusterTopicStatisticsRelativePath}
-          className={({ isActive }) => (isActive ? 'is-active' : '')}
-          permission={{
-            resource: ResourceType.TOPIC,
-            action: Action.ANALYSIS_VIEW,
-            value: topicName,
-          }}
-        >
-          Statistics
-        </ActionNavLink>
-        {isConnectorsAvailable && (
-          <ActionNavLink
-            to={clusterTopicConnectorsRelativePath}
-            className={({ isActive }) => (isActive ? 'is-active' : '')}
-            permission={{
-              resource: ResourceType.TOPIC,
-              action: Action.ANALYSIS_VIEW,
-              value: topicName,
-            }}
-          >
-            Connectors
-          </ActionNavLink>
-        )}
-      </Navbar>
-      <TopicActionsProvider openSidebarWithMessage={openSidebarWithMessage}>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route index element={<Overview />} />
-            <Route
-              path={clusterTopicMessagesRelativePath}
-              element={<Messages />}
-            />
-            <Route
-              path={clusterTopicSettingsRelativePath}
-              element={<Settings />}
-            />
-            <Route
-              path={clusterTopicConsumerGroupsRelativePath}
-              element={<TopicConsumerGroups />}
-            />
-            <Route
-              path={clusterTopicStatisticsRelativePath}
-              element={<Statistics />}
-            />
+
+      {(isLoading || isRefetching) && <PageLoader />}
+
+      {error && (
+        <ErrorPage
+          status={error.status}
+          onClick={refetch}
+          resourceName={topicName}
+        />
+      )}
+
+      {isSuccess && (
+        <>
+          <Navbar role="navigation">
+            <NavLink
+              to="."
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              end
+            >
+              Overview
+            </NavLink>
+            <ActionNavLink
+              to={clusterTopicMessagesRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.MESSAGES_READ,
+                value: topicName,
+              }}
+            >
+              Messages
+            </ActionNavLink>
+            <NavLink
+              to={clusterTopicConsumerGroupsRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+            >
+              Consumers
+            </NavLink>
+            <NavLink
+              to={clusterTopicSettingsRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+            >
+              Settings
+            </NavLink>
+            <ActionNavLink
+              to={clusterTopicStatisticsRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.TOPIC,
+                action: Action.ANALYSIS_VIEW,
+                value: topicName,
+              }}
+            >
+              Statistics
+            </ActionNavLink>
+            <ActionNavLink
+              to={clusterTopicAclsRelativePath}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+              permission={{
+                resource: ResourceType.ACL,
+                action: Action.VIEW,
+              }}
+            >
+              ACLs
+            </ActionNavLink>
             {isConnectorsAvailable && (
-              <Route
-                path={clusterTopicConnectorsRelativePath}
-                element={<Connectors connectors={connectors} />}
-              />
+              <ActionNavLink
+                to={clusterTopicConnectorsRelativePath}
+                className={({ isActive }) => (isActive ? 'is-active' : '')}
+                permission={{
+                  resource: ResourceType.TOPIC,
+                  action: Action.VIEW,
+                  value: topicName,
+                }}
+              >
+                Connectors
+              </ActionNavLink>
             )}
-            <Route path={clusterTopicEditRelativePath} element={<Edit />} />
-          </Routes>
-        </Suspense>
-      </TopicActionsProvider>
+          </Navbar>
+          <TopicActionsProvider openSidebarWithMessage={openSidebarWithMessage}>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route index element={<Overview />} />
+                <Route
+                  path={clusterTopicMessagesRelativePath}
+                  element={<Messages />}
+                />
+                <Route
+                  path={clusterTopicSettingsRelativePath}
+                  element={<Settings />}
+                />
+                <Route
+                  path={clusterTopicConsumerGroupsRelativePath}
+                  element={<TopicConsumerGroups />}
+                />
+                <Route
+                  path={clusterTopicStatisticsRelativePath}
+                  element={<Statistics />}
+                />
+                <Route path={clusterTopicAclsRelativePath} element={<Acls />} />
+                {isConnectorsAvailable && (
+                  <Route
+                    path={clusterTopicConnectorsRelativePath}
+                    element={<Connectors connectors={connectors} />}
+                  />
+                )}
+                <Route path={clusterTopicEditRelativePath} element={<Edit />} />
+              </Routes>
+            </Suspense>
+          </TopicActionsProvider>
+        </>
+      )}
       <SlidingSidebar
         open={isSidebarOpen}
         onClose={handleCloseSidebar}

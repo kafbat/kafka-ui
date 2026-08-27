@@ -1,10 +1,12 @@
 import { ksqlDbApiClient as api } from 'lib/api';
-import { useMutation, useQueries } from '@tanstack/react-query';
+import { useMutation, useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { ClusterName } from 'lib/interfaces/cluster';
 import { BASE_PARAMS } from 'lib/constants';
 import React from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import {
+  apiFetch,
+  ServerResponse,
   showAlert,
   showServerError,
   showSuccessAlert,
@@ -12,30 +14,45 @@ import {
 import {
   ExecuteKsqlRequest,
   KsqlResponse,
+  KsqlStreamDescription,
+  KsqlTableDescription,
   KsqlTableResponse,
 } from 'generated-sources';
 import { StopLoading } from 'components/Topics/Topic/Messages/Messages.styled';
 import toast from 'react-hot-toast';
 
-export function useKsqlkDb(clusterName: ClusterName) {
-  return useQueries({
-    queries: [
-      {
-        queryKey: ['clusters', clusterName, 'ksqlDb', 'tables'],
-        queryFn: () => api.listTables({ clusterName }),
-        suspense: false,
-      },
-      {
-        queryKey: ['clusters', clusterName, 'ksqlDb', 'streams'],
-        queryFn: () => api.listStreams({ clusterName }),
-        suspense: false,
-      },
-    ],
+export function useKsqlTables(
+  clusterName: ClusterName,
+  options?: Omit<
+    UseQueryOptions<KsqlTableDescription[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<KsqlTableDescription[], ServerResponse>({
+    queryKey: ['clusters', clusterName, 'ksqlDb', 'tables'],
+    queryFn: () => apiFetch(() => api.listTables({ clusterName })),
+    ...options,
+  });
+}
+
+export function useKsqlStreams(
+  clusterName: ClusterName,
+  options?: Omit<
+    UseQueryOptions<KsqlStreamDescription[], ServerResponse>,
+    'queryKey' | 'queryFn'
+  >
+) {
+  return useQuery<KsqlStreamDescription[], ServerResponse>({
+    queryKey: ['clusters', clusterName, 'ksqlDb', 'streams'],
+    queryFn: () => apiFetch(() => api.listStreams({ clusterName })),
+    ...options,
   });
 }
 
 export function useExecuteKsqlkDbQueryMutation() {
-  return useMutation((props: ExecuteKsqlRequest) => api.executeKsql(props));
+  return useMutation({
+    mutationFn: (props: ExecuteKsqlRequest) => api.executeKsql(props),
+  });
 }
 
 const getFormattedErrorFromTableData = (

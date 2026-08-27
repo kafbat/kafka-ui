@@ -16,6 +16,7 @@ export interface SelectProps<T> {
   disabled?: boolean;
   onChange?: (option: T) => void;
   isThemeMode?: boolean;
+  formatSelectedOption?: (option: SelectOption<T>) => string;
 }
 
 export interface SelectOption<T> {
@@ -35,6 +36,7 @@ const Select = <T extends object>(
     disabled = false,
     onChange,
     isThemeMode,
+    formatSelectedOption,
     ...props
   }: SelectProps<T>,
   ref?: React.Ref<HTMLUListElement>
@@ -66,6 +68,17 @@ const Select = <T extends object>(
     }
   };
 
+  const displayedOption = options.find(
+    (option) => option.value === (defaultValue || selectedOption)
+  );
+
+  // eslint-disable-next-line no-nested-ternary
+  const displayedOptionLabel = displayedOption
+    ? formatSelectedOption
+      ? formatSelectedOption(displayedOption)
+      : displayedOption.label
+    : placeholder;
+
   return (
     <div ref={selectContainerRef}>
       <S.Select
@@ -85,9 +98,7 @@ const Select = <T extends object>(
             tabIndex={0}
             isThemeMode={isThemeMode}
           >
-            {options.find(
-              (option) => option.value === (defaultValue || selectedOption)
-            )?.label || placeholder}
+            {displayedOptionLabel}
           </S.SelectedOption>
         </S.SelectedOptionWrapper>
         {showOptions && (

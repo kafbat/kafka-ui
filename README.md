@@ -58,6 +58,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 * **Custom SerDe Plugin Support** – Use built-in serializers/deserializers like AWS Glue and Smile, or create your own custom plugins.
 * **Role-Based Access Control** – [Manage granular UI permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) with RBAC.
 * **Data Masking** – [Obfuscate sensitive data](https://ui.docs.kafbat.io/configuration/data-masking) in topic messages to enhance privacy and compliance.
+* **API Documentation (Swagger UI)** - Access full API specifications via built-in Swagger UI (can be enabled via `SWAGGER_UI_ENABLED` variable).
 * **MCP Server** - [Model Context Protocol](https://ui.docs.kafbat.io/faq/mcp) Server
 
 
@@ -65,11 +66,6 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 
 <details>
     <summary>Click here for the feature overview</summary>
-
-# The Interface
-Kafbat UI wraps major functions of Apache Kafka with an intuitive user interface.
-
-![Interface](documentation/images/Interface.gif)
 
 ## Topics
 Kafbat UI makes it easy for you to create topics in your browser with just a few clicks, by pasting your own parameters, and viewing topics in the list.
@@ -103,7 +99,7 @@ To run Kafbat UI, you can use either a pre-built Docker image or build it (or a 
 ## Quick start (Demo run)
 
 ```bash
-docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true ghcr.io/kafbat/kafka-ui
+docker run -it -p 8080:8080 -e DYNAMIC_CONFIG_ENABLED=true -e SWAGGER_UI_ENABLED=true ghcr.io/kafbat/kafka-ui
 ```
 
 Then access the web UI at [http://localhost:8080](http://localhost:8080)
@@ -121,6 +117,7 @@ services:
       - 8080:8080
     environment:
       DYNAMIC_CONFIG_ENABLED: 'true'
+      SWAGGER_UI_ENABLED: 'true'
     volumes:
       - ~/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
 ```

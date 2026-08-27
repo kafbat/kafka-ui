@@ -6,6 +6,7 @@ import io.kafbat.ui.model.rbac.permission.AuditAction;
 import io.kafbat.ui.model.rbac.permission.ClientQuotaAction;
 import io.kafbat.ui.model.rbac.permission.ClusterConfigAction;
 import io.kafbat.ui.model.rbac.permission.ConnectAction;
+import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.KsqlAction;
 import io.kafbat.ui.model.rbac.permission.PermissibleAction;
@@ -14,7 +15,6 @@ import io.kafbat.ui.model.rbac.permission.TopicAction;
 import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +35,8 @@ public enum Resource {
   SCHEMA(SchemaAction.values()),
 
   CONNECT(ConnectAction.values(), ConnectAction.ALIASES),
+
+  CONNECTOR(ConnectorAction.values()),
 
   KSQL(KsqlAction.values()),
 

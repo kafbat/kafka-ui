@@ -1,6 +1,7 @@
-import React, { Suspense } from 'react';
-import { NavLink, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
+import { getConnectDetailsPageTitle } from 'lib/pageTitles';
 import {
   clusterConnectConnectorConfigPath,
   clusterConnectConnectorConfigRelativePath,
@@ -13,6 +14,8 @@ import {
 import Navbar from 'components/common/Navigation/Navbar.styled';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourcePageHeading';
+import { useConnector, useConnectorTasks } from 'lib/hooks/api/kafkaConnect';
+import ErrorPage from 'components/ErrorPage/ErrorPage';
 
 import Overview from './Overview/Overview';
 import Tasks from './Tasks/Tasks';
@@ -23,6 +26,18 @@ import Topics from './Topics/Topics';
 const DetailsPage: React.FC = () => {
   const { clusterName, connectName, connectorName } =
     useAppParams<RouterParamsClusterConnectConnector>();
+  const { pathname } = useLocation();
+
+  const connector = useConnector({ clusterName, connectName, connectorName });
+  const tasks = useConnectorTasks({ clusterName, connectName, connectorName });
+
+  const isSuccess = connector.isSuccess && tasks.isSuccess;
+  const isLoading =
+    connector.isLoading ||
+    connector.isRefetching ||
+    tasks.isLoading ||
+    tasks.isRefetching;
+  const error = connector.error || tasks.error;
 
   return (
     <div>
@@ -30,10 +45,16 @@ const DetailsPage: React.FC = () => {
         text={connectorName}
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"
+        documentTitle={getConnectDetailsPageTitle(
+          pathname,
+          clusterName,
+          connectName,
+          connectorName
+        )}
       >
         <Actions />
       </ResourcePageHeading>
-      <Overview />
+      {isSuccess && <Overview tasks={tasks.data} connector={connector.data} />}
       <Navbar role="navigation">
         <NavLink
           to={clusterConnectConnectorPath(
@@ -67,7 +88,22 @@ const DetailsPage: React.FC = () => {
           Topics
         </NavLink>
       </Navbar>
-      <Suspense fallback={<PageLoader />}>
+
+      {isLoading && <PageLoader offsetY={200} />}
+
+      {error && (
+        <ErrorPage
+          offsetY={200}
+          status={error.status}
+          onClick={() => {
+            connector.refetch();
+            tasks.refetch();
+          }}
+          resourceName={`Connector ${connectorName}`}
+        />
+      )}
+
+      {isSuccess && (
         <Routes>
           <Route index element={<Tasks />} />
           <Route
@@ -79,7 +115,7 @@ const DetailsPage: React.FC = () => {
             element={<Topics />}
           />
         </Routes>
-      </Suspense>
+      )}
     </div>
   );
 };

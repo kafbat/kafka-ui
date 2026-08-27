@@ -1,0 +1,25 @@
+auth:
+  type: LDAP
+rbac:
+  roles:
+    - name: "admin"
+      clusters:
+        - local
+      subjects:
+        - provider: ldap_ad
+          type: group
+          value: firstGroup
+      permissions:
+        - resource: topic
+          value: ".*"
+          actions: create
+    - name: "viewer"
+      clusters:
+        - local
+      subjects:
+        - provider: ldap_ad
+          type: group
+          value: secondGroup
+      permissions:
+        - resource: audit
+          actions: all

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 @Mapper(componentModel = "spring")
 public interface KafkaConnectMapper {
@@ -44,9 +45,11 @@ public interface KafkaConnectMapper {
 
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "connect", ignore = true)
+  @Mapping(target = "topics", ignore = true)
   ConnectorDTO fromClient(Connector connector);
 
   default ConnectorDTO fromClient(Connector connector,
+                                  ClustersProperties.ConnectCluster properties,
                                   String connect,
                                   ConnectorTopics topics,
                                   Map<String, Object> sanitizedConfigs,
@@ -72,6 +75,9 @@ public interface KafkaConnectMapper {
         }
       }
     }
+    result.setConsumer(JsonNullable.of(
+        properties.getConsumerNamePattern().formatted(connector.getName())
+    ));
 
     return result;
   }
@@ -90,7 +96,19 @@ public interface KafkaConnectMapper {
       io.kafbat.ui.connect.model.ConnectorPluginConfigValidationResponse
           connectorPluginConfigValidationResponse);
 
-  default InternalConnectorInfo fromClient(String connect, ExpandedConnector connector, @Nullable List<String> topics) {
+
+  default InternalConnectorInfo fromClient(ClustersProperties.ConnectCluster connect,
+                                           ExpandedConnector connector, @Nullable List<String> topics) {
+    return fromClient(connect.getName(), connect.getConsumerNamePattern(), connector, topics);
+  }
+
+  default InternalConnectorInfo fromClient(ConnectDTO connect, ExpandedConnector connector,
+                                           @Nullable List<String> topics) {
+    return fromClient(connect.getName(), connect.getConsumerNamePattern(), connector, topics);
+  }
+
+  default InternalConnectorInfo fromClient(String connectName, String consumerGroupPattern,
+                                           ExpandedConnector connector, @Nullable List<String> topics) {
     Objects.requireNonNull(connector.getInfo());
     Objects.requireNonNull(connector.getStatus());
     List<TaskDTO> tasks = List.of();
@@ -112,7 +130,8 @@ public interface KafkaConnectMapper {
     }
 
     ConnectorDTO connectorDto = fromClient(connector.getInfo())
-        .connect(connect)
+        .connect(connectName)
+        .consumer(consumerGroupPattern.formatted(connector.getInfo().getName()))
         .status(fromClient(connector.getStatus().getConnector()));
 
     return InternalConnectorInfo.builder()
@@ -120,6 +139,7 @@ public interface KafkaConnectMapper {
         .config(connector.getInfo().getConfig())
         .tasks(tasks)
         .topics(topics)
+        .consumer(consumerGroupPattern.formatted(connector.getInfo().getName()))
         .build();
   }
 
@@ -173,7 +193,8 @@ public interface KafkaConnectMapper {
         .failedTasksCount(failedTasksCount)
         .version(clusterInfo.getVersion())
         .commit(clusterInfo.getCommit())
-        .clusterId(clusterInfo.getKafkaClusterId());
+        .clusterId(clusterInfo.getKafkaClusterId())
+        .consumerNamePattern(connect.getConsumerNamePattern());
   }
 
   default FullConnectorInfoDTO fullConnectorInfo(InternalConnectorInfo connectInfo) {
@@ -192,6 +213,7 @@ public interface KafkaConnectMapper {
         .topics(connectInfo.getTopics())
         .status(connector.getStatus())
         .tasksCount(tasks.size())
+        .consumer(connectInfo.getConsumer())
         .failedTasksCount(failedTasksCount);
   }
 

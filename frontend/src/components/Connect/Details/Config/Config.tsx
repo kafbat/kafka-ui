@@ -55,14 +55,13 @@ const Config: React.FC = () => {
       const requestBody = JSON.parse(values.config.trim());
       await mutation.mutateAsync(requestBody);
       reset(values);
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };
 
-  const hasCredentials = JSON.stringify(config, null, '\t').includes(
-    '"******"'
-  );
+  const hasCredentials =
+    config && JSON.stringify(config, null, '\t').includes('"******"');
   return (
     <ConnectEditWrapperStyled>
       {hasCredentials && (

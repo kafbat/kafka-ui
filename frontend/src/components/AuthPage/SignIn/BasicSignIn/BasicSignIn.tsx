@@ -19,7 +19,7 @@ function BasicSignIn() {
     defaultValues: { username: '', password: '' },
   });
   const navigate = useNavigate();
-  const { mutateAsync, isLoading } = useAuthenticate();
+  const { mutateAsync, isPending } = useAuthenticate();
   const client = useQueryClient();
 
   const onSubmit = async (data: FormValues) => {
@@ -89,9 +89,9 @@ function BasicSignIn() {
           type="submit"
           style={{ width: '100%', borderRadius: '8px' }}
           disabled={!methods.formState.isValid}
-          inProgress={isLoading}
+          inProgress={isPending}
         >
-          {!isLoading && 'Log in'}
+          {!isPending && 'Log in'}
         </Button>
       </S.Form>
     </FormProvider>

@@ -35,6 +35,7 @@ const Colors = {
     '40': '#5CD685',
     '50': '#33CC66',
     '60': '#29A352',
+    '70': '#34C759',
   },
   brand: {
     '0': '#FFFFFF',
@@ -63,6 +64,7 @@ const Colors = {
   },
   orange: {
     '10': '#BF83401A',
+    '20': '#FF8D28',
     '100': '#FF9D00',
   },
   yellow: {
@@ -493,6 +495,12 @@ export const theme = {
       backgroundColor: {
         default: Colors.neutral[0],
         hover: Colors.neutral[5],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[20],
       },
     },
   },
@@ -960,6 +968,12 @@ export const theme = {
       cross: Colors.brand[30],
     },
   },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[90],
+    none: Colors.neutral[90],
+  },
 };
 
 export type ThemeType = typeof theme;
@@ -1080,6 +1094,12 @@ export const darkTheme: ThemeType = {
       backgroundColor: {
         default: Colors.neutral[85],
         hover: Colors.neutral[80],
+      },
+    },
+    button: {
+      backgroundColor: {
+        default: 'transparent',
+        hover: Colors.neutral[70],
       },
     },
   },
@@ -1634,5 +1654,11 @@ export const darkTheme: ThemeType = {
       border: Colors.brand[60],
       cross: Colors.brand[30],
     },
+  },
+  lag: {
+    down: Colors.green[70],
+    up: Colors.orange[20],
+    same: Colors.neutral[0],
+    none: Colors.neutral[0],
   },
 };

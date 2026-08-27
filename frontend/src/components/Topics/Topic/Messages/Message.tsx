@@ -5,7 +5,7 @@ import MessageToggleIcon from 'components/common/Icons/MessageToggleIcon';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import { Dropdown, DropdownItem } from 'components/common/Dropdown';
 import { ActionDropdownItem } from 'components/common/ActionComponent';
-import { formatTimestamp } from 'lib/dateTimeHelpers';
+import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { JSONPath } from 'jsonpath-plus';
 import Ellipsis from 'components/common/Ellipsis/Ellipsis';
 import WarningRedIcon from 'components/common/Icons/WarningRedIcon';
@@ -14,6 +14,7 @@ import { useTimezone } from 'lib/hooks/useTimezones';
 import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { useTopicActions } from 'components/contexts/TopicActionsContext';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
@@ -29,29 +30,14 @@ export interface Props {
   message: TopicMessage;
 }
 
-const Message: React.FC<Props> = ({
-  message: {
-    timestamp,
-    timestampType,
-    offset,
-    key,
-    keySize,
-    partition,
-    value,
-    valueSize,
-    headers,
-    valueSerde,
-    keySerde,
-  },
-  keyFilters,
-  contentFilters,
-}) => {
+const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
   const [isOpen, setIsOpen] = React.useState(false);
+  const { messageRelativeTimestamp } = React.useContext(ClusterContext);
 
-  const message = {
+  const {
     timestamp,
     timestampType,
     offset,
@@ -63,7 +49,9 @@ const Message: React.FC<Props> = ({
     headers,
     valueSerde,
     keySerde,
-  };
+    valueDeserializeProperties,
+    keyDeserializeProperties,
+  } = message;
 
   const savedMessageJson = {
     Value: value,
@@ -87,7 +75,7 @@ const Message: React.FC<Props> = ({
   const getParsedJson = (jsonValue: string) => {
     try {
       return JSON.parse(jsonValue);
-    } catch (e) {
+    } catch {
       return {};
     }
   };
@@ -115,6 +103,12 @@ const Message: React.FC<Props> = ({
     );
   };
 
+  const messageTimestamp = formatTimestamp({
+    timestamp,
+    timezone: currentTimezone.value,
+    withMilliseconds: true,
+  });
+
   return (
     <>
       <S.ClickableRow
@@ -130,13 +124,11 @@ const Message: React.FC<Props> = ({
         <td>{offset}</td>
         <td>{partition}</td>
         <td>
-          <div>
-            {formatTimestamp({
-              timestamp,
-              timezone: currentTimezone.value,
-              withMilliseconds: true,
-            })}
-          </div>
+          {messageRelativeTimestamp ? (
+            <Tooltip value={timeAgo(timestamp)} content={messageTimestamp} />
+          ) : (
+            <div>{messageTimestamp}</div>
+          )}
         </td>
         <S.DataCell title={key}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>
@@ -165,7 +157,7 @@ const Message: React.FC<Props> = ({
           </S.Metadata>
         </S.DataCell>
         <td style={{ width: '5%' }}>
-          {vEllipsisOpen && (
+          <div style={{ visibility: vEllipsisOpen ? 'visible' : 'hidden' }}>
             <Dropdown>
               <DropdownItem
                 aria-label="Copy to clipboard"
@@ -190,7 +182,7 @@ const Message: React.FC<Props> = ({
                 Reproduce message
               </ActionDropdownItem>
             </Dropdown>
-          )}
+          </div>
         </td>
       </S.ClickableRow>
       {isOpen && (
@@ -204,6 +196,8 @@ const Message: React.FC<Props> = ({
           contentSize={valueSize}
           keySerde={keySerde}
           valueSerde={valueSerde}
+          valueDeserializeProperties={valueDeserializeProperties}
+          keyDeserializeProperties={keyDeserializeProperties}
         />
       )}
     </>

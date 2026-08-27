@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,16 +58,21 @@ public class GithubAuthorityExtractor implements ProviderAuthorityExtractor {
     OAuth2UserRequest req = (OAuth2UserRequest) additionalParams.get("request");
     String infoEndpoint = req.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUri();
 
-    if (infoEndpoint == null) {
-      infoEndpoint = CommonOAuth2Provider.GITHUB
+    final String resolvedInfoEndpoint = infoEndpoint == null
+        ? CommonOAuth2Provider.GITHUB
           .getBuilder(DUMMY)
           .clientId(DUMMY)
           .build()
           .getProviderDetails()
           .getUserInfoEndpoint()
-          .getUri();
-    }
-    var webClient = WebClient.create(infoEndpoint);
+          .getUri()
+        : infoEndpoint;
+
+    var webClient = Optional.ofNullable(additionalParams.get(OAUTH_WEB_CLIENT))
+        .filter(WebClient.class::isInstance)
+        .map(WebClient.class::cast)
+        .map(client -> client.mutate().baseUrl(resolvedInfoEndpoint).build())
+        .orElseGet(() -> WebClient.create(resolvedInfoEndpoint));
 
     Mono<Set<String>> organizationRoles = getOrganizationRoles(principal, additionalParams, acs, webClient);
     Mono<Set<String>> teamRoles = getTeamRoles(webClient, additionalParams, acs);

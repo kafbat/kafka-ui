@@ -13,6 +13,10 @@ import { onlineClusterPayload } from 'lib/fixtures/clusters';
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe('ClusterMenu', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   const setupComponent = (cluster: Cluster, opened?: boolean) => (
     <ClusterMenu
       name={cluster.name}

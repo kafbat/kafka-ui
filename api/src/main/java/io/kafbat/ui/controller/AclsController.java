@@ -63,6 +63,8 @@ public  class AclsController extends AbstractController implements AclsApi, McpT
         .thenReturn(ResponseEntity.ok().build());
   }
 
+
+
   @Override
   public Mono<ResponseEntity<Flux<KafkaAclDTO>>> listAcls(String clusterName,
                                                           KafkaAclResourceTypeDTO resourceTypeDto,
@@ -96,19 +98,14 @@ public  class AclsController extends AbstractController implements AclsApi, McpT
   }
 
   @Override
-  public Mono<ResponseEntity<String>> getAclAsCsv(String clusterName, ServerWebExchange exchange) {
-    AccessContext context = AccessContext.builder()
-        .cluster(clusterName)
-        .aclActions(AclAction.VIEW)
-        .operationName("getAclAsCsv")
-        .build();
-
-    return validateAccess(context).then(
-        aclsService.getAclAsCsvString(getCluster(clusterName))
-            .map(ResponseEntity::ok)
-            .flatMap(Mono::just)
-            .doOnEach(sig -> audit(context, sig))
-    );
+  public Mono<ResponseEntity<String>> getAclAsCsv(String clusterName,
+                                                  KafkaAclResourceTypeDTO resourceType,
+                                                  String resourceName,
+                                                  KafkaAclNamePatternTypeDTO namePatternType,
+                                                  String search, Boolean fts,
+                                                  ServerWebExchange exchange) {
+    return listAcls(clusterName, resourceType, resourceName, namePatternType, search, fts, exchange)
+        .flatMap(this::responseToCsv);
   }
 
   @Override

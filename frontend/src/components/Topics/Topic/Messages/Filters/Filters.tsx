@@ -17,7 +17,6 @@ import { useTopicDetails } from 'lib/hooks/api/topics';
 import EditIcon from 'components/common/Icons/EditIcon';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
-import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
 import * as S from './Filters.styled';
 import {
@@ -67,7 +66,6 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
-  const remove = useMessageFiltersStore((state) => state.remove);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -80,7 +78,6 @@ const Filters: React.FC<FiltersProps> = ({
           value: currentValue.partition,
         };
 
-        // eslint-disable-next-line no-param-reassign
         acc.dict[label.value] = label;
         acc.list.push(label);
         return acc;
@@ -215,7 +212,6 @@ const Filters: React.FC<FiltersProps> = ({
             <S.DeleteSmartFilterIcon
               onClick={() => {
                 setSmartFilter(null);
-                remove(smartFilter.id);
               }}
               disabled={!!createdEditedSmartId}
             >

@@ -1,20 +1,28 @@
 package io.kafbat.ui;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.kafbat.ui.model.CompatibilityLevelDTO;
+import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.NewSchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaReferenceDTO;
 import io.kafbat.ui.model.SchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaSubjectsResponseDTO;
 import io.kafbat.ui.model.SchemaTypeDTO;
+import io.kafbat.ui.service.ClustersStorage;
+import io.kafbat.ui.service.StatisticsService;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +38,12 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
   @Autowired
   WebTestClient webTestClient;
   String subject;
+
+  @Autowired
+  private StatisticsService statisticsService;
+
+  @Autowired
+  private ClustersStorage clustersStorage;
 
   @BeforeEach
   void setUpBefore() {
@@ -340,6 +354,30 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .body(BodyInserters.fromValue(schema))
         .exchange()
         .expectStatus().isOk();
+  }
+
+  @Test
+  void shouldReturnSubjectWithTopicIfTopicExists() {
+    String topicName = "test-topic" + UUID.randomUUID();
+    String subjectName = topicName + "-value";
+    createTopic(new NewTopic(topicName, 1, (short) 1));
+    createNewSubjectAndAssert(subjectName);
+    KafkaCluster kafkaCluster = clustersStorage.getClusterByName(LOCAL).get();
+    // Wait for the topic to be cached
+    Awaitility.await().until(() ->
+        statisticsService.updateCache(kafkaCluster)
+            .map(s ->
+                s.getClusterState().getTopicStates().containsKey(topicName)
+            ).block()
+    );
+    webTestClient
+        .get()
+        .uri("/api/clusters/{clusterName}/schemas/{subjetcName}/latest", LOCAL, subjectName)
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBodyList(SchemaSubjectDTO.class)
+        .value((schemas) -> assertThat(schemas).allMatch(s -> s.getTopic().equals(JsonNullable.of(topicName))));
   }
 
   private void createNewSubjectAndAssert(String subject) {

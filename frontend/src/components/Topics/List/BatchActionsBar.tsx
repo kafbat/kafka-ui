@@ -41,7 +41,7 @@ const BatchActionsbar: React.FC<BatchActionsbarProps> = ({
           selectedTopics.map((topicName) => deleteTopic.mutateAsync(topicName))
         );
         resetRowSelection();
-      } catch (e) {
+      } catch {
         // do nothing;
       }
     });
@@ -58,10 +58,10 @@ const BatchActionsbar: React.FC<BatchActionsbarProps> = ({
             )
           );
           resetRowSelection();
-        } catch (e) {
+        } catch {
           // do nothing;
         } finally {
-          client.invalidateQueries(topicKeys.all(clusterName));
+          client.invalidateQueries({ queryKey: topicKeys.all(clusterName) });
         }
       }
     );

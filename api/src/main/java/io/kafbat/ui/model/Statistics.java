@@ -1,5 +1,6 @@
 package io.kafbat.ui.model;
 
+import io.kafbat.ui.api.model.ControllerType;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
@@ -22,6 +23,8 @@ public class Statistics implements AutoCloseable {
   Metrics metrics;
   ScrapedClusterState clusterState;
   Map<String, KafkaConnectState> connectStates;
+  ControllerType controller;
+  InternalQuorumInfo quorumInfo;
 
   public static Statistics empty() {
     return builder()

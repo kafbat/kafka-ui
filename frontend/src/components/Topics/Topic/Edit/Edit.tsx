@@ -79,7 +79,7 @@ const Edit: React.FC = () => {
     try {
       await updateTopic.mutateAsync(newData);
       navigate('../');
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };
@@ -92,7 +92,7 @@ const Edit: React.FC = () => {
           topicName={topicName}
           retentionBytes={defaultValues.retentionBytes}
           inSyncReplicas={Number(defaultValues.minInSyncReplicas)}
-          isSubmitting={updateTopic.isLoading}
+          isSubmitting={updateTopic.isPending}
           cleanUpPolicy={topic?.cleanUpPolicy}
           isEditing
           onSubmit={methods.handleSubmit(onSubmit)}

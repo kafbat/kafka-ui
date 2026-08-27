@@ -10,6 +10,7 @@ import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
 import { useSerdes } from 'lib/hooks/api/topicMessages';
 import { serdesPayload } from 'lib/fixtures/topicMessages';
 import { MessageFormData } from 'lib/interfaces/message';
+import { TopicSerdeSuggestion } from 'generated-sources';
 
 import Mock = jest.Mock;
 
@@ -79,10 +80,46 @@ const topicName = topicPayloadMultiplePartitions.name;
 
 const mockOnSubmit = jest.fn();
 
+const serdesPayloadWithSchemaRegistry: TopicSerdeSuggestion = {
+  key: [
+    { name: 'String', preferred: false },
+    { name: 'Int32', preferred: true, schema: '{"type":"integer"}' },
+    {
+      name: 'SchemaRegistry',
+      preferred: false,
+      parameters: [
+        {
+          name: 'subject',
+          visibleName: 'subject',
+          allowedValues: ['user-key', 'order-key'],
+        },
+      ],
+      additionalProperties: {},
+    },
+  ],
+  value: [
+    { name: 'String', preferred: false },
+    { name: 'Int64', preferred: true, schema: '{"type":"integer"}' },
+    {
+      name: 'SchemaRegistry',
+      preferred: false,
+      parameters: [
+        {
+          name: 'subject',
+          visibleName: 'subject',
+          allowedValues: ['user-value', 'order-value'],
+        },
+      ],
+    },
+  ],
+};
+
 const renderComponent = async (
-  messageData?: Partial<MessageFormData> | null
+  messageData?: Partial<MessageFormData> | null,
+  searchParams?: string
 ) => {
-  const path = clusterTopicPath(clusterName, topicName);
+  const basePath = clusterTopicPath(clusterName, topicName);
+  const path = searchParams ? `${basePath}?${searchParams}` : basePath;
   render(
     <WithRoute path={clusterTopicPath()}>
       <SendMessage closeSidebar={mockOnSubmit} messageData={messageData} />
@@ -294,6 +331,194 @@ describe('SendMessage', () => {
         expect(sendTopicMessageMock).toHaveBeenCalled();
         expect(mockOnSubmit).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('URL search params', () => {
+    it('should use keySerde from URL params', async () => {
+      await renderComponent(null, 'keySerde=String');
+
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Key Serde',
+        })
+      ).toHaveTextContent('String');
+    });
+
+    it('should use valueSerde from URL params', async () => {
+      await renderComponent(null, 'valueSerde=String');
+
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Value Serde',
+        })
+      ).toHaveTextContent('String');
+    });
+
+    it('should use both keySerde and valueSerde from URL params', async () => {
+      await renderComponent(null, 'keySerde=String&valueSerde=String');
+
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Key Serde',
+        })
+      ).toHaveTextContent('String');
+
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Value Serde',
+        })
+      ).toHaveTextContent('String');
+    });
+
+    it('should submit with serde values from URL params', async () => {
+      await renderComponent(null, 'keySerde=String&valueSerde=String');
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Produce Message',
+      });
+      await userEvent.click(submitButton);
+
+      expect(sendTopicMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keySerde: 'String',
+          valueSerde: 'String',
+        })
+      );
+    });
+
+    it('should prefer messageData over URL params', async () => {
+      // messageData (reproducing a message) should always win over URL params
+      const messageData: Partial<MessageFormData> = {
+        keySerde: 'Int32',
+        valueSerde: 'Int64',
+      };
+      await renderComponent(messageData, 'keySerde=String&valueSerde=String');
+
+      // messageData should win over URL params
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Key Serde',
+        })
+      ).toHaveTextContent('Int32');
+
+      expect(
+        screen.getByRole('listbox', {
+          name: 'Value Serde',
+        })
+      ).toHaveTextContent('Int64');
+    });
+  });
+
+  describe('subject fields with SchemaRegistry', () => {
+    beforeEach(() => {
+      (useSerdes as jest.Mock).mockImplementation(() => ({
+        data: serdesPayloadWithSchemaRegistry,
+      }));
+    });
+
+    it('should show parameter field when SchemaRegistry is selected for key', async () => {
+      await renderComponent();
+
+      // Select SchemaRegistry for key
+      await userEvent.click(screen.getByRole('listbox', { name: 'Key Serde' }));
+      await userEvent.click(
+        screen.getByRole('option', { name: 'SchemaRegistry' })
+      );
+
+      // Parameter field should appear (label from visibleName)
+      await waitFor(() => {
+        expect(screen.getByText('subject')).toBeInTheDocument();
+      });
+    });
+
+    it('should show parameter field when SchemaRegistry is selected for value', async () => {
+      await renderComponent();
+
+      // Select SchemaRegistry for value
+      await userEvent.click(
+        screen.getByRole('listbox', { name: 'Value Serde' })
+      );
+      await userEvent.click(
+        screen.getByRole('option', { name: 'SchemaRegistry' })
+      );
+
+      // Parameter field should appear (label from visibleName)
+      await waitFor(() => {
+        expect(screen.getByText('subject')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show parameter fields when non-SchemaRegistry serde is selected', async () => {
+      await renderComponent();
+
+      // By default, Int32/Int64 are selected (preferred), not SchemaRegistry
+      expect(screen.queryByText('subject')).not.toBeInTheDocument();
+    });
+
+    it('should submit with keySerdeProperties when SchemaRegistry key is selected', async () => {
+      await renderComponent();
+
+      // Select SchemaRegistry for key
+      await userEvent.click(screen.getByRole('listbox', { name: 'Key Serde' }));
+      await userEvent.click(
+        screen.getByRole('option', { name: 'SchemaRegistry' })
+      );
+
+      // Wait for parameter field to appear and type a value
+      await waitFor(() => {
+        expect(screen.getByText('subject')).toBeInTheDocument();
+      });
+
+      const keySubjectInput = screen.getByPlaceholderText('Search subject...');
+      await userEvent.type(keySubjectInput, 'user-key');
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Produce Message',
+      });
+      await userEvent.click(submitButton);
+
+      expect(sendTopicMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keySerde: 'SchemaRegistry',
+          keySerdeProperties: { subject: 'user-key' },
+        })
+      );
+    });
+
+    it('should submit with valueSerdeProperties when SchemaRegistry value is selected', async () => {
+      await renderComponent();
+
+      // Select SchemaRegistry for value
+      await userEvent.click(
+        screen.getByRole('listbox', { name: 'Value Serde' })
+      );
+      await userEvent.click(
+        screen.getByRole('option', { name: 'SchemaRegistry' })
+      );
+
+      // Wait for parameter field to appear and type a value
+      await waitFor(() => {
+        expect(screen.getByText('subject')).toBeInTheDocument();
+      });
+
+      const valueSubjectInputs =
+        screen.getAllByPlaceholderText('Search subject...');
+      const valueSubjectInput =
+        valueSubjectInputs[valueSubjectInputs.length - 1];
+      await userEvent.type(valueSubjectInput, 'user-value');
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Produce Message',
+      });
+      await userEvent.click(submitButton);
+
+      expect(sendTopicMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          valueSerde: 'SchemaRegistry',
+          valueSerdeProperties: { subject: 'user-value' },
+        })
+      );
     });
   });
 });

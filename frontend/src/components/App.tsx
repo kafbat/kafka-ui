@@ -10,7 +10,12 @@ import {
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ThemeProvider } from 'styled-components';
 import { theme, darkTheme } from 'theme/theme';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { showServerError } from 'lib/errorHandling';
 import { Toaster } from 'react-hot-toast';
 import GlobalCSS from 'components/globalCss';
@@ -32,18 +37,28 @@ const ClusterPage = React.lazy(
 const ClusterConfigForm = React.lazy(() => import('widgets/ClusterConfigForm'));
 const ErrorPage = React.lazy(() => import('components/ErrorPage/ErrorPage'));
 
+const queryCache = new QueryCache({
+  onError: (error) => {
+    showServerError(error as unknown as Response);
+  },
+});
+
+const mutationCache = new MutationCache({
+  onError: (error) => {
+    showServerError(error as unknown as Response);
+  },
+});
+
 const queryClient = new QueryClient({
+  queryCache,
+  mutationCache,
   defaultOptions: {
     queries: {
-      suspense: true,
       networkMode: 'offlineFirst',
-      onError(error) {
-        showServerError(error as Response);
-      },
     },
     mutations: {
       onError(error) {
-        showServerError(error as Response);
+        showServerError(error as unknown as Response);
       },
     },
   },
@@ -103,7 +118,7 @@ const App: React.FC = () => {
           </GlobalSettingsProvider>
         )}
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
     </QueryClientProvider>
   );
 };

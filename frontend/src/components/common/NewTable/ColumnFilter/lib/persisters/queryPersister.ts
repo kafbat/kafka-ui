@@ -48,7 +48,7 @@ function mapColumnKeyToFilterVariant<TData, TValue>(
   return columns.reduce(
     (acc, cur) => {
       if (cur.meta?.filterVariant) {
-        const key = normalizeAccessorKey(cur.accessorKey);
+        const key = normalizeAccessorKey(cur.meta.filterKey ?? cur.accessorKey);
         acc[key] = cur.meta?.filterVariant;
       }
 

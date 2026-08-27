@@ -8,6 +8,7 @@ gradle/libs.versions.toml   @kafbat/backend
 /settings.gradle            @kafbat/backend
 /gradle/                    @kafbat/backend
 /contract/                  @kafbat/backend
+/contract-typespec/         @kafbat/backend
 /api/                       @kafbat/backend
 /serde-api/                 @kafbat/backend
 /documentation/compose/     @kafbat/backend

@@ -3213,6 +3213,12 @@ components:
         valueSerde:
           type: string
           nullable: true
+        keySerdeProperties:
+          type: object
+          additionalProperties: {}
+        valueSerdeProperties:
+          type: object
+          additionalProperties: {}
       required:
         - partition
 
@@ -3688,6 +3694,7 @@ components:
       enum:
         - SOURCE
         - SINK
+        - UNKNOWN
 
     ConsumerGroupOffsetsReset:
       type: object
@@ -4156,6 +4163,7 @@ components:
         - CONSUMER
         - SCHEMA
         - CONNECT
+        - CONNECTOR
         - KSQL
         - ACL
         - AUDIT

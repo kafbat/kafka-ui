@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.StatisticsCache;
 import io.kafbat.ui.service.integration.odd.schema.DataSetFieldsExtractors;
-import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import java.net.URI;

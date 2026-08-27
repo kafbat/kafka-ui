@@ -71,12 +71,22 @@ public interface ClusterMapper {
     return metrics
         .flatMap(m ->
             m.getDataPoints().stream()
-                .map(p ->
-                        new MetricDTO()
-                            .name(m.getMetadata().getName())
-                            .labels(p.getLabels().stream().collect(toMap(Label::getName, Label::getValue)))
-                            .value(BigDecimal.valueOf(readPointValue(p)))
-                )
+                .flatMap(p -> {
+                  double value = readPointValue(p);
+                  // BigDecimal.valueOf(double) throws NumberFormatException on NaN/Infinity.
+                  // JMX/Prometheus exporters legitimately emit NaN for unused metrics
+                  // (e.g. average latency on a never-used listener). Drop those points
+                  // instead of failing the whole broker metrics response.
+                  if (!Double.isFinite(value)) {
+                    return Stream.empty();
+                  }
+                  return Stream.of(
+                      new MetricDTO()
+                          .name(m.getMetadata().getName())
+                          .labels(p.getLabels().stream().collect(toMap(Label::getName, Label::getValue)))
+                          .value(BigDecimal.valueOf(value))
+                  );
+                })
         );
   }
 
