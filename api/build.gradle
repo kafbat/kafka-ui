@@ -17,7 +17,7 @@ configurations.all {
             // so we can safely exclude it from the resolution strategy
             if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
                 details.useVersion(libs.versions.netty.get())
-                details.because("Revert when Spring Boot manages Netty >= ${libs.versions.netty.get()}")
+                details.because("Revert when Spring Boot releases a version with the fix")
             }
         }
         capabilitiesResolution {
