@@ -141,7 +141,7 @@ public class McpSpecificationGenerator {
 
   private Mono<CallToolResult> toCallResult(Object result) {
     return switch (result) {
-      case Mono<?> mono -> mono.map(this::callToolResult);
+      case Mono<?> mono -> mono.map(this::callToolResult).defaultIfEmpty(callToolResult(null));
       case Flux<?> flux -> flux.collectList().map(this::callToolResult);
       case ResponseEntity<?> response -> reponseToCallResult(response);
       case null, default -> Mono.just(this.callToolResult(result));
