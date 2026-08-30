@@ -1,3 +1,4 @@
+import { ClusterMessageFilter } from 'generated-sources';
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -8,6 +9,8 @@ export interface AdvancedFilter {
   id: string;
   value: string;
   filterCode: string;
+  predefined?: boolean;
+  enabledByDefault?: boolean;
 }
 
 interface MessageFiltersState {
@@ -28,6 +31,18 @@ export const selectFilter =
     if (filters[id]) return filters[id];
     return undefined;
   };
+
+export function toPredefinedAdvancedFilter(
+  filter: ClusterMessageFilter
+): AdvancedFilter {
+  return {
+    id: filter.displayName,
+    value: filter.filterCode,
+    filterCode: filter.id,
+    predefined: true,
+    enabledByDefault: Boolean(filter.enabledByDefault),
+  };
+}
 
 export const useMessageFiltersStore = create<MessageFiltersState>()(
   persist(

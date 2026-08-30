@@ -15,3 +15,10 @@ export function useClusterStats(clusterName: ClusterName) {
     refetchInterval: 5000,
   });
 }
+
+export function useClusterMessageFilters(clusterName: ClusterName) {
+  return useQuery({
+    queryKey: ['clusters', clusterName, 'messageFilters'],
+    queryFn: () => api.getClusterMessageFilters({ clusterName }),
+  });
+}

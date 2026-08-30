@@ -2,6 +2,7 @@ package io.kafbat.ui.service;
 
 import io.kafbat.ui.mapper.ClusterMapper;
 import io.kafbat.ui.model.ClusterDTO;
+import io.kafbat.ui.model.ClusterMessageFilterDTO;
 import io.kafbat.ui.model.ClusterMetricsDTO;
 import io.kafbat.ui.model.ClusterStatsDTO;
 import io.kafbat.ui.model.InternalClusterState;
@@ -47,5 +48,19 @@ public class ClusterService {
   public Mono<ClusterDTO> updateCluster(KafkaCluster cluster) {
     return statisticsService.updateCache(cluster)
         .map(metrics -> clusterMapper.toCluster(new InternalClusterState(cluster, metrics)));
+  }
+
+  public List<ClusterMessageFilterDTO> getMessageFilters(KafkaCluster cluster) {
+    var filters = cluster.getMessageFilters();
+    if (filters == null) {
+      return List.of();
+    }
+    return filters.getFilters().stream()
+        .map(filter -> new ClusterMessageFilterDTO()
+            .id(filter.getId())
+            .displayName(filter.getDisplayName())
+            .filterCode(filter.getFilterCode())
+            .enabledByDefault(filter.isEnabledByDefault()))
+        .toList();
   }
 }

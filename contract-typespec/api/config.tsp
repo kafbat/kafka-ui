@@ -219,6 +219,11 @@ model ApplicationConfig {
           topicKeysPattern?: string;
           topicValuesPattern?: string;
         }[];
+        messageFilters?: {
+          displayName?: string;
+          filterCode?: string;
+          enabledByDefault?: boolean = false;
+        }[];
         pollingThrottleRate?: int64;
         audit?: {
           level?: "ALL" | "ALTER_ONLY";

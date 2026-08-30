@@ -31,6 +31,12 @@ interface ClustersApi {
   @operationId("getClusterStats")
   @summary("getClusterStats")
   getClusterStats(@path clusterName: string): ClusterStats;
+
+  @get
+  @route("/{clusterName}/message-filters")
+  @operationId("getClusterMessageFilters")
+  @summary("getClusterMessageFilters")
+  getClusterMessageFilters(@path clusterName: string): ClusterMessageFilter[];
 }
 
 model Cluster {
@@ -105,4 +111,11 @@ enum ControllerType {
     ZOOKEEPER,
     KRAFT,
     UNKNOWN
+}
+
+model ClusterMessageFilter {
+  id: string;
+  displayName: string;
+  filterCode: string;
+  enabledByDefault?: boolean = false;
 }

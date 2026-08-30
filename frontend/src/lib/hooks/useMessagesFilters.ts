@@ -1,14 +1,16 @@
 import { useSearchParams } from 'react-router-dom';
 import { PollingMode } from 'generated-sources';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Option } from 'react-multi-select-component';
 import { MessagesFilterKeys } from 'lib/constants';
+import { useClusterMessageFilters } from 'lib/hooks/api/clusters';
 import { ClusterName } from 'lib/interfaces/cluster';
 
 import { convertStrToPollingMode, ModeOptions } from './filterUtils';
 import {
   AdvancedFilter,
   selectFilter,
+  toPredefinedAdvancedFilter,
   useMessageFiltersStore,
 } from './useMessageFiltersStore';
 import { useMessagesFiltersFields } from './useMessagesFiltersFields';
@@ -71,7 +73,14 @@ export function useMessagesFilters(topicName: string) {
     initMessagesFiltersFields,
     setMessagesFiltersField,
     removeMessagesFiltersField,
+    hasSmartFilterPreference,
   } = useMessagesFiltersFields(storageKey);
+
+  const { data: clusterMessageFilters } = useClusterMessageFilters(clusterName);
+  const predefinedFilters = useMemo(
+    () => (clusterMessageFilters ?? []).map(toPredefinedAdvancedFilter),
+    [clusterMessageFilters]
+  );
 
   useEffect(() => {
     setSearchParams((params) => {
@@ -112,10 +121,21 @@ export function useMessagesFilters(topicName: string) {
     .split(',')
     .filter((v) => v);
 
-  const smartFilterId =
+  const activeFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) || '';
+  const backendSmartFilterId =
+    searchParams.get(MessagesFilterKeys.smartFilterId) || '';
 
-  const smartFilter = useMessageFiltersStore(selectFilter(smartFilterId));
+  const savedSmartFilter = useMessageFiltersStore(selectFilter(activeFilterId));
+  const predefinedByBackendId = predefinedFilters.find(
+    (filter) => filter.filterCode === backendSmartFilterId
+  );
+  const predefinedByName = predefinedFilters.find(
+    (filter) => filter.id === activeFilterId
+  );
+  const smartFilter = backendSmartFilterId
+    ? (predefinedByBackendId ?? savedSmartFilter)
+    : (savedSmartFilter ?? predefinedByName);
 
   /**
    * @description
@@ -220,19 +240,17 @@ export function useMessagesFilters(topicName: string) {
       });
 
       removeMessagesFiltersField(MessagesFilterKeys.smartFilterId);
-      removeMessagesFiltersField(MessagesFilterKeys.activeFilterId);
+      setMessagesFiltersField(MessagesFilterKeys.activeFilterId, '');
 
       return;
     }
 
     const { id } = newFilter;
-    // callback should always capture the latest states not rely on rendering
-
-    const filter = selectFilter(newFilter.id)(
+    const storedFilter = selectFilter(newFilter.id)(
       useMessageFiltersStore.getState()
     );
+    const filter = newFilter.predefined ? newFilter : storedFilter;
 
-    // setting something that is not in the state
     if (!filter) return;
 
     setMessagesFiltersField(MessagesFilterKeys.activeFilterId, filter.id);
@@ -242,11 +260,25 @@ export function useMessagesFilters(topicName: string) {
     );
 
     setSearchParams((params) => {
-      params.set(MessagesFilterKeys.smartFilterId, filter.filterCode); // hash code, i.e. 3de77452
-      params.set(MessagesFilterKeys.activeFilterId, id); // sllug name, i.e. MyFancyFilter
+      params.set(MessagesFilterKeys.smartFilterId, filter.filterCode);
+      params.set(MessagesFilterKeys.activeFilterId, id);
       return params;
     });
   };
+
+  useEffect(() => {
+    if (!predefinedFilters.length) return;
+    if (searchParams.get(MessagesFilterKeys.smartFilterId)) return;
+    if (searchParams.get(MessagesFilterKeys.activeFilterId)) return;
+    if (hasSmartFilterPreference) return;
+
+    const defaultFilter = predefinedFilters.find(
+      (filter) => filter.enabledByDefault
+    );
+    if (defaultFilter) {
+      setSmartFilter(defaultFilter);
+    }
+  }, [predefinedFilters, hasSmartFilterPreference, searchParams]);
 
   return {
     mode,
@@ -265,6 +297,7 @@ export function useMessagesFilters(topicName: string) {
     setPartition,
     smartFilter,
     setSmartFilter,
+    predefinedFilters,
     refreshData,
   };
 }

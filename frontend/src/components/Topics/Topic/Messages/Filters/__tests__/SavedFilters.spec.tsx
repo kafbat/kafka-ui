@@ -106,6 +106,69 @@ describe('SavedFilter Component', () => {
     });
   });
 
+  describe('Predefined Filters', () => {
+    const setSmartFilterMock = jest.fn();
+    const cancelMock = jest.fn();
+    const predefined = [
+      {
+        id: 'Non-heartbeat',
+        value: 'has(record.value.after)',
+        filterCode: 'cfg-non-heartbeat',
+        predefined: true,
+        enabledByDefault: true,
+      },
+      {
+        id: 'Since yesterday',
+        value:
+          'has(record.timestampMs) && record.timestampMs > nowMs - 86400000',
+        filterCode: 'cfg-since-yesterday',
+        predefined: true,
+        enabledByDefault: false,
+      },
+    ];
+
+    beforeEach(() => {
+      setUpComponent({
+        closeSideBar: cancelMock,
+        setSmartFilter: setSmartFilterMock,
+        predefinedFilters: predefined,
+      });
+    });
+
+    afterEach(() => {
+      setSmartFilterMock.mockClear();
+      cancelMock.mockClear();
+    });
+
+    it('renders predefined filters with a default badge', () => {
+      expect(screen.getByText('Predefined')).toBeInTheDocument();
+      expect(screen.getByText('Non-heartbeat')).toBeInTheDocument();
+      expect(screen.getByText('Since yesterday')).toBeInTheDocument();
+      expect(screen.getByText('Default')).toBeInTheDocument();
+    });
+
+    const getPredefinedFilters = () => [
+      screen.getByRole('button', { name: /Non-heartbeat/ }),
+      screen.getByRole('button', { name: /Since yesterday/ }),
+    ];
+
+    it('activates a predefined filter on click', async () => {
+      await userEvent.click(getPredefinedFilters()[0]);
+
+      expect(setSmartFilterMock).toHaveBeenCalledWith(predefined[0]);
+      expect(cancelMock).toHaveBeenCalled();
+    });
+
+    it('does not offer edit or delete for predefined filters', () => {
+      getPredefinedFilters().forEach((filter) => {
+        expect(within(filter).queryByLabelText('edit')).not.toBeInTheDocument();
+        expect(
+          within(filter).queryByLabelText('delete')
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Saved Filters Deletion', () => {
     const setSmartFilterMock = jest.fn();
 
