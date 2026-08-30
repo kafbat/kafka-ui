@@ -1,5 +1,6 @@
 package io.kafbat.ui.service;
 
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,6 +13,8 @@ import reactor.core.scheduler.Schedulers;
 @RequiredArgsConstructor
 @Slf4j
 public class ClustersStatisticsScheduler {
+
+  private static final Duration STATS_UPDATE_TIMEOUT = Duration.ofSeconds(90);
 
   private final ClustersStorage clustersStorage;
 
@@ -32,6 +35,6 @@ public class ClustersStatisticsScheduler {
               });
         })
         .then()
-        .block();
+        .block(STATS_UPDATE_TIMEOUT);
   }
 }

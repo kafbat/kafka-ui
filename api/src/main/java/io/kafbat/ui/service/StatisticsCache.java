@@ -25,37 +25,37 @@ public class StatisticsCache {
     clustersStorage.getKafkaClusters().forEach(c -> cache.put(c.getName(), initializing));
   }
 
-  public synchronized void replace(KafkaCluster c, Statistics stats) {
+  public void replace(KafkaCluster c, Statistics stats) {
     cache.put(c.getName(), stats);
   }
 
-  public synchronized void update(KafkaCluster c,
-                                  Map<String, TopicDescription> descriptions,
-                                  Map<String, List<ConfigEntry>> configs,
-                                  InternalPartitionsOffsets partitionsOffsets,
-                                  ClustersProperties clustersProperties) {
-    var stats = get(c);
-    replace(
-        c,
-        stats.withClusterState(s ->
+  public void update(KafkaCluster c,
+                     Map<String, TopicDescription> descriptions,
+                     Map<String, List<ConfigEntry>> configs,
+                     InternalPartitionsOffsets partitionsOffsets,
+                     ClustersProperties clustersProperties) {
+    var oldStats = get(c);
+    cache.put(c.getName(),
+        oldStats.withClusterState(s ->
             s.updateTopics(descriptions, configs, partitionsOffsets, clustersProperties)
         )
     );
     try {
-      if (!stats.getStatus().equals(ServerStatusDTO.INITIALIZING)) {
-        stats.close();
+      if (!oldStats.getStatus().equals(ServerStatusDTO.INITIALIZING)) {
+        oldStats.close();
       }
     } catch (Exception e) {
       log.error("Error closing cluster {} stats", c.getName(), e);
     }
   }
 
-  public synchronized void onTopicDelete(KafkaCluster c, String topic) {
-    var stats = get(c);
-    replace(
-        c,
-        stats.withClusterState(s -> s.topicDeleted(topic))
-    );
+  public void onTopicDelete(KafkaCluster c, String topic) {
+    cache.compute(c.getName(), (name, stats) -> {
+      if (stats == null) {
+        return null;
+      }
+      return stats.withClusterState(s -> s.topicDeleted(topic));
+    });
   }
 
   public Statistics get(KafkaCluster c) {
