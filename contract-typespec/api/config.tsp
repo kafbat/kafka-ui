@@ -64,6 +64,13 @@ model ApplicationInfo {
   };
 }
 
+model KeystoreConfig {
+  keystoreType?: StoreType;
+  keystoreCertificate?: string;
+  keystoreLocation?: string;
+  keystorePassword?: string;
+}
+
 model ApplicationConfig {
   properties: {
     auth?: {
@@ -144,11 +151,14 @@ model ApplicationConfig {
       clusters?: {
         name?: string;
         bootstrapServers?: string;
+        securityProtocol?: string;
         ssl?: {
+          truststoreType?: StoreType;
           truststoreLocation?: string;
           truststorePassword?: string;
           verify?: boolean = true;
         };
+        kafkaSsl?: KeystoreConfig;
         schemaRegistry?: string;
         schemaRegistryAuth?: {
           username?: string;
@@ -164,15 +174,9 @@ model ApplicationConfig {
             maxRetries?: int32 = 1;
           };
         };
-        schemaRegistrySsl?: {
-          keystoreLocation?: string;
-          keystorePassword?: string;
-        };
+        schemaRegistrySsl?: KeystoreConfig;
         ksqldbServer?: string;
-        ksqldbServerSsl?: {
-          keystoreLocation?: string;
-          keystorePassword?: string;
-        };
+        ksqldbServerSsl?: KeystoreConfig;
         ksqldbServerAuth?: {
           username?: string;
           password?: string;
@@ -182,6 +186,8 @@ model ApplicationConfig {
           address?: string;
           username?: string;
           password?: string;
+          keystoreType?: StoreType;
+          keystoreCertificate?: string;
           keystoreLocation?: string;
           keystorePassword?: string;
         }[];
@@ -191,6 +197,8 @@ model ApplicationConfig {
           ssl?: boolean;
           username?: string;
           password?: string;
+          keystoreType?: StoreType;
+          keystoreCertificate?: string;
           keystoreLocation?: string;
           keystorePassword?: string;
           prometheusExpose?: boolean;
@@ -310,6 +318,19 @@ enum ResourceType {
   ACL,
   AUDIT,
   CLIENT_QUOTAS,
+}
+
+enum StoreType {
+  JKS,
+  PKCS12,
+  PEM,
+}
+
+enum SecurityProtocol {
+  PLAINTEXT,
+  SASL_PLAINTEXT,
+  SASL_SSL,
+  SSL,
 }
 
 model ClusterMetricsStoreConfig {

@@ -44,7 +44,12 @@ public class AdminClientServiceImpl implements AdminClientService {
   private Mono<ReactiveAdminClient> createAdminClient(KafkaCluster cluster) {
     return Mono.fromSupplier(() -> {
       Properties properties = new Properties();
-      KafkaClientSslPropertiesUtil.addKafkaSslProperties(cluster.getOriginalProperties().getSsl(), properties);
+      KafkaClientSslPropertiesUtil.addKafkaSslProperties(
+          cluster.getOriginalProperties().getSsl(),
+          cluster.getOriginalProperties().getKafkaSsl(),
+          cluster.getOriginalProperties().getSecurityProtocol(),
+          properties
+      );
       properties.putAll(cluster.getProperties());
       properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, cluster.getBootstrapServers());
       properties.putIfAbsent(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, clientTimeout);
