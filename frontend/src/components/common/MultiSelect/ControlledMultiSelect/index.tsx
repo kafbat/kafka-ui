@@ -17,7 +17,7 @@ const ControlledMultiSelect: FC<Props> = ({ name, options, label }) => {
       name={name}
       render={({ field: { value, onChange } }) => (
         <MultiSelect
-          height="40px"
+          $height="40px"
           options={options}
           value={value ?? []}
           onChange={onChange}

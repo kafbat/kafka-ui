@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 interface CellProps {
-  isWarning?: boolean;
-  isAttention?: boolean;
+  $isWarning?: boolean;
+  $isAttention?: boolean;
 }
 
 interface ColoredCellProps {
@@ -14,11 +14,11 @@ interface ColoredCellProps {
 
 const Cell = styled.div<CellProps>`
   color: ${(props) => {
-    if (props.isAttention) {
+    if (props.$isAttention) {
       return props.theme.table.colored.color.attention;
     }
 
-    if (props.isWarning) {
+    if (props.$isWarning) {
       return props.theme.table.colored.color.warning;
     }
 
@@ -32,7 +32,7 @@ const ColoredCell: React.FC<ColoredCellProps> = ({
   attention,
 }) => {
   return (
-    <Cell isWarning={warn} isAttention={attention}>
+    <Cell $isWarning={warn} $isAttention={attention}>
       {value}
     </Cell>
   );

@@ -16,7 +16,7 @@ const Switch: React.FC<SwitchProps> = ({ name, checked, onChange }) => {
         onChange={onChange}
         checked={checked}
       />
-      <S.StyledSlider checked={checked} />
+      <S.StyledSlider $checked={checked} />
     </S.StyledLabel>
   );
 };

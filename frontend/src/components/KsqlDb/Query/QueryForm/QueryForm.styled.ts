@@ -41,11 +41,11 @@ export const ButtonsContainer = styled.div`
   gap: 8px;
 `;
 
-export const SQLEditor = styled(BaseSQLEditor)(
-  ({ readOnly, theme }) => css`
-    background: ${readOnly && theme.ksqlDb.query.editor.readonly.background};
+export const SQLEditor = styled(BaseSQLEditor)<{ $readOnly?: boolean }>(
+  ({ $readOnly, theme }) => css`
+    background: ${$readOnly && theme.ksqlDb.query.editor.readonly.background};
     .ace-cursor {
-      ${readOnly && `background: ${theme.default.transparentColor} `}
+      ${$readOnly && `background: ${theme.default.transparentColor} `}
     }
 
     .ace_content {

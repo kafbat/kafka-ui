@@ -10,7 +10,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ completed }) => {
   const p = Math.max(Math.min(completed, 100), 0);
   return (
     <S.Wrapper>
-      <S.Filler role="progressbar" completed={p} />
+      <S.Filler role="progressbar" $completed={p} />
     </S.Wrapper>
   );
 };

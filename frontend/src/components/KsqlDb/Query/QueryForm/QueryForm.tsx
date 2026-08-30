@@ -143,6 +143,7 @@ const QueryForm: React.FC<QueryFormProps> = ({
                       },
                     ]}
                     readOnly={fetching}
+                    $readOnly={fetching}
                     ref={inputRef}
                   />
                 )}

@@ -84,7 +84,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
           setFilters={setFilters}
         />
       )}
-      <Table isFullwidth>
+      <Table $isFullwidth>
         <thead>
           <tr>
             <TableHeaderCell> </TableHeaderCell>
