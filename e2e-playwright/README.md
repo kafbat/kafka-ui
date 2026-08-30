@@ -4,24 +4,24 @@ End-to-End UI test automation using **Playwright**, **Cucumber.js**, and **TypeS
 
 ## Prerequisites
 
-- **Node.js** >= 18  
-- **npm** or **yarn**
+- **Node.js** >= 18
+- **pnpm** (bundled via Corepack: `corepack enable`)
 - Install dependencies and Playwright browsers:
 
 ```bash
 Local run:
 Run Kafbat (docker compose -f ./documentation/compose/e2e-tests.yaml up -d)
-npm install
-npx playwright install
+pnpm install --frozen-lockfile
+pnpm exec playwright install
 
 🔹 Normal Test Run
-npm test:stage
+pnpm test:stage
 
 🔹 Debug Mode (with Playwright Inspector)
-npm run debug
+pnpm run debug
 
 🔹 Rerun Failed Tests
-npm run test:failed
+pnpm run test:failed
 
 
 GitHub Actions CI example
@@ -38,19 +38,26 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # https://github.com/actions/setup-node/releases/tag/v3.9.1
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'pnpm'
+          cache-dependency-path: ./e2e-playwright/pnpm-lock.yaml
 
-      - name: Install NPM dependencies
-        run: npm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install
+        run: pnpm exec playwright install
 
       - name: 🚀 Run tests with ENV=prod
-        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test
+        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 pnpm test
 ```
