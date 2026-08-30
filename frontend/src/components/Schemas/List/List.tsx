@@ -27,6 +27,8 @@ import ResourcePageHeading from 'components/common/ResourcePageHeading/ResourceP
 import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
+import TableRefresh from 'components/common/TableRefresh/TableRefresh';
+import { useRefreshRate } from 'lib/hooks/useRefreshRate';
 
 import GlobalSchemaSelector from './GlobalSchemaSelector/GlobalSchemaSelector';
 
@@ -36,17 +38,21 @@ const List: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('schemas');
-  const schemas = useGetSchemas({
-    clusterName,
-    page: Number(searchParams.get('page') || 1),
-    perPage: Number(searchParams.get('perPage') || PER_PAGE),
-    search: searchParams.get('q') || '',
-    orderBy: (searchParams.get('sortBy') as SchemaColumnsToSort) ?? undefined,
-    sortOrder:
-      (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
-      undefined,
-    fts: isFtsEnabled,
-  });
+  const { refetchInterval } = useRefreshRate('schemas-refresh-rate');
+  const schemas = useGetSchemas(
+    {
+      clusterName,
+      page: Number(searchParams.get('page') || 1),
+      perPage: Number(searchParams.get('perPage') || PER_PAGE),
+      search: searchParams.get('q') || '',
+      orderBy: (searchParams.get('sortBy') as SchemaColumnsToSort) ?? undefined,
+      sortOrder:
+        (searchParams.get('sortDirection')?.toUpperCase() as SortOrder) ||
+        undefined,
+      fts: isFtsEnabled,
+    },
+    { refetchInterval, refetchIntervalInBackground: false }
+  );
 
   const columns = React.useMemo<ColumnDef<SchemaSubject>[]>(
     () => [
@@ -117,11 +123,14 @@ const List: React.FC = () => {
           placeholder="Search by Schema Name"
           extraActions={<Fts resourceName="schemas" />}
         />
+        <TableRefresh
+          storageKey="schemas-refresh-rate"
+          onRefresh={schemas.refetch}
+          isFetching={schemas.isFetching}
+        />
       </ControlPanelWrapper>
 
-      {(schemas.isLoading || schemas.isRefetching) && (
-        <PageLoader offsetY={300} />
-      )}
+      {schemas.isLoading && <PageLoader offsetY={300} />}
 
       {schemas.error && (
         <ErrorPage

@@ -21,7 +21,8 @@ import useFts from 'components/common/Fts/useFts';
 import Fts from 'components/common/Fts/Fts';
 import { DownloadCsvButton } from 'components/common/DownloadCsvButton/DownloadCsvButton';
 import { consumerGroupsApiClient } from 'lib/api';
-import { RefreshRateSelect } from 'components/common/RefreshRateSelect/RefreshRateSelect';
+import TableRefresh from 'components/common/TableRefresh/TableRefresh';
+import { useRefreshRate } from 'lib/hooks/useRefreshRate';
 import useQueryPersister from 'components/common/NewTable/ColumnFilter/lib/persisters/queryPersister';
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import ErrorPage from 'components/ErrorPage/ErrorPage';
@@ -44,14 +45,18 @@ const List = () => {
     fts: isFtsEnabled,
   };
 
-  const consumerGroups = useConsumerGroups({
-    ...params,
-    page: Number(searchParams.get('page') || 1),
-    perPage: Number(searchParams.get('perPage') || PER_PAGE),
-    state: searchParams
-      .get(ConsumerGroupOrdering.STATE)
-      ?.split(',') as ConsumerGroupState[],
-  });
+  const { refetchInterval } = useRefreshRate('consumer-groups-refresh-rate');
+  const consumerGroups = useConsumerGroups(
+    {
+      ...params,
+      page: Number(searchParams.get('page') || 1),
+      perPage: Number(searchParams.get('perPage') || PER_PAGE),
+      state: searchParams
+        .get(ConsumerGroupOrdering.STATE)
+        ?.split(',') as ConsumerGroupState[],
+    },
+    { refetchInterval, refetchIntervalInBackground: false }
+  );
 
   const { consumerGroupsLag, lagTrends } = useConsumerGroupsLagTrends({
     clusterName,
@@ -161,11 +166,13 @@ const List = () => {
           placeholder="Search by Consumer Group ID"
           extraActions={<Fts resourceName="consumer_groups" />}
         />
-        <RefreshRateSelect storageKey="consumer-groups-refresh-rate" />
+        <TableRefresh
+          storageKey="consumer-groups-refresh-rate"
+          onRefresh={consumerGroups.refetch}
+          isFetching={consumerGroups.isFetching}
+        />
       </ControlPanelWrapper>
-      {(consumerGroups.isLoading || consumerGroups.isRefetching) && (
-        <PageLoader offsetY={300} />
-      )}
+      {consumerGroups.isLoading && <PageLoader offsetY={300} />}
       {consumerGroups.error && (
         <ErrorPage
           offsetY={300}
