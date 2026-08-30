@@ -18,6 +18,7 @@ import ClusterContext from 'components/contexts/ClusterContext';
 
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
+import BytesFormatted from '../../../common/BytesFormatted/BytesFormatted';
 
 export interface PreviewFilter {
   field: string;
@@ -156,6 +157,9 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
             </S.MetadataValue>
           </S.Metadata>
         </S.DataCell>
+        <td>
+          <BytesFormatted value={valueSize} />
+        </td>
         <td style={{ width: '5%' }}>
           <div style={{ visibility: vEllipsisOpen ? 'visible' : 'hidden' }}>
             <Dropdown>
