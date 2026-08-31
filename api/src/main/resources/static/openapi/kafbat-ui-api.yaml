@@ -5520,6 +5520,6 @@ components:
           items:
             $ref: '#/components/schemas/Action'
 servers:
-  - url: http://localhost:8080
-    description: Default endpoint for Kafbat UI API
+  - url: /
+    description: Current host
     variables: {}
