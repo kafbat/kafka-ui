@@ -142,4 +142,28 @@ public class MockedRbacUtils {
     ), "op", "params");
   }
 
+  /**
+   * Creates a role with ACL EDIT permission and given protectedPrincipals patterns.
+   * Used to test validateAclPrincipalModification enforcement.
+   */
+  public static Role getAclRoleWithProtectedPrincipals(String roleName, String clusterName,
+      List<String> protectedPrincipals) {
+    Role role = new Role();
+    role.setName(roleName);
+    role.setClusters(List.of(clusterName));
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider(Provider.LDAP);
+    sub.setValue("some.group");
+    role.setSubjects(List.of(sub));
+
+    Permission aclPermission = new Permission();
+    aclPermission.setResource(Resource.ACL.name());
+    aclPermission.setActions(List.of("EDIT"));
+    aclPermission.setProtectedPrincipals(protectedPrincipals);
+
+    role.setPermissions(List.of(aclPermission));
+    role.validate();
+    return role;
+  }
 }
