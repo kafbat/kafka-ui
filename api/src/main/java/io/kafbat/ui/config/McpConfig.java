@@ -22,6 +22,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 
+/**
+ * Spring configuration that wires up the Model Context Protocol (MCP) server.
+ *
+ * <p>Only active when {@code mcp.enabled=true}. Two transports can be exposed,
+ * selected by the {@code mcp.transport} property
+ * ({@link McpProperties.Transport}):
+ * <ul>
+ *   <li>the legacy HTTP+SSE transport ({@code /mcp/sse} + {@code /mcp/message}),
+ *       deprecated in the MCP spec (2025-06-18); and</li>
+ *   <li>the current Streamable HTTP transport (a single {@code /mcp} endpoint).</li>
+ * </ul>
+ * Each active transport is backed by its own {@link McpAsyncServer} exposing the
+ * same set of tools, and its {@link RouterFunction} is picked up by Spring
+ * WebFlux.
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties(McpProperties.class)
@@ -44,8 +59,15 @@ public class McpConfig {
   private final List<McpTool> mcpTools;
   private final McpSpecificationGenerator mcpSpecificationGenerator;
 
-  // The MCP SDK (0.18.x) abstracts JSON handling behind McpJsonMapper; reuse the
-  // application's configured Jackson ObjectMapper.
+  /**
+   * Adapts the application's Jackson {@link ObjectMapper} to the SDK's
+   * {@link McpJsonMapper} abstraction (introduced in mcp-spring-webflux 0.18.x),
+   * so MCP JSON (de)serialization uses the same configuration as the rest of the
+   * app.
+   *
+   * @param mapper the shared application {@link ObjectMapper}
+   * @return an {@link McpJsonMapper} backed by {@code mapper}
+   */
   @Bean
   public McpJsonMapper mcpJsonMapper(ObjectMapper mapper) {
     return new JacksonMcpJsonMapper(mapper);
@@ -55,6 +77,14 @@ public class McpConfig {
   // Legacy SSE transport
   // ---------------------------------------------------------------------------
 
+  /**
+   * Creates the legacy HTTP+SSE transport provider (endpoints {@code /mcp/sse}
+   * and {@code /mcp/message}). Only registered when {@code mcp.transport} is
+   * {@code SSE} or {@code BOTH}.
+   *
+   * @param jsonMapper the MCP JSON mapper
+   * @return the SSE transport provider
+   */
   @Bean
   @ConditionalOnExpression(SSE_ENABLED)
   public WebFluxSseServerTransportProvider sseServerTransport(McpJsonMapper jsonMapper) {
@@ -65,12 +95,26 @@ public class McpConfig {
         .build();
   }
 
+  /**
+   * Exposes the SSE transport's routes to Spring WebFlux. Only present when the
+   * SSE transport provider bean exists.
+   *
+   * @param transport the SSE transport provider
+   * @return the router function serving the SSE endpoints
+   */
   @Bean
   @ConditionalOnBean(WebFluxSseServerTransportProvider.class)
   public RouterFunction<?> mcpSseRouterFunction(WebFluxSseServerTransportProvider transport) {
     return transport.getRouterFunction();
   }
 
+  /**
+   * Builds the {@link McpAsyncServer} bound to the SSE transport. Only present
+   * when the SSE transport provider bean exists.
+   *
+   * @param transport the SSE transport provider
+   * @return the MCP async server for the SSE transport
+   */
   @Bean
   @ConditionalOnBean(WebFluxSseServerTransportProvider.class)
   public McpAsyncServer mcpSseServer(WebFluxSseServerTransportProvider transport) {
@@ -85,6 +129,14 @@ public class McpConfig {
   // Streamable HTTP transport
   // ---------------------------------------------------------------------------
 
+  /**
+   * Creates the current Streamable HTTP transport provider (single {@code /mcp}
+   * endpoint). Only registered when {@code mcp.transport} is {@code STREAMABLE}
+   * or {@code BOTH}.
+   *
+   * @param jsonMapper the MCP JSON mapper
+   * @return the Streamable HTTP transport provider
+   */
   @Bean
   @ConditionalOnExpression(STREAMABLE_ENABLED)
   public WebFluxStreamableServerTransportProvider streamableServerTransport(McpJsonMapper jsonMapper) {
@@ -94,12 +146,26 @@ public class McpConfig {
         .build();
   }
 
+  /**
+   * Exposes the Streamable HTTP transport's routes to Spring WebFlux. Only
+   * present when the Streamable HTTP transport provider bean exists.
+   *
+   * @param transport the Streamable HTTP transport provider
+   * @return the router function serving the {@code /mcp} endpoint
+   */
   @Bean
   @ConditionalOnBean(WebFluxStreamableServerTransportProvider.class)
   public RouterFunction<?> mcpStreamableRouterFunction(WebFluxStreamableServerTransportProvider transport) {
     return transport.getRouterFunction();
   }
 
+  /**
+   * Builds the {@link McpAsyncServer} bound to the Streamable HTTP transport.
+   * Only present when the Streamable HTTP transport provider bean exists.
+   *
+   * @param transport the Streamable HTTP transport provider
+   * @return the MCP async server for the Streamable HTTP transport
+   */
   @Bean
   @ConditionalOnBean(WebFluxStreamableServerTransportProvider.class)
   public McpAsyncServer mcpStreamableServer(WebFluxStreamableServerTransportProvider transport) {
@@ -112,6 +178,13 @@ public class McpConfig {
 
   // ---------------------------------------------------------------------------
 
+  /**
+   * Declares the MCP server capabilities shared by every transport: tools (with
+   * list-change notifications), read-only resources, and logging; prompts are
+   * disabled.
+   *
+   * @return the configured {@link McpSchema.ServerCapabilities}
+   */
   private McpSchema.ServerCapabilities capabilities() {
     return McpSchema.ServerCapabilities.builder()
         .resources(false, true) // Resource support with list changes notifications
@@ -121,6 +194,12 @@ public class McpConfig {
         .build();
   }
 
+  /**
+   * Collects the tool specifications exposed to MCP clients by converting every
+   * {@link McpTool} bean via {@link McpSpecificationGenerator}.
+   *
+   * @return the list of tool specifications
+   */
   private List<AsyncToolSpecification> tools() {
     List<AsyncToolSpecification> tools = new ArrayList<>();
     for (McpTool mcpTool : mcpTools) {
