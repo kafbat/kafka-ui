@@ -102,6 +102,7 @@ dependencies {
     implementation libs.lz4.yawk
 
     implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.modelcontextprotocol.json.jackson2
     implementation libs.victools.jsonschema.generator
 
 
