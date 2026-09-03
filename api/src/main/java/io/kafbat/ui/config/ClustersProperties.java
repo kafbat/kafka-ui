@@ -4,6 +4,8 @@ import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
@@ -45,6 +47,9 @@ public class ClustersProperties {
 
   AdminClient adminClient = new AdminClient();
 
+  @Valid
+  KafkaConnect kafkaConnectClient = new KafkaConnect();
+
   Csv csv = new Csv();
 
   Boolean messageRelativeTimestamp;
@@ -66,6 +71,23 @@ public class ClustersProperties {
     int listConsumerGroupOffsetsConcurrency = 4;
     int getTopicsConfigPartitionSize = 200;
     int describeTopicsPartitionSize = 200;
+  }
+
+  @Data
+  public static class KafkaConnect {
+    @Min(1)
+    int scrapeConcurrency = 4;
+    @Min(0)
+    int maxRetries = 5;
+    @Min(1)
+    long retryBaseDelayMs = 500;
+    @Min(1)
+    long retryMaxDelayMs = 10000;
+
+    @AssertTrue(message = "retryMaxDelayMs must be greater than or equal to retryBaseDelayMs")
+    boolean isRetryDelayRangeValid() {
+      return retryMaxDelayMs >= retryBaseDelayMs;
+    }
   }
 
   @Data
