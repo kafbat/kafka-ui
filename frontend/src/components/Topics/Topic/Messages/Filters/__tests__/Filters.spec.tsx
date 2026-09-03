@@ -72,7 +72,7 @@ beforeEach(async () => {
 });
 
 describe('Filters component', () => {
-  const getSeekTypeSelect = () => screen.getAllByRole('listbox')[0];
+  const getModeSelect = () => screen.getAllByRole('listbox')[0];
   const getKeySerdeDropdown = () => screen.getAllByRole('listbox')[1];
   const getValueSerdeDropdown = () => screen.getAllByRole('listbox')[2];
 
@@ -88,12 +88,12 @@ describe('Filters component', () => {
       value: string,
       placeholder: string
     ) => {
-      const seekTypeSelect = getSeekTypeSelect();
+      const modeSelect = getModeSelect();
       const option = screen.getAllByRole('option');
 
-      await userEvent.click(seekTypeSelect);
+      await userEvent.click(modeSelect);
 
-      await userEvent.selectOptions(seekTypeSelect, [value]);
+      await userEvent.selectOptions(modeSelect, [value]);
 
       expect(option[0]).toHaveTextContent(value);
       const timestampInput = screen.getByPlaceholderText(placeholder);
@@ -134,11 +134,11 @@ describe('Filters component', () => {
     it('saves filter value', async () => {
       await act(() => renderComponent());
 
-      const seekTypeSelect = getSeekTypeSelect();
+      const modeSelect = getModeSelect();
       const option = screen.getAllByRole('option');
 
-      await userEvent.click(seekTypeSelect);
-      await userEvent.selectOptions(seekTypeSelect, ['From offset']);
+      await userEvent.click(modeSelect);
+      await userEvent.selectOptions(modeSelect, ['From offset']);
 
       expect(option[0]).toHaveTextContent('From offset');
       const timestampInput = screen.getByPlaceholderText('Offset');
@@ -147,8 +147,8 @@ describe('Filters component', () => {
 
       expect(timestampInput).toHaveValue(inputValue);
 
-      await userEvent.click(seekTypeSelect);
-      await userEvent.selectOptions(seekTypeSelect, ['To offset']);
+      await userEvent.click(modeSelect);
+      await userEvent.selectOptions(modeSelect, ['To offset']);
 
       expect(timestampInput).toHaveValue(inputValue);
     });
@@ -168,7 +168,7 @@ describe('Filters component', () => {
         }
       );
       const item = ModeOptions.find((i) => i.value === mode);
-      expect(getSeekTypeSelect()).toHaveTextContent(item?.label || '');
+      expect(getModeSelect()).toHaveTextContent(item?.label || '');
     };
 
     describe('modes and the related inputs', () => {

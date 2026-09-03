@@ -61,7 +61,7 @@ export const useTopicMessages = ({
 
       const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
         clusterName
-      )}/topics/${topicName}/messages/v2`;
+      )}/topics/${topicName}/messages`;
 
       const requestParams = new URLSearchParams({
         limit: searchParams.get(MessagesFilterKeys.limit) || MESSAGES_PER_PAGE,
