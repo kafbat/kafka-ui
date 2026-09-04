@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import com.squareup.wire.schema.ProtoFile;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
@@ -80,7 +81,7 @@ class ProtobufFileSerdeTest {
   void loadsAllProtoFiledFromTargetDirectory() throws Exception {
     var protoDir = ResourceUtils.getFile("classpath:protobuf-serde/").getPath();
     List<ProtoFile> files = new ProtobufFileSerde.ProtoSchemaLoader(protoDir).load();
-    assertThat(files).hasSize(5);
+    assertThat(files).hasSize(6);
     assertThat(files)
         .map(f -> f.getLocation().getPath())
         .containsExactlyInAnyOrder(
@@ -88,7 +89,8 @@ class ProtobufFileSerdeTest {
             "sensor.proto",
             "address-book.proto",
             "lang-description.proto",
-            "messagewithany.proto"
+            "messagewithany.proto",
+            "messagewithany2.proto"
         );
   }
 
@@ -322,6 +324,73 @@ class ProtobufFileSerdeTest {
     var deserializedBook = serde.deserializer("books", Serde.Target.KEY)
         .deserialize(null, addressBookMessageBytes);
     assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+  }
+
+  @Test
+  void deserializeResolvesAnyPayloadUsingTypesFromLoadedProtoFiles() throws Exception {
+    Map<Path, ProtobufSchema> files = ProtobufFileSerde.Configuration.loadSchemas(
+        Optional.empty(),
+        Optional.of(protoFilesDir())
+    );
+
+    // Two Any-carrying messages defined in separate proto files, mapped to separate topics.
+    // ProtobufSchema names every FileDescriptor it synthesises "default", so a TypeRegistry
+    // shared between the two descriptors keeps only the first file's types - which would
+    // leave one of these two topics unable to resolve its payload.
+    Path firstPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
+    Path secondPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany2.proto").toPath();
+    var firstDescriptor = files.get(firstPath).toDescriptor("test.MessageWithAny");
+    var secondDescriptor = files.get(secondPath).toDescriptor("test.MessageWithAny2");
+
+    byte[] firstBytes = messageWithAny(
+        files.get(firstPath), firstDescriptor, "test.PayloadMessage", "payload-1");
+    byte[] secondBytes = messageWithAny(
+        files.get(secondPath), secondDescriptor, "test.PayloadMessage2", "payload-2");
+
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            null,
+            null,
+            Map.of(firstDescriptor, firstPath, secondDescriptor, secondPath),
+            Map.of("any-topic", firstDescriptor, "any-topic-2", secondDescriptor),
+            Map.of()
+        )
+    );
+
+    assertJsonEquals(
+        "{\"name\": \"with any\", \"payload\": "
+            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage\", \"id\": \"payload-1\"}}",
+        serde.deserializer("any-topic", Serde.Target.VALUE).deserialize(null, firstBytes).getResult()
+    );
+
+    assertJsonEquals(
+        "{\"name\": \"with any\", \"payload\": "
+            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage2\", \"id\": \"payload-2\"}}",
+        serde.deserializer("any-topic-2", Serde.Target.VALUE).deserialize(null, secondBytes).getResult()
+    );
+  }
+
+  @SneakyThrows
+  private byte[] messageWithAny(ProtobufSchema schema,
+                                Descriptors.Descriptor descriptor,
+                                String payloadTypeName,
+                                String payloadId) {
+    var payloadBuilder = schema.newMessageBuilder(payloadTypeName);
+    JsonFormat.parser().merge("{ \"id\": \"" + payloadId + "\" }", payloadBuilder);
+
+    var payloadField = descriptor.findFieldByName("payload");
+    var anyDescriptor = payloadField.getMessageType();
+    var anyMessage = DynamicMessage.newBuilder(anyDescriptor)
+        .setField(anyDescriptor.findFieldByName("type_url"), "type.googleapis.com/" + payloadTypeName)
+        .setField(anyDescriptor.findFieldByName("value"), payloadBuilder.build().toByteString())
+        .build();
+
+    return DynamicMessage.newBuilder(descriptor)
+        .setField(descriptor.findFieldByName("name"), "with any")
+        .setField(payloadField, anyMessage)
+        .build()
+        .toByteArray();
   }
 
   @Test

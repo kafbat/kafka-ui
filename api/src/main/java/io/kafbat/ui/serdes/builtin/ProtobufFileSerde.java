@@ -40,7 +40,6 @@ import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import com.squareup.wire.schema.internal.parser.ProtoParser;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaUtils;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.PropertyResolver;
@@ -77,6 +76,8 @@ public class ProtobufFileSerde implements BuiltInSerde {
   private Map<String, Descriptor> keyMessageDescriptorMap = new HashMap<>();
 
   private Map<Descriptor, Path> descriptorPaths = new HashMap<>();
+
+  private Map<Descriptor, TypeRegistry> typeRegistries = new HashMap<>();
 
   @Nullable
   private Descriptor defaultMessageDescriptor;
@@ -116,6 +117,17 @@ public class ProtobufFileSerde implements BuiltInSerde {
     this.descriptorPaths = configuration.descriptorPaths();
     this.messageDescriptorMap = configuration.messageDescriptorMap();
     this.keyMessageDescriptorMap = configuration.keyMessageDescriptorMap();
+    // One registry per descriptor, rather than a single registry built from all of them.
+    // TypeRegistry.Builder#add pulls in the descriptor's whole file plus its transitive
+    // imports, which is what an Any field needs - but it skips a file whose name it has
+    // already seen, and ProtobufSchema names every FileDescriptor it synthesises
+    // "default". A shared registry would therefore keep only the first descriptor's
+    // types and silently drop the rest, picked in HashMap order.
+    this.typeRegistries = configuration.descriptorPaths().keySet().stream()
+        .collect(Collectors.toMap(
+            Function.identity(),
+            descriptor -> TypeRegistry.newBuilder().add(descriptor).build()
+        ));
   }
 
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {
@@ -126,6 +138,10 @@ public class ProtobufFileSerde implements BuiltInSerde {
         :
         Optional.ofNullable(messageDescriptorMap.get(topic))
             .or(() -> Optional.ofNullable(defaultMessageDescriptor));
+  }
+
+  private TypeRegistry typeRegistryFor(Descriptor descriptor) {
+    return typeRegistries.getOrDefault(descriptor, TypeRegistry.getEmptyTypeRegistry());
   }
 
   @Override
@@ -141,10 +157,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
-    TypeRegistry typeRegistry = TypeRegistry.newBuilder()
-        .add(descriptorPaths.keySet())
-        .build();
-
+    var typeRegistry = typeRegistryFor(descriptor);
     return new Serde.Serializer() {
       @SneakyThrows
       @Override
@@ -161,13 +174,17 @@ public class ProtobufFileSerde implements BuiltInSerde {
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    var typeRegistry = typeRegistryFor(descriptor);
     return new Serde.Deserializer() {
       @SneakyThrows
       @Override
       public DeserializeResult deserialize(RecordHeaders headers, byte[] data) {
         var protoMsg = DynamicMessage.parseFrom(descriptor, new ByteArrayInputStream(data));
-        byte[] jsonFromProto = ProtobufSchemaUtils.toJson(protoMsg);
-        var result = new String(jsonFromProto);
+        var result = JsonFormat.printer()
+            .usingTypeRegistry(typeRegistry)
+            .includingDefaultValueFields()
+            .omittingInsignificantWhitespace()
+            .print(protoMsg);
         return new DeserializeResult(
             result,
             DeserializeResult.Type.JSON,
