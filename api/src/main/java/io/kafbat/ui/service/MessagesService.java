@@ -224,14 +224,16 @@ public class MessagesService {
                                                  @Nullable String filterId,
                                                  @Nullable Integer limit,
                                                  @Nullable String keySerde,
-                                                 @Nullable String valueSerde) {
+                                                 @Nullable String valueSerde,
+                                                 @Nullable String consumerGroupId) {
     return loadMessages(
         cluster,
         topic,
         deserializationService.deserializerFor(cluster, topic, keySerde, valueSerde),
         consumerPosition,
         getMsgFilter(containsStringFilter, filterId),
-        fixPageSize(limit)
+        fixPageSize(limit),
+        consumerGroupId
     );
   }
 
@@ -244,7 +246,8 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        fixPageSize(cursor.limit())
+        fixPageSize(cursor.limit()),
+        null
     );
   }
 
@@ -253,11 +256,53 @@ public class MessagesService {
                                                   ConsumerRecordDeserializer deserializer,
                                                   ConsumerPosition consumerPosition,
                                                   Predicate<TopicMessageDTO> filter,
-                                                  int limit) {
+                                                  int limit,
+                                                  @Nullable String consumerGroupId) {
     return withExistingTopic(cluster, topic)
+        .flatMap(td -> resolveConsumerPosition(cluster, td, consumerPosition, consumerGroupId))
         .flux()
+        // emitters are blocking, so they have to be subscribed to on the elastic scheduler
         .publishOn(Schedulers.boundedElastic())
-        .flatMap(td -> loadMessagesImpl(cluster, deserializer, consumerPosition, filter, limit));
+        .flatMap(position -> loadMessagesImpl(cluster, deserializer, position, filter, limit));
+  }
+
+  /**
+   * For FROM_CONSUMER_GROUP_OFFSET mode replaces the position with the group's committed offsets,
+   * so that polling starts right from the first message that is not consumed yet by the group.
+   * Partitions without a committed offset are read from the very beginning.
+   */
+  private Mono<ConsumerPosition> resolveConsumerPosition(KafkaCluster cluster,
+                                                         TopicDescription topicDescription,
+                                                         ConsumerPosition position,
+                                                         @Nullable String consumerGroupId) {
+    if (position.pollingMode() != PollingModeDTO.FROM_CONSUMER_GROUP_OFFSET) {
+      return Mono.just(position);
+    }
+    if (consumerGroupId == null || consumerGroupId.isBlank()) {
+      return Mono.error(new ValidationException("consumerGroupId not provided for " + position.pollingMode()));
+    }
+    List<TopicPartition> targetPartitions = position.partitions().isEmpty()
+        ? topicDescription.partitions().stream()
+        .map(p -> new TopicPartition(topicDescription.name(), p.partition()))
+        .toList()
+        : position.partitions();
+
+    return adminClientService.get(cluster)
+        .flatMap(ac -> ac.listConsumerGroupOffsets(List.of(consumerGroupId), targetPartitions))
+        .map(committedOffsets -> {
+          Map<TopicPartition, Long> offsets = targetPartitions.stream()
+              .collect(Collectors.toMap(
+                  tp -> tp,
+                  tp -> Optional.ofNullable(committedOffsets.get(consumerGroupId, tp)).orElse(0L)
+              ));
+          return new ConsumerPosition(
+              position.pollingMode(),
+              position.topic(),
+              targetPartitions,
+              null,
+              new ConsumerPosition.Offsets(null, offsets)
+          );
+        });
   }
 
   private Flux<TopicMessageEventDTO> loadMessagesImpl(KafkaCluster cluster,
@@ -276,7 +321,7 @@ public class MessagesService {
           cluster.getPollingSettings(),
           cursorsStorage.createNewCursor(deserializer, consumerPosition, filter, limit)
       );
-      case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> new ForwardEmitter(
+      case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST, FROM_CONSUMER_GROUP_OFFSET -> new ForwardEmitter(
           () -> consumerGroupService.createConsumer(cluster,
               Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, limit)),
           consumerPosition,

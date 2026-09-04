@@ -115,7 +115,8 @@ class TailingEmitterTest extends AbstractIntegrationTest {
             null,
             0,
             StringSerde.NAME,
-            StringSerde.NAME);
+            StringSerde.NAME,
+            null);
   }
 
   private List<TopicMessageEventDTO> startTailing(String filterQuery) {

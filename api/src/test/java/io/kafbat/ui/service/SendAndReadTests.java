@@ -733,7 +733,8 @@ class SendAndReadTests extends AbstractIntegrationTest {
                 null,
                 1,
                 msgToSend.getKeySerde().get(),
-                msgToSend.getValueSerde().get()
+                msgToSend.getValueSerde().get(),
+                null
             ).filter(e -> e.getType().equals(TopicMessageEventDTO.TypeEnum.MESSAGE))
             .map(TopicMessageEventDTO::getMessage)
             .blockLast(Duration.ofSeconds(5000));

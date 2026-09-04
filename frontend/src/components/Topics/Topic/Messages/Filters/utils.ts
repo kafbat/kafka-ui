@@ -6,12 +6,17 @@ export function isModeOptionWithInput(value: PollingMode) {
   return (
     value !== PollingMode.TAILING &&
     value !== PollingMode.LATEST &&
-    value !== PollingMode.EARLIEST
+    value !== PollingMode.EARLIEST &&
+    value !== PollingMode.FROM_CONSUMER_GROUP_OFFSET
   );
 }
 
 export function isModeOffsetSelector(value: PollingMode) {
   return value === PollingMode.TO_OFFSET || value === PollingMode.FROM_OFFSET;
+}
+
+export function isModeConsumerGroupSelector(value: PollingMode) {
+  return value === PollingMode.FROM_CONSUMER_GROUP_OFFSET;
 }
 
 export function isLiveMode(mode?: PollingMode) {

@@ -84,6 +84,10 @@ interface MessagesApi {
     @query keySerde?: string,
     @query valueSerde?: string,
     @query cursor?: string,
+
+    @doc("Consumer group id, required for FROM_CONSUMER_GROUP_OFFSET polling mode")
+    @query
+    consumerGroupId?: string,
   ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
 }
 
@@ -190,6 +194,9 @@ enum PollingMode {
   LATEST,
   EARLIEST,
   TAILING,
+
+  @doc("Reads messages that are not consumed yet by the consumer group passed in consumerGroupId")
+  FROM_CONSUMER_GROUP_OFFSET,
 }
 
 enum MessageFilterType {

@@ -50,7 +50,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 * **Metrics Dashboard** – Track key Kafka metrics in real time with a streamlined, lightweight dashboard.
 * **Kafka Brokers Overview** – Inspect brokers, including partition assignments and controller status.
 * **Consumer Group Details** – Analyze parked offsets per partition, and monitor both combined and partition-specific lag.
-* **Message Browser** – Explore messages in JSON, plain text, or Avro encoding formats. Live view is supported, enriched with user-defined CEL message filters.
+* **Message Browser** – Explore messages in JSON, plain text, or Avro encoding formats. Live view is supported, enriched with user-defined CEL message filters. Messages a consumer group has not consumed yet can be browsed with the "Not consumed by group" polling mode.
 * **Dynamic Topic Management** – Create and configure new topics with flexible, real-time settings.
 * **Pluggable Authentication** – Secure your UI using OAuth 2.0 (GitHub, GitLab, Google), LDAP, or basic authentication.
 * **Cloud IAM Support** – Integrate with **GCP IAM**, **Azure IAM**, and **AWS IAM** for cloud-native identity and access management.

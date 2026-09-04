@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.exception.TopicNotFoundException;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -18,10 +19,17 @@ import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.BytesDeserializer;
+import org.apache.kafka.common.utils.Bytes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +83,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     StepVerifier.create(messagesService
             .loadMessages(cluster, NON_EXISTING_TOPIC,
                 new ConsumerPosition(PollingModeDTO.TAILING, NON_EXISTING_TOPIC, List.of(), null, null),
-                null, null, 1, "String", "String"))
+                null, null, 1, "String", "String", null))
         .expectError(TopicNotFoundException.class)
         .verify();
   }
@@ -98,7 +106,8 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             null,
             100,
             StringSerde.NAME,
-            StringSerde.NAME
+            StringSerde.NAME,
+            null
         ).filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
         .map(TopicMessageEventDTO::getMessage);
 
@@ -130,7 +139,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     Flux<String> msgsFlux = messagesService.loadMessages(
             cluster, testTopic,
             new ConsumerPosition(mode, testTopic, List.of(), null, null),
-            null, null, pageSize, StringSerde.NAME, StringSerde.NAME)
+            null, null, pageSize, StringSerde.NAME, StringSerde.NAME, null)
         .doOnNext(evt -> {
           if (evt.getType() == TopicMessageEventDTO.TypeEnum.DONE) {
             assertThat(evt.getCursor()).isNotNull();
@@ -158,6 +167,84 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     StepVerifier.create(remainingMsgs)
         .expectNextCount(msgsToGenerate - pageSize)
         .verifyComplete();
+  }
+
+  @Test
+  void loadMessagesFromConsumerGroupOffsetReturnsOnlyNotConsumedMessages() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    int msgsToGenerate = 10;
+    int committedOffset = 6;
+
+    try (var producer = KafkaTestProducer.forKafka(kafka)) {
+      for (int i = 0; i < msgsToGenerate - 1; i++) {
+        producer.send(testTopic, "message_" + i);
+      }
+      // Wait for the last message to ensure all messages are visible before polling
+      producer.send(testTopic, "message_" + (msgsToGenerate - 1)).get();
+    }
+
+    String groupId = "cg-" + UUID.randomUUID();
+    commitOffset(groupId, new TopicPartition(testTopic, 0), committedOffset);
+
+    Flux<String> notConsumedMsgs = messagesService.loadMessages(
+            cluster, testTopic,
+            new ConsumerPosition(PollingModeDTO.FROM_CONSUMER_GROUP_OFFSET, testTopic, List.of(), null, null),
+            null, null, 100, StringSerde.NAME, StringSerde.NAME, groupId)
+        .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
+        .map(evt -> evt.getMessage().getValue());
+
+    StepVerifier.create(notConsumedMsgs)
+        .expectNext("message_6", "message_7", "message_8", "message_9")
+        .verifyComplete();
+  }
+
+  @Test
+  void loadMessagesFromConsumerGroupOffsetReturnsAllMessagesWhenGroupHasNoCommittedOffsets() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    try (var producer = KafkaTestProducer.forKafka(kafka)) {
+      producer.send(testTopic, "message1");
+      producer.send(testTopic, "message2").get();
+    }
+
+    Flux<String> notConsumedMsgs = messagesService.loadMessages(
+            cluster, testTopic,
+            new ConsumerPosition(PollingModeDTO.FROM_CONSUMER_GROUP_OFFSET, testTopic, List.of(), null, null),
+            null, null, 100, StringSerde.NAME, StringSerde.NAME, "cg-" + UUID.randomUUID())
+        .filter(evt -> evt.getType() == TopicMessageEventDTO.TypeEnum.MESSAGE)
+        .map(evt -> evt.getMessage().getValue());
+
+    StepVerifier.create(notConsumedMsgs)
+        .expectNext("message1", "message2")
+        .verifyComplete();
+  }
+
+  @Test
+  void loadMessagesFromConsumerGroupOffsetReturnsExceptionWhenGroupNotProvided() {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    StepVerifier.create(messagesService.loadMessages(
+            cluster, testTopic,
+            new ConsumerPosition(PollingModeDTO.FROM_CONSUMER_GROUP_OFFSET, testTopic, List.of(), null, null),
+            null, null, 100, StringSerde.NAME, StringSerde.NAME, null))
+        .expectError(ValidationException.class)
+        .verify();
+  }
+
+  private static void commitOffset(String groupId, TopicPartition topicPartition, long offset) {
+    Properties props = new Properties();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
+    try (var consumer = new KafkaConsumer<Bytes, Bytes>(props)) {
+      consumer.assign(List.of(topicPartition));
+      consumer.commitSync(Map.of(topicPartition, new OffsetAndMetadata(offset)));
+    }
   }
 
   private void createTopicWithCleanup(NewTopic newTopic) {

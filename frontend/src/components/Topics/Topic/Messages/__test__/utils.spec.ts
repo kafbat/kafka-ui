@@ -7,6 +7,7 @@ import {
   getTimestampFromSeekToParam,
   isEditingFilterMode,
   isLiveMode,
+  isModeConsumerGroupSelector,
   isModeOffsetSelector,
   isModeOptionWithInput,
 } from 'components/Topics/Topic/Messages/Filters/utils';
@@ -132,6 +133,9 @@ describe('utils', () => {
       expect(isModeOptionWithInput(PollingMode.TO_TIMESTAMP)).toBeTruthy();
       expect(isModeOptionWithInput(PollingMode.FROM_OFFSET)).toBeTruthy();
       expect(isModeOptionWithInput(PollingMode.TO_OFFSET)).toBeTruthy();
+      expect(
+        isModeOptionWithInput(PollingMode.FROM_CONSUMER_GROUP_OFFSET)
+      ).toBeFalsy();
     });
   });
 
@@ -144,6 +148,19 @@ describe('utils', () => {
       expect(isModeOffsetSelector(PollingMode.TO_TIMESTAMP)).toBeFalsy();
       expect(isModeOffsetSelector(PollingMode.FROM_OFFSET)).toBeTruthy();
       expect(isModeOffsetSelector(PollingMode.TO_OFFSET)).toBeTruthy();
+      expect(
+        isModeOffsetSelector(PollingMode.FROM_CONSUMER_GROUP_OFFSET)
+      ).toBeFalsy();
+    });
+  });
+
+  describe('isModeConsumerGroupSelector', () => {
+    it('is only truthy for the consumer group offset mode', () => {
+      expect(
+        isModeConsumerGroupSelector(PollingMode.FROM_CONSUMER_GROUP_OFFSET)
+      ).toBeTruthy();
+      expect(isModeConsumerGroupSelector(PollingMode.LATEST)).toBeFalsy();
+      expect(isModeConsumerGroupSelector(PollingMode.FROM_OFFSET)).toBeFalsy();
     });
   });
 

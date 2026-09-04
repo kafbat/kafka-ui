@@ -5,7 +5,7 @@ import {
   TopicMessageConsuming,
   TopicMessage,
 } from 'generated-sources';
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import React, { ChangeEvent, Suspense, useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
 import { Button } from 'components/common/Button/Button';
@@ -30,11 +30,13 @@ import {
   ADD_FILTER_ID,
   filterOptions,
   isLiveMode,
+  isModeConsumerGroupSelector,
   isModeOffsetSelector,
   isModeOptionWithInput,
 } from './utils';
 import FiltersSideBar from './FiltersSideBar';
 import FiltersMetrics from './FiltersMetrics';
+import ConsumerGroupSelect from './ConsumerGroupSelect';
 
 interface MessageData {
   Value: string | undefined;
@@ -111,6 +113,8 @@ const Filters: React.FC<FiltersProps> = ({
     setPartition,
     smartFilter,
     setSmartFilter,
+    consumerGroupId,
+    setConsumerGroupId,
     refreshData,
   } = useMessagesFilters(topicName);
 
@@ -212,6 +216,14 @@ const Filters: React.FC<FiltersProps> = ({
                 />
               ))}
           </S.FilterModeTypeSelectorWrapper>
+          {isModeConsumerGroupSelector(mode) && (
+            <Suspense fallback={null}>
+              <ConsumerGroupSelect
+                value={consumerGroupId}
+                onChange={setConsumerGroupId}
+              />
+            </Suspense>
+          )}
           <MultiSelect
             disabled={isLoading}
             options={partitions.list}
