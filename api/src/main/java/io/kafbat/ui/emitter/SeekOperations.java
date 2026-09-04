@@ -74,7 +74,8 @@ public class SeekOperations {
       case TAILING -> consumer.endOffsets(offsetsInfo.allTargetPartitions());
       case LATEST -> consumer.endOffsets(offsetsInfo.getNonEmptyPartitions());
       case EARLIEST -> consumer.beginningOffsets(offsetsInfo.getNonEmptyPartitions());
-      case FROM_OFFSET, TO_OFFSET -> fixOffsets(offsetsInfo, requireNonNull(position.offsets()));
+      case FROM_OFFSET, TO_OFFSET, FROM_CONSUMER_GROUP_OFFSET ->
+          fixOffsets(offsetsInfo, requireNonNull(position.offsets()));
       case FROM_TIMESTAMP, TO_TIMESTAMP ->
           offsetsForTimestamp(consumer, position.pollingMode(), offsetsInfo, requireNonNull(position.timestamp()));
     };

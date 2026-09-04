@@ -8,6 +8,10 @@ export const ModeOptions = [
   { value: PollingMode.TO_OFFSET, label: 'To offset' },
   { value: PollingMode.FROM_TIMESTAMP, label: 'Since time' },
   { value: PollingMode.TO_TIMESTAMP, label: 'To time' },
+  {
+    value: PollingMode.FROM_CONSUMER_GROUP_OFFSET,
+    label: 'Not consumed by group',
+  },
 ];
 
 export function convertStrToPollingMode(

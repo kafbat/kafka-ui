@@ -112,6 +112,9 @@ export function useMessagesFilters(topicName: string) {
     .split(',')
     .filter((v) => v);
 
+  const consumerGroupId =
+    searchParams.get(MessagesFilterKeys.consumerGroupId) || undefined;
+
   const smartFilterId =
     searchParams.get(MessagesFilterKeys.activeFilterId) || '';
 
@@ -129,6 +132,24 @@ export function useMessagesFilters(topicName: string) {
       params.set(MessagesFilterKeys.mode, newMode);
       params.delete(MessagesFilterKeys.offset);
       params.delete(MessagesFilterKeys.timestamp);
+
+      // the selected consumer group is only meaningful for FROM_CONSUMER_GROUP_OFFSET
+      if (newMode !== PollingMode.FROM_CONSUMER_GROUP_OFFSET) {
+        removeMessagesFiltersField(MessagesFilterKeys.consumerGroupId);
+        params.delete(MessagesFilterKeys.consumerGroupId);
+      }
+
+      return params;
+    });
+  };
+
+  const setConsumerGroupId = (newConsumerGroupId: string) => {
+    setSearchParams((params) => {
+      setMessagesFiltersField(
+        MessagesFilterKeys.consumerGroupId,
+        newConsumerGroupId
+      );
+      params.set(MessagesFilterKeys.consumerGroupId, newConsumerGroupId);
       return params;
     });
   };
@@ -265,6 +286,8 @@ export function useMessagesFilters(topicName: string) {
     setPartition,
     smartFilter,
     setSmartFilter,
+    consumerGroupId,
+    setConsumerGroupId,
     refreshData,
   };
 }

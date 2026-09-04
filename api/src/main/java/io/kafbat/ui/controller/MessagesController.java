@@ -22,6 +22,7 @@ import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.model.TopicSerdeSuggestionDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
 import io.kafbat.ui.model.rbac.permission.AuditAction;
+import io.kafbat.ui.model.rbac.permission.ConsumerGroupAction;
 import io.kafbat.ui.model.rbac.permission.TopicAction;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.service.DeserializationService;
@@ -104,6 +105,7 @@ public class MessagesController extends AbstractController implements MessagesAp
                                                                              String keySerde,
                                                                              String valueSerde,
                                                                              String cursor,
+                                                                             String consumerGroupId,
                                                                              ServerWebExchange exchange) {
     var contextBuilder = AccessContext.builder()
         .cluster(clusterName)
@@ -113,6 +115,10 @@ public class MessagesController extends AbstractController implements MessagesAp
       contextBuilder.auditActions(AuditAction.VIEW);
     } else {
       contextBuilder.topicActions(topicName, MESSAGES_READ);
+    }
+
+    if (consumerGroupId != null) {
+      contextBuilder.consumerGroupActions(consumerGroupId, ConsumerGroupAction.VIEW);
     }
 
     var accessContext = contextBuilder.build();
@@ -130,7 +136,8 @@ public class MessagesController extends AbstractController implements MessagesAp
           smartFilterId,
           limit,
           keySerde,
-          valueSerde
+          valueSerde,
+          consumerGroupId
       );
     }
     return accessControlService.validateAccess(accessContext)

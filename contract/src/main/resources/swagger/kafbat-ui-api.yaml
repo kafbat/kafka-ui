@@ -975,6 +975,11 @@ paths:
           description: "id of the cursor for pagination, if passed - all other query params ignored"
           schema:
             type: string
+        - name: consumerGroupId
+          in: query
+          description: "Consumer group id, required for FROM_CONSUMER_GROUP_OFFSET polling mode"
+          schema:
+            type: string
       responses:
         200:
           description: OK
@@ -3370,6 +3375,7 @@ components:
         - LATEST
         - EARLIEST
         - TAILING
+        - FROM_CONSUMER_GROUP_OFFSET
 
     MessageFilterType:
       type: string

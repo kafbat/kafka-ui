@@ -15,6 +15,7 @@ type MessagesFilterFieldsType = Pick<
   | 'stringFilter'
   | 'activeFilterId'
   | 'smartFilterId'
+  | 'consumerGroupId'
 >;
 
 export const useActiveFilters = () => {
@@ -118,6 +119,9 @@ export function useMessagesFiltersFields(resourceName: string) {
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.stringFilter);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.activeFilterId);
       setTopicMessageFiltersFromLocalStorage(MessagesFilterKeys.smartFilterId);
+      setTopicMessageFiltersFromLocalStorage(
+        MessagesFilterKeys.consumerGroupId
+      );
     } else {
       removeMessagesFilterFields();
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.mode);
@@ -128,6 +132,7 @@ export function useMessagesFiltersFields(resourceName: string) {
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.valueSerde);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.activeFilterId);
       setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.smartFilterId);
+      setTopicMessageFiltersFromUrlParams(MessagesFilterKeys.consumerGroupId);
     }
   };
 

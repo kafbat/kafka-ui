@@ -2673,6 +2673,13 @@ paths:
           schema:
             type: string
           explode: false
+        - name: consumerGroupId
+          in: query
+          required: false
+          description: Consumer group id, required for FROM_CONSUMER_GROUP_OFFSET polling mode
+          schema:
+            type: string
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -4689,6 +4696,7 @@ components:
         - LATEST
         - EARLIEST
         - TAILING
+        - FROM_CONSUMER_GROUP_OFFSET
     PrometheusApiBaseResponse:
       type: object
       required:

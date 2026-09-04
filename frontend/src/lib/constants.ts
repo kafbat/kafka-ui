@@ -149,6 +149,7 @@ export const MessagesFilterKeys = {
   smartFilterId: 'smartFilterId',
   activeFilterId: 'activeFilterId',
   activeFilterNPId: 'activeFilterNPId', // not persisted filter name to indicate the refresh
+  consumerGroupId: 'consumerGroupId',
   cursor: 'cursor',
   r: 'r', // used tp force refresh of the data
 } as const;

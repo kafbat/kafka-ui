@@ -95,6 +95,12 @@ export const useTopicMessages = ({
             searchParams.get(MessagesFilterKeys.offset) || '0'
           );
           break;
+        case PollingMode.FROM_CONSUMER_GROUP_OFFSET:
+          requestParams.set(
+            MessagesFilterKeys.consumerGroupId,
+            searchParams.get(MessagesFilterKeys.consumerGroupId) || ''
+          );
+          break;
         default:
       }
 
@@ -175,7 +181,16 @@ export const useTopicMessages = ({
     };
 
     abortFetchData();
-    fetchData();
+
+    // this mode can only be polled once a consumer group has been picked
+    if (
+      mode === PollingMode.FROM_CONSUMER_GROUP_OFFSET &&
+      !searchParams.get(MessagesFilterKeys.consumerGroupId)
+    ) {
+      setMessages([]);
+    } else {
+      fetchData();
+    }
 
     return abortFetchData;
   }, [searchParams, abortFetchData]);
