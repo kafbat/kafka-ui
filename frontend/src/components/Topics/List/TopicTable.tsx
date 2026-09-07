@@ -5,6 +5,7 @@ import Table, { SizeCell } from 'components/common/NewTable';
 import { useSearchParams } from 'react-router-dom';
 import ClusterContext from 'components/contexts/ClusterContext';
 import { useTopics } from 'lib/hooks/api/topics';
+import { useRefreshRate } from 'lib/hooks/useRefreshRate';
 import { PER_PAGE } from 'lib/constants';
 import { useLocalStoragePersister } from 'components/common/NewTable/ColumnResizer/lib';
 import { formatBytes } from 'components/common/BytesFormatted/utils';
@@ -19,11 +20,16 @@ const TopicTable: React.FC<{ params: GetTopicsRequest }> = ({ params }) => {
   const [searchParams] = useSearchParams();
   const { isReadOnly } = React.useContext(ClusterContext);
 
-  const { data, error, refetch, isLoading, isRefetching } = useTopics({
-    ...params,
-    page: Number(searchParams.get('page') || 1),
-    perPage: Number(searchParams.get('perPage') || PER_PAGE),
-  });
+  const { refetchInterval } = useRefreshRate('topics-list-refresh-rate');
+
+  const { data, error, refetch, isLoading } = useTopics(
+    {
+      ...params,
+      page: Number(searchParams.get('page') || 1),
+      perPage: Number(searchParams.get('perPage') || PER_PAGE),
+    },
+    { refetchInterval, refetchIntervalInBackground: false }
+  );
 
   const topics = data?.topics || [];
   const pageCount = data?.pageCount || 0;
@@ -100,7 +106,7 @@ const TopicTable: React.FC<{ params: GetTopicsRequest }> = ({ params }) => {
 
   const columnSizingPersister = useLocalStoragePersister('Topics');
 
-  if (isLoading || isRefetching) {
+  if (isLoading) {
     return <PageLoader />;
   }
 

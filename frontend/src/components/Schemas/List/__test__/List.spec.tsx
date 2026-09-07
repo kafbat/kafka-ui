@@ -134,4 +134,20 @@ describe('List', () => {
       expect(screen.getByText(GlobalSchemaSelectorText)).toBeInTheDocument();
     });
   });
+
+  describe('refresh control', () => {
+    it('renders the refresh control and refetches on click', async () => {
+      const refetch = jest.fn();
+      (useGetSchemas as jest.Mock).mockImplementation(() => ({
+        data: { schemas: [], pageCount: 1 },
+        isSuccess: true,
+        isLoading: false,
+        isFetching: false,
+        refetch,
+      }));
+      renderComponent();
+      await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+      expect(refetch).toHaveBeenCalled();
+    });
+  });
 });
