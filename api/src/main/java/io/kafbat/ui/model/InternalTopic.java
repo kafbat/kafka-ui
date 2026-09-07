@@ -23,6 +23,8 @@ import org.apache.kafka.common.config.TopicConfig;
 @Builder(toBuilder = true)
 public class InternalTopic {
 
+  private static final String DEFAULT_INTERNAL_TOPIC_PREFIX = "_";
+
   // from TopicDescription
   private final String name;
   private final boolean internal;
@@ -92,6 +94,17 @@ public class InternalTopic {
     return builder.build();
   }
 
+  /**
+   * A topic is considered internal if Kafka itself marks it as internal
+   * (ex. {@code __consumer_offsets}) or if its name starts with the configured internal topic prefix.
+   */
+  public static boolean isInternal(TopicDescription topicDescription, @Nullable String internalTopicPrefix) {
+    String prefix = internalTopicPrefix == null || internalTopicPrefix.isEmpty()
+        ? DEFAULT_INTERNAL_TOPIC_PREFIX
+        : internalTopicPrefix;
+    return topicDescription.isInternal() || topicDescription.name().startsWith(prefix);
+  }
+
   public static InternalTopic from(TopicDescription topicDescription,
                                    List<ConfigEntry> configs,
                                    InternalPartitionsOffsets partitionsOffsets,
@@ -101,13 +114,7 @@ public class InternalTopic {
                                    @Nullable String internalTopicPrefix) {
     var topic = InternalTopic.builder();
 
-    internalTopicPrefix = internalTopicPrefix == null || internalTopicPrefix.isEmpty()
-        ? "_"
-        : internalTopicPrefix;
-
-    topic.internal(
-        topicDescription.isInternal() || topicDescription.name().startsWith(internalTopicPrefix)
-    );
+    topic.internal(isInternal(topicDescription, internalTopicPrefix));
     topic.name(topicDescription.name());
 
     List<InternalPartition> partitions = topicDescription.partitions().stream()
