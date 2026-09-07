@@ -19,3 +19,7 @@ export const TagsWrapper = styled.div`
     }
   `}
 `;
+
+export const ToggleButtonWrapper = styled.div`
+  margin-top: 4px;
+`;
