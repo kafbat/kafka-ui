@@ -153,7 +153,7 @@ const Details: React.FC = () => {
                     <Metrics.Indicator label="State">
                       <Tooltip
                         value={
-                          <Tag color={getTagColor(consumerGroup?.state)}>
+                          <Tag $color={getTagColor(consumerGroup?.state)}>
                             {consumerGroup?.state}
                           </Tag>
                         }
@@ -198,7 +198,10 @@ const Details: React.FC = () => {
                     )}
                   </Metrics.Section>
                 </Metrics.Wrapper>
-                <ControlPanelWrapper hasInput style={{ margin: '16px 0 20px' }}>
+                <ControlPanelWrapper
+                  $hasInput
+                  style={{ margin: '16px 0 20px' }}
+                >
                   <Search placeholder="Search by Topic Name" />
 
                   <RefreshRateSelect

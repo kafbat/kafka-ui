@@ -2,12 +2,12 @@ import styled, { css } from 'styled-components';
 
 export const ExpaderButton = styled.svg<{
   $disabled: boolean;
-  getIsExpanded: boolean;
+  $getIsExpanded: boolean;
 }>(
-  ({ theme: { table }, $disabled, getIsExpanded }) => css`
+  ({ theme: { table }, $disabled, $getIsExpanded }) => css`
     & > path {
       fill: ${table.expander[
-        ($disabled && 'disabled') || (getIsExpanded && 'active') || 'normal'
+        ($disabled && 'disabled') || ($getIsExpanded && 'active') || 'normal'
       ]};
     }
     &:hover > path {
@@ -20,9 +20,9 @@ export const ExpaderButton = styled.svg<{
 );
 
 interface ThProps {
-  sortable?: boolean;
-  sortOrder?: 'desc' | 'asc' | false;
-  expander?: boolean;
+  $sortable?: boolean;
+  $sortOrder?: 'desc' | 'asc' | false;
+  $expander?: boolean;
 }
 
 const sortableMixin = (normalColor: string, hoverColor: string) => `
@@ -110,9 +110,9 @@ export const Th = styled.th<ThProps>(
     theme: {
       table: { th },
     },
-    sortable,
-    sortOrder,
-    expander,
+    $sortable,
+    $sortOrder,
+    $expander,
   }) => `
   padding: 8px 0 8px 24px;
   border-bottom-width: 1px;
@@ -126,7 +126,7 @@ export const Th = styled.th<ThProps>(
   letter-spacing: 0em;
   text-align: left;
   background: ${th.backgroundColor.normal};
-  width: ${expander ? '5px' : 'auto'};
+  width: ${$expander ? '5px' : 'auto'};
   white-space: nowrap;
   position: relative;
   user-select: none;
@@ -134,9 +134,9 @@ export const Th = styled.th<ThProps>(
   & > ${TableHeaderContent} {
     cursor: default;
     color: ${th.color.normal};
-    ${sortable ? sortableMixin(th.color.sortable, th.color.hover) : ''}
-    ${sortable && sortOrder === 'asc' && ASCMixin(th.color.active)}
-    ${sortable && sortOrder === 'desc' && DESCMixin(th.color.active)}
+    ${$sortable ? sortableMixin(th.color.sortable, th.color.hover) : ''}
+    ${$sortable && $sortOrder === 'asc' && ASCMixin(th.color.active)}
+    ${$sortable && $sortOrder === 'desc' && DESCMixin(th.color.active)}
   }
 
   &:hover > ${ColumnResizer} {
@@ -146,15 +146,15 @@ export const Th = styled.th<ThProps>(
 );
 
 interface RowProps {
-  clickable?: boolean;
-  expanded?: boolean;
+  $clickable?: boolean;
+  $expanded?: boolean;
 }
 
 export const Row = styled.tr<RowProps>(
-  ({ theme: { table }, expanded, clickable }) => css`
-    cursor: ${clickable ? 'pointer' : 'default'};
+  ({ theme: { table }, $expanded, $clickable }) => css`
+    cursor: ${$clickable ? 'pointer' : 'default'};
     background-color: ${table.tr.backgroundColor[
-      expanded ? 'hover' : 'normal'
+      $expanded ? 'hover' : 'normal'
     ]};
     & .show-on-hover {
       visibility: hidden;

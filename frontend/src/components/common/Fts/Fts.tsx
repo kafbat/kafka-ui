@@ -6,7 +6,7 @@ import ClusterContext from 'components/contexts/ClusterContext';
 
 import useFts, { FtsAvailableResource } from './useFts';
 
-export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
+export const IconWrapper = styled.span.attrs<{ $active: boolean }>(() => ({
   role: 'button',
   tabIndex: 1,
 }))`
@@ -14,10 +14,8 @@ export const IconWrapper = styled.span.attrs<{ active: boolean }>(() => ({
   &:hover {
     cursor: pointer;
   }
-  color: ${(props) =>
-    props.active
-      ? props.theme.icons.ftsIcon.active
-      : props.theme.icons.ftsIcon.normal};
+  color: ${({ $active, theme }) =>
+    $active ? theme.icons.ftsIcon.active : theme.icons.ftsIcon.normal};
 `;
 
 const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
@@ -31,7 +29,7 @@ const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
   return (
     <Tooltip
       value={
-        <IconWrapper onClick={handleSwitch} active={isFtsEnabled}>
+        <IconWrapper onClick={handleSwitch} $active={isFtsEnabled}>
           <FtsIcon />
         </IconWrapper>
       }

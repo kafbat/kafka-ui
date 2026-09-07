@@ -1,6 +1,6 @@
 export interface SpinnerProps {
-  size?: number;
-  borderWidth?: number;
-  emptyBorderColor?: boolean;
-  marginLeft?: number;
+  $size?: number;
+  $borderWidth?: number;
+  $emptyBorderColor?: boolean;
+  $marginLeft?: number;
 }

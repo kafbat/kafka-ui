@@ -8,7 +8,7 @@ const MultiLineTagCell: React.FC<CellContext<any, unknown>> = ({
   getValue,
 }) => {
   const value = getValue<string>();
-  return <MultiLineTag color={getTagColor(value)}>{value}</MultiLineTag>;
+  return <MultiLineTag $color={getTagColor(value)}>{value}</MultiLineTag>;
 };
 
 export default MultiLineTagCell;

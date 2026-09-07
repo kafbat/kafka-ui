@@ -1,10 +1,7 @@
 import styled from 'styled-components';
 import { MultiSelect as ReactMultiSelect } from 'react-multi-select-component';
 
-export const SelectPanel = styled(ReactMultiSelect)<{
-  minWidth?: string;
-  height?: string;
-}>`
+export const SelectPanel = styled(ReactMultiSelect)`
   min-width: 160px;
   font-size: 14px;
   padding-right: 12px;
@@ -14,8 +11,8 @@ export const SelectPanel = styled(ReactMultiSelect)<{
   }
   .search input {
     color: ${({ theme }) => theme.input.color.normal};
-    background-color: ${(props) =>
-      props.theme.input.backgroundColor.normal} !important;
+    background-color: ${({ theme }) =>
+      theme.input.backgroundColor.normal} !important;
   }
   .select-item {
     color: ${({ theme }) => theme.select.color.normal};

@@ -27,8 +27,8 @@ const Modal: React.FC<ModalProps> = ({
     <S.ModalOverlay onClick={onClose} role="dialog" aria-label="Modal">
       <S.ModalContent
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        maxWidth={maxWidth}
-        maxHeight={maxHeight}
+        $maxWidth={maxWidth}
+        $maxHeight={maxHeight}
       >
         {title && (
           <S.ModalHeader>

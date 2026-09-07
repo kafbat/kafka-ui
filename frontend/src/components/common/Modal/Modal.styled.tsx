@@ -14,16 +14,16 @@ export const ModalOverlay = styled.div`
 `;
 
 export const ModalContent = styled.div<{
-  maxWidth: string;
-  maxHeight: string;
+  $maxWidth: string;
+  $maxHeight: string;
 }>(
-  ({ theme: { modal }, maxWidth, maxHeight }) => css`
+  ({ theme: { modal }, $maxWidth, $maxHeight }) => css`
     background-color: ${modal.backgroundColor};
     color: ${modal.color};
     border-radius: 8px;
     padding: 24px;
-    max-width: ${maxWidth};
-    max-height: ${maxHeight};
+    max-width: ${$maxWidth};
+    max-height: ${$maxHeight};
     overflow: auto;
     position: relative;
     border: 1px solid ${modal.border.contrast};

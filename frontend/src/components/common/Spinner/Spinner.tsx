@@ -5,10 +5,10 @@ import { SpinnerProps } from 'components/common/Spinner/types';
 import * as S from './Spinner.styled';
 
 const defaultProps: SpinnerProps = {
-  size: 80,
-  borderWidth: 10,
-  emptyBorderColor: false,
-  marginLeft: 0,
+  $size: 80,
+  $borderWidth: 10,
+  $emptyBorderColor: false,
+  $marginLeft: 0,
 };
 
 const Spinner: React.FC<SpinnerProps> = (props) => (

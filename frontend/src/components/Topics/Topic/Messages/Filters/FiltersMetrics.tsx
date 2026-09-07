@@ -32,8 +32,8 @@ const FiltersMetrics: FC<FiltersMetricsProps> = ({
       padding="16px 0"
     >
       <S.Message>{!isLiveMode(mode) && isFetching && phaseMessage}</S.Message>
-      <S.MessageLoading isLive={isLiveMode(mode) && isFetching}>
-        <S.MessageLoadingSpinner isFetching={isFetching} />
+      <S.MessageLoading $isLive={isLiveMode(mode) && isFetching}>
+        <S.MessageLoadingSpinner $isFetching={isFetching} />
         Loading messages...
         <S.StopLoading onClick={abortFetchData}>Stop loading</S.StopLoading>
       </S.MessageLoading>

@@ -89,7 +89,7 @@ const ACList: React.FC = () => {
           <PlusIcon /> Create ACL
         </ActionButton>
       </ResourcePageHeading>
-      <ControlPanelWrapper hasInput>
+      <ControlPanelWrapper $hasInput>
         <Search
           key={clusterName}
           placeholder="Search by Principal Name"

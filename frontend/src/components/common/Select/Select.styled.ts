@@ -1,15 +1,15 @@
 import styled from 'styled-components';
 
 interface Props {
-  selectSize: 'M' | 'L';
-  isLive?: boolean;
-  minWidth?: string;
-  disabled?: boolean;
-  isThemeMode?: boolean;
+  $selectSize: 'M' | 'L';
+  $isLive?: boolean;
+  $minWidth?: string;
+  $disabled?: boolean;
+  $isThemeMode?: boolean;
 }
 
 interface OptionProps {
-  disabled?: boolean;
+  $disabled?: boolean;
 }
 
 export const Select = styled.ul<Props>`
@@ -19,13 +19,13 @@ export const Select = styled.ul<Props>`
   gap: 6px;
   align-items: center;
   justify-content: space-between;
-  height: ${(props) => (props.selectSize === 'M' ? '32px' : '40px')};
+  height: ${(props) => (props.$selectSize === 'M' ? '32px' : '40px')};
   border: 1px
-    ${({ theme, disabled, isThemeMode }) => {
-      if (isThemeMode) {
+    ${({ theme, $disabled, $isThemeMode }) => {
+      if ($isThemeMode) {
         return 'none';
       }
-      if (disabled) {
+      if ($disabled) {
         return theme.select.borderColor.disabled;
       }
 
@@ -37,15 +37,15 @@ export const Select = styled.ul<Props>`
   width: fit-content;
   padding-left: 16px;
   padding-right: 12px;
-  color: ${({ theme, disabled }) =>
-    disabled ? theme.select.color.disabled : theme.select.color.normal};
-  min-width: ${({ minWidth }) => minWidth || 'auto'};
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  color: ${({ theme, $disabled }) =>
+    $disabled ? theme.select.color.disabled : theme.select.color.normal};
+  min-width: ${({ $minWidth }) => $minWidth || 'auto'};
+  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
   &:hover {
-    color: ${({ theme, disabled }) =>
-      disabled ? theme.select.color.disabled : theme.select.color.hover};
-    border-color: ${({ theme, disabled }) =>
-      disabled
+    color: ${({ theme, $disabled }) =>
+      $disabled ? theme.select.color.disabled : theme.select.color.hover};
+    border-color: ${({ theme, $disabled }) =>
+      $disabled
         ? theme.select.borderColor.disabled
         : theme.select.borderColor.hover};
   }
@@ -110,28 +110,28 @@ export const Option = styled.li<OptionProps>`
   list-style: none;
   padding: 10px 12px;
   transition: all 0.2s ease-in-out;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
   gap: 5px;
-  color: ${({ theme, disabled }) =>
-    theme.select.color[disabled ? 'disabled' : 'normal']};
+  color: ${({ theme, $disabled }) =>
+    theme.select.color[$disabled ? 'disabled' : 'normal']};
 
   &:hover {
-    color: ${({ theme, disabled }) =>
-      theme.select.color[disabled ? 'disabled' : 'hover']};
-    background-color: ${({ theme, disabled }) =>
-      theme.select.backgroundColor[disabled ? 'normal' : 'hover']};
+    color: ${({ theme, $disabled }) =>
+      theme.select.color[$disabled ? 'disabled' : 'hover']};
+    background-color: ${({ theme, $disabled }) =>
+      theme.select.backgroundColor[$disabled ? 'normal' : 'hover']};
   }
 
   &:active {
-    color: ${({ theme, disabled }) =>
-      theme.select.color[disabled ? 'disabled' : 'active']};
+    color: ${({ theme, $disabled }) =>
+      theme.select.color[$disabled ? 'disabled' : 'active']};
     background-color: ${({ theme }) => theme.select.backgroundColor.active};
   }
 `;
 
-export const SelectedOption = styled.li<{ isThemeMode?: boolean }>`
+export const SelectedOption = styled.li<{ $isThemeMode?: boolean }>`
   display: flex;
-  padding-right: ${({ isThemeMode }) => (isThemeMode ? '' : '16px')};
+  padding-right: ${({ $isThemeMode }) => ($isThemeMode ? '' : '16px')};
   list-style-position: inside;
   white-space: nowrap;
   & svg {
