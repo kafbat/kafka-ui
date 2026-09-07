@@ -13,6 +13,7 @@ interface SchemasApi {
   @post
   @operationId("createNewSchema")
   @summary("createNewSchema")
+  @doc("Create a new schema subject or update an existing schema in the Schema Registry.")
   createNewSchema(@path clusterName: string, @body input: NewSchemaSubject):
     | SchemaSubject
     | ApiBadRequestResponse
@@ -22,6 +23,7 @@ interface SchemasApi {
   @get
   @operationId("getSchemas")
   @summary("getSchemas")
+  @doc("List all schema subjects from the Schema Registry.")
   getSchemas(
     @path clusterName: string,
     @query page?: int32,
@@ -36,6 +38,7 @@ interface SchemasApi {
   @route("/{subject}")
   @operationId("deleteSchema")
   @summary("deleteSchema")
+  @doc("Delete a schema subject from the Schema Registry.")
   deleteSchema(
     @path clusterName: string,
     @path subject: string,
@@ -45,6 +48,7 @@ interface SchemasApi {
   @route("/{subject}/versions")
   @operationId("getAllVersionsBySubject")
   @summary("getAllVersionsBySubject")
+  @doc("Get all versions of a schema subject from the Schema Registry.")
   getAllVersionsBySubject(
     @path clusterName: string,
     @path subject: string,
@@ -54,6 +58,7 @@ interface SchemasApi {
   @route("/{subject}/latest")
   @operationId("getLatestSchema")
   @summary("getLatestSchema")
+  @doc("Get the latest version of a schema subject from the Schema Registry.")
   getLatestSchema(
     @path clusterName: string,
     @path subject: string,
@@ -63,6 +68,7 @@ interface SchemasApi {
   @route("/{subject}/latest")
   @operationId("deleteLatestSchema")
   @summary("deleteLatestSchema")
+  @doc("Delete the latest version of a schema subject from the Schema Registry.")
   deleteLatestSchema(
     @path clusterName: string,
     @path subject: string,
@@ -72,6 +78,7 @@ interface SchemasApi {
   @route("/{subject}/versions/{version}")
   @operationId("getSchemaByVersion")
   @summary("getSchemaByVersion")
+  @doc("Get a specific version of a schema subject from the Schema Registry.")
   getSchemaByVersion(
     @path clusterName: string,
     @path subject: string,
@@ -82,6 +89,7 @@ interface SchemasApi {
   @route("/{subject}/versions/{version}")
   @operationId("deleteSchemaByVersion")
   @summary("deleteSchemaByVersion")
+  @doc("Delete a specific version of a schema subject from the Schema Registry.")
   deleteSchemaByVersion(
     @path clusterName: string,
     @path subject: string,
@@ -92,6 +100,7 @@ interface SchemasApi {
   @route("/compatibility")
   @operationId("getGlobalSchemaCompatibilityLevel")
   @summary("getGlobalSchemaCompatibilityLevel")
+  @doc("Get the global schema compatibility level from the Schema Registry.")
   getGlobalSchemaCompatibilityLevel(
     @path clusterName: string,
   ): CompatibilityLevel;
@@ -100,6 +109,7 @@ interface SchemasApi {
   @route("/compatibility")
   @operationId("updateGlobalSchemaCompatibilityLevel")
   @summary("updateGlobalSchemaCompatibilityLevel")
+  @doc("Update the global schema compatibility level in the Schema Registry.")
   updateGlobalSchemaCompatibilityLevel(
     @path clusterName: string,
     @body level: CompatibilityLevel,
@@ -109,6 +119,7 @@ interface SchemasApi {
   @route("/{subject}/compatibility")
   @operationId("updateSchemaCompatibilityLevel")
   @summary("updateSchemaCompatibilityLevel")
+  @doc("Update the compatibility level for a specific schema subject.")
   updateSchemaCompatibilityLevel(
     @path clusterName: string,
     @path subject: string,
@@ -119,6 +130,7 @@ interface SchemasApi {
   @route("/{subject}/check")
   @operationId("checkSchemaCompatibility")
   @summary("checkSchemaCompatibility")
+  @doc("Check if a schema is compatible with an existing subject version.")
   checkSchemaCompatibility(
     @path clusterName: string,
     @path subject: string,
