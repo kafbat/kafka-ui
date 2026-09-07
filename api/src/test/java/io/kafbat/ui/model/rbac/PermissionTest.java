@@ -49,4 +49,17 @@ class PermissionTest {
         .containsExactlyInAnyOrder(TopicAction.VIEW, TopicAction.EDIT);
   }
 
+  @Test
+  void transformHandlesProtectedPrincipals() {
+    var p = new Permission();
+    p.setResource("aCl");
+    p.setActions(List.of("EDIT"));
+    p.setProtectedPrincipals(List.of("User:kafka-ui-service", "User:system-admin"));
+  
+    p.transform();
+  
+    assertThat(p.getProtectedPrincipals())
+        .hasSize(2)
+        .containsExactly("User:kafka-ui-service", "User:system-admin");
+  }
 }
