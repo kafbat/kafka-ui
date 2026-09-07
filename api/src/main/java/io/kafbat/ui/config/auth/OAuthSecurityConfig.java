@@ -102,7 +102,9 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
+        .oauth2Login(oauth2 -> oauth2
+            .authenticationManager(delegatingAuthManager)
+            .authenticationSuccessHandler(emptyRedirectSuccessHandler()))
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
