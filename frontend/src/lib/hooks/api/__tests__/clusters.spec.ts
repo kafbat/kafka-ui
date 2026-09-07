@@ -26,4 +26,24 @@ describe('Clusters hooks', () => {
       await expectQueryWorks(mock, result);
     });
   });
+  describe('useClusterMessageFilters', () => {
+    it('returns the correct data', async () => {
+      const payload = [
+        {
+          id: 'cfg-non-heartbeat',
+          displayName: 'Non-heartbeat',
+          filterCode: 'has(record.value.after)',
+          enabledByDefault: true,
+        },
+      ];
+      const mock = fetchMock.getOnce(
+        `/api/clusters/${clusterName}/message-filters`,
+        payload
+      );
+      const { result } = renderQueryHook(() =>
+        hooks.useClusterMessageFilters(clusterName)
+      );
+      await expectQueryWorks(mock, result);
+    });
+  });
 });

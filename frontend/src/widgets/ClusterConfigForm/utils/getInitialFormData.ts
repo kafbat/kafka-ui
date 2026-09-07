@@ -51,6 +51,7 @@ export const getInitialFormData = (
     ksqldbServerSsl,
     masking,
     serde,
+    messageFilters,
   } = payload;
 
   const initialValues: Partial<ClusterConfigFormValues> = {
@@ -125,6 +126,14 @@ export const getInitialFormData = (
       maskingCharsReplacement: (m.maskingCharsReplacement ?? []).map((f) => ({
         value: f,
       })),
+    }));
+  }
+
+  if (messageFilters && messageFilters.length > 0) {
+    initialValues.messageFilters = messageFilters.map((filter) => ({
+      displayName: filter.displayName,
+      filterCode: filter.filterCode,
+      enabledByDefault: Boolean(filter.enabledByDefault),
     }));
   }
 

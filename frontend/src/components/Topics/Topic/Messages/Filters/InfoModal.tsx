@@ -22,6 +22,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
         <S.ListItem>header</S.ListItem>
         <S.ListItem>partition</S.ListItem>
         <S.ListItem>timestampMs</S.ListItem>
+        <S.ListItem>nowMs (current epoch millis at evaluation time)</S.ListItem>
       </ol>
       <S.InfoParagraph>
         <b>JSON parsing logic:</b>
@@ -53,6 +54,12 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
             record.headers.size() == 1 && !has(record.headers.k1) &&
             record.headers[&apos;k2&apos;] == &apos;v2&apos;
           </code>
+        </S.ListItem>
+        <S.ListItem>
+          <code>
+            has(record.timestampMs) && record.timestampMs &gt; nowMs - 86400000
+          </code>{' '}
+          - messages since yesterday
         </S.ListItem>
       </ol>
       <Flexbox justifyContent="center" margin="20px 0 0 0">

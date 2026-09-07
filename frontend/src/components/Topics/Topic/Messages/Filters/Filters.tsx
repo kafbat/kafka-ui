@@ -111,6 +111,7 @@ const Filters: React.FC<FiltersProps> = ({
     setPartition,
     smartFilter,
     setSmartFilter,
+    predefinedFilters,
     refreshData,
   } = useMessagesFilters(topicName);
 
@@ -290,12 +291,14 @@ const Filters: React.FC<FiltersProps> = ({
         {smartFilter && (
           <S.ActiveSmartFilter data-testid="activeSmartFilter">
             <S.SmartFilterName>{smartFilter.id}</S.SmartFilterName>
-            <S.EditSmartFilterIcon
-              onClick={() => setCreatedEditedSmartId(smartFilter.id)}
-              disabled={!!createdEditedSmartId}
-            >
-              <EditIcon />
-            </S.EditSmartFilterIcon>
+            {!smartFilter.predefined && (
+              <S.EditSmartFilterIcon
+                onClick={() => setCreatedEditedSmartId(smartFilter.id)}
+                disabled={!!createdEditedSmartId}
+              >
+                <EditIcon />
+              </S.EditSmartFilterIcon>
+            )}
             <S.DeleteSmartFilterIcon
               onClick={() => {
                 setSmartFilter(null);
@@ -311,6 +314,7 @@ const Filters: React.FC<FiltersProps> = ({
         setClose={() => setCreatedEditedSmartId('')}
         smartFilter={smartFilter}
         setSmartFilter={setSmartFilter}
+        predefinedFilters={predefinedFilters}
         setFilterName={setCreatedEditedSmartId}
         filterName={createdEditedSmartId}
       />

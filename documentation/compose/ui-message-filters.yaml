@@ -1,0 +1,34 @@
+---
+# Example: predefined CEL message filters (issue 1814).
+# Combine these environment variables with any compose file that already
+# defines a cluster (for example kafbat-ui.yaml), or mount this as YAML:
+#
+#   kafka:
+#     clusters:
+#       - name: local
+#         bootstrapServers: kafka0:29092
+#         message-filters:
+#           - display-name: Non-heartbeat
+#             filter-code: has(record.value.after)
+#             enabled-by-default: true
+#           - display-name: Since yesterday
+#             filter-code: has(record.timestampMs) && record.timestampMs > nowMs - 86400000
+#
+version: '2'
+services:
+  kafbat-ui:
+    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:latest
+    ports:
+      - 8080:8080
+    environment:
+      kafka.clusters.0.name: local
+      kafka.clusters.0.bootstrapServers: kafka0:29092
+
+      kafka.clusters.0.messageFilters.0.displayName: Non-heartbeat
+      kafka.clusters.0.messageFilters.0.filterCode: has(record.value.after)
+      kafka.clusters.0.messageFilters.0.enabledByDefault: "true"
+
+      kafka.clusters.0.messageFilters.1.displayName: Since yesterday
+      kafka.clusters.0.messageFilters.1.filterCode: has(record.timestampMs) && record.timestampMs > nowMs - 86400000
+      kafka.clusters.0.messageFilters.1.enabledByDefault: "false"
