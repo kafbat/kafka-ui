@@ -19,7 +19,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
         <S.ListItem>value (json if possible)</S.ListItem>
         <S.ListItem>keyAsText</S.ListItem>
         <S.ListItem>valueAsText</S.ListItem>
-        <S.ListItem>header</S.ListItem>
+        <S.ListItem>headers</S.ListItem>
         <S.ListItem>partition</S.ListItem>
         <S.ListItem>timestampMs</S.ListItem>
       </ol>
@@ -51,7 +51,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ toggleIsOpen }) => {
         <S.ListItem>
           <code>
             record.headers.size() == 1 && !has(record.headers.k1) &&
-            record.headers[&apos;k2&apos;] == &apos;v2&apos;
+            &apos;v2&apos; in record.headers[&apos;k2&apos;]
           </code>
         </S.ListItem>
       </ol>

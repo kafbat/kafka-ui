@@ -43,7 +43,7 @@ export const mockMessage: TopicMessage = {
   key: 'test-key',
   partition: 6,
   value: '{"data": "test"}',
-  headers: { header: 'test' },
+  headers: { header: ['test'] },
 };
 
 export const mockKeyFilters: PreviewFilter = {
