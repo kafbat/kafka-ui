@@ -90,14 +90,21 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     return (
       <>
         {filters.map((item) => {
-          return (
-            <div key={`${item.path}--${item.field}`}>
-              {item.field}:{' '}
-              {JSON.stringify(
-                JSONPath({ path: item.path, json: parsedJson, wrap: false })
-              )}
-            </div>
-          );
+          try {
+            const value = JSONPath({
+              path: item.path,
+              json: parsedJson,
+              wrap: false,
+            });
+
+            return (
+              <div key={`${item.path}--${item.field}`}>
+                {item.field}: {JSON.stringify(value)}
+              </div>
+            );
+          } catch {
+            return null;
+          }
         })}
       </>
     );
