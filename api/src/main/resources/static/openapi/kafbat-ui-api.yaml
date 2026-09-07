@@ -3130,6 +3130,8 @@ components:
                             type: string
                           clientSecret:
                             type: string
+                          clientAuthenticationMethod:
+                            type: string
                           clientName:
                             type: string
                           redirectUri:
@@ -3306,6 +3308,29 @@ components:
                             type: string
                           password:
                             type: string
+                          oauth:
+                            type: object
+                            properties:
+                              tokenUrl:
+                                type: string
+                              clientId:
+                                type: string
+                              clientSecret:
+                                type: string
+                              scopes:
+                                type: array
+                                items:
+                                  type: string
+                              tokenCacheEnabled:
+                                type: boolean
+                                default: true
+                              tokenRefreshBuffer:
+                                type: string
+                                format: duration
+                              maxRetries:
+                                type: integer
+                                format: int32
+                                default: 1
                       schemaRegistrySsl:
                         type: object
                         properties:
