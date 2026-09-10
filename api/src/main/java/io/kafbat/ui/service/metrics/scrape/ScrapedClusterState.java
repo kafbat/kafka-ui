@@ -137,8 +137,8 @@ public class ScrapedClusterState implements AutoCloseable {
         Mono.zip(
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
-            ac.describeConsumerGroups(phase1.getT2()),
-            ac.listConsumerGroupOffsets(phase1.getT2(), null)
+            ac.describeConsumerGroups(phase1.getT2(), true),
+            ac.listConsumerGroupOffsets(phase1.getT2(), null, true)
         ).map(phase2 ->
             create(
                 clusterDescription,

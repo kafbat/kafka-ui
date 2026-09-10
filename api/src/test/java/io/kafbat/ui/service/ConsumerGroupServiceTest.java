@@ -35,12 +35,56 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 class ConsumerGroupServiceTest {
+
+  @ParameterizedTest
+  @EnumSource(ConsumerGroupOrderingDTO.class)
+  void consumerGroupPagesSkipMissingDescriptions(ConsumerGroupOrderingDTO ordering) {
+    var cluster = KafkaCluster.builder().name("test").build();
+    var client = Mockito.mock(ReactiveAdminClient.class);
+    var admin = Mockito.mock(AdminClientService.class);
+    Mockito.when(admin.get(cluster)).thenReturn(Mono.just(client));
+    var allowed = new ConsumerGroupDescription("allowed", false, List.of(), "range",
+        ConsumerGroupState.EMPTY, null);
+    Mockito.when(client.listConsumerGroups()).thenReturn(Mono.just(List.of(
+        new ConsumerGroupListing("restricted", false, Optional.of(ConsumerGroupState.EMPTY)),
+        new ConsumerGroupListing("allowed", false, Optional.of(ConsumerGroupState.EMPTY))
+    )));
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true)))
+        .thenReturn(Mono.just(Map.of("allowed", allowed)));
+
+    var cache = Mockito.mock(StatisticsCache.class);
+    Mockito.when(cache.get(cluster)).thenReturn(Statistics.builder()
+        .status(ServerStatusDTO.ONLINE)
+        .clusterState(ScrapedClusterState.builder()
+            .consumerGroupsStates(Map.of("allowed",
+                new ScrapedClusterState.ConsumerGroupState("allowed", allowed, Map.of())))
+            .topicStates(Map.of())
+            .build())
+        .build());
+    var acl = Mockito.mock(AccessControlService.class);
+    Mockito.when(acl.isConsumerGroupAccessible(Mockito.any(), Mockito.any())).thenReturn(Mono.just(true));
+    var service = new ConsumerGroupService(admin, acl, new ClustersProperties(), cache);
+
+    var page = service.getConsumerGroups(cluster, OptionalInt.of(1), OptionalInt.of(25),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+
+    assertThat(page).isNotNull();
+    assertThat(page.consumerGroups()).extracting(group -> group.getGroupId()).containsExactly("allowed");
+
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true)))
+        .thenReturn(Mono.just(Map.of()));
+    var emptyPage = service.getConsumerGroups(cluster, OptionalInt.of(1), OptionalInt.of(25),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+    assertThat(emptyPage).isNotNull();
+    assertThat(emptyPage.consumerGroups()).isEmpty();
+  }
 
   @Test
   void getConsumerGroupsForTopicConsumerGroups() {
@@ -125,7 +169,7 @@ class ConsumerGroupServiceTest {
         .thenReturn(Mono.just(Map.of(new TopicPartition(topic, 0), 100L)));
 
     Mockito.when(client.describeConsumerGroups(
-        Mockito.any())
+        Mockito.any(), Mockito.eq(true))
     ).thenReturn(
         Mono.just(
             consumerGroupStates.values().stream()
@@ -460,7 +504,7 @@ class ConsumerGroupServiceTest {
             .toList()
     ));
 
-    Mockito.when(client.describeConsumerGroups(Mockito.any())).thenAnswer(invocation -> {
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true))).thenAnswer(invocation -> {
       List<String> groupIds = invocation.getArgument(0);
       return Mono.just(
           groupIds.stream()

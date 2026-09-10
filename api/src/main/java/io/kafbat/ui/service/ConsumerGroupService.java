@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Properties;
@@ -432,7 +433,7 @@ public class ConsumerGroupService {
       case MEMBERS -> {
         var comparator = Comparator.<ConsumerGroupDescription>comparingInt(cg -> cg.members().size());
         var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
-        yield ac.describeConsumerGroups(groupNames)
+        yield ac.describeConsumerGroups(groupNames, true)
             .map(descriptions ->
                 sortAndPaginate(descriptions.values(), comparator, pageNum, perPage, sortOrderDto).toList());
       }
@@ -463,8 +464,8 @@ public class ConsumerGroupService {
     List<String> sortedGroups = sortAndPaginate(listings, comparator, pageNum, perPage, sortOrderDto)
         .map(ConsumerGroupListing::groupId)
         .toList();
-    return ac.describeConsumerGroups(sortedGroups)
-        .map(descrMap -> sortedGroups.stream().map(descrMap::get).toList());
+    return ac.describeConsumerGroups(sortedGroups, true)
+        .map(descrMap -> sortedGroups.stream().map(descrMap::get).filter(Objects::nonNull).toList());
   }
 
   private <T> Stream<T> sortAndPaginate(Collection<T> collection,
@@ -514,7 +515,7 @@ public class ConsumerGroupService {
         }
       }
       if (!notFound.isEmpty()) {
-        return ac.describeConsumerGroups(notFound)
+        return ac.describeConsumerGroups(notFound, true)
             .map(descriptions -> {
               result.addAll(descriptions.values());
               return result;
@@ -523,7 +524,7 @@ public class ConsumerGroupService {
         return Mono.just(result);
       }
     } else {
-      return ac.describeConsumerGroups(groupNames)
+      return ac.describeConsumerGroups(groupNames, true)
           .map(descriptions -> List.copyOf(descriptions.values()));
     }
   }
@@ -541,7 +542,7 @@ public class ConsumerGroupService {
       SortOrderDTO sortOrderDto) {
     var groupNames = groups.stream().map(ConsumerGroupListing::groupId).toList();
 
-    return ac.describeConsumerGroups(groupNames)
+    return ac.describeConsumerGroups(groupNames, true)
         .flatMap(descriptionsMap -> {
               List<ConsumerGroupDescription> descriptions = descriptionsMap.values().stream().toList();
               return getConsumerGroups(cluster, ac, descriptions)

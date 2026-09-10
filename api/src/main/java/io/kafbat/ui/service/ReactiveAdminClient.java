@@ -78,6 +78,7 @@ import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
+import org.apache.kafka.common.errors.GroupAuthorizationException;
 import org.apache.kafka.common.errors.GroupIdNotFoundException;
 import org.apache.kafka.common.errors.GroupNotEmptyException;
 import org.apache.kafka.common.errors.GroupSubscribedToTopicException;
@@ -527,11 +528,21 @@ public class ReactiveAdminClient implements Closeable {
   }
 
   public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds) {
+    return describeConsumerGroups(groupIds, false);
+  }
+
+  public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds,
+                                                                             boolean skipUnauthorized) {
     return partitionCalls(
         groupIds,
         properties.getDescribeConsumerGroupsPartitionSize(),
         properties.getDescribeConsumerGroupsConcurrency(),
-        ids -> toMono(client.describeConsumerGroups(ids).all()),
+        ids -> {
+          var result = client.describeConsumerGroups(ids);
+          return skipUnauthorized
+              ? collectAuthorizedGroupResults(result.describedGroups())
+              : toMono(result.all());
+        },
         mapMerger()
     );
   }
@@ -541,15 +552,24 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Table<String, TopicPartition, Long>> listConsumerGroupOffsets(List<String> consumerGroups,
                                                                             // all partitions if null passed
                                                                             @Nullable List<TopicPartition> partitions) {
+    return listConsumerGroupOffsets(consumerGroups, partitions, false);
+  }
+
+  public Mono<Table<String, TopicPartition, Long>> listConsumerGroupOffsets(List<String> consumerGroups,
+                                                                             @Nullable List<TopicPartition> partitions,
+                                                                             boolean skipUnauthorized) {
     Function<Collection<String>, Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>>> call =
-        groups -> toMono(
-            client.listConsumerGroupOffsets(
-                groups.stream()
-                    .collect(Collectors.toMap(
-                        g -> g,
-                        g -> new ListConsumerGroupOffsetsSpec().topicPartitions(partitions)
-                    ))).all()
-        );
+        groups -> {
+          var result = client.listConsumerGroupOffsets(groups.stream()
+              .collect(Collectors.toMap(
+                  g -> g,
+                  g -> new ListConsumerGroupOffsetsSpec().topicPartitions(partitions)
+              )));
+          return skipUnauthorized
+              ? collectAuthorizedGroupResults(groups.stream().collect(toMap(
+                  Function.identity(), result::partitionsToOffsetAndMetadata)))
+              : toMono(result.all());
+        };
 
     Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> merged = partitionCalls(
         consumerGroups,
@@ -569,6 +589,17 @@ public class ReactiveAdminClient implements Closeable {
       }));
       return table.build();
     });
+  }
+
+  private static <T> Mono<Map<String, T>> collectAuthorizedGroupResults(Map<String, KafkaFuture<T>> results) {
+    return Flux.fromIterable(results.entrySet())
+        .flatMap(entry -> toMono(entry.getValue())
+            .map(value -> Map.entry(entry.getKey(), value))
+            .onErrorResume(GroupAuthorizationException.class, error -> {
+              log.warn("Skipping unauthorized consumer group {}: {}", entry.getKey(), error.getMessage());
+              return Mono.empty();
+            }))
+        .collectMap(Map.Entry::getKey, Map.Entry::getValue);
   }
 
   public Mono<Void> alterConsumerGroupOffsets(String groupId, Map<TopicPartition, Long> offsets) {
