@@ -12,7 +12,7 @@ tags:
   - name: /api/clusters
   - name: /api/clusters/connects
 servers:
-  - url: /localhost
+  - url: /
 
 paths:
   /api/clusters:

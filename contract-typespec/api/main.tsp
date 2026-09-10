@@ -28,6 +28,6 @@ using Rest;
   license: #{ name: "Apache 2.0", url: "https://www.apache.org/licenses/LICENSE-2.0.html" },
   version: "0.2.0"
 })
-@server("http://localhost:8080", "Default endpoint for Kafbat UI API")
+@server("/", "Current host")
 namespace Api;
 
