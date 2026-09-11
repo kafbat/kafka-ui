@@ -342,6 +342,8 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
           .configureSsl(
               truststoreConfig,
               new ClustersProperties.KeystoreConfig(
+                  config.getKeystoreType(),
+                  config.getKeystoreCertificate(),
                   config.getKeystoreLocation(),
                   config.getKeystorePassword()
               )
