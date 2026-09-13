@@ -7,8 +7,10 @@ import io.kafbat.ui.util.ContentUtils;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
@@ -64,13 +66,13 @@ public class ConsumerRecordDeserializer {
   }
 
   private void fillHeaders(TopicMessageDTO message, ConsumerRecord<Bytes, Bytes> rec) {
-    Map<String, String> headers = new HashMap<>();
+    Map<String, List<String>> headers = new HashMap<>();
     rec.headers().iterator()
-        .forEachRemaining(header ->
-            headers.put(
-                header.key(),
-                ContentUtils.convertToString(header.value())
-            ));
+        .forEachRemaining(header -> {
+          String key = header.key();
+          String value = ContentUtils.convertToString(header.value());
+          headers.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
+        });
     message.setHeaders(headers);
   }
 
