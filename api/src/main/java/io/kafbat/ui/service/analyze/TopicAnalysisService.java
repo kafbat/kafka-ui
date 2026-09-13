@@ -76,7 +76,6 @@ public class TopicAnalysisService {
 
     private final TopicIdentity topicId;
 
-    private final TopicAnalysisStats totalStats = new TopicAnalysisStats();
     private final Map<Integer, TopicAnalysisStats> partitionStats = new HashMap<>();
 
     private final EnhancedConsumer consumer;
@@ -112,13 +111,11 @@ public class TopicAnalysisService {
 
         while (!seekOperations.assignedPartitionsFullyPolled()) {
           var polled = consumer.pollEnhanced(Duration.ofSeconds(3));
-          polled.forEach(r -> {
-            totalStats.apply(r);
-            partitionStats.get(r.partition()).apply(r);
-          });
+          polled.forEach(r -> partitionStats.get(r.partition()).apply(r));
           updateProgress(seekOperations.offsetsProcessedFromSeek(), summaryOffsetsRange);
         }
-        analysisTasksStore.setAnalysisResult(topicId, startedAt, totalStats, partitionStats);
+        analysisTasksStore.setAnalysisResult(
+            topicId, startedAt, TopicAnalysisStats.merge(partitionStats.values()), partitionStats);
         log.info("{} topic analysis finished", topicId);
       } catch (WakeupException | InterruptException cancelException) {
         log.info("{} topic analysis stopped", topicId);
@@ -134,10 +131,16 @@ public class TopicAnalysisService {
 
     private void updateProgress(long processedOffsets, long summaryOffsetsRange) {
       if (processedOffsets > 0 && summaryOffsetsRange != 0) {
+        long msgsScanned = 0;
+        long bytesScanned = 0;
+        for (TopicAnalysisStats stats : partitionStats.values()) {
+          msgsScanned += stats.totalMsgs;
+          bytesScanned += stats.keysSize.sum + stats.valuesSize.sum;
+        }
         analysisTasksStore.updateProgress(
             topicId,
-            totalStats.totalMsgs,
-            totalStats.keysSize.sum + totalStats.valuesSize.sum,
+            msgsScanned,
+            bytesScanned,
             Math.min(100.0, (((double) processedOffsets) / summaryOffsetsRange) * 100)
         );
       }
