@@ -600,6 +600,96 @@ class SchemaRegistrySerdeTest {
   }
 
   @Nested
+  class CouldBePreferableTests {
+
+    @Test
+    @SneakyThrows
+    void trueForTopicNameStrategy() {
+      registryClient.register("orders-value", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void trueForTopicNameStrategyKey() {
+      registryClient.register("orders-key", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.KEY)).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void trueForTopicRecordNameStrategy() {
+      registryClient.register("orders-com.example.OrderCreated", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void trueForRecordNameStrategy() {
+      // RecordNameStrategy subjects aren't tied to a topic, but their presence still means the
+      // cluster uses SchemaRegistry, so SR is the right default; the per-message magic-byte check
+      // and fallback serde decode each message correctly.
+      registryClient.register("com.example.OrderCreated", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("any-topic", Serde.Target.VALUE)).isTrue();
+    }
+
+    @Test
+    void falseWhenRegistryHasNoApplicableSubjects() {
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isFalse();
+      assertThat(serde.couldBePreferable("orders", Serde.Target.KEY)).isFalse();
+    }
+
+    @Test
+    @SneakyThrows
+    void falseWhenOnlyOppositeTargetSubjectExists() {
+      registryClient.register("orders-key", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isFalse();
+    }
+
+    @Test
+    @SneakyThrows
+    void falseForAnotherTopicsTopicNameSubject() {
+      // Another topic's TopicNameStrategy subject must not make this topic prefer SR.
+      registryClient.register("other-value", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isFalse();
+    }
+
+    @Test
+    @SneakyThrows
+    void falseForAnotherTopicsTopicRecordSubject() {
+      // Another topic's TopicRecordNameStrategy subject must not make this topic prefer SR.
+      registryClient.register("other-com.example.OrderCreated", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isFalse();
+    }
+
+    @Test
+    @SneakyThrows
+    void falseForSiblingTopicSharingNamePrefix() {
+      // "orders-dlq-value" belongs to topic "orders-dlq" (TopicNameStrategy), not "orders".
+      registryClient.register("orders-dlq-value", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isFalse();
+    }
+
+    @Test
+    @SneakyThrows
+    void siblingTopicsResolveIndependently() {
+      registryClient.register("orders-value", new AvroSchema("\"int\""));
+      registryClient.register("orders-dlq-value", new AvroSchema("\"string\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isTrue();
+      assertThat(serde.couldBePreferable("orders-dlq", Serde.Target.VALUE)).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void recordNameStrategyMakesEveryTopicPreferSr() {
+      // A bare RecordNameStrategy subject isn't tied to a topic, so any topic could carry it.
+      registryClient.register("com.example.OrderCreated", new AvroSchema("\"int\""));
+      assertThat(serde.couldBePreferable("orders", Serde.Target.VALUE)).isTrue();
+      assertThat(serde.couldBePreferable("totally-unrelated", Serde.Target.VALUE)).isTrue();
+    }
+  }
+
+  @Nested
   class GetSchemaSubjectsTests {
 
     List<String> resolveSubjects(String topic, Serde.Target target) {

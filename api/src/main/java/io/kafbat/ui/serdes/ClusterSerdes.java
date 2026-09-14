@@ -30,11 +30,9 @@ public class ClusterSerdes implements Closeable {
   private Optional<SerdeInstance> findSerdeByPatternsOrDefault(String topic,
                                                                Serde.Target type,
                                                                Predicate<SerdeInstance> additionalCheck) {
-    // iterating over serdes in the same order they were added in config
+    // Pass 1: explicit topic-pattern match, or an explicitly-configured serde without a pattern.
+    // Iterating over serdes in the same order they were added in config.
     for (SerdeInstance serdeInstance : serdes.values()) {
-      if (!serdeInstance.couldBePreferable(topic, type)) {
-        continue;
-      }
       var pattern = type == Serde.Target.KEY
           ? serdeInstance.topicKeyPattern
           : serdeInstance.topicValuePattern;
@@ -45,6 +43,8 @@ public class ClusterSerdes implements Closeable {
         return Optional.of(serdeInstance);
       }
     }
+
+    // Pass 2: cluster-level explicit default serde.
     if (type == Serde.Target.KEY
         && defaultKeySerde != null
         && additionalCheck.test(defaultKeySerde)) {
@@ -55,6 +55,24 @@ public class ClusterSerdes implements Closeable {
         && additionalCheck.test(defaultValueSerde)) {
       return Optional.of(defaultValueSerde);
     }
+
+    // Pass 3: implicit auto-detection. A serde opts in via couldBePreferable when it's a good
+    // default for this topic (e.g. SchemaRegistry when the registry has an applicable subject).
+    // Only serdes without an explicit topic pattern are considered here - a configured pattern
+    // scopes a serde to matching topics, so it must not be auto-selected elsewhere. The actual
+    // per-message magic-byte check in the deserializer, plus the fallback serde, corrects any
+    // topic whose messages turn out not to match.
+    for (SerdeInstance serdeInstance : serdes.values()) {
+      var pattern = type == Serde.Target.KEY
+          ? serdeInstance.topicKeyPattern
+          : serdeInstance.topicValuePattern;
+      if (pattern == null
+          && serdeInstance.couldBePreferable(topic, type)
+          && additionalCheck.test(serdeInstance)) {
+        return Optional.of(serdeInstance);
+      }
+    }
+
     return Optional.empty();
   }
 
