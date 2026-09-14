@@ -1517,6 +1517,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KsqlCommandV2'
+  /api/clusters/{clusterName}/message-filters:
+    get:
+      operationId: getClusterMessageFilters
+      summary: getClusterMessageFilters
+      parameters:
+        - name: clusterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClusterMessageFilter'
+      tags:
+        - Clusters
   /api/clusters/{clusterName}/metrics:
     get:
       operationId: getClusterMetrics
@@ -3130,6 +3151,8 @@ components:
                             type: string
                           clientSecret:
                             type: string
+                          clientAuthenticationMethod:
+                            type: string
                           clientName:
                             type: string
                           redirectUri:
@@ -3306,6 +3329,29 @@ components:
                             type: string
                           password:
                             type: string
+                          oauth:
+                            type: object
+                            properties:
+                              tokenUrl:
+                                type: string
+                              clientId:
+                                type: string
+                              clientSecret:
+                                type: string
+                              scopes:
+                                type: array
+                                items:
+                                  type: string
+                              tokenCacheEnabled:
+                                type: boolean
+                                default: true
+                              tokenRefreshBuffer:
+                                type: string
+                                format: duration
+                              maxRetries:
+                                type: integer
+                                format: int32
+                                default: 1
                       schemaRegistrySsl:
                         type: object
                         properties:
@@ -3428,6 +3474,18 @@ components:
                               type: string
                             topicValuesPattern:
                               type: string
+                      messageFilters:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            displayName:
+                              type: string
+                            filterCode:
+                              type: string
+                            enabledByDefault:
+                              type: boolean
+                              default: false
                       pollingThrottleRate:
                         type: integer
                         format: int64
@@ -3749,6 +3807,22 @@ components:
           $ref: '#/components/schemas/ApplicationPropertyValidation'
         prometheusStorage:
           $ref: '#/components/schemas/ApplicationPropertyValidation'
+    ClusterMessageFilter:
+      type: object
+      required:
+        - id
+        - displayName
+        - filterCode
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        filterCode:
+          type: string
+        enabledByDefault:
+          type: boolean
+          default: false
     ClusterMetrics:
       type: object
       required:

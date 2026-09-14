@@ -102,6 +102,8 @@ public class ClustersProperties {
 
     List<@Valid Masking> masking;
 
+    List<@Valid MessageFilterConfig> messageFilters;
+
     AuditProperties audit;
   }
 
@@ -231,6 +233,15 @@ public class ClustersProperties {
     public enum Type {
       REMOVE, MASK, REPLACE
     }
+  }
+
+  @Data
+  public static class MessageFilterConfig {
+    @NotBlank
+    String displayName;
+    @NotBlank
+    String filterCode;
+    boolean enabledByDefault = false;
   }
 
   @Data

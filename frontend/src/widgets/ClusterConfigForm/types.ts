@@ -80,4 +80,9 @@ export type ClusterConfigFormValues = {
     topicKeysPattern?: string;
     topicValuesPattern?: string;
   }[];
+  messageFilters?: {
+    displayName?: string;
+    filterCode?: string;
+    enabledByDefault?: boolean;
+  }[];
 };

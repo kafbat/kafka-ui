@@ -2,6 +2,7 @@ package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.ClustersApi;
 import io.kafbat.ui.model.ClusterDTO;
+import io.kafbat.ui.model.ClusterMessageFilterDTO;
 import io.kafbat.ui.model.ClusterMetricsDTO;
 import io.kafbat.ui.model.ClusterStatsDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
@@ -74,6 +75,23 @@ public class ClustersController extends AbstractController implements ClustersAp
 
     return validateAccess(context)
         .then(clusterService.updateCluster(getCluster(clusterName)).map(ResponseEntity::ok))
+        .doOnEach(sig -> audit(context, sig));
+  }
+
+  @Override
+  public Mono<ResponseEntity<Flux<ClusterMessageFilterDTO>>> getClusterMessageFilters(
+      String clusterName,
+      ServerWebExchange exchange) {
+
+    AccessContext context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getClusterMessageFilters")
+        .build();
+
+    return validateAccess(context)
+        .then(Mono.fromSupplier(() -> ResponseEntity.ok(
+            Flux.fromIterable(clusterService.getMessageFilters(getCluster(clusterName)))
+        )))
         .doOnEach(sig -> audit(context, sig));
   }
 }

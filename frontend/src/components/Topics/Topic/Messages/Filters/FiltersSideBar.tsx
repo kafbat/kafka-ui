@@ -17,6 +17,7 @@ export interface FilterModalProps {
   setFilterName: (filterId: string) => void;
   smartFilter?: AdvancedFilter;
   setSmartFilter: (filter: AdvancedFilter | null) => void;
+  predefinedFilters?: AdvancedFilter[];
 }
 
 const FiltersSideBar: React.FC<FilterModalProps> = ({
@@ -25,6 +26,7 @@ const FiltersSideBar: React.FC<FilterModalProps> = ({
   setFilterName,
   smartFilter,
   setSmartFilter,
+  predefinedFilters = [],
 }) => {
   const filters = useMessageFiltersStore((state) => state.filters);
   const filter = useMessageFiltersStore(selectFilter(filterName));
@@ -48,6 +50,7 @@ const FiltersSideBar: React.FC<FilterModalProps> = ({
         {!isEditing && (
           <SavedFilters
             filters={filters}
+            predefinedFilters={predefinedFilters}
             onEdit={(name) => {
               setFilterName(name);
             }}
