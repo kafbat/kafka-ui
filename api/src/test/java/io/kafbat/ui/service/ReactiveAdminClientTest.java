@@ -6,6 +6,7 @@ import static org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResult
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import static org.mockito.Mockito.mock;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.exception.ValidationException;
@@ -23,6 +24,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
 import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
@@ -35,6 +37,7 @@ import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.errors.GroupAuthorizationException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -137,6 +140,25 @@ class ReactiveAdminClientTest extends AbstractIntegrationTest {
     );
     StepVerifier.create(toMonoWithExceptionFilter(arg, UnknownTopicOrPartitionException.class))
         .assertNext(result -> assertThat(result).hasSize(1).containsEntry("ok", "done"))
+        .verifyComplete();
+  }
+
+  @Test
+  void testToMonoWithExceptionFilterSkipsGroupsWithoutDescribePermission() {
+    var deniedFuture = new KafkaFutureImpl<ConsumerGroupDescription>();
+    deniedFuture.completeExceptionally(new GroupAuthorizationException("not authorized to describe group"));
+
+    var describedGroup = mock(ConsumerGroupDescription.class);
+    var okFuture = new KafkaFutureImpl<ConsumerGroupDescription>();
+    okFuture.complete(describedGroup);
+
+    // managed offerings can list internal groups that no client principal is allowed to describe
+    Map<String, KafkaFuture<ConsumerGroupDescription>> arg = Map.of(
+        "__internal_google_managed_kafka_prober_cg", deniedFuture,
+        "my-group", okFuture
+    );
+    StepVerifier.create(toMonoWithExceptionFilter(arg, GroupAuthorizationException.class))
+        .assertNext(result -> assertThat(result).hasSize(1).containsEntry("my-group", describedGroup))
         .verifyComplete();
   }
 

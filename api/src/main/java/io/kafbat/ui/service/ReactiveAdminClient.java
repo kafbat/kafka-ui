@@ -78,6 +78,7 @@ import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.errors.ClusterAuthorizationException;
+import org.apache.kafka.common.errors.GroupAuthorizationException;
 import org.apache.kafka.common.errors.GroupIdNotFoundException;
 import org.apache.kafka.common.errors.GroupNotEmptyException;
 import org.apache.kafka.common.errors.GroupSubscribedToTopicException;
@@ -526,12 +527,21 @@ public class ReactiveAdminClient implements Closeable {
     return toMono(client.listConsumerGroups().all());
   }
 
+  /*
+  NOTE: skips groups for which DESCRIBE permission is not set (GroupAuthorizationException was thrown).
+  Some managed Kafka offerings list internal groups that cannot be described by any client principal
+  (ex. GCP Managed Service for Apache Kafka's __internal_google_managed_kafka_prober_cg), so failing
+  the whole batch would make the cluster unusable.
+   */
   public Mono<Map<String, ConsumerGroupDescription>> describeConsumerGroups(Collection<String> groupIds) {
     return partitionCalls(
         groupIds,
         properties.getDescribeConsumerGroupsPartitionSize(),
         properties.getDescribeConsumerGroupsConcurrency(),
-        ids -> toMono(client.describeConsumerGroups(ids).all()),
+        ids -> toMonoWithExceptionFilter(
+            client.describeConsumerGroups(ids).describedGroups(),
+            GroupAuthorizationException.class
+        ),
         mapMerger()
     );
   }
@@ -541,15 +551,20 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Table<String, TopicPartition, Long>> listConsumerGroupOffsets(List<String> consumerGroups,
                                                                             // all partitions if null passed
                                                                             @Nullable List<TopicPartition> partitions) {
+    // groups that can't be described are skipped here too, see describeConsumerGroups() note
     Function<Collection<String>, Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>>> call =
-        groups -> toMono(
-            client.listConsumerGroupOffsets(
-                groups.stream()
-                    .collect(Collectors.toMap(
-                        g -> g,
-                        g -> new ListConsumerGroupOffsetsSpec().topicPartitions(partitions)
-                    ))).all()
-        );
+        groups -> {
+          var result = client.listConsumerGroupOffsets(
+              groups.stream()
+                  .collect(Collectors.toMap(
+                      g -> g,
+                      g -> new ListConsumerGroupOffsetsSpec().topicPartitions(partitions)
+                  )));
+          return toMonoWithExceptionFilter(
+              groups.stream().collect(Collectors.toMap(g -> g, result::partitionsToOffsetAndMetadata)),
+              GroupAuthorizationException.class
+          );
+        };
 
     Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> merged = partitionCalls(
         consumerGroups,
