@@ -18,6 +18,7 @@ public class JsonSchema {
   private final URI id;
   private final URI schema = URI.create("https://json-schema.org/draft/2020-12/schema");
   private final String title;
+  private final FieldSchema rootSchema;
   private final JsonType type;
   private final Map<String, FieldSchema> properties;
   private final Map<String, FieldSchema> definitions;
@@ -29,18 +30,22 @@ public class JsonSchema {
     final ObjectNode objectNode = mapper.createObjectNode();
     objectNode.set("$id", new TextNode(id.toString()));
     objectNode.set("$schema", new TextNode(schema.toString()));
-    objectNode.setAll(type.toJsonNode(mapper));
-    if (properties != null && !properties.isEmpty()) {
-      objectNode.set("properties", mapper.valueToTree(
-          properties.entrySet().stream()
-              .map(e -> Tuples.of(e.getKey(), e.getValue().toJsonNode(mapper)))
-              .collect(Collectors.toMap(
-                  Tuple2::getT1,
-                  Tuple2::getT2
-              ))
-      ));
-      if (!required.isEmpty()) {
-        objectNode.set("required", mapper.valueToTree(required));
+    if (rootSchema != null) {
+      objectNode.setAll((ObjectNode) rootSchema.toJsonNode(mapper));
+    } else {
+      objectNode.setAll(type.toJsonNode(mapper));
+      if (properties != null && !properties.isEmpty()) {
+        objectNode.set("properties", mapper.valueToTree(
+            properties.entrySet().stream()
+                .map(e -> Tuples.of(e.getKey(), e.getValue().toJsonNode(mapper)))
+                .collect(Collectors.toMap(
+                    Tuple2::getT1,
+                    Tuple2::getT2
+                ))
+        ));
+        if (!required.isEmpty()) {
+          objectNode.set("required", mapper.valueToTree(required));
+        }
       }
     }
     if (definitions != null && !definitions.isEmpty()) {

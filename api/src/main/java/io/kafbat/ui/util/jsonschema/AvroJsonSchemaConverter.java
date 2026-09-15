@@ -17,18 +17,22 @@ public class AvroJsonSchemaConverter implements JsonSchemaConverter<Schema> {
   public JsonSchema convert(URI basePath, Schema schema) {
     final JsonSchema.JsonSchemaBuilder builder = JsonSchema.builder();
 
-    builder.id(basePath.resolve(schema.getName()));
-    JsonType type = convertType(schema);
-    builder.type(type);
+    builder.id(basePath.resolve(schema.isUnion() ? "union" : schema.getName()));
 
     Map<String, FieldSchema> definitions = new HashMap<>();
     final FieldSchema root = convertSchema(schema, definitions, true);
     builder.definitions(definitions);
 
-    if (type.getType().equals(JsonType.Type.OBJECT)) {
-      final ObjectFieldSchema objectRoot = (ObjectFieldSchema) root;
-      builder.properties(objectRoot.getProperties());
-      builder.required(objectRoot.getRequired());
+    if (schema.isUnion()) {
+      builder.rootSchema(root);
+    } else {
+      JsonType type = convertType(schema);
+      builder.type(type);
+      if (type.getType().equals(JsonType.Type.OBJECT)) {
+        final ObjectFieldSchema objectRoot = (ObjectFieldSchema) root;
+        builder.properties(objectRoot.getProperties());
+        builder.required(objectRoot.getRequired());
+      }
     }
 
     return builder.build();

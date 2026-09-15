@@ -286,6 +286,51 @@ class AvroJsonSchemaConverterTest {
     convertAndCompare(expectedJsonSchema, avroSchema);
   }
 
+  @Test
+  void testRootUnion() {
+    String avroSchema =
+        "["
+            + "{\"type\":\"record\",\"name\":\"Created\",\"fields\":["
+            + "{\"name\":\"id\",\"type\":\"string\"}]},"
+            + "{\"type\":\"record\",\"name\":\"Deleted\",\"fields\":["
+            + "{\"name\":\"id\",\"type\":\"string\"}]}"
+            + "]";
+
+    String expectedJsonSchema =
+        "{\"$id\":\"http://example.com/union\","
+            + "\"$schema\":\"https://json-schema.org/draft/2020-12/schema\","
+            + "\"type\":\"object\","
+            + "\"properties\":{"
+            + "\"Created\":{\"$ref\":\"#/definitions/Created\"},"
+            + "\"Deleted\":{\"$ref\":\"#/definitions/Deleted\"}"
+            + "},"
+            + "\"definitions\":{"
+            + "\"Created\":{\"type\":\"object\",\"properties\":{"
+            + "\"id\":{\"type\":\"string\"}},\"required\":[\"id\"]},"
+            + "\"Deleted\":{\"type\":\"object\",\"properties\":{"
+            + "\"id\":{\"type\":\"string\"}},\"required\":[\"id\"]}"
+            + "}}";
+
+    convertAndCompare(expectedJsonSchema, avroSchema);
+  }
+
+  @Test
+  void testNullableRootUnion() {
+    String avroSchema = "[\"null\",\"string\"]";
+
+    String expectedJsonSchema =
+        "{\"$id\":\"http://example.com/union\","
+            + "\"$schema\":\"https://json-schema.org/draft/2020-12/schema\","
+            + "\"oneOf\":["
+            + "{\"type\":\"null\"},"
+            + "{\"type\":\"object\",\"properties\":{"
+            + "\"string\":{\"type\":\"string\"}"
+            + "}}"
+            + "]}";
+
+    convertAndCompare(expectedJsonSchema, avroSchema);
+  }
+
   @SneakyThrows
   private void convertAndCompare(String expectedJsonSchema, String sourceAvroSchema) {
     var parseAvroSchema = new Schema.Parser().parse(sourceAvroSchema);
