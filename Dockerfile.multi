@@ -1,0 +1,57 @@
+# ==============================================================================
+# Multi-stage Dockerfile for Kafbat UI (kafka-ui)
+# Fully self-contained: builds the entire application (frontend + backend) inside Docker.
+# ==============================================================================
+#
+# Build the Docker image directly from source code:
+#    docker build -f Dockerfile.multi -t ghcr.io/kafbat/kafka-ui:260824 .
+#
+
+# build command example
+# docker buildx build --platform=linux/amd64 -f Dockerfile.multi -t localhost/kafbat/kafka-ui:260902.1 --provenance=false --sbom=false --load --build-arg VERSION=260902.1 .
+# docker build -f Dockerfile.multi -t localhost/kafbat/kafka-ui:260902.1 --provenance=false --sbom=false --load --build-arg VERSION=260902.1 .
+
+# --- Stage 1: Build stage using JDK 25 ---
+# Using Ubuntu-based eclipse-temurin for full toolchain compatibility (glibc, bash, etc.)
+FROM eclipse-temurin:25-jdk-noble AS builder
+WORKDIR /workspace
+
+# Set CI environment variable to true to avoid pnpm non-TTY / interactive questions
+ENV CI=true
+
+# Copy the entire source tree
+COPY . .
+
+# Run the Gradle build
+# Since local_node is false by default, Gradle will download the correct Node.js and pnpm
+# versions specified in gradle.properties and build both the frontend and backend.
+ARG VERSION
+RUN ./gradlew clean build -x test -Pinclude-frontend=true -Pversion=${VERSION} --no-daemon
+
+# --- Stage 2: Final runtime image ---
+FROM azul/zulu-openjdk-alpine:25.0.3-jre-headless@sha256:49813322612bed550f4540a5b06dd5ea3b9ac1aa6d8842cad6b289777ca825c4
+
+RUN apk update && apk upgrade --no-cache openssl libssl3 libcrypto3
+
+RUN apk add --no-cache \
+    # snappy codec
+    gcompat \
+    # configuring timezones
+    tzdata
+RUN addgroup -S kafkaui && adduser -S kafkaui -G kafkaui
+
+# creating folder for dynamic config usage (certificates uploads, etc)
+RUN mkdir /etc/kafkaui/
+RUN chown kafkaui /etc/kafkaui
+
+USER kafkaui
+
+# Copy the compiled JAR from Stage 1
+COPY --from=builder /workspace/api/build/libs/api-*.jar /api.jar
+
+ENV JAVA_OPTS=
+
+EXPOSE 8080
+
+# see JmxSslSocketFactory docs to understand why add-opens is needed
+CMD java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED $JAVA_OPTS -jar api.jar
