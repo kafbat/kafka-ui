@@ -34,6 +34,16 @@ tasks.register('generateContract', PnpmTask) {
   args = ['gen:sources']
 }
 
+def getCommitHash() {
+  try {
+    def process = "git rev-parse --short HEAD".execute()
+    process.waitFor()
+    return process.exitValue() == 0 ? process.text.trim() : ""
+  } catch (Exception e) {
+    return ""
+  }
+}
+
 tasks.register('buildFrontend', PnpmTask) {
   dependsOn generateContract
   inputs.files(fileTree("src/"))
@@ -41,6 +51,6 @@ tasks.register('buildFrontend', PnpmTask) {
   args = ['build']
   environment = System.getenv() + [
     "VITE_TAG"   : project.version,
-    "VITE_COMMIT": "git rev-parse --short HEAD".execute().text.trim()
+    "VITE_COMMIT": getCommitHash()
   ]
 }
