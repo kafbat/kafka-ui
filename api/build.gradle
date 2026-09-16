@@ -17,7 +17,39 @@ configurations.all {
             // so we can safely exclude it from the resolution strategy
             if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
                 details.useVersion(libs.versions.netty.get())
-                details.because("Fixes CVE-2026-42578 through CVE-2026-44248. Revert when Spring Boot releases a version with the fix")
+                details.because("Revert when Spring Boot releases a version with the fix")
+            }
+            if (details.requested.group == "org.springframework") {
+                details.useVersion(libs.versions.spring.framework.get())
+                details.because("CVE Fix: Upgrade Spring Framework to 6.2.19+")
+            }
+            if (details.requested.group == "org.springframework.security") {
+                details.useVersion(libs.versions.spring.security.get())
+                details.because("CVE Fix: Upgrade Spring Security to 6.5.11+")
+            }
+            if (details.requested.group.startsWith("com.fasterxml.jackson")) {
+                details.useVersion(libs.versions.jackson.asProvider().get())
+                details.because("CVE Fix: Upgrade Jackson to 2.21.5+")
+            }
+            if (details.requested.group == "io.micrometer" || details.requested.group.startsWith("io.micrometer.")) {
+                details.useVersion(libs.versions.micrometer.get())
+                details.because("CVE Fix: Upgrade Micrometer to 1.15.12+")
+            }
+            if (details.requested.group == "org.apache.logging.log4j") {
+                details.useVersion(libs.versions.log4j2.get())
+                details.because("CVE Fix: Upgrade Log4j2 to 2.25.5+")
+            }
+            if (details.requested.group == "ch.qos.logback") {
+                details.useVersion(libs.versions.logback.get())
+                details.because("CVE Fix: Upgrade Logback to 1.5.35+")
+            }
+            if (details.requested.group == "com.nimbusds" && details.requested.name == "nimbus-jose-jwt") {
+                details.useVersion(libs.versions.nimbus.jose.jwt.get())
+                details.because("CVE Fix: Upgrade Nimbus JOSE JWT to 10.0.2+")
+            }
+            if (details.requested.group == "com.squareup.wire") {
+                details.useVersion(libs.versions.wire.runtime.jvm.get())
+                details.because("CVE Fix: Upgrade Wire to 6.3.0+")
             }
             if (details.requested.group == "org.springframework") {
                 details.useVersion(libs.versions.spring.framework.get())

@@ -379,7 +379,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
     return validateAccess(context)
         .thenReturn(topicAnalysisService.getTopicAnalysis(getCluster(clusterName), topicName)
             .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build()))
+            .orElseGet(() -> ResponseEntity.ok(new TopicAnalysisDTO())))
         .doOnEach(sig -> audit(context, sig));
   }
 
