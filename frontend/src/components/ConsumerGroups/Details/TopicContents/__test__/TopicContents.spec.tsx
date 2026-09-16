@@ -11,15 +11,11 @@ const clusterName = 'cluster1';
 const renderComponent = (consumers: ConsumerGroupTopicPartition[] = []) =>
   render(
     <WithRoute path={clusterConsumerGroupDetailsPath()}>
-      <table>
-        <tbody>
-          <TopicContents
-            topicPartitions={consumers}
-            partitionTrends={{}}
-            partitionLags={{}}
-          />
-        </tbody>
-      </table>
+      <TopicContents
+        topicPartitions={consumers}
+        partitionTrends={{}}
+        partitionLags={{}}
+      />
     </WithRoute>,
     {
       initialEntries: [
@@ -34,13 +30,13 @@ const renderComponent = (consumers: ConsumerGroupTopicPartition[] = []) =>
 describe('TopicContent', () => {
   it('renders empty table', () => {
     renderComponent();
-    const table = screen.getAllByRole('table')[1];
+    const table = screen.getAllByRole('table')[0];
     expect(table.getElementsByTagName('td').length).toBe(0);
   });
 
   it('renders table with content', () => {
     renderComponent(consumerGroupPayload.partitions);
-    const table = screen.getAllByRole('table')[1];
+    const table = screen.getAllByRole('table')[0];
     expect(table.getElementsByTagName('td').length).toBe(
       consumerGroupPayload.partitions.length * 6
     );

@@ -10,10 +10,10 @@ export const Wrapper = styled.div`
   border: 1px solid ${({ theme }) => theme.progressBar.borderColor};
 `;
 
-export const Filler = styled.div<{ completed: number }>(
-  ({ theme: { progressBar }, completed }) => css`
+export const Filler = styled.div<{ $completed: number }>(
+  ({ theme: { progressBar }, $completed }) => css`
     height: 100%;
-    width: ${completed}%;
+    width: ${$completed}%;
     background-color: ${progressBar.compleatedColor};
     border-radius: 5px;
     text-align: right;
