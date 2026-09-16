@@ -88,10 +88,6 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   public BindAuthenticator ldapBindAuthentication(LdapContextSource ldapContextSource) {
     BindAuthenticator ba = new BindAuthenticator(ldapContextSource);
 
-    if (props.getBase() != null) {
-      ba.setUserDnPatterns(new String[] {props.getBase()});
-    }
-
     if (props.getUserFilterSearchFilter() != null) {
       LdapUserSearch userSearch =
           new FilterBasedLdapUserSearch(props.getUserFilterSearchBase(), props.getUserFilterSearchFilter(),
@@ -106,6 +102,9 @@ public class LdapSecurityConfig extends AbstractAuthSecurityConfig {
   public LdapContextSource ldapContextSource() {
     LdapContextSource ctx = new LdapContextSource();
     ctx.setUrl(props.getUrls());
+    if (props.getBase() != null) {
+      ctx.setBase(props.getBase());
+    }
     ctx.setUserDn(props.getAdminUser());
     ctx.setPassword(props.getAdminPassword());
     ctx.afterPropertiesSet();
