@@ -256,39 +256,45 @@ public class TopicsController extends AbstractController implements TopicsApi, M
 
   @Override
   public Mono<ResponseEntity<TopicDTO>> updateTopic(
-      String clusterName, String topicName, @Valid Mono<TopicUpdateDTO> topicUpdate,
+      String clusterName, String topicName, @Valid Mono<TopicUpdateDTO> topicUpdateMono,
       ServerWebExchange exchange) {
 
-    var context = AccessContext.builder()
-        .cluster(clusterName)
-        .topicActions(topicName, VIEW, EDIT)
-        .operationName("updateTopic")
-        .build();
+    return topicUpdateMono.flatMap(topicUpdate -> {
+      var context = AccessContext.builder()
+          .cluster(clusterName)
+          .topicActions(topicName, VIEW, EDIT)
+          .operationName("updateTopic")
+          .operationParams(topicUpdate)
+          .build();
 
-    return validateAccess(context).then(
-        topicsService
-            .updateTopic(getCluster(clusterName), topicName, topicUpdate)
-            .map(clusterMapper::toTopic)
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+      return validateAccess(context).then(
+          topicsService
+              .updateTopic(getCluster(clusterName), topicName, topicUpdate)
+              .map(clusterMapper::toTopic)
+              .map(ResponseEntity::ok)
+      ).doOnEach(sig -> audit(context, sig));
+    });
   }
 
   @Override
   public Mono<ResponseEntity<PartitionsIncreaseResponseDTO>> increaseTopicPartitions(
       String clusterName, String topicName,
-      Mono<PartitionsIncreaseDTO> partitionsIncrease,
+      Mono<PartitionsIncreaseDTO> partitionsIncreaseMono,
       ServerWebExchange exchange) {
 
-    var context = AccessContext.builder()
-        .cluster(clusterName)
-        .topicActions(topicName, VIEW, EDIT)
-        .build();
+    return partitionsIncreaseMono.flatMap(partitionsIncrease -> {
+      var context = AccessContext.builder()
+          .cluster(clusterName)
+          .topicActions(topicName, VIEW, EDIT)
+          .operationName("increasePartitions")
+          .operationParams(partitionsIncrease)
+          .build();
 
-    return validateAccess(context).then(
-        partitionsIncrease.flatMap(partitions ->
-            topicsService.increaseTopicPartitions(getCluster(clusterName), topicName, partitions)
-        ).map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+      return validateAccess(context).then(
+          topicsService.increaseTopicPartitions(getCluster(clusterName), topicName, partitionsIncrease)
+              .map(ResponseEntity::ok)
+      ).doOnEach(sig -> audit(context, sig));
+    });
   }
 
   @Override
@@ -316,22 +322,24 @@ public class TopicsController extends AbstractController implements TopicsApi, M
   @Override
   public Mono<ResponseEntity<ReplicationFactorChangeResponseDTO>> changeReplicationFactor(
       String clusterName, String topicName,
-      Mono<ReplicationFactorChangeDTO> replicationFactorChange,
+      Mono<ReplicationFactorChangeDTO> replicationFactorChangeMono,
       ServerWebExchange exchange) {
 
-    var context = AccessContext.builder()
-        .cluster(clusterName)
-        .topicActions(topicName, VIEW, EDIT)
-        .operationName("changeReplicationFactor")
-        .build();
+    return replicationFactorChangeMono.flatMap(replicationFactorChange -> {
+      var context = AccessContext.builder()
+          .cluster(clusterName)
+          .topicActions(topicName, VIEW, EDIT)
+          .operationName("changeReplicationFactor")
+          .operationParams(replicationFactorChange)
+          .build();
 
-    return validateAccess(context).then(
-        replicationFactorChange
-            .flatMap(rfc ->
-                topicsService.changeReplicationFactor(getCluster(clusterName), topicName, rfc))
-            .map(ResponseEntity::ok)
-    ).doOnEach(sig -> audit(context, sig));
+      return validateAccess(context).then(
+          topicsService.changeReplicationFactor(getCluster(clusterName), topicName, replicationFactorChange)
+              .map(ResponseEntity::ok)
+      ).doOnEach(sig -> audit(context, sig));
+    });
   }
+
 
   @Override
   public Mono<ResponseEntity<Void>> analyzeTopic(String clusterName, String topicName, ServerWebExchange exchange) {
