@@ -47,11 +47,13 @@ public class ClusterSerdes implements Closeable {
     }
     if (type == Serde.Target.KEY
         && defaultKeySerde != null
+        && defaultKeySerde.couldBePreferable(topic, type)
         && additionalCheck.test(defaultKeySerde)) {
       return Optional.of(defaultKeySerde);
     }
     if (type == Serde.Target.VALUE
         && defaultValueSerde != null
+        && defaultValueSerde.couldBePreferable(topic, type)
         && additionalCheck.test(defaultValueSerde)) {
       return Optional.of(defaultValueSerde);
     }
