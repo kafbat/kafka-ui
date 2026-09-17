@@ -333,10 +333,8 @@ class ProtobufFileSerdeTest {
         Optional.of(protoFilesDir())
     );
 
-    // Two Any-carrying messages defined in separate proto files, mapped to separate topics.
-    // ProtobufSchema names every FileDescriptor it synthesises "default", so a TypeRegistry
-    // shared between the two descriptors keeps only the first file's types - which would
-    // leave one of these two topics unable to resolve its payload.
+    // separate proto files on purpose - a shared TypeRegistry would drop
+    // same-named descriptors, see the comment in ProtobufFileSerde#configure
     Path firstPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany.proto").toPath();
     Path secondPath = ResourceUtils.getFile("classpath:protobuf-serde/messagewithany2.proto").toPath();
     var firstDescriptor = files.get(firstPath).toDescriptor("test.MessageWithAny");
