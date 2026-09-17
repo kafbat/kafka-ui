@@ -327,7 +327,7 @@ class ProtobufFileSerdeTest {
   }
 
   @Test
-  void deserializeResolvesAnyPayloadUsingTypesFromLoadedProtoFiles() throws Exception {
+  void resolvesAnyPayloadsUsingTypesFromLoadedProtoFiles() throws Exception {
     Map<Path, ProtobufSchema> files = ProtobufFileSerde.Configuration.loadSchemas(
         Optional.empty(),
         Optional.of(protoFilesDir())
@@ -345,6 +345,11 @@ class ProtobufFileSerdeTest {
     byte[] secondBytes = messageWithAny(
         files.get(secondPath), secondDescriptor, "test.PayloadMessage2", "payload-2");
 
+    String firstJson = "{\"name\": \"with any\", \"payload\": "
+        + "{\"@type\": \"type.googleapis.com/test.PayloadMessage\", \"id\": \"payload-1\"}}";
+    String secondJson = "{\"name\": \"with any\", \"payload\": "
+        + "{\"@type\": \"type.googleapis.com/test.PayloadMessage2\", \"id\": \"payload-2\"}}";
+
     var serde = new ProtobufFileSerde();
     serde.configure(
         new Configuration(
@@ -357,16 +362,20 @@ class ProtobufFileSerdeTest {
     );
 
     assertJsonEquals(
-        "{\"name\": \"with any\", \"payload\": "
-            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage\", \"id\": \"payload-1\"}}",
+        firstJson,
         serde.deserializer("any-topic", Serde.Target.VALUE).deserialize(null, firstBytes).getResult()
     );
 
     assertJsonEquals(
-        "{\"name\": \"with any\", \"payload\": "
-            + "{\"@type\": \"type.googleapis.com/test.PayloadMessage2\", \"id\": \"payload-2\"}}",
+        secondJson,
         serde.deserializer("any-topic-2", Serde.Target.VALUE).deserialize(null, secondBytes).getResult()
     );
+
+    assertThat(serde.serializer("any-topic", Serde.Target.VALUE).serialize(firstJson))
+        .isEqualTo(firstBytes);
+
+    assertThat(serde.serializer("any-topic-2", Serde.Target.VALUE).serialize(secondJson))
+        .isEqualTo(secondBytes);
   }
 
   @SneakyThrows
