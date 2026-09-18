@@ -1,11 +1,14 @@
 import type { RowData, Table } from '@tanstack/react-table';
 import innerText from 'react-innertext';
 
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
 const escapeCsv = (value: string) => {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
+  const inert = FORMULA_TRIGGER.test(value) ? `'${value}` : value;
+  if (inert.includes(',') || inert.includes('"') || inert.includes('\n')) {
+    return `"${inert.replace(/"/g, '""')}"`;
   }
-  return value;
+  return inert;
 };
 
 export type ExportCsvOptions = {
@@ -48,8 +51,8 @@ export const exportTableCSV = <T extends RowData>(
     return header && hasAccessorKey;
   });
 
-  const headers = headersColumns.map(
-    (col) => col.columnDef.meta?.csv ?? col.columnDef.header ?? col.id
+  const headers = headersColumns.map((col) =>
+    escapeCsv(String(col.columnDef.meta?.csv ?? col.columnDef.header ?? col.id))
   );
 
   const body = rowsToExport.map((row) =>
