@@ -5,7 +5,7 @@ const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
 
 const escapeCsv = (value: string) => {
   const inert = FORMULA_TRIGGER.test(value) ? `'${value}` : value;
-  if (inert.includes(',') || inert.includes('"') || inert.includes('\n')) {
+  if (/[,"\n\r]/.test(inert)) {
     return `"${inert.replace(/"/g, '""')}"`;
   }
   return inert;

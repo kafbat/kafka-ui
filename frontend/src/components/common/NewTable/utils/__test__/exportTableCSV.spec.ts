@@ -77,7 +77,6 @@ describe('exportTableCSV', () => {
       ['-x', "'-x"],
       ['@x', "'@x"],
       ['\tprefixed', "'\tprefixed"],
-      ['\rprefixed', "'\rprefixed"],
     ])('prefixes %p with a single quote', async (input, expected) => {
       const csv = await getCsv([{ name: input, value: 'hello' }]);
       expect(csv).toBe(`Name,Value\n${expected},hello`);
@@ -86,6 +85,15 @@ describe('exportTableCSV', () => {
     it('applies both the quote prefix and RFC 4180 quoting', async () => {
       const csv = await getCsv([{ name: '=a,b', value: 'hello' }]);
       expect(csv).toBe(`Name,Value\n"'=a,b",hello`);
+    });
+
+    it.each([
+      ['\r=1+1', '"\'\r=1+1"'],
+      ['\rprefixed', '"\'\rprefixed"'],
+      ['abc\r=1+1', '"abc\r=1+1"'],
+    ])('quotes %p after formula neutralization', async (input, expected) => {
+      const csv = await getCsv([{ name: input, value: 'hello' }]);
+      expect(csv).toBe(`Name,Value\n${expected},hello`);
     });
   });
 
