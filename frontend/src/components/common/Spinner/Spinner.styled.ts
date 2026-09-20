@@ -1,6 +1,8 @@
 import styled, { keyframes } from 'styled-components';
 import { SpinnerProps } from 'components/common/Spinner/types';
 
+// Keyframes can't access styled-component props directly, so we use fixed
+// em values here and control actual sizing via font-size below.
 const stretch = keyframes`
   0% {
     width: 1em;
@@ -21,6 +23,9 @@ export const Spinner = styled.div<SpinnerProps>`
   align-items: center;
   gap: ${(props) => (props.size || 80) / 7}px;
   margin-left: ${(props) => props.marginLeft}px;
+  
+  /* Dots are sized in em units, so changing font-size here scales them all. */
+  
   font-size: ${(props) => (props.size || 80) / 5}px;
 
   span {
@@ -35,6 +40,9 @@ export const Spinner = styled.div<SpinnerProps>`
     animation-iteration-count: infinite;
   }
 
+  /* Each dot's delay is offset by a quarter of the total duration, so only
+     one dot stretches at a time, creating a traveling effect across the row */
+  
   span:nth-child(1) { animation-delay: 0s; }
   span:nth-child(2) { animation-delay: 0.4s; }
   span:nth-child(3) { animation-delay: 0.8s; }
