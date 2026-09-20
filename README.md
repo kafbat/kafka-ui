@@ -3,6 +3,7 @@
 <h3>Kafbat UI</h3>
 
 Versatile, fast and lightweight web UI for managing Apache Kafka® clusters.
+
 </div>
 
 <div align="center">
@@ -35,7 +36,7 @@ Kafbat UI, developed by <b>Kafbat</b>*, proudly carries forward the legacy of th
 Our dedication is reflected in the continuous evolution of the project, ensuring adherence to its foundational vision while adapting to meet modern demands.
 We extend our gratitude to Provectus for their past support in groundbreaking work, which serves as a cornerstone for our ongoing innovation and dedication.
 
-<b>*</b> - The <b>Kafbat</b> team comprises key contributors from the project's inception, bringing a wealth of experience and insight to this renewed endeavor.
+<b>\*</b> - The <b>Kafbat</b> team comprises key contributors from the project's inception, bringing a wealth of experience and insight to this renewed endeavor.
 </i>
 
 # Interface
@@ -44,23 +45,22 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
 
 # Features
 
-* **Topic Insights** – View essential topic details including partition count, replication status, and custom configurations.
-* **Configuration Wizard** – Set up and configure your Kafka clusters directly through the UI.
-* **Multi-Cluster Management** – Monitor and manage all your Kafka clusters in one unified interface.
-* **Metrics Dashboard** – Track key Kafka metrics in real time with a streamlined, lightweight dashboard.
-* **Kafka Brokers Overview** – Inspect brokers, including partition assignments and controller status.
-* **Consumer Group Details** – Analyze parked offsets per partition, and monitor both combined and partition-specific lag.
-* **Message Browser** – Explore messages in JSON, plain text, or Avro encoding formats. Live view is supported, enriched with user-defined CEL message filters.
-* **Dynamic Topic Management** – Create and configure new topics with flexible, real-time settings.
-* **Pluggable Authentication** – Secure your UI using OAuth 2.0 (GitHub, GitLab, Google), LDAP, or basic authentication.
-* **Cloud IAM Support** – Integrate with **GCP IAM**, **Azure IAM**, and **AWS IAM** for cloud-native identity and access management.
-* **Managed Kafka Service Support** – Full support for **Azure EventHub**, **Google Cloud Managed Service for Apache Kafka**, and **AWS Managed Streaming for Apache Kafka (MSK)**—both server-based and serverless.
-* **Custom SerDe Plugin Support** – Use built-in serializers/deserializers like AWS Glue and Smile, or create your own custom plugins.
-* **Role-Based Access Control** – [Manage granular UI permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) with RBAC.
-* **Data Masking** – [Obfuscate sensitive data](https://ui.docs.kafbat.io/configuration/data-masking) in topic messages to enhance privacy and compliance.
-* **API Documentation (Swagger UI)** - Access full API specifications via built-in Swagger UI (can be enabled via `SWAGGER_UI_ENABLED` variable).
-* **MCP Server** - [Model Context Protocol](https://ui.docs.kafbat.io/faq/mcp) Server
-
+- **Topic Insights** – View essential topic details including partition count, replication status, and custom configurations.
+- **Configuration Wizard** – Set up and configure your Kafka clusters directly through the UI.
+- **Multi-Cluster Management** – Monitor and manage all your Kafka clusters in one unified interface.
+- **Metrics Dashboard** – Track key Kafka metrics in real time with a streamlined, lightweight dashboard.
+- **Kafka Brokers Overview** – Inspect brokers, including partition assignments and controller status.
+- **Consumer Group Details** – Analyze parked offsets per partition, and monitor both combined and partition-specific lag.
+- **Message Browser** – Explore messages in JSON, plain text, or Avro encoding formats. Live view is supported, enriched with user-defined CEL message filters.
+- **Dynamic Topic Management** – Create and configure new topics with flexible, real-time settings.
+- **Pluggable Authentication** – Secure your UI using OAuth 2.0 (GitHub, GitLab, Google), LDAP, or basic authentication.
+- **Cloud IAM Support** – Integrate with **GCP IAM**, **Azure IAM**, and **AWS IAM** for cloud-native identity and access management.
+- **Managed Kafka Service Support** – Full support for **Azure EventHub**, **Google Cloud Managed Service for Apache Kafka**, and **AWS Managed Streaming for Apache Kafka (MSK)**—both server-based and serverless.
+- **Custom SerDe Plugin Support** – Use built-in serializers/deserializers like AWS Glue and Smile, or create your own custom plugins.
+- **Role-Based Access Control** – [Manage granular UI permissions](https://ui.docs.kafbat.io/configuration/rbac-role-based-access-control) with RBAC.
+- **Data Masking** – [Obfuscate sensitive data](https://ui.docs.kafbat.io/configuration/data-masking) in topic messages to enhance privacy and compliance.
+- **API Documentation (Swagger UI)** - Access full API specifications via built-in Swagger UI (can be enabled via `SWAGGER_UI_ENABLED` variable).
+- **MCP Server** - [Model Context Protocol](https://ui.docs.kafbat.io/faq/mcp) Server
 
 ## Feature overview
 
@@ -68,6 +68,7 @@ We extend our gratitude to Provectus for their past support in groundbreaking wo
     <summary>Click here for the feature overview</summary>
 
 ## Topics
+
 Kafbat UI makes it easy for you to create topics in your browser with just a few clicks, by pasting your own parameters, and viewing topics in the list.
 
 ![Create Topic](documentation/images/Create_topic_kafka-ui.gif)
@@ -77,11 +78,13 @@ You can jump from the connectors view to corresponding topics and from a topic t
 ![Connector_Topic_Consumer](documentation/images/Connector_Topic_Consumer.gif)
 
 ### Messages
+
 Suppose you want to produce messages for your topic. With Kafbat UI, you can easily send or write data/messages to Kafka topics by specifying parameters and viewing messages in the list.
 
 ![Produce Message](documentation/images/Create_message_kafka-ui.gif)
 
 ## Schema registry
+
 There are three supported types of schemas: Avro®, JSON Schema, and Protobuf schemas.
 
 ![Create Schema Registry](documentation/images/Create_schema.gif)
@@ -110,16 +113,16 @@ This command is sufficient to try things out. When you're done, you can proceed 
 
 ```yml
 services:
-  kafbat-ui:
-    container_name: kafbat-ui
-    image: ghcr.io/kafbat/kafka-ui:latest
-    ports:
-      - 8080:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: 'true'
-      SWAGGER_UI_ENABLED: 'true'
-    volumes:
-      - ~/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
+    kafbat-ui:
+        container_name: kafbat-ui
+        image: ghcr.io/kafbat/kafka-ui:260824
+        ports:
+            - 8080:8080
+        environment:
+            DYNAMIC_CONFIG_ENABLED: "true"
+            SWAGGER_UI_ENABLED: "true"
+        volumes:
+            - ~/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
 ```
 
 Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/configuration-file) page to proceed with further app configuration.
@@ -143,6 +146,7 @@ Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/conf
 [Quick start](https://ui.docs.kafbat.io/development/building/prerequisites) for building from source
 
 ## Liveliness and readiness probes
+
 The liveness and readiness endpoint is at `/actuator/health`.<br/>
 The info endpoint (build info) is located at `/actuator/info`.
 

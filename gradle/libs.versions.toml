@@ -1,5 +1,15 @@
 [versions]
 spring-boot = '3.5.16'
+
+spring-framework = '6.2.19'
+spring-security = '6.5.11'
+jackson = '2.18.9'
+spring-ldap-core = '3.3.8'
+wire-runtime-jvm = '6.3.0'
+micrometer = '1.15.12'
+log4j2 = '2.25.5'
+logback = '1.5.35'
+
 nimbus-jose-jwt = '10.8'
 netty = '4.1.137.Final'
 
@@ -147,4 +157,4 @@ lucene-analysis-common = {module = 'org.apache.lucene:lucene-analysis-common', v
 fastcsv = {module = 'de.siegmar:fastcsv', version = '4.1.0'}
 
 # CVE-2025-12183 fix
-lz4-yawk = {module = 'at.yawk.lz4:lz4-java', version = '1.10.1'}
+lz4-yawk = {module = 'at.yawk.lz4:lz4-java', version = '1.11.1'}
