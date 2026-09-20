@@ -5,10 +5,8 @@ import {
   TopicMessage,
   TopicMessageTimestampTypeEnum,
 } from 'generated-sources';
-
 import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
 import { Button } from 'components/common/Button/Button';
-import { SchemaType, TopicMessageTimestampTypeEnum } from 'generated-sources';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
 import useDataSaver from 'lib/hooks/useDataSaver';
@@ -28,6 +26,8 @@ export interface MessageContentProps {
   contentSize?: number;
   keySerde?: string;
   valueSerde?: string;
+  valueDeserializeProperties?: TopicMessage['valueDeserializeProperties'];
+  keyDeserializeProperties?: TopicMessage['keyDeserializeProperties'];
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
@@ -39,8 +39,12 @@ const MessageContent: React.FC<MessageContentProps> = ({
   keySize,
   contentSize,
   keySerde,
+  keyDeserializeProperties,
+  valueDeserializeProperties,
   valueSerde,
 }) => {
+  const { currentTimezone } = useTimezone();
+
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
   const activeTabContent = () => {
     switch (activeTab) {
@@ -136,26 +140,18 @@ const MessageContent: React.FC<MessageContentProps> = ({
                 <S.MetadataMeta>Timestamp type: {timestampType}</S.MetadataMeta>
               </span>
             </S.Metadata>
-
-            <S.Metadata>
-              <S.MetadataLabel>Key Serde</S.MetadataLabel>
-              <span>
-                <S.MetadataValue>{keySerde}</S.MetadataValue>
-                <S.MetadataMeta>
-                  Size: <BytesFormatted value={keySize} />
-                </S.MetadataMeta>
-              </span>
-            </S.Metadata>
-
-            <S.Metadata>
-              <S.MetadataLabel>Value Serde</S.MetadataLabel>
-              <span>
-                <S.MetadataValue>{valueSerde}</S.MetadataValue>
-                <S.MetadataMeta>
-                  Size: <BytesFormatted value={contentSize} />
-                </S.MetadataMeta>
-              </span>
-            </S.Metadata>
+            <Serde
+              title="Key Serde"
+              serde={keySerde}
+              size={keySize}
+              properties={keyDeserializeProperties}
+            />
+            <Serde
+              title="Value Serde"
+              serde={valueSerde}
+              size={contentSize}
+              properties={valueDeserializeProperties}
+            />
           </S.MetadataWrapper>
         </S.Section>
       </td>
