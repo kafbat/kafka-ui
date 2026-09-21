@@ -6,6 +6,7 @@ import ClusterContext, {
 } from 'components/contexts/ClusterContext';
 import ListPage from 'components/Connect/List/ListPage';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { render, WithRoute } from 'lib/testHelpers';
 import { clusterConnectorsPath } from 'lib/paths';
 import { useConnectors, useConnects } from 'lib/hooks/api/kafkaConnect';
@@ -39,6 +40,7 @@ describe('Connectors List Page', () => {
       isLoading: false,
       isRefetching: false,
       isSuccess: true,
+      isFetching: false,
       error: null,
       data: [],
       refetch: jest.fn(),
@@ -74,5 +76,19 @@ describe('Connectors List Page', () => {
   it('renders list', async () => {
     await renderComponent();
     expect(screen.getByText('Connectors List')).toBeInTheDocument();
+  });
+
+  it('renders the refresh control and refetches on click', async () => {
+    const refetch = jest.fn();
+    (useConnectors as jest.Mock).mockImplementation(() => ({
+      data: [],
+      isSuccess: true,
+      isLoading: false,
+      isFetching: false,
+      refetch,
+    }));
+    await renderComponent();
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(refetch).toHaveBeenCalled();
   });
 });

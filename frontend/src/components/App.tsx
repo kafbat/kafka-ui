@@ -11,6 +11,7 @@ import PageLoader from 'components/common/PageLoader/PageLoader';
 import { ThemeProvider } from 'styled-components';
 import { theme, darkTheme } from 'theme/theme';
 import {
+  DefaultOptions,
   MutationCache,
   QueryCache,
   QueryClient,
@@ -49,19 +50,23 @@ const mutationCache = new MutationCache({
   },
 });
 
+export const queryClientDefaultOptions: DefaultOptions = {
+  queries: {
+    networkMode: 'offlineFirst',
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  },
+  mutations: {
+    onError(error) {
+      showServerError(error as unknown as Response);
+    },
+  },
+};
+
 const queryClient = new QueryClient({
   queryCache,
   mutationCache,
-  defaultOptions: {
-    queries: {
-      networkMode: 'offlineFirst',
-    },
-    mutations: {
-      onError(error) {
-        showServerError(error as unknown as Response);
-      },
-    },
-  },
+  defaultOptions: queryClientDefaultOptions,
 });
 const App: React.FC = () => {
   const { isDarkMode } = useContext(ThemeModeContext);

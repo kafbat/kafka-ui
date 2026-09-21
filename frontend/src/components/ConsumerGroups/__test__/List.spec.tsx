@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
 import {
   useConsumerGroups,
@@ -64,5 +65,21 @@ describe('ConsumerGroups List', () => {
     const tableRows = screen.getAllByRole('row');
     expect(tableRows[1]).toHaveTextContent('0');
     expect(tableRows[2]).toHaveTextContent('N/A');
+  });
+
+  describe('refresh control', () => {
+    it('renders the refresh control and refetches on click', async () => {
+      const refetch = jest.fn();
+      mockUseConsumerGroups.mockImplementation(() => ({
+        data: { consumerGroups: [], pageCount: 1 },
+        isSuccess: true,
+        isLoading: false,
+        isFetching: false,
+        refetch,
+      }));
+      render(<List />);
+      await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+      expect(refetch).toHaveBeenCalled();
+    });
   });
 });
