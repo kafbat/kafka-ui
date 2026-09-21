@@ -25,6 +25,16 @@ services:
             #kafka.clusters.0.schemaRegistryAuth.username: "use"
             #kafka.clusters.0.schemaRegistryAuth.password: "pswrd"
 
+            # bearer auth via ServiceLoader alias (e.g. workload identity / JWT assertion):
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.credentials.source: JWT_ASSERTION
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.issuer.endpoint.url: https://idp.example.com/token
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.client.assertion.location: /var/run/secrets/tokens/sa-token
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.client.id: my-service-account
+
+            # bearer auth via a custom BearerAuthCredentialProvider class:
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.credentials.source: CUSTOM
+            #kafka.clusters.0.schemaRegistryAuth.properties.bearer.auth.custom.provider.class: com.example.MyBearerAuthCredentialProvider
+
             kafka.clusters.0.defaultKeySerde: Int32  #optional
             kafka.clusters.0.defaultValueSerde: String #optional
 
