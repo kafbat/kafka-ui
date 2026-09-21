@@ -325,6 +325,58 @@ class ProtobufFileSerdeTest {
   }
 
   @Test
+  void topicsMappingIsCaseInsensitiveWhenNoExactMatchFound() {
+    // topic names are lower-cased when mapping is passed via env variables
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            null,
+            null,
+            descriptorPaths,
+            Map.of("persons", personDescriptor),
+            Map.of("books", addressBookDescriptor)
+        )
+    );
+
+    assertThat(serde.canSerialize("Persons", Serde.Target.VALUE)).isTrue();
+    assertThat(serde.canDeserialize("BOOKS", Serde.Target.KEY)).isTrue();
+    assertThat(serde.canDeserialize("unknown", Serde.Target.VALUE)).isFalse();
+
+    var deserializedPerson = serde.deserializer("Persons", Serde.Target.VALUE)
+        .deserialize(null, personMessageBytes);
+    assertJsonEquals(samplePersonMsgJson, deserializedPerson.getResult());
+
+    var deserializedBook = serde.deserializer("BOOKS", Serde.Target.KEY)
+        .deserialize(null, addressBookMessageBytes);
+    assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+  }
+
+  @Test
+  void topicsMappingPrefersExactMatchOverCaseInsensitiveOne() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            null,
+            null,
+            descriptorPaths,
+            Map.of(
+                "TOPIC", addressBookDescriptor,
+                "topic", personDescriptor
+            ),
+            Map.of()
+        )
+    );
+
+    var deserializedPerson = serde.deserializer("topic", Serde.Target.VALUE)
+        .deserialize(null, personMessageBytes);
+    assertJsonEquals(samplePersonMsgJson, deserializedPerson.getResult());
+
+    var deserializedBook = serde.deserializer("TOPIC", Serde.Target.VALUE)
+        .deserialize(null, addressBookMessageBytes);
+    assertJsonEquals(sampleBookMsgJson, deserializedBook.getResult());
+  }
+
+  @Test
   void serializeUsesTopicsMappingToFindMsgDescriptor() {
     var messageNameMap = Map.of(
         "persons", personDescriptor,
