@@ -5521,5 +5521,5 @@ components:
             $ref: '#/components/schemas/Action'
 servers:
   - url: /
-    description: Current host
+    description: Current endpoint for Kafbat UI API
     variables: {}
