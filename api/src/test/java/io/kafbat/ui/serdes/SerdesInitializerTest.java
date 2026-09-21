@@ -117,6 +117,21 @@ class SerdesInitializerTest {
     verifyPatternsMatch(serdeConfig, explicitlyConfiguredSerde);
   }
 
+  @Test
+  void defaultSerdesAreNullWhenNotExplicitlyConfigured() {
+    // Auto-selection of SchemaRegistry is handled per-topic via couldBePreferable (Pass 3), not via
+    // an implicit cluster-level default. Guard against re-introducing such an implicit fallback.
+    ClustersProperties.SerdeConfig serdeConfig = new ClustersProperties.SerdeConfig();
+    serdeConfig.setName("BuiltIn1");
+    serdeConfig.setTopicKeysPattern("keys");
+    serdeConfig.setTopicValuesPattern("vals");
+
+    var serdes = init(serdeConfig);
+
+    assertThat(serdes.defaultKeySerde).isNull();
+    assertThat(serdes.defaultValueSerde).isNull();
+  }
+
   private ClusterSerdes init(ClustersProperties.SerdeConfig... serdeConfigs) {
     return initializer.init(env, createProperties(serdeConfigs), 0);
   }
