@@ -12,15 +12,11 @@ const clusterName = 'cluster1';
 const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
   render(
     <WithRoute path={clusterConsumerGroupDetailsPath()}>
-      <table>
-        <tbody>
-          <TopicsTable
-            partitions={topicPartitions}
-            topicsLagInfo={{ lags: {}, trends: {} }}
-            partitionsLagInfo={{ lags: {}, trends: {} }}
-          />
-        </tbody>
-      </table>
+      <TopicsTable
+        partitions={topicPartitions}
+        topicsLagInfo={{ lags: {}, trends: {} }}
+        partitionsLagInfo={{ lags: {}, trends: {} }}
+      />
     </WithRoute>,
     {
       initialEntries: [

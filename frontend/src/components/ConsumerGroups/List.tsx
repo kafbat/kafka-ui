@@ -155,7 +155,7 @@ const List = () => {
           fetchCsv={fetchCsv}
         />
       </ResourcePageHeading>
-      <ControlPanelWrapper hasInput>
+      <ControlPanelWrapper $hasInput>
         <Search
           key={clusterName}
           placeholder="Search by Consumer Group ID"

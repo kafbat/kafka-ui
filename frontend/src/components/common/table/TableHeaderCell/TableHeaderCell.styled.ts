@@ -2,9 +2,9 @@ import styled, { css } from 'styled-components';
 import { SortOrder } from 'generated-sources';
 
 export interface TitleProps {
-  isOrderable?: boolean;
-  isOrdered?: boolean;
-  sortOrder?: SortOrder;
+  $isOrderable?: boolean;
+  $isOrdered?: boolean;
+  $sortOrder?: SortOrder;
 }
 
 const orderableMixin = css(
@@ -68,7 +68,7 @@ const DESCMixin = css(
 );
 
 export const Title = styled.span<TitleProps>(
-  ({ isOrderable, isOrdered, sortOrder, theme: { table } }) => css`
+  ({ $isOrderable, $isOrdered, $sortOrder, theme: { table } }) => css`
     font-family: Inter, sans-serif;
     font-size: 12px;
     font-style: normal;
@@ -83,11 +83,11 @@ export const Title = styled.span<TitleProps>(
     cursor: default;
     color: ${table.th.color.normal};
 
-    ${isOrderable && orderableMixin}
+    ${$isOrderable && orderableMixin}
 
-    ${isOrderable && isOrdered && sortOrder === SortOrder.ASC && ASCMixin}
+    ${$isOrderable && $isOrdered && $sortOrder === SortOrder.ASC && ASCMixin}
 
-    ${isOrderable && isOrdered && sortOrder === SortOrder.DESC && DESCMixin}
+    ${$isOrderable && $isOrdered && $sortOrder === SortOrder.DESC && DESCMixin}
   `
 );
 
