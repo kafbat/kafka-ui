@@ -27,15 +27,17 @@ interface MessagesApi {
   getTopicMessages(
     @path clusterName: string,
     @path topicName: string,
-    @query seekType?: SeekType,
-    @query seekTo?: string[],
+    @query mode?: PollingMode,
+    @query partitions?: int32[],
     @query limit?: int32,
-    @query q?: string,
-    @query filterQueryType?: MessageFilterType,
-    @query seekDirection?: SeekDirection,
+    @query stringFilter?: string,
+    @query smartFilterId?: string,
+    @query offset?: int64,
+    @query timestamp?: int64,
     @query keySerde?: string,
     @query valueSerde?: string,
-  ): SseResponse<TopicMessageEvent>;
+    @query cursor?: string,
+  ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
 
   @delete
   @route("/messages")
@@ -66,25 +68,6 @@ interface MessagesApi {
     @path topicName: string,
     @body registration: MessageFilterRegistration,
   ): MessageFilterId | ApiBadRequestResponse;
-
-  @get
-  @route("/messages/v2")
-  @operationId("getTopicMessagesV2")
-  @summary("getTopicMessagesV2")
-  getTopicMessagesV2(
-    @path clusterName: string,
-    @path topicName: string,
-    @query mode?: PollingMode,
-    @query partitions?: int32[],
-    @query limit?: int32,
-    @query stringFilter?: string,
-    @query smartFilterId?: string,
-    @query offset?: int64,
-    @query timestamp?: int64,
-    @query keySerde?: string,
-    @query valueSerde?: string,
-    @query cursor?: string,
-  ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
 }
 
 @route("/api/smartfilters/testexecutions")
@@ -167,13 +150,6 @@ model SchemaRegistryDeserializeProperties {
     subjects?: string[];
 }
 
-enum SeekType {
-  BEGINNING,
-  OFFSET,
-  TIMESTAMP,
-  LATEST,
-}
-
 model MessageFilterRegistration {
   filterCode?: string;
 }
@@ -189,17 +165,6 @@ enum PollingMode {
   TO_TIMESTAMP,
   LATEST,
   EARLIEST,
-  TAILING,
-}
-
-enum MessageFilterType {
-  STRING_CONTAINS,
-  CEL_SCRIPT,
-}
-
-enum SeekDirection {
-  FORWARD,
-  BACKWARD,
   TAILING,
 }
 
