@@ -4,11 +4,11 @@ import { useSearchParams } from 'react-router-dom';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { Button } from 'components/common/Button/Button';
 import Editor from 'components/common/Editor/Editor';
+import InfoIcon from 'components/common/Icons/InfoIcon';
 import InputWithOptions from 'components/common/InputWithOptions/InputWithOptions';
 import Select from 'components/common/Select/Select';
 import Switch from 'components/common/Switch/Switch';
 import Tooltip from 'components/common/Tooltip/Tooltip';
-import InfoIcon from 'components/common/Icons/InfoIcon';
 import useAppParams from 'lib/hooks/useAppParams';
 import { showAlert } from 'lib/errorHandling';
 import { useSendMessage, useTopicDetails } from 'lib/hooks/api/topics';
@@ -328,22 +328,27 @@ const SendMessage: React.FC<SendMessageProps> = ({
           </div>
         </S.Columns>
         <S.Columns>
-          <div>
+          <S.Headers>
             <InputLabel>Headers</InputLabel>
-            <Controller
-              control={control}
-              name="headers"
-              render={({ field: { name, onChange, value } }) => (
-                <Editor
-                  readOnly={isSubmitting}
-                  name={name}
-                  onChange={onChange}
-                  value={value || '{}'}
-                  height="40px"
-                />
-              )}
+            <Tooltip
+              value={<InfoIcon />}
+              content='Header keys map to a list of values, e.g. {"k": ["v1", "v2"]}'
+              placement="top-start"
             />
-          </div>
+          </S.Headers>
+          <Controller
+            control={control}
+            name="headers"
+            render={({ field: { name, onChange, value } }) => (
+              <Editor
+                readOnly={isSubmitting}
+                name={name}
+                onChange={onChange}
+                value={value || '{}'}
+                height="40px"
+              />
+            )}
+          />
         </S.Columns>
         <S.Columns>
           <S.Flex>

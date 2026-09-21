@@ -3174,7 +3174,9 @@ components:
         headers:
           type: object
           additionalProperties:
-            type: string
+            type: array
+            items:
+              type: string
         partition:
           type: integer
         offset:
@@ -3203,7 +3205,9 @@ components:
         headers:
           type: object
           additionalProperties:
-            type: string
+            type: array
+            items:
+              type: string
         value:
           type: string
           nullable: true
@@ -3299,7 +3303,9 @@ components:
         headers:
           type: object
           additionalProperties:
-            type: string
+            type: array
+            items:
+              type: string
         value:
           type: string
         keyFormat:
