@@ -36,14 +36,6 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # https://github.com/docker/setup-buildx-action/releases/tag/v3.11.1
 
-      - name: Cache Docker layers
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ inputs.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
         # Build multi-platform images and loading them at the same time is not possible with default container runtime : https://github.com/docker/buildx/issues/59
         # So let's use containerd instead as it supports this option
         # Also containerd is one of the option to allow preserving provenance attestations:
@@ -73,8 +65,6 @@ jobs:
             kafka-ui:temp
           build-args: |
             JAR_FILE=build/libs/api-${{ inputs.version }}.jar
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Dump docker image
         run: |
