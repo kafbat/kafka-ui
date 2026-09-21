@@ -58,6 +58,7 @@ export const getConsumerGroupTopicsTableColumns = () => {
     columnHelper.accessor('consumerLag', {
       header: 'Consumer lag',
       cell: Cell.ConsumerLag,
+      meta: { csvFn: (row) => String(row.consumerLag) },
       size: 350,
     }),
     columnHelper.accessor('topicName', {
