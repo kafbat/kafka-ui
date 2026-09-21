@@ -119,6 +119,25 @@ public class AccessControlService {
     return context.isAccessible(getUserPermissions(user, context.cluster()));
   }
 
+  public Mono<Void> validateAclPrincipalModification(String clusterName, String principal) {
+    if (!rbacEnabled) {
+      return Mono.empty();
+    }
+    return getUser().flatMap(user -> {
+      List<Permission> permissions = getUserPermissions(user, clusterName);
+
+      boolean isProtected = permissions.stream()
+          .filter(p -> p.getResource() == Resource.ACL)
+          .anyMatch(p -> p.getProtectedPrincipals() != null && p.getProtectedPrincipals().contains(principal));
+
+      if (isProtected) {
+        return Mono
+            .error(new AccessDeniedException("Modification of ACL for principal '" + principal + "' is restricted."));
+      }
+      return Mono.empty();
+    });
+  }
+
   private List<Permission> getUserPermissions(AuthenticatedUser user, @Nullable String clusterName) {
     List<Role> filteredRoles = properties.getRoles()
             .stream()
