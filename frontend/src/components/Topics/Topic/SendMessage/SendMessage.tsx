@@ -43,6 +43,13 @@ const getSerdeParameters = (
   return serde?.parameters ?? [];
 };
 
+// Params cleared back to "(default)" carry an empty value; drop them so an
+// unset parameter is indistinguishable from one that was never touched.
+const setParams = (
+  params: Record<string, string> | undefined
+): Record<string, string> =>
+  Object.fromEntries(Object.entries(params ?? {}).filter(([, v]) => v !== ''));
+
 const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
   messageData = null,
@@ -123,10 +130,15 @@ const SendMessage: React.FC<SendMessageProps> = ({
       if (!param.allowedValues || param.allowedValues.length === 0) return null;
       const fieldName = `${prefix}.${param.name}`;
       const label = param.visibleName || param.name;
-      const options = param.allowedValues.map((v) => ({
-        label: v,
-        value: v,
-      }));
+      // Serde parameters are optional: offer an explicit way back to "unset",
+      // otherwise a value can be picked but never cleared.
+      const options = [
+        { label: '(default)', value: '' },
+        ...param.allowedValues.map((v) => ({
+          label: v,
+          value: v,
+        })),
+      ];
       return (
         <div key={fieldName}>
           <InputLabel>{label}</InputLabel>
@@ -209,11 +221,11 @@ const SendMessage: React.FC<SendMessageProps> = ({
         partition: partition || 0,
         keySerde: formKeySerde,
         valueSerde: formValueSerde,
-        ...(keySerdeParams && Object.keys(keySerdeParams).length > 0
-          ? { keySerdeProperties: keySerdeParams }
+        ...(Object.keys(setParams(keySerdeParams)).length > 0
+          ? { keySerdeProperties: setParams(keySerdeParams) }
           : {}),
-        ...(valueSerdeParams && Object.keys(valueSerdeParams).length > 0
-          ? { valueSerdeProperties: valueSerdeParams }
+        ...(Object.keys(setParams(valueSerdeParams)).length > 0
+          ? { valueSerdeProperties: setParams(valueSerdeParams) }
           : {}),
       });
       if (!keepContents) {
