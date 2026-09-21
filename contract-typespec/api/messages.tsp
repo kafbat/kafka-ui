@@ -14,6 +14,7 @@ interface MessagesApi {
   @route("/serdes")
   @operationId("getSerdes")
   @summary("getSerdes")
+  @doc("Get available serializers/deserializers for a topic.")
   getSerdes(
     @path clusterName: string,
     @path topicName: string,
@@ -41,6 +42,7 @@ interface MessagesApi {
   @route("/messages")
   @operationId("deleteTopicMessages")
   @summary("deleteTopicMessages")
+  @doc("Delete messages from a topic up to a specified offset.")
   deleteTopicMessages(
     @path clusterName: string,
     @path topicName: string,
@@ -51,6 +53,7 @@ interface MessagesApi {
   @route("/messages")
   @operationId("sendTopicMessages")
   @summary("sendTopicMessages")
+  @doc("Produce messages to a topic with specified key, value, headers, and partition.")
   sendTopicMessages(
     @path clusterName: string,
     @path topicName: string,
@@ -61,6 +64,7 @@ interface MessagesApi {
   @route("/smartfilters")
   @operationId("registerFilter")
   @summary("registerFilter")
+  @doc("Register a custom message filter for topic message consumption.")
   registerFilter(
     @path clusterName: string,
     @path topicName: string,
@@ -71,6 +75,7 @@ interface MessagesApi {
   @route("/messages/v2")
   @operationId("getTopicMessagesV2")
   @summary("getTopicMessagesV2")
+  @doc("Read messages from a topic with filtering and deserialization support.")
   getTopicMessagesV2(
     @path clusterName: string,
     @path topicName: string,
@@ -93,6 +98,7 @@ interface SmartFiltersTestExecutionsApi {
   @put
   @operationId("executeSmartFilterTest")
   @summary("executeSmartFilterTest")
+  @doc("Test a smart filter expression against topic messages.")
   executeSmartFilterTest(
     @body input: SmartFilterTestExecution,
   ): SmartFilterTestExecutionResult | ApiBadRequestResponse;
