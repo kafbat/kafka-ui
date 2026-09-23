@@ -465,6 +465,10 @@ class RbacConnectorPermissionsTest {
         List.of(ConnectAction.VIEW.name(), ConnectAction.EDIT.name()));
   }
 
+  /**
+   * Builds a role with a single connect-level permission on {@code CONNECT_NAME}
+   * and no connector-level permissions.
+   */
   private static Role getConnectLevelRole(String roleName, String groupName, List<String> actions) {
     Role role = new Role();
     role.setName(roleName);
