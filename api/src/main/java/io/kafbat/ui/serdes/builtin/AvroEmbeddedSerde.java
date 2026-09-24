@@ -20,6 +20,7 @@ import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.SeekableByteArrayInput;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.io.DecoderFactory;
 
@@ -38,7 +39,10 @@ public class AvroEmbeddedSerde implements BuiltInSerde {
         throw new IOException("Trailing bytes after Iceberg embedded Avro datum");
       }
       String json = datum == null ? "null" : new String(AvroSchemaUtils.toJson(datum), StandardCharsets.UTF_8);
-      json = renderLogicalTypes(schema, JSON.readTree(json)).toString();
+      // toJson infers the root schema from the datum and omits a root union wrapper.
+      Schema jsonSchema = schema.getType() == Schema.Type.UNION
+          ? schema.getTypes().get(GenericData.get().resolveUnion(schema, datum)) : schema;
+      json = renderLogicalTypes(jsonSchema, JSON.readTree(json)).toString();
       return new DeserializeResult(json,
           DeserializeResult.Type.JSON, Map.of());
     }

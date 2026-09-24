@@ -147,6 +147,38 @@ class AvroEmbeddedSerdeTest {
   }
 
   @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void rendersUuidInNonNullRootUnion(boolean recordBranch) throws Exception {
+    var uuidSchema = new Schema.Parser().parse("""
+        {"type":"fixed","name":"uuid","size":16,"logicalType":"uuid"}
+        """);
+    var fixed = new GenericData.Fixed(uuidSchema,
+        java.util.HexFormat.of().parseHex("00112233445566778899aabbccddeeff"));
+    Schema branch = uuidSchema;
+    Object datum = fixed;
+    if (recordBranch) {
+      branch = org.apache.avro.SchemaBuilder.record("Event").fields()
+          .name("id").type(uuidSchema).noDefault().endRecord();
+      var record = new GenericData.Record(branch);
+      record.put("id", fixed);
+      datum = record;
+    }
+    Schema schema = Schema.createUnion(Schema.create(Schema.Type.NULL), branch);
+    var output = new ByteArrayOutputStream();
+    var header = new DataOutputStream(output);
+    header.write(new byte[] {(byte) 0xC2, 0x01});
+    header.writeUTF(schema.toString());
+    var encoder = EncoderFactory.get().binaryEncoder(output, null);
+    new GenericDatumWriter<>(schema).write(datum, encoder);
+    encoder.flush();
+    var result = avroEmbeddedSerde.deserializer("control", Serde.Target.VALUE)
+        .deserialize(null, output.toByteArray());
+    var json = new JsonMapper().readTree(result.getResult());
+    assertThat((recordBranch ? json.get("id") : json).asText())
+        .isEqualTo("00112233-4455-6677-8899-aabbccddeeff");
+  }
+
+  @ParameterizedTest
   @ValueSource(strings = {"\"null\"", "[\"null\",\"string\"]"})
   void readsNullIcebergDatum(String schemaJson) throws Exception {
     var output = new ByteArrayOutputStream();
