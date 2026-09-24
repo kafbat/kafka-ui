@@ -29,7 +29,8 @@ public class AvroEmbeddedSerde implements BuiltInSerde {
       if (!decoder.isEnd()) {
         throw new IOException("Trailing bytes after Iceberg embedded Avro datum");
       }
-      return new DeserializeResult(new String(AvroSchemaUtils.toJson(datum), StandardCharsets.UTF_8),
+      String json = datum == null ? "null" : new String(AvroSchemaUtils.toJson(datum), StandardCharsets.UTF_8);
+      return new DeserializeResult(json,
           DeserializeResult.Type.JSON, Map.of());
     }
   }

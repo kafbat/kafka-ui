@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class AvroEmbeddedSerdeTest {
 
@@ -104,6 +105,22 @@ class AvroEmbeddedSerdeTest {
         .deserialize(null, Arrays.copyOf(bytes, bytes.length - 1))).isInstanceOf(Exception.class);
     assertThatThrownBy(() -> avroEmbeddedSerde.deserializer("control", Serde.Target.VALUE)
         .deserialize(null, Arrays.copyOf(bytes, bytes.length + 1))).isInstanceOf(IOException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"null\"", "[\"null\",\"string\"]"})
+  void readsNullIcebergDatum(String schemaJson) throws Exception {
+    var output = new ByteArrayOutputStream();
+    var header = new DataOutputStream(output);
+    header.write(new byte[] {(byte) 0xC2, 0x01});
+    header.writeUTF(schemaJson);
+    var encoder = EncoderFactory.get().binaryEncoder(output, null);
+    new GenericDatumWriter<>(new Schema.Parser().parse(schemaJson)).write(null, encoder);
+    encoder.flush();
+    var result = avroEmbeddedSerde.deserializer("control", Serde.Target.VALUE)
+        .deserialize(null, output.toByteArray());
+    assertThat(result.getType()).isEqualTo(DeserializeResult.Type.JSON);
+    assertThat(result.getResult()).isEqualTo("null");
   }
 
   @Test
