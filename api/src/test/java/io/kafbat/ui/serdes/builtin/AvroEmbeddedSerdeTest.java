@@ -107,6 +107,45 @@ class AvroEmbeddedSerdeTest {
         .deserialize(null, Arrays.copyOf(bytes, bytes.length + 1))).isInstanceOf(IOException.class);
   }
 
+  @Test
+  void rendersLogicalUuidsWithoutChangingOrdinaryFixedValues() throws Exception {
+    var schema = new Schema.Parser().parse("""
+        {"type":"record","name":"Event","fields":[
+          {"name":"id","type":{"type":"fixed","name":"uuid","size":16,"logicalType":"uuid"}},
+          {"name":"payload","type":{"type":"record","name":"Payload","fields":[
+            {"name":"commit_id","type":"uuid"},
+            {"name":"ids","type":{"type":"array","items":"uuid"}},
+            {"name":"by_name","type":{"type":"map","values":"uuid"}},
+            {"name":"optional_id","type":["null","uuid"]},
+            {"name":"binary","type":{"type":"fixed","name":"raw","size":16}}
+          ]}}
+        ]}
+        """);
+    // Fixed, known bytes test byte order and leading zeroes independently of the decoder.
+    byte[] bytes = java.util.HexFormat.of().parseHex("00112233445566778899aabbccddeeff");
+    final String expected = "00112233-4455-6677-8899-aabbccddeeff";
+    var uuid = new GenericData.Fixed(schema.getField("id").schema(), bytes);
+    var payload = new GenericData.Record(schema.getField("payload").schema());
+    payload.put("commit_id", uuid);
+    payload.put("ids", java.util.List.of(uuid));
+    payload.put("by_name", java.util.Map.of("entry", uuid));
+    payload.put("optional_id", uuid);
+    payload.put("binary", new GenericData.Fixed(payload.getSchema().getField("binary").schema(), bytes));
+    var event = new GenericData.Record(schema);
+    event.put("id", uuid);
+    event.put("payload", payload);
+    var result = avroEmbeddedSerde.deserializer("control", Serde.Target.VALUE)
+        .deserialize(null, serializeIceberg(event));
+    var json = new JsonMapper().readTree(result.getResult());
+    assertThat(json.at("/id").asText()).isEqualTo(expected);
+    assertThat(json.at("/payload/commit_id").asText()).isEqualTo(expected);
+    assertThat(json.at("/payload/ids/0").asText()).isEqualTo(expected);
+    assertThat(json.at("/payload/by_name/entry").asText()).isEqualTo(expected);
+    assertThat(json.at("/payload/optional_id/uuid").asText()).isEqualTo(expected);
+    assertThat(json.at("/payload/binary").asText().getBytes(java.nio.charset.StandardCharsets.ISO_8859_1))
+        .isEqualTo(bytes);
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"\"null\"", "[\"null\",\"string\"]"})
   void readsNullIcebergDatum(String schemaJson) throws Exception {
