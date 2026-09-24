@@ -552,12 +552,25 @@ public class ReactiveAdminClient implements Closeable {
   public Mono<Table<String, TopicPartition, Long>> listConsumerGroupOffsets(List<String> consumerGroups,
                                                                             // all partitions if null passed
                                                                             @Nullable List<TopicPartition> partitions) {
-    return listConsumerGroupOffsets(consumerGroups, partitions, false);
+    return loadConsumerGroupOffsets(consumerGroups, partitions, false)
+        .map(ReactiveAdminClient::offsetsTable);
   }
 
-  public Mono<Table<String, TopicPartition, Long>> listConsumerGroupOffsets(List<String> consumerGroups,
-                                                                             @Nullable List<TopicPartition> partitions,
-                                                                             boolean skipUnauthorized) {
+  public record AuthorizedConsumerGroupOffsets(Set<String> groupIds,
+                                               Table<String, TopicPartition, Long> offsets) {
+    public boolean containsGroup(String groupId) {
+      return groupIds.contains(groupId);
+    }
+  }
+
+  public Mono<AuthorizedConsumerGroupOffsets> listAuthorizedConsumerGroupOffsets(
+      List<String> consumerGroups, @Nullable List<TopicPartition> partitions) {
+    return loadConsumerGroupOffsets(consumerGroups, partitions, true)
+        .map(offsets -> new AuthorizedConsumerGroupOffsets(Set.copyOf(offsets.keySet()), offsetsTable(offsets)));
+  }
+
+  private Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>> loadConsumerGroupOffsets(
+      List<String> consumerGroups, @Nullable List<TopicPartition> partitions, boolean skipUnauthorized) {
     Function<Collection<String>, Mono<Map<String, Map<TopicPartition, OffsetAndMetadata>>>> call =
         groups -> {
           var result = client.listConsumerGroupOffsets(groups.stream()
@@ -579,16 +592,19 @@ public class ReactiveAdminClient implements Closeable {
         mapMerger()
     );
 
-    return merged.map(map -> {
-      var table = ImmutableTable.<String, TopicPartition, Long>builder();
-      map.forEach((g, tpOffsets) -> tpOffsets.forEach((tp, offset) -> {
-        if (offset != null) {
-          // offset will be null for partitions that don't have committed offset for this group
-          table.put(g, tp, offset.offset());
-        }
-      }));
-      return table.build();
-    });
+    return merged;
+  }
+
+  private static Table<String, TopicPartition, Long> offsetsTable(
+      Map<String, Map<TopicPartition, OffsetAndMetadata>> offsets) {
+    var table = ImmutableTable.<String, TopicPartition, Long>builder();
+    offsets.forEach((group, tpOffsets) -> tpOffsets.forEach((tp, offset) -> {
+      if (offset != null) {
+        // Partitions without committed offsets return null.
+        table.put(group, tp, offset.offset());
+      }
+    }));
+    return table.build();
   }
 
   private static <T> Mono<Map<String, T>> collectAuthorizedGroupResults(Map<String, KafkaFuture<T>> results) {

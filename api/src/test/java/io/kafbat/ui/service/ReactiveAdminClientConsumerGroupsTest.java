@@ -36,8 +36,8 @@ import org.apache.kafka.common.errors.TimeoutException;
 import org.apache.kafka.common.internals.KafkaFutureImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -119,10 +119,10 @@ class ReactiveAdminClientConsumerGroupsTest {
     when(result.partitionsToOffsetAndMetadata(DENIED))
         .thenReturn(failedFuture(new GroupAuthorizationException(DENIED)));
 
-    StepVerifier.create(client.listConsumerGroupOffsets(List.of(ALLOWED, DENIED), List.of(PARTITION), true))
+    StepVerifier.create(client.listAuthorizedConsumerGroupOffsets(List.of(ALLOWED, DENIED), List.of(PARTITION)))
         .assertNext(offsets -> {
-          assertThat(offsets.rowKeySet()).containsExactly(ALLOWED);
-          assertThat(offsets.get(ALLOWED, PARTITION)).isEqualTo(42L);
+          assertThat(offsets.groupIds()).containsExactly(ALLOWED);
+          assertThat(offsets.offsets().get(ALLOWED, PARTITION)).isEqualTo(42L);
         })
         .verifyComplete();
 
@@ -141,8 +141,25 @@ class ReactiveAdminClientConsumerGroupsTest {
     when(result.partitionsToOffsetAndMetadata(DENIED))
         .thenReturn(failedFuture(new GroupAuthorizationException(DENIED)));
 
-    StepVerifier.create(client.listConsumerGroupOffsets(List.of(DENIED), null, true))
-        .assertNext(offsets -> assertThat(offsets.isEmpty()).isTrue())
+    StepVerifier.create(client.listAuthorizedConsumerGroupOffsets(List.of(DENIED), null))
+        .assertNext(offsets -> assertThat(offsets.groupIds()).isEmpty())
+        .verifyComplete();
+  }
+
+  @Test
+  void offsetsKeepAuthorizedGroupWithoutCommittedOffsets() {
+    var result = mock(ListConsumerGroupOffsetsResult.class);
+    when(admin.listConsumerGroupOffsets(anyMap())).thenReturn(result);
+    when(result.partitionsToOffsetAndMetadata(ALLOWED))
+        .thenReturn(KafkaFuture.completedFuture(Map.of()));
+    when(result.partitionsToOffsetAndMetadata(DENIED))
+        .thenReturn(failedFuture(new GroupAuthorizationException(DENIED)));
+
+    StepVerifier.create(client.listAuthorizedConsumerGroupOffsets(List.of(ALLOWED, DENIED), null))
+        .assertNext(offsets -> {
+          assertThat(offsets.groupIds()).containsExactly(ALLOWED);
+          assertThat(offsets.offsets().isEmpty()).isTrue();
+        })
         .verifyComplete();
   }
 
@@ -165,7 +182,7 @@ class ReactiveAdminClientConsumerGroupsTest {
     when(admin.listConsumerGroupOffsets(anyMap())).thenReturn(result);
     when(result.partitionsToOffsetAndMetadata(ALLOWED)).thenReturn(failedFuture(error));
 
-    StepVerifier.create(client.listConsumerGroupOffsets(List.of(ALLOWED), null, true))
+    StepVerifier.create(client.listAuthorizedConsumerGroupOffsets(List.of(ALLOWED), null))
         .expectErrorMatches(actual -> actual == error)
         .verify();
   }
@@ -220,23 +237,26 @@ class ReactiveAdminClientConsumerGroupsTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = {false, true})
-  void clusterScrapeSucceedsWithUnauthorizedGroups(boolean allUnauthorized) throws Exception {
+  @MethodSource("scrapeAuthorizationCases")
+  void clusterScrapeSucceedsWithUnauthorizedGroups(boolean descriptionDenied,
+                                                    boolean offsetDenied,
+                                                    boolean noCommittedOffsets) throws Exception {
     var groups = List.of(ALLOWED, DENIED);
     var description = new ConsumerGroupDescription(ALLOWED, false, List.of(), "range",
         ConsumerGroupState.EMPTY, null);
     var descriptions = mock(DescribeConsumerGroupsResult.class);
     when(admin.describeConsumerGroups(groups)).thenReturn(descriptions);
     when(descriptions.describedGroups()).thenReturn(Map.of(
-        ALLOWED, allUnauthorized ? failedFuture(new GroupAuthorizationException(ALLOWED))
+        ALLOWED, descriptionDenied ? failedFuture(new GroupAuthorizationException(ALLOWED))
             : KafkaFuture.completedFuture(description),
         DENIED, failedFuture(new GroupAuthorizationException(DENIED))
     ));
     var offsets = mock(ListConsumerGroupOffsetsResult.class);
     when(admin.listConsumerGroupOffsets(anyMap())).thenReturn(offsets);
     when(offsets.partitionsToOffsetAndMetadata(ALLOWED))
-        .thenReturn(allUnauthorized ? failedFuture(new GroupAuthorizationException(ALLOWED))
-            : KafkaFuture.completedFuture(Map.of(PARTITION, new OffsetAndMetadata(42L))));
+        .thenReturn(offsetDenied ? failedFuture(new GroupAuthorizationException(ALLOWED))
+            : KafkaFuture.completedFuture(noCommittedOffsets ? Map.of()
+                : Map.of(PARTITION, new OffsetAndMetadata(42L))));
     when(offsets.partitionsToOffsetAndMetadata(DENIED))
         .thenReturn(failedFuture(new GroupAuthorizationException(DENIED)));
 
@@ -253,13 +273,27 @@ class ReactiveAdminClientConsumerGroupsTest {
         scrapeClient, new ClustersProperties()).block()) {
       assertThat(state).isNotNull();
       assertThat(state.getTopicStates()).containsOnlyKeys(PARTITION.topic());
-      if (allUnauthorized) {
+      if (descriptionDenied || offsetDenied) {
         assertThat(state.getConsumerGroupsStates()).isEmpty();
       } else {
         assertThat(state.getConsumerGroupsStates()).containsOnlyKeys(ALLOWED);
-        assertThat(state.getConsumerGroupsStates().get(ALLOWED).committedOffsets()).containsEntry(PARTITION, 42L);
+        if (noCommittedOffsets) {
+          assertThat(state.getConsumerGroupsStates().get(ALLOWED).committedOffsets()).isEmpty();
+        } else {
+          assertThat(state.getConsumerGroupsStates().get(ALLOWED).committedOffsets())
+              .containsEntry(PARTITION, 42L);
+        }
       }
     }
+  }
+
+  static Stream<Arguments> scrapeAuthorizationCases() {
+    return Stream.of(
+        Arguments.of(false, false, false),
+        Arguments.of(true, true, false),
+        Arguments.of(false, true, false),
+        Arguments.of(false, false, true)
+    );
   }
 
   static Stream<Throwable> unrelatedFailures() {

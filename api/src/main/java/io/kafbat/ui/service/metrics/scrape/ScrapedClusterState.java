@@ -4,7 +4,6 @@ import static io.kafbat.ui.model.InternalLogDirStats.LogDirSpaceStats;
 import static io.kafbat.ui.model.InternalLogDirStats.SegmentStats;
 import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 
-import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
@@ -138,7 +137,7 @@ public class ScrapedClusterState implements AutoCloseable {
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
             ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
             ac.describeConsumerGroups(phase1.getT2(), true),
-            ac.listConsumerGroupOffsets(phase1.getT2(), null, true)
+            ac.listAuthorizedConsumerGroupOffsets(phase1.getT2(), null)
         ).map(phase2 ->
             create(
                 clusterDescription,
@@ -177,18 +176,22 @@ public class ScrapedClusterState implements AutoCloseable {
                                             InternalLogDirStats segmentStats,
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
-                                            Table<String, TopicPartition, Long> consumerOffsets,
+                                            ReactiveAdminClient.AuthorizedConsumerGroupOffsets consumerOffsets,
                                             ClustersProperties clustersProperties) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
-    consumerDescriptions.forEach((name, desc) ->
-        consumerGroupsStates.put(
-            name,
-            new ConsumerGroupState(
-                name,
-                desc,
-                consumerOffsets.row(name)
-            )));
+    consumerDescriptions.forEach((name, desc) -> {
+      if (!consumerOffsets.containsGroup(name)) {
+        return;
+      }
+      consumerGroupsStates.put(
+          name,
+          new ConsumerGroupState(
+              name,
+              desc,
+              consumerOffsets.offsets().row(name)
+          ));
+    });
 
     Map<Integer, NodeState> nodesStates = new HashMap<>();
     clusterDescription.getNodes().forEach(node ->
