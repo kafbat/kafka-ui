@@ -169,7 +169,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
   public Mono<ResponseEntity<CompatibilityLevelDTO>> getGlobalSchemaCompatibilityLevel(
       String clusterName, ServerWebExchange exchange) {
     return schemaRegistryService.getGlobalSchemaCompatibilityLevel(getCluster(clusterName))
-        .map(c -> new CompatibilityLevelDTO().compatibility(kafkaSrMapper.toDto(c)))
+        .map(c -> new CompatibilityLevelDTO().compatibility(c))
         .map(ResponseEntity::ok)
         .defaultIfEmpty(ResponseEntity.notFound().build());
   }
@@ -340,7 +340,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
             .flatMap(compatibilityLevelDTO ->
                 schemaRegistryService.updateGlobalSchemaCompatibility(
                     getCluster(clusterName),
-                    kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())
+                    compatibilityLevelDTO.getCompatibility()
                 ))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())
@@ -364,7 +364,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
                 schemaRegistryService.updateSchemaCompatibility(
                     getCluster(clusterName),
                     subject,
-                    kafkaSrMapper.fromDto(compatibilityLevelDTO.getCompatibility())
+                    compatibilityLevelDTO.getCompatibility()
                 ))
             .doOnEach(sig -> audit(context, sig))
             .thenReturn(ResponseEntity.ok().build())

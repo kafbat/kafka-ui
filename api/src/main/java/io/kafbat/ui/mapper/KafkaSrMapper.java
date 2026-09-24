@@ -1,13 +1,11 @@
 package io.kafbat.ui.mapper;
 
 import io.kafbat.ui.model.CompatibilityCheckResponseDTO;
-import io.kafbat.ui.model.CompatibilityLevelDTO;
 import io.kafbat.ui.model.NewSchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaReferenceDTO;
 import io.kafbat.ui.model.SchemaSubjectDTO;
 import io.kafbat.ui.model.SchemaTypeDTO;
 import io.kafbat.ui.service.SchemaRegistryService;
-import io.kafbat.ui.sr.model.Compatibility;
 import io.kafbat.ui.sr.model.CompatibilityCheckResponse;
 import io.kafbat.ui.sr.model.NewSubject;
 import io.kafbat.ui.sr.model.SchemaReference;
@@ -29,16 +27,13 @@ public interface KafkaSrMapper {
         .schemaType(SchemaTypeDTO.fromValue(Optional.ofNullable(s.getSchemaType()).orElse(SchemaType.AVRO).getValue()))
         .references(toDto(s.getReferences()))
         .topic(s.getTopic())
-        .compatibilityLevel(s.getCompatibility().toString());
+        .compatibilityLevel(s.getCompatibility());
   }
 
   List<SchemaReferenceDTO> toDto(List<SchemaReference> references);
 
   CompatibilityCheckResponseDTO toDto(CompatibilityCheckResponse ccr);
 
-  CompatibilityLevelDTO.CompatibilityEnum toDto(Compatibility compatibility);
-
   NewSubject fromDto(NewSchemaSubjectDTO subjectDto);
 
-  Compatibility fromDto(CompatibilityLevelDTO.CompatibilityEnum dtoEnum);
 }

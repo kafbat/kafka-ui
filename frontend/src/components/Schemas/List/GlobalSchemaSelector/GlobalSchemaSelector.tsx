@@ -1,9 +1,6 @@
 import React from 'react';
-import {
-  Action,
-  CompatibilityLevelCompatibilityEnum,
-  ResourceType,
-} from 'generated-sources';
+import { compatibilityOptions } from 'lib/compatibility';
+import { Action, ResourceType } from 'generated-sources';
 import useAppParams from 'lib/hooks/useAppParams';
 import { ClusterNameRoute } from 'lib/paths';
 import { useConfirm } from 'lib/hooks/useConfirm';
@@ -15,12 +12,6 @@ import {
 
 import * as S from './GlobalSchemaSelector.styled';
 
-function isCompatibilityLevelCompatibilityEnum(
-  value: string | number
-): value is CompatibilityLevelCompatibilityEnum {
-  return value in CompatibilityLevelCompatibilityEnum;
-}
-
 const GlobalSchemaSelector: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
   const { data: currentCompatibilityLevel, isFetching } =
@@ -29,7 +20,7 @@ const GlobalSchemaSelector: React.FC = () => {
   const confirm = useConfirm();
 
   const handleChangeCompatibilityLevel = (level: string | number) => {
-    if (!isCompatibilityLevelCompatibilityEnum(level)) return;
+    if (typeof level !== 'string') return;
 
     const nextLevel = level;
     confirm(
@@ -57,9 +48,7 @@ const GlobalSchemaSelector: React.FC = () => {
         minWidth="200px"
         onChange={handleChangeCompatibilityLevel}
         disabled={isFetching}
-        options={Object.keys(CompatibilityLevelCompatibilityEnum).map(
-          (level) => ({ value: level, label: level })
-        )}
+        options={compatibilityOptions(currentCompatibilityLevel.compatibility)}
         permission={{
           resource: ResourceType.SCHEMA,
           action: Action.MODIFY_GLOBAL_COMPATIBILITY,
