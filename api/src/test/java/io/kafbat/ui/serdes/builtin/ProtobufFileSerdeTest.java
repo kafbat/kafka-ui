@@ -377,6 +377,28 @@ class ProtobufFileSerdeTest {
   }
 
   @Test
+  void topicsMappingUsesDefaultDescriptorWhenCaseInsensitiveMatchIsAmbiguous() {
+    var serde = new ProtobufFileSerde();
+    serde.configure(
+        new Configuration(
+            langDescriptionDescriptor,
+            null,
+            descriptorPaths,
+            Map.of(
+                "TOPIC", addressBookDescriptor,
+                "topic", personDescriptor
+            ),
+            Map.of()
+        )
+    );
+
+    // "Topic" matches both keys case-insensitively, so neither mapping is picked
+    var deserialized = serde.deserializer("Topic", Serde.Target.VALUE)
+        .deserialize(null, langDescriptionMessageBytes);
+    assertJsonEquals(sampleLangDescriptionMsgJson, deserialized.getResult());
+  }
+
+  @Test
   void serializeUsesTopicsMappingToFindMsgDescriptor() {
     var messageNameMap = Map.of(
         "persons", personDescriptor,
