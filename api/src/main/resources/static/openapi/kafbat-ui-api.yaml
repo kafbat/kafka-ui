@@ -3812,14 +3812,7 @@ components:
       properties:
         compatibility:
           type: string
-          enum:
-            - BACKWARD
-            - BACKWARD_TRANSITIVE
-            - FORWARD
-            - FORWARD_TRANSITIVE
-            - FULL
-            - FULL_TRANSITIVE
-            - NONE
+          description: Compatibility mode returned by the Schema Registry.
     ConfigSource:
       type: string
       enum:

@@ -8,7 +8,6 @@ import * as hooks from 'lib/hooks/api/schemas';
 import { QUERY_REFETCH_LIMITED_OPTIONS } from 'lib/constants';
 import { act } from 'react-dom/test-utils';
 import { renderHook, waitFor } from '@testing-library/react';
-import { CompatibilityLevelCompatibilityEnum } from 'generated-sources';
 import { schemaVersion } from 'components/Schemas/Edit/__tests__/fixtures';
 import {
   jsonSchema,
@@ -73,7 +72,7 @@ describe('Schema hooks', () => {
     describe('useGetGlobalCompatibilityLayer', () => {
       it('returns the correct data', async () => {
         const mock = fetchMock.getOnce(schemaCompatibilityUrl, {
-          compatibility: CompatibilityLevelCompatibilityEnum.FULL,
+          compatibility: 'FULL',
         });
         const { result } = renderQueryHook(() =>
           hooks.useGetGlobalCompatibilityLayer(clusterName)
@@ -110,7 +109,7 @@ describe('Schema hooks', () => {
         await act(async () => {
           await result.current.mutateAsync({
             compatibilityLevel: {
-              compatibility: CompatibilityLevelCompatibilityEnum.BACKWARD,
+              compatibility: 'BACKWARD',
             },
           });
         });
@@ -123,7 +122,7 @@ describe('Schema hooks', () => {
       it('returns the correct data', async () => {
         const mock = fetchMock.putOnce(schemaCompatibilityUrl, {
           body: {
-            compatibility: CompatibilityLevelCompatibilityEnum.BACKWARD,
+            compatibility: 'BACKWARD',
           },
         });
         const { result } = renderHook(
@@ -134,7 +133,7 @@ describe('Schema hooks', () => {
         await act(() =>
           result.current.mutateAsync({
             compatibilityLevel: {
-              compatibility: CompatibilityLevelCompatibilityEnum.BACKWARD,
+              compatibility: 'BACKWARD',
             },
           })
         );
