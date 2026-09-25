@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.Strings.CS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
@@ -50,7 +51,8 @@ public class MessageFilters {
   private static final CelRuntime CEL_RUNTIME = createRuntime();
   private static final Object CELL_NULL_VALUE = NullValue.NULL_VALUE;
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER =
+      new ObjectMapper().configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
   private static final Pattern HEX_IN_UNICODE_ESCAPE = Pattern.compile("(?<=\\\\u)[0-9A-F]{4}");
 
   public static Predicate<TopicMessageDTO> noop() {

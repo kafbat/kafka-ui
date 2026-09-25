@@ -1,7 +1,7 @@
 [versions]
-spring-boot = '3.5.14'
+spring-boot = '3.5.16'
 nimbus-jose-jwt = '10.8'
-netty = '4.1.135.Final'
+netty = '4.1.137.Final'
 
 aws-msk-auth = '2.3.0'
 azure-identity = '1.15.4'
@@ -15,8 +15,8 @@ apache-commons-compress = '1.28.0'
 assertj = '3.25.3'
 avro = '1.12.1'
 byte-buddy = '1.18.1'
-confluent = '7.9.5'
-confluent-ccs = '7.9.5-ccs'
+confluent = '7.9.10'
+confluent-ccs = '7.9.10-ccs'
 msgpack = "0.9.11"
 
 mapstruct = '1.6.2'
