@@ -34,6 +34,13 @@ kafka:
       metrics:
         port: 9997
         type: JMX
+      # Predefined CEL message filters (shown in the Messages sidebar).
+      # message-filters:
+      #   - display-name: Non-heartbeat
+      #     filter-code: has(record.value.after)
+      #     enabled-by-default: true
+      #   - display-name: Since yesterday
+      #     filter-code: has(record.timestampMs) && record.timestampMs > nowMs - 86400000
 
 dynamic.config.enabled: true
 

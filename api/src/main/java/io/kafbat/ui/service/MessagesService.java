@@ -230,7 +230,7 @@ public class MessagesService {
         topic,
         deserializationService.deserializerFor(cluster, topic, keySerde, valueSerde),
         consumerPosition,
-        getMsgFilter(containsStringFilter, filterId),
+        getMsgFilter(cluster, containsStringFilter, filterId),
         fixPageSize(limit)
     );
   }
@@ -298,18 +298,25 @@ public class MessagesService {
         .map(throttleUiPublish(consumerPosition.pollingMode()));
   }
 
-  private Predicate<TopicMessageDTO> getMsgFilter(@Nullable String containsStrFilter,
+  private Predicate<TopicMessageDTO> getMsgFilter(KafkaCluster cluster,
+                                                  @Nullable String containsStrFilter,
                                                   @Nullable String smartFilterId) {
     Predicate<TopicMessageDTO> messageFilter = MessageFilters.noop();
     if (containsStrFilter != null) {
       messageFilter = messageFilter.and(MessageFilters.containsStringFilter(containsStrFilter));
     }
     if (smartFilterId != null) {
-      var registered = registeredFilters.getIfPresent(smartFilterId);
-      if (registered == null) {
-        throw new ValidationException("No filter was registered with id " + smartFilterId);
+      var predefined = Optional.ofNullable(cluster.getMessageFilters())
+          .flatMap(filters -> filters.findById(smartFilterId));
+      if (predefined.isPresent()) {
+        messageFilter = messageFilter.and(predefined.get().getPredicate());
+      } else {
+        var registered = registeredFilters.getIfPresent(smartFilterId);
+        if (registered == null) {
+          throw new ValidationException("No filter was registered with id " + smartFilterId);
+        }
+        messageFilter = messageFilter.and(registered);
       }
-      messageFilter = messageFilter.and(registered);
     }
     return messageFilter;
   }
