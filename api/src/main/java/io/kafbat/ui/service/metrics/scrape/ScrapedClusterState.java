@@ -11,7 +11,7 @@ import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.index.FilterTopicIndex;
-import io.kafbat.ui.service.index.LuceneTopicsIndex;
+import io.kafbat.ui.service.index.LazyTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
@@ -37,7 +36,6 @@ import reactor.core.publisher.Mono;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
 @Value
-@Slf4j
 public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
@@ -150,23 +148,29 @@ public class ScrapedClusterState implements AutoCloseable {
             )));
   }
 
-  private static Map<String, TopicState> topicStateMap(
+  static Map<String, TopicState> topicStateMap(
       InternalLogDirStats segmentStats,
       Map<String, TopicDescription> topicDescriptions,
       Map<String, List<ConfigEntry>> topicConfigs,
       Map<TopicPartition, Long> latestOffsets,
       Map<TopicPartition, Long> earliestOffsets) {
 
+    var earliestByTopic = groupPartitionsByTopic(earliestOffsets);
+    var latestByTopic = groupPartitionsByTopic(latestOffsets);
+    var partitionsStatsByTopic = Optional.ofNullable(segmentStats.getPartitionsStats())
+        .map(ScrapedClusterState::groupPartitionsByTopic)
+        .orElse(null);
+
     return topicDescriptions.entrySet().stream().map(entry -> new TopicState(
         entry.getKey(),
         entry.getValue(),
         topicConfigs.getOrDefault(entry.getKey(), List.of()),
-        filterTopic(entry.getKey(), earliestOffsets),
-        filterTopic(entry.getKey(), latestOffsets),
+        earliestByTopic.getOrDefault(entry.getKey(), Map.of()),
+        latestByTopic.getOrDefault(entry.getKey(), Map.of()),
         segmentStats.getTopicStats().get(entry.getKey()),
-        Optional.ofNullable(segmentStats.getPartitionsStats())
-            .map(topicForFilter -> filterTopic(entry.getKey(), topicForFilter))
-            .orElse(null)
+        partitionsStatsByTopic == null
+            ? null
+            : partitionsStatsByTopic.getOrDefault(entry.getKey(), Map.of())
     )).collect(Collectors.toMap(
         TopicState::name,
         Function.identity()
@@ -212,26 +216,22 @@ public class ScrapedClusterState implements AutoCloseable {
 
   private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
                                              Map<String, TopicState> topicStates) {
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
     List<InternalTopic> topics = topicStates.values().stream().map(
         topicState -> buildInternalTopic(topicState, clustersProperties)
     ).toList();
 
-    if (fts.isEnabled()) {
-      try {
-        return new LuceneTopicsIndex(topics);
-      } catch (Exception e) {
-        log.error("Error creating lucene topics index", e);
-      }
-    }
-    return new FilterTopicIndex(topics);
+    return new LazyTopicsIndex(topics);
   }
 
-  private static <T> Map<Integer, T> filterTopic(String topicForFilter, Map<TopicPartition, T> tpMap) {
-    return tpMap.entrySet()
-        .stream()
-        .filter(tp -> tp.getKey().topic().equals(topicForFilter))
-        .collect(Collectors.toMap(e -> e.getKey().partition(), Map.Entry::getValue));
+  /**
+   * Groups partition-keyed data by topic once, so that per-topic lookups stay O(partitions of that topic)
+   * instead of scanning every partition in the cluster for every topic.
+   */
+  private static <T> Map<String, Map<Integer, T>> groupPartitionsByTopic(Map<TopicPartition, T> tpMap) {
+    return tpMap.entrySet().stream().collect(Collectors.groupingBy(
+        entry -> entry.getKey().topic(),
+        Collectors.toMap(entry -> entry.getKey().partition(), Map.Entry::getValue)
+    ));
   }
 
   private static InternalTopic buildInternalTopic(TopicState state,
