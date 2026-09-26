@@ -10,7 +10,6 @@ import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
-import io.kafbat.ui.service.index.FilterTopicIndex;
 import io.kafbat.ui.service.index.LazyTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
@@ -46,9 +45,8 @@ public class ScrapedClusterState implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    if (this.topicIndex != null) {
-      this.topicIndex.close();
-    }
+    // the topic index is shared between all snapshots of a cluster and is owned by
+    // TopicsIndexRegistry, which releases it on shutdown
   }
 
   public record NodeState(int id,
@@ -79,14 +77,15 @@ public class ScrapedClusterState implements AutoCloseable {
         .nodesStates(Map.of())
         .topicStates(Map.of())
         .consumerGroupsStates(Map.of())
-        .topicIndex(new FilterTopicIndex(List.of()))
+        .topicIndex(new LazyTopicsIndex(List.of()))
         .build();
   }
 
   public ScrapedClusterState updateTopics(Map<String, TopicDescription> descriptions,
                                           Map<String, List<ConfigEntry>> configs,
                                           InternalPartitionsOffsets partitionsOffsets,
-                                          ClustersProperties clustersProperties) {
+                                          ClustersProperties clustersProperties,
+                                          LazyTopicsIndex topicIndex) {
     var updatedTopicStates = new HashMap<>(topicStates);
     descriptions.forEach((topic, description) -> {
       SegmentStats segmentStats = null;
@@ -109,22 +108,27 @@ public class ScrapedClusterState implements AutoCloseable {
       );
     });
 
+    topicIndex.update(internalTopics(updatedTopicStates, clustersProperties));
     return toBuilder()
         .topicStates(updatedTopicStates)
-        .topicIndex(buildTopicIndex(clustersProperties, updatedTopicStates))
+        .topicIndex(topicIndex)
         .build();
   }
 
-  public ScrapedClusterState topicDeleted(String topic) {
+  public ScrapedClusterState topicDeleted(String topic, ClustersProperties clustersProperties,
+                                          LazyTopicsIndex topicIndex) {
     var newTopicStates = new HashMap<>(topicStates);
     newTopicStates.remove(topic);
+    topicIndex.update(internalTopics(newTopicStates, clustersProperties));
     return toBuilder()
         .topicStates(newTopicStates)
+        .topicIndex(topicIndex)
         .build();
   }
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
-                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties) {
+                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties,
+                                                 LazyTopicsIndex topicIndex) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
@@ -144,7 +148,8 @@ public class ScrapedClusterState implements AutoCloseable {
                 topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
                 phase2.getT3(),
                 phase2.getT4(),
-                clustersProperties
+                clustersProperties,
+                topicIndex
             )));
   }
 
@@ -182,7 +187,8 @@ public class ScrapedClusterState implements AutoCloseable {
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
                                             Table<String, TopicPartition, Long> consumerOffsets,
-                                            ClustersProperties clustersProperties) {
+                                            ClustersProperties clustersProperties,
+                                            LazyTopicsIndex topicIndex) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->
@@ -205,22 +211,22 @@ public class ScrapedClusterState implements AutoCloseable {
                 segmentStats.getBrokerDirsStats().get(node.id())
             )));
 
+    topicIndex.update(internalTopics(topicStates, clustersProperties));
+
     return new ScrapedClusterState(
         Instant.now(),
         nodesStates,
         topicStates,
         consumerGroupsStates,
-        buildTopicIndex(clustersProperties, topicStates)
+        topicIndex
     );
   }
 
-  private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
-                                             Map<String, TopicState> topicStates) {
-    List<InternalTopic> topics = topicStates.values().stream().map(
+  private static List<InternalTopic> internalTopics(Map<String, TopicState> topicStates,
+                                                   ClustersProperties clustersProperties) {
+    return topicStates.values().stream().map(
         topicState -> buildInternalTopic(topicState, clustersProperties)
     ).toList();
-
-    return new LazyTopicsIndex(topics);
   }
 
   /**

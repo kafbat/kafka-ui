@@ -5,61 +5,70 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * {@link TopicsIndex} that only materializes the Lucene index when a query actually asks for full text
- * search.
+ * {@link TopicsIndex} of a single cluster that outlives the individual cluster state snapshots.
  *
- * <p>Building a Lucene index is linear in the number of topics in the cluster and happens on every
- * scrape, while the overwhelming majority of deployments never enable FTS. Deferring the build until
- * the first {@code fts=true} query keeps topic listing at the cost of a plain in-memory filter.
+ * <p>Building a Lucene index is linear in the number of topics and the topics of a cluster do not
+ * change that often, so a single instance is kept per cluster and reused across scrapes instead of
+ * being rebuilt from scratch. The Lucene index itself is still created lazily, on the first query
+ * that actually asks for full text search, and it is only brought in line with the current topic set
+ * at that point: a deployment that never enables FTS never pays for indexing anything.
  */
 @Slf4j
 public class LazyTopicsIndex implements TopicsIndex {
 
-  private final List<InternalTopic> topics;
-  private final TopicsIndex plainIndex;
-  private volatile TopicsIndex ftsIndex;
+  private volatile List<InternalTopic> topics;
+  private volatile LuceneTopicsIndex luceneIndex;
+  private volatile boolean luceneUnavailable;
 
   public LazyTopicsIndex(List<InternalTopic> topics) {
     this.topics = topics;
-    this.plainIndex = new FilterTopicIndex(topics);
+  }
+
+  /**
+   * Replaces the topic set this index answers queries for. Deliberately cheap: the Lucene index is
+   * synced with the new topics lazily, on the next full text search.
+   */
+  public void update(List<InternalTopic> topics) {
+    this.topics = topics;
   }
 
   @Override
   public List<InternalTopic> find(String search, Boolean showInternal, String sort,
                                   boolean fts, Integer count) {
-    return fts ? ftsIndex().find(search, showInternal, sort, fts, count)
-        : plainIndex.find(search, showInternal, sort, fts, count);
+    if (!fts) {
+      return new FilterTopicIndex(topics).find(search, showInternal, sort, fts, count);
+    }
+    return ftsIndex().find(search, showInternal, sort, fts, count);
   }
 
   private TopicsIndex ftsIndex() {
-    var index = ftsIndex;
+    var index = luceneIndex;
     if (index == null) {
       synchronized (this) {
-        index = ftsIndex;
-        if (index == null) {
-          index = buildFtsIndex();
-          ftsIndex = index;
+        if (luceneIndex == null && !luceneUnavailable) {
+          try {
+            luceneIndex = new LuceneTopicsIndex(topics);
+          } catch (Exception e) {
+            log.error("Error creating lucene topics index, falling back to filter based search", e);
+            luceneUnavailable = true;
+          }
         }
+        index = luceneIndex;
       }
     }
-    return index;
-  }
-
-  private TopicsIndex buildFtsIndex() {
-    try {
-      return new LuceneTopicsIndex(topics);
-    } catch (Exception e) {
-      log.error("Error creating lucene topics index, falling back to filter based search", e);
-      return plainIndex;
+    if (index == null) {
+      return new FilterTopicIndex(topics);
     }
+    // idempotent, and a no-op when the topics did not change since the last search
+    index.update(topics);
+    return index;
   }
 
   @Override
   public void close() throws Exception {
-    var index = ftsIndex;
+    var index = luceneIndex;
     if (index != null) {
       index.close();
     }
-    plainIndex.close();
   }
 }
