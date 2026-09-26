@@ -146,6 +146,49 @@ class LuceneTopicsIndexUpdateTest {
   }
 
   @Test
+  void updateWithTheSameTopicsDoesNotTouchTheWriter() throws Exception {
+    var topics = List.of(topic("alpha.one"), topic("alpha.two"), topic("beta.one"));
+
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {
+      assertThat(index.lastUpdateStats().total()).isEqualTo(3);
+
+      index.update(topics);
+
+      assertThat(index.lastUpdateStats().total()).isZero();
+      // a size that grew between scrapes must not mark the topic dirty, see the fingerprint javadoc
+      index.update(List.of(
+          InternalTopic.builder().name("alpha.one").partitions(Map.of()).segmentSize(4096).build(),
+          InternalTopic.builder().name("alpha.two").partitions(Map.of()).segmentSize(4096).build(),
+          InternalTopic.builder().name("beta.one").partitions(Map.of()).segmentSize(4096).build()));
+
+      assertThat(index.lastUpdateStats().total()).isZero();
+    }
+  }
+
+  @Test
+  void updateReindexesOnlyTheTopicsThatActuallyChanged() throws Exception {
+    try (LuceneTopicsIndex index =
+             new LuceneTopicsIndex(List.of(topic("stable.one"), topic("stable.two")))) {
+      index.update(List.of(topic("stable.one"), topic("stable.two"), topic("fresh.one")));
+
+      assertThat(index.lastUpdateStats().added()).isEqualTo(1);
+      assertThat(index.lastUpdateStats().reindexed()).isZero();
+      assertThat(index.lastUpdateStats().removed()).isZero();
+      assertThat(index.searchableDocCount()).isEqualTo(3);
+
+      index.update(List.of(topic("stable.one"), topicWithPartitions("stable.two", 5), topic("fresh.one")));
+
+      assertThat(index.lastUpdateStats().reindexed()).isEqualTo(1);
+      assertThat(index.lastUpdateStats().added()).isZero();
+
+      index.update(List.of(topic("stable.one"), topicWithPartitions("stable.two", 5)));
+
+      assertThat(index.lastUpdateStats().removed()).isEqualTo(1);
+      assertThat(index.searchableDocCount()).isEqualTo(2);
+    }
+  }
+
+  @Test
   void equallyScoredTopicsAreOrderedByNameAndStayStableAcrossUpdates() throws Exception {
     var topics = List.of(topic("sk.payment.events.dlq"), topic("sk.payment.events"));
     try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {

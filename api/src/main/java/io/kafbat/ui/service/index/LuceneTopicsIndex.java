@@ -65,6 +65,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
 
   private volatile Map<String, InternalTopic> topicMap = Map.of();
   private volatile Map<String, Long> fingerprints = Map.of();
+  private UpdateStats lastUpdateStats = UpdateStats.EMPTY;
 
   public LuceneTopicsIndex(Collection<InternalTopic> topics) throws IOException {
     this.analyzer = new ShortWordAnalyzer();
@@ -96,31 +97,59 @@ public class LuceneTopicsIndex implements TopicsIndex {
       }
 
       var indexed = fingerprints;
-      var changed = false;
+      int added = 0;
+      int reindexed = 0;
       for (var entry : newFingerprints.entrySet()) {
         String name = entry.getKey();
-        Long previous = indexed.get(name);
-        if (previous == null || previous != entry.getValue()) {
+        // the fingerprints are boxed Longs, so they have to be compared by value: comparing the
+        // references would mark every topic dirty on every update and defeat the whole point
+        if (!entry.getValue().equals(indexed.get(name))) {
           writer.updateDocument(new Term(FIELD_NAME_RAW, name), buildDocument(newTopicMap.get(name)));
-          changed = true;
+          if (indexed.containsKey(name)) {
+            reindexed++;
+          } else {
+            added++;
+          }
         }
       }
-      for (String removed : indexed.keySet()) {
-        if (!newFingerprints.containsKey(removed)) {
-          writer.deleteDocuments(new Term(FIELD_NAME_RAW, removed));
-          changed = true;
+      int removed = 0;
+      for (String name : indexed.keySet()) {
+        if (!newFingerprints.containsKey(name)) {
+          writer.deleteDocuments(new Term(FIELD_NAME_RAW, name));
+          removed++;
         }
       }
 
       this.topicMap = newTopicMap;
       this.fingerprints = newFingerprints;
-      if (changed) {
+      this.lastUpdateStats = new UpdateStats(added, reindexed, removed);
+      if (added > 0 || reindexed > 0 || removed > 0) {
         searcherManager.maybeRefresh();
+        log.debug("Updated full text index: {} added, {} reindexed, {} removed", added, reindexed, removed);
+      } else {
+        log.trace("Full text index is up to date, nothing to reindex");
       }
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } finally {
       closeLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * How many documents the last {@link #update(Collection)} touched. The document count cannot show
+   * this on its own, because re-indexing a topic replaces the previous document rather than adding
+   * one, so an update that rewrote everything would still report the same number of documents.
+   */
+  UpdateStats lastUpdateStats() {
+    return lastUpdateStats;
+  }
+
+  record UpdateStats(int added, int reindexed, int removed) {
+    static final UpdateStats EMPTY = new UpdateStats(0, 0, 0);
+
+    int total() {
+      return added + reindexed + removed;
     }
   }
 
