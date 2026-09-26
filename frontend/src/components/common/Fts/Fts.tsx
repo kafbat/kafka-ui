@@ -28,6 +28,8 @@ const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
     return null;
   }
 
+  const tooltip = `Full-text search ${isFtsEnabled ? '' : 'in'}active`;
+
   return (
     <Tooltip
       value={
@@ -35,7 +37,7 @@ const Fts = ({ resourceName }: { resourceName: FtsAvailableResource }) => {
           <FtsIcon />
         </IconWrapper>
       }
-      content="Apply full text search"
+      content={tooltip}
       placement="bottom"
       showTooltip
       fullWidth
