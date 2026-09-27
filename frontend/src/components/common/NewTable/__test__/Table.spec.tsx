@@ -8,7 +8,7 @@ import Table, {
   TagCell,
 } from 'components/common/NewTable';
 import { TableProvider } from 'components/common/NewTable/Provider';
-import { screen } from '@testing-library/dom';
+import { screen, waitFor } from '@testing-library/dom';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import userEvent from '@testing-library/user-event';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
@@ -264,23 +264,39 @@ describe('Table', () => {
         expect(screen.getByText('Page 1 of 4')).toBeInTheDocument();
         expect(screen.getByText('lorem')).toBeInTheDocument();
       });
-      it('updates page on Go To page change', async () => {
+      it('updates page after the Go To page delay', async () => {
         const goToPage = getGoToPageInput();
         await userEvent.clear(goToPage);
-        await userEvent.type(goToPage, '2{enter}');
+        await userEvent.type(goToPage, '2');
         expect(goToPage).toHaveValue(2);
+        await waitFor(() =>
+          expect(screen.getByText('Page 2 of 4')).toBeInTheDocument()
+        );
         expect(screen.getByText('ipsum')).toBeInTheDocument();
+      });
+      it('applies only the last value of a quick sequence of changes', async () => {
+        const goToPage = getGoToPageInput();
+        await userEvent.clear(goToPage);
+        await userEvent.type(goToPage, '4');
+        await userEvent.type(goToPage, '3');
+        expect(goToPage).toHaveValue(43);
+        await waitFor(() =>
+          expect(screen.getByText('No rows found')).toBeInTheDocument()
+        );
       });
       it('does not update page on Go To page change if page is out of range', async () => {
         const goToPage = getGoToPageInput();
-        await userEvent.type(goToPage, '5{enter}');
+        await userEvent.type(goToPage, '5');
         expect(goToPage).toHaveValue(15);
-        expect(screen.getByText('No rows found')).toBeInTheDocument();
+        await waitFor(() =>
+          expect(screen.getByText('No rows found')).toBeInTheDocument()
+        );
       });
       it('does not update page on Go To page change if page is not a number', async () => {
         const goToPage = getGoToPageInput();
         await userEvent.type(goToPage, 'abc');
         expect(goToPage).toHaveValue(1);
+        expect(screen.getByText('Page 1 of 4')).toBeInTheDocument();
       });
     });
 
@@ -296,14 +312,15 @@ describe('Table', () => {
         });
       });
 
-      it('accepts a multi digit page number and jumps only on Enter', async () => {
+      it('accepts a multi digit page number and jumps once it settles', async () => {
         const goToPage = getGoToPageInput();
         await userEvent.clear(goToPage);
         await userEvent.type(goToPage, '123');
         expect(goToPage).toHaveValue(123);
         expect(screen.getByText('Page 1 of 200')).toBeInTheDocument();
-        await userEvent.type(goToPage, '{enter}');
-        expect(screen.getByText('Page 123 of 200')).toBeInTheDocument();
+        await waitFor(() =>
+          expect(screen.getByText('Page 123 of 200')).toBeInTheDocument()
+        );
       });
     });
   });
