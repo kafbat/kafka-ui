@@ -256,16 +256,24 @@ describe('Table', () => {
         expect(goToPage).toBeInTheDocument();
         expect(goToPage).toHaveValue(1);
       });
+      it('does not update page while typing in Go To page', async () => {
+        const goToPage = getGoToPageInput();
+        await userEvent.clear(goToPage);
+        await userEvent.type(goToPage, '3');
+        expect(goToPage).toHaveValue(3);
+        expect(screen.getByText('Page 1 of 4')).toBeInTheDocument();
+        expect(screen.getByText('lorem')).toBeInTheDocument();
+      });
       it('updates page on Go To page change', async () => {
         const goToPage = getGoToPageInput();
         await userEvent.clear(goToPage);
-        await userEvent.type(goToPage, '2');
+        await userEvent.type(goToPage, '2{enter}');
         expect(goToPage).toHaveValue(2);
         expect(screen.getByText('ipsum')).toBeInTheDocument();
       });
       it('does not update page on Go To page change if page is out of range', async () => {
         const goToPage = getGoToPageInput();
-        await userEvent.type(goToPage, '5');
+        await userEvent.type(goToPage, '5{enter}');
         expect(goToPage).toHaveValue(15);
         expect(screen.getByText('No rows found')).toBeInTheDocument();
       });
@@ -273,6 +281,29 @@ describe('Table', () => {
         const goToPage = getGoToPageInput();
         await userEvent.type(goToPage, 'abc');
         expect(goToPage).toHaveValue(1);
+      });
+    });
+
+    describe('Go To page with many pages', () => {
+      const getGoToPageInput = () =>
+        screen.getByRole('spinbutton', { name: 'Go to page:' });
+
+      beforeEach(() => {
+        renderComponent({
+          path: '?perPage=1',
+          serverSideProcessing: true,
+          pageCount: 200,
+        });
+      });
+
+      it('accepts a multi digit page number and jumps only on Enter', async () => {
+        const goToPage = getGoToPageInput();
+        await userEvent.clear(goToPage);
+        await userEvent.type(goToPage, '123');
+        expect(goToPage).toHaveValue(123);
+        expect(screen.getByText('Page 1 of 200')).toBeInTheDocument();
+        await userEvent.type(goToPage, '{enter}');
+        expect(screen.getByText('Page 123 of 200')).toBeInTheDocument();
       });
     });
   });

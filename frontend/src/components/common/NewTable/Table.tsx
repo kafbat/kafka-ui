@@ -528,9 +528,12 @@ function Table<TData>({
                 inputSize="M"
                 max={table.getPageCount()}
                 min={1}
-                onChange={({ target: { value } }) => {
-                  const index = value ? Number(value) - 1 : 0;
-                  table.setPageIndex(index);
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const { value } = e.currentTarget;
+                    const index = value ? Number(value) - 1 : 0;
+                    table.setPageIndex(index);
+                  }
                 }}
               />
             </S.GoToPage>
