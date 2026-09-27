@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # Required to sign the jar attestation
+      attestations: write
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
@@ -42,6 +44,11 @@ jobs:
           -Pinclude-frontend=true \
           -Pversion=$version
 
+      - name: Attest jar
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # https://github.com/actions/attest/releases/tag/v4.2.2
+        with:
+          subject-path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
+
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd # https://github.com/svenstaro/upload-release-action/releases/tag/2.9.0
         with:
@@ -69,7 +76,8 @@ jobs:
     needs: [release, docker-build]
     permissions:
       packages: write
-      id-token: write # Required to authenticate with OIDC for AWS
+      id-token: write # Required to authenticate with OIDC for AWS and to sign image attestations
+      attestations: write
     uses: ./.github/workflows/docker_publish.yml
     secrets: inherit
     with:

@@ -12,7 +12,8 @@ on:
 
 permissions:
   packages: write
-  id-token: write # Required to authenticate with OIDC for AWS
+  id-token: write # Required to authenticate with OIDC for AWS and to sign image attestations
+  attestations: write
 
 jobs:
   deploy:
@@ -86,8 +87,17 @@ jobs:
           fi
 
       - name: Push images to ${{ matrix.registry }}
+        id: push
         run: |
           docker tag kafka-ui:temp ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.generic_tag }}
           docker tag kafka-ui:temp ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.version }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.generic_tag }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.version }}
+          # with the containerd image store the image ID is the digest of the multi-platform index that was pushed
+          echo "digest=$(docker image inspect kafka-ui:temp --format '{{.Id}}')" >> $GITHUB_OUTPUT
+
+      - name: Attest image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # https://github.com/actions/attest/releases/tag/v4.2.2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}
+          subject-digest: ${{ steps.push.outputs.digest }}
