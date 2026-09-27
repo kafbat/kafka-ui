@@ -189,6 +189,29 @@ class LuceneTopicsIndexUpdateTest {
   }
 
   @Test
+  void refreshTopicsFollowsTheNewSnapshotWithoutTouchingDocuments() throws Exception {
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(List.of(topic("alpha.one")))) {
+      var replacement = List.of(topic("beta.one"), topic("beta.two"));
+
+      index.refreshTopics(replacement);
+
+      // searches resolve names against the current snapshot...
+      assertThat(index.currentTopics()).containsExactlyElementsOf(replacement);
+      // ...while the documents are only brought in line by the next full text search
+      assertThat(index.searchableDocCount()).isEqualTo(1);
+    }
+  }
+
+  @Test
+  void equalScoreOrderDoesNotDependOnHowTopicsWereReindexed() throws Exception {
+    try (LuceneTopicsIndex index = new LuceneTopicsIndex(List.of())) {
+      index.update(List.of(topic("c.topic"), topic("a.topic"), topic("b.topic")));
+
+      assertThat(names(index.find("topic", null, true, 10))).containsExactly("a.topic", "b.topic", "c.topic");
+    }
+  }
+
+  @Test
   void equallyScoredTopicsAreOrderedByNameAndStayStableAcrossUpdates() throws Exception {
     var topics = List.of(topic("sk.payment.events.dlq"), topic("sk.payment.events"));
     try (LuceneTopicsIndex index = new LuceneTopicsIndex(topics)) {

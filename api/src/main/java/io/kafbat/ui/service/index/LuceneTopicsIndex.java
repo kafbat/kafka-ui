@@ -89,10 +89,9 @@ public class LuceneTopicsIndex implements TopicsIndex {
   public synchronized void update(Collection<InternalTopic> topics) {
     closeLock.readLock().lock();
     try {
-      var newTopicMap = new HashMap<String, InternalTopic>(topics.size());
+      var newTopicMap = byName(topics);
       var newFingerprints = new HashMap<String, Long>(topics.size());
       for (InternalTopic topic : topics) {
-        newTopicMap.put(topic.getName(), topic);
         newFingerprints.put(topic.getName(), fingerprint(topic));
       }
 
@@ -134,6 +133,35 @@ public class LuceneTopicsIndex implements TopicsIndex {
     } finally {
       closeLock.readLock().unlock();
     }
+  }
+
+  /**
+   * Points the index at the current topic objects without touching any Lucene document.
+   *
+   * <p>The topic model is rebuilt from scratch on every topic listing, so the index has to follow it
+   * right away. {@link #update(Collection)} is only called on a full text search, and until one
+   * happens the index would keep the objects of the previous snapshot alive: a whole second
+   * generation of topics, their configs and their partitions, for as long as the index lives. On a
+   * cluster with 15k topics that is tens of megabytes per cluster.
+   */
+  void refreshTopics(Collection<InternalTopic> topics) {
+    this.topicMap = byName(topics);
+  }
+
+  private static Map<String, InternalTopic> byName(Collection<InternalTopic> topics) {
+    var map = new HashMap<String, InternalTopic>(topics.size());
+    for (InternalTopic topic : topics) {
+      map.put(topic.getName(), topic);
+    }
+    return map;
+  }
+
+  /**
+   * The topic objects a search currently resolves a matched name against. Exposed for tests that
+   * verify the index follows the current snapshot instead of keeping an older one alive.
+   */
+  Collection<InternalTopic> currentTopics() {
+    return topicMap.values();
   }
 
   /**

@@ -26,10 +26,16 @@ public class LazyTopicsIndex implements TopicsIndex {
 
   /**
    * Replaces the topic set this index answers queries for. Deliberately cheap: the Lucene index is
-   * synced with the new topics lazily, on the next full text search.
+   * synced with the new topics lazily, on the next full text search. The one thing that is not
+   * deferred is following the topic objects themselves, see
+   * {@link LuceneTopicsIndex#refreshTopics(Collection)}.
    */
   public void update(List<InternalTopic> topics) {
     this.topics = topics;
+    var index = luceneIndex;
+    if (index != null) {
+      index.refreshTopics(topics);
+    }
   }
 
   @Override
