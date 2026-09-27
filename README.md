@@ -142,6 +142,17 @@ Please refer to our [configuration](https://ui.docs.kafbat.io/configuration/conf
 
 [Quick start](https://ui.docs.kafbat.io/development/building/prerequisites) for building from source
 
+## Verifying the jar and images
+
+Release jars and Docker images come with a signed build provenance attestation. To check that one was built by this repository's workflows, use the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh attestation verify api-<version>.jar --repo kafbat/kafka-ui
+gh attestation verify oci://ghcr.io/kafbat/kafka-ui:<version> --repo kafbat/kafka-ui
+```
+
+The images on Docker Hub and Amazon ECR Public can be checked the same way.
+
 ## Liveliness and readiness probes
 The liveness and readiness endpoint is at `/actuator/health`.<br/>
 The info endpoint (build info) is located at `/actuator/info`.
