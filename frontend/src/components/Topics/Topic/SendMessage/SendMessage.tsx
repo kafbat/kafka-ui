@@ -89,8 +89,15 @@ const SendMessage: React.FC<SendMessageProps> = ({
 
   // `defaultValues` are only read on mount. Reproduce actions can replace the
   // message while the sidebar remains mounted, so synchronize the form with
-  // the newly selected message explicitly.
+  // the newly selected message explicitly. Only react to a change of
+  // `messageData` itself: `formDefaults` also changes when serdes or topic
+  // details are (re)loaded, and resetting then would discard the user's edits.
+  // Clearing the message (`null`) remounts this component via its `key` in
+  // Topic.tsx, so no reset is needed for that transition.
+  const prevMessageData = React.useRef(messageData);
   React.useEffect(() => {
+    if (prevMessageData.current === messageData) return;
+    prevMessageData.current = messageData;
     if (messageData) {
       reset(formDefaults);
     }
@@ -213,8 +220,8 @@ const SendMessage: React.FC<SendMessageProps> = ({
     }
     try {
       await sendMessage.mutateAsync({
-        key: key ?? null,
-        value: content ?? null,
+        key: key || null,
+        value: content || null,
         headers: parsedHeaders,
         partition: partition || 0,
         keySerde: formKeySerde,
