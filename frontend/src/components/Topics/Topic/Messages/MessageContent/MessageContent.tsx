@@ -5,8 +5,11 @@ import {
   TopicMessage,
   TopicMessageTimestampTypeEnum,
 } from 'generated-sources';
+import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
+import { Button } from 'components/common/Button/Button';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
+import useDataSaver from 'lib/hooks/useDataSaver';
 
 import * as S from './MessageContent.styled';
 import Serde from './components/Serde/Serde';
@@ -54,6 +57,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
     }
   };
 
+  const tabContent = activeTabContent() || '';
+
+  const { copyToClipboard } = useDataSaver('topic-message', tabContent);
+
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setActiveTab('key');
@@ -69,10 +76,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
     setActiveTab('headers');
   };
 
+  const trimmedContent = messageContent?.trim();
   const contentType =
-    messageContent &&
-    (messageContent.trim().startsWith('{') ||
-      messageContent.trim().startsWith('['))
+    trimmedContent &&
+    (trimmedContent.startsWith('{') || trimmedContent.startsWith('['))
       ? SchemaType.JSON
       : SchemaType.PROTOBUF;
 
@@ -103,9 +110,18 @@ const MessageContent: React.FC<MessageContentProps> = ({
               >
                 Headers
               </S.Tab>
+              <Button
+                type="button"
+                buttonSize="M"
+                buttonType="text"
+                onClick={copyToClipboard}
+                aria-label={`Copy ${activeTab} to clipboard`}
+              >
+                <ClipboardIcon />
+              </Button>
             </S.Tabs>
             <EditorViewer
-              data={activeTabContent() || ''}
+              data={tabContent}
               maxLines={28}
               schemaType={contentType}
             />
