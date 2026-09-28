@@ -1,6 +1,10 @@
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { SerdeUsage, TopicMessageConsuming } from 'generated-sources';
+import {
+  SerdeUsage,
+  TopicMessageConsuming,
+  TopicMessage,
+} from 'generated-sources';
 import React, { ChangeEvent, useMemo, useState } from 'react';
 import MultiSelect from 'components/common/MultiSelect/MultiSelect.styled';
 import Select from 'components/common/Select/Select';
@@ -17,6 +21,9 @@ import { useTopicDetails } from 'lib/hooks/api/topics';
 import EditIcon from 'components/common/Icons/EditIcon';
 import CloseIcon from 'components/common/Icons/CloseIcon';
 import FlexBox from 'components/common/FlexBox/FlexBox';
+import useDataSaver from 'lib/hooks/useDataSaver';
+import ExportIcon from 'components/common/Icons/ExportIcon';
+import { Dropdown, DropdownItem } from 'components/common/Dropdown';
 
 import * as S from './Filters.styled';
 import {
@@ -29,11 +36,53 @@ import {
 import FiltersSideBar from './FiltersSideBar';
 import FiltersMetrics from './FiltersMetrics';
 
+interface MessageData {
+  Value: string | undefined;
+  Offset: number;
+  Key: string | undefined;
+  Partition: number;
+  Headers: { [key: string]: string | undefined } | undefined;
+  Timestamp: Date;
+}
+
+const CSV_COLUMNS = [
+  'Value',
+  'Offset',
+  'Key',
+  'Partition',
+  'Headers',
+  'Timestamp',
+] as const;
+
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+const toCsvCell = (value: unknown) => {
+  const text = String(value ?? '');
+  const inert = FORMULA_TRIGGER.test(text) ? `'${text}` : text;
+  return `"${inert.replace(/"/g, '""')}"`;
+};
+
+const convertToCSV = (messagesData: MessageData[]) =>
+  [
+    CSV_COLUMNS.join(','),
+    ...messagesData.map((msg) =>
+      CSV_COLUMNS.map((column) =>
+        toCsvCell(
+          column === 'Headers' ? JSON.stringify(msg[column] || {}) : msg[column]
+        )
+      ).join(',')
+    ),
+  ].join('\n');
+
+const fileNameTimestamp = () =>
+  new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+
 export interface FiltersProps {
   phaseMessage?: string;
   consumptionStats?: TopicMessageConsuming;
   isFetching: boolean;
   abortFetchData: () => void;
+  messages?: TopicMessage[];
 }
 
 const Filters: React.FC<FiltersProps> = ({
@@ -41,6 +90,7 @@ const Filters: React.FC<FiltersProps> = ({
   isFetching,
   abortFetchData,
   phaseMessage,
+  messages = [],
 }) => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
 
@@ -66,6 +116,26 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
+  const { json: exportedJson, csv: exportedCsv } = useMemo(() => {
+    const exported: MessageData[] = messages.map((message: TopicMessage) => ({
+      Value: message.value,
+      Offset: message.offset,
+      Key: message.key,
+      Partition: message.partition,
+      Headers: message.headers,
+      Timestamp: message.timestamp,
+    }));
+
+    return {
+      json: JSON.stringify(exported, null, '\t'),
+      csv: convertToCSV(exported),
+    };
+  }, [messages]);
+
+  const baseFileName = `topic-messages_${fileNameTimestamp()}`;
+
+  const jsonSaver = useDataSaver(`${baseFileName}.json`, exportedJson);
+  const csvSaver = useDataSaver(`${baseFileName}.csv`, exportedCsv);
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{
@@ -184,7 +254,24 @@ const Filters: React.FC<FiltersProps> = ({
           </Button>
         </FlexBox>
 
-        <Search placeholder="Search" value={search} onChange={setSearch} />
+        <FlexBox gap="8px" alignItems="center">
+          <Search placeholder="Search" value={search} onChange={setSearch} />
+          <Dropdown
+            disabled={isFetching || messages.length === 0}
+            aria-label="Export messages"
+            openBtnEl={
+              <Button buttonType="secondary" buttonSize="M">
+                <ExportIcon />
+                Export
+              </Button>
+            }
+          >
+            <DropdownItem onClick={jsonSaver.saveFile}>
+              Export JSON
+            </DropdownItem>
+            <DropdownItem onClick={csvSaver.saveFile}>Export CSV</DropdownItem>
+          </Dropdown>
+        </FlexBox>
       </FlexBox>
       <FlexBox
         gap="10px"
