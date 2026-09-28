@@ -191,10 +191,19 @@ public class KafkaConnectService {
         );
   }
 
-  // returns empty flux if there was an error communicating with Connect
+  // returns an empty result if there was an error communicating with Connect, logging the
+  // error first - onErrorComplete() previously discarded it before it could be logged or
+  // surfaced, so a stale connector registration (e.g. referencing a plugin class no longer
+  // present in the worker image) failed the whole listing without a trace.
+  // See https://github.com/kafbat/kafka-ui/issues/1963
   public Mono<Map<String, ExpandedConnector>> getConnectorsWithErrorsSuppress(
       KafkaCluster cluster, String connectName) {
-    return getConnectors(cluster, connectName).onErrorComplete();
+    return getConnectors(cluster, connectName)
+        .onErrorResume(th -> {
+          log.warn("Error while getting connectors for connect cluster [{}/{}]",
+              cluster.getName(), connectName, th);
+          return Mono.empty();
+        });
   }
 
   public Mono<ConnectorDTO> createConnector(KafkaCluster cluster, String connectName,
