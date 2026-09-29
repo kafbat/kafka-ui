@@ -63,6 +63,10 @@ final class Serialize {
     }
   }
 
+  /**
+   * Serializes {@code input} against the given protobuf schema, using {@code messageName} to
+   * pick a specific message type when the schema defines more than one.
+   */
   @KafkaClientInternalsDependant("AbstractKafkaProtobufSerializer::serializeImpl")
   @SneakyThrows
   static byte[] serializeProto(SchemaRegistryClient srClient,

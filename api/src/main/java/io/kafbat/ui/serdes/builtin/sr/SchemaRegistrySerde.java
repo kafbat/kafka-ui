@@ -365,11 +365,18 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .toList();
   }
 
+  /**
+   * Builds a serializer for the default subject of this topic/target.
+   */
   @Override
   public Serializer serializer(String topic, Target type) {
     return buildSerializer(topic, type, schemaSubject(topic, type), null);
   }
 
+  /**
+   * Builds a serializer, honoring the {@code subject} and {@code messageName} properties when
+   * the caller picked an explicit subject and/or protobuf message type.
+   */
   @Override
   public Serializer serializer(String topic, Target type, Map<String, Object> properties) {
     String subject = schemaSubject(topic, type);
@@ -387,6 +394,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return buildSerializer(topic, type, subject, messageName);
   }
 
+  /**
+   * Exposes the selectable subjects and, when any selectable subject is a protobuf schema with
+   * multiple messages, the message type names across all of them.
+   */
   @Override
   public List<SerdeParameter> getParameters(String topic, Target type) {
     List<SerdeParameter> parameters = new ArrayList<>();
@@ -412,6 +423,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return getSchemaSubjects(topic, type).contains(schemaSubject(topic, type));
   }
 
+  /**
+   * Builds a serializer for the given subject, passing {@code messageName} through for protobuf
+   * schemas so a specific message type can be chosen.
+   */
   private Serializer buildSerializer(String topic, Target type, String subject, @Nullable String messageName) {
     SchemaMetadata meta = getSchemaBySubject(subject)
         .orElseThrow(() -> new ValidationException(
@@ -432,12 +447,17 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     };
   }
 
-  // Returns all message type names for a protobuf subject (empty for non-protobuf or missing subjects).
-  // Cached, since resolving them costs a schema registry round trip per subject.
+  /**
+   * Returns all message type names for a protobuf subject (empty for non-protobuf or missing
+   * subjects). Cached, since resolving them costs a schema registry round trip per subject.
+   */
   private List<String> getProtobufMessageNames(String subject) {
     return subjectMessageNamesCache.get(subject, this::loadProtobufMessageNames);
   }
 
+  /**
+   * Loads the message type names for a protobuf subject from the schema registry.
+   */
   private List<String> loadProtobufMessageNames(String subject) {
     try {
       var metaOpt = getSchemaBySubject(subject);
@@ -454,6 +474,9 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     }
   }
 
+  /**
+   * Returns the full names of all producible message types declared in the schema's proto file.
+   */
   private static List<String> collectProtobufMessageNames(ProtobufSchema schema) {
     Descriptors.Descriptor first = schema.toDescriptor();
     if (first == null) {
@@ -464,9 +487,13 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return names.stream().distinct().sorted().toList();
   }
 
+  /**
+   * Recursively collects the full names of {@code descriptors} and their nested types into
+   * {@code acc}, skipping synthetic map-entry types since they aren't real, producible message
+   * definitions.
+   */
   private static void collectProtobufMessages(List<Descriptors.Descriptor> descriptors, List<String> acc) {
     for (Descriptors.Descriptor descriptor : descriptors) {
-      // skip synthetic map-entry types - they aren't real, producible message definitions
       if (descriptor.getOptions().getMapEntry()) {
         continue;
       }
