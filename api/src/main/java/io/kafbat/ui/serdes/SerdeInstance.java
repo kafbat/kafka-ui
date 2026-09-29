@@ -56,6 +56,15 @@ public class SerdeInstance implements Closeable {
     }
   }
 
+  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type, Map<String, Object> knownValues) {
+    try {
+      return wrapWithClassloader(() -> serde.getSchema(topic, type, knownValues));
+    } catch (Exception e) {
+      log.warn("Error getting schema for '{}'({}) with serde '{}'", topic, type, name, e);
+      return Optional.empty();
+    }
+  }
+
   public Optional<String> description() {
     try {
       return wrapWithClassloader(serde::getDescription);

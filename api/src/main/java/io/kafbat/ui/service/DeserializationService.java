@@ -154,10 +154,10 @@ public class DeserializationService implements Closeable {
                                     Serde.Target serdeType,
                                     boolean preferred,
                                     @Nullable String subject) {
-    var schemaOpt = serdeInstance.getSchema(topic, serdeType);
     Map<String, Object> knownValues = subject != null && !subject.isBlank()
         ? Map.of("subject", subject)
         : Map.of();
+    var schemaOpt = serdeInstance.getSchema(topic, serdeType, knownValues);
 
     return new SerdeDescriptionDTO()
         .name(serdeInstance.getName())

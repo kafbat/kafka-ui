@@ -173,6 +173,11 @@ const SendMessage: React.FC<SendMessageProps> = ({
                   onChange(newValue);
                   // "subject" drives which message names getSerdes offers - refetch on change.
                   if (param.name === 'subject') {
+                    // the previous messageName may not exist in the new subject's schema
+                    setValue(
+                      `${prefix}.messageName` as keyof MessageFormData,
+                      ''
+                    );
                     setSelectedSubject(newValue || undefined);
                   }
                 }}

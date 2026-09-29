@@ -75,6 +75,33 @@ class SchemaRegistrySerdeTest {
   }
 
   @Test
+  @SneakyThrows
+  void getSchemaResolvesTheSelectedSubjectInsteadOfTheDefaultOne() {
+    String topic = "accounts";
+    int defaultSchemaId = registryClient.register(topic + "-value", new AvroSchema("\"int\""));
+    // selectable alongside the default subject (RecordNameStrategy: no -key/-value suffix)
+    int otherSchemaId = registryClient.register("test.OtherType", new AvroSchema("\"string\""));
+
+    var defaultSchema = serde.getSchema(topic, Serde.Target.VALUE, Map.of()).orElseThrow();
+    assertThat(defaultSchema.getAdditionalProperties())
+        .containsEntry("subject", topic + "-value")
+        .containsEntry("schemaId", defaultSchemaId);
+
+    var selectedSchema = serde.getSchema(topic, Serde.Target.VALUE,
+            Map.of(SUBJECT_PARAMETER_NAME, "test.OtherType")).orElseThrow();
+    assertThat(selectedSchema.getAdditionalProperties())
+        .containsEntry("subject", "test.OtherType")
+        .containsEntry("schemaId", otherSchemaId);
+
+    // a subject that isn't currently selectable falls back to the default rather than erroring
+    var fallbackSchema = serde.getSchema(topic, Serde.Target.VALUE,
+            Map.of(SUBJECT_PARAMETER_NAME, "not-a-real-subject")).orElseThrow();
+    assertThat(fallbackSchema.getAdditionalProperties())
+        .containsEntry("subject", topic + "-value")
+        .containsEntry("schemaId", defaultSchemaId);
+  }
+
+  @Test
   void serializeTreatsInputAsJsonAvroSchemaPayload() throws RestClientException, IOException {
     AvroSchema schema = new AvroSchema(
         "{"

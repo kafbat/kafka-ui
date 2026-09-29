@@ -69,6 +69,22 @@ public interface Serde extends Closeable {
   Optional<SchemaDescription> getSchema(String topic, Target type);
 
   /**
+   * Get schema description for the specified topic's key/value, same as {@link #getSchema(String, Target)},
+   * but allows resolving the schema of another parameter's value the user has already chosen
+   * (e.g. an explicitly selected schema subject) instead of the default one.
+   * Default implementation ignores {@code knownValues} and delegates to {@link #getSchema(String, Target)}.
+   *
+   * @param topic       topic name
+   * @param type        {@code Target} for which {@code SchemaDescription} will be returned.
+   * @param knownValues values of other parameters already chosen by the user, if any
+   * @return SchemaDescription for the specified topic's key/value.
+   * {@code Optional.empty} if there is no information about the schema.
+   */
+  default Optional<SchemaDescription> getSchema(String topic, Target type, Map<String, Object> knownValues) {
+    return getSchema(topic, type);
+  }
+
+  /**
    * Checks if this Serde can be applied to the specified topic's key/value deserialization.
    * @param topic topic name
    * @param type  {@code Target} for which {@code Deserializer} will be applied.

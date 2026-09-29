@@ -270,7 +270,17 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    String subject = schemaSubject(topic, type);
+    return getSchema(topic, type, Map.of());
+  }
+
+  /**
+   * Resolves the schema of the subject the caller picked (via the {@code subject} entry in
+   * {@code knownValues}), falling back to the topic's default subject when none was picked, or
+   * when the given value isn't a currently selectable subject.
+   */
+  @Override
+  public Optional<SchemaDescription> getSchema(String topic, Target type, Map<String, Object> knownValues) {
+    String subject = resolveSubject(topic, type, knownValues);
     return getSchemaBySubject(subject)
         .flatMap(schemaMetadata ->
             //schema can be not-found, when schema contexts configured improperly
@@ -285,6 +295,15 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                             "type", schemaMetadata.getSchemaType() // AVRO / PROTOBUF / JSON
                         )
                     )));
+  }
+
+  private String resolveSubject(String topic, Target type, Map<String, Object> knownValues) {
+    Object selectedSubject = knownValues.get(SUBJECT_PARAMETER_NAME);
+    if (selectedSubject instanceof String subject && !subject.isBlank()
+        && getSchemaSubjects(topic, type).contains(subject)) {
+      return subject;
+    }
+    return schemaSubject(topic, type);
   }
 
   @SneakyThrows
