@@ -395,25 +395,32 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   }
 
   /**
-   * Exposes the selectable subjects and, when any selectable subject is a protobuf schema with
-   * multiple messages, the message type names across all of them.
+   * Exposes the selectable subjects. Message name options are resolved lazily, once a subject is
+   * known - see {@link #getParameters(String, Target, Map)} - since probing every selectable
+   * subject's schema up front doesn't scale to registries with many subjects.
    */
   @Override
   public List<SerdeParameter> getParameters(String topic, Target type) {
+    return getParameters(topic, type, Map.of());
+  }
+
+  /**
+   * Exposes the selectable subjects, and, once the caller has picked one (via the
+   * {@code subject} entry in {@code knownValues}), the message type names of that subject if it
+   * is a protobuf schema with multiple messages.
+   */
+  @Override
+  public List<SerdeParameter> getParameters(String topic, Target type, Map<String, Object> knownValues) {
     List<SerdeParameter> parameters = new ArrayList<>();
     List<String> subjects = getSchemaSubjects(topic, type);
     parameters.add(new SerdeParameter(SUBJECT_PARAMETER_NAME, SUBJECT_PARAMETER_NAME, subjects));
-    // for protobuf schemas with multiple messages, let the user pick which message to produce.
-    // The subject is picked in the same form, so offer the messages of every selectable subject -
-    // limiting this to the default subject would hide the messages of any other subject the user can choose.
-    List<String> messageNames = subjects.stream()
-        .map(this::getProtobufMessageNames)
-        .flatMap(List::stream)
-        .distinct()
-        .sorted()
-        .toList();
-    if (!messageNames.isEmpty()) {
-      parameters.add(new SerdeParameter(MESSAGE_NAME_PARAMETER, MESSAGE_NAME_PARAMETER, messageNames));
+
+    Object selectedSubject = knownValues.get(SUBJECT_PARAMETER_NAME);
+    if (selectedSubject instanceof String subject && !subject.isBlank() && subjects.contains(subject)) {
+      List<String> messageNames = getProtobufMessageNames(subject);
+      if (!messageNames.isEmpty()) {
+        parameters.add(new SerdeParameter(MESSAGE_NAME_PARAMETER, MESSAGE_NAME_PARAMETER, messageNames));
+      }
     }
     return parameters;
   }

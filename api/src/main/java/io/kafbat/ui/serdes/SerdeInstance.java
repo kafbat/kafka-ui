@@ -106,6 +106,15 @@ public class SerdeInstance implements Closeable {
     }
   }
 
+  public List<SerdeParameter> getParameters(String topic, Serde.Target type, Map<String, Object> knownValues) {
+    try {
+      return wrapWithClassloader(() -> serde.getParameters(topic, type, knownValues));
+    } catch (Exception e) {
+      log.warn("Error getting parameters for '{}'({}) with serde '{}'", topic, type, name, e);
+      return List.of();
+    }
+  }
+
   public boolean couldBePreferable(String topic, Serde.Target type) {
     try {
       return wrapWithClassloader(() -> serde.couldBePreferable(topic, type));

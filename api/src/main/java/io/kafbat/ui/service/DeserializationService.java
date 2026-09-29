@@ -121,43 +121,49 @@ public class DeserializationService implements Closeable {
 
   public List<SerdeDescriptionDTO> getSerdesForSerialize(KafkaCluster cluster,
                                                          String topic,
-                                                         Serde.Target serdeType) {
+                                                         Serde.Target serdeType,
+                                                         @Nullable String subject) {
     var serdes = getSerdesFor(cluster);
     var preferred = serdes.suggestSerdeForSerialize(topic, serdeType);
     var result = new ArrayList<SerdeDescriptionDTO>();
-    result.add(toDto(preferred, topic, serdeType, true));
+    result.add(toDto(preferred, topic, serdeType, true, subject));
     serdes.all()
         .filter(s -> !s.getName().equals(preferred.getName()))
         .filter(s -> s.canSerialize(topic, serdeType))
-        .forEach(s -> result.add(toDto(s, topic, serdeType, false)));
+        .forEach(s -> result.add(toDto(s, topic, serdeType, false, subject)));
     return result;
   }
 
   public List<SerdeDescriptionDTO> getSerdesForDeserialize(KafkaCluster cluster,
                                                            String topic,
-                                                           Serde.Target serdeType) {
+                                                           Serde.Target serdeType,
+                                                           @Nullable String subject) {
     var serdes = getSerdesFor(cluster);
     var preferred = serdes.suggestSerdeForDeserialize(topic, serdeType);
     var result = new ArrayList<SerdeDescriptionDTO>();
-    result.add(toDto(preferred, topic, serdeType, true));
+    result.add(toDto(preferred, topic, serdeType, true, subject));
     serdes.all()
         .filter(s -> !s.getName().equals(preferred.getName()))
         .filter(s -> s.canDeserialize(topic, serdeType))
-        .forEach(s -> result.add(toDto(s, topic, serdeType, false)));
+        .forEach(s -> result.add(toDto(s, topic, serdeType, false, subject)));
     return result;
   }
 
   private SerdeDescriptionDTO toDto(SerdeInstance serdeInstance,
                                     String topic,
                                     Serde.Target serdeType,
-                                    boolean preferred) {
+                                    boolean preferred,
+                                    @Nullable String subject) {
     var schemaOpt = serdeInstance.getSchema(topic, serdeType);
+    Map<String, Object> knownValues = subject != null && !subject.isBlank()
+        ? Map.of("subject", subject)
+        : Map.of();
 
     return new SerdeDescriptionDTO()
         .name(serdeInstance.getName())
         .description(serdeInstance.description().orElse(null))
         .schema(schemaOpt.map(SchemaDescription::getSchema).orElse(null))
-        .parameters(toParametersDto(serdeInstance.getParameters(topic, serdeType)))
+        .parameters(toParametersDto(serdeInstance.getParameters(topic, serdeType, knownValues)))
         .additionalProperties(schemaOpt.map(SchemaDescription::getAdditionalProperties).orElse(null))
         .preferred(preferred);
   }

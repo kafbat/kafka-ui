@@ -12,6 +12,7 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -854,11 +855,24 @@ class SchemaRegistrySerdeTest {
 
     @Test
     @SneakyThrows
-    void getParametersExposesAllProtobufMessageTypes() {
+    void getParametersWithoutSubjectDoesNotExposeMessageTypes() {
       String topic = "accounts";
       registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
 
-      var messageNameParam = serde.getParameters(topic, Serde.Target.VALUE).stream()
+      // resolving message names for every selectable subject up front doesn't scale to registries
+      // with many subjects - they're only resolved once a subject is known, see below.
+      var parameters = serde.getParameters(topic, Serde.Target.VALUE);
+      assertThat(parameters).extracting(SerdeParameter::getName).containsExactly(SUBJECT_PARAMETER_NAME);
+    }
+
+    @Test
+    @SneakyThrows
+    void getParametersExposesProtobufMessageTypesForSelectedSubject() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      var messageNameParam = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, topic + "-value")).stream()
           .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
           .findFirst().orElseThrow();
 
@@ -922,26 +936,34 @@ class SchemaRegistrySerdeTest {
 
     @Test
     @SneakyThrows
-    void getParametersExposesMessageTypesOfSelectableNonDefaultSubjects() {
+    void getParametersExposesMessageTypesOfWhicheverSubjectIsSelected() {
       String topic = "accounts";
       registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
       // selectable alongside the default subject (RecordNameStrategy: no -key/-value suffix)
       registryClient.register("test.audit.AuditLogged", OTHER_SUBJECT_PROTOBUF_SCHEMA);
 
-      var parameters = serde.getParameters(topic, Serde.Target.VALUE);
-      var subjectParam = parameters.stream()
+      var subjectParam = serde.getParameters(topic, Serde.Target.VALUE).stream()
           .filter(p -> p.getName().equals(SUBJECT_PARAMETER_NAME))
           .findFirst().orElseThrow();
-      var messageNameParam = parameters.stream()
-          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
-          .findFirst().orElseThrow();
-
       assertThat(subjectParam.getAllowedValues())
           .contains(topic + "-value", "test.audit.AuditLogged");
-      assertThat(messageNameParam.getAllowedValues()).containsExactlyInAnyOrder(
+
+      // picking the default subject only resolves that subject's message names...
+      var defaultSubjectMessageNames = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, topic + "-value")).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+      assertThat(defaultSubjectMessageNames.getAllowedValues()).containsExactlyInAnyOrder(
           "test.events.OrderPlacedEvent",
           "test.events.OrderShippedEvent",
-          "test.events.AccountUpdatedEvent",
+          "test.events.AccountUpdatedEvent");
+
+      // ...and picking the other selectable subject resolves only its own message names.
+      var otherSubjectMessageNames = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, "test.audit.AuditLogged")).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+      assertThat(otherSubjectMessageNames.getAllowedValues()).containsExactlyInAnyOrder(
           "test.audit.AuditLogged",
           "test.audit.AuditReverted");
     }

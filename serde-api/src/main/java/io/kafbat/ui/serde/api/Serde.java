@@ -132,6 +132,21 @@ public interface Serde extends Closeable {
   }
 
   /**
+   * Returns a list of possible parameters, same as {@link #getParameters(String, Target)}, but
+   * allows resolving parameters whose options depend on another parameter's value the user has
+   * already chosen (e.g. a message name that depends on which schema subject was picked).
+   * Default implementation ignores {@code knownValues} and delegates to {@link #getParameters(String, Target)}.
+   *
+   * @param topic       topic name
+   * @param type        {@code Target} for which parameters will be returned.
+   * @param knownValues values of other parameters already chosen by the user, if any
+   * @return List of applicable parameters.
+   */
+  default List<SerdeParameter> getParameters(String topic, Target type, Map<String, Object> knownValues) {
+    return getParameters(topic, type);
+  }
+
+  /**
    * Indicates whether this serde is a preferable choice for the specified topic and target.
    * Implementations can use this to influence serde selection when multiple candidates are available.
    * Default implementation returns {@code true}.
