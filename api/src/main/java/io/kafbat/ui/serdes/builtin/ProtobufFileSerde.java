@@ -255,8 +255,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
   }
 
   /**
-   * Builds a deserializer that also reports the message type used, so "reproduce message" can
-   * pre-select it in the UI.
+   * Builds a deserializer using the message type configured for this topic/target.
    */
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
@@ -271,8 +270,7 @@ public class ProtobufFileSerde implements BuiltInSerde {
         return new DeserializeResult(
             result,
             DeserializeResult.Type.JSON,
-            // expose the message type used so "reproduce message" can pre-select it in the UI
-            Map.of(MESSAGE_NAME_PARAMETER, descriptor.getFullName())
+            Map.of()
         );
       }
     };

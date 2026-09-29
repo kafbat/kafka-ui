@@ -470,24 +470,6 @@ class ProtobufFileSerdeTest {
         .hasMessageContaining("test.NotInFile");
   }
 
-  @Test
-  void deserializeExposesUsedMessageNameForReproduce() {
-    var serde = new ProtobufFileSerde();
-    serde.configure(
-        new Configuration(
-            personDescriptor,
-            null,
-            descriptorPaths,
-            Map.of(),
-            Map.of()
-        )
-    );
-
-    var result = serde.deserializer("persons", Serde.Target.VALUE)
-        .deserialize(null, personMessageBytes);
-    assertThat(result.getAdditionalProperties()).containsEntry("messageName", "test.Person");
-  }
-
   @SneakyThrows
   private void assertJsonEquals(String expectedJson, String actualJson) {
     var mapper = new JsonMapper();
