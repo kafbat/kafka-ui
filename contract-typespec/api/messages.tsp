@@ -141,10 +141,18 @@ model TopicMessageConsuming {
   bytesConsumed?: int64;
   bytesLimit?: int64;
   bytesLimitReached?: boolean;
+  blockedMessage?: TopicMessageBlocked;
   elapsedMs?: int64;
   isCancelled?: boolean;
   messagesConsumed?: int32;
   filterApplyErrors?: int32;
+}
+
+model TopicMessageBlocked {
+  partition: int32;
+  offset: int64;
+  timestamp?: utcDateTime;
+  size: int64;
 }
 
 model TopicMessageNextPageCursor {

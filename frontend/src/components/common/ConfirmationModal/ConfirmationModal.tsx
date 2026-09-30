@@ -8,13 +8,27 @@ const ConfirmationModal: React.FC = () => {
   const context = React.useContext(ConfirmContext);
   const isOpen = context?.content && context?.confirm;
 
+  React.useEffect(() => {
+    if (!isOpen || !context) return undefined;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') context.cancel();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [context, isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <S.Wrapper role="dialog" aria-label="Confirmation Dialog">
-      <S.Overlay onClick={context.cancel} aria-hidden="true" role="button" />
+    <S.Wrapper
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmation-modal-title"
+    >
+      <S.Overlay onClick={context.cancel} aria-hidden="true" />
       <S.Modal>
-        <S.Header>Confirm the action</S.Header>
+        <S.Header id="confirmation-modal-title">{context.title}</S.Header>
         <S.Content>{context.content}</S.Content>
         <S.Footer>
           <Button
@@ -22,6 +36,7 @@ const ConfirmationModal: React.FC = () => {
             buttonSize="M"
             onClick={context.cancel}
             type="button"
+            autoFocus
           >
             Cancel
           </Button>
@@ -32,7 +47,7 @@ const ConfirmationModal: React.FC = () => {
             type="button"
             inProgress={context?.isConfirming}
           >
-            Confirm
+            {context.confirmLabel}
           </Button>
         </S.Footer>
       </S.Modal>

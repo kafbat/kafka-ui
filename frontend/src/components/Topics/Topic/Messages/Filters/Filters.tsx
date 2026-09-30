@@ -12,10 +12,7 @@ import { Button } from 'components/common/Button/Button';
 import Search from 'components/common/Search/Search';
 import PlusIcon from 'components/common/Icons/PlusIcon';
 import { getSerdeOptions } from 'components/Topics/Topic/SendMessage/utils';
-import {
-  downloadTopicMessage,
-  useSerdes,
-} from 'lib/hooks/api/topicMessages';
+import { downloadTopicMessage, useSerdes } from 'lib/hooks/api/topicMessages';
 import { showServerError } from 'lib/errorHandling';
 import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
@@ -422,6 +419,7 @@ const Filters: React.FC<FiltersProps> = ({
           isFetching={isFetching}
           phaseMessage={phaseMessage}
           abortFetchData={abortFetchData}
+          onDownloadMessage={() => setIsDownloadPaneOpen(true)}
           consumptionStats={consumptionStats}
         />
       )}

@@ -54,7 +54,7 @@ class MessagesProcessing {
   }
 
   boolean tryConsumeRecord(ConsumerRecord<Bytes, Bytes> record) {
-    return consumingStats.tryConsumeRecord(record);
+    return consumingStats.tryConsumeRecord(record) == ConsumingStats.ConsumptionResult.CONSUMED;
   }
 
   void send(FluxSink<TopicMessageEventDTO> sink,
@@ -65,8 +65,15 @@ class MessagesProcessing {
       if (limitReached() || sink.isCancelled()) {
         break;
       }
-      if (trackConsumption && !tryConsumeRecord(rec)) {
-        break;
+      if (trackConsumption) {
+        var consumptionResult = consumingStats.tryConsumeRecord(rec);
+        if (consumptionResult != ConsumingStats.ConsumptionResult.CONSUMED) {
+          if (consumptionResult == ConsumingStats.ConsumptionResult.RECORD_TOO_LARGE
+              && cursor != null) {
+            cursor.trackOffset(rec.topic(), rec.partition(), rec.offset());
+          }
+          break;
+        }
       }
 
       TopicMessageDTO topicMessage = deserializer.deserialize(rec);

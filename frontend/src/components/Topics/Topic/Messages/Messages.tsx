@@ -27,6 +27,7 @@ const Messages: React.FC = () => {
         messages={messages}
         isFetching={isFetching}
         bytesLimitReached={!!consumptionStats?.bytesLimitReached}
+        blockedMessage={consumptionStats?.blockedMessage}
       />
     </>
   );

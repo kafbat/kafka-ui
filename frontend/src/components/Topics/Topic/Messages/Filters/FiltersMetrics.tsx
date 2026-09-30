@@ -6,6 +6,7 @@ import ArrowDownIcon from 'components/common/Icons/ArrowDownIcon';
 import BytesFormatted from 'components/common/BytesFormatted/BytesFormatted';
 import FileIcon from 'components/common/Icons/FileIcon';
 import { Button } from 'components/common/Button/Button';
+import { formatBytes } from 'components/common/BytesFormatted/utils';
 import { usePaginateTopics } from 'lib/hooks/useMessagesFilters';
 import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 
@@ -17,6 +18,7 @@ export interface FiltersMetricsProps {
   isFetching: boolean;
   phaseMessage?: string;
   abortFetchData: () => void;
+  onDownloadMessage: () => void;
   consumptionStats: TopicMessageConsuming;
 }
 
@@ -25,29 +27,51 @@ const FiltersMetrics: FC<FiltersMetricsProps> = ({
   isFetching,
   phaseMessage,
   abortFetchData,
+  onDownloadMessage,
   consumptionStats,
 }) => {
   const paginate = usePaginateTopics();
   const nextCursor = useMessageFiltersStore((state) => state.nextCursor);
-  const bytesLimitReached = consumptionStats.bytesLimitReached;
+  const {
+    bytesLimitReached,
+    bytesLimit,
+    messagesConsumed = 0,
+  } = consumptionStats;
+  const formattedBytesLimit = formatBytes(bytesLimit);
+  const messagesLoaded =
+    messagesConsumed === 1
+      ? '1 message loaded.'
+      : `${messagesConsumed} messages loaded.`;
 
   return (
     <>
       {bytesLimitReached && (
         <S.Warning role="alert">
-          Message loading stopped after consuming{' '}
-          <BytesFormatted value={consumptionStats.bytesConsumed} /> of{' '}
-          <BytesFormatted value={consumptionStats.bytesLimit} />. Use Continue to
-          resume from the next cursor, or download a specific partition and
-          offset below.
-          <Button
-            buttonType="secondary"
-            buttonSize="M"
-            disabled={isFetching || !nextCursor}
-            onClick={paginate}
-          >
-            Continue
-          </Button>
+          <S.WarningContent>
+            <S.WarningTitle>
+              {`Loading paused at the ${formattedBytesLimit} safety limit`}
+            </S.WarningTitle>
+            <S.WarningDescription>
+              {`${messagesLoaded} More messages may be available. Each request uses the same limit.`}
+            </S.WarningDescription>
+          </S.WarningContent>
+          <S.WarningActions>
+            <Button
+              buttonType="primary"
+              buttonSize="M"
+              disabled={isFetching || !nextCursor}
+              onClick={paginate}
+            >
+              {`Load next ${formattedBytesLimit}`}
+            </Button>
+            <Button
+              buttonType="secondary"
+              buttonSize="M"
+              onClick={onDownloadMessage}
+            >
+              Download by offset
+            </Button>
+          </S.WarningActions>
         </S.Warning>
       )}
       <FlexBox
@@ -79,7 +103,11 @@ const FiltersMetrics: FC<FiltersMetricsProps> = ({
           <S.MetricsIcon>
             <FileIcon />
           </S.MetricsIcon>
-          <span>{consumptionStats.messagesConsumed} messages consumed</span>
+          <span>
+            {consumptionStats.messagesConsumed === 1
+              ? '1 message consumed'
+              : `${consumptionStats.messagesConsumed || 0} messages consumed`}
+          </span>
         </S.Metric>
         {!!consumptionStats.filterApplyErrors && (
           <S.Metric title="Errors">

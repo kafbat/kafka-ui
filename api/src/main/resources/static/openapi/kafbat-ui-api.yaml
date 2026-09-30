@@ -5457,6 +5457,25 @@ components:
         valueDeserializeProperties:
           type: object
           additionalProperties: {}
+    TopicMessageBlocked:
+      type: object
+      required:
+        - partition
+        - offset
+        - size
+      properties:
+        partition:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          format: int64
     TopicMessageConsuming:
       type: object
       properties:
@@ -5468,6 +5487,8 @@ components:
           format: int64
         bytesLimitReached:
           type: boolean
+        blockedMessage:
+          $ref: '#/components/schemas/TopicMessageBlocked'
         elapsedMs:
           type: integer
           format: int64

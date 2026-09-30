@@ -1,7 +1,12 @@
 package io.kafbat.ui.emitter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import io.kafbat.ui.model.TopicMessageEventDTO;
+import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +17,28 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.common.utils.Bytes;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 class MessagesProcessingTest {
+
+  @Test
+  void oversizedRecordAdvancesCursorWithoutDeserializing() {
+    var deserializer = mock(ConsumerRecordDeserializer.class);
+    var cursor = mock(Cursor.Tracking.class);
+    var processing = new MessagesProcessing(deserializer, message -> true, true, 10, 4);
+    var record = new ConsumerRecord<Bytes, Bytes>(
+        "topic", 2, 42, 0, TimestampType.CREATE_TIME, 0, 5, null,
+        Bytes.wrap(new byte[5]), new RecordHeaders(), Optional.empty());
+
+    Flux.<TopicMessageEventDTO>create(sink -> {
+      processing.send(sink, List.of(record), cursor, true);
+      sink.complete();
+    }).blockLast();
+
+    verify(cursor).trackOffset("topic", 2, 42);
+    verifyNoInteractions(deserializer);
+  }
 
 
   @RepeatedTest(5)

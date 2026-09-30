@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
 import MessagesTable, {
@@ -10,6 +10,7 @@ import { useIsLiveMode } from 'lib/hooks/useMessagesFilters';
 import useAppParams from 'lib/hooks/useAppParams';
 import { LOCAL_STORAGE_KEY_PREFIX } from 'lib/constants';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
+import { messagesApiClient } from 'lib/api';
 
 export const topicMessagePayload: TopicMessage = {
   partition: 29,
@@ -41,9 +42,16 @@ jest.mock('lib/hooks/useAppParams', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('lib/api', () => ({
+  messagesApiClient: {
+    downloadTopicMessage: jest.fn(),
+  },
+}));
+
 describe('MessagesTable', () => {
   const renderComponent = (props?: Partial<MessagesTableProps>) => {
     (useAppParams as jest.Mock).mockImplementation(() => ({
+      clusterName: 'local',
       topicName: 'testTopic',
     }));
     return render(
@@ -90,6 +98,85 @@ describe('MessagesTable', () => {
       (useIsLiveMode as jest.Mock).mockImplementation(() => false);
       renderComponent({ isFetching: false });
       expect(screen.queryByText(/next/i)).toBeDisabled();
+    });
+
+    it('hides duplicate pagination when the byte limit is reached', () => {
+      renderComponent({ bytesLimitReached: true });
+      expect(screen.queryByText(/next/i)).not.toBeInTheDocument();
+    });
+
+    it('shows a blocked record with explicit recovery actions', () => {
+      renderComponent({
+        bytesLimitReached: true,
+        blockedMessage: { partition: 2, offset: 42, size: 2048 },
+      });
+
+      expect(
+        screen.getByText('Message blocked to protect this tab')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/2 KB exceeds the browser rendering limit/)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Open anyway' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Download message' })
+      ).toBeInTheDocument();
+    });
+
+    it('requires confirmation before opening a blocked record', async () => {
+      renderComponent({
+        blockedMessage: { partition: 2, offset: 42, size: 2048 },
+      });
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Open anyway' })
+      );
+      expect(screen.getByText('Open large message?')).toBeInTheDocument();
+      expect(
+        screen.getAllByRole('button', { name: 'Open anyway' })
+      ).toHaveLength(2);
+      expect(
+        screen.getByText(
+          /may make the current browser tab slow or unresponsive/
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('opens a blocked record only after explicit confirmation', async () => {
+      (messagesApiClient.downloadTopicMessage as jest.Mock).mockResolvedValue({
+        ...topicMessagePayload,
+        partition: 2,
+        offset: 42,
+      });
+      renderComponent({
+        blockedMessage: { partition: 2, offset: 42, size: 2048 },
+      });
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Open anyway' })
+      );
+      await userEvent.click(
+        screen
+          .getByRole('dialog', { name: 'Open large message?' })
+          .querySelector('button:last-child') as HTMLButtonElement
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText('Message blocked to protect this tab')
+        ).not.toBeInTheDocument()
+      );
+      expect(messagesApiClient.downloadTopicMessage).toHaveBeenCalledWith({
+        clusterName: 'local',
+        topicName: 'testTopic',
+        partition: 2,
+        offset: 42,
+      });
+      expect(
+        screen.getByText(topicMessagePayload.value || '')
+      ).toBeInTheDocument();
     });
 
     it('should check the display of the loader element during loader', () => {
