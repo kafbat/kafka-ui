@@ -3322,6 +3322,9 @@ components:
                     defaultPageSize:
                       type: integer
                       format: int32
+                    maxBytesConsumed:
+                      type: integer
+                      format: int64
                     responseTimeoutMs:
                       type: integer
                       format: int32

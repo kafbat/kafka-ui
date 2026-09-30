@@ -4652,6 +4652,9 @@ components:
                       type: integer
                     defaultPageSize:
                       type: integer
+                    maxBytesConsumed:
+                      type: integer
+                      format: int64
                     responseTimeoutMs:
                       type: integer
                 adminClientTimeout:

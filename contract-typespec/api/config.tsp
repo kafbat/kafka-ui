@@ -131,6 +131,7 @@ model ApplicationConfig {
         pollTimeoutMs?: int32;
         maxPageSize?: int32;
         defaultPageSize?: int32;
+        maxBytesConsumed?: int64;
         responseTimeoutMs?: int32;
       };
       adminClientTimeout?: int32;
