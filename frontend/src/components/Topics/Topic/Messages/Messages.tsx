@@ -8,11 +8,17 @@ import Filters from './Filters/Filters';
 
 const Messages: React.FC = () => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
-  const { messages, isFetching, consumptionStats, phase, abortFetchData } =
-    useTopicMessages({
-      clusterName,
-      topicName,
-    });
+  const {
+    messages,
+    isFetching,
+    fetchRequestId,
+    consumptionStats,
+    phase,
+    abortFetchData,
+  } = useTopicMessages({
+    clusterName,
+    topicName,
+  });
 
   return (
     <>
@@ -26,6 +32,7 @@ const Messages: React.FC = () => {
       <MessagesTable
         messages={messages}
         isFetching={isFetching}
+        fetchRequestId={fetchRequestId}
         bytesLimitReached={!!consumptionStats?.bytesLimitReached}
         blockedMessage={consumptionStats?.blockedMessage}
       />

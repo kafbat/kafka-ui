@@ -18,6 +18,7 @@ import PreviewModal from './PreviewModal';
 export interface MessagesTableProps {
   messages: TopicMessage[];
   isFetching: boolean;
+  fetchRequestId?: number;
   bytesLimitReached?: boolean;
   blockedMessage?: TopicMessageBlocked;
 }
@@ -32,6 +33,7 @@ interface MessagePreviewProps {
 const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,
+  fetchRequestId = 0,
   bytesLimitReached = false,
   blockedMessage,
 }) => {
@@ -56,6 +58,10 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
     setKeyFilters(messagesPreview[topicName]?.keyFilters || []);
     setContentFilters(messagesPreview[topicName]?.contentFilters || []);
   }, []);
+
+  useEffect(() => {
+    setOpenedMessages([]);
+  }, [fetchRequestId]);
 
   const setFilters = useCallback(
     (payload: PreviewFilter[]) => {

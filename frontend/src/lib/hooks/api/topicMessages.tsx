@@ -47,6 +47,7 @@ export const useTopicMessages = ({
   const [consumptionStats, setConsumptionStats] =
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
+  const [fetchRequestId, setFetchRequestId] = React.useState(0);
   const abortController = useRef(new AbortController());
   const prevCursor = useRef(0);
 
@@ -66,6 +67,7 @@ export const useTopicMessages = ({
     );
 
     const fetchData = async () => {
+      setFetchRequestId((current) => current + 1);
       setIsFetching(true);
 
       const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
@@ -197,6 +199,7 @@ export const useTopicMessages = ({
     messages,
     consumptionStats,
     isFetching,
+    fetchRequestId,
     abortFetchData,
   };
 };

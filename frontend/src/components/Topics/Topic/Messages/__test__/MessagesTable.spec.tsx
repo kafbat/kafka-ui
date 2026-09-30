@@ -179,6 +179,69 @@ describe('MessagesTable', () => {
       ).toBeInTheDocument();
     });
 
+    it('keeps opened records during one fetch and resets them for the next request', async () => {
+      (messagesApiClient.downloadTopicMessage as jest.Mock).mockResolvedValue({
+        ...topicMessagePayload,
+        partition: 2,
+        offset: 42,
+      });
+      const blockedMessage = { partition: 2, offset: 42, size: 2048 };
+      const { rerender } = renderComponent({
+        blockedMessage,
+        fetchRequestId: 1,
+      });
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Open anyway' })
+      );
+      await userEvent.click(
+        screen
+          .getByRole('dialog', { name: 'Open large message?' })
+          .querySelector('button:last-child') as HTMLButtonElement
+      );
+      await screen.findByText(topicMessagePayload.value || '');
+
+      rerender(
+        <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+          <MessagesTable
+            messages={[
+              {
+                ...topicMessagePayload,
+                offset: 15,
+                value: 'incremental SSE message',
+              },
+            ]}
+            isFetching
+            blockedMessage={blockedMessage}
+            fetchRequestId={1}
+          />
+        </TopicActionsProvider>
+      );
+      expect(
+        screen.getByText(topicMessagePayload.value || '')
+      ).toBeInTheDocument();
+      expect(screen.getByText('incremental SSE message')).toBeInTheDocument();
+
+      rerender(
+        <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+          <MessagesTable
+            messages={[]}
+            isFetching
+            blockedMessage={blockedMessage}
+            fetchRequestId={2}
+          />
+        </TopicActionsProvider>
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByText(topicMessagePayload.value || '')
+        ).not.toBeInTheDocument()
+      );
+      expect(
+        screen.getByText('Message blocked to protect this tab')
+      ).toBeInTheDocument();
+    });
+
     it('should check the display of the loader element during loader', () => {
       renderComponent({ isFetching: true });
       expect(screen.getByRole('progressbar')).toBeInTheDocument();
