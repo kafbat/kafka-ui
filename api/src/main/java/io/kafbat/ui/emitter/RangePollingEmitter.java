@@ -58,7 +58,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
 
       while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached() && !isBytesLimitReached()) {
         var polled = poll(consumer, sink, pollRange);
-        send(sink, polled, cursor);
+        sendAndTrackConsumption(sink, polled, cursor);
         if (!isBytesLimitReached()) {
           pollRange = nextPollingRange(pollRange, seekOperations);
         }
@@ -89,8 +89,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
 
     List<ConsumerRecord<Bytes, Bytes>> result = new ArrayList<>();
     Set<TopicPartition> paused = new HashSet<>();
-    boolean byteLimitReached = false;
-    while (!sink.isCancelled() && paused.size() < range.size() && !isBytesLimitReached() && !byteLimitReached) {
+    while (!sink.isCancelled() && paused.size() < range.size()) {
       var polledRecords = poll(sink, consumer);
       for (var entry : range.entrySet()) {
         var tp = entry.getKey();
@@ -99,14 +98,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
           if (record.offset() >= fromTo.to) {
             continue;
           }
-          if (!tryConsumeRecord(record)) {
-            byteLimitReached = true;
-            break;
-          }
           result.add(record);
-        }
-        if (byteLimitReached) {
-          break;
         }
 
         //next position is out of target range -> pausing partition

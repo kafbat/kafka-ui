@@ -81,6 +81,18 @@ describe('Filters component', () => {
     expect(screen.getByText('Refresh')).toBeInTheDocument();
   });
 
+  it('keeps message download disabled until partition and offset are entered', async () => {
+    renderComponent();
+
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Download message' })[0]
+    );
+
+    expect(
+      screen.getAllByRole('button', { name: 'Download message' }).at(-1)
+    ).toBeDisabled();
+  });
+
   describe('Filter Input default elements', () => {
     const inputValue = 'Hello World!';
 

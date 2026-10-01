@@ -128,6 +128,8 @@ describe('MessagesTable', () => {
     it('requires confirmation before opening a blocked record', async () => {
       renderComponent({
         blockedMessage: { partition: 2, offset: 42, size: 2048 },
+        keySerde: 'Integer',
+        valueSerde: 'Avro',
       });
 
       await userEvent.click(
@@ -152,6 +154,8 @@ describe('MessagesTable', () => {
       });
       renderComponent({
         blockedMessage: { partition: 2, offset: 42, size: 2048 },
+        keySerde: 'Integer',
+        valueSerde: 'Avro',
       });
 
       await userEvent.click(
@@ -173,10 +177,60 @@ describe('MessagesTable', () => {
         topicName: 'testTopic',
         partition: 2,
         offset: 42,
+        keySerde: 'Integer',
+        valueSerde: 'Avro',
       });
       expect(
         screen.getByText(topicMessagePayload.value || '')
       ).toBeInTheDocument();
+    });
+
+    it('discards a blocked-message response when a newer fetch starts', async () => {
+      let resolveDownload: (message: TopicMessage) => void = () => {};
+      (messagesApiClient.downloadTopicMessage as jest.Mock).mockReturnValue(
+        new Promise<TopicMessage>((resolve) => {
+          resolveDownload = resolve;
+        })
+      );
+      const blockedMessage = { partition: 2, offset: 42, size: 2048 };
+      const { rerender } = renderComponent({
+        blockedMessage,
+        fetchRequestId: 1,
+      });
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Open anyway' })
+      );
+      await userEvent.click(
+        screen
+          .getByRole('dialog', { name: 'Open large message?' })
+          .querySelector('button:last-child') as HTMLButtonElement
+      );
+
+      rerender(
+        <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+          <MessagesTable
+            messages={[]}
+            isFetching
+            blockedMessage={blockedMessage}
+            fetchRequestId={2}
+          />
+        </TopicActionsProvider>
+      );
+      resolveDownload({
+        ...topicMessagePayload,
+        partition: 2,
+        offset: 42,
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('Message blocked to protect this tab')
+        ).toBeInTheDocument()
+      );
+      expect(
+        screen.queryByText(topicMessagePayload.value || '')
+      ).not.toBeInTheDocument();
     });
 
     it('keeps opened records during one fetch and resets them for the next request', async () => {

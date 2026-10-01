@@ -12,6 +12,8 @@ const Messages: React.FC = () => {
     messages,
     isFetching,
     fetchRequestId,
+    keySerde,
+    valueSerde,
     consumptionStats,
     phase,
     abortFetchData,
@@ -33,6 +35,8 @@ const Messages: React.FC = () => {
         messages={messages}
         isFetching={isFetching}
         fetchRequestId={fetchRequestId}
+        keySerde={keySerde}
+        valueSerde={valueSerde}
         bytesLimitReached={!!consumptionStats?.bytesLimitReached}
         blockedMessage={consumptionStats?.blockedMessage}
       />

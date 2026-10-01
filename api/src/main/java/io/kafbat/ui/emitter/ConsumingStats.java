@@ -64,7 +64,7 @@ class ConsumingStats {
           .size((long) recordBytes);
       return ConsumptionResult.RECORD_TOO_LARGE;
     }
-    if (bytesLimit <= 0 || bytes + recordBytes > bytesLimit) {
+    if (bytesLimit > 0 && bytes + recordBytes > bytesLimit) {
       bytes = Math.max(bytes, bytesLimit);
       bytesLimitReached = true;
       return ConsumptionResult.BYTE_LIMIT_REACHED;
@@ -72,7 +72,7 @@ class ConsumingStats {
 
     bytes += recordBytes;
     records++;
-    if (bytes >= bytesLimit) {
+    if (bytesLimit > 0 && bytes >= bytesLimit) {
       bytesLimitReached = true;
     }
     return ConsumptionResult.CONSUMED;

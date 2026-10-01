@@ -7,7 +7,9 @@ import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.kafka.common.TopicPartition;
@@ -26,7 +28,7 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
 
     //topic -> partition -> offset
     private final Table<String, Integer, Long> trackingOffsets = HashBasedTable.create();
-    private boolean trackedMessage;
+    private final Set<TopicPartition> trackedPartitions = new HashSet<>();
 
     public Tracking(ConsumerRecordDeserializer deserializer,
                     ConsumerPosition originalPosition,
@@ -42,7 +44,7 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
 
     void trackOffset(String topic, int partition, long offset) {
       trackingOffsets.put(topic, partition, offset);
-      trackedMessage = true;
+      trackedPartitions.add(new TopicPartition(topic, partition));
     }
 
     private void initOffset(String topic, int partition, long offset) {
@@ -53,11 +55,17 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
       initialSeekOffsets.forEach((tp, off) -> initOffset(tp.topic(), tp.partition(), off));
     }
 
-    private Map<TopicPartition, Long> getOffsetsMap(int offsetToAdd) {
+    private Map<TopicPartition, Long> getOffsetsMap(boolean advanceTrackedPartitions) {
       Map<TopicPartition, Long> result = new HashMap<>();
       trackingOffsets.rowMap()
           .forEach((topic, partsMap) ->
-              partsMap.forEach((p, off) -> result.put(new TopicPartition(topic, p), off + offsetToAdd)));
+              partsMap.forEach((partition, offset) -> {
+                var topicPartition = new TopicPartition(topic, partition);
+                result.put(
+                    topicPartition,
+                    offset + (advanceTrackedPartitions && trackedPartitions.contains(topicPartition) ? 1 : 0)
+                );
+              }));
       return result;
     }
 
@@ -76,14 +84,12 @@ public record Cursor(ConsumerRecordDeserializer deserializer,
                   null,
                   new ConsumerPosition.Offsets(
                       null,
-                      getOffsetsMap(
-                          switch (originalPosition.pollingMode()) {
-                            case TO_OFFSET, TO_TIMESTAMP, LATEST -> 0;
-                            // when doing forward polling we need to start from latest msg's offset + 1
-                            case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> trackedMessage ? 1 : 0;
-                            case TAILING -> throw new IllegalStateException();
-                          }
-                      )
+                      getOffsetsMap(switch (originalPosition.pollingMode()) {
+                        case TO_OFFSET, TO_TIMESTAMP, LATEST -> false;
+                        // Forward polling resumes after the last record read in each partition.
+                        case FROM_OFFSET, FROM_TIMESTAMP, EARLIEST -> true;
+                        case TAILING -> throw new IllegalStateException();
+                      })
                   )
               ),
               filter,

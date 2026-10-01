@@ -55,6 +55,14 @@ class ConsumingStatsTest {
     assertThat(events.getFirst().getConsuming().getBlockedMessage()).isNull();
   }
 
+  @Test
+  void nonPositiveByteLimitAllowsRecords() {
+    assertThat(new ConsumingStats(0).tryConsumeRecord(record(0, 0, 0, 6)))
+        .isEqualTo(ConsumingStats.ConsumptionResult.CONSUMED);
+    assertThat(new ConsumingStats(-1).tryConsumeRecord(record(0, 0, 0, 6)))
+        .isEqualTo(ConsumingStats.ConsumptionResult.CONSUMED);
+  }
+
   private ConsumerRecord<Bytes, Bytes> record(
       int partition, long offset, int keySize, int valueSize) {
     return new ConsumerRecord<>(

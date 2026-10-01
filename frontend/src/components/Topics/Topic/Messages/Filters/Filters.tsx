@@ -182,6 +182,8 @@ const Filters: React.FC<FiltersProps> = ({
   const parsedDownloadPartition = Number(downloadPartition);
   const parsedDownloadOffset = Number(downloadOffset);
   const canDownloadMessage =
+    downloadPartition.trim() !== '' &&
+    downloadOffset.trim() !== '' &&
     Number.isInteger(parsedDownloadPartition) &&
     Number.isInteger(parsedDownloadOffset) &&
     parsedDownloadPartition >= 0 &&

@@ -19,6 +19,8 @@ export interface MessagesTableProps {
   messages: TopicMessage[];
   isFetching: boolean;
   fetchRequestId?: number;
+  keySerde?: string;
+  valueSerde?: string;
   bytesLimitReached?: boolean;
   blockedMessage?: TopicMessageBlocked;
 }
@@ -34,6 +36,8 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,
   fetchRequestId = 0,
+  keySerde,
+  valueSerde,
   bytesLimitReached = false,
   blockedMessage,
 }) => {
@@ -45,6 +49,8 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   const isLive = useIsLiveMode();
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const [openedMessages, setOpenedMessages] = useState<TopicMessage[]>([]);
+  const currentFetchRequestId = React.useRef(fetchRequestId);
+  currentFetchRequestId.current = fetchRequestId;
   const visibleMessages = [...messages, ...openedMessages];
   const [messagesPreview, setMessagesPreview] =
     useLocalStorage<MessagePreviewProps>('message-preview', {
@@ -147,9 +153,14 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
                 blockedMessage={blockedMessage}
                 clusterName={clusterName}
                 topicName={topicName}
-                onOpen={(message) =>
-                  setOpenedMessages((current) => [...current, message])
-                }
+                fetchRequestId={fetchRequestId}
+                keySerde={keySerde}
+                valueSerde={valueSerde}
+                onOpen={(message, requestId) => {
+                  if (requestId === currentFetchRequestId.current) {
+                    setOpenedMessages((current) => [...current, message]);
+                  }
+                }}
               />
             )}
           {isFetching && !visibleMessages.length && (

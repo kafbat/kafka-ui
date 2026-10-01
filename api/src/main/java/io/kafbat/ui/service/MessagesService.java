@@ -192,17 +192,21 @@ public class MessagesService {
     try (var consumer = consumerGroupService.createConsumer(
         cluster, Map.of(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1))) {
       consumer.assign(List.of(topicPartition));
-      consumer.seek(topicPartition, offset);
+      long beginOffset = consumer.beginningOffsets(List.of(topicPartition)).get(topicPartition);
       long endOffset = consumer.endOffsets(List.of(topicPartition)).get(topicPartition);
-      if (offset >= endOffset) {
+      if (offset < beginOffset || offset >= endOffset) {
         return Mono.error(new ValidationException("Message not found"));
       }
+      consumer.seek(topicPartition, offset);
 
       long deadline = System.currentTimeMillis() + cluster.getPollingSettings().getPollTimeout().toMillis();
       while (System.currentTimeMillis() <= deadline) {
         for (var rec : consumer.pollEnhanced(cluster.getPollingSettings().getPollTimeout())) {
           if (rec.partition() == partition && rec.offset() == offset) {
             return Mono.just(deserializer.deserialize(rec));
+          }
+          if (rec.partition() == partition && rec.offset() > offset) {
+            return Mono.error(new ValidationException("Message not found"));
           }
         }
       }

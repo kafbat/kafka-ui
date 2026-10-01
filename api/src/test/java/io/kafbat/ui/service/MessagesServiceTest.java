@@ -21,7 +21,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.RecordsToDelete;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,6 +130,31 @@ class MessagesServiceTest extends AbstractIntegrationTest {
             && "message_1".equals(msg.getValue())
             && StringSerde.NAME.equals(msg.getValueSerde()))
         .verifyComplete();
+  }
+
+  @Test
+  void downloadTopicMessageReturnsNotFoundBeforeLogStart() throws Exception {
+    String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    try (var producer = KafkaTestProducer.forKafka(kafka)) {
+      producer.send(testTopic, "message_0");
+      producer.send(testTopic, "message_1").get();
+    }
+
+    var topicPartition = new TopicPartition(testTopic, 0);
+    try (var admin = AdminClient.create(Map.of(
+        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
+      admin.deleteRecords(Map.of(topicPartition, RecordsToDelete.beforeOffset(1)))
+          .all()
+          .get();
+    }
+
+    StepVerifier.create(messagesService.downloadTopicMessage(
+            cluster, testTopic, 0, 0, StringSerde.NAME, StringSerde.NAME))
+        .expectErrorMatches(error -> error instanceof io.kafbat.ui.exception.ValidationException
+            && error.getMessage().contains("Message not found"))
+        .verify();
   }
 
   @ParameterizedTest

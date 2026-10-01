@@ -200,6 +200,8 @@ export const useTopicMessages = ({
     consumptionStats,
     isFetching,
     fetchRequestId,
+    keySerde: searchParams.get(MessagesFilterKeys.keySerde) || undefined,
+    valueSerde: searchParams.get(MessagesFilterKeys.valueSerde) || undefined,
     abortFetchData,
   };
 };
