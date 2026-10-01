@@ -1,5 +1,8 @@
 import { showAlert, showSuccessAlert } from 'lib/errorHandling';
 
+/**
+ * Creates clipboard and file-saving actions for data supplied as a value or getter.
+ */
 const useDataSaver = (
   subject: string,
   data:
@@ -9,6 +12,7 @@ const useDataSaver = (
 ) => {
   const getData = () => (typeof data === 'function' ? data() : data);
 
+  /** Copies the current data representation when clipboard access is available. */
   const copyToClipboard = () => {
     if (navigator.clipboard) {
       const currentData = getData();
@@ -31,6 +35,7 @@ const useDataSaver = (
       });
     }
   };
+  /** Saves the current data as a browser-downloaded JSON file. */
   const saveFile = () => {
     const currentData = getData();
     const blob = new Blob([currentData as BlobPart], { type: 'text/json' });

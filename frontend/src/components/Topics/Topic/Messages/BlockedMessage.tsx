@@ -21,6 +21,7 @@ interface Props {
   onOpen: (message: TopicMessage, requestId: number) => void;
 }
 
+/** Renders an oversized record placeholder with explicit open and download actions. */
 const BlockedMessage: React.FC<Props> = ({
   blockedMessage,
   clusterName,
@@ -43,6 +44,7 @@ const BlockedMessage: React.FC<Props> = ({
     valueSerde,
   };
 
+  /** Confirms the browser risk before fetching and displaying the full record. */
   const openMessage = () => {
     confirm(
       <div>
@@ -73,6 +75,7 @@ const BlockedMessage: React.FC<Props> = ({
     );
   };
 
+  /** Downloads the full record without adding it to the rendered message table. */
   const downloadMessage = async () => {
     setIsDownloading(true);
     try {

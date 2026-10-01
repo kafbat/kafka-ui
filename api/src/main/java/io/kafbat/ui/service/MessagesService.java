@@ -61,6 +61,7 @@ public class MessagesService {
 
   private static final int DEFAULT_MAX_PAGE_SIZE = 500;
   private static final int DEFAULT_PAGE_SIZE = 100;
+  private static final String MESSAGE_NOT_FOUND = "Message not found";
 
   // limiting UI messages rate to 20/sec in tailing mode
   private static final int TAILING_UI_MESSAGE_THROTTLE_RATE = 20;
@@ -161,6 +162,7 @@ public class MessagesService {
         .flatMap(desc -> sendMessageImpl(cluster, desc, msg));
   }
 
+  /** Retrieves and deserializes the message at an exact retained partition offset. */
   public Mono<TopicMessageDTO> downloadTopicMessage(KafkaCluster cluster,
                                                     String topic,
                                                     int partition,
@@ -176,6 +178,7 @@ public class MessagesService {
         .flatMap(td -> downloadTopicMessageImpl(cluster, td, partition, offset, keySerde, valueSerde));
   }
 
+  /** Fetches a single record, rejecting offsets outside retention or skipped by the log. */
   private Mono<TopicMessageDTO> downloadTopicMessageImpl(KafkaCluster cluster,
                                                          TopicDescription topicDescription,
                                                          int partition,
@@ -195,7 +198,7 @@ public class MessagesService {
       long beginOffset = consumer.beginningOffsets(List.of(topicPartition)).get(topicPartition);
       long endOffset = consumer.endOffsets(List.of(topicPartition)).get(topicPartition);
       if (offset < beginOffset || offset >= endOffset) {
-        return Mono.error(new ValidationException("Message not found"));
+        return Mono.error(new ValidationException(MESSAGE_NOT_FOUND));
       }
       consumer.seek(topicPartition, offset);
 
@@ -206,11 +209,11 @@ public class MessagesService {
             return Mono.just(deserializer.deserialize(rec));
           }
           if (rec.partition() == partition && rec.offset() > offset) {
-            return Mono.error(new ValidationException("Message not found"));
+            return Mono.error(new ValidationException(MESSAGE_NOT_FOUND));
           }
         }
       }
-      return Mono.error(new TimeoutException("Message not found"));
+      return Mono.error(new TimeoutException(MESSAGE_NOT_FOUND));
     } catch (Throwable e) {
       return Mono.error(e);
     }

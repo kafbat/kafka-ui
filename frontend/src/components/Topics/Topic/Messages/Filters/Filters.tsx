@@ -58,12 +58,14 @@ const CSV_COLUMNS = [
 
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
 
+/** Quotes a CSV cell and neutralizes spreadsheet formula prefixes. */
 const toCsvCell = (value: unknown) => {
   const text = String(value ?? '');
   const inert = FORMULA_TRIGGER.test(text) ? `'${text}` : text;
   return `"${inert.replace(/"/g, '""')}"`;
 };
 
+/** Serializes topic messages into the export's fixed-column CSV format. */
 const convertToCSV = (messagesData: MessageData[]) =>
   [
     CSV_COLUMNS.join(','),
@@ -76,6 +78,7 @@ const convertToCSV = (messagesData: MessageData[]) =>
     ),
   ].join('\n');
 
+/** Produces a filesystem-friendly UTC timestamp for exported filenames. */
 const fileNameTimestamp = () =>
   new Date().toISOString().slice(0, 19).replace(/:/g, '-');
 
@@ -87,6 +90,7 @@ export interface FiltersProps {
   messages?: TopicMessage[];
 }
 
+/** Provides topic-message filters, exports, and exact-offset download controls. */
 const Filters: React.FC<FiltersProps> = ({
   consumptionStats,
   isFetching,
@@ -172,6 +176,7 @@ const Filters: React.FC<FiltersProps> = ({
     use: SerdeUsage.DESERIALIZE,
   });
 
+  /** Stops a live request before starting a refresh. */
   const handleRefresh = () => {
     if (isLiveMode(mode) && isFetching) {
       abortFetchData();
@@ -189,6 +194,7 @@ const Filters: React.FC<FiltersProps> = ({
     parsedDownloadPartition >= 0 &&
     parsedDownloadOffset >= 0;
 
+  /** Downloads the selected partition and offset using the active SerDes. */
   const handleDownloadMessage = async () => {
     if (!canDownloadMessage) return;
     setIsDownloading(true);

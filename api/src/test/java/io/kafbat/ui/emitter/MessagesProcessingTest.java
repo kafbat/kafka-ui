@@ -31,12 +31,12 @@ class MessagesProcessingTest {
     var deserializer = mock(ConsumerRecordDeserializer.class);
     var cursor = mock(Cursor.Tracking.class);
     var processing = new MessagesProcessing(deserializer, message -> true, true, 10, 4);
-    var record = new ConsumerRecord<Bytes, Bytes>(
+    var kafkaRecord = new ConsumerRecord<Bytes, Bytes>(
         "topic", 2, 42, 0, TimestampType.CREATE_TIME, 0, 5, null,
         Bytes.wrap(new byte[5]), new RecordHeaders(), Optional.empty());
 
     Flux.<TopicMessageEventDTO>create(sink -> {
-      processing.send(sink, List.of(record), cursor, true);
+      processing.send(sink, List.of(kafkaRecord), cursor, true);
       sink.complete();
     }).blockLast();
 

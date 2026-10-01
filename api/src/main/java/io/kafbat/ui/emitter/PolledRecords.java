@@ -10,11 +10,13 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.utils.Bytes;
 
+/** Holds Kafka poll results together with their size and elapsed-time measurements. */
 public record PolledRecords(int count,
                             int bytes,
                             Duration elapsed,
                             ConsumerRecords<Bytes, Bytes> records) implements Iterable<ConsumerRecord<Bytes, Bytes>> {
 
+  /** Wraps Kafka poll results with their record count, byte size, and elapsed time. */
   static PolledRecords create(ConsumerRecords<Bytes, Bytes> polled, Duration pollDuration) {
     return new PolledRecords(
         polled.count(),
@@ -24,19 +26,23 @@ public record PolledRecords(int count,
     );
   }
 
+  /** Returns records belonging to one topic partition. */
   public List<ConsumerRecord<Bytes, Bytes>> records(TopicPartition tp) {
     return records.records(tp);
   }
 
+  /** Iterates over every record returned by the poll. */
   @Override
   public Iterator<ConsumerRecord<Bytes, Bytes>> iterator() {
     return records.iterator();
   }
 
+  /** Returns the partitions represented in this poll. */
   public Set<TopicPartition> partitions() {
     return records.partitions();
   }
 
+  /** Calculates the combined serialized size of a batch. */
   private static int calculatePolledRecSize(Iterable<ConsumerRecord<Bytes, Bytes>> recs) {
     int polledBytes = 0;
     for (ConsumerRecord<Bytes, Bytes> rec : recs) {
@@ -45,6 +51,7 @@ public record PolledRecords(int count,
     return polledBytes;
   }
 
+  /** Calculates the serialized key, value, and header size of one record. */
   static int calculateRecordSize(ConsumerRecord<Bytes, Bytes> rec) {
     int bytes = 0;
     for (Header header : rec.headers()) {

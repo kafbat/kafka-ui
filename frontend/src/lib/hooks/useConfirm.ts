@@ -1,6 +1,7 @@
 import { ConfirmContext } from 'components/contexts/ConfirmContext';
 import { type ReactNode, useContext } from 'react';
 
+/** Creates a dialog callback for confirming synchronous or asynchronous actions. */
 export const useConfirm = (danger = false) => {
   const context = useContext(ConfirmContext);
 

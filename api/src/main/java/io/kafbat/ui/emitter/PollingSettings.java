@@ -14,6 +14,7 @@ public class PollingSettings {
   private final long maxBytesConsumed;
   private final Supplier<PollingThrottler> throttlerSupplier;
 
+  /** Resolves per-application polling settings, including defaults and cluster throttling. */
   public static PollingSettings create(ClustersProperties.Cluster cluster,
                                        ClustersProperties clustersProperties) {
     var pollingProps = Optional.ofNullable(clustersProperties.getPolling())
@@ -30,6 +31,7 @@ public class PollingSettings {
     );
   }
 
+  /** Creates polling settings with application defaults and no throttling. */
   public static PollingSettings createDefault() {
     return new PollingSettings(
         DEFAULT_POLL_TIMEOUT,
@@ -38,6 +40,7 @@ public class PollingSettings {
     );
   }
 
+  /** Creates default polling settings with a test- or caller-supplied byte limit. */
   public static PollingSettings createDefault(long maxBytesConsumed) {
     return new PollingSettings(
         DEFAULT_POLL_TIMEOUT,
@@ -46,6 +49,7 @@ public class PollingSettings {
     );
   }
 
+  /** Stores resolved timeout, byte-limit, and throttling configuration. */
   private PollingSettings(Duration pollTimeout,
                           long maxBytesConsumed,
                           Supplier<PollingThrottler> throttlerSupplier) {
@@ -54,14 +58,17 @@ public class PollingSettings {
     this.throttlerSupplier = throttlerSupplier;
   }
 
+  /** Returns the maximum duration to wait for each Kafka poll. */
   public Duration getPollTimeout() {
     return pollTimeout;
   }
 
+  /** Creates the configured throttler for this polling operation. */
   public PollingThrottler getPollingThrottler() {
     return throttlerSupplier.get();
   }
 
+  /** Returns the maximum serialized bytes admitted in one polling request. */
   public long getMaxBytesConsumed() {
     return maxBytesConsumed;
   }

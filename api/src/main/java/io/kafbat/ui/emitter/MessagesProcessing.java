@@ -33,6 +33,7 @@ class MessagesProcessing {
   private final @Nullable Integer limit;
   private final ConsumingStats consumingStats;
 
+  /** Creates the ordered deserialization, filtering, and accounting pipeline for a poll. */
   MessagesProcessing(ConsumerRecordDeserializer deserializer,
                      Predicate<TopicMessageDTO> filter,
                      boolean ascendingSortBeforeSend,
@@ -45,69 +46,86 @@ class MessagesProcessing {
     this.consumingStats = new ConsumingStats(bytesLimit);
   }
 
+  /** Returns whether the page has emitted its allowed number of messages. */
   boolean limitReached() {
     return limit != null && sentMessages >= limit;
   }
 
+  /** Returns whether further records would exceed the byte budget. */
   boolean bytesLimitReached() {
     return consumingStats.bytesLimitReached();
   }
 
-  boolean tryConsumeRecord(ConsumerRecord<Bytes, Bytes> record) {
-    return consumingStats.tryConsumeRecord(record) == ConsumingStats.ConsumptionResult.CONSUMED;
-  }
-
+  /** Orders, admits, deserializes, filters, and emits a batch of records. */
   void send(FluxSink<TopicMessageEventDTO> sink,
              Iterable<ConsumerRecord<Bytes, Bytes>> polled,
              @Nullable Cursor.Tracking cursor,
              boolean trackConsumption) {
-    for (ConsumerRecord<Bytes, Bytes> rec : sortForSending(polled, ascendingSortBeforeSend)) {
-      if (limitReached() || sink.isCancelled()) {
+    for (ConsumerRecord<Bytes, Bytes> kafkaRecord : sortForSending(polled, ascendingSortBeforeSend)) {
+      if (!sendRecord(sink, kafkaRecord, cursor, trackConsumption)) {
         break;
-      }
-      if (trackConsumption) {
-        var consumptionResult = consumingStats.tryConsumeRecord(rec);
-        if (consumptionResult != ConsumingStats.ConsumptionResult.CONSUMED) {
-          if (consumptionResult == ConsumingStats.ConsumptionResult.RECORD_TOO_LARGE
-              && cursor != null) {
-            cursor.trackOffset(rec.topic(), rec.partition(), rec.offset());
-          }
-          break;
-        }
-      }
-
-      TopicMessageDTO topicMessage = deserializer.deserialize(rec);
-      try {
-        if (filter.test(topicMessage)) {
-          sink.next(
-              new TopicMessageEventDTO()
-                  .type(TopicMessageEventDTO.TypeEnum.MESSAGE)
-                  .message(topicMessage)
-          );
-          sentMessages++;
-        }
-        if (cursor != null) {
-          cursor.trackOffset(rec.topic(), rec.partition(), rec.offset());
-        }
-      } catch (Exception e) {
-        consumingStats.incFilterApplyError();
-        log.trace("Error applying filter for message {}", topicMessage);
       }
     }
   }
 
+  private boolean sendRecord(FluxSink<TopicMessageEventDTO> sink,
+                             ConsumerRecord<Bytes, Bytes> kafkaRecord,
+                             @Nullable Cursor.Tracking cursor,
+                             boolean trackConsumption) {
+    if (limitReached() || sink.isCancelled()) {
+      return false;
+    }
+    if (trackConsumption && !admitRecord(kafkaRecord, cursor)) {
+      return false;
+    }
+
+    TopicMessageDTO topicMessage = deserializer.deserialize(kafkaRecord);
+    try {
+      if (filter.test(topicMessage)) {
+        sink.next(
+            new TopicMessageEventDTO()
+                .type(TopicMessageEventDTO.TypeEnum.MESSAGE)
+                .message(topicMessage)
+        );
+        sentMessages++;
+      }
+      if (cursor != null) {
+        cursor.trackOffset(kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
+      }
+    } catch (Exception e) {
+      consumingStats.incFilterApplyError();
+      log.trace("Error applying filter for message {}", topicMessage);
+    }
+    return true;
+  }
+
+  private boolean admitRecord(ConsumerRecord<Bytes, Bytes> kafkaRecord,
+                              @Nullable Cursor.Tracking cursor) {
+    var result = consumingStats.tryConsumeRecord(kafkaRecord);
+    if (result == ConsumingStats.ConsumptionResult.CONSUMED) {
+      return true;
+    }
+    if (result == ConsumingStats.ConsumptionResult.RECORD_TOO_LARGE && cursor != null) {
+      cursor.trackOffset(kafkaRecord.topic(), kafkaRecord.partition(), kafkaRecord.offset());
+    }
+    return false;
+  }
+
+  /** Emits statistics for one completed Kafka poll. */
   void sentConsumingInfo(FluxSink<TopicMessageEventDTO> sink, PolledRecords polledRecords) {
     if (!sink.isCancelled()) {
       consumingStats.sendConsumingEvt(sink, polledRecords);
     }
   }
 
+  /** Emits terminal statistics and an optional continuation cursor. */
   void sendFinishEvents(FluxSink<TopicMessageEventDTO> sink, @Nullable Cursor.Tracking cursor) {
     if (!sink.isCancelled()) {
       consumingStats.sendFinishEvent(sink, cursor);
     }
   }
 
+  /** Emits a named progress event. */
   void sendPhase(FluxSink<TopicMessageEventDTO> sink, String name) {
     if (!sink.isCancelled()) {
       sink.next(
@@ -118,8 +136,8 @@ class MessagesProcessing {
     }
   }
 
-  /*
-   * Sorting by timestamps, BUT requesting that records within same partitions should be ordered by offsets.
+  /**
+   * Sorts by timestamp while preserving offset order within each partition.
    */
   @VisibleForTesting
   static Iterable<ConsumerRecord<Bytes, Bytes>> sortForSending(Iterable<ConsumerRecord<Bytes, Bytes>> records,

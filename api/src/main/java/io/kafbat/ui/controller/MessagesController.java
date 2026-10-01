@@ -95,6 +95,7 @@ public class MessagesController extends AbstractController implements MessagesAp
   }
 
 
+  /** Streams topic messages using the selected position, filters, and page cursor. */
   @Override
   public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessagesV2(String clusterName, String topicName,
                                                                              PollingModeDTO mode,
@@ -141,6 +142,7 @@ public class MessagesController extends AbstractController implements MessagesAp
         .doOnEach(sig -> auditService.audit(accessContext, sig));
   }
 
+  /** Retrieves one retained topic message and returns it as a JSON attachment. */
   @Override
   public Mono<ResponseEntity<TopicMessageDTO>> downloadTopicMessage(String clusterName,
                                                                     String topicName,

@@ -30,6 +30,7 @@ export interface Props {
   message: TopicMessage;
 }
 
+/** Renders one topic message with filtered previews and message actions. */
 const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
@@ -53,6 +54,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     keyDeserializeProperties,
   } = message;
 
+  /** Formats the displayed record fields for clipboard and file actions. */
   const createSavedMessage = () =>
     JSON.stringify(
       {
@@ -71,10 +73,12 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     createSavedMessage
   );
 
+  /** Toggles the expanded content panel for this record. */
   const toggleIsOpen = () => setIsOpen(!isOpen);
 
   const [vEllipsisOpen, setVEllipsisOpen] = React.useState(false);
 
+  /** Parses JSON preview content, returning an empty object for malformed text. */
   const getParsedJson = (jsonValue: string) => {
     try {
       return JSON.parse(jsonValue);
@@ -83,6 +87,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     }
   };
 
+  /** Renders selected JSONPath values, or the complete value when no filters apply. */
   const renderFilteredJson = (
     jsonValue?: string,
     filters?: PreviewFilter[]

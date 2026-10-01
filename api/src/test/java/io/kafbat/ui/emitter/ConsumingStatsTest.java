@@ -16,9 +16,9 @@ class ConsumingStatsTest {
   @Test
   void reportsRecordThatExceedsEntireByteLimit() {
     var stats = new ConsumingStats(4);
-    var record = record(2, 42, 1, 4);
+    var kafkaRecord = createRecord(2, 42, 1, 4);
 
-    assertThat(stats.tryConsumeRecord(record))
+    assertThat(stats.tryConsumeRecord(kafkaRecord))
         .isEqualTo(ConsumingStats.ConsumptionResult.RECORD_TOO_LARGE);
 
     var events = Flux.<TopicMessageEventDTO>create(sink -> {
@@ -38,8 +38,8 @@ class ConsumingStatsTest {
   @Test
   void doesNotReportRecordWhenOnlyRemainingBatchBudgetIsExceeded() {
     var stats = new ConsumingStats(10);
-    var first = record(0, 0, 0, 6);
-    var second = record(0, 1, 0, 6);
+    var first = createRecord(0, 0, 0, 6);
+    var second = createRecord(0, 1, 0, 6);
 
     assertThat(stats.tryConsumeRecord(first))
         .isEqualTo(ConsumingStats.ConsumptionResult.CONSUMED);
@@ -57,13 +57,13 @@ class ConsumingStatsTest {
 
   @Test
   void nonPositiveByteLimitAllowsRecords() {
-    assertThat(new ConsumingStats(0).tryConsumeRecord(record(0, 0, 0, 6)))
+    assertThat(new ConsumingStats(0).tryConsumeRecord(createRecord(0, 0, 0, 6)))
         .isEqualTo(ConsumingStats.ConsumptionResult.CONSUMED);
-    assertThat(new ConsumingStats(-1).tryConsumeRecord(record(0, 0, 0, 6)))
+    assertThat(new ConsumingStats(-1).tryConsumeRecord(createRecord(0, 0, 0, 6)))
         .isEqualTo(ConsumingStats.ConsumptionResult.CONSUMED);
   }
 
-  private ConsumerRecord<Bytes, Bytes> record(
+  private ConsumerRecord<Bytes, Bytes> createRecord(
       int partition, long offset, int keySize, int valueSize) {
     return new ConsumerRecord<>(
         "topic",

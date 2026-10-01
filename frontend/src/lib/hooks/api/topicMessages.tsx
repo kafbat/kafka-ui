@@ -37,6 +37,7 @@ interface UseTopicMessagesProps {
   topicName: TopicName;
 }
 
+/** Streams messages and consumption state for the current topic-message filters. */
 export const useTopicMessages = ({
   clusterName,
   topicName,
@@ -206,6 +207,7 @@ export const useTopicMessages = ({
   };
 };
 
+/** Fetches an exact topic record and triggers a JSON file download. */
 export async function downloadTopicMessage({
   clusterName,
   topicName,
@@ -240,6 +242,7 @@ export async function downloadTopicMessage({
   window.URL.revokeObjectURL(link.href);
 }
 
+/** Loads available serializers/deserializers for the selected topic and usage. */
 export function useSerdes(props: GetSerdesRequest) {
   const { clusterName, topicName, use } = props;
 
@@ -252,6 +255,7 @@ export function useSerdes(props: GetSerdesRequest) {
   });
 }
 
+/** Registers a CEL filter for a topic and returns its mutation state. */
 export function useRegisterSmartFilter({
   clusterName,
   topicName,

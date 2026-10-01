@@ -32,6 +32,7 @@ interface MessagePreviewProps {
   };
 }
 
+/** Displays streamed records and blocked-message recovery actions. */
 const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,

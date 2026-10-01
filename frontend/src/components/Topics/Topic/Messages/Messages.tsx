@@ -6,6 +6,7 @@ import { RouteParamsClusterTopic } from 'lib/paths';
 import MessagesTable from './MessagesTable';
 import Filters from './Filters/Filters';
 
+/** Connects topic-message polling state to filters and the message table. */
 const Messages: React.FC = () => {
   const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
   const {

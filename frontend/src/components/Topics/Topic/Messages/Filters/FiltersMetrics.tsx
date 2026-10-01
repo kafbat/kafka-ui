@@ -22,6 +22,7 @@ export interface FiltersMetricsProps {
   consumptionStats: TopicMessageConsuming;
 }
 
+/** Displays polling statistics and recovery actions when a byte limit is reached. */
 const FiltersMetrics: FC<FiltersMetricsProps> = ({
   mode,
   isFetching,

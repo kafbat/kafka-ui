@@ -13,6 +13,7 @@ import org.apache.kafka.common.TopicPartition;
 
 public class BackwardEmitter extends RangePollingEmitter {
 
+  /** Creates an emitter that reads each partition in descending offset order. */
   public BackwardEmitter(Supplier<EnhancedConsumer> consumerSupplier,
                          ConsumerPosition consumerPosition,
                          int messagesPerPage,
@@ -30,6 +31,7 @@ public class BackwardEmitter extends RangePollingEmitter {
     );
   }
 
+  /** Builds the next backward range without seeking before a partition's log start. */
   @Override
   protected TreeMap<TopicPartition, FromToOffset> nextPollingRange(TreeMap<TopicPartition, FromToOffset> prevRange,
                                                                    SeekOperations seekOperations) {

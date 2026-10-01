@@ -17,6 +17,7 @@ public class TailingEmitter extends AbstractEmitter {
   private final Supplier<EnhancedConsumer> consumerSupplier;
   private final ConsumerPosition consumerPosition;
 
+  /** Creates a live emitter that continues polling until cancelled or byte-limited. */
   public TailingEmitter(Supplier<EnhancedConsumer> consumerSupplier,
                         ConsumerPosition consumerPosition,
                         ConsumerRecordDeserializer deserializer,
@@ -29,6 +30,7 @@ public class TailingEmitter extends AbstractEmitter {
     this.consumerPosition = consumerPosition;
   }
 
+  /** Streams newly available records and emits polling statistics until stopped. */
   @Override
   public void accept(FluxSink<TopicMessageEventDTO> sink) {
     log.debug("Starting tailing polling for {}", consumerPosition);
@@ -51,6 +53,7 @@ public class TailingEmitter extends AbstractEmitter {
     }
   }
 
+  /** Assigns requested partitions and seeks empty partitions to their current end. */
   private void assignAndSeek(EnhancedConsumer consumer) {
     var seekOperations = SeekOperations.create(consumer, consumerPosition);
     var seekOffsets = new HashMap<>(seekOperations.getEndOffsets()); // defaulting offsets to topic end

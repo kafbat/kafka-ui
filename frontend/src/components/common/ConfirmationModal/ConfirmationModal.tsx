@@ -4,6 +4,7 @@ import { ConfirmContext } from 'components/contexts/ConfirmContext';
 
 import * as S from './ConfirmationModal.styled';
 
+/** Renders the active confirmation prompt with keyboard and modal semantics. */
 const ConfirmationModal: React.FC = () => {
   const context = React.useContext(ConfirmContext);
   const isOpen = context?.content && context?.confirm;

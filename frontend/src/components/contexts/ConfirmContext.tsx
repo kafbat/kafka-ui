@@ -26,6 +26,7 @@ interface ConfirmContextType {
 
 export const ConfirmContext = createContext<ConfirmContextType | null>(null);
 
+/** Provides shared confirmation-dialog state and reset behavior to the app. */
 export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const [content, setContent] = useState<ReactNode>(null);
   const [confirm, setConfirm] = useState<(() => void) | undefined>(undefined);
@@ -34,6 +35,7 @@ export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const [title, setTitle] = useState('Confirm the action');
   const [confirmLabel, setConfirmLabel] = useState('Confirm');
 
+  /** Dismisses the prompt and restores its default labels and title. */
   const cancel = () => {
     setContent(null);
     setConfirm(undefined);
