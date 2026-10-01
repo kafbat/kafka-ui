@@ -233,6 +233,9 @@ const baseTheme = {
       blank: Colors.neutral[10],
       custom: Colors.neutral[10],
     },
+    textColor: {
+      warning: Colors.neutral[90],
+    },
     shadow: Colors.transparency[20],
   },
   circularAlert: {

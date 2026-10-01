@@ -23,6 +23,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
   protected final ConsumerPosition consumerPosition;
   protected final int messagesPerPage;
 
+  /** Creates a range-based emitter with page state and cursor tracking. */
   protected RangePollingEmitter(Supplier<EnhancedConsumer> consumerSupplier,
                                 ConsumerPosition consumerPosition,
                                 int messagesPerPage,
@@ -40,11 +41,13 @@ abstract class RangePollingEmitter extends AbstractEmitter {
   }
 
   //should return empty map if polling should be stopped
+  /** Selects the next bounded offset range for each active partition. */
   protected abstract TreeMap<TopicPartition, FromToOffset> nextPollingRange(
       TreeMap<TopicPartition, FromToOffset> prevRange, //empty on start
       SeekOperations seekOperations
   );
 
+  /** Polls ranges until the page, byte budget, or requested range is exhausted. */
   @Override
   public void accept(FluxSink<TopicMessageEventDTO> sink) {
     log.debug("Starting polling for {}", consumerPosition);
@@ -56,10 +59,12 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       TreeMap<TopicPartition, FromToOffset> pollRange = nextPollingRange(new TreeMap<>(), seekOperations);
       log.debug("Starting from offsets {}", pollRange);
 
-      while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached()) {
+      while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached() && !isBytesLimitReached()) {
         var polled = poll(consumer, sink, pollRange);
-        send(sink, polled, cursor);
-        pollRange = nextPollingRange(pollRange, seekOperations);
+        sendAndTrackConsumption(sink, polled, cursor);
+        if (!isBytesLimitReached()) {
+          pollRange = nextPollingRange(pollRange, seekOperations);
+        }
       }
       if (sink.isCancelled()) {
         log.debug("Polling finished due to sink cancellation");
@@ -75,6 +80,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
     }
   }
 
+  /** Collects records from each partition without admitting them before global ordering. */
   private List<ConsumerRecord<Bytes, Bytes>> poll(EnhancedConsumer consumer,
                                                   FluxSink<TopicMessageEventDTO> sink,
                                                   TreeMap<TopicPartition, FromToOffset> range) {
@@ -89,17 +95,23 @@ abstract class RangePollingEmitter extends AbstractEmitter {
     Set<TopicPartition> paused = new HashSet<>();
     while (!sink.isCancelled() && paused.size() < range.size()) {
       var polledRecords = poll(sink, consumer);
-      range.forEach((tp, fromTo) -> {
-        polledRecords.records(tp).stream()
-            .filter(r -> r.offset() < fromTo.to)
-            .forEach(result::add);
+      for (var entry : range.entrySet()) {
+        var tp = entry.getKey();
+        var fromTo = entry.getValue();
+        for (var kafkaRecord : polledRecords.records(tp)) {
+          if (kafkaRecord.offset() >= fromTo.to) {
+            continue;
+          }
+          result.add(kafkaRecord);
+        }
 
         //next position is out of target range -> pausing partition
         if (!paused.contains(tp) && consumer.position(tp) >= fromTo.to) {
           paused.add(tp);
           consumer.pause(List.of(tp));
         }
-      });
+      }
+      sendConsuming(sink, polledRecords);
     }
     consumer.resume(paused);
     return result;

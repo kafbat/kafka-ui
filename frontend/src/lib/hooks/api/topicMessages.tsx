@@ -23,11 +23,21 @@ import { useMessageFiltersStore } from 'lib/hooks/useMessageFiltersStore';
 import { TopicName } from 'lib/interfaces/topic';
 import { ClusterName } from 'lib/interfaces/cluster';
 
+export interface DownloadTopicMessageParams {
+  clusterName: ClusterName;
+  topicName: TopicName;
+  partition: number;
+  offset: number;
+  keySerde?: string;
+  valueSerde?: string;
+}
+
 interface UseTopicMessagesProps {
   clusterName: ClusterName;
   topicName: TopicName;
 }
 
+/** Streams messages and consumption state for the current topic-message filters. */
 export const useTopicMessages = ({
   clusterName,
   topicName,
@@ -38,6 +48,7 @@ export const useTopicMessages = ({
   const [consumptionStats, setConsumptionStats] =
     React.useState<TopicMessageConsuming>();
   const [isFetching, setIsFetching] = React.useState(false);
+  const [fetchRequestId, setFetchRequestId] = React.useState(0);
   const abortController = useRef(new AbortController());
   const prevCursor = useRef(0);
 
@@ -57,6 +68,7 @@ export const useTopicMessages = ({
     );
 
     const fetchData = async () => {
+      setFetchRequestId((current) => current + 1);
       setIsFetching(true);
 
       const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
@@ -154,6 +166,9 @@ export const useTopicMessages = ({
             case TopicMessageEventTypeEnum.CONSUMING:
               if (consuming) setConsumptionStats(consuming);
               break;
+            case TopicMessageEventTypeEnum.DONE:
+              if (consuming) setConsumptionStats(consuming);
+              break;
             default:
           }
         },
@@ -185,10 +200,49 @@ export const useTopicMessages = ({
     messages,
     consumptionStats,
     isFetching,
+    fetchRequestId,
+    keySerde: searchParams.get(MessagesFilterKeys.keySerde) || undefined,
+    valueSerde: searchParams.get(MessagesFilterKeys.valueSerde) || undefined,
     abortFetchData,
   };
 };
 
+/** Fetches an exact topic record and triggers a JSON file download. */
+export async function downloadTopicMessage({
+  clusterName,
+  topicName,
+  partition,
+  offset,
+  keySerde,
+  valueSerde,
+}: DownloadTopicMessageParams) {
+  const url = `${BASE_PARAMS.basePath}/api/clusters/${encodeURIComponent(
+    clusterName
+  )}/topics/${encodeURIComponent(topicName)}/messages/${partition}/${offset}/download`;
+
+  const params = new URLSearchParams();
+  if (keySerde) params.set(MessagesFilterKeys.keySerde, keySerde);
+  if (valueSerde) params.set(MessagesFilterKeys.valueSerde, valueSerde);
+
+  const response = await fetch(`${url}?${params.toString()}`, {
+    credentials: BASE_PARAMS.credentials,
+  });
+
+  if (!response.ok) {
+    throw response;
+  }
+
+  const blob = await response.blob();
+  const link = window.document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = `${topicName}-${partition}-${offset}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(link.href);
+}
+
+/** Loads available serializers/deserializers for the selected topic and usage. */
 export function useSerdes(props: GetSerdesRequest) {
   const { clusterName, topicName, use } = props;
 
@@ -201,6 +255,7 @@ export function useSerdes(props: GetSerdesRequest) {
   });
 }
 
+/** Registers a CEL filter for a topic and returns its mutation state. */
 export function useRegisterSmartFilter({
   clusterName,
   topicName,

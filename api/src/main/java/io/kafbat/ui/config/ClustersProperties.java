@@ -110,6 +110,7 @@ public class ClustersProperties {
     Integer pollTimeoutMs;
     Integer maxPageSize;
     Integer defaultPageSize;
+    Long maxBytesConsumed;
     Integer responseTimeoutMs;
   }
 

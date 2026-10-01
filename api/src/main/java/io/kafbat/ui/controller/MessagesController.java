@@ -18,6 +18,7 @@ import io.kafbat.ui.model.SeekTypeDTO;
 import io.kafbat.ui.model.SerdeUsageDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionResultDTO;
+import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.model.TopicSerdeSuggestionDTO;
 import io.kafbat.ui.model.rbac.AccessContext;
@@ -32,7 +33,9 @@ import java.util.Optional;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -92,6 +95,7 @@ public class MessagesController extends AbstractController implements MessagesAp
   }
 
 
+  /** Streams topic messages using the selected position, filters, and page cursor. */
   @Override
   public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessagesV2(String clusterName, String topicName,
                                                                              PollingModeDTO mode,
@@ -135,6 +139,37 @@ public class MessagesController extends AbstractController implements MessagesAp
     }
     return accessControlService.validateAccess(accessContext)
         .then(Mono.just(ResponseEntity.ok(messagesFlux)))
+        .doOnEach(sig -> auditService.audit(accessContext, sig));
+  }
+
+  /** Retrieves one retained topic message and returns it as a JSON attachment. */
+  @Override
+  public Mono<ResponseEntity<TopicMessageDTO>> downloadTopicMessage(String clusterName,
+                                                                    String topicName,
+                                                                    Integer partition,
+                                                                    Long offset,
+                                                                    String keySerde,
+                                                                    String valueSerde,
+                                                                    ServerWebExchange exchange) {
+    var contextBuilder = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("downloadTopicMessage");
+
+    if (auditService.isAuditTopic(getCluster(clusterName), topicName)) {
+      contextBuilder.auditActions(AuditAction.VIEW);
+    } else {
+      contextBuilder.topicActions(topicName, MESSAGES_READ);
+    }
+
+    var accessContext = contextBuilder.build();
+    return accessControlService.validateAccess(accessContext)
+        .then(messagesService.downloadTopicMessage(
+            getCluster(clusterName), topicName, partition, offset, keySerde, valueSerde))
+        .map(message -> ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"%s-%s-%s.json\"".formatted(topicName, partition, offset))
+            .body(message))
         .doOnEach(sig -> auditService.audit(accessContext, sig));
   }
 

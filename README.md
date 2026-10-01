@@ -150,6 +150,30 @@ The info endpoint (build info) is located at `/actuator/info`.
 
 All environment variables and configuration properties can be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
+## Topic message consumption limit
+
+Kafbat UI limits the total message bytes loaded by each topic-message request to
+protect browser rendering. The default limit is 5 MiB. Configure it globally in
+bytes with the `KAFKA_POLLING_MAXBYTESCONSUMED` environment variable:
+
+```yaml
+services:
+  kafbat-ui:
+    environment:
+      KAFKA_POLLING_MAXBYTESCONSUMED: 10485760 # 10 MiB
+```
+
+The equivalent application configuration is:
+
+```yaml
+kafka:
+  polling:
+    maxBytesConsumed: 10485760
+```
+
+This setting applies to all configured clusters. It is not a
+`KAFKA_CLUSTERS_<index>_*` property. Restart Kafka UI after changing it.
+
 # Contributing
 
 Please refer to the [contributing guide](https://ui.docs.kafbat.io/development/contributing); we'll guide you from there.

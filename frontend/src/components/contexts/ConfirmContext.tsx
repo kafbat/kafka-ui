@@ -18,19 +18,29 @@ interface ConfirmContextType {
   setDangerButton: Dispatch<SetStateAction<boolean>>;
   isConfirming: boolean;
   setIsConfirming: Dispatch<SetStateAction<boolean>>;
+  title: string;
+  setTitle: Dispatch<SetStateAction<string>>;
+  confirmLabel: string;
+  setConfirmLabel: Dispatch<SetStateAction<string>>;
 }
 
 export const ConfirmContext = createContext<ConfirmContextType | null>(null);
 
+/** Provides shared confirmation-dialog state and reset behavior to the app. */
 export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const [content, setContent] = useState<ReactNode>(null);
   const [confirm, setConfirm] = useState<(() => void) | undefined>(undefined);
   const [dangerButton, setDangerButton] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [title, setTitle] = useState('Confirm the action');
+  const [confirmLabel, setConfirmLabel] = useState('Confirm');
 
+  /** Dismisses the prompt and restores its default labels and title. */
   const cancel = () => {
     setContent(null);
     setConfirm(undefined);
+    setTitle('Confirm the action');
+    setConfirmLabel('Confirm');
   };
 
   return (
@@ -45,6 +55,10 @@ export const ConfirmContextProvider: FC<PropsWithChildren> = ({ children }) => {
         setDangerButton,
         isConfirming,
         setIsConfirming,
+        title,
+        setTitle,
+        confirmLabel,
+        setConfirmLabel,
       }}
     >
       {children}

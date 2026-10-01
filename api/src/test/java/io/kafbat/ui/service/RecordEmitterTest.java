@@ -345,6 +345,39 @@ class RecordEmitterTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void forwardEmitterStopsWhenByteLimitReachedAndCanResumeWithoutSkipping() {
+    long bytesLimit = 50;
+    var cursor = new Cursor.Tracking(RECORD_DESERIALIZER,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        NOOP_FILTER,
+        PARTITIONS * MSGS_PER_PARTITION,
+        c -> "cursor-id");
+
+    var emitter = new ForwardEmitter(
+        this::createConsumer,
+        new ConsumerPosition(EARLIEST, TOPIC, List.of(), null, null),
+        PARTITIONS * MSGS_PER_PARTITION,
+        RECORD_DESERIALIZER,
+        NOOP_FILTER,
+        PollingSettings.createDefault(bytesLimit),
+        cursor
+    );
+
+    var events = Flux.create(emitter).collectList().block();
+
+    assertThat(events)
+        .filteredOn(m -> TopicMessageEventDTO.TypeEnum.MESSAGE.equals(m.getType()))
+        .hasSizeGreaterThan(0)
+        .hasSizeLessThan(PARTITIONS * MSGS_PER_PARTITION);
+    assertThat(events)
+        .filteredOn(m -> TopicMessageEventDTO.TypeEnum.DONE.equals(m.getType()))
+        .singleElement()
+        .matches(m -> Boolean.TRUE.equals(m.getConsuming().getBytesLimitReached())
+            && m.getConsuming().getBytesLimit() == bytesLimit
+            && m.getCursor() != null);
+  }
+
+  @Test
   void backwardEmitterCompletesWithZeroPageSize() {
     var emitter = new BackwardEmitter(
         this::createConsumer,

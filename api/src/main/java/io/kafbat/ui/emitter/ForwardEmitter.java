@@ -13,6 +13,7 @@ import org.apache.kafka.common.TopicPartition;
 
 public class ForwardEmitter extends RangePollingEmitter {
 
+  /** Creates an emitter that reads each partition in ascending offset order. */
   public ForwardEmitter(Supplier<EnhancedConsumer> consumerSupplier,
                         ConsumerPosition consumerPosition,
                         int messagesPerPage,
@@ -24,12 +25,13 @@ public class ForwardEmitter extends RangePollingEmitter {
         consumerSupplier,
         consumerPosition,
         messagesPerPage,
-        new MessagesProcessing(deserializer, filter, true, messagesPerPage),
+        new MessagesProcessing(deserializer, filter, true, messagesPerPage, pollingSettings.getMaxBytesConsumed()),
         pollingSettings,
         cursor
     );
   }
 
+  /** Builds the next forward range, starting at seek offsets and respecting partition ends. */
   @Override
   protected TreeMap<TopicPartition, FromToOffset> nextPollingRange(TreeMap<TopicPartition, FromToOffset> prevRange,
                                                                    SeekOperations seekOperations) {

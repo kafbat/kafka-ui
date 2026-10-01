@@ -1,7 +1,7 @@
 import PageLoader from 'components/common/PageLoader/PageLoader';
 import { Table } from 'components/common/table/Table/Table.styled';
 import TableHeaderCell from 'components/common/table/TableHeaderCell/TableHeaderCell';
-import { TopicMessage } from 'generated-sources';
+import { TopicMessage, TopicMessageBlocked } from 'generated-sources';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from 'components/common/Button/Button';
 import * as S from 'components/common/NewTable/Table.styled';
@@ -12,11 +12,17 @@ import { RouteParamsClusterTopic } from 'lib/paths';
 import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 
 import Message, { PreviewFilter } from './Message';
+import BlockedMessage from './BlockedMessage';
 import PreviewModal from './PreviewModal';
 
 export interface MessagesTableProps {
   messages: TopicMessage[];
   isFetching: boolean;
+  fetchRequestId?: number;
+  keySerde?: string;
+  valueSerde?: string;
+  bytesLimitReached?: boolean;
+  blockedMessage?: TopicMessageBlocked;
 }
 
 interface MessagePreviewProps {
@@ -26,9 +32,15 @@ interface MessagePreviewProps {
   };
 }
 
+/** Displays streamed records and blocked-message recovery actions. */
 const MessagesTable: React.FC<MessagesTableProps> = ({
   messages,
   isFetching,
+  fetchRequestId = 0,
+  keySerde,
+  valueSerde,
+  bytesLimitReached = false,
+  blockedMessage,
 }) => {
   const paginate = usePaginateTopics();
   const [previewFor, setPreviewFor] = useState<'key' | 'content' | null>(null);
@@ -36,7 +48,11 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
   const [contentFilters, setContentFilters] = useState<PreviewFilter[]>([]);
   const nextCursor = useMessageFiltersStore((state) => state.nextCursor);
   const isLive = useIsLiveMode();
-  const { topicName } = useAppParams<RouteParamsClusterTopic>();
+  const { clusterName, topicName } = useAppParams<RouteParamsClusterTopic>();
+  const [openedMessages, setOpenedMessages] = useState<TopicMessage[]>([]);
+  const currentFetchRequestId = React.useRef(fetchRequestId);
+  currentFetchRequestId.current = fetchRequestId;
+  const visibleMessages = [...messages, ...openedMessages];
   const [messagesPreview, setMessagesPreview] =
     useLocalStorage<MessagePreviewProps>('message-preview', {
       [topicName]: {
@@ -49,6 +65,10 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
     setKeyFilters(messagesPreview[topicName]?.keyFilters || []);
     setContentFilters(messagesPreview[topicName]?.contentFilters || []);
   }, []);
+
+  useEffect(() => {
+    setOpenedMessages([]);
+  }, [fetchRequestId]);
 
   const setFilters = useCallback(
     (payload: PreviewFilter[]) => {
@@ -111,7 +131,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {messages.map((message: TopicMessage) => (
+          {visibleMessages.map((message: TopicMessage) => (
             <Message
               key={[
                 message.offset,
@@ -124,32 +144,54 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
               contentFilters={contentFilters}
             />
           ))}
-          {isFetching && !messages.length && (
+          {blockedMessage &&
+            !visibleMessages.some(
+              ({ partition, offset }) =>
+                partition === blockedMessage.partition &&
+                offset === blockedMessage.offset
+            ) && (
+              <BlockedMessage
+                blockedMessage={blockedMessage}
+                clusterName={clusterName}
+                topicName={topicName}
+                fetchRequestId={fetchRequestId}
+                keySerde={keySerde}
+                valueSerde={valueSerde}
+                onOpen={(message, requestId) => {
+                  if (requestId === currentFetchRequestId.current) {
+                    setOpenedMessages((current) => [...current, message]);
+                  }
+                }}
+              />
+            )}
+          {isFetching && !visibleMessages.length && (
             <tr>
               <td colSpan={10}>
                 <PageLoader />
               </td>
             </tr>
           )}
-          {messages.length === 0 && !isFetching && (
+          {visibleMessages.length === 0 && !blockedMessage && !isFetching && (
             <tr>
               <td colSpan={10}>No messages found</td>
             </tr>
           )}
         </tbody>
       </Table>
-      <S.Pagination>
-        <S.Pages>
-          <Button
-            disabled={isLive || isFetching || !nextCursor}
-            buttonType="secondary"
-            buttonSize="L"
-            onClick={paginate}
-          >
-            Next →
-          </Button>
-        </S.Pages>
-      </S.Pagination>
+      {!bytesLimitReached && (
+        <S.Pagination>
+          <S.Pages>
+            <Button
+              disabled={isLive || isFetching || !nextCursor}
+              buttonType="secondary"
+              buttonSize="L"
+              onClick={paginate}
+            >
+              Next →
+            </Button>
+          </S.Pages>
+        </S.Pagination>
+      )}
     </div>
   );
 };

@@ -1,15 +1,25 @@
 import { showAlert, showSuccessAlert } from 'lib/errorHandling';
 
+/**
+ * Creates clipboard and file-saving actions for data supplied as a value or getter.
+ */
 const useDataSaver = (
   subject: string,
-  data: Record<string, string> | string
+  data:
+    | Record<string, string>
+    | string
+    | (() => Record<string, string> | string)
 ) => {
+  const getData = () => (typeof data === 'function' ? data() : data);
+
+  /** Copies the current data representation when clipboard access is available. */
   const copyToClipboard = () => {
     if (navigator.clipboard) {
+      const currentData = getData();
       const str =
-        typeof data === 'string'
-          ? String(data)
-          : JSON.stringify(data, null, '\t');
+        typeof currentData === 'string'
+          ? String(currentData)
+          : JSON.stringify(currentData, null, '\t');
       navigator.clipboard.writeText(str);
       showSuccessAlert({
         id: subject,
@@ -25,8 +35,10 @@ const useDataSaver = (
       });
     }
   };
+  /** Saves the current data as a browser-downloaded JSON file. */
   const saveFile = () => {
-    const blob = new Blob([data as BlobPart], { type: 'text/json' });
+    const currentData = getData();
+    const blob = new Blob([currentData as BlobPart], { type: 'text/json' });
     const elem = window.document.createElement('a');
     elem.href = window.URL.createObjectURL(blob);
     elem.download = subject;

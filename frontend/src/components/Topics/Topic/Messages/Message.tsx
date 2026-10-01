@@ -30,6 +30,7 @@ export interface Props {
   message: TopicMessage;
 }
 
+/** Renders one topic message with filtered previews and message actions. */
 const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
@@ -53,25 +54,31 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     keyDeserializeProperties,
   } = message;
 
-  const savedMessageJson = {
-    Value: value,
-    Offset: offset,
-    Key: key,
-    Partition: partition,
-    Headers: headers,
-    Timestamp: timestamp,
-  };
-
-  const savedMessage = JSON.stringify(savedMessageJson, null, '\t');
+  /** Formats the displayed record fields for clipboard and file actions. */
+  const createSavedMessage = () =>
+    JSON.stringify(
+      {
+        Value: value,
+        Offset: offset,
+        Key: key,
+        Partition: partition,
+        Headers: headers,
+        Timestamp: timestamp,
+      },
+      null,
+      '\t'
+    );
   const { copyToClipboard, saveFile } = useDataSaver(
     'topic-message',
-    savedMessage || ''
+    createSavedMessage
   );
 
+  /** Toggles the expanded content panel for this record. */
   const toggleIsOpen = () => setIsOpen(!isOpen);
 
   const [vEllipsisOpen, setVEllipsisOpen] = React.useState(false);
 
+  /** Parses JSON preview content, returning an empty object for malformed text. */
   const getParsedJson = (jsonValue: string) => {
     try {
       return JSON.parse(jsonValue);
@@ -80,6 +87,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     }
   };
 
+  /** Renders selected JSONPath values, or the complete value when no filters apply. */
   const renderFilteredJson = (
     jsonValue?: string,
     filters?: PreviewFilter[]
@@ -117,9 +125,11 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
         onClick={toggleIsOpen}
       >
         <td>
-          <IconButtonWrapper aria-hidden>
-            <MessageToggleIcon isOpen={isOpen} />
-          </IconButtonWrapper>
+          <S.RowToggle>
+            <IconButtonWrapper aria-hidden>
+              <MessageToggleIcon isOpen={isOpen} />
+            </IconButtonWrapper>
+          </S.RowToggle>
         </td>
         <td>{offset}</td>
         <td>{partition}</td>
