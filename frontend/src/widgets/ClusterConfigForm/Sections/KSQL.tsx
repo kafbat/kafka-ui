@@ -13,7 +13,7 @@ const KSQL = () => {
     setConfigOpen((prevConfigOpen) => !prevConfigOpen);
     setValue(
       'ksql',
-      ksql ? { isActive: false } : { isActive: false, url: '', isAuth: false },
+      ksql ? { isActive: false } : { isActive: true, url: '', isAuth: false },
       {
         shouldValidate: true,
         shouldDirty: true,
