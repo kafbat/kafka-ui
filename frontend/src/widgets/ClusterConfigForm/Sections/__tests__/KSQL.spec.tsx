@@ -80,4 +80,33 @@ describe('KSQL section', () => {
       expect.not.objectContaining({ ksqldbServer: expect.anything() })
     );
   });
+
+  it('saves the config again after a remove and reopen', async () => {
+    const user = userEvent.setup();
+    const onPayload = jest.fn();
+    render(<KsqlHarness onPayload={onPayload} />);
+
+    // Open, close, then open again. After the close, `ksql` still holds
+    // `{ isActive: false }`, so branching on its truthiness would leave the
+    // reopened section inactive and drop the URL on save.
+    await user.click(
+      screen.getByRole('button', { name: /configure ksql db/i })
+    );
+    await screen.findByLabelText(/url/i);
+    await user.click(
+      screen.getByRole('button', { name: /remove from config/i })
+    );
+    await user.click(
+      screen.getByRole('button', { name: /configure ksql db/i })
+    );
+
+    expect(await screen.findByLabelText(/url/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/url/i), 'http://ksql:8088');
+    await user.click(screen.getByRole('button', { name: 'submit' }));
+
+    expect(onPayload).toHaveBeenCalledWith(
+      expect.objectContaining({ ksqldbServer: 'http://ksql:8088' })
+    );
+  });
 });
