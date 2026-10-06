@@ -150,7 +150,7 @@ public class DynamicConfigOperations {
     });
   }
 
-  private void checkIfDynamicConfigEnabled() {
+  public void checkIfDynamicConfigEnabled() {
     if (!dynamicConfigEnabled()) {
       throw new ValidationException(
           "Dynamic config change is not allowed. "
