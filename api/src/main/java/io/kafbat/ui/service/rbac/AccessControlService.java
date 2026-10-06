@@ -107,7 +107,7 @@ public class AccessControlService {
     if (!rbacEnabled) {
       return Mono.just(true);
     }
-    return getUser().map(user -> isAccessible(user, context));
+    return getUser().map(user -> isAccessible(user, context)).defaultIfEmpty(false);
   }
 
   private boolean isAccessible(AuthenticatedUser user, AccessContext context) {
