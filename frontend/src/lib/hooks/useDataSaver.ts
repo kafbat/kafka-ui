@@ -2,14 +2,19 @@ import { showAlert, showSuccessAlert } from 'lib/errorHandling';
 
 const useDataSaver = (
   subject: string,
-  data: Record<string, string> | string
+  data:
+    | Record<string, string>
+    | string
+    | (() => Record<string, string> | string)
 ) => {
+  const getData = () => (typeof data === 'function' ? data() : data);
   const copyToClipboard = () => {
     if (navigator.clipboard) {
+      const currentData = getData();
       const str =
-        typeof data === 'string'
-          ? String(data)
-          : JSON.stringify(data, null, '\t');
+        typeof currentData === 'string'
+          ? currentData
+          : JSON.stringify(currentData, null, '\t');
       navigator.clipboard.writeText(str);
       showSuccessAlert({
         id: subject,
@@ -26,13 +31,15 @@ const useDataSaver = (
     }
   };
   const saveFile = () => {
-    const blob = new Blob([data as BlobPart], { type: 'text/json' });
+    const currentData = getData();
+    const blob = new Blob([currentData as BlobPart], { type: 'text/json' });
     const elem = window.document.createElement('a');
     elem.href = window.URL.createObjectURL(blob);
     elem.download = subject;
     document.body.appendChild(elem);
     elem.click();
     document.body.removeChild(elem);
+    window.URL.revokeObjectURL(elem.href);
   };
 
   return { copyToClipboard, saveFile };

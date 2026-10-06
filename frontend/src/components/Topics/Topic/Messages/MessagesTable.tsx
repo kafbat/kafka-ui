@@ -113,12 +113,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
         <tbody>
           {messages.map((message: TopicMessage) => (
             <Message
-              key={[
-                message.offset,
-                message.timestamp,
-                message.key,
-                message.partition,
-              ].join('-')}
+              key={`${topicName}-${message.partition}-${message.offset}`}
               message={message}
               keyFilters={keyFilters}
               contentFilters={contentFilters}

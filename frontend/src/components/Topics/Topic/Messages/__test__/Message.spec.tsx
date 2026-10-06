@@ -6,6 +6,10 @@ import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
 import useAppParams from 'lib/hooks/useAppParams';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
+import {
+  CONTENT_PREVIEW_LENGTH,
+  ROW_PREVIEW_LENGTH,
+} from 'components/Topics/Topic/Messages/preview';
 import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
 import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAccessContext';
@@ -93,6 +97,50 @@ describe('Message component', () => {
     expect(
       screen.getByText(mockMessage.partition.toString())
     ).toBeInTheDocument();
+  });
+
+  it('bounds large values and titles without evaluating JSONPath previews', () => {
+    const value = `{"large":"${'x'.repeat(CONTENT_PREVIEW_LENGTH * 2)}"}`;
+    renderComponent({
+      message: { ...mockMessage, value, key: value },
+      keyFilters: [mockKeyFilters],
+      contentFilters: [mockContentFilters],
+    });
+    const titledCells = screen
+      .getAllByRole('cell')
+      .filter((cell) => cell.hasAttribute('title'));
+    expect(titledCells).toHaveLength(2);
+    titledCells.forEach((cell) => {
+      expect(cell.getAttribute('title')!.length).toBeLessThanOrEqual(
+        ROW_PREVIEW_LENGTH
+      );
+      expect(cell).toHaveTextContent(
+        'JSONPath preview skipped for large content'
+      );
+      expect(cell.textContent!.length).toBeLessThan(ROW_PREVIEW_LENGTH + 100);
+    });
+    expect(screen.queryByText(value)).not.toBeInTheDocument();
+  });
+
+  it('requires confirmation to reproduce a large message without altering it', async () => {
+    const message = {
+      ...mockMessage,
+      value: 'x'.repeat(CONTENT_PREVIEW_LENGTH + 1),
+    };
+    renderComponent({ message }, mockRoles);
+    await userEvent.hover(screen.getByRole('row'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Dropdown Toggle' })
+    );
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Reproduce message' })
+    );
+    expect(mockOpenSidebarWithMessage).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'may make this tab slow or unresponsive'
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(mockOpenSidebarWithMessage).toHaveBeenCalledWith(message);
   });
 
   it('shows timestamp by default', () => {

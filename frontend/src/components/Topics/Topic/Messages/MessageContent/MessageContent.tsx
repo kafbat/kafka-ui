@@ -1,5 +1,4 @@
 import React from 'react';
-import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import {
   SchemaType,
   TopicMessage,
@@ -10,7 +9,9 @@ import { Button } from 'components/common/Button/Button';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
 import useDataSaver from 'lib/hooks/useDataSaver';
+import { previewHeaders } from 'components/Topics/Topic/Messages/preview';
 
+import ContentPreview from './ContentPreview';
 import * as S from './MessageContent.styled';
 import Serde from './components/Serde/Serde';
 
@@ -46,6 +47,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
   const { currentTimezone } = useTimezone();
 
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
+  const headersPreview = React.useMemo(
+    () => previewHeaders(headers),
+    [headers]
+  );
   const activeTabContent = () => {
     switch (activeTab) {
       case 'content':
@@ -53,13 +58,19 @@ const MessageContent: React.FC<MessageContentProps> = ({
       case 'key':
         return messageKey;
       default:
-        return JSON.stringify(headers);
+        return headersPreview.text;
     }
   };
 
   const tabContent = activeTabContent() || '';
 
-  const { copyToClipboard } = useDataSaver('topic-message', tabContent);
+  const { copyToClipboard, saveFile } = useDataSaver(
+    `topic-message-${activeTab}`,
+    () => {
+      if (activeTab === 'headers') return JSON.stringify(headers) || '';
+      return activeTab === 'key' ? messageKey || '' : messageContent || '';
+    }
+  );
 
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,7 +87,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
     setActiveTab('headers');
   };
 
-  const trimmedContent = messageContent?.trim();
+  const trimmedContent = tabContent.slice(0, 512).trimStart();
   const contentType =
     trimmedContent &&
     (trimmedContent.startsWith('{') || trimmedContent.startsWith('['))
@@ -119,11 +130,20 @@ const MessageContent: React.FC<MessageContentProps> = ({
               >
                 <ClipboardIcon />
               </Button>
+              <Button
+                type="button"
+                buttonSize="M"
+                buttonType="text"
+                onClick={saveFile}
+              >
+                Download full content
+              </Button>
             </S.Tabs>
-            <EditorViewer
+            <ContentPreview
+              key={activeTab}
               data={tabContent}
-              maxLines={28}
               schemaType={contentType}
+              truncated={activeTab === 'headers' && headersPreview.truncated}
             />
           </S.ContentBox>
           <S.MetadataWrapper>

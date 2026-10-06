@@ -27,6 +27,7 @@ export const ContentBox = styled.div`
   padding: 24px;
   border-radius: 8px 0 0 8px;
   flex-grow: 3;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   & nav {
@@ -113,4 +114,24 @@ export const SchemaLink = styled(Link)`
   }
 `;
 
-export const Tabs = styled.nav``;
+export const Tabs = styled.nav`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 8px;
+`;
+
+export const PlainPreview = styled.pre`
+  max-height: 532px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+`;
+
+export const PreviewActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+`;

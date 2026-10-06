@@ -15,7 +15,13 @@ import useAppParams from 'lib/hooks/useAppParams';
 import { RouteParamsClusterTopic } from 'lib/paths';
 import { useTopicActions } from 'components/contexts/TopicActionsContext';
 import ClusterContext from 'components/contexts/ClusterContext';
+import { useConfirm } from 'lib/hooks/useConfirm';
 
+import {
+  CONTENT_PREVIEW_LENGTH,
+  previewHeaders,
+  truncatePreview,
+} from './preview';
 import MessageContent from './MessageContent/MessageContent';
 import * as S from './MessageContent/MessageContent.styled';
 
@@ -34,6 +40,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const { currentTimezone } = useTimezone();
   const { topicName } = useAppParams<RouteParamsClusterTopic>();
   const { openSidebarWithMessage } = useTopicActions();
+  const confirm = useConfirm();
   const [isOpen, setIsOpen] = React.useState(false);
   const { messageRelativeTimestamp } = React.useContext(ClusterContext);
 
@@ -53,19 +60,22 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     keyDeserializeProperties,
   } = message;
 
-  const savedMessageJson = {
-    Value: value,
-    Offset: offset,
-    Key: key,
-    Partition: partition,
-    Headers: headers,
-    Timestamp: timestamp,
-  };
-
-  const savedMessage = JSON.stringify(savedMessageJson, null, '\t');
+  const createSavedMessage = () =>
+    JSON.stringify(
+      {
+        Value: value,
+        Offset: offset,
+        Key: key,
+        Partition: partition,
+        Headers: headers,
+        Timestamp: timestamp,
+      },
+      null,
+      '\t'
+    );
   const { copyToClipboard, saveFile } = useDataSaver(
     'topic-message',
-    savedMessage || ''
+    createSavedMessage
   );
 
   const toggleIsOpen = () => setIsOpen(!isOpen);
@@ -84,7 +94,15 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     jsonValue?: string,
     filters?: PreviewFilter[]
   ) => {
-    if (!filters?.length || !jsonValue) return jsonValue;
+    if (!filters?.length || !jsonValue) return truncatePreview(jsonValue);
+    if (jsonValue.length > CONTENT_PREVIEW_LENGTH) {
+      return (
+        <>
+          {truncatePreview(jsonValue)}
+          <span> (JSONPath preview skipped for large content)</span>
+        </>
+      );
+    }
     const parsedJson = getParsedJson(jsonValue);
 
     return (
@@ -93,8 +111,10 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
           return (
             <div key={`${item.path}--${item.field}`}>
               {item.field}:{' '}
-              {JSON.stringify(
-                JSONPath({ path: item.path, json: parsedJson, wrap: false })
+              {truncatePreview(
+                JSON.stringify(
+                  JSONPath({ path: item.path, json: parsedJson, wrap: false })
+                )
               )}
             </div>
           );
@@ -130,7 +150,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
             <div>{messageTimestamp}</div>
           )}
         </td>
-        <S.DataCell title={key}>
+        <S.DataCell title={truncatePreview(key)}>
           <Ellipsis text={renderFilteredJson(key, keyFilters)}>
             {keySerde === 'Fallback' && (
               <Tooltip
@@ -141,7 +161,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
             )}
           </Ellipsis>
         </S.DataCell>
-        <S.DataCell title={value}>
+        <S.DataCell title={truncatePreview(value)}>
           <S.Metadata>
             <S.MetadataValue>
               <Ellipsis text={renderFilteredJson(value, contentFilters)}>
@@ -171,7 +191,18 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
               <ActionDropdownItem
                 aria-label="Reproduce message"
                 onClick={() => {
-                  openSidebarWithMessage(message);
+                  if (
+                    (key?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+                    (value?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+                    previewHeaders(headers).truncated
+                  ) {
+                    confirm(
+                      'Opening this large message in the producer editor may make this tab slow or unresponsive. Download the message instead to inspect it without opening the editor.',
+                      () => openSidebarWithMessage(message)
+                    );
+                  } else {
+                    openSidebarWithMessage(message);
+                  }
                 }}
                 permission={{
                   resource: ResourceType.TOPIC,

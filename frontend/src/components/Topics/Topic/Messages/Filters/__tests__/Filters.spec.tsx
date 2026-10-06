@@ -81,6 +81,72 @@ describe('Filters component', () => {
     expect(screen.getByText('Refresh')).toBeInTheDocument();
   });
 
+  it.each(['JSON', 'CSV'])(
+    'generates the full %s export only on demand',
+    async (format) => {
+      const value = `${'x'.repeat(128 * 1024)}end`;
+      const message = {
+        partition: 0,
+        offset: 42,
+        timestamp: new Date('2026-01-01T00:00:00Z'),
+        key: 'key',
+        value,
+        headers: { header: 'original' },
+      };
+      const stringify = jest.spyOn(JSON, 'stringify');
+      let downloadedBlob: Blob | undefined;
+      global.URL.createObjectURL = jest.fn((blob: Blob) => {
+        downloadedBlob = blob;
+        return 'blob:export';
+      });
+      global.URL.revokeObjectURL = jest.fn();
+      const click = jest
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation();
+      renderComponent({ messages: [message] });
+      expect(stringify).not.toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ Value: value })]),
+        null,
+        '\t'
+      );
+      expect(global.URL.createObjectURL).not.toHaveBeenCalled();
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Export messages' })
+      );
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: `Export ${format}` })
+      );
+      const contents = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsText(downloadedBlob!);
+      });
+      if (format === 'JSON') {
+        expect(JSON.parse(contents)[0]).toEqual({
+          Value: value,
+          Offset: 42,
+          Key: 'key',
+          Partition: 0,
+          Headers: { header: 'original' },
+          Timestamp: message.timestamp.toISOString(),
+        });
+      } else {
+        expect(contents).toContain(`"${value}"`);
+        expect(contents).toContain(
+          'Value,Offset,Key,Partition,Headers,Timestamp'
+        );
+        expect(stringify).not.toHaveBeenCalledWith(
+          expect.arrayContaining([expect.objectContaining({ Value: value })]),
+          null,
+          '\t'
+        );
+      }
+      click.mockRestore();
+      stringify.mockRestore();
+    }
+  );
+
   describe('Filter Input default elements', () => {
     const inputValue = 'Hello World!';
 

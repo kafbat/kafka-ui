@@ -8,6 +8,7 @@ Web UI for managing Apache Kafka clusters
 ## Table of contents
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
+- [Large message previews](#large-message-previews)
 - [Links](#links)
 
 ## Requirements
@@ -75,6 +76,22 @@ Run the application
 ```sh
 pnpm dev
 ```
+## Large message previews
+
+The message table displays at most 512 characters of each key and value, including
+tooltips. JSONPath previews are skipped for fields larger than 64 Ki characters.
+Expanded fields larger than 64 Ki characters use unformatted plain-text previews;
+**Show more** replaces the current preview with the next bounded chunk rather than
+appending content indefinitely. Large headers have a bounded prefix preview.
+
+**Download full content**, clipboard actions, record downloads, and JSON/CSV exports
+use the original data, not the truncated preview. Exports are generated only when
+requested. Opening a large record in the producer editor requires confirmation.
+These are frontend rendering limits, not Kafka byte limits: polling, filters, and
+pagination are unchanged. Full records still arrive through SSE and reside in
+browser memory; arbitrarily large records or prolonged live consumption can still
+exhaust memory.
+
 ## Links
 
 * [Vite](https://github.com/vitejs/vite)
