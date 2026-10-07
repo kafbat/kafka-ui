@@ -9,7 +9,10 @@ import { Button } from 'components/common/Button/Button';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import { previewHeaders } from 'components/Topics/Topic/Messages/preview';
+import {
+  CONTENT_PREVIEW_LENGTH,
+  previewHeaders,
+} from 'components/Topics/Topic/Messages/preview';
 
 import ContentPreview from './ContentPreview';
 import * as S from './MessageContent.styled';
@@ -63,6 +66,13 @@ const MessageContent: React.FC<MessageContentProps> = ({
   };
 
   const tabContent = activeTabContent() || '';
+  const isTruncated =
+    tabContent.length > CONTENT_PREVIEW_LENGTH ||
+    (activeTab === 'headers' && headersPreview.truncated);
+  const hasLargeContent =
+    (messageKey?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+    (messageContent?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+    headersPreview.truncated;
 
   const { copyToClipboard, saveFile } = useDataSaver(
     `topic-message-${activeTab}`,
@@ -97,7 +107,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
   return (
     <S.Wrapper>
       <td colSpan={10}>
-        <S.Section>
+        <S.Section $bounded={hasLargeContent}>
           <S.ContentBox>
             <S.Tabs>
               <S.Tab
@@ -130,20 +140,23 @@ const MessageContent: React.FC<MessageContentProps> = ({
               >
                 <ClipboardIcon />
               </Button>
-              <Button
-                type="button"
-                buttonSize="M"
-                buttonType="text"
-                onClick={saveFile}
-              >
-                Download full content
-              </Button>
+              {!isTruncated && (
+                <Button
+                  type="button"
+                  buttonSize="M"
+                  buttonType="text"
+                  onClick={saveFile}
+                >
+                  Download full content
+                </Button>
+              )}
             </S.Tabs>
             <ContentPreview
               key={activeTab}
               data={tabContent}
               schemaType={contentType}
               truncated={activeTab === 'headers' && headersPreview.truncated}
+              onDownload={saveFile}
             />
           </S.ContentBox>
           <S.MetadataWrapper>

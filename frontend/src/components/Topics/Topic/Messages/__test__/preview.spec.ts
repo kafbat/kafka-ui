@@ -22,6 +22,18 @@ describe('message previews', () => {
     expect(original).toHaveLength(ROW_PREVIEW_LENGTH + 1);
   });
 
+  it.each([ROW_PREVIEW_LENGTH - 1, ROW_PREVIEW_LENGTH, ROW_PREVIEW_LENGTH + 1])(
+    'bounds a row of %i code units',
+    (length) => {
+      const text = 'x'.repeat(length);
+      expect(truncatePreview(text)).toHaveLength(
+        Math.min(length, ROW_PREVIEW_LENGTH)
+      );
+      if (length <= ROW_PREVIEW_LENGTH)
+        expect(truncatePreview(text)).toBe(text);
+    }
+  );
+
   it('does not split surrogate pairs', () => {
     expect(truncatePreview('abc😀rest', 7)).toBe('abc...');
   });
@@ -33,6 +45,20 @@ describe('message previews', () => {
       truncated: false,
     });
     expect(previewHeaders(undefined)).toEqual({ text: '', truncated: false });
+  });
+
+  it.each([
+    CONTENT_PREVIEW_LENGTH - 1,
+    CONTENT_PREVIEW_LENGTH,
+    CONTENT_PREVIEW_LENGTH + 1,
+  ])('bounds headers serialized to %i code units', (length) => {
+    const headers = {
+      a: 'x'.repeat(length - JSON.stringify({ a: '' }).length),
+    };
+    const preview = previewHeaders(headers);
+    expect(preview.text).toHaveLength(Math.min(length, CONTENT_PREVIEW_LENGTH));
+    expect(preview.truncated).toBe(length > CONTENT_PREVIEW_LENGTH);
+    if (!preview.truncated) expect(preview.text).toBe(JSON.stringify(headers));
   });
 
   it.each([

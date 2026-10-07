@@ -10,6 +10,8 @@ import userEvent from '@testing-library/user-event';
 import { render } from 'lib/testHelpers';
 import { theme } from 'theme/theme';
 import { CONTENT_PREVIEW_LENGTH } from 'components/Topics/Topic/Messages/preview';
+import Message from 'components/Topics/Topic/Messages/Message';
+import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 
 const setupWrapper = (props?: Partial<MessageContentProps>) => {
   return (
@@ -50,6 +52,40 @@ describe('MessageContent screen', () => {
         'Headers preview truncated'
       );
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('resets viewing for a different record with identical content', async () => {
+      const record = (offset: number) => (
+        <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+          <table>
+            <tbody>
+              <Message
+                message={{
+                  partition: 0,
+                  offset,
+                  timestamp: new Date(0),
+                  value,
+                }}
+                keyFilters={[]}
+                contentFilters={[]}
+              />
+            </tbody>
+          </table>
+        </TopicActionsProvider>
+      );
+      const { rerender } = render(record(1));
+      await userEvent.click(screen.getByRole('row'));
+      await userEvent.click(screen.getByRole('button', { name: 'Show more' }));
+      expect(
+        screen.getByRole('button', { name: 'Previous preview' })
+      ).toBeEnabled();
+      rerender(record(2));
+      expect(
+        screen.getByRole('button', { name: 'Previous preview' })
+      ).toBeDisabled();
+      expect(screen.getByRole('status')).toHaveTextContent(
+        `Showing characters 1-${CONTENT_PREVIEW_LENGTH}`
+      );
     });
 
     it('downloads the complete active field rather than its preview', async () => {

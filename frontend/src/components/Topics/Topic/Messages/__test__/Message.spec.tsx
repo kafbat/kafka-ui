@@ -1,9 +1,10 @@
 import React from 'react';
 import { ResourceType } from 'generated-sources';
 import Message, { Props } from 'components/Topics/Topic/Messages/Message';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
+import { theme } from 'theme/theme';
 import useAppParams from 'lib/hooks/useAppParams';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
 import {
@@ -117,9 +118,14 @@ describe('Message component', () => {
       expect(cell).toHaveTextContent(
         'JSONPath preview skipped for large content'
       );
-      expect(cell.textContent!.length).toBeLessThan(ROW_PREVIEW_LENGTH + 100);
+      expect(cell.textContent!.length).toBeLessThan(ROW_PREVIEW_LENGTH + 160);
     });
     expect(screen.queryByText(value)).not.toBeInTheDocument();
+    expect(screen.getByRole('row')).toHaveStyleRule(
+      'background',
+      theme.alert.color.warning
+    );
+    expect(screen.getByText('Preview truncated')).toBeInTheDocument();
   });
 
   it('requires confirmation to reproduce a large message without altering it', async () => {
@@ -136,12 +142,44 @@ describe('Message component', () => {
       screen.getByRole('menuitem', { name: 'Reproduce message' })
     );
     expect(mockOpenSidebarWithMessage).not.toHaveBeenCalled();
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'may make this tab slow or unresponsive'
+    const dialog = screen.getByRole('dialog', {
+      name: 'Open large message in producer editor?',
+    });
+    expect(dialog).toHaveTextContent('may make this tab slow or unresponsive');
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Open anyway' })
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(mockOpenSidebarWithMessage).toHaveBeenCalledWith(message);
   });
+
+  it.each(['Cancel', 'Escape'])(
+    'does not reproduce a large message on %s',
+    async (action) => {
+      renderComponent(
+        {
+          message: {
+            ...mockMessage,
+            headers: { large: 'x'.repeat(CONTENT_PREVIEW_LENGTH + 1) },
+          },
+        },
+        mockRoles
+      );
+      await userEvent.hover(screen.getByRole('row'));
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Dropdown Toggle' })
+      );
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Reproduce message' })
+      );
+      if (action === 'Cancel') {
+        await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      } else {
+        await userEvent.keyboard('{Escape}');
+      }
+      expect(mockOpenSidebarWithMessage).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    }
+  );
 
   it('shows timestamp by default', () => {
     renderComponent();

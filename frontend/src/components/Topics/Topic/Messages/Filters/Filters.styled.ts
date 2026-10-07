@@ -67,6 +67,53 @@ export const Message = styled.div`
   font-size: 14px;
   color: ${({ theme }) => theme.metrics.filters.color.normal};
 `;
+
+export const Warning = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 4px;
+  background: ${({ theme }) => theme.alert.color.warning};
+  color: ${({ theme }) => theme.alert.textColor.warning};
+
+  @media (max-width: 960px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+`;
+
+export const WarningContent = styled.div`
+  min-width: 0;
+`;
+
+export const WarningTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+`;
+
+export const WarningDescription = styled.div`
+  font-size: 13px;
+  line-height: 20px;
+  margin-top: 2px;
+`;
+
+export const WarningActions = styled.div`
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
+
+  @media (max-width: 560px) {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+`;
 export const Metric = styled.div`
   color: ${({ theme }) => theme.metrics.filters.color.normal};
   font-size: 12px;

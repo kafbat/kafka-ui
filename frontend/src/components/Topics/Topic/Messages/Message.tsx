@@ -77,6 +77,13 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
     'topic-message',
     createSavedMessage
   );
+  const isLargeMessage = React.useMemo(
+    () =>
+      (key?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+      (value?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+      previewHeaders(headers).truncated,
+    [key, value, headers]
+  );
 
   const toggleIsOpen = () => setIsOpen(!isOpen);
 
@@ -132,6 +139,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   return (
     <>
       <S.ClickableRow
+        $truncated={isLargeMessage}
         onMouseEnter={() => setVEllipsisOpen(true)}
         onMouseLeave={() => setVEllipsisOpen(false)}
         onClick={toggleIsOpen}
@@ -162,8 +170,16 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
           </Ellipsis>
         </S.DataCell>
         <S.DataCell title={truncatePreview(value)}>
+          {isLargeMessage && (
+            <S.RowSummary>
+              <S.RowTitle>Preview truncated</S.RowTitle>
+              <S.RowDescription>
+                Expand to inspect; download for full content.
+              </S.RowDescription>
+            </S.RowSummary>
+          )}
           <S.Metadata>
-            <S.MetadataValue>
+            <S.MetadataValue $truncated={isLargeMessage}>
               <Ellipsis text={renderFilteredJson(value, contentFilters)}>
                 {valueSerde === 'Fallback' && (
                   <Tooltip
@@ -191,14 +207,14 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
               <ActionDropdownItem
                 aria-label="Reproduce message"
                 onClick={() => {
-                  if (
-                    (key?.length || 0) > CONTENT_PREVIEW_LENGTH ||
-                    (value?.length || 0) > CONTENT_PREVIEW_LENGTH ||
-                    previewHeaders(headers).truncated
-                  ) {
+                  if (isLargeMessage) {
                     confirm(
                       'Opening this large message in the producer editor may make this tab slow or unresponsive. Download the message instead to inspect it without opening the editor.',
-                      () => openSidebarWithMessage(message)
+                      () => openSidebarWithMessage(message),
+                      {
+                        title: 'Open large message in producer editor?',
+                        confirmLabel: 'Open anyway',
+                      }
                     );
                   } else {
                     openSidebarWithMessage(message);
@@ -218,6 +234,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
       </S.ClickableRow>
       {isOpen && (
         <MessageContent
+          key={`${partition}-${offset}`}
           messageKey={key}
           messageContent={value}
           headers={headers}

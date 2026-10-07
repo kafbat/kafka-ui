@@ -82,11 +82,17 @@ The message table displays at most 512 characters of each key and value, includi
 tooltips. JSONPath previews are skipped for fields larger than 64 Ki characters.
 Expanded fields larger than 64 Ki characters use unformatted plain-text previews;
 **Show more** replaces the current preview with the next bounded chunk rather than
-appending content indefinitely. Large headers have a bounded prefix preview.
+appending content indefinitely. **Previous preview** returns to an earlier chunk.
+Oversized records use the themed **Preview truncated** warning, with the expanded
+preview's navigation and **Download full content** actions grouped together.
+Key/Value/Headers tabs and record metadata remain available. Large headers have a
+bounded prefix preview with a full download, rather than chunk navigation.
 
 **Download full content**, clipboard actions, record downloads, and JSON/CSV exports
 use the original data, not the truncated preview. Exports are generated only when
-requested. Opening a large record in the producer editor requires confirmation.
+requested. Opening a large record in the producer editor requires the explicit
+**Open anyway** confirmation; cancelling does not open it. Show-more inspection
+remains bounded and does not require that confirmation.
 These are frontend rendering limits, not Kafka byte limits: polling, filters, and
 pagination are unchanged. Full records still arrive through SSE and reside in
 browser memory; arbitrarily large records or prolonged live consumption can still

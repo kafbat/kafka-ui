@@ -15,11 +15,26 @@ export const Wrapper = styled.tr`
   }
 `;
 
-export const Section = styled.div`
+export const Section = styled.div<{ $bounded?: boolean }>`
   padding: 0 16px;
   display: flex;
   gap: 1px;
   align-items: stretch;
+  ${({ $bounded }) =>
+    $bounded &&
+    css`
+      @media (max-width: 960px) {
+        max-width: calc(100vw - 64px);
+        flex-direction: column;
+        gap: 16px;
+
+        > div {
+          min-width: 0;
+          padding: 16px;
+          border-radius: 4px;
+        }
+      }
+    `}
 `;
 
 export const ContentBox = styled.div`
@@ -44,8 +59,38 @@ export const DataCell = styled.td`
   max-width: 350px;
   min-width: 350px;
 `;
-export const ClickableRow = styled.tr`
+export const ClickableRow = styled.tr<{ $truncated?: boolean }>`
   cursor: pointer;
+  ${({ $truncated, theme }) =>
+    $truncated &&
+    css`
+      background: ${theme.alert.color.warning};
+
+      &&:hover {
+        background: ${theme.alert.color.warning};
+      }
+
+      && > td {
+        color: ${theme.alert.textColor.warning};
+      }
+    `}
+`;
+
+export const RowSummary = styled.div`
+  min-width: 280px;
+  white-space: normal;
+  color: ${({ theme }) => theme.alert.textColor.warning};
+`;
+
+export const RowTitle = styled.div`
+  font-weight: 600;
+  line-height: 20px;
+`;
+
+export const RowDescription = styled.div`
+  font-size: 12px;
+  line-height: 18px;
+  margin-top: 2px;
 `;
 export const MetadataWrapper = styled.div`
   background-color: ${({ theme }) => theme.topicMetaData.backgroundColor};
@@ -69,8 +114,11 @@ export const MetadataLabel = styled.p`
   width: 80px;
 `;
 
-export const MetadataValue = styled.div`
-  color: ${({ theme }) => theme.topicMetaData.color.value};
+export const MetadataValue = styled.div<{ $truncated?: boolean }>`
+  color: ${({ theme, $truncated }) =>
+    $truncated
+      ? theme.alert.textColor.warning
+      : theme.topicMetaData.color.value};
   font-size: 14px;
 `;
 
@@ -122,16 +170,14 @@ export const Tabs = styled.nav`
 `;
 
 export const PlainPreview = styled.pre`
+  background-color: ${({ theme }) => theme.viewer.wrapper.backgroundColor};
+  color: ${({ theme }) => theme.viewer.wrapper.color};
+  padding: 8px 16px;
+  width: 100%;
+  max-width: 100%;
   max-height: 532px;
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   min-width: 0;
-`;
-
-export const PreviewActions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
 `;
