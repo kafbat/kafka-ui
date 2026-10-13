@@ -217,8 +217,11 @@ const SendMessage: React.FC<SendMessageProps> = ({
           : {}),
       });
       if (!keepContents) {
-        setValue('key', defaultValues.key || '');
-        setValue('content', defaultValues.content || '');
+        // The form stays mounted after the sidebar closes, so generate fresh
+        // sample data from the schema for the next message
+        const nextValues = getDefaultValues(serdes);
+        setValue('key', nextValues.key || '');
+        setValue('content', nextValues.content || '');
         closeSidebar();
       }
     } catch {
