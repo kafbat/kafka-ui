@@ -81,5 +81,9 @@ describe('ListPage Component', () => {
     localStorage.setItem('hideInternalTopics', 'false');
     renderComponent();
     expect(screen.getByLabelText('Show Internal Topics')).toBeChecked();
+    expect(mockTopicTableParams.length).toBeGreaterThan(0);
+    mockTopicTableParams.forEach((params) =>
+      expect(params.showInternal).toBe(true)
+    );
   });
 });
