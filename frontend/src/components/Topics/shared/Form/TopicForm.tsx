@@ -20,6 +20,7 @@ import * as S from './TopicForm.styled';
 
 export interface Props {
   topicName?: TopicName;
+  readOnlyConfigNames?: string[];
   partitionCount?: number;
   replicationFactor?: number;
   inSyncReplicas?: number;
@@ -58,6 +59,7 @@ const RetentionBytesOptions = [
 const TopicForm: React.FC<Props> = ({
   retentionBytes,
   topicName,
+  readOnlyConfigNames,
   isEditing,
   isSubmitting,
   onSubmit,
@@ -247,6 +249,7 @@ const TopicForm: React.FC<Props> = ({
         <CustomParams
           isSubmitting={isSubmitting}
           isEditing={isEditing}
+          readOnlyConfigNames={readOnlyConfigNames}
         />
         <S.ButtonWrapper>
           <Button

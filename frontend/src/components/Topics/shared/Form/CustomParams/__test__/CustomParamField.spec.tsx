@@ -7,6 +7,7 @@ import CustomParamsField, {
 import { FormProvider, useForm } from 'react-hook-form';
 import userEvent from '@testing-library/user-event';
 import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 const isDisabled = false;
 const index = 0;
@@ -24,9 +25,12 @@ describe('CustomParamsField', () => {
   const remove = jest.fn();
   const setExistingFields = jest.fn();
 
-  const setupComponent = (props: Props) => {
+  const setupComponent = (
+    props: Props,
+    defaultValues: Partial<TopicFormData> = {}
+  ) => {
     const Wrapper: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
-      const methods = useForm();
+      const methods = useForm<TopicFormData>({ defaultValues });
       return <FormProvider {...methods}>{children}</FormProvider>;
     };
 
@@ -138,6 +142,48 @@ describe('CustomParamsField', () => {
       await selectOption(getCustomParamsList(), topicCustomParam1);
 
       expect(setExistingFields).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables read-only options', async () => {
+      setupComponent({
+        field,
+        isDisabled,
+        index,
+        remove,
+        existingFields,
+        readOnlyConfigNames: [topicCustomParam1],
+        setExistingFields,
+      });
+      await userEvent.click(getCustomParamInput());
+
+      expect(screen.getByText(topicCustomParam1)).toHaveStyleRule(
+        'cursor',
+        'not-allowed'
+      );
+    });
+
+    it('prevents editing or removing a read-only parameter', async () => {
+      const readOnlyField = {
+        ...field,
+        name: topicCustomParam1,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: readOnlyField,
+          isDisabled,
+          index,
+          remove,
+          existingFields,
+          readOnlyConfigNames: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: topicCustomParam1, value: 'gzip' }] }
+      );
+
+      expect(getCustomParamInput()).toBeDisabled();
+      expect(getValueInput()).toBeDisabled();
+      await userEvent.click(getRemoveButton());
+      expect(remove).not.toHaveBeenCalled();
     });
   });
 });

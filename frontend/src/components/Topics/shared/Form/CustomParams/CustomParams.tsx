@@ -13,9 +13,13 @@ import * as S from './CustomParams.styled';
 export interface CustomParamsProps {
   isSubmitting: boolean;
   isEditing?: boolean;
+  readOnlyConfigNames?: string[];
 }
 
-const CustomParams: React.FC<CustomParamsProps> = ({ isSubmitting }) => {
+const CustomParams: React.FC<CustomParamsProps> = ({
+  isSubmitting,
+  readOnlyConfigNames,
+}) => {
   const {
     trigger,
     control,
@@ -60,6 +64,7 @@ const CustomParams: React.FC<CustomParamsProps> = ({ isSubmitting }) => {
           index={idx}
           isDisabled={isSubmitting}
           existingFields={existingFields}
+          readOnlyConfigNames={readOnlyConfigNames}
           setExistingFields={setExistingFields}
         />
       ))}
