@@ -31,23 +31,25 @@ const ListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFtsEnabled } = useFts('topics');
 
+  // Internal topics are hidden unless the user has chosen to show them.
+  // Resolved during render so the first request already uses it.
+  const hideInternal =
+    searchParams.has('hideInternal') ||
+    localStorage.getItem('hideInternalTopics') !== 'false';
+
   // Set the search params to the url based on the localStorage value
   React.useEffect(() => {
     if (!searchParams.has('perPage')) {
       searchParams.set('perPage', String(PER_PAGE));
     }
-    // Internal topics are hidden unless the user has chosen to show them
-    if (
-      localStorage.getItem('hideInternalTopics') !== 'false' &&
-      !searchParams.has('hideInternal')
-    ) {
+    if (hideInternal && !searchParams.has('hideInternal')) {
       searchParams.set('hideInternal', 'true');
     }
     setSearchParams(searchParams);
   }, []);
 
   const handleSwitch = () => {
-    if (searchParams.has('hideInternal')) {
+    if (hideInternal) {
       localStorage.setItem('hideInternalTopics', 'false');
       searchParams.delete('hideInternal');
     } else {
@@ -61,7 +63,7 @@ const ListPage: React.FC = () => {
 
   const params: GetTopicsRequest = {
     clusterName,
-    showInternal: !searchParams.has('hideInternal'),
+    showInternal: !hideInternal,
     search: searchParams.get('q') || undefined,
     orderBy: (searchParams.get('sortBy') as TopicColumnsToSort) || undefined,
     sortOrder:
@@ -107,7 +109,7 @@ const ListPage: React.FC = () => {
         <label>
           <Switch
             name="ShowInternalTopics"
-            checked={!searchParams.has('hideInternal')}
+            checked={!hideInternal}
             onChange={handleSwitch}
           />
           Show Internal Topics

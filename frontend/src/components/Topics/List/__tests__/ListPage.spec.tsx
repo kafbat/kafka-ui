@@ -8,7 +8,16 @@ import ListPage from 'components/Topics/List/ListPage';
 
 const clusterName = 'test-cluster';
 
-jest.mock('components/Topics/List/TopicTable', () => () => <>TopicTableMock</>);
+const mockTopicTableParams: { showInternal?: boolean }[] = [];
+
+jest.mock(
+  'components/Topics/List/TopicTable',
+  () =>
+    ({ params }: { params: { showInternal?: boolean } }) => {
+      mockTopicTableParams.push(params);
+      return <>TopicTableMock</>;
+    }
+);
 
 describe('ListPage Component', () => {
   const renderComponent = () =>
@@ -32,6 +41,7 @@ describe('ListPage Component', () => {
 
   afterEach(() => {
     localStorage.clear();
+    mockTopicTableParams.length = 0;
   });
 
   describe('Component Render', () => {
@@ -40,6 +50,13 @@ describe('ListPage Component', () => {
     });
     it('hides internal topics by default', () => {
       expect(screen.getByLabelText('Show Internal Topics')).not.toBeChecked();
+    });
+
+    it('never requests internal topics before the default is applied', () => {
+      expect(mockTopicTableParams.length).toBeGreaterThan(0);
+      mockTopicTableParams.forEach((params) =>
+        expect(params.showInternal).toBe(false)
+      );
     });
 
     it('handles switch of Internal Topics visibility', async () => {
