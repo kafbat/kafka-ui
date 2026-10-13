@@ -1,6 +1,7 @@
 import {
   CONTENT_PREVIEW_LENGTH,
   ROW_PREVIEW_LENGTH,
+  previewChunkCount,
   previewHeaders,
   truncatePreview,
 } from 'components/Topics/Topic/Messages/preview';
@@ -36,6 +37,16 @@ describe('message previews', () => {
 
   it('does not split surrogate pairs', () => {
     expect(truncatePreview('abc😀rest', 7)).toBe('abc...');
+  });
+
+  it('counts chunks using the same surrogate-safe boundaries as the preview', () => {
+    expect(previewChunkCount('x'.repeat(CONTENT_PREVIEW_LENGTH * 2 + 1))).toBe(
+      3
+    );
+    const pairAtBoundary = `${'x'.repeat(
+      CONTENT_PREVIEW_LENGTH - 1
+    )}😀${'x'.repeat(CONTENT_PREVIEW_LENGTH - 1)}`;
+    expect(previewChunkCount(pairAtBoundary)).toBe(3);
   });
 
   it('preserves serialization for small headers', () => {

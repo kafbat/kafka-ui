@@ -1,6 +1,12 @@
 import styled, { css } from 'styled-components';
 import * as SEditorViewer from 'components/common/EditorViewer/EditorViewer.styled';
+import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
 import { Link } from 'react-router-dom';
+
+export const CopyIcon = styled(ClipboardIcon)`
+  width: 16px;
+  height: 16px;
+`;
 
 export const Wrapper = styled.tr`
   background-color: ${({ theme }) => theme.topicMetaData.backgroundColor};
@@ -167,6 +173,17 @@ export const Tabs = styled.nav`
   flex-wrap: wrap;
   align-items: center;
   row-gap: 8px;
+`;
+
+export const TabGroup = styled.div`
+  display: flex;
+`;
+
+export const TabActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
 `;
 
 export const PlainPreview = styled.pre`

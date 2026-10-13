@@ -1,7 +1,7 @@
 import { TextEncoder } from 'util';
 
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import MessageContent, {
   MessageContentProps,
 } from 'components/Topics/Topic/Messages/MessageContent/MessageContent';
@@ -18,6 +18,8 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
     <table>
       <tbody>
         <MessageContent
+          partition={2}
+          offset={42}
           messageKey='"test-key"'
           messageContent='{"data": "test"}'
           headers={{ header: 'test' }}
@@ -42,14 +44,14 @@ describe('MessageContent screen', () => {
 
     it('resets bounded viewing when switching tabs', async () => {
       render(setupWrapper({ messageContent: value, messageKey: key, headers }));
-      await userEvent.click(screen.getByText('Show more'));
+      await userEvent.click(screen.getByText('Show next chunk'));
       await userEvent.click(screen.getAllByText('Key')[0]);
-      expect(screen.getByText('Previous preview')).toBeDisabled();
+      expect(screen.getByText('Previous chunk')).toBeDisabled();
       await userEvent.click(screen.getAllByText('Value')[0]);
-      expect(screen.getByText('Previous preview')).toBeDisabled();
+      expect(screen.getByText('Previous chunk')).toBeDisabled();
       await userEvent.click(screen.getByText('Headers'));
       expect(screen.getByRole('status')).toHaveTextContent(
-        'Headers preview truncated'
+        'Headers exceed the preview limit'
       );
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
@@ -75,21 +77,26 @@ describe('MessageContent screen', () => {
       );
       const { rerender } = render(record(1));
       await userEvent.click(screen.getByRole('row'));
-      await userEvent.click(screen.getByRole('button', { name: 'Show more' }));
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Show next chunk' })
+      );
       expect(
-        screen.getByRole('button', { name: 'Previous preview' })
+        screen.getByRole('button', { name: 'Previous chunk' })
       ).toBeEnabled();
       rerender(record(2));
       expect(
-        screen.getByRole('button', { name: 'Previous preview' })
+        screen.getByRole('button', { name: 'Previous chunk' })
       ).toBeDisabled();
       expect(screen.getByRole('status')).toHaveTextContent(
-        `Showing characters 1-${CONTENT_PREVIEW_LENGTH}`
+        `Chunk 1 of 3 visible. Preview range: 1–${CONTENT_PREVIEW_LENGTH.toLocaleString(
+          'en-US'
+        )} of`
       );
     });
 
     it('downloads the complete active field rather than its preview', async () => {
       const blobs: Blob[] = [];
+      const filenames: string[] = [];
       global.URL.createObjectURL = jest.fn((blob: Blob) => {
         blobs.push(blob);
         return 'blob:message-content';
@@ -97,13 +104,15 @@ describe('MessageContent screen', () => {
       global.URL.revokeObjectURL = jest.fn();
       const click = jest
         .spyOn(HTMLAnchorElement.prototype, 'click')
-        .mockImplementation();
+        .mockImplementation(function captureFilename(this: HTMLAnchorElement) {
+          filenames.push(this.download);
+        });
       render(setupWrapper({ messageContent: value, messageKey: key, headers }));
-      await userEvent.click(screen.getByText('Download full content'));
+      await userEvent.click(screen.getByText('Download'));
       await userEvent.click(screen.getAllByText('Key')[0]);
-      await userEvent.click(screen.getByText('Download full content'));
+      await userEvent.click(screen.getByText('Download'));
       await userEvent.click(screen.getByText('Headers'));
-      await userEvent.click(screen.getByText('Download full content'));
+      await userEvent.click(screen.getByText('Download'));
       const contents = await Promise.all(
         blobs.map(
           (blob) =>
@@ -116,6 +125,11 @@ describe('MessageContent screen', () => {
         )
       );
       expect(contents).toEqual([value, key, JSON.stringify(headers)]);
+      expect(filenames).toEqual([
+        'topic-p2-o42',
+        'topic-p2-o42',
+        'topic-p2-o42',
+      ]);
       expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(3);
       click.mockRestore();
     });
@@ -124,6 +138,26 @@ describe('MessageContent screen', () => {
   describe('small message content', () => {
     beforeEach(() => {
       render(setupWrapper());
+    });
+
+    it('separates download actions from the field selector', () => {
+      const actions = screen.getByRole('group', { name: 'Message actions' });
+      const fields = screen.getByRole('group', {
+        name: 'Message content fields',
+      });
+      expect(actions).toHaveStyleRule('margin-left', '12px');
+      expect(
+        within(fields).getByRole('button', { name: 'Value' })
+      ).toHaveAttribute('aria-pressed', 'true');
+      const copyButton = within(actions).getByRole('button', {
+        name: 'Copy value to clipboard',
+      });
+      expect(copyButton).toHaveTextContent('Copy');
+      expect(copyButton.querySelector('svg')).toHaveStyleRule('width', '16px');
+      expect(copyButton.querySelector('svg')).toHaveStyleRule('height', '16px');
+      expect(
+        within(actions).getByRole('button', { name: 'Download' })
+      ).toBeInTheDocument();
     });
 
     describe('Checking keySerde and valueSerde', () => {
@@ -144,6 +178,10 @@ describe('MessageContent screen', () => {
           'background-color',
           theme.secondaryTab.backgroundColor.active
         );
+        expect(keyTab[0]).toHaveAttribute('aria-pressed', 'true');
+        expect(
+          screen.getByRole('button', { name: 'Copy key to clipboard' })
+        ).toBeInTheDocument();
       });
     });
 
@@ -154,6 +192,13 @@ describe('MessageContent screen', () => {
           'background-color',
           theme.secondaryTab.backgroundColor.active
         );
+        expect(screen.getByText('Headers')).toHaveAttribute(
+          'aria-pressed',
+          'true'
+        );
+        expect(
+          screen.getByRole('button', { name: 'Copy headers to clipboard' })
+        ).toBeInTheDocument();
       });
     });
 
@@ -165,6 +210,7 @@ describe('MessageContent screen', () => {
           'background-color',
           theme.secondaryTab.backgroundColor.active
         );
+        expect(contentTab[0]).toHaveAttribute('aria-pressed', 'true');
       });
     });
   });

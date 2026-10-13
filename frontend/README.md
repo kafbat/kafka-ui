@@ -76,21 +76,26 @@ Run the application
 ```sh
 pnpm dev
 ```
+
 ## Large message previews
 
-The message table displays at most 512 characters of each key and value, including
-tooltips. JSONPath previews are skipped for fields larger than 64 Ki characters.
-Expanded fields larger than 64 Ki characters use unformatted plain-text previews;
-**Show more** replaces the current preview with the next bounded chunk rather than
-appending content indefinitely. **Previous preview** returns to an earlier chunk.
-Oversized records use the themed **Preview truncated** warning, with the expanded
-preview's navigation and **Download full content** actions grouped together.
-Key/Value/Headers tabs and record metadata remain available. Large headers have a
-bounded prefix preview with a full download, rather than chunk navigation.
+The message table displays at most 512 UTF-16 code units of each key and value,
+including tooltips. JSONPath previews are skipped for fields larger than 64 Ki
+UTF-16 code units. Expanded fields above that limit use plain-text previews;
+**Show next chunk** replaces the current preview with the next chunk, and
+**Previous chunk** returns to the prior chunk. The warning shows the current
+chunk number and preview range. Oversized records use the themed
+**Preview truncated** warning, with navigation and **Download**
+actions grouped together. Key/Value/Headers tabs and record metadata remain
+available. Large headers have a bounded prefix preview with a full download,
+rather than chunk navigation.
 
-**Download full content**, clipboard actions, record downloads, and JSON/CSV exports
-use the original data, not the truncated preview. Exports are generated only when
-requested. Opening a large record in the producer editor requires the explicit
+Per-field **Download** saves a file named `topic-pN-oM`, using the message's
+partition and offset. **Copy** copies the selected field as-is (headers are
+serialized as JSON); it does not pretty-print JSON values. Clipboard actions,
+record downloads, and JSON/CSV exports use the original data, not the truncated
+preview. Exports are generated only when requested. Opening a large record in
+the producer editor requires the explicit
 **Open anyway** confirmation; cancelling does not open it. Show-more inspection
 remains bounded and does not require that confirmation.
 These are frontend rendering limits, not Kafka byte limits: polling, filters, and
