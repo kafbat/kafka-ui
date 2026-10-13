@@ -30,23 +30,39 @@ describe('ListPage Component', () => {
       { initialEntries: [clusterTopicsPath(clusterName)] }
     );
 
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   describe('Component Render', () => {
     beforeEach(() => {
       renderComponent();
     });
+    it('hides internal topics by default', () => {
+      expect(screen.getByLabelText('Show Internal Topics')).not.toBeChecked();
+    });
+
     it('handles switch of Internal Topics visibility', async () => {
       const switchInput = screen.getByLabelText('Show Internal Topics');
       expect(switchInput).toBeInTheDocument();
 
       expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
       await userEvent.click(switchInput);
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeTruthy();
+      expect(switchInput).toBeChecked();
+      expect(global.localStorage.getItem('hideInternalTopics')).toBe('false');
       await userEvent.click(switchInput);
-      expect(global.localStorage.getItem('hideInternalTopics')).toBeNull();
+      expect(switchInput).not.toBeChecked();
+      expect(global.localStorage.getItem('hideInternalTopics')).toBe('true');
     });
 
     it('renders the TopicsTable', () => {
       expect(screen.getByText('TopicTableMock')).toBeInTheDocument();
     });
+  });
+
+  it('shows internal topics when the user chose to show them before', () => {
+    localStorage.setItem('hideInternalTopics', 'false');
+    renderComponent();
+    expect(screen.getByLabelText('Show Internal Topics')).toBeChecked();
   });
 });

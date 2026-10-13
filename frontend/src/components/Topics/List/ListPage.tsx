@@ -36,8 +36,9 @@ const ListPage: React.FC = () => {
     if (!searchParams.has('perPage')) {
       searchParams.set('perPage', String(PER_PAGE));
     }
+    // Internal topics are hidden unless the user has chosen to show them
     if (
-      !!localStorage.getItem('hideInternalTopics') &&
+      localStorage.getItem('hideInternalTopics') !== 'false' &&
       !searchParams.has('hideInternal')
     ) {
       searchParams.set('hideInternal', 'true');
@@ -47,7 +48,7 @@ const ListPage: React.FC = () => {
 
   const handleSwitch = () => {
     if (searchParams.has('hideInternal')) {
-      localStorage.removeItem('hideInternalTopics');
+      localStorage.setItem('hideInternalTopics', 'false');
       searchParams.delete('hideInternal');
     } else {
       localStorage.setItem('hideInternalTopics', 'true');
