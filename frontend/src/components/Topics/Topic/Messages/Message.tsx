@@ -235,6 +235,8 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
       {isOpen && (
         <MessageContent
           key={`${partition}-${offset}`}
+          partition={partition}
+          offset={offset}
           messageKey={key}
           messageContent={value}
           headers={headers}

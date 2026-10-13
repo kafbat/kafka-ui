@@ -13,6 +13,7 @@ import { useLocalStorage } from 'lib/hooks/useLocalStorage';
 
 import Message, { PreviewFilter } from './Message';
 import PreviewModal from './PreviewModal';
+import * as M from './Messages.styled';
 
 export interface MessagesTableProps {
   messages: TopicMessage[];
@@ -84,55 +85,57 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
           setFilters={setFilters}
         />
       )}
-      <Table isFullwidth>
-        <thead>
-          <tr>
-            <TableHeaderCell> </TableHeaderCell>
-            <TableHeaderCell title="Offset" />
-            <TableHeaderCell title="Partition" />
-            <TableHeaderCell title="Timestamp" />
-            <TableHeaderCell
-              title="Key"
-              previewText={`Preview ${
-                keyFilters.length ? `(${keyFilters.length} selected)` : ''
-              }`}
-              onPreview={() => setPreviewFor('key')}
-            />
-            <TableHeaderCell
-              title="Value"
-              previewText={`Preview ${
-                contentFilters.length
-                  ? `(${contentFilters.length} selected)`
-                  : ''
-              }`}
-              onPreview={() => setPreviewFor('content')}
-            />
-            <TableHeaderCell> </TableHeaderCell>
-          </tr>
-        </thead>
-        <tbody>
-          {messages.map((message: TopicMessage) => (
-            <Message
-              key={`${topicName}-${message.partition}-${message.offset}`}
-              message={message}
-              keyFilters={keyFilters}
-              contentFilters={contentFilters}
-            />
-          ))}
-          {isFetching && !messages.length && (
+      <M.TableViewport role="region" aria-label="Messages table" tabIndex={0}>
+        <Table isFullwidth>
+          <thead>
             <tr>
-              <td colSpan={10}>
-                <PageLoader />
-              </td>
+              <TableHeaderCell> </TableHeaderCell>
+              <TableHeaderCell title="Offset" />
+              <TableHeaderCell title="Partition" />
+              <TableHeaderCell title="Timestamp" />
+              <TableHeaderCell
+                title="Key"
+                previewText={`Preview ${
+                  keyFilters.length ? `(${keyFilters.length} selected)` : ''
+                }`}
+                onPreview={() => setPreviewFor('key')}
+              />
+              <TableHeaderCell
+                title="Value"
+                previewText={`Preview ${
+                  contentFilters.length
+                    ? `(${contentFilters.length} selected)`
+                    : ''
+                }`}
+                onPreview={() => setPreviewFor('content')}
+              />
+              <TableHeaderCell> </TableHeaderCell>
             </tr>
-          )}
-          {messages.length === 0 && !isFetching && (
-            <tr>
-              <td colSpan={10}>No messages found</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {messages.map((message: TopicMessage) => (
+              <Message
+                key={`${topicName}-${message.partition}-${message.offset}`}
+                message={message}
+                keyFilters={keyFilters}
+                contentFilters={contentFilters}
+              />
+            ))}
+            {isFetching && !messages.length && (
+              <tr>
+                <td colSpan={10}>
+                  <PageLoader />
+                </td>
+              </tr>
+            )}
+            {messages.length === 0 && !isFetching && (
+              <tr>
+                <td colSpan={10}>No messages found</td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </M.TableViewport>
       <S.Pagination>
         <S.Pages>
           <Button

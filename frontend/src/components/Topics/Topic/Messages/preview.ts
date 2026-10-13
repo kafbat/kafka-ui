@@ -9,6 +9,19 @@ export const previewEnd = (text: string, end: number) => {
   return end;
 };
 
+export const previewChunkCount = (text: string) => {
+  let count = 0;
+  let start = 0;
+  while (start < text.length) {
+    start = previewEnd(
+      text,
+      Math.min(start + CONTENT_PREVIEW_LENGTH, text.length)
+    );
+    count += 1;
+  }
+  return count;
+};
+
 export const truncatePreview = (
   text: string | undefined,
   limit = ROW_PREVIEW_LENGTH

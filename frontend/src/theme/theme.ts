@@ -773,7 +773,7 @@ export const theme = {
       active: Colors.neutral[10],
     },
     color: {
-      normal: Colors.neutral[50],
+      normal: Colors.neutral[60],
       hover: Colors.neutral[90],
       active: Colors.neutral[90],
     },
@@ -1372,7 +1372,7 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[80],
     },
     color: {
-      normal: Colors.neutral[50],
+      normal: Colors.neutral[40],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
     },

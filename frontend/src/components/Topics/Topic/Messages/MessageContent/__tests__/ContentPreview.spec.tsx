@@ -54,14 +54,17 @@ describe('ContentPreview', () => {
       <ContentPreview data={data} schemaType="JSON" onDownload={jest.fn()} />
     );
     const preview = screen.getByLabelText('Large content preview');
-    expect(screen.getByText('Previous preview')).toBeDisabled();
-    await userEvent.click(screen.getByText('Show more'));
+    expect(screen.getByText('Previous chunk')).toBeDisabled();
+    await userEvent.click(screen.getByText('Show next chunk'));
     expect(preview).toHaveTextContent('b'.repeat(CONTENT_PREVIEW_LENGTH));
-    await userEvent.click(screen.getByText('Show more'));
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Chunk 2 of 3 visible.'
+    );
+    await userEvent.click(screen.getByText('Show next chunk'));
     expect(preview).toHaveTextContent('last');
-    expect(screen.getByText('Show more')).toBeDisabled();
-    await userEvent.click(screen.getByText('Previous preview'));
-    await userEvent.click(screen.getByText('Previous preview'));
+    expect(screen.getByText('Show next chunk')).toBeDisabled();
+    await userEvent.click(screen.getByText('Previous chunk'));
+    await userEvent.click(screen.getByText('Previous chunk'));
     expect(preview).toHaveTextContent('a'.repeat(CONTENT_PREVIEW_LENGTH));
     expect(EditorViewer).not.toHaveBeenCalled();
   });
@@ -77,7 +80,7 @@ describe('ContentPreview', () => {
     );
     const preview = screen.getByLabelText('Large content preview');
     expect(preview).toHaveTextContent(first);
-    await userEvent.click(screen.getByText('Show more'));
+    await userEvent.click(screen.getByText('Show next chunk'));
     expect(preview).toHaveTextContent('😀end');
   });
 
@@ -89,7 +92,7 @@ describe('ContentPreview', () => {
         onDownload={jest.fn()}
       />
     );
-    await userEvent.click(screen.getByText('Show more'));
+    await userEvent.click(screen.getByText('Show next chunk'));
     rerender(
       <ContentPreview
         data={'b'.repeat(CONTENT_PREVIEW_LENGTH * 2)}
@@ -97,9 +100,11 @@ describe('ContentPreview', () => {
         onDownload={jest.fn()}
       />
     );
-    expect(screen.getByText('Previous preview')).toBeDisabled();
+    expect(screen.getByText('Previous chunk')).toBeDisabled();
     expect(screen.getByRole('status')).toHaveTextContent(
-      `Showing characters 1-${CONTENT_PREVIEW_LENGTH}`
+      `Chunk 1 of 2 visible. Preview range: 1–${CONTENT_PREVIEW_LENGTH.toLocaleString(
+        'en-US'
+      )} of`
     );
   });
 
@@ -114,9 +119,9 @@ describe('ContentPreview', () => {
     );
     expect(EditorViewer).not.toHaveBeenCalled();
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Headers preview truncated'
+      'Headers exceed the preview limit. Download to view them all.'
     );
-    expect(screen.queryByText('Show more')).not.toBeInTheDocument();
+    expect(screen.queryByText('Show next chunk')).not.toBeInTheDocument();
   });
 
   it('reuses themed warning hierarchy and dispatches grouped download actions', async () => {
@@ -143,15 +148,33 @@ describe('ContentPreview', () => {
     expect(title).toHaveStyleRule('font-weight', '600');
     expect(title).toHaveStyleRule('font-size', '14px');
     const download = screen.getByRole('button', {
-      name: 'Download full content',
+      name: 'Download',
     });
     expect(download.parentElement).toBe(
-      screen.getByRole('button', { name: 'Show more' }).parentElement
+      screen.getByRole('button', { name: 'Show next chunk' }).parentElement
     );
     await userEvent.click(download);
     expect(onDownload).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByText(/Loading paused|Message blocked/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the current chunk and visible preview range', () => {
+    render(
+      <ContentPreview
+        data={'x'.repeat(CONTENT_PREVIEW_LENGTH * 124 + 1)}
+        schemaType="JSON"
+        onDownload={jest.fn()}
+      />
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `Chunk 1 of 125 visible. Preview range: 1–${CONTENT_PREVIEW_LENGTH.toLocaleString(
+        'en-US'
+      )} of ${(CONTENT_PREVIEW_LENGTH * 124 + 1).toLocaleString('en-US')}.`
+    );
+    expect(
+      screen.queryByText(/bounded|without formatting/)
     ).not.toBeInTheDocument();
   });
 });

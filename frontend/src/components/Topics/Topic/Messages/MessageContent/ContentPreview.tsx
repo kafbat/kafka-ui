@@ -4,6 +4,7 @@ import { Button } from 'components/common/Button/Button';
 import {
   CONTENT_PREVIEW_LENGTH,
   previewEnd,
+  previewChunkCount,
 } from 'components/Topics/Topic/Messages/preview';
 import * as Warning from 'components/Topics/Topic/Messages/Filters/Filters.styled';
 
@@ -29,6 +30,8 @@ const ContentPreview: React.FC<Props> = ({
     data,
     Math.min(start + CONTENT_PREVIEW_LENGTH, data.length)
   );
+  const chunkCount = React.useMemo(() => previewChunkCount(data), [data]);
+  const formatNumber = (value: number) => value.toLocaleString('en-US');
 
   if (!truncated && data.length <= CONTENT_PREVIEW_LENGTH) {
     return <EditorViewer data={data} maxLines={28} schemaType={schemaType} />;
@@ -41,8 +44,8 @@ const ContentPreview: React.FC<Props> = ({
           <Warning.WarningTitle>Preview truncated</Warning.WarningTitle>
           <Warning.WarningDescription>
             {truncated
-              ? 'Headers preview truncated. Download full content to inspect all headers.'
-              : `Showing characters ${start + 1}-${end} of ${data.length} without formatting. Show more replaces this bounded preview.`}
+              ? 'Headers exceed the preview limit. Download to view them all.'
+              : `Chunk ${starts.length} of ${chunkCount} visible. Preview range: ${formatNumber(start + 1)}–${formatNumber(end)} of ${formatNumber(data.length)}.`}
           </Warning.WarningDescription>
         </Warning.WarningContent>
         <Warning.WarningActions>
@@ -56,7 +59,7 @@ const ContentPreview: React.FC<Props> = ({
                   setPosition({ data, starts: starts.slice(0, -1) })
                 }
               >
-                Previous preview
+                Previous chunk
               </Button>
               <Button
                 buttonType="primary"
@@ -64,12 +67,12 @@ const ContentPreview: React.FC<Props> = ({
                 disabled={end >= data.length}
                 onClick={() => setPosition({ data, starts: [...starts, end] })}
               >
-                Show more
+                Show next chunk
               </Button>
             </>
           )}
           <Button buttonType="secondary" buttonSize="M" onClick={onDownload}>
-            Download full content
+            Download
           </Button>
         </Warning.WarningActions>
       </Warning.Warning>

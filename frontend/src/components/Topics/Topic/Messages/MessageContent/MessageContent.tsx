@@ -4,7 +4,6 @@ import {
   TopicMessage,
   TopicMessageTimestampTypeEnum,
 } from 'generated-sources';
-import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
 import { Button } from 'components/common/Button/Button';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
@@ -21,6 +20,8 @@ import Serde from './components/Serde/Serde';
 type Tab = 'key' | 'content' | 'headers';
 
 export interface MessageContentProps {
+  partition: number;
+  offset: number;
   messageKey?: string;
   messageContent?: string;
   headers?: { [key: string]: string | undefined };
@@ -35,6 +36,8 @@ export interface MessageContentProps {
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
+  partition,
+  offset,
   messageKey,
   messageContent,
   headers,
@@ -66,6 +69,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
   };
 
   const tabContent = activeTabContent() || '';
+  const activeFieldName = activeTab === 'content' ? 'value' : activeTab;
   const isTruncated =
     tabContent.length > CONTENT_PREVIEW_LENGTH ||
     (activeTab === 'headers' && headersPreview.truncated);
@@ -75,7 +79,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
     headersPreview.truncated;
 
   const { copyToClipboard, saveFile } = useDataSaver(
-    `topic-message-${activeTab}`,
+    `topic-p${partition}-o${offset}`,
     () => {
       if (activeTab === 'headers') return JSON.stringify(headers) || '';
       return activeTab === 'key' ? messageKey || '' : messageContent || '';
@@ -110,46 +114,54 @@ const MessageContent: React.FC<MessageContentProps> = ({
         <S.Section $bounded={hasLargeContent}>
           <S.ContentBox>
             <S.Tabs>
-              <S.Tab
-                type="button"
-                $active={activeTab === 'key'}
-                onClick={handleKeyTabClick}
-              >
-                Key
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'content'}
-                type="button"
-                onClick={handleContentTabClick}
-              >
-                Value
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'headers'}
-                type="button"
-                onClick={handleHeadersTabClick}
-              >
-                Headers
-              </S.Tab>
-              <Button
-                type="button"
-                buttonSize="M"
-                buttonType="text"
-                onClick={copyToClipboard}
-                aria-label={`Copy ${activeTab} to clipboard`}
-              >
-                <ClipboardIcon />
-              </Button>
-              {!isTruncated && (
+              <S.TabGroup role="group" aria-label="Message content fields">
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'key'}
+                  aria-pressed={activeTab === 'key'}
+                  onClick={handleKeyTabClick}
+                >
+                  Key
+                </S.Tab>
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'content'}
+                  aria-pressed={activeTab === 'content'}
+                  onClick={handleContentTabClick}
+                >
+                  Value
+                </S.Tab>
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'headers'}
+                  aria-pressed={activeTab === 'headers'}
+                  onClick={handleHeadersTabClick}
+                >
+                  Headers
+                </S.Tab>
+              </S.TabGroup>
+              <S.TabActions role="group" aria-label="Message actions">
                 <Button
                   type="button"
                   buttonSize="M"
                   buttonType="text"
-                  onClick={saveFile}
+                  onClick={copyToClipboard}
+                  aria-label={`Copy ${activeFieldName} to clipboard`}
                 >
-                  Download full content
+                  <S.CopyIcon />
+                  Copy
                 </Button>
-              )}
+                {!isTruncated && (
+                  <Button
+                    type="button"
+                    buttonSize="M"
+                    buttonType="text"
+                    onClick={saveFile}
+                  >
+                    Download
+                  </Button>
+                )}
+              </S.TabActions>
             </S.Tabs>
             <ContentPreview
               key={activeTab}
