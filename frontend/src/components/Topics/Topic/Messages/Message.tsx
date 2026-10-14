@@ -233,6 +233,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
       {isOpen && (
         <MessageContent
           key={`${partition}-${offset}`}
+          downloadFilenamePrefix={`${topicName}-p${partition}-o${offset}`}
           onDownload={saveFile}
           messageKey={key}
           messageContent={value}

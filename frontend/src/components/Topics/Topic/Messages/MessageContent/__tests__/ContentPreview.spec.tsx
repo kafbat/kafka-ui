@@ -148,7 +148,7 @@ describe('ContentPreview', () => {
     expect(title).toHaveStyleRule('font-weight', '600');
     expect(title).toHaveStyleRule('font-size', '14px');
     const download = screen.getByRole('button', {
-      name: 'Download',
+      name: 'Download full message',
     });
     expect(download.parentElement).toBe(
       screen.getByRole('button', { name: 'Show next chunk' }).parentElement

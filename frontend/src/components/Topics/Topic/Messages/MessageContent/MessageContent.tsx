@@ -20,6 +20,7 @@ import Serde from './components/Serde/Serde';
 type Tab = 'key' | 'content' | 'headers';
 
 export interface MessageContentProps {
+  downloadFilenamePrefix: string;
   onDownload: () => void;
   messageKey?: string;
   messageContent?: string;
@@ -35,6 +36,7 @@ export interface MessageContentProps {
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
+  downloadFilenamePrefix,
   onDownload,
   messageKey,
   messageContent,
@@ -76,10 +78,13 @@ const MessageContent: React.FC<MessageContentProps> = ({
     (messageContent?.length || 0) > CONTENT_PREVIEW_LENGTH ||
     headersPreview.truncated;
 
-  const { copyToClipboard } = useDataSaver(`message-${activeFieldName}`, () => {
-    if (activeTab === 'headers') return JSON.stringify(headers) || '';
-    return activeTab === 'key' ? messageKey || '' : messageContent || '';
-  });
+  const { copyToClipboard, saveFile: downloadField } = useDataSaver(
+    `${downloadFilenamePrefix}-${activeFieldName}`,
+    () => {
+      if (activeTab === 'headers') return JSON.stringify(headers) || '';
+      return activeTab === 'key' ? messageKey || '' : messageContent || '';
+    }
+  );
 
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -146,6 +151,14 @@ const MessageContent: React.FC<MessageContentProps> = ({
                   <S.CopyIcon />
                   Copy
                 </Button>
+                <Button
+                  type="button"
+                  buttonSize="M"
+                  buttonType="text"
+                  onClick={downloadField}
+                >
+                  Download {activeFieldName}
+                </Button>
                 {!isTruncated && (
                   <Button
                     type="button"
@@ -153,7 +166,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                     buttonType="text"
                     onClick={onDownload}
                   >
-                    Download
+                    Download full message
                   </Button>
                 )}
               </S.TabActions>

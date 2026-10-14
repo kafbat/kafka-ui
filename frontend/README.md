@@ -85,15 +85,17 @@ UTF-16 code units. Expanded fields above that limit use plain-text previews;
 **Show next chunk** replaces the current preview with the next chunk, and
 **Previous chunk** returns to the prior chunk. The warning shows the current
 chunk number and preview range. Oversized records use the themed
-**Preview truncated** warning, with navigation and **Download**
+**Preview truncated** warning, with navigation and **Download full message**
 actions grouped together. Key/Value/Headers tabs and record metadata remain
 available. Large headers have a bounded prefix preview with a full download,
 rather than chunk navigation.
 
-**Download** saves the full message as JSON, regardless of the selected field,
+**Download full message** saves the full message as JSON, regardless of the selected field,
 in a file named `<topic-name>-pN-oM.json`, using the actual topic name, partition,
 and offset. The file includes the value, key, headers, partition, offset, and
-timestamp. **Copy** copies the selected field as-is (headers are
+timestamp. **Download value**, **Download key**, or **Download headers** saves
+only the complete selected field, with `-value`, `-key`, or `-headers` appended
+to `<topic-name>-pN-oM`. **Copy** copies the selected field as-is (headers are
 serialized as JSON); it does not pretty-print JSON values. Clipboard actions,
 record downloads, and JSON/CSV exports use the original data, not the truncated
 preview. Exports are generated only when requested. Opening a large record in

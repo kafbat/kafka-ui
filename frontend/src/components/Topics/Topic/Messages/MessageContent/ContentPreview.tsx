@@ -72,7 +72,7 @@ const ContentPreview: React.FC<Props> = ({
             </>
           )}
           <Button buttonType="secondary" buttonSize="M" onClick={onDownload}>
-            Download
+            Download full message
           </Button>
         </Warning.WarningActions>
       </Warning.Warning>
