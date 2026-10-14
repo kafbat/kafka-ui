@@ -75,7 +75,6 @@ Run the application
 ```sh
 pnpm dev
 ```
-
 ## Links
 
 * [Vite](https://github.com/vitejs/vite)

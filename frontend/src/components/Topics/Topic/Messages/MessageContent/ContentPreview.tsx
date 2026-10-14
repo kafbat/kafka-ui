@@ -6,7 +6,6 @@ import {
   previewEnd,
   previewChunkCount,
 } from 'components/Topics/Topic/Messages/preview';
-import * as Warning from 'components/Topics/Topic/Messages/Filters/Filters.styled';
 
 import * as S from './MessageContent.styled';
 
@@ -39,16 +38,16 @@ const ContentPreview: React.FC<Props> = ({
 
   return (
     <>
-      <Warning.Warning role="status">
-        <Warning.WarningContent>
-          <Warning.WarningTitle>Preview truncated</Warning.WarningTitle>
-          <Warning.WarningDescription>
+      <S.Warning role="status">
+        <S.WarningContent>
+          <S.WarningTitle>Preview truncated</S.WarningTitle>
+          <S.WarningDescription>
             {truncated
               ? 'Headers exceed the preview limit. Download to view them all.'
               : `Chunk ${starts.length} of ${chunkCount} visible. Preview range: ${formatNumber(start + 1)}–${formatNumber(end)} of ${formatNumber(data.length)}.`}
-          </Warning.WarningDescription>
-        </Warning.WarningContent>
-        <Warning.WarningActions>
+          </S.WarningDescription>
+        </S.WarningContent>
+        <S.WarningActions>
           {!truncated && (
             <>
               <Button
@@ -74,8 +73,8 @@ const ContentPreview: React.FC<Props> = ({
           <Button buttonType="secondary" buttonSize="M" onClick={onDownload}>
             Download full message
           </Button>
-        </Warning.WarningActions>
-      </Warning.Warning>
+        </S.WarningActions>
+      </S.Warning>
       <S.PlainPreview aria-label="Large content preview">
         {data.slice(start, end)}
       </S.PlainPreview>
