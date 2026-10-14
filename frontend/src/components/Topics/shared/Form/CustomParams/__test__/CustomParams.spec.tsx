@@ -146,6 +146,16 @@ describe('CustomParams', () => {
       expect(getAllValueInputs().length).toBe(3);
     });
 
+    it('removes an empty custom param fieldset', async () => {
+      await userEvent.click(getAddNewFieldButton());
+
+      expect(getAllCustomParamInputs().length).toBe(2);
+
+      await userEvent.click(screen.getByTitle('Delete customParam field 1'));
+
+      expect(getAllCustomParamInputs().length).toBe(1);
+    });
+
     it("can't select already selected option", async () => {
       await userEvent.click(getAddNewFieldButton());
 

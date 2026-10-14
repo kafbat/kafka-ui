@@ -44,6 +44,28 @@ const Metrics: React.FC = () => {
     return null;
   }
 
+  if (!data.progress && !data.result) {
+    return (
+      <S.ProgressContainer>
+        <ActionButton
+          onClick={async () => {
+            await analyzeTopic.mutateAsync();
+            setIsAnalyzing(true);
+          }}
+          buttonType="primary"
+          buttonSize="M"
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.ANALYSIS_RUN,
+            value: params.topicName,
+          }}
+        >
+          Start Analysis
+        </ActionButton>
+      </S.ProgressContainer>
+    );
+  }
+
   if (data.progress) {
     return (
       <S.ProgressContainer>
