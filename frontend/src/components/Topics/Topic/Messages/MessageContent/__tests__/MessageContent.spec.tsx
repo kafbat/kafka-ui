@@ -21,6 +21,7 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
     <table>
       <tbody>
         <MessageContent
+          downloadFilenamePrefix="orders.created-p2-o42"
           onDownload={jest.fn()}
           messageKey='"test-key"'
           messageContent='{"data": "test"}'
@@ -144,11 +145,20 @@ describe('MessageContent screen', () => {
           </TopicActionsProvider>
         );
         await userEvent.click(screen.getByRole('row'));
-        await userEvent.click(screen.getByText('Download'));
+        await userEvent.click(screen.getByText('Download full message'));
+        await userEvent.click(
+          screen.getByRole('button', { name: 'Download value' })
+        );
         await userEvent.click(screen.getAllByText('Key')[0]);
-        await userEvent.click(screen.getByText('Download'));
+        await userEvent.click(screen.getByText('Download full message'));
+        await userEvent.click(
+          screen.getByRole('button', { name: 'Download key' })
+        );
         await userEvent.click(screen.getByText('Headers'));
-        await userEvent.click(screen.getByText('Download'));
+        await userEvent.click(screen.getByText('Download full message'));
+        await userEvent.click(
+          screen.getByRole('button', { name: 'Download headers' })
+        );
         const contents = await Promise.all(
           blobs.map(
             (blob) =>
@@ -168,17 +178,23 @@ describe('MessageContent screen', () => {
           Headers: messageHeaders,
           Timestamp: new Date(0).toISOString(),
         };
-        expect(contents.map((content) => JSON.parse(String(content)))).toEqual([
-          expectedMessage,
-          expectedMessage,
-          expectedMessage,
+        expect(contents).toEqual([
+          JSON.stringify(expectedMessage, null, '\t'),
+          messageContent,
+          JSON.stringify(expectedMessage, null, '\t'),
+          messageKey,
+          JSON.stringify(expectedMessage, null, '\t'),
+          JSON.stringify(messageHeaders),
         ]);
         expect(filenames).toEqual([
           'orders.created-p2-o42.json',
+          'orders.created-p2-o42-value',
           'orders.created-p2-o42.json',
+          'orders.created-p2-o42-key',
           'orders.created-p2-o42.json',
+          'orders.created-p2-o42-headers',
         ]);
-        expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(3);
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(6);
         click.mockRestore();
       }
     );
@@ -205,7 +221,7 @@ describe('MessageContent screen', () => {
       expect(copyButton.querySelector('svg')).toHaveStyleRule('width', '16px');
       expect(copyButton.querySelector('svg')).toHaveStyleRule('height', '16px');
       expect(
-        within(actions).getByRole('button', { name: 'Download' })
+        within(actions).getByRole('button', { name: 'Download full message' })
       ).toBeInTheDocument();
     });
 
