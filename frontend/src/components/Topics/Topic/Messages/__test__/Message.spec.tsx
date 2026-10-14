@@ -126,6 +126,9 @@ describe('Message component', () => {
       theme.alert.color.warning
     );
     expect(screen.getByText('Preview truncated')).toBeInTheDocument();
+    expect(
+      screen.getByText('Expand to inspect or download')
+    ).toBeInTheDocument();
   });
 
   it('requires confirmation to reproduce a large message without altering it', async () => {

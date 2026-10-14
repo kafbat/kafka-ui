@@ -74,7 +74,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
       '\t'
     );
   const { copyToClipboard, saveFile } = useDataSaver(
-    'topic-message',
+    `${topicName}-p${partition}-o${offset}.json`,
     createSavedMessage
   );
   const isLargeMessage = React.useMemo(
@@ -173,9 +173,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
           {isLargeMessage && (
             <S.RowSummary>
               <S.RowTitle>Preview truncated</S.RowTitle>
-              <S.RowDescription>
-                Expand to inspect; download for full content.
-              </S.RowDescription>
+              <S.RowDescription>Expand to inspect or download</S.RowDescription>
             </S.RowSummary>
           )}
           <S.Metadata>
@@ -235,8 +233,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
       {isOpen && (
         <MessageContent
           key={`${partition}-${offset}`}
-          partition={partition}
-          offset={offset}
+          onDownload={saveFile}
           messageKey={key}
           messageContent={value}
           headers={headers}
