@@ -95,7 +95,8 @@ in a file named `<topic-name>-pN-oM.json`, using the actual topic name, partitio
 and offset. The file includes the value, key, headers, partition, offset, and
 timestamp. **Download value**, **Download key**, or **Download headers** saves
 only the complete selected field, with `-value`, `-key`, or `-headers` appended
-to `<topic-name>-pN-oM`. **Copy** copies the selected field as-is (headers are
+to `<topic-name>-pN-oM`. **Copy value**, **Copy key**, or **Copy headers** copies
+the selected field as-is (headers are
 serialized as JSON); it does not pretty-print JSON values. Clipboard actions,
 record downloads, and JSON/CSV exports use the original data, not the truncated
 preview. Exports are generated only when requested. Opening a large record in

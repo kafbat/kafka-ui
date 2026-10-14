@@ -149,7 +149,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                   aria-label={`Copy ${activeFieldName} to clipboard`}
                 >
                   <S.CopyIcon />
-                  Copy
+                  Copy {activeFieldName}
                 </Button>
                 <Button
                   type="button"

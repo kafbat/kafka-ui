@@ -217,7 +217,7 @@ describe('MessageContent screen', () => {
       const copyButton = within(actions).getByRole('button', {
         name: 'Copy value to clipboard',
       });
-      expect(copyButton).toHaveTextContent('Copy');
+      expect(copyButton).toHaveTextContent('Copy value');
       expect(copyButton.querySelector('svg')).toHaveStyleRule('width', '16px');
       expect(copyButton.querySelector('svg')).toHaveStyleRule('height', '16px');
       expect(
@@ -246,7 +246,7 @@ describe('MessageContent screen', () => {
         expect(keyTab[0]).toHaveAttribute('aria-pressed', 'true');
         expect(
           screen.getByRole('button', { name: 'Copy key to clipboard' })
-        ).toBeInTheDocument();
+        ).toHaveTextContent('Copy key');
       });
     });
 
@@ -263,7 +263,7 @@ describe('MessageContent screen', () => {
         );
         expect(
           screen.getByRole('button', { name: 'Copy headers to clipboard' })
-        ).toBeInTheDocument();
+        ).toHaveTextContent('Copy headers');
       });
     });
 
