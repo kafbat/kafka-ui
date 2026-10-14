@@ -12,14 +12,16 @@ import { theme } from 'theme/theme';
 import { CONTENT_PREVIEW_LENGTH } from 'components/Topics/Topic/Messages/preview';
 import Message from 'components/Topics/Topic/Messages/Message';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
+import useAppParams from 'lib/hooks/useAppParams';
+
+jest.mock('lib/hooks/useAppParams');
 
 const setupWrapper = (props?: Partial<MessageContentProps>) => {
   return (
     <table>
       <tbody>
         <MessageContent
-          partition={2}
-          offset={42}
+          onDownload={jest.fn()}
           messageKey='"test-key"'
           messageContent='{"data": "test"}'
           headers={{ header: 'test' }}
@@ -37,6 +39,13 @@ const setupWrapper = (props?: Partial<MessageContentProps>) => {
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('MessageContent screen', () => {
+  beforeEach(() => {
+    jest.mocked(useAppParams).mockReturnValue({
+      clusterName: 'test-cluster',
+      topicName: 'orders.created',
+    });
+  });
+
   describe('large message content', () => {
     const value = `${'v'.repeat(CONTENT_PREVIEW_LENGTH * 2)}value end`;
     const key = `${'k'.repeat(CONTENT_PREVIEW_LENGTH + 1)}key end`;
@@ -94,45 +103,85 @@ describe('MessageContent screen', () => {
       );
     });
 
-    it('downloads the complete active field rather than its preview', async () => {
-      const blobs: Blob[] = [];
-      const filenames: string[] = [];
-      global.URL.createObjectURL = jest.fn((blob: Blob) => {
-        blobs.push(blob);
-        return 'blob:message-content';
-      });
-      global.URL.revokeObjectURL = jest.fn();
-      const click = jest
-        .spyOn(HTMLAnchorElement.prototype, 'click')
-        .mockImplementation(function captureFilename(this: HTMLAnchorElement) {
-          filenames.push(this.download);
+    it.each([
+      ['large', value, key, headers],
+      ['small', '{"order":42}', 'order-key', { source: 'test' }],
+    ])(
+      'downloads the full message as JSON from every field for %s content',
+      async (_size, messageContent, messageKey, messageHeaders) => {
+        const blobs: Blob[] = [];
+        const filenames: string[] = [];
+        global.URL.createObjectURL = jest.fn((blob: Blob) => {
+          blobs.push(blob);
+          return 'blob:message-content';
         });
-      render(setupWrapper({ messageContent: value, messageKey: key, headers }));
-      await userEvent.click(screen.getByText('Download'));
-      await userEvent.click(screen.getAllByText('Key')[0]);
-      await userEvent.click(screen.getByText('Download'));
-      await userEvent.click(screen.getByText('Headers'));
-      await userEvent.click(screen.getByText('Download'));
-      const contents = await Promise.all(
-        blobs.map(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsText(blob);
-            })
-        )
-      );
-      expect(contents).toEqual([value, key, JSON.stringify(headers)]);
-      expect(filenames).toEqual([
-        'topic-p2-o42',
-        'topic-p2-o42',
-        'topic-p2-o42',
-      ]);
-      expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(3);
-      click.mockRestore();
-    });
+        global.URL.revokeObjectURL = jest.fn();
+        const click = jest
+          .spyOn(HTMLAnchorElement.prototype, 'click')
+          .mockImplementation(function captureFilename(
+            this: HTMLAnchorElement
+          ) {
+            filenames.push(this.download);
+          });
+        render(
+          <TopicActionsProvider openSidebarWithMessage={jest.fn()}>
+            <table>
+              <tbody>
+                <Message
+                  message={{
+                    partition: 2,
+                    offset: 42,
+                    timestamp: new Date(0),
+                    value: messageContent,
+                    key: messageKey,
+                    headers: messageHeaders,
+                  }}
+                  keyFilters={[]}
+                  contentFilters={[]}
+                />
+              </tbody>
+            </table>
+          </TopicActionsProvider>
+        );
+        await userEvent.click(screen.getByRole('row'));
+        await userEvent.click(screen.getByText('Download'));
+        await userEvent.click(screen.getAllByText('Key')[0]);
+        await userEvent.click(screen.getByText('Download'));
+        await userEvent.click(screen.getByText('Headers'));
+        await userEvent.click(screen.getByText('Download'));
+        const contents = await Promise.all(
+          blobs.map(
+            (blob) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(blob);
+              })
+          )
+        );
+        const expectedMessage = {
+          Value: messageContent,
+          Offset: 42,
+          Key: messageKey,
+          Partition: 2,
+          Headers: messageHeaders,
+          Timestamp: new Date(0).toISOString(),
+        };
+        expect(contents.map((content) => JSON.parse(String(content)))).toEqual([
+          expectedMessage,
+          expectedMessage,
+          expectedMessage,
+        ]);
+        expect(filenames).toEqual([
+          'orders.created-p2-o42.json',
+          'orders.created-p2-o42.json',
+          'orders.created-p2-o42.json',
+        ]);
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledTimes(3);
+        click.mockRestore();
+      }
+    );
   });
 
   describe('small message content', () => {

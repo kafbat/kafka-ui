@@ -90,8 +90,10 @@ actions grouped together. Key/Value/Headers tabs and record metadata remain
 available. Large headers have a bounded prefix preview with a full download,
 rather than chunk navigation.
 
-Per-field **Download** saves a file named `topic-pN-oM`, using the message's
-partition and offset. **Copy** copies the selected field as-is (headers are
+**Download** saves the full message as JSON, regardless of the selected field,
+in a file named `<topic-name>-pN-oM.json`, using the actual topic name, partition,
+and offset. The file includes the value, key, headers, partition, offset, and
+timestamp. **Copy** copies the selected field as-is (headers are
 serialized as JSON); it does not pretty-print JSON values. Clipboard actions,
 record downloads, and JSON/CSV exports use the original data, not the truncated
 preview. Exports are generated only when requested. Opening a large record in

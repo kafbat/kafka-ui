@@ -20,8 +20,7 @@ import Serde from './components/Serde/Serde';
 type Tab = 'key' | 'content' | 'headers';
 
 export interface MessageContentProps {
-  partition: number;
-  offset: number;
+  onDownload: () => void;
   messageKey?: string;
   messageContent?: string;
   headers?: { [key: string]: string | undefined };
@@ -36,8 +35,7 @@ export interface MessageContentProps {
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
-  partition,
-  offset,
+  onDownload,
   messageKey,
   messageContent,
   headers,
@@ -78,13 +76,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
     (messageContent?.length || 0) > CONTENT_PREVIEW_LENGTH ||
     headersPreview.truncated;
 
-  const { copyToClipboard, saveFile } = useDataSaver(
-    `topic-p${partition}-o${offset}`,
-    () => {
-      if (activeTab === 'headers') return JSON.stringify(headers) || '';
-      return activeTab === 'key' ? messageKey || '' : messageContent || '';
-    }
-  );
+  const { copyToClipboard } = useDataSaver(`message-${activeFieldName}`, () => {
+    if (activeTab === 'headers') return JSON.stringify(headers) || '';
+    return activeTab === 'key' ? messageKey || '' : messageContent || '';
+  });
 
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -156,7 +151,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
                     type="button"
                     buttonSize="M"
                     buttonType="text"
-                    onClick={saveFile}
+                    onClick={onDownload}
                   >
                     Download
                   </Button>
@@ -168,7 +163,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
               data={tabContent}
               schemaType={contentType}
               truncated={activeTab === 'headers' && headersPreview.truncated}
-              onDownload={saveFile}
+              onDownload={onDownload}
             />
           </S.ContentBox>
           <S.MetadataWrapper>
