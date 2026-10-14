@@ -71,6 +71,9 @@ describe('ConfirmationModal customization', () => {
       }
       expect(callback).toHaveBeenCalledTimes(action === 'confirm' ? 1 : 0);
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Custom prompt' })
+      ).toHaveFocus();
       expect(screen.getByRole('status')).toHaveTextContent(
         'Confirm the action / Confirm'
       );
@@ -88,4 +91,33 @@ describe('ConfirmationModal customization', () => {
       ).not.toBeInTheDocument();
     }
   );
+
+  it('keeps forward and backward keyboard navigation inside the dialog', async () => {
+    render(<Prompts />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Custom prompt' })
+    );
+    const dialog = screen.getByRole('dialog');
+    const cancel = within(dialog).getByRole('button', { name: 'Cancel' });
+    const confirm = within(dialog).getByRole('button', { name: 'Open anyway' });
+    await userEvent.tab({ shift: true });
+    expect(confirm).toHaveFocus();
+    await userEvent.tab();
+    expect(cancel).toHaveFocus();
+    await userEvent.tab();
+    expect(confirm).toHaveFocus();
+    await userEvent.tab();
+    expect(cancel).toHaveFocus();
+  });
+
+  it('redirects background focus into the dialog', async () => {
+    render(<Prompts />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Custom prompt' })
+    );
+    screen.getByRole('button', { name: 'Default prompt' }).focus();
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' })
+    ).toHaveFocus();
+  });
 });
