@@ -28,11 +28,14 @@ import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -117,7 +120,7 @@ public class MessageFilters {
     return topicMessage -> {
       Object programResult;
       try {
-        programResult = program.eval(recordToArgs(topicMessage));
+        programResult = program.eval(Map.of(CEL_RECORD_VAR_NAME, new LazyRecordArgs(topicMessage)));
       } catch (CelEvaluationException e) {
         throw new CelException(originalScript, e);
       }
@@ -133,29 +136,59 @@ public class MessageFilters {
     };
   }
 
-  private static Map<String, Map<String, Object>> recordToArgs(TopicMessageDTO topicMessage) {
-    Map<String, Object> args = new HashMap<>();
+  // Record fields for CEL script. Fields are computed on access, so json parsing of key/value
+  // is only done when script uses record.key / record.value (e.g. not for record.keyAsText == "...")
+  private static final class LazyRecordArgs extends AbstractMap<String, Object> {
 
-    args.put("partition", topicMessage.getPartition());
-    args.put("offset", topicMessage.getOffset());
+    private static final List<String> FIELDS =
+        List.of("partition", "offset", "timestampMs", "key", "keyAsText", "value", "valueAsText", "headers");
 
-    if (topicMessage.getTimestamp() != null) {
-      args.put("timestampMs", topicMessage.getTimestamp().toInstant().toEpochMilli());
+    private final TopicMessageDTO msg;
+    private final Map<String, Object> parsed = new HashMap<>();
+
+    LazyRecordArgs(TopicMessageDTO msg) {
+      this.msg = msg;
     }
 
-    if (topicMessage.getKey() != null) {
-      args.put("key", parseToJsonOrReturnAsIs(topicMessage.getKey()));
-      args.put("keyAsText", topicMessage.getKey());
+    @Override
+    @Nullable
+    public Object get(Object field) {
+      if (!(field instanceof String name)) {
+        return null;
+      }
+      return switch (name) {
+        case "partition" -> msg.getPartition();
+        case "offset" -> msg.getOffset();
+        case "timestampMs" -> msg.getTimestamp() != null ? msg.getTimestamp().toInstant().toEpochMilli() : null;
+        case "key" -> msg.getKey() != null
+            ? parsed.computeIfAbsent(name, n -> parseToJsonOrReturnAsIs(msg.getKey()))
+            : null;
+        case "keyAsText" -> msg.getKey();
+        case "value" -> msg.getValue() != null
+            ? parsed.computeIfAbsent(name, n -> parseToJsonOrReturnAsIs(msg.getValue()))
+            : null;
+        case "valueAsText" -> msg.getValue();
+        case "headers" -> Objects.requireNonNullElse(msg.getHeaders(), emptyMap());
+        default -> null;
+      };
     }
 
-    if (topicMessage.getValue() != null) {
-      args.put("value", parseToJsonOrReturnAsIs(topicMessage.getValue()));
-      args.put("valueAsText", topicMessage.getValue());
+    @Override
+    public boolean containsKey(Object field) {
+      return get(field) != null;
     }
 
-    args.put("headers", Objects.requireNonNullElse(topicMessage.getHeaders(), emptyMap()));
-
-    return Map.of("record", args);
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+      Map<String, Object> all = new LinkedHashMap<>();
+      FIELDS.forEach(f -> {
+        Object v = get(f);
+        if (v != null) {
+          all.put(f, v);
+        }
+      });
+      return all.entrySet();
+    }
   }
 
   private static CelCompiler createCompiler() {

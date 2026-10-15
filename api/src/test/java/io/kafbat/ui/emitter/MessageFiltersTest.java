@@ -6,6 +6,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import io.kafbat.ui.exception.CelException;
 import io.kafbat.ui.model.TopicMessageDTO;
@@ -136,6 +139,13 @@ class MessageFiltersTest {
     void throwsExceptionOnInvalidCelSyntax() {
       assertThrows(CelException.class,
           () -> celScriptFilter("this is an invalid CEL syntax = 1"));
+    }
+
+    @Test
+    void doesNotReadValueWhenScriptDoesNotUseIt() {
+      var msg = spy(msg().key("k").value("{\"some\": \"json\"}"));
+      assertTrue(celScriptFilter("record.keyAsText == \"k\"").test(msg));
+      verify(msg, never()).getValue();
     }
 
     @Test
