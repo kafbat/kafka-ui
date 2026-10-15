@@ -18,10 +18,17 @@ import reactor.core.publisher.FluxSink;
 @Slf4j
 abstract class RangePollingEmitter extends AbstractEmitter {
 
+  // When filter is applied most of polled records are not sent, so with window = page size
+  // scanning of large topic takes thousands of seek-poll rounds. Window is doubled after each round
+  // that didn't fill the page, but polled bytes per round are limited to keep memory bounded.
+  private static final int MAX_WINDOW_MULTIPLIER = 1024;
+  private static final long MAX_BYTES_PER_ROUND = 32L * 1024 * 1024;
+
   private final Supplier<EnhancedConsumer> consumerSupplier;
   private final Cursor.Tracking cursor;
   protected final ConsumerPosition consumerPosition;
   protected final int messagesPerPage;
+  private int windowMultiplier = 1;
 
   protected RangePollingEmitter(Supplier<EnhancedConsumer> consumerSupplier,
                                 ConsumerPosition consumerPosition,
@@ -59,6 +66,7 @@ abstract class RangePollingEmitter extends AbstractEmitter {
       while (!sink.isCancelled() && !pollRange.isEmpty() && !isSendLimitReached()) {
         var polled = poll(consumer, sink, pollRange);
         send(sink, polled, cursor);
+        growWindowIfNeeded(polled);
         pollRange = nextPollingRange(pollRange, seekOperations);
       }
       if (sink.isCancelled()) {
@@ -72,6 +80,24 @@ abstract class RangePollingEmitter extends AbstractEmitter {
     } catch (Exception e) {
       log.error("Error occurred while consuming records", e);
       sink.error(e);
+    }
+  }
+
+  // number of messages to poll in one round (across all partitions)
+  protected int pollingWindow() {
+    return messagesPerPage * windowMultiplier;
+  }
+
+  private void growWindowIfNeeded(List<ConsumerRecord<Bytes, Bytes>> polled) {
+    if (isSendLimitReached() || windowMultiplier >= MAX_WINDOW_MULTIPLIER) {
+      return;
+    }
+    long polledBytes = 0;
+    for (var rec : polled) {
+      polledBytes += Math.max(0, rec.serializedKeySize()) + Math.max(0, rec.serializedValueSize());
+    }
+    if (polledBytes * 2 <= MAX_BYTES_PER_ROUND) {
+      windowMultiplier *= 2;
     }
   }
 
