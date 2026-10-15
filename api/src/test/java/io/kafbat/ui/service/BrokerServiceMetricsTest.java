@@ -63,6 +63,7 @@ class BrokerServiceMetricsTest {
             null, "clusterId", List.of(new Node(BROKER_ID, "host", 9092)), Set.of()))
         .metrics(Metrics.builder()
             .ioRates(emptyMetrics.getIoRates())
+            .segmentCounts(emptyMetrics.getSegmentCounts())
             .inferredMetrics(emptyMetrics.getInferredMetrics())
             .perBrokerScrapedMetrics(perBrokerMetrics)
             .build())

@@ -97,6 +97,20 @@ describe('Overview', () => {
     });
   });
 
+  describe('segment count', () => {
+    it('renders the value when present', () => {
+      renderComponent({ ...externalTopicPayload, segmentCount: 7 });
+      expect(screen.getByText('Segment Count')).toBeInTheDocument();
+      expect(screen.getByText('7')).toBeInTheDocument();
+    });
+
+    it('renders N/A when metrics are not available', () => {
+      renderComponent({ ...externalTopicPayload, segmentCount: undefined });
+      expect(screen.getByText('Segment Count')).toBeInTheDocument();
+      expect(screen.getByText('N/A')).toBeInTheDocument();
+    });
+  });
+
   describe('should render circular alert', () => {
     it('should be in document', () => {
       renderComponent();

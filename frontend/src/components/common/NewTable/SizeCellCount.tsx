@@ -15,7 +15,7 @@ const SizeCellCount = <TData extends { count?: number | undefined }, TValue>({
         value={getValue<string | number>()}
         precision={precision}
       />
-      {`, ${row.original.count} segment(s)`}
+      {row.original.count !== undefined && `, ${row.original.count} segment(s)`}
     </>
   );
 };

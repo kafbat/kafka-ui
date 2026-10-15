@@ -30,7 +30,7 @@ class InferredMetricsScraperTest {
 
   @Test
   void allExpectedMetricsScraped() {
-    var segmentStats = new SegmentStats(1234L, 3);
+    var segmentStats = new SegmentStats(1234L);
     var logDirStats = new LogDirSpaceStats(234L, 345L, Map.of(), Map.of());
 
     Node node1 = new Node(1, "node1", 9092);

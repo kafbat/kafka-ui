@@ -20,14 +20,17 @@ import reactor.util.function.Tuples;
 @Value
 public class InternalLogDirStats {
 
+  /**
+   * Disk usage summed over the replica log dirs reported by {@code describeLogDirs}. The Admin API
+   * does not expose a segment count, that comes from broker metrics (see {@link Metrics.SegmentCounts}).
+   */
   @Value
   @RequiredArgsConstructor
   public static class SegmentStats {
     Long segmentSize;
-    Integer segmentsCount;
 
     private SegmentStats(LongSummaryStatistics s) {
-      this(s.getSum(), (int) s.getCount());
+      this(s.getSum());
     }
   }
 
