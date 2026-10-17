@@ -209,16 +209,10 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
 tasks.register('copyOpenApiSpecForSwagger', Copy) {
     dependsOn ':contract-typespec:build'
 
-    if (useTypeSpec) {
-        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
-    } else {
-        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
-    }
+    inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
     outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
 
-    from useTypeSpec ?
-        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
-        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    from project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get()
     into "src/main/resources/static/openapi/"
     rename { "kafbat-ui-api.yaml" }
 }

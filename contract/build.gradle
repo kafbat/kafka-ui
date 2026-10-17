@@ -21,12 +21,8 @@ dependencies {
 
 tasks.register('generateUiClient', GenerateTask) {
     generatorName = "java"
-    if (useTypeSpec) {
-        dependsOn ":contract-typespec:build"
-        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
-    } else {
-        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
-    }
+    dependsOn ":contract-typespec:build"
+    inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
     outputDir = targetDir.dir("kafbat-ui-client").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -41,12 +37,8 @@ tasks.register('generateUiClient', GenerateTask) {
 
 tasks.register('generateBackendApi', GenerateTask) {
     generatorName = "spring"
-    if (useTypeSpec) {
-        dependsOn ":contract-typespec:build"
-        inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
-    } else {
-        inputSpec = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
-    }
+    dependsOn ":contract-typespec:build"
+    inputSpec = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
     outputDir = targetDir.dir("api").asFile.absolutePath
     apiPackage = "io.kafbat.ui.api"
     invokerPackage = "io.kafbat.ui.api"
@@ -71,11 +63,7 @@ tasks.register('generateBackendApi', GenerateTask) {
 }
 
 openAPIStyleValidator {
-    if (useTypeSpec) {
-        inputFile = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
-    } else {
-        inputFile = specDir.file("kafbat-ui-api.yaml").asFile.absolutePath
-    }
+    inputFile = project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get().asFile.absolutePath
     validateModelPropertiesDescription = false
     validateModelPropertiesExample = false
     parameterNamingConvention = "UnderscoreCase"
