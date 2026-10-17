@@ -43,11 +43,17 @@ class MessageFiltersTest {
       );
 
       assertTrue(
-          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("abC", "value")))
+          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("abC", List.of("value"))))
       );
 
       assertTrue(
-          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("x1", "some abC")))
+          filter.test(msg().key("dfg").value("does-not-contain").headers(Map.of("x1", List.of("some abC"))))
+      );
+
+      assertTrue(
+          filter.test(msg().key("dfg")
+              .value("does-not-contain")
+              .headers(Map.of("x1", List.of("does-not-contain", "some abC"))))
       );
     }
 
@@ -122,7 +128,7 @@ class MessageFiltersTest {
       );
 
       assertFalse(
-          filter.test(msg().key("aBc").value("AbC").headers(Map.of("abc", "value")))
+          filter.test(msg().key("aBc").value("AbC").headers(Map.of("abc", List.of("value"))))
       );
 
     }
@@ -154,12 +160,12 @@ class MessageFiltersTest {
 
     @Test
     void canCheckHeaders() {
-      var f = celScriptFilter("record.headers.size() == 2 && record.headers['k1'] == 'v1'");
-      assertTrue(f.test(msg().headers(Map.of("k1", "v1", "k2", "v2"))));
-      assertFalse(f.test(msg().headers(Map.of("k1", "unexpected", "k2", "v2"))));
+      var f = celScriptFilter("record.headers.size() == 2 && record.headers['k1'] == ['v1']");
+      assertTrue(f.test(msg().headers(Map.of("k1", List.of("v1"), "k2", List.of("v2")))));
+      assertFalse(f.test(msg().headers(Map.of("k1", List.of("unexpected"), "k2", List.of("v2")))));
 
-      f = celScriptFilter("record.headers.size() == 1 && !has(record.headers.k1) && record.headers['k2'] == 'v2'");
-      assertTrue(f.test(msg().headers(Map.of("k2", "v2"))));
+      f = celScriptFilter("record.headers.size() == 1 && !has(record.headers.k1) && record.headers['k2'] == ['v2']");
+      assertTrue(f.test(msg().headers(Map.of("k2", List.of("v2")))));
 
       f = celScriptFilter("!has(record.headers) || record.headers.size() == 0");
       assertTrue(f.test(msg().headers(Map.of())));
