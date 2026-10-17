@@ -57,16 +57,41 @@ describe('InputWithOptions component', () => {
     expect(getInputBox()).toHaveValue('');
   });
 
-  it('rejects typing a disabled option', async () => {
+  it('allows typing a value that extends a disabled option', async () => {
     const onChange = jest.fn();
     renderComponent({ onChange });
     const input = screen.getAllByRole('listitem')[1];
 
+    await userEvent.type(input, 'test-value4-suffix');
+
+    expect(input).toHaveValue('test-value4-suffix');
+    expect(onChange).toHaveBeenLastCalledWith('test-value4-suffix');
+  });
+
+  it('restores the edit-start value on blur when a disabled option is entered', async () => {
+    const onChange = jest.fn();
+    renderComponent({ value: 'starting-value', onChange });
+    const input = screen.getAllByRole('listitem')[1];
+
+    await userEvent.clear(input);
     await userEvent.type(input, 'test-value4');
     await userEvent.click(document.body);
 
-    expect(input).not.toHaveValue('test-value4');
-    expect(onChange).not.toHaveBeenCalledWith('test-value4');
+    expect(input).toHaveValue('starting-value');
+    expect(onChange).toHaveBeenLastCalledWith('starting-value');
+  });
+
+  it('restores the edit-start value on Enter when a disabled option is entered', async () => {
+    const onChange = jest.fn();
+    renderComponent({ value: 'starting-value', onChange });
+    const input = screen.getAllByRole('listitem')[1];
+
+    await userEvent.clear(input);
+    await userEvent.type(input, 'test-value4');
+    await userEvent.keyboard('{Enter}');
+
+    expect(input).toHaveValue('starting-value');
+    expect(onChange).toHaveBeenLastCalledWith('starting-value');
   });
 
   it('allows user to type', async () => {
