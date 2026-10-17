@@ -4,6 +4,7 @@ import static io.kafbat.ui.model.ConnectorActionDTO.RESTART;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_ALL_TASKS;
 import static io.kafbat.ui.model.ConnectorActionDTO.RESTART_FAILED_TASKS;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kafbat.ui.api.KafkaConnectApi;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.ConnectorActionDTO;
@@ -21,6 +22,7 @@ import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +42,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   private static final Set<ConnectorActionDTO> RESTART_ACTIONS
       = Set.of(RESTART, RESTART_FAILED_TASKS, RESTART_ALL_TASKS);
   private static final String CONNECTOR_NAME = "connectorName";
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final KafkaConnectService kafkaConnectService;
 
@@ -72,13 +75,18 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .operationName("getConnectors")
         .build();
 
-    return validateAccess(context)
-        .thenReturn(
-            ResponseEntity.ok(
-              kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
-                  .flatMapMany(m -> Flux.fromIterable(m.keySet()))
-            )
-        ).doOnEach(sig -> audit(context, sig));
+    // The generated contract type is Flux<String>. WebFlux writes that as raw text chunks,
+    // which concatenates names instead of emitting the declared JSON array. Materialize the
+    // names and write them as one JSON array value.
+    return validateAccess(context).then(
+        kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
+            .map(connectors -> List.copyOf(connectors.keySet()))
+            .map(names -> ResponseEntity.ok(Flux.just(toConnectorNamesArray(names))))
+    ).doOnEach(sig -> audit(context, sig));
+  }
+
+  private static String toConnectorNamesArray(List<String> names) {
+    return OBJECT_MAPPER.valueToTree(names).toString();
   }
 
   @Override
