@@ -36,6 +36,9 @@ const InputWithOptions = ({
     filteredOptions = [{ value: selectedOption, label: selectedOption }];
   }
 
+  const isDisabledOption = (optionText: string) =>
+    options.some((option) => option.value === optionText && option.disabled);
+
   const updateSelectedOption = (option: SelectOption<string>) => {
     if (!option.disabled) {
       setSelectedOption(option.value);
@@ -46,10 +49,9 @@ const InputWithOptions = ({
 
   const selectContainerRef = useRef(null);
   const clickOutsideHandler = () => {
-    const isDisabledOption = (optionText: string) =>
-      options.some((option) => option.value === optionText && option.disabled);
-
-    if (!isDisabledOption(value) && showOptions) {
+    if (isDisabledOption(selectedOption)) {
+      setSelectedOption(value);
+    } else if (!isDisabledOption(value) && showOptions) {
       onChange?.(selectedOption);
     }
 
@@ -68,8 +70,14 @@ const InputWithOptions = ({
         placeholder={placeholder}
         inputSize={inputSize}
         onChange={(e) => {
-          onChange?.(e.target.value);
-          setSelectedOption(e.target.value);
+          const nextValue = e.target.value;
+          if (isDisabledOption(nextValue)) {
+            setSelectedOption(value);
+            return;
+          }
+
+          onChange?.(nextValue);
+          setSelectedOption(nextValue);
         }}
       />
       <DropdownArrowIcon isOpen={showOptions} />
