@@ -115,11 +115,17 @@ describe('Metrics', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
-  it('returns empty container', () => {
+  it('renders Start Analysis when analysis has never been run', () => {
     (useTopicAnalysis as jest.Mock).mockImplementation(() => ({
       data: {},
     }));
+    (useAnalyzeTopic as jest.Mock).mockImplementation(() => ({
+      mutateAsync: jest.fn(),
+    }));
     renderComponent();
+    expect(
+      screen.getByRole('button', { name: 'Start Analysis' })
+    ).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });

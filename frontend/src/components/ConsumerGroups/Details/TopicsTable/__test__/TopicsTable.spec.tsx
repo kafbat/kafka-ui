@@ -5,6 +5,7 @@ import { TopicsTable } from 'components/ConsumerGroups/Details/TopicsTable/Topic
 import { render, WithRoute } from 'lib/testHelpers';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { consumerGroupPayload } from 'lib/fixtures/consumerGroups';
+import { getConsumerGroupTopicsTableColumns } from 'components/ConsumerGroups/Details/TopicsTable/lib/utils';
 
 const clusterName = 'cluster1';
 
@@ -79,5 +80,28 @@ describe('TopicContent', () => {
     );
 
     expect(shownPartitions).toEqual(expectedPartitionIds);
+  });
+});
+
+describe('Consumer lag CSV export', () => {
+  it('exports consumer lag value via csvFn', () => {
+    const columns = getConsumerGroupTopicsTableColumns();
+    const lagColumn = columns.find((c) => c.accessorKey === 'consumerLag');
+
+    expect(lagColumn?.meta?.csvFn).toBeDefined();
+    expect(
+      lagColumn?.meta?.csvFn?.({
+        topicName: 'topic1',
+        consumerLag: 1545,
+        lagTrend: 'none',
+      })
+    ).toBe('1545');
+    expect(
+      lagColumn?.meta?.csvFn?.({
+        topicName: 'topic1',
+        consumerLag: 'N/A',
+        lagTrend: 'none',
+      })
+    ).toBe('N/A');
   });
 });

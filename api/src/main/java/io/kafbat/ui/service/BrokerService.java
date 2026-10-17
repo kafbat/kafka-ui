@@ -140,7 +140,14 @@ public class BrokerService {
   }
 
   public Mono<List<MetricSnapshot>> getBrokerMetrics(KafkaCluster cluster, Integer brokerId) {
-    return Mono.justOrEmpty(statisticsCache.get(cluster).getMetrics().getPerBrokerScrapedMetrics().get(brokerId));
+    var statistics = statisticsCache.get(cluster);
+    if (statistics.getClusterDescription().getNodes()
+        .stream().noneMatch(node -> node.id() == brokerId)) {
+      return Mono.error(
+          new NotFoundException(String.format("Broker with id %s not found", brokerId)));
+    }
+    return Mono.justOrEmpty(statistics.getMetrics().getPerBrokerScrapedMetrics().get(brokerId))
+        .defaultIfEmpty(List.of());
   }
 
 }
