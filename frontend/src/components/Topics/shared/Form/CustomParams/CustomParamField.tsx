@@ -17,6 +17,7 @@ export interface Props {
   isDisabled: boolean;
   index: number;
   existingFields: string[];
+  readOnlyConfigNames?: string[];
   field: FieldArrayWithId<TopicFormData, 'customParams', 'id'>;
   remove: (index: number) => void;
   setExistingFields: React.Dispatch<React.SetStateAction<string[]>>;
@@ -28,6 +29,7 @@ const CustomParamField: React.FC<Props> = ({
   index,
   remove,
   existingFields,
+  readOnlyConfigNames,
   setExistingFields,
 }) => {
   const {
@@ -39,15 +41,16 @@ const CustomParamField: React.FC<Props> = ({
   } = useFormContext<TopicFormData>();
   const nameValue = watch(`customParams.${index}.name`);
   const prevName = useRef(nameValue);
+  const isReadOnly = readOnlyConfigNames?.includes(nameValue) ?? false;
 
-  // Only block params already selected in the form. Kafka DEFAULT_CONFIG /
-  // broker-sourced keys must stay selectable so users can add topic overrides.
   const options = Object.keys(TOPIC_CUSTOM_PARAMS)
     .sort()
     .map((option) => ({
       value: option,
       label: option,
-      disabled: existingFields.includes(option),
+      disabled:
+        existingFields.includes(option) ||
+        (readOnlyConfigNames?.includes(option) ?? false),
     }));
 
   React.useEffect(() => {
@@ -79,6 +82,7 @@ const CustomParamField: React.FC<Props> = ({
               value={value}
               options={options}
               name={name}
+              disabled={isReadOnly}
               onChange={(s) => {
                 onChange(s);
                 trigger('customParams');
@@ -102,7 +106,7 @@ const CustomParamField: React.FC<Props> = ({
           placeholder="Value"
           defaultValue={field.value}
           autoComplete="off"
-          disabled={isDisabled}
+          disabled={isDisabled || isReadOnly}
         />
         <FormError>
           <ErrorMessage
@@ -114,11 +118,20 @@ const CustomParamField: React.FC<Props> = ({
 
       <S.DeleteButtonWrapper>
         <IconButtonWrapper
-          onClick={() => remove(index)}
+          onClick={() => !isReadOnly && remove(index)}
           onKeyDown={(e: React.KeyboardEvent) =>
-            e.code === 'Space' && remove(index)
+            e.code === 'Space' && !isReadOnly && remove(index)
           }
-          title={`Delete customParam field ${index}`}
+          aria-disabled={isReadOnly}
+          tabIndex={isReadOnly ? -1 : 0}
+          style={
+            isReadOnly ? { cursor: 'not-allowed', opacity: 0.5 } : undefined
+          }
+          title={
+            isReadOnly
+              ? `Custom parameter ${index} is read-only`
+              : `Delete customParam field ${index}`
+          }
         >
           <CloseCircleIcon aria-hidden />
         </IconButtonWrapper>
