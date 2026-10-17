@@ -56,23 +56,28 @@ jobs:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        with:
+          version: 10.33.0
+
       - name: Set up Node.js
         uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # https://github.com/actions/setup-node/releases/tag/v3.9.1
         with:
           node-version: 18
-          cache-dependency-path: ./e2e-playwright/package-lock.json
-          cache: 'npm'
+          cache-dependency-path: ./e2e-playwright/pnpm-lock.yaml
+          cache: 'pnpm'
 
-      - name: Install NPM dependencies
+      - name: Install dependencies
         working-directory: ./e2e-playwright
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browser binaries
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # https://github.com/actions/cache/releases/tag/v4.3.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('./e2e-playwright/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('./e2e-playwright/pnpm-lock.yaml') }}
 
       - name: Cache apt binaries
         uses: awalsh128/cache-apt-pkgs-action@5902b33ae29014e6ca012c5d8025d4346556bd40 # https://github.com/awalsh128/cache-apt-pkgs-action/releases/tag/v1.6.0
@@ -81,7 +86,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./e2e-playwright
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Download docker image
         uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # https://github.com/actions/download-artifact/releases/tag/v4
@@ -97,7 +102,7 @@ jobs:
 
       - name: Run tests with ENV=prod
         working-directory: ./e2e-playwright
-        run: ENV=prod npm run test
+        run: ENV=prod pnpm test
 
       - name: Upload report
         if: failure()
