@@ -15,7 +15,6 @@ import io.kafbat.ui.model.SchemaSubjectDTO;
 import io.kafbat.ui.model.SortOrderDTO;
 import io.kafbat.ui.service.SchemaRegistryService.SubjectWithCompatibilityLevel;
 import io.kafbat.ui.service.audit.AuditService;
-import io.kafbat.ui.sr.model.Compatibility;
 import io.kafbat.ui.sr.model.SchemaSubject;
 import io.kafbat.ui.sr.model.SchemaType;
 import io.kafbat.ui.util.AccessControlServiceMock;
@@ -42,7 +41,7 @@ class SchemaRegistryPaginationTest {
     initWithData(subjects.stream().map(s ->
         new SubjectWithCompatibilityLevel(
             new SchemaSubject().subject(s),
-            Compatibility.FULL,
+            "FULL",
             s.contains("-value") ? s.replace("-value", "") : null
         )
     ).toList());
@@ -185,7 +184,7 @@ class SchemaRegistryPaginationTest {
                     .subject("subject" + num)
                     .schemaType(SchemaType.AVRO)
                     .id(num),
-                Compatibility.FULL, null
+                "FULL", null
             )
         ).toList();
 

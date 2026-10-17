@@ -198,7 +198,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .getResponseBody();
 
     Assertions.assertNotNull(actual);
-    Assertions.assertEquals(CompatibilityLevelDTO.CompatibilityEnum.BACKWARD.name(),
+    Assertions.assertEquals("BACKWARD",
         actual.getCompatibilityLevel());
     Assertions.assertEquals("1", actual.getVersion());
     Assertions.assertEquals(SchemaTypeDTO.PROTOBUF, actual.getSchemaType());
@@ -268,7 +268,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .consumeWith(result -> {
           CompatibilityLevelDTO responseBody = result.getResponseBody();
           Assertions.assertNotNull(responseBody);
-          Assertions.assertEquals(CompatibilityLevelDTO.CompatibilityEnum.BACKWARD,
+          Assertions.assertEquals("BACKWARD",
               responseBody.getCompatibility());
         });
   }
@@ -313,7 +313,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .expectBodyList(SchemaSubjectDTO.class)
         .consumeWith(listEntityExchangeResult -> {
           val expectedCompatibility =
-              CompatibilityLevelDTO.CompatibilityEnum.BACKWARD;
+              "BACKWARD";
           assertSchemaWhenGetLatest(subject, listEntityExchangeResult, expectedCompatibility);
         });
 
@@ -336,7 +336,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
         .expectBodyList(SchemaSubjectDTO.class)
         .consumeWith(listEntityExchangeResult -> {
           val expectedCompatibility =
-              CompatibilityLevelDTO.CompatibilityEnum.FULL;
+              "FULL";
           assertSchemaWhenGetLatest(subject, listEntityExchangeResult, expectedCompatibility);
         });
   }
@@ -400,7 +400,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
 
   private void assertSchemaWhenGetLatest(
       String subject, EntityExchangeResult<List<SchemaSubjectDTO>> listEntityExchangeResult,
-      CompatibilityLevelDTO.CompatibilityEnum expectedCompatibility) {
+      String expectedCompatibility) {
     List<SchemaSubjectDTO> responseBody = listEntityExchangeResult.getResponseBody();
     Assertions.assertNotNull(responseBody);
     Assertions.assertEquals(1, responseBody.size());
@@ -411,7 +411,7 @@ class SchemaRegistryServiceTests extends AbstractIntegrationTest {
 
     Assertions.assertNotNull(actualSchema.getCompatibilityLevel());
     Assertions.assertEquals(SchemaTypeDTO.AVRO, actualSchema.getSchemaType());
-    Assertions.assertEquals(expectedCompatibility.name(), actualSchema.getCompatibilityLevel());
+    Assertions.assertEquals(expectedCompatibility, actualSchema.getCompatibilityLevel());
   }
 
   private void assertResponseBodyWhenCreateNewSchema(

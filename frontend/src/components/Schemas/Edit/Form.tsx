@@ -1,11 +1,8 @@
 import React from 'react';
+import { compatibilityOptions } from 'lib/compatibility';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
-import {
-  CompatibilityLevelCompatibilityEnum,
-  SchemaSubject,
-  SchemaType,
-} from 'generated-sources';
+import { SchemaSubject, SchemaType } from 'generated-sources';
 import {
   clusterSchemaPath,
   clusterSchemasPath,
@@ -58,8 +55,7 @@ const Form: React.FC<FormProps> = ({ schema }) => {
     resolver: yupResolver(validationSchema()),
     defaultValues: {
       schemaType: schema?.schemaType,
-      compatibilityLevel:
-        schema?.compatibilityLevel as CompatibilityLevelCompatibilityEnum,
+      compatibilityLevel: schema?.compatibilityLevel,
       newSchema: formatedSchema,
     },
   });
@@ -136,9 +132,7 @@ const Form: React.FC<FormProps> = ({ schema }) => {
                     onChange={onChange}
                     minWidth="100%"
                     disabled={isSubmitting}
-                    options={Object.keys(
-                      CompatibilityLevelCompatibilityEnum
-                    ).map((level) => ({ value: level, label: level }))}
+                    options={compatibilityOptions(schema?.compatibilityLevel)}
                   />
                 )}
               />

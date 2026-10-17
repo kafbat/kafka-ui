@@ -8,7 +8,6 @@ import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
-import io.kafbat.ui.sr.model.Compatibility;
 import io.kafbat.ui.sr.model.CompatibilityCheckResponse;
 import io.kafbat.ui.sr.model.CompatibilityConfig;
 import io.kafbat.ui.sr.model.CompatibilityLevelChange;
@@ -40,7 +39,7 @@ public class SchemaRegistryService {
     @Delegate
     SchemaSubject subject;
     @Getter
-    Compatibility compatibility;
+    String compatibility;
     @Getter
     String topic;
   }
@@ -146,7 +145,7 @@ public class SchemaRegistryService {
 
   public Mono<Void> updateSchemaCompatibility(KafkaCluster cluster,
                                               String schemaName,
-                                              Compatibility compatibility) {
+                                              String compatibility) {
     return api(cluster)
         .mono(c -> c.updateSubjectCompatibilityLevel(
             schemaName, new CompatibilityLevelChange().compatibility(compatibility)))
@@ -154,13 +153,13 @@ public class SchemaRegistryService {
   }
 
   public Mono<Void> updateGlobalSchemaCompatibility(KafkaCluster cluster,
-                                                    Compatibility compatibility) {
+                                                    String compatibility) {
     return api(cluster)
         .mono(c -> c.updateGlobalCompatibilityLevel(new CompatibilityLevelChange().compatibility(compatibility)))
         .then();
   }
 
-  public Mono<Compatibility> getSchemaCompatibilityLevel(KafkaCluster cluster,
+  public Mono<String> getSchemaCompatibilityLevel(KafkaCluster cluster,
                                                          String schemaName) {
     return api(cluster)
         .mono(c -> c.getSubjectCompatibilityLevel(schemaName, true))
@@ -168,13 +167,13 @@ public class SchemaRegistryService {
         .onErrorResume(error -> Mono.empty());
   }
 
-  public Mono<Compatibility> getGlobalSchemaCompatibilityLevel(KafkaCluster cluster) {
+  public Mono<String> getGlobalSchemaCompatibilityLevel(KafkaCluster cluster) {
     return api(cluster)
         .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
         .map(CompatibilityConfig::getCompatibilityLevel);
   }
 
-  private Mono<Compatibility> getSchemaCompatibilityInfoOrGlobal(KafkaCluster cluster,
+  private Mono<String> getSchemaCompatibilityInfoOrGlobal(KafkaCluster cluster,
                                                                  String schemaName) {
     return getSchemaCompatibilityLevel(cluster, schemaName)
         .switchIfEmpty(this.getGlobalSchemaCompatibilityLevel(cluster));
