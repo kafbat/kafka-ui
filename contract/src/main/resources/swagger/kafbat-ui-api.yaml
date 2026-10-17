@@ -4551,6 +4551,13 @@ components:
                               type: string
                             introspectionUri:
                               type: string
+                    ssl:
+                      type: object
+                      properties:
+                        truststoreLocation:
+                          type: string
+                        truststorePassword:
+                          type: string
             rbac:
               type: object
               properties:

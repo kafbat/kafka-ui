@@ -61,13 +61,17 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   /**
    * WebClient configured to use system proxy properties (http.proxyHost/https.proxyHost,
-   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts).
+   * http.proxyPort/https.proxyPort, http.nonProxyHosts/https.nonProxyHosts)
+   * and the custom truststore from auth.oauth2.ssl, if specified.
    * Created as a bean to ensure system properties are read after context initialization.
    */
   @Bean(name = "oauthWebClient")
   public WebClient oauthWebClient() {
+    HttpClient httpClient = OAuthSslSupport.configureSsl(
+        HttpClient.create().proxyWithSystemProperties(),
+        OAuthSslSupport.trustManagerFactory(properties.getSsl()));
     return WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties()))
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
         .build();
   }
 
@@ -187,6 +191,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
+    OAuthSslSupport.configureIssuerDiscoverySsl(OAuthSslSupport.trustManagerFactory(properties.getSsl()));
     final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
     final List<ClientRegistration> registrations =
         new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());

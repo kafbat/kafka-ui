@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.Assert;
@@ -15,6 +16,7 @@ import org.springframework.util.Assert;
 public class OAuthProperties {
   private Map<String, OAuth2Provider> client = new HashMap<>();
   private OAuth2ResourceServerProperties resourceServer = null;
+  private Ssl ssl = null;
 
   @PostConstruct
   public void init() {
@@ -52,5 +54,16 @@ public class OAuthProperties {
     private String jwkSetUri;
     private String userNameAttribute;
     private Map<String, String> customParams;
+  }
+
+  /**
+   * Truststore used for outgoing requests to OAuth2 providers (issuer discovery, token, userinfo, jwks, etc.),
+   * e.g. when the provider uses a self-signed or private CA certificate.
+   */
+  @Data
+  @ToString(exclude = "truststorePassword")
+  public static class Ssl {
+    private String truststoreLocation;
+    private String truststorePassword;
   }
 }

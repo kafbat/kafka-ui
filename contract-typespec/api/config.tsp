@@ -104,6 +104,10 @@ model ApplicationConfig {
             introspectionUri?: string;
           };
         };
+        ssl?: {
+          truststoreLocation?: string;
+          truststorePassword?: string;
+        };
       };
     };
     rbac?: {
