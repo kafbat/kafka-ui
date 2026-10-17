@@ -52,6 +52,7 @@ describe('CustomParamsField', () => {
   const getRemoveButton = () => screen.getByRole('button');
 
   const topicCustomParam1 = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
+  const topicCustomParam2 = Object.keys(TOPIC_CUSTOM_PARAMS)[1];
 
   it('renders the component with its view correctly', async () => {
     setupComponent({
@@ -202,6 +203,35 @@ describe('CustomParamsField', () => {
       expect(getCustomParamInput()).toBeEnabled();
       await userEvent.click(getRemoveButton());
       expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves the original value when a disabled name is reverted', async () => {
+      const originalName = topicCustomParam2;
+      const originalValue = 'custom-value';
+      const existingField = {
+        ...field,
+        name: originalName,
+        value: originalValue,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: existingField,
+          isDisabled,
+          index,
+          remove,
+          existingFields,
+          readOnlyConfigNames: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: originalName, value: originalValue }] }
+      );
+
+      await userEvent.clear(getCustomParamInput());
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+      await userEvent.click(document.body);
+
+      expect(getCustomParamInput()).toHaveValue(originalName);
+      expect(getValueInput()).toHaveValue(originalValue);
     });
   });
 });

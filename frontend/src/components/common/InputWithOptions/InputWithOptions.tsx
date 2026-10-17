@@ -12,6 +12,7 @@ export interface InputWithOptionsProps extends Omit<
   options: SelectOption<string>[];
   value?: string;
   onChange?: (option: string) => void;
+  deferChangeUntilCommit?: boolean;
   inputSize?: 'S' | 'M' | 'L';
   minWidth?: string;
 }
@@ -22,6 +23,7 @@ const InputWithOptions = ({
   onChange,
   onBlur,
   onKeyDown,
+  deferChangeUntilCommit = false,
   inputSize = 'L',
   placeholder = '',
   minWidth,
@@ -50,7 +52,7 @@ const InputWithOptions = ({
     if (isDisabledOption(selectedOption)) {
       setSelectedOption(editStartValue.current);
       onChange?.(editStartValue.current);
-    } else if (!isDisabledOption(value) && showOptions) {
+    } else if (showOptions) {
       onChange?.(selectedOption);
       editStartValue.current = selectedOption;
     }
@@ -108,8 +110,12 @@ const InputWithOptions = ({
         }}
         onChange={(e) => {
           const nextValue = e.target.value;
+          if (deferChangeUntilCommit && !isInputEditing.current) {
+            isInputEditing.current = true;
+            setShowOptions(true);
+          }
           setSelectedOption(nextValue);
-          if (!isDisabledOption(nextValue)) {
+          if (!deferChangeUntilCommit && !isDisabledOption(nextValue)) {
             onChange?.(nextValue);
           }
         }}
