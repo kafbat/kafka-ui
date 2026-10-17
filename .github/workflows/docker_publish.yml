@@ -93,7 +93,6 @@ jobs:
           docker tag kafka-ui:temp ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.version }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.generic_tag }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ inputs.version }}
-          # with the containerd image store the image ID is the digest of the multi-platform index that was pushed
           echo "digest=$(docker image inspect kafka-ui:temp --format '{{.Id}}')" >> $GITHUB_OUTPUT
 
       - name: Attest image
