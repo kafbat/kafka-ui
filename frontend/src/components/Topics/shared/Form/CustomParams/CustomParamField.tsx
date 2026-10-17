@@ -49,7 +49,7 @@ const CustomParamField: React.FC<Props> = ({
       value: option,
       label: option,
       disabled:
-        existingFields.includes(option) ||
+        (existingFields.includes(option) && option !== nameValue) ||
         (readOnlyConfigNames?.includes(option) ?? false),
     }));
 
