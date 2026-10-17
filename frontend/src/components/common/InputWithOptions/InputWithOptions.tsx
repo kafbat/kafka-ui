@@ -20,6 +20,8 @@ const InputWithOptions = ({
   options = [],
   value = '',
   onChange,
+  onBlur,
+  onKeyDown,
   inputSize = 'L',
   placeholder = '',
   minWidth,
@@ -27,6 +29,8 @@ const InputWithOptions = ({
 }: InputWithOptionsProps) => {
   const [selectedOption, setSelectedOption] = React.useState(value);
   const [showOptions, setShowOptions] = React.useState(false);
+  const editStartValue = useRef(value);
+  const isInputEditing = useRef(false);
 
   let filteredOptions = options.filter((option) =>
     option.value.includes(selectedOption.toLowerCase())
@@ -39,22 +43,32 @@ const InputWithOptions = ({
   const isDisabledOption = (optionText: string) =>
     options.some((option) => option.value === optionText && option.disabled);
 
+  const commitInput = () => {
+    if (!isInputEditing.current) return;
+
+    isInputEditing.current = false;
+    if (isDisabledOption(selectedOption)) {
+      setSelectedOption(editStartValue.current);
+      onChange?.(editStartValue.current);
+    } else if (!isDisabledOption(value) && showOptions) {
+      onChange?.(selectedOption);
+      editStartValue.current = selectedOption;
+    }
+  };
+
   const updateSelectedOption = (option: SelectOption<string>) => {
     if (!option.disabled) {
       setSelectedOption(option.value);
       onChange?.(option.value);
+      editStartValue.current = option.value;
+      isInputEditing.current = false;
       setShowOptions(false);
     }
   };
 
   const selectContainerRef = useRef(null);
   const clickOutsideHandler = () => {
-    if (isDisabledOption(selectedOption)) {
-      setSelectedOption(value);
-    } else if (!isDisabledOption(value) && showOptions) {
-      onChange?.(selectedOption);
-    }
-
+    commitInput();
     setShowOptions(false);
   };
   useClickOutside(selectContainerRef, clickOutsideHandler);
@@ -65,19 +79,39 @@ const InputWithOptions = ({
         {...rest}
         role="listitem"
         value={selectedOption}
-        onFocus={() => setShowOptions(true)}
+        onFocus={() => {
+          if (!showOptions) {
+            editStartValue.current = value;
+          }
+          isInputEditing.current = true;
+          setShowOptions(true);
+        }}
         autoComplete="off"
         placeholder={placeholder}
         inputSize={inputSize}
+        onBlur={(event) => {
+          if (
+            !event.currentTarget.parentElement?.contains(
+              event.relatedTarget as Node | null
+            )
+          ) {
+            commitInput();
+          }
+          onBlur?.(event);
+        }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          if (event.key === 'Enter') {
+            commitInput();
+            setShowOptions(false);
+          }
+        }}
         onChange={(e) => {
           const nextValue = e.target.value;
-          if (isDisabledOption(nextValue)) {
-            setSelectedOption(value);
-            return;
-          }
-
-          onChange?.(nextValue);
           setSelectedOption(nextValue);
+          if (!isDisabledOption(nextValue)) {
+            onChange?.(nextValue);
+          }
         }}
       />
       <DropdownArrowIcon isOpen={showOptions} />
