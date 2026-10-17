@@ -163,6 +163,33 @@ describe('CustomParamsField', () => {
       );
     });
 
+    it('allows committing the current preset name', async () => {
+      const originalValue = 'custom-value';
+      const currentField = {
+        ...field,
+        name: topicCustomParam1,
+        value: originalValue,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: currentField,
+          isDisabled,
+          index,
+          remove,
+          existingFields: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: topicCustomParam1, value: originalValue }] }
+      );
+
+      await userEvent.clear(getCustomParamInput());
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+      await userEvent.keyboard('{Enter}');
+
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
+      expect(getValueInput()).toHaveValue(originalValue);
+    });
+
     it('prevents editing or removing a read-only parameter', async () => {
       const readOnlyField = {
         ...field,
