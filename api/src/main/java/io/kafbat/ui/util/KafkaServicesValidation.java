@@ -2,24 +2,23 @@ package io.kafbat.ui.util;
 
 import static io.kafbat.ui.config.ClustersProperties.TruststoreConfig;
 
+import io.kafbat.ui.api.model.SecurityProtocol;
+import io.kafbat.ui.config.ClustersProperties.KeystoreConfig;
 import io.kafbat.ui.connect.api.KafkaConnectClientApi;
 import io.kafbat.ui.model.ApplicationPropertyValidationDTO;
 import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
-import java.io.FileInputStream;
-import java.security.KeyStore;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import javax.net.ssl.TrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.springframework.util.ResourceUtils;
+import org.springframework.boot.ssl.SslBundle;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -44,28 +43,25 @@ public final class KafkaServicesValidation {
   /**
    * Returns error msg, if any.
    */
-  public static Optional<String> validateTruststore(TruststoreConfig truststoreConfig) {
-    if (truststoreConfig.getTruststoreLocation() != null && truststoreConfig.getTruststorePassword() != null) {
-      try (FileInputStream fileInputStream = new FileInputStream(
-             (ResourceUtils.getFile(truststoreConfig.getTruststoreLocation())))) {
-        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        trustStore.load(fileInputStream, truststoreConfig.getTruststorePassword().toCharArray());
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
-            TrustManagerFactory.getDefaultAlgorithm()
-        );
-        trustManagerFactory.init(trustStore);
-      } catch (Exception e) {
-        return Optional.of(e.getMessage());
-      }
+  public static Optional<String> validateSslBundle(TruststoreConfig truststoreConfig, KeystoreConfig keystoreConfig) {
+    try {
+      SslBundle bundle = SslBundleUtil.loadBundle(truststoreConfig, keystoreConfig);
+      bundle.createSslContext().createSSLEngine();
+    } catch (Exception e) {
+      return Optional.of(e.getMessage());
     }
     return Optional.empty();
   }
 
-  public static Mono<ApplicationPropertyValidationDTO> validateClusterConnection(String bootstrapServers,
-                                                                                 Properties clusterProps,
-                                                                                 @Nullable TruststoreConfig ssl) {
+  public static Mono<ApplicationPropertyValidationDTO> validateClusterConnection(
+      String bootstrapServers,
+      Properties clusterProps,
+      @Nullable TruststoreConfig ssl,
+      @Nullable KeystoreConfig kafkaSsl,
+      @Nullable SecurityProtocol securityProtocol
+  ) {
     Properties properties = new Properties();
-    KafkaClientSslPropertiesUtil.addKafkaSslProperties(ssl, properties);
+    KafkaClientSslPropertiesUtil.addKafkaSslProperties(ssl, kafkaSsl, securityProtocol, properties);
     properties.putAll(clusterProps);
     properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     // editing properties to make validation faster
