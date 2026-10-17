@@ -185,5 +185,23 @@ describe('CustomParamsField', () => {
       await userEvent.click(getRemoveButton());
       expect(remove).not.toHaveBeenCalled();
     });
+
+    it('keeps a new row removable when a read-only name is typed', async () => {
+      setupComponent({
+        field,
+        isDisabled,
+        index,
+        remove,
+        existingFields,
+        readOnlyConfigNames: [topicCustomParam1],
+        setExistingFields,
+      });
+
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+
+      expect(getCustomParamInput()).toBeEnabled();
+      await userEvent.click(getRemoveButton());
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
   });
 });

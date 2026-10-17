@@ -57,6 +57,18 @@ describe('InputWithOptions component', () => {
     expect(getInputBox()).toHaveValue('');
   });
 
+  it('rejects typing a disabled option', async () => {
+    const onChange = jest.fn();
+    renderComponent({ onChange });
+    const input = screen.getAllByRole('listitem')[1];
+
+    await userEvent.type(input, 'test-value4');
+    await userEvent.click(document.body);
+
+    expect(input).not.toHaveValue('test-value4');
+    expect(onChange).not.toHaveBeenCalledWith('test-value4');
+  });
+
   it('allows user to type', async () => {
     await userEvent.click(getInputBox());
     await userEvent.type(getInputBox(), 'test');
