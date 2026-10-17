@@ -83,6 +83,7 @@ const CustomParamField: React.FC<Props> = ({
               options={options}
               name={name}
               disabled={isReadOnly}
+              deferChangeUntilCommit
               onChange={(s) => {
                 onChange(s);
                 trigger('customParams');
