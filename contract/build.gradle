@@ -76,6 +76,10 @@ openAPIStyleValidator {
     validateInfoContact = false
 }
 
+tasks.named('openAPIStyleValidator') {
+    dependsOn ':contract-typespec:build'
+}
+
 
 tasks.register('generateConnectClient', GenerateTask) {
     generatorName = "java"
