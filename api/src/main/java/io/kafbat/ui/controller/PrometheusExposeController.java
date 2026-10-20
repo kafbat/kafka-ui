@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
@@ -15,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
+@Conditional(PrometheusExposeController.OnMainPort.class)
 public class PrometheusExposeController extends AbstractController implements PrometheusExposeApi {
 
   private final StatisticsCache statisticsCache;
@@ -44,4 +50,10 @@ public class PrometheusExposeController extends AbstractController implements Pr
     }
   }
 
+  static class OnMainPort implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+      return ManagementPortType.get(context.getEnvironment()) != ManagementPortType.DIFFERENT;
+    }
+  }
 }
