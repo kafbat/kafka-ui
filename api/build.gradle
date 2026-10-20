@@ -36,6 +36,11 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 ext['jackson-bom.version'] = libs.versions.jackson.bom.get()
 
 dependencies {
+    constraints {
+        implementation(libs.nimbus.jose.jwt) {
+            because 'spring-security-oauth2-jose pulls 10.0.1, vulnerable to CVE-2025-53864'
+        }
+    }
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux

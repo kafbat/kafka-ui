@@ -1,6 +1,6 @@
 [versions]
 spring-boot = '3.5.16'
-nimbus-jose-jwt = '10.8'
+nimbus-jose-jwt = '10.10'
 netty = '4.1.139.Final'
 jackson-bom = '2.21.7'
 
@@ -77,6 +77,7 @@ mapstruct = { module = 'org.mapstruct:mapstruct', version.ref = 'mapstruct' }
 mapstruct-processor = { module = 'org.mapstruct:mapstruct-processor', version.ref = 'mapstruct' }
 jakarta-annotation-api = { module = 'jakarta.annotation:jakarta.annotation-api', version.ref = 'jakarta-annotation-api' }
 jackson-databind-nullable = { module = 'org.openapitools:jackson-databind-nullable', version.ref = 'jackson-databind-nullable' }
+nimbus-jose-jwt = { module = 'com.nimbusds:nimbus-jose-jwt', version.ref = 'nimbus-jose-jwt' }
 kafka-clients = { module = 'org.apache.kafka:kafka-clients', version.ref = 'confluent-ccs' }
 
 apache-commons = { module = 'org.apache.commons:commons-lang3', version.ref = 'apache-commons-lang3' }
