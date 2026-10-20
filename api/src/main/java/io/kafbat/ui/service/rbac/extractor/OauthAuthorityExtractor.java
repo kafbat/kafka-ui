@@ -10,10 +10,10 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.util.Assert;
@@ -41,15 +41,13 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    var usernameRoles = extractUsernameRoles(acs, principal);
+    var usernameRoles = extractUsernameRoles(acs, principal.getName());
     var roles = extractRoles(acs, principal, additionalParams);
 
     return Mono.just(Sets.union(usernameRoles, roles));
   }
 
-  private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
-    var principalName = principal.getName();
-
+  public static Set<String> extractUsernameRoles(AccessControlService acs, String principalName) {
     log.debug("Principal name is: [{}]", principalName);
 
     var roles = acs.getRoles()
@@ -87,6 +85,10 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
 
     log.debug("Token's groups: [{}]", String.join(",", principalRoles));
 
+    return matchRoles(acs, principalRoles);
+  }
+
+  public static Set<String> matchRoles(AccessControlService acs, Collection<String> principalRoles) {
     Set<String> roles = acs.getRoles()
         .stream()
         .filter(role -> role.getSubjects()
@@ -102,26 +104,28 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
     return roles;
   }
 
-  @SuppressWarnings("unchecked")
-  private Collection<String> convertRoles(Object roles) {
+  public static Collection<String> convertRoles(Object roles) {
     if (roles == null) {
       log.warn("Param missing in attributes, nothing to do");
       return Collections.emptySet();
     }
 
-    if ((roles instanceof List<?>) || (roles instanceof Set<?>)) {
-      log.trace("The field is either a set or a list, returning as is");
-      return (Collection<String>) roles;
-    }
-
-    if (!(roles instanceof String)) {
+    Stream<?> values;
+    if (roles instanceof Collection<?> collection) {
+      log.trace("The field is a collection");
+      values = collection.stream();
+    } else if (roles instanceof String string) {
+      log.trace("Trying to deserialize the field value [{}] as a string", string);
+      values = Arrays.stream(string.split(","));
+    } else {
       log.trace("The field is not a string, skipping");
       return Collections.emptySet();
     }
 
-    log.trace("Trying to deserialize the field value [{}] as a string", roles);
-
-    return Arrays.stream(((String) roles).split(","))
+    return values
+        .map(Object::toString)
+        .map(String::trim)
+        .filter(role -> !role.isEmpty())
         .collect(Collectors.toSet());
   }
 
