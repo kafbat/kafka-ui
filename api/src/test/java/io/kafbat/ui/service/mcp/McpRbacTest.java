@@ -108,6 +108,9 @@ class McpRbacTest extends AbstractIntegrationTest {
     JsonNode result = callGetBrokers("bob");
 
     assertThat(result.path("isError").asBoolean()).as(result.toString()).isFalse();
+    JsonNode brokers = mapper.readTree(result.path("content").path(0).path("text").asText());
+    assertThat(brokers.isArray()).as(result.toString()).isTrue();
+    assertThat(brokers).as(result.toString()).isNotEmpty();
   }
 
   private JsonNode callGetBrokers(String user) throws Exception {
