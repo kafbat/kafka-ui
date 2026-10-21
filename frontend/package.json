@@ -41,7 +41,7 @@
     "start": "vite",
     "dev": "vite",
     "compile": "pnpm gen:sources && tsc --noEmit",
-    "gen:sources": "rimraf ./src/generated-sources && cd ../contract-typespec/api && pnpm install && pnpm build && cd ../../frontend  && openapi-generator-cli generate",
+    "gen:sources": "rimraf ./src/generated-sources && cd ../contract-typespec/api && pnpm install && pnpm build && cd ../../frontend  && pnpm dlx @openapitools/openapi-generator-cli@2.31.0 generate",
     "build": "pnpm gen:sources && tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
@@ -55,7 +55,6 @@
   },
   "devDependencies": {
     "@jest/types": "29.6.3",
-    "@openapitools/openapi-generator-cli": "2.31.0",
     "@swc/core": "1.15.21",
     "@swc/jest": "0.2.39",
     "@testing-library/dom": "10.4.1",
