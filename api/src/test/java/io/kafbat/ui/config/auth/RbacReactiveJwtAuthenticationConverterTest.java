@@ -6,6 +6,7 @@ import io.kafbat.ui.config.YamlPropertySourceFactory;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +67,20 @@ class RbacReactiveJwtAuthenticationConverterTest {
     assertThat(token).isNotNull();
     RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
     assertThat(principal.groups()).contains("admin", "editor");
+  }
+
+  @Test
+  void ignoresNonStringRoles() {
+    Jwt jwt = buildJwt(Map.of(
+        "username", "someone@example.com",
+        "roles", Arrays.asList(42, null, "ROLE-ADMIN")
+    ));
+
+    AbstractAuthenticationToken token = converter.convert(jwt).block();
+
+    assertThat(token).isNotNull();
+    RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
+    assertThat(principal.groups()).containsExactly("admin");
   }
 
   @Test
