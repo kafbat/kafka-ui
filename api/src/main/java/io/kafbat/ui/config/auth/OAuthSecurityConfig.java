@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,14 +127,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
     if (hasJwtResourceServer()) {
       var jwtDecoder = jwtDecoder(resourceServer.getJwt(), webClient);
-      var rbacProps = Optional.ofNullable(properties.getResourceServerRbac())
-          .orElseGet(OAuthProperties.ResourceServerRbac::new);
-
       builder.oauth2ResourceServer(c -> c.jwt(j -> {
         j.jwtDecoder(jwtDecoder);
         if (accessControlService.isRbacEnabled()) {
-          j.jwtAuthenticationConverter(new RbacReactiveJwtAuthenticationConverter(
-              accessControlService, rbacProps.getRolesClaim(), rbacProps.getUsernameClaim()));
+          j.jwtAuthenticationConverter(rbacConverter(accessControlService));
         }
       }));
     } else if (hasOpaqueTokenResourceServer()) {
@@ -147,8 +142,9 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
                 .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
                 .build()));
         if (accessControlService.isRbacEnabled()) {
+          var converter = rbacConverter(accessControlService);
           o.authenticationConverter((token, principal) -> Mono.just(new RbacBearerTokenAuthentication(
-              new RbacBearerTokenUser(principal.getName(), Set.of()), token)));
+              converter.toUser(principal.getName(), principal::getAttribute), token)));
         }
       }));
     }
@@ -242,6 +238,13 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       return null;
     }
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+  }
+
+  private RbacReactiveJwtAuthenticationConverter rbacConverter(AccessControlService accessControlService) {
+    var rbacProps = Optional.ofNullable(properties.getResourceServerRbac())
+        .orElseGet(OAuthProperties.ResourceServerRbac::new);
+    return new RbacReactiveJwtAuthenticationConverter(
+        accessControlService, rbacProps.getRolesClaim(), rbacProps.getUsernameClaim());
   }
 
   private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {

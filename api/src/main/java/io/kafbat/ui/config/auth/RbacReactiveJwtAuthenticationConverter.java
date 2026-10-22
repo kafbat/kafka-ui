@@ -7,7 +7,9 @@ import static io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor.matchR
 import com.google.common.collect.Sets;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
@@ -27,18 +29,18 @@ public class RbacReactiveJwtAuthenticationConverter
 
   @Override
   public Mono<AbstractAuthenticationToken> convert(Jwt jwt) {
-    String username = usernameClaim != null && jwt.hasClaim(usernameClaim)
-        ? jwt.getClaimAsString(usernameClaim)
-        : jwt.getSubject();
-    Collection<String> tokenRoles = rolesClaim != null && jwt.hasClaim(rolesClaim)
-        ? convertRoles(jwt.getClaim(rolesClaim))
-        : Set.of();
+    return Mono.just(new RbacBearerTokenAuthentication(toUser(jwt.getSubject(), jwt::getClaim), jwt.getTokenValue()));
+  }
+
+  RbacBearerTokenUser toUser(String subject, Function<String, Object> claims) {
+    String username = usernameClaim == null ? subject : Objects.toString(claims.apply(usernameClaim), null);
+    Object rolesValue = rolesClaim == null ? null : claims.apply(rolesClaim);
+    Collection<String> tokenRoles = rolesValue == null ? Set.of() : convertRoles(rolesValue);
 
     Set<String> groups = Sets.union(
-        extractUsernameRoles(accessControlService, username),
+        username == null ? Set.of() : extractUsernameRoles(accessControlService, username),
         matchRoles(accessControlService, tokenRoles));
 
-    return Mono.just(new RbacBearerTokenAuthentication(
-        new RbacBearerTokenUser(username, groups), jwt.getTokenValue()));
+    return new RbacBearerTokenUser(username != null ? username : subject, groups);
   }
 }

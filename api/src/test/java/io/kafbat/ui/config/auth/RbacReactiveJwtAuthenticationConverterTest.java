@@ -127,7 +127,7 @@ class RbacReactiveJwtAuthenticationConverterTest {
   }
 
   @Test
-  void missingUsernameClaimFallsBackToSub() {
+  void missingUsernameClaimDoesNotMatchUserSubjectsBySub() {
     Jwt jwt = Jwt.withTokenValue("token")
         .header("alg", "RS256")
         .subject("sub-fallback-user@kafka.com")
@@ -141,7 +141,25 @@ class RbacReactiveJwtAuthenticationConverterTest {
     assertThat(token).isNotNull();
     RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
     assertThat(principal.name()).isEqualTo("sub-fallback-user@kafka.com");
-    assertThat(principal.groups()).contains("admin", "viewer");
+    assertThat(principal.groups()).containsExactly("admin");
+  }
+
+  @Test
+  void usernameComesFromSubWhenNoUsernameClaimIsConfigured() {
+    var converterBySub = new RbacReactiveJwtAuthenticationConverter(accessControlService, "roles", null);
+    Jwt jwt = Jwt.withTokenValue("token")
+        .header("alg", "RS256")
+        .subject("john@kafka.com")
+        .issuedAt(Instant.now())
+        .expiresAt(Instant.now().plusSeconds(300))
+        .build();
+
+    AbstractAuthenticationToken token = converterBySub.convert(jwt).block();
+
+    assertThat(token).isNotNull();
+    RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
+    assertThat(principal.name()).isEqualTo("john@kafka.com");
+    assertThat(principal.groups()).containsExactly("viewer");
   }
 
   @Test
