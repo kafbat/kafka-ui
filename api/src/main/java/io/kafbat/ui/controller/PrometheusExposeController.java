@@ -1,6 +1,7 @@
 package io.kafbat.ui.controller;
 
 import io.kafbat.ui.api.PrometheusExposeApi;
+import io.kafbat.ui.config.PrometheusExposeManagementConfig;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.service.StatisticsCache;
 import io.kafbat.ui.service.metrics.prometheus.PrometheusMetricsExposer;
@@ -53,7 +54,9 @@ public class PrometheusExposeController extends AbstractController implements Pr
   static class OnMainPort implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-      return ManagementPortType.get(context.getEnvironment()) != ManagementPortType.DIFFERENT;
+      var env = context.getEnvironment();
+      boolean enabled = env.getProperty(PrometheusExposeManagementConfig.ENABLED_PROPERTY, Boolean.class, false);
+      return !(enabled && ManagementPortType.get(env) == ManagementPortType.DIFFERENT);
     }
   }
 }

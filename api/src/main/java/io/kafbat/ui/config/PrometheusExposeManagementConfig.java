@@ -4,11 +4,14 @@ import io.kafbat.ui.controller.PrometheusExposeController;
 import io.kafbat.ui.service.StatisticsCache;
 import org.springframework.boot.actuate.autoconfigure.web.server.ConditionalOnManagementPort;
 import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
-// Not @Configuration: component scan would also register it in the main context, it belongs to the management one.
 @ConditionalOnManagementPort(ManagementPortType.DIFFERENT)
+@ConditionalOnProperty(value = PrometheusExposeManagementConfig.ENABLED_PROPERTY, havingValue = "true")
 public class PrometheusExposeManagementConfig {
+
+  public static final String ENABLED_PROPERTY = "metrics.management-port.enabled";
 
   @Bean
   PrometheusExposeController prometheusExposeController(StatisticsCache statisticsCache) {
