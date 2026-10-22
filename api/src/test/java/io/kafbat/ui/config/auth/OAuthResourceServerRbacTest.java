@@ -34,6 +34,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @AutoConfigureWebTestClient
 @TestPropertySource(properties = {
     "auth.type=OAUTH2",
+    "auth.oauth2.resource-server.jwt.issuer-uri=" + OAuthResourceServerRbacTest.ISSUER,
+    "auth.oauth2.resource-server.jwt.audiences[0]=" + OAuthResourceServerRbacTest.AUDIENCE,
     "auth.oauth2.resource-server-rbac.roles-claim=roles",
     "rbac.roles[0].name=config-viewer",
     "rbac.roles[0].clusters[0]=local",
@@ -44,6 +46,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
     "rbac.roles[0].permissions[0].actions[0]=edit"
 })
 class OAuthResourceServerRbacTest {
+
+  static final String ISSUER = "https://idp.example.com";
+  static final String AUDIENCE = "kafbat-ui";
 
   private static final RSAKey KEY = generateKey();
   private static final WireMockServer JWKS = startJwks();
@@ -71,15 +76,33 @@ class OAuthResourceServerRbacTest {
     validateConfig(List.of("other")).expectStatus().isForbidden();
   }
 
+  @Test
+  void tokenFromAnotherIssuerIsRejected() throws JOSEException {
+    validateConfig(token(List.of("kafka-ui-config"), "https://other.example.com", AUDIENCE))
+        .expectStatus().isUnauthorized();
+  }
+
+  @Test
+  void tokenForAnotherAudienceIsRejected() throws JOSEException {
+    validateConfig(token(List.of("kafka-ui-config"), ISSUER, "other"))
+        .expectStatus().isUnauthorized();
+  }
+
   private WebTestClient.ResponseSpec validateConfig(List<String> roles) throws JOSEException {
+    return validateConfig(token(roles, ISSUER, AUDIENCE));
+  }
+
+  private WebTestClient.ResponseSpec validateConfig(String token) {
     return webTestClient.put().uri("/api/config/validated")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(roles))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
         .bodyValue(new ApplicationConfigDTO().properties(new ApplicationConfigPropertiesDTO()))
         .exchange();
   }
 
-  private static String token(List<String> roles) throws JOSEException {
+  private static String token(List<String> roles, String issuer, String audience) throws JOSEException {
     var claims = new JWTClaimsSet.Builder()
+        .issuer(issuer)
+        .audience(audience)
         .subject("service-account")
         .claim("roles", roles)
         .expirationTime(Date.from(Instant.now().plusSeconds(300)))

@@ -5,6 +5,7 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,12 +41,20 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -118,10 +127,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
     OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
     if (hasJwtResourceServer()) {
-      var jwtDecoder = NimbusReactiveJwtDecoder
-          .withJwkSetUri(resourceServer.getJwt().getJwkSetUri())
-          .webClient(webClient)
-          .build();
+      var jwtDecoder = jwtDecoder(resourceServer.getJwt(), webClient);
       var rbacProps = Optional.ofNullable(properties.getResourceServerRbac())
           .orElseGet(OAuthProperties.ResourceServerRbac::new);
 
@@ -236,6 +242,26 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       return null;
     }
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+  }
+
+  private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {
+    var decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwt.getJwkSetUri())
+        .webClient(webClient)
+        .jwsAlgorithms(algorithms -> jwt.getJwsAlgorithms().stream()
+            .map(SignatureAlgorithm::from)
+            .forEach(algorithms::add))
+        .build();
+
+    List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
+    validators.add(jwt.getIssuerUri() != null
+        ? JwtValidators.createDefaultWithIssuer(jwt.getIssuerUri())
+        : JwtValidators.createDefault());
+    if (!CollectionUtils.isEmpty(jwt.getAudiences())) {
+      validators.add(new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
+          aud -> aud != null && !Collections.disjoint(aud, jwt.getAudiences())));
+    }
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
+    return decoder;
   }
 
   private boolean hasClientRegistrations() {
