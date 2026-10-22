@@ -10,10 +10,10 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.util.Assert;
@@ -104,28 +104,26 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
     return roles;
   }
 
+  @SuppressWarnings("unchecked")
   public static Collection<String> convertRoles(Object roles) {
     if (roles == null) {
       log.warn("Param missing in attributes, nothing to do");
       return Collections.emptySet();
     }
 
-    Stream<?> values;
-    if (roles instanceof Collection<?> collection) {
-      log.trace("The field is a collection");
-      values = collection.stream();
-    } else if (roles instanceof String string) {
-      log.trace("Trying to deserialize the field value [{}] as a string", string);
-      values = Arrays.stream(string.split(","));
-    } else {
+    if ((roles instanceof List<?>) || (roles instanceof Set<?>)) {
+      log.trace("The field is either a set or a list, returning as is");
+      return (Collection<String>) roles;
+    }
+
+    if (!(roles instanceof String)) {
       log.trace("The field is not a string, skipping");
       return Collections.emptySet();
     }
 
-    return values
-        .map(Object::toString)
-        .map(String::trim)
-        .filter(role -> !role.isEmpty())
+    log.trace("Trying to deserialize the field value [{}] as a string", roles);
+
+    return Arrays.stream(((String) roles).split(","))
         .collect(Collectors.toSet());
   }
 

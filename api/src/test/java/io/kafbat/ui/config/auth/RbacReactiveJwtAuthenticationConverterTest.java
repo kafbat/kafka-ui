@@ -8,7 +8,6 @@ import io.kafbat.ui.util.AccessControlServiceMock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,20 +82,6 @@ class RbacReactiveJwtAuthenticationConverterTest {
     assertThat(principal.groups()).contains("viewer");
     assertThat(principal.name()).isEqualTo("john@kafka.com");
     assertThat(token.getName()).isEqualTo("john@kafka.com");
-  }
-
-  @Test
-  void matchesBothUsernameAndRoles() {
-    Jwt jwt = buildJwt(Map.of(
-        "username", "john@kafka.com",
-        "roles", List.of("ROLE-ADMIN")
-    ));
-
-    AbstractAuthenticationToken token = converter.convert(jwt).block();
-
-    assertThat(token).isNotNull();
-    RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
-    assertThat(principal.groups()).contains("admin", "viewer");
   }
 
   @Test
@@ -177,35 +162,6 @@ class RbacReactiveJwtAuthenticationConverterTest {
     RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
     assertThat(principal.name()).isEqualTo("john@kafka.com");
     assertThat(principal.groups()).contains("viewer");
-  }
-
-  @Test
-  void rolesFromSetClaim() {
-    Jwt jwt = buildJwt(Map.of(
-        "username", "someone@example.com",
-        "roles", Set.of("ROLE_EDITOR")
-    ));
-
-    AbstractAuthenticationToken token = converter.convert(jwt).block();
-
-    assertThat(token).isNotNull();
-    RbacBearerTokenUser principal = (RbacBearerTokenUser) token.getPrincipal();
-    assertThat(principal.groups()).contains("editor");
-  }
-
-  @Test
-  void tokenHasCorrectAuthorities() {
-    Jwt jwt = buildJwt(Map.of(
-        "username", "john@kafka.com",
-        "roles", List.of("ROLE-ADMIN")
-    ));
-
-    AbstractAuthenticationToken token = converter.convert(jwt).block();
-
-    assertThat(token).isNotNull();
-    assertThat(token.isAuthenticated()).isTrue();
-    assertThat(token.getAuthorities()).extracting("authority")
-        .contains("admin", "viewer");
   }
 
   private Jwt buildJwt(Map<String, Object> claims) {

@@ -35,7 +35,10 @@ public class RbacReactiveJwtAuthenticationConverter
   RbacBearerTokenUser toUser(String subject, Function<String, Object> claims) {
     String username = usernameClaim == null ? subject : Objects.toString(claims.apply(usernameClaim), null);
     Object rolesValue = rolesClaim == null ? null : claims.apply(rolesClaim);
-    Collection<String> tokenRoles = rolesValue == null ? Set.of() : convertRoles(rolesValue);
+    Collection<String> tokenRoles = rolesValue == null ? Set.of() : convertRoles(rolesValue).stream()
+        .map(String::trim)
+        .filter(role -> !role.isEmpty())
+        .toList();
 
     Set<String> groups = Sets.union(
         username == null ? Set.of() : extractUsernameRoles(accessControlService, username),

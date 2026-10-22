@@ -102,18 +102,16 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
     if (hasClientRegistrations()) {
-      log.info("OAuth2 client registrations found, enabling interactive login.");
-
-      var oidcAuthManager = new OidcAuthorizationCodeReactiveAuthenticationManager(
-          tokenResponseClient, oidcUserService);
+      var oidcAuthManager =
+          new OidcAuthorizationCodeReactiveAuthenticationManager(tokenResponseClient, oidcUserService);
 
       oidcAuthManager.setJwtDecoderFactory(clientRegistration ->
           NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
               .webClient(webClient)
               .build());
 
-      var oauth2AuthManager = new OAuth2LoginReactiveAuthenticationManager(
-          tokenResponseClient, oauth2UserService);
+      var oauth2AuthManager =
+          new OAuth2LoginReactiveAuthenticationManager(tokenResponseClient, oauth2UserService);
 
       var delegatingAuthManager =
           new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
