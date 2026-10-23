@@ -1,4 +1,7 @@
-import { ConsumerGroupTopicPartition } from 'generated-sources';
+import {
+  ConsumerGroupTopicLag,
+  ConsumerGroupTopicPartition,
+} from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import { NA } from 'components/Brokers/BrokersList/lib';
 import * as Cell from 'components/ConsumerGroups/Details/TopicsTable/cells/cells';
@@ -64,5 +67,51 @@ export const getConsumerGroupTopicsTableColumns = () => {
       cell: Cell.Actions,
       size: 10,
     }),
+  ];
+};
+
+export const getConsumerGroupTopicPartitionsTableData = ({
+  partitions = [],
+  searchQuery,
+  lags,
+}: {
+  partitions: ConsumerGroupTopicPartition[];
+  searchQuery: string;
+  lags: Record<string, ConsumerGroupTopicLag | undefined> | undefined;
+}): ConsumerGroupTopicPartition[] => {
+  if (partitions.length === 0) return [];
+
+  return partitions
+    .filter((p) => p.topic.includes(searchQuery))
+    .map((p) => ({
+      ...p,
+      consumerLag:
+        lags?.[p.topic]?.partitions?.[String(p.partition)] ?? p.consumerLag,
+    }));
+};
+
+export const getConsumerGroupTopicPartitionsTableColumns = () => {
+  const columnHelper = createColumnHelper<ConsumerGroupTopicPartition>();
+
+  return [
+    columnHelper.accessor('topic', { header: 'Topic', size: 800 }),
+    columnHelper.accessor('partition', { header: 'Partition', size: 100 }),
+    columnHelper.accessor('consumerId', { header: 'Consumer ID', size: 350 }),
+    columnHelper.accessor('host', { header: 'Host', size: 150 }),
+    columnHelper.accessor('consumerLag', {
+      header: 'Consumer lag',
+      size: 150,
+      meta: {
+        csvFn: (row) =>
+          row.consumerLag === undefined || row.consumerLag === null
+            ? 'N/A'
+            : String(row.consumerLag),
+      },
+    }),
+    columnHelper.accessor('currentOffset', {
+      header: 'Current offset',
+      size: 150,
+    }),
+    columnHelper.accessor('endOffset', { header: 'End offset', size: 150 }),
   ];
 };
