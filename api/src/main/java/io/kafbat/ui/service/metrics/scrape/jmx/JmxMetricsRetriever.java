@@ -37,6 +37,8 @@ public class JmxMetricsRetriever implements Closeable {
   private static final String JMX_URL = "service:jmx:rmi:///jndi/rmi://";
   private static final String JMX_SERVICE_TYPE = "jmxrmi";
   private static final String CANONICAL_NAME_PATTERN = "kafka.server*:*";
+  // per-partition segment count lives in the kafka.log domain; only this bean is queried from there
+  private static final String LOG_SEGMENTS_NAME_PATTERN = "kafka.log:type=Log,name=NumLogSegments,*";
 
   @Override
   public void close() {
@@ -127,9 +129,10 @@ public class JmxMetricsRetriever implements Closeable {
   @SneakyThrows
   private void getMetricsFromJmx(JMXConnector jmxConnector, List<RawMetric> sink) {
     MBeanServerConnection msc = jmxConnector.getMBeanServerConnection();
-    var jmxMetrics = msc.queryNames(new ObjectName(CANONICAL_NAME_PATTERN), null);
-    for (ObjectName jmxMetric : jmxMetrics) {
-      sink.addAll(extractObjectMetrics(jmxMetric, msc));
+    for (String pattern : List.of(CANONICAL_NAME_PATTERN, LOG_SEGMENTS_NAME_PATTERN)) {
+      for (ObjectName jmxMetric : msc.queryNames(new ObjectName(pattern), null)) {
+        sink.addAll(extractObjectMetrics(jmxMetric, msc));
+      }
     }
   }
 

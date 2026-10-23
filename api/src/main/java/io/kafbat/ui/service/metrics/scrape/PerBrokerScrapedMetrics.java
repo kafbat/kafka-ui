@@ -15,4 +15,8 @@ public record PerBrokerScrapedMetrics(Map<Integer, List<MetricSnapshot>> perBrok
     return new IoRatesMetricsScanner(perBrokerMetrics).get();
   }
 
+  Metrics.SegmentCounts segmentCounts() {
+    return new SegmentCountMetricsScanner(perBrokerMetrics).get();
+  }
+
 }

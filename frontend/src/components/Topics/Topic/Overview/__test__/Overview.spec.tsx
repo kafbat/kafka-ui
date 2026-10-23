@@ -97,6 +97,36 @@ describe('Overview', () => {
     });
   });
 
+  describe('segment count', () => {
+    it('renders the value when present', () => {
+      renderComponent({ ...externalTopicPayload, segmentCount: 7 });
+      expect(screen.getByText('Segment Count')).toBeInTheDocument();
+      expect(screen.getByText('7')).toBeInTheDocument();
+    });
+
+    it('renders N/A when metrics are not available', () => {
+      renderComponent({ ...externalTopicPayload, segmentCount: undefined });
+      expect(screen.getByText('Segment Count')).toBeInTheDocument();
+      expect(screen.getByText('N/A')).toBeInTheDocument();
+    });
+
+    it('renders N/A when the API sends null', () => {
+      // the raw response carries null; the generated client normally strips it
+      renderComponent({
+        ...externalTopicPayload,
+        segmentCount: null,
+      } as unknown as Topic);
+      expect(screen.getByText('N/A')).toBeInTheDocument();
+      expect(screen.queryByText('null')).not.toBeInTheDocument();
+    });
+
+    it('renders zero as a real count', () => {
+      renderComponent({ ...externalTopicPayload, segmentCount: 0 });
+      expect(screen.getByText('Segment Count')).toBeInTheDocument();
+      expect(screen.queryByText('N/A')).not.toBeInTheDocument();
+    });
+  });
+
   describe('should render circular alert', () => {
     it('should be in document', () => {
       renderComponent();
