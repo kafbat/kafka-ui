@@ -76,7 +76,7 @@ public class TopicsService {
             ac.describeTopics(topics).zipWith(ac.getTopicsConfig(topics, false),
                 (descriptions, configs) ->
                     getPartitionOffsets(descriptions, ac).map(offsets -> {
-                      statisticsCache.update(c, descriptions, configs, offsets, clustersProperties);
+                      statisticsCache.update(c, descriptions, configs, offsets);
                       var stats = statisticsCache.get(c);
                       return createList(
                           topics,

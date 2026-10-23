@@ -104,7 +104,10 @@ class LuceneTopicsIndexTest {
   public static Stream<Arguments> providerOrdered() {
     return Stream.of(
         Arguments.of(List.of("sk.long.term.name", "long.sk", "longnamebefore.sk"), "sk"),
-        Arguments.of(List.of("sk_long_term.name", "sk", "sk2", "long-sk", "longnamebeforeSk"), "sk")
+        // the first three all match "sk" at the very beginning of the name and therefore score the
+        // same; they are ordered by name, which unlike the physical document order stays stable when
+        // the index is updated incrementally
+        Arguments.of(List.of("sk", "sk2", "sk_long_term.name", "long-sk", "longnamebeforeSk"), "sk")
     );
   }
 

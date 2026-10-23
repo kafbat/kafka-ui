@@ -26,6 +26,7 @@ import io.kafbat.ui.model.TopicDTO;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.audit.AuditService;
+import io.kafbat.ui.service.index.TopicsIndexRegistry;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
 import java.util.Comparator;
@@ -52,8 +53,9 @@ class TopicsServicePaginationTest {
   private final AdminClientService adminClientService = Mockito.mock(AdminClientService.class);
   private final ReactiveAdminClient reactiveAdminClient = Mockito.mock(ReactiveAdminClient.class);
   private final ClustersStorage clustersStorage = Mockito.mock(ClustersStorage.class);
-  private final StatisticsCache statisticsCache = new StatisticsCache(clustersStorage);
   private final ClustersProperties clustersProperties = new ClustersProperties();
+  private final StatisticsCache statisticsCache = new StatisticsCache(
+      clustersStorage, new TopicsIndexRegistry(), clustersProperties);
   private final TopicsService topicsService = new TopicsService(
       adminClientService,
       statisticsCache,
@@ -106,8 +108,7 @@ class TopicsServicePaginationTest {
             .map(t ->
                 Map.entry(t.getKey(), List.of(new ConfigEntry(CLEANUP_POLICY_CONFIG, "delete")))
             ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-        new InternalPartitionsOffsets(offsets),
-        clustersProperties
+        new InternalPartitionsOffsets(offsets)
     );
     when(adminClientService.get(isA(KafkaCluster.class))).thenReturn(Mono.just(reactiveAdminClient));
     when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));

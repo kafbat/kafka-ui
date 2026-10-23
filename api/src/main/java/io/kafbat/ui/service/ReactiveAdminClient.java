@@ -808,11 +808,12 @@ public class ReactiveAdminClient implements Closeable {
   }
 
   private static <K, V> BiFunction<Map<K, V>, Map<K, V>, Map<K, V>> mapMerger() {
+    // all partitioned calls build a fresh mutable map per partition, so the accumulator can be
+    // merged into in place: allocating a new map and copying both sides on every step makes the
+    // merge quadratic in the number of partitions, which is noticeable for thousands of topics
     return (m1, m2) -> {
-      var merged = new HashMap<K, V>();
-      merged.putAll(m1);
-      merged.putAll(m2);
-      return merged;
+      m1.putAll(m2);
+      return m1;
     };
   }
 

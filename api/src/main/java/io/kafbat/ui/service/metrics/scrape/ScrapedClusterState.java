@@ -10,8 +10,7 @@ import io.kafbat.ui.model.InternalLogDirStats;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
-import io.kafbat.ui.service.index.FilterTopicIndex;
-import io.kafbat.ui.service.index.LuceneTopicsIndex;
+import io.kafbat.ui.service.index.LazyTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.ConsumerGroupDescription;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
@@ -37,7 +35,6 @@ import reactor.core.publisher.Mono;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
 @Value
-@Slf4j
 public class ScrapedClusterState implements AutoCloseable {
 
   Instant scrapeFinishedAt;
@@ -48,9 +45,8 @@ public class ScrapedClusterState implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    if (this.topicIndex != null) {
-      this.topicIndex.close();
-    }
+    // the topic index is shared between all snapshots of a cluster and is owned by
+    // TopicsIndexRegistry, which releases it on shutdown
   }
 
   public record NodeState(int id,
@@ -81,14 +77,15 @@ public class ScrapedClusterState implements AutoCloseable {
         .nodesStates(Map.of())
         .topicStates(Map.of())
         .consumerGroupsStates(Map.of())
-        .topicIndex(new FilterTopicIndex(List.of()))
+        .topicIndex(new LazyTopicsIndex(List.of()))
         .build();
   }
 
   public ScrapedClusterState updateTopics(Map<String, TopicDescription> descriptions,
                                           Map<String, List<ConfigEntry>> configs,
                                           InternalPartitionsOffsets partitionsOffsets,
-                                          ClustersProperties clustersProperties) {
+                                          ClustersProperties clustersProperties,
+                                          LazyTopicsIndex topicIndex) {
     var updatedTopicStates = new HashMap<>(topicStates);
     descriptions.forEach((topic, description) -> {
       SegmentStats segmentStats = null;
@@ -111,22 +108,27 @@ public class ScrapedClusterState implements AutoCloseable {
       );
     });
 
+    topicIndex.update(internalTopics(updatedTopicStates, clustersProperties));
     return toBuilder()
         .topicStates(updatedTopicStates)
-        .topicIndex(buildTopicIndex(clustersProperties, updatedTopicStates))
+        .topicIndex(topicIndex)
         .build();
   }
 
-  public ScrapedClusterState topicDeleted(String topic) {
+  public ScrapedClusterState topicDeleted(String topic, ClustersProperties clustersProperties,
+                                          LazyTopicsIndex topicIndex) {
     var newTopicStates = new HashMap<>(topicStates);
     newTopicStates.remove(topic);
+    topicIndex.update(internalTopics(newTopicStates, clustersProperties));
     return toBuilder()
         .topicStates(newTopicStates)
+        .topicIndex(topicIndex)
         .build();
   }
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
-                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties) {
+                                                 ReactiveAdminClient ac, ClustersProperties clustersProperties,
+                                                 LazyTopicsIndex topicIndex) {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
@@ -146,27 +148,34 @@ public class ScrapedClusterState implements AutoCloseable {
                 topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
                 phase2.getT3(),
                 phase2.getT4(),
-                clustersProperties
+                clustersProperties,
+                topicIndex
             )));
   }
 
-  private static Map<String, TopicState> topicStateMap(
+  static Map<String, TopicState> topicStateMap(
       InternalLogDirStats segmentStats,
       Map<String, TopicDescription> topicDescriptions,
       Map<String, List<ConfigEntry>> topicConfigs,
       Map<TopicPartition, Long> latestOffsets,
       Map<TopicPartition, Long> earliestOffsets) {
 
+    var earliestByTopic = groupPartitionsByTopic(earliestOffsets);
+    var latestByTopic = groupPartitionsByTopic(latestOffsets);
+    var partitionsStatsByTopic = Optional.ofNullable(segmentStats.getPartitionsStats())
+        .map(ScrapedClusterState::groupPartitionsByTopic)
+        .orElse(null);
+
     return topicDescriptions.entrySet().stream().map(entry -> new TopicState(
         entry.getKey(),
         entry.getValue(),
         topicConfigs.getOrDefault(entry.getKey(), List.of()),
-        filterTopic(entry.getKey(), earliestOffsets),
-        filterTopic(entry.getKey(), latestOffsets),
+        earliestByTopic.getOrDefault(entry.getKey(), Map.of()),
+        latestByTopic.getOrDefault(entry.getKey(), Map.of()),
         segmentStats.getTopicStats().get(entry.getKey()),
-        Optional.ofNullable(segmentStats.getPartitionsStats())
-            .map(topicForFilter -> filterTopic(entry.getKey(), topicForFilter))
-            .orElse(null)
+        partitionsStatsByTopic == null
+            ? null
+            : partitionsStatsByTopic.getOrDefault(entry.getKey(), Map.of())
     )).collect(Collectors.toMap(
         TopicState::name,
         Function.identity()
@@ -178,7 +187,8 @@ public class ScrapedClusterState implements AutoCloseable {
                                             Map<String, TopicState> topicStates,
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
                                             Table<String, TopicPartition, Long> consumerOffsets,
-                                            ClustersProperties clustersProperties) {
+                                            ClustersProperties clustersProperties,
+                                            LazyTopicsIndex topicIndex) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->
@@ -201,37 +211,33 @@ public class ScrapedClusterState implements AutoCloseable {
                 segmentStats.getBrokerDirsStats().get(node.id())
             )));
 
+    topicIndex.update(internalTopics(topicStates, clustersProperties));
+
     return new ScrapedClusterState(
         Instant.now(),
         nodesStates,
         topicStates,
         consumerGroupsStates,
-        buildTopicIndex(clustersProperties, topicStates)
+        topicIndex
     );
   }
 
-  private static TopicsIndex buildTopicIndex(ClustersProperties clustersProperties,
-                                             Map<String, TopicState> topicStates) {
-    ClustersProperties.ClusterFtsProperties fts = clustersProperties.getFts();
-    List<InternalTopic> topics = topicStates.values().stream().map(
+  private static List<InternalTopic> internalTopics(Map<String, TopicState> topicStates,
+                                                   ClustersProperties clustersProperties) {
+    return topicStates.values().stream().map(
         topicState -> buildInternalTopic(topicState, clustersProperties)
     ).toList();
-
-    if (fts.isEnabled()) {
-      try {
-        return new LuceneTopicsIndex(topics);
-      } catch (Exception e) {
-        log.error("Error creating lucene topics index", e);
-      }
-    }
-    return new FilterTopicIndex(topics);
   }
 
-  private static <T> Map<Integer, T> filterTopic(String topicForFilter, Map<TopicPartition, T> tpMap) {
-    return tpMap.entrySet()
-        .stream()
-        .filter(tp -> tp.getKey().topic().equals(topicForFilter))
-        .collect(Collectors.toMap(e -> e.getKey().partition(), Map.Entry::getValue));
+  /**
+   * Groups partition-keyed data by topic once, so that per-topic lookups stay O(partitions of that topic)
+   * instead of scanning every partition in the cluster for every topic.
+   */
+  private static <T> Map<String, Map<Integer, T>> groupPartitionsByTopic(Map<TopicPartition, T> tpMap) {
+    return tpMap.entrySet().stream().collect(Collectors.groupingBy(
+        entry -> entry.getKey().topic(),
+        Collectors.toMap(entry -> entry.getKey().partition(), Map.Entry::getValue)
+    ));
   }
 
   private static InternalTopic buildInternalTopic(TopicState state,
