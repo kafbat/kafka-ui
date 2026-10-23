@@ -12,24 +12,28 @@ interface ClustersApi {
   @get
   @operationId("getClusters")
   @summary("getClusters")
+  @doc("List all configured Kafka clusters with their status and metadata.")
   getClusters(): Cluster[];
 
   @post
   @route("/{clusterName}/cache")
   @operationId("updateClusterInfo")
   @summary("updateClusterInfo")
+  @doc("Update the display name or other metadata for a Kafka cluster.")
   updateClusterInfo(@path clusterName: string): Cluster;
 
   @get
   @route("/{clusterName}/metrics")
   @operationId("getClusterMetrics")
   @summary("getClusterMetrics")
+  @doc("Get metrics for a specific Kafka cluster.")
   getClusterMetrics(@path clusterName: string): ClusterMetrics;
 
   @get
   @route("/{clusterName}/stats")
   @operationId("getClusterStats")
   @summary("getClusterStats")
+  @doc("Get statistics for a specific Kafka cluster including broker count, topic count, and partition details.")
   getClusterStats(@path clusterName: string): ClusterStats;
 }
 
