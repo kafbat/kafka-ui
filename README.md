@@ -1,19 +1,3 @@
-> **This branch: PKCE integrated into Kafbat's reactive OAuth2 Java configuration.**
-> 
-> Read the [PKCE implementation README](docs/pkce/README.md) for code changes, tests and deployment.
-
-## PKCE Docker image
-
-The integrated PKCE image is configured to publish as `ghcr.io/diemar-consulting/kafka-ui:1.5.0-pkce` after the publishing workflow is merged and runs successfully on `main`. **Publication has not yet been verified.**
-
-```bash
-docker pull ghcr.io/diemar-consulting/kafka-ui:1.5.0-pkce
-```
-
-[Container package](https://github.com/orgs/diemar-consulting/packages/container/package/kafka-ui) · [PKCE documentation](docs/pkce/README.md)
-
----
-
 <div align="center">
 <img src="documentation/images/logo_new.png" alt="logo"/>
 <h3>Kafbat UI</h3>
