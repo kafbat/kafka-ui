@@ -38,6 +38,8 @@ class RbacConnectorPermissionsTest {
 
   public static final String DEV_ROLE_NAME = "dev_role";
   public static final String ADMIN_ROLE_NAME = "admin_role";
+  public static final String CONNECT_VIEW_ROLE_NAME = "connect_view_role";
+  public static final String CONNECT_EDIT_ROLE_NAME = "connect_edit_role";
   public static final String CLUSTER_NAME = "local";
   public static final String CONNECT_NAME = "kafka-connect";
   public static final String CONNECTOR_NAME = "my-connector";
@@ -63,7 +65,9 @@ class RbacConnectorPermissionsTest {
         getAdminRole(),
         getWildcardConnectRole(),
         getWildcardConnectorRole(),
-        getFullWildcardRole()
+        getFullWildcardRole(),
+        getConnectViewOnlyRole(),
+        getConnectEditRole()
     );
     RoleBasedAccessControlProperties properties = mock();
     when(properties.getRoles()).thenReturn(roles);
@@ -257,6 +261,43 @@ class RbacConnectorPermissionsTest {
   }
 
   /**
+   * Test that connect-level VIEW permission alone does not allow editing a connector config
+   * via the connect fallback.
+   */
+  @Test
+  void validateAccess_editConnectorWithOnlyConnectViewPermission_denied() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(CONNECT_VIEW_ROLE_NAME));
+      AccessContext context = AccessContext.builder()
+          .cluster(CLUSTER_NAME)
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.VIEW, ConnectorAction.EDIT)
+          .build();
+      Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+      StepVerifier.create(validateAccessMono)
+          .expectErrorMatches(e -> e instanceof AccessDeniedException)
+          .verify();
+    });
+  }
+
+  /**
+   * Test that connect-level EDIT permission still allows editing a connector config via fallback.
+   */
+  @Test
+  void validateAccess_editConnectorFallsBackToConnectEditPermission_allowed() {
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of(CONNECT_EDIT_ROLE_NAME));
+      AccessContext context = AccessContext.builder()
+          .cluster(CLUSTER_NAME)
+          .connectorActions(CONNECT_NAME, CONNECTOR_NAME, ConnectorAction.VIEW, ConnectorAction.EDIT)
+          .build();
+      Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+      StepVerifier.create(validateAccessMono)
+          .expectComplete()
+          .verify();
+    });
+  }
+
+  /**
    * Dev role with specific connector-level permissions.
    */
   public static Role getDevRole() {
@@ -404,6 +445,47 @@ class RbacConnectorPermissionsTest {
     permission.setValue(".*/.*");
 
     role.setPermissions(List.of(permission));
+    role.validate();
+    return role;
+  }
+
+  /**
+   * Role with only connect-level VIEW permission and no connector-level permissions.
+   */
+  public static Role getConnectViewOnlyRole() {
+    return getConnectLevelRole(CONNECT_VIEW_ROLE_NAME, "connect.view.group",
+        List.of(ConnectAction.VIEW.name()));
+  }
+
+  /**
+   * Role with connect-level VIEW and EDIT permissions and no connector-level permissions.
+   */
+  public static Role getConnectEditRole() {
+    return getConnectLevelRole(CONNECT_EDIT_ROLE_NAME, "connect.edit.group",
+        List.of(ConnectAction.VIEW.name(), ConnectAction.EDIT.name()));
+  }
+
+  /**
+   * Builds a role with a single connect-level permission on {@code CONNECT_NAME}
+   * and no connector-level permissions.
+   */
+  private static Role getConnectLevelRole(String roleName, String groupName, List<String> actions) {
+    Role role = new Role();
+    role.setName(roleName);
+    role.setClusters(List.of(CLUSTER_NAME));
+
+    Subject sub = new Subject();
+    sub.setType("group");
+    sub.setProvider(Provider.LDAP);
+    sub.setValue(groupName);
+    role.setSubjects(List.of(sub));
+
+    Permission connectPermission = new Permission();
+    connectPermission.setResource(Resource.CONNECT.name());
+    connectPermission.setActions(actions);
+    connectPermission.setValue(CONNECT_NAME);
+
+    role.setPermissions(List.of(connectPermission));
     role.validate();
     return role;
   }
