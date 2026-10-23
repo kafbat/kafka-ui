@@ -41,8 +41,8 @@ const TableHeaderCell: React.FC<PropsWithChildren<TableHeaderCellProps>> = (
     );
   };
   const orderableProps = isOrderable && {
-    isOrderable,
-    sortOrder,
+    $isOrderable: isOrderable,
+    $sortOrder: sortOrder,
     onClick: handleOnClick,
     onKeyDown: handleOnKeyDown,
     role: 'button',
@@ -50,7 +50,7 @@ const TableHeaderCell: React.FC<PropsWithChildren<TableHeaderCellProps>> = (
   };
   return (
     <S.TableHeaderCell {...restProps}>
-      <S.Title isOrdered={isOrdered} {...orderableProps}>
+      <S.Title $isOrdered={isOrdered} {...orderableProps}>
         {title}
       </S.Title>
 

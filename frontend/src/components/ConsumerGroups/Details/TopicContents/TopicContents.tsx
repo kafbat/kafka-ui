@@ -140,7 +140,7 @@ const TopicContents: React.FC<Props> = ({
   }, [orderBy, sortOrder, topicPartitions]);
 
   return (
-    <Table isFullwidth>
+    <Table $isFullwidth>
       <thead>
         <tr>
           {TABLE_HEADERS_MAP.map((header) => (

@@ -37,6 +37,7 @@ const Select = <T extends object>(
     onChange,
     isThemeMode,
     formatSelectedOption,
+    minWidth,
     ...props
   }: SelectProps<T>,
   ref?: React.Ref<HTMLUListElement>
@@ -83,11 +84,12 @@ const Select = <T extends object>(
     <div ref={selectContainerRef}>
       <S.Select
         role="listbox"
-        selectSize={selectSize}
-        disabled={disabled}
+        $selectSize={selectSize}
+        $disabled={disabled}
+        $minWidth={minWidth}
         onClick={showOptionsHandler}
         onKeyDown={showOptionsHandler}
-        isThemeMode={isThemeMode}
+        $isThemeMode={isThemeMode}
         ref={ref}
         tabIndex={0}
         {...props}
@@ -96,7 +98,7 @@ const Select = <T extends object>(
           <S.SelectedOption
             role="option"
             tabIndex={0}
-            isThemeMode={isThemeMode}
+            $isThemeMode={isThemeMode}
           >
             {displayedOptionLabel}
           </S.SelectedOption>
@@ -107,7 +109,7 @@ const Select = <T extends object>(
               <S.Option
                 value={option.value.toString()}
                 key={option.value.toString()}
-                disabled={option.disabled}
+                $disabled={option.disabled}
                 onClick={() => updateSelectedOption(option)}
                 tabIndex={0}
                 role="option"

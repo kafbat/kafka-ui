@@ -14,7 +14,7 @@ function ExpanderCell<T, V = unknown>({ row }: CellContext<T, V>) {
       role="button"
       aria-label="Expand row"
       $disabled={!row.getCanExpand()}
-      getIsExpanded={row.getIsExpanded()}
+      $getIsExpanded={row.getIsExpanded()}
     >
       {row.getIsExpanded() ? (
         <path

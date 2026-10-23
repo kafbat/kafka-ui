@@ -19,7 +19,7 @@ const TopicsCell: React.FC<CellContext<FullConnectorInfo, unknown>> = ({
         const href = clusterTopicPath(clusterName, t);
 
         return (
-          <MultiLineTag key={t} color="green">
+          <MultiLineTag key={t} $color="green">
             <a href={href}>{t}</a>
           </MultiLineTag>
         );

@@ -55,7 +55,7 @@ const createPatternCell = (): ColumnDef<KafkaAcl> => {
         <S.PatternCell>
           {getValue<string>()}
           {chipType ? (
-            <S.Chip chipType={chipType}>
+            <S.Chip $chipType={chipType}>
               {row.original.namePatternType.toLowerCase()}
             </S.Chip>
           ) : null}
@@ -100,7 +100,7 @@ const createParmissionCell = (): ColumnDef<KafkaAcl> => {
     accessorKey: 'permission',
     cell: ({ getValue }) => (
       <S.Chip
-        chipType={
+        $chipType={
           getValue<string>() === KafkaAclPermissionEnum.ALLOW
             ? 'success'
             : 'danger'

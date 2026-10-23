@@ -197,7 +197,7 @@ const AddEditFilterContainer: React.FC<AddEditFilterContainerProps> = ({
             <ErrorMessage errors={errors} name="id" />
           </FormError>
         </div>
-        <S.FilterButtonWrapper isEdit={isEdit}>
+        <S.FilterButtonWrapper $isEdit={isEdit}>
           <QuestionInfo />
           <Flexbox gap="10px">
             <Button

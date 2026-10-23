@@ -7,7 +7,7 @@ import { theme } from 'theme/theme';
 describe('TopicForm styled components', () => {
   describe('Button', () => {
     it('should check the button styling in isActive state', () => {
-      render(<S.Button isActive />);
+      render(<S.Button $isActive />);
       const button = screen.getByRole('button');
       expect(button).toHaveStyle({
         border: `none`,
@@ -16,7 +16,7 @@ describe('TopicForm styled components', () => {
     });
 
     it('should check the button styling in non Active state', () => {
-      render(<S.Button isActive={false} />);
+      render(<S.Button $isActive={false} />);
       const button = screen.getByRole('button');
       expect(button).toHaveStyle({
         border: `none`,

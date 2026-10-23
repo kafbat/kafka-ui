@@ -103,11 +103,11 @@ const Dashboard: React.FC = () => {
       <PageHeading text="Dashboard" />
       <Metrics.Wrapper>
         <Metrics.Section>
-          <Metrics.Indicator label={<Tag color="green">Online</Tag>}>
+          <Metrics.Indicator label={<Tag $color="green">Online</Tag>}>
             <span>{config.online || 0}</span>{' '}
             <Metrics.LightText>clusters</Metrics.LightText>
           </Metrics.Indicator>
-          <Metrics.Indicator label={<Tag color="gray">Offline</Tag>}>
+          <Metrics.Indicator label={<Tag $color="gray">Offline</Tag>}>
             <span>{config.offline || 0}</span>{' '}
             <Metrics.LightText>clusters</Metrics.LightText>
           </Metrics.Indicator>
