@@ -1,3 +1,9 @@
+> **This branch: PKCE integrated into Kafbat's reactive OAuth2 Java configuration.**
+> 
+> Read the [PKCE implementation README](docs/pkce/README.md) for code changes, tests and deployment.
+
+---
+
 <div align="center">
 <img src="documentation/images/logo_new.png" alt="logo"/>
 <h3>Kafbat UI</h3>
