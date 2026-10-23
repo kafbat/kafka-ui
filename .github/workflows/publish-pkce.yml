@@ -46,5 +46,5 @@ jobs:
         env:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          docker build -f api/Dockerfile --build-arg JAR_FILE="$(find api/build/libs -maxdepth 1 -name 'api-*.jar' ! -name '*-plain.jar' -printf '%f\n' | head -n 1)" -t "ghcr.io/diemar-consulting/kafka-ui:$TAG" api
+          docker build -f api/Dockerfile --build-arg JAR_FILE="$(find api/build/libs -maxdepth 1 -name 'api-*.jar' ! -name '*-plain.jar' -printf 'build/libs/%f\n' | head -n 1)" -t "ghcr.io/diemar-consulting/kafka-ui:$TAG" api
           docker push "ghcr.io/diemar-consulting/kafka-ui:$TAG"
