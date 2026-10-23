@@ -121,11 +121,27 @@ public class ProtobufFileSerde implements BuiltInSerde {
   private Optional<Descriptor> descriptorFor(String topic, Serde.Target type) {
     return type == Serde.Target.KEY
         ?
-        Optional.ofNullable(keyMessageDescriptorMap.get(topic))
+        findByTopic(keyMessageDescriptorMap, topic)
             .or(() -> Optional.ofNullable(defaultKeyMessageDescriptor))
         :
-        Optional.ofNullable(messageDescriptorMap.get(topic))
+        findByTopic(messageDescriptorMap, topic)
             .or(() -> Optional.ofNullable(defaultMessageDescriptor));
+  }
+
+  // Topic names are case-sensitive, so exact match always wins. Case-insensitive fallback is needed
+  // because topic names lose their case when mapping is configured via environment variables.
+  // It is skipped when keys differing only in case map to different descriptors, as the match would be ambiguous.
+  private static Optional<Descriptor> findByTopic(Map<String, Descriptor> descriptorsByTopic, String topic) {
+    Descriptor exactMatch = descriptorsByTopic.get(topic);
+    if (exactMatch != null) {
+      return Optional.of(exactMatch);
+    }
+    List<Descriptor> caseInsensitiveMatches = descriptorsByTopic.entrySet().stream()
+        .filter(e -> e.getKey().equalsIgnoreCase(topic))
+        .map(Map.Entry::getValue)
+        .distinct()
+        .toList();
+    return caseInsensitiveMatches.size() == 1 ? Optional.of(caseInsensitiveMatches.get(0)) : Optional.empty();
   }
 
   @Override
