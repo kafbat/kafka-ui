@@ -1,5 +1,0 @@
-# Temporary, explicitly scoped exception for Spring WebFlux 6.2.19 in PKCE image.
-# Revisit when a compatible patched Spring Framework release is available.
-# Keep scanning and failing on all other HIGH/CRITICAL findings.
-CVE-2026-47890
-CVE-2026-47892
