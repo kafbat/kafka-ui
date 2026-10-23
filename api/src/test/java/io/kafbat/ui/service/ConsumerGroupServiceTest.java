@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,12 +36,110 @@ import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 class ConsumerGroupServiceTest {
+
+  @ParameterizedTest
+  @EnumSource(ConsumerGroupOrderingDTO.class)
+  void consumerGroupPagesCountOnlyGroupsWithDescriptionsAndOffsetAccess(
+      ConsumerGroupOrderingDTO ordering) {
+    var cluster = KafkaCluster.builder().name("test").build();
+    var client = Mockito.mock(ReactiveAdminClient.class);
+    var admin = Mockito.mock(AdminClientService.class);
+    Mockito.when(admin.get(cluster)).thenReturn(Mono.just(client));
+    var groupIds = List.of("a-denied-description", "b-denied-offset", "c-empty", "d-allowed");
+    Mockito.when(client.listConsumerGroups()).thenReturn(Mono.just(groupIds.stream()
+        .map(id -> new ConsumerGroupListing(id, false, Optional.of(ConsumerGroupState.EMPTY)))
+        .toList()));
+    Mockito.when(client.describeConsumerGroups(groupIds, true)).thenReturn(Mono.just(groupIds.stream()
+        .skip(1)
+        .collect(Collectors.toMap(id -> id,
+            id -> new ConsumerGroupDescription(id, false, List.of(), "range",
+                ConsumerGroupState.EMPTY, null)))));
+    var partition = new TopicPartition("events", 0);
+    Mockito.when(client.listAuthorizedConsumerGroupOffsets(
+        List.of("b-denied-offset", "c-empty", "d-allowed"), null))
+        .thenReturn(Mono.just(new ReactiveAdminClient.AuthorizedConsumerGroupOffsets(
+            Set.of("c-empty", "d-allowed"), ImmutableTable.of("d-allowed", partition, 5L))));
+    Mockito.when(client.listOffsets(Mockito.any(), Mockito.any(), Mockito.eq(false)))
+        .thenReturn(Mono.just(Map.of(partition, 10L)));
+    var cache = Mockito.mock(StatisticsCache.class);
+    Mockito.when(cache.get(cluster)).thenReturn(Statistics.builder()
+        .status(ServerStatusDTO.OFFLINE).build());
+    var acl = Mockito.mock(AccessControlService.class);
+    Mockito.when(acl.isConsumerGroupAccessible(Mockito.any(), Mockito.any())).thenReturn(Mono.just(true));
+    var service = new ConsumerGroupService(admin, acl, new ClustersProperties(), cache);
+
+    var first = service.getConsumerGroups(cluster, OptionalInt.of(1), OptionalInt.of(1),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+    var second = service.getConsumerGroups(cluster, OptionalInt.of(2), OptionalInt.of(1),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+    var third = service.getConsumerGroups(cluster, OptionalInt.of(3), OptionalInt.of(1),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+
+    assertThat(first).isNotNull();
+    assertThat(first.totalPages()).isEqualTo(2);
+    assertThat(first.consumerGroups()).extracting(group -> group.getGroupId())
+        .containsExactly("c-empty");
+    assertThat(first.consumerGroups().get(0).getOffsets()).isEmpty();
+    assertThat(second).isNotNull();
+    assertThat(second.totalPages()).isEqualTo(2);
+    assertThat(second.consumerGroups()).extracting(group -> group.getGroupId())
+        .containsExactly("d-allowed");
+    assertThat(third).isNotNull();
+    assertThat(third.totalPages()).isEqualTo(2);
+    assertThat(third.consumerGroups()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @EnumSource(ConsumerGroupOrderingDTO.class)
+  void consumerGroupPagesSkipMissingDescriptions(ConsumerGroupOrderingDTO ordering) {
+    var cluster = KafkaCluster.builder().name("test").build();
+    var client = Mockito.mock(ReactiveAdminClient.class);
+    var admin = Mockito.mock(AdminClientService.class);
+    Mockito.when(admin.get(cluster)).thenReturn(Mono.just(client));
+    var allowed = new ConsumerGroupDescription("allowed", false, List.of(), "range",
+        ConsumerGroupState.EMPTY, null);
+    Mockito.when(client.listConsumerGroups()).thenReturn(Mono.just(List.of(
+        new ConsumerGroupListing("restricted", false, Optional.of(ConsumerGroupState.EMPTY)),
+        new ConsumerGroupListing("allowed", false, Optional.of(ConsumerGroupState.EMPTY))
+    )));
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true)))
+        .thenReturn(Mono.just(Map.of("allowed", allowed)));
+
+    var cache = Mockito.mock(StatisticsCache.class);
+    Mockito.when(cache.get(cluster)).thenReturn(Statistics.builder()
+        .status(ServerStatusDTO.ONLINE)
+        .clusterState(ScrapedClusterState.builder()
+            .consumerGroupsStates(Map.of("allowed",
+                new ScrapedClusterState.ConsumerGroupState("allowed", allowed, Map.of())))
+            .topicStates(Map.of())
+            .build())
+        .build());
+    var acl = Mockito.mock(AccessControlService.class);
+    Mockito.when(acl.isConsumerGroupAccessible(Mockito.any(), Mockito.any())).thenReturn(Mono.just(true));
+    var service = new ConsumerGroupService(admin, acl, new ClustersProperties(), cache);
+
+    var page = service.getConsumerGroups(cluster, OptionalInt.of(1), OptionalInt.of(25),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+
+    assertThat(page).isNotNull();
+    assertThat(page.totalPages()).isEqualTo(1);
+    assertThat(page.consumerGroups()).extracting(group -> group.getGroupId()).containsExactly("allowed");
+
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true)))
+        .thenReturn(Mono.just(Map.of()));
+    var emptyPage = service.getConsumerGroups(cluster, OptionalInt.of(1), OptionalInt.of(25),
+        null, false, ordering, SortOrderDTO.ASC, List.of()).block();
+    assertThat(emptyPage).isNotNull();
+    assertThat(emptyPage.totalPages()).isZero();
+    assertThat(emptyPage.consumerGroups()).isEmpty();
+  }
 
   @Test
   void getConsumerGroupsForTopicConsumerGroups() {
@@ -125,7 +224,7 @@ class ConsumerGroupServiceTest {
         .thenReturn(Mono.just(Map.of(new TopicPartition(topic, 0), 100L)));
 
     Mockito.when(client.describeConsumerGroups(
-        Mockito.any())
+        Mockito.any(), Mockito.eq(true))
     ).thenReturn(
         Mono.just(
             consumerGroupStates.values().stream()
@@ -136,7 +235,7 @@ class ConsumerGroupServiceTest {
         )
     );
 
-    Mockito.when(client.listConsumerGroupOffsets(Mockito.any(), Mockito.any())).thenAnswer(
+    Mockito.when(client.listAuthorizedConsumerGroupOffsets(Mockito.any(), Mockito.any())).thenAnswer(
         a -> {
           List<String> groupIds = a.getArgument(0);
           var table = ImmutableTable.<String, TopicPartition, Long>builder();
@@ -146,7 +245,8 @@ class ConsumerGroupServiceTest {
               table.put(groupId, entry.getKey(), entry.getValue());
             }
           }
-          return Mono.just(table.build());
+          return Mono.just(new ReactiveAdminClient.AuthorizedConsumerGroupOffsets(
+              new HashSet<>(groupIds), table.build()));
         }
     );
 
@@ -185,6 +285,39 @@ class ConsumerGroupServiceTest {
     assertThat(resultedGroupIds).containsAll(consumersWithTopic.keySet());
 
     assertThat(resultedGroupIds).containsAll(stableConsumersWithTopic.keySet());
+  }
+
+  @Test
+  void topicGroupsSkipDeniedOffsetsAndKeepAuthorizedGroupWithoutOffsets() {
+    var cluster = KafkaCluster.builder().name("test").build();
+    var client = Mockito.mock(ReactiveAdminClient.class);
+    var admin = Mockito.mock(AdminClientService.class);
+    Mockito.when(admin.get(cluster)).thenReturn(Mono.just(client));
+    var partition = new TopicPartition("events", 0);
+    var member = new MemberDescription("member", "client", "localhost",
+        new MemberAssignment(Set.of(partition)));
+    var names = List.of("allowed-empty", "denied-offsets");
+    Mockito.when(client.listTopicOffsets(Mockito.eq("events"), Mockito.any(), Mockito.eq(false)))
+        .thenReturn(Mono.just(Map.of(partition, 10L)));
+    Mockito.when(client.listConsumerGroupNames()).thenReturn(Mono.just(names));
+    Mockito.when(client.describeConsumerGroups(names, true)).thenReturn(Mono.just(names.stream()
+        .collect(Collectors.toMap(id -> id,
+            id -> new ConsumerGroupDescription(id, false, List.of(member), "range",
+                ConsumerGroupState.STABLE, null)))));
+    Mockito.when(client.listAuthorizedConsumerGroupOffsets(Mockito.anyList(), Mockito.eq(List.of(partition))))
+        .thenReturn(Mono.just(new ReactiveAdminClient.AuthorizedConsumerGroupOffsets(
+            Set.of("allowed-empty"), ImmutableTable.of())));
+    var cache = Mockito.mock(StatisticsCache.class);
+    Mockito.when(cache.get(cluster)).thenReturn(Statistics.empty());
+    var service = new ConsumerGroupService(admin, Mockito.mock(AccessControlService.class),
+        new ClustersProperties(), cache);
+
+    var groups = service.getConsumerGroupsForTopic(cluster, "events").block();
+
+    assertThat(groups).isNotNull();
+    assertThat(groups).extracting(InternalTopicConsumerGroup::getGroupId)
+        .containsExactly("allowed-empty");
+    assertThat(groups.get(0).getConsumerLag()).isNull();
   }
 
   private ScrapedClusterState.ConsumerGroupState generate(
@@ -460,7 +593,7 @@ class ConsumerGroupServiceTest {
             .toList()
     ));
 
-    Mockito.when(client.describeConsumerGroups(Mockito.any())).thenAnswer(invocation -> {
+    Mockito.when(client.describeConsumerGroups(Mockito.any(), Mockito.eq(true))).thenAnswer(invocation -> {
       List<String> groupIds = invocation.getArgument(0);
       return Mono.just(
           groupIds.stream()
@@ -472,7 +605,7 @@ class ConsumerGroupServiceTest {
       );
     });
 
-    Mockito.when(client.listConsumerGroupOffsets(Mockito.any(), Mockito.isNull())).thenAnswer(
+    Mockito.when(client.listAuthorizedConsumerGroupOffsets(Mockito.any(), Mockito.isNull())).thenAnswer(
         invocation -> {
           List<String> groupIds = invocation.getArgument(0);
           var table = ImmutableTable.<String, TopicPartition, Long>builder();
@@ -484,7 +617,8 @@ class ConsumerGroupServiceTest {
               }
             }
           }
-          return Mono.just(table.build());
+          return Mono.just(new ReactiveAdminClient.AuthorizedConsumerGroupOffsets(
+              new HashSet<>(groupIds), table.build()));
         }
     );
 
