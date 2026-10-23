@@ -35,7 +35,7 @@ jobs:
           fi
           echo "tag=${VERSION}-pkce" >> "$GITHUB_OUTPUT"
       - name: Verify integrated PKCE
-        run: ./gradlew :api:check :api:bootJar
+        run: ./gradlew :api:check :api:bootJar -Pinclude-frontend=true
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
