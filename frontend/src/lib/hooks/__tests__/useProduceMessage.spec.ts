@@ -72,6 +72,48 @@ describe('useProduceMessage', () => {
     });
   });
 
+  it('should preserve an empty string key and value', () => {
+    const { result } = renderHook(() => useProduceMessage());
+
+    act(() => {
+      result.current.setMessage({ ...mockMessage, key: '', value: '' });
+    });
+
+    expect(result.current.messageData?.key).toBe('');
+    expect(result.current.messageData?.content).toBe('');
+  });
+
+  it('should not set key and should use empty content for null key and value', () => {
+    const { result } = renderHook(() => useProduceMessage());
+
+    act(() => {
+      result.current.setMessage({
+        ...mockMessage,
+        key: null as unknown as string,
+        value: null as unknown as string,
+      });
+    });
+
+    expect(result.current.messageData).not.toHaveProperty('key');
+    expect(result.current.messageData?.content).toBe('');
+  });
+
+  it('should return a new object for each reproduced message', () => {
+    const { result } = renderHook(() => useProduceMessage());
+
+    act(() => {
+      result.current.setMessage(mockMessage);
+    });
+    const first = result.current.messageData;
+
+    act(() => {
+      result.current.setMessage({ ...mockMessage, key: 'another-key' });
+    });
+
+    expect(result.current.messageData).not.toBe(first);
+    expect(result.current.messageData?.key).toBe('another-key');
+  });
+
   it('should extract serde params from deserialize properties', () => {
     const { result } = renderHook(() => useProduceMessage());
     const messageWithSubjects: TopicMessage = {
