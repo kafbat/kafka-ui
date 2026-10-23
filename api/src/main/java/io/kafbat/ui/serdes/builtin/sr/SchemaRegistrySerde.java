@@ -95,6 +95,11 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
     var formatterProperties = propertiesBuilder.build();
 
+    // Collect raw SR client properties from schemaRegistryAuth.properties.*
+    Map<String, Object> extraSrProperties =
+        kafkaClusterProperties.getMapProperty("schemaRegistryAuth.properties", String.class, Object.class)
+            .orElse(null);
+
     configure(
         urls,
         createSchemaRegistryClient(
@@ -105,7 +110,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             kafkaClusterProperties.getProperty("schemaRegistrySsl.keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true)
+            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true),
+            extraSrProperties
         ),
         kafkaClusterProperties.getProperty("schemaRegistryKeySchemaNameTemplate", String.class).orElse("%s-key"),
         kafkaClusterProperties.getProperty("schemaRegistrySchemaNameTemplate", String.class).orElse("%s-value"),
@@ -146,7 +152,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
             serdeProperties.getProperty("keystorePassword", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststoreLocation", String.class).orElse(null),
             kafkaClusterProperties.getProperty("ssl.truststorePassword", String.class).orElse(null),
-            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true)
+            kafkaClusterProperties.getProperty("ssl.verify", Boolean.class).orElse(true),
+            null
         ),
         serdeProperties.getProperty("keySchemaNameTemplate", String.class).orElse("%s-key"),
         serdeProperties.getProperty("schemaNameTemplate", String.class).orElse("%s-value"),
@@ -203,8 +210,20 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                                                                  @Nullable String keyStorePassword,
                                                                  @Nullable String trustStoreLocation,
                                                                  @Nullable String trustStorePassword,
-                                                                 boolean verifySsl) {
+                                                                 boolean verifySsl,
+                                                                 @Nullable Map<String, Object> extraProperties) {
     Map<String, String> configs = new HashMap<>();
+
+    // Apply custom bearer-auth (or other raw SR client) properties first so that
+    // our explicit configs (basic-auth, SSL) always take precedence over them.
+    if (extraProperties != null) {
+      extraProperties.forEach((k, v) -> {
+        if (v != null) {
+          configs.put(k, v.toString());
+        }
+      });
+    }
+
     if (username != null && password != null) {
       configs.put(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO");
       configs.put(USER_INFO_CONFIG, username + ":" + password);

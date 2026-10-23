@@ -256,6 +256,8 @@ public class KafkaClusterFactory {
         && StringUtils.hasText(oauth.getClientSecret());
     boolean oauthPartiallyConfigured = StringUtils.hasText(oauth.getTokenUrl())
         || StringUtils.hasText(oauth.getClientId()) || StringUtils.hasText(oauth.getClientSecret());
+    boolean propertiesConfigured = basicAuth.getProperties() != null && !basicAuth.getProperties().isEmpty();
+
     if (oauthPartiallyConfigured && !oauthConfigured) {
       throw new ValidationException(
           "Schema Registry authentication misconfiguration: one of the OAuth Parameters are missing. "
@@ -265,6 +267,12 @@ public class KafkaClusterFactory {
       throw new ValidationException(
           "Schema Registry authentication misconfiguration: both basic auth and OAuth are configured. "
               + "Please configure only one authentication method."
+      );
+    }
+    if (propertiesConfigured && (basicAuthConfigured || oauthConfigured)) {
+      throw new ValidationException(
+          "Schema Registry authentication misconfiguration: 'properties' cannot be combined with "
+              + "basic auth (username/password) or OAuth. Please configure only one authentication method."
       );
     }
 

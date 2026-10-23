@@ -167,6 +167,32 @@ public class ClustersProperties {
     String username;
     String password;
     OauthConfig oauth;
+    /**
+     * Raw properties forwarded verbatim to the Confluent {@code CachedSchemaRegistryClient}.
+     * Use this to configure bearer auth via a ServiceLoader alias or a CUSTOM provider class
+     * without having to enumerate every possible credential source.
+     *
+     * <p>Example (ServiceLoader alias):
+     * <pre>
+     * schema-registry-auth:
+     *   properties:
+     *     bearer.auth.credentials.source: JWT_ASSERTION
+     *     bearer.auth.issuer.endpoint.url: https://idp.example.com/token
+     *     bearer.auth.client.assertion.location: /var/run/secrets/tokens/sa-token
+     *     bearer.auth.client.id: my-service-account
+     * </pre>
+     *
+     * <p>Example (CUSTOM class):
+     * <pre>
+     * schema-registry-auth:
+     *   properties:
+     *     bearer.auth.credentials.source: CUSTOM
+     *     bearer.auth.custom.provider.class: com.example.MyBearerAuthCredentialProvider
+     * </pre>
+     *
+     * <p>Cannot be combined with {@code username}/{@code password} or {@code oauth}.
+     */
+    Map<String, Object> properties;
   }
 
   @Data
