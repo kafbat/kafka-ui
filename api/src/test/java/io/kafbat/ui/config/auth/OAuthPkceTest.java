@@ -63,8 +63,9 @@ class OAuthPkceTest {
     var second = authorize();
     assertThat(first).isNotNull();
     assertThat(second).isNotNull();
-    assertThat(first.getAttribute("code_verifier"))
-        .isNotEqualTo(second.getAttribute("code_verifier"));
+    String firstVerifier = first.getAttribute("code_verifier");
+    String secondVerifier = second.getAttribute("code_verifier");
+    assertThat(firstVerifier).isNotEqualTo(secondVerifier);
     assertThat(first.getState()).isNotEqualTo(second.getState());
   }
 }
