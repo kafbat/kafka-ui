@@ -52,7 +52,7 @@ openapi-generator = { id = 'org.openapi.generator', version = '7.13.0' }
 nexus-publish-plugin = { id = 'io.github.gradle-nexus.publish-plugin', version = '2.0.0' }
 node-gradle = { id = 'com.github.node-gradle.node', version = '7.1.0' }
 docker-remote-api = { id = 'com.bmuschko.docker-remote-api', version = '9.4.0' }
-sonarqube = { id = "org.sonarqube", version = "7.5.0.8588" }
+sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 
 
 [libraries]
