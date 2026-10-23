@@ -18,7 +18,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -150,23 +149,26 @@ public class ScrapedClusterState implements AutoCloseable {
             )));
   }
 
-  private static Map<String, TopicState> topicStateMap(
+  static Map<String, TopicState> topicStateMap(
       InternalLogDirStats segmentStats,
       Map<String, TopicDescription> topicDescriptions,
       Map<String, List<ConfigEntry>> topicConfigs,
       Map<TopicPartition, Long> latestOffsets,
       Map<TopicPartition, Long> earliestOffsets) {
 
+    Map<String, Map<Integer, Long>> earliestByTopic = groupByTopic(earliestOffsets);
+    Map<String, Map<Integer, Long>> latestByTopic = groupByTopic(latestOffsets);
+    Map<String, Map<Integer, SegmentStats>> partitionsStatsByTopic =
+        segmentStats.getPartitionsStats() == null ? null : groupByTopic(segmentStats.getPartitionsStats());
+
     return topicDescriptions.entrySet().stream().map(entry -> new TopicState(
         entry.getKey(),
         entry.getValue(),
         topicConfigs.getOrDefault(entry.getKey(), List.of()),
-        filterTopic(entry.getKey(), earliestOffsets),
-        filterTopic(entry.getKey(), latestOffsets),
+        earliestByTopic.getOrDefault(entry.getKey(), Map.of()),
+        latestByTopic.getOrDefault(entry.getKey(), Map.of()),
         segmentStats.getTopicStats().get(entry.getKey()),
-        Optional.ofNullable(segmentStats.getPartitionsStats())
-            .map(topicForFilter -> filterTopic(entry.getKey(), topicForFilter))
-            .orElse(null)
+        partitionsStatsByTopic == null ? null : partitionsStatsByTopic.getOrDefault(entry.getKey(), Map.of())
     )).collect(Collectors.toMap(
         TopicState::name,
         Function.identity()
@@ -227,11 +229,11 @@ public class ScrapedClusterState implements AutoCloseable {
     return new FilterTopicIndex(topics);
   }
 
-  private static <T> Map<Integer, T> filterTopic(String topicForFilter, Map<TopicPartition, T> tpMap) {
-    return tpMap.entrySet()
-        .stream()
-        .filter(tp -> tp.getKey().topic().equals(topicForFilter))
-        .collect(Collectors.toMap(e -> e.getKey().partition(), Map.Entry::getValue));
+  private static <T> Map<String, Map<Integer, T>> groupByTopic(Map<TopicPartition, T> tpMap) {
+    Map<String, Map<Integer, T>> result = new HashMap<>();
+    tpMap.forEach((tp, v) ->
+        result.computeIfAbsent(tp.topic(), k -> new HashMap<>()).put(tp.partition(), v));
+    return result;
   }
 
   private static InternalTopic buildInternalTopic(TopicState state,
