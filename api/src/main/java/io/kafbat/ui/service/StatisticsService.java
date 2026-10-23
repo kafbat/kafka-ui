@@ -53,7 +53,7 @@ public class StatisticsService {
                     .then(
                         Mono.zip(
                             featureService.getAvailableFeatures(ac, cluster, description),
-                            loadClusterState(description, ac),
+                            loadClusterState(cluster, description, ac),
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
                                 .map(quorumInfo -> new LoadQuorumInfoResult(Optional.of(quorumInfo), KRAFT))
@@ -121,9 +121,16 @@ public class StatisticsService {
     return stats.build();
   }
 
-  private Mono<ScrapedClusterState> loadClusterState(ClusterDescription clusterDescription,
+  // Reads the cached state so the scrape can carry unexpired topic configs forward instead of re-describing every
+  // topic. Safe against the write in updateCache(): the scheduler's task pool is single-threaded and
+  // updateStatistics() blocks, so ticks for one cluster cannot overlap - this reads at subscribe, writes at complete.
+  private Mono<ScrapedClusterState> loadClusterState(KafkaCluster cluster,
+                                                     ClusterDescription clusterDescription,
                                                      ReactiveAdminClient ac) {
-    return ScrapedClusterState.scrape(clusterDescription, ac, clustersProperties);
+    ScrapedClusterState previous = Optional.ofNullable(cache.get(cluster).getClusterState())
+        .orElseGet(ScrapedClusterState::empty);
+    return ScrapedClusterState.scrape(clusterDescription, ac, clustersProperties, previous,
+        clustersProperties.resolveTopicConfigsExpiry(cluster.getOriginalProperties()));
   }
 
   private Mono<Metrics> scrapeMetrics(KafkaCluster cluster,
