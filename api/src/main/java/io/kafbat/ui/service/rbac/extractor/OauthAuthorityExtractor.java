@@ -41,15 +41,13 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
       throw new RuntimeException();
     }
 
-    var usernameRoles = extractUsernameRoles(acs, principal);
+    var usernameRoles = extractUsernameRoles(acs, principal.getName());
     var roles = extractRoles(acs, principal, additionalParams);
 
     return Mono.just(Sets.union(usernameRoles, roles));
   }
 
-  private Set<String> extractUsernameRoles(AccessControlService acs, DefaultOAuth2User principal) {
-    var principalName = principal.getName();
-
+  public static Set<String> extractUsernameRoles(AccessControlService acs, String principalName) {
     log.debug("Principal name is: [{}]", principalName);
 
     var roles = acs.getRoles()
@@ -87,6 +85,10 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
 
     log.debug("Token's groups: [{}]", String.join(",", principalRoles));
 
+    return matchRoles(acs, principalRoles);
+  }
+
+  public static Set<String> matchRoles(AccessControlService acs, Collection<String> principalRoles) {
     Set<String> roles = acs.getRoles()
         .stream()
         .filter(role -> role.getSubjects()
