@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.web.util.UriComponentsBuilder;
 
 class OAuthPkceTest {
@@ -43,7 +42,7 @@ class OAuthPkceTest {
   void sendsS256ChallengeWithMatchingVerifierForConfidentialClient() throws Exception {
     var request = authorize();
     assertThat(request).isNotNull();
-    String verifier = request.getAttribute(OAuth2ParameterNames.CODE_VERIFIER);
+    String verifier = request.getAttribute("code_verifier");
     assertThat(verifier).isNotBlank();
     byte[] digest = MessageDigest.getInstance("SHA-256")
         .digest(verifier.getBytes(StandardCharsets.US_ASCII));
@@ -64,8 +63,8 @@ class OAuthPkceTest {
     var second = authorize();
     assertThat(first).isNotNull();
     assertThat(second).isNotNull();
-    assertThat(first.getAttribute(OAuth2ParameterNames.CODE_VERIFIER))
-        .isNotEqualTo(second.getAttribute(OAuth2ParameterNames.CODE_VERIFIER));
+    assertThat(first.getAttribute("code_verifier"))
+        .isNotEqualTo(second.getAttribute("code_verifier"));
     assertThat(first.getState()).isNotEqualTo(second.getState());
   }
 }
