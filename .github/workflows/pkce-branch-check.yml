@@ -1,0 +1,23 @@
+name: PKCE branch check
+
+on:
+  push:
+    branches:
+      - issue/1721
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version-file: .java-version
+          cache: gradle
+      - name: Run backend checks
+        run: ./gradlew :api:check
