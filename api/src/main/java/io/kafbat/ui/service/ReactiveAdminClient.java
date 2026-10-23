@@ -405,7 +405,7 @@ public class ReactiveAdminClient implements Closeable {
                 .defaultIfEmpty(Tuples.of(e.getKey(), Optional.empty())) //tracking empty Monos
                 .onErrorResume(
                     // tracking Monos with suppressible error
-                    th -> Stream.of(classes).anyMatch(clazz -> th.getClass().isAssignableFrom(clazz)),
+                    th -> Stream.of(classes).anyMatch(clazz -> clazz.isInstance(th)),
                     th -> Mono.just(Tuples.of(e.getKey(), Optional.empty()))))
         .toList();
 
