@@ -25,12 +25,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
     "auth.type=OAUTH2",
     "auth.oauth2.resource-server.opaquetoken.client-id=kafbat-ui",
     "auth.oauth2.resource-server.opaquetoken.client-secret=secret",
-    "auth.oauth2.resource-server-rbac.roles-claim=roles",
     "rbac.roles[0].name=config-editor",
     "rbac.roles[0].clusters[0]=local",
     "rbac.roles[0].subjects[0].provider=oauth",
     "rbac.roles[0].subjects[0].type=role",
-    "rbac.roles[0].subjects[0].value=kafka-ui-config",
+    "rbac.roles[0].subjects[0].value=SCOPE_kafka-ui-config",
     "rbac.roles[0].permissions[0].resource=applicationconfig",
     "rbac.roles[0].permissions[0].actions[0]=edit"
 })
@@ -72,16 +71,16 @@ class OAuthOpaqueTokenRbacTest {
   private static WireMockServer startIntrospection() {
     var server = new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
     server.start();
-    stubIntrospection(server, "with-role", "[\"kafka-ui-config\"]");
-    stubIntrospection(server, "without-role", "[\"other\"]");
+    stubIntrospection(server, "with-role", "kafka-ui-config");
+    stubIntrospection(server, "without-role", "other");
     return server;
   }
 
-  private static void stubIntrospection(WireMockServer server, String token, String roles) {
+  private static void stubIntrospection(WireMockServer server, String token, String scope) {
     server.stubFor(post("/introspect")
         .withRequestBody(containing("token=" + token))
         .willReturn(aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody("{\"active\": true, \"sub\": \"service-account\", \"roles\": " + roles + "}")));
+            .withBody("{\"active\": true, \"sub\": \"service-account\", \"scope\": \"" + scope + "\"}")));
   }
 }

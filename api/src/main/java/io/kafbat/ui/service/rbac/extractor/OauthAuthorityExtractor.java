@@ -105,7 +105,7 @@ public class OauthAuthorityExtractor implements ProviderAuthorityExtractor {
   }
 
   @SuppressWarnings("unchecked")
-  public static Collection<String> convertRoles(Object roles) {
+  private Collection<String> convertRoles(Object roles) {
     if (roles == null) {
       log.warn("Param missing in attributes, nothing to do");
       return Collections.emptySet();

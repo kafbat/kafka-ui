@@ -104,10 +104,6 @@ model ApplicationConfig {
             introspectionUri?: string;
           };
         };
-        resourceServerRbac?: {
-          rolesClaim?: string;
-          usernameClaim?: string;
-        };
       };
     };
     rbac?: {

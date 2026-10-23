@@ -128,7 +128,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       builder.oauth2ResourceServer(c -> c.jwt(j -> {
         j.jwtDecoder(jwtDecoder);
         if (accessControlService.isRbacEnabled()) {
-          j.jwtAuthenticationConverter(rbacConverter(accessControlService));
+          j.jwtAuthenticationConverter(
+              new RbacReactiveJwtAuthenticationConverter(accessControlService, resourceServer.getJwt()));
         }
       }));
     } else if (hasOpaqueTokenResourceServer()) {
@@ -140,9 +141,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
                 .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
                 .build()));
         if (accessControlService.isRbacEnabled()) {
-          var converter = rbacConverter(accessControlService);
           o.authenticationConverter((token, principal) -> Mono.just(new RbacBearerTokenAuthentication(
-              converter.toUser(principal.getName(), principal::getAttribute), token)));
+              RbacReactiveJwtAuthenticationConverter.toUser(
+                  accessControlService, principal.getName(), principal.getName(), principal.getAuthorities()),
+              token)));
         }
       }));
     }
@@ -236,13 +238,6 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       return null;
     }
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
-  }
-
-  private RbacReactiveJwtAuthenticationConverter rbacConverter(AccessControlService accessControlService) {
-    var rbacProps = Optional.ofNullable(properties.getResourceServerRbac())
-        .orElseGet(OAuthProperties.ResourceServerRbac::new);
-    return new RbacReactiveJwtAuthenticationConverter(
-        accessControlService, rbacProps.getRolesClaim(), rbacProps.getUsernameClaim());
   }
 
   private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {

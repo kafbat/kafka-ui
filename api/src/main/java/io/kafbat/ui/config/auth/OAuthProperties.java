@@ -15,13 +15,6 @@ import org.springframework.util.Assert;
 public class OAuthProperties {
   private Map<String, OAuth2Provider> client = new HashMap<>();
   private OAuth2ResourceServerProperties resourceServer = null;
-  private ResourceServerRbac resourceServerRbac;
-
-  @Data
-  public static class ResourceServerRbac {
-    private String rolesClaim;
-    private String usernameClaim;
-  }
 
   @PostConstruct
   public void init() {
