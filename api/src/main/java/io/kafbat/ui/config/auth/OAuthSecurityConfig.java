@@ -19,6 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.DelegatingReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -78,23 +79,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
       ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
       ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
+      @Nullable ReactiveClientRegistrationRepository clientRegistrationRepository,
       @Qualifier("oauthWebClient") WebClient webClient
   ) {
     log.info("Configuring OAUTH2 authentication.");
-
-    var oidcAuthManager =
-        new OidcAuthorizationCodeReactiveAuthenticationManager(tokenResponseClient, oidcUserService);
-
-    oidcAuthManager.setJwtDecoderFactory(clientRegistration ->
-        NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
-            .webClient(webClient)
-            .build());
-
-    var oauth2AuthManager =
-        new OAuth2LoginReactiveAuthenticationManager(tokenResponseClient, oauth2UserService);
-
-    var delegatingAuthManager =
-        new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
 
     var builder = http.authorizeExchange(spec -> spec
             .pathMatchers(AUTH_WHITELIST)
@@ -102,11 +90,31 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
-        .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
-    if (properties.getResourceServer() != null) {
+    // Interactive login (oauth2Login) only makes sense when at least one client
+    // registration is configured. Resource-server-only (bearer/JWT) setups have
+    // no client registrations at all, so this whole block is skipped for them.
+    if (clientRegistrationRepository != null) {
+      var oidcAuthManager =
+          new OidcAuthorizationCodeReactiveAuthenticationManager(tokenResponseClient, oidcUserService);
+
+      oidcAuthManager.setJwtDecoderFactory(clientRegistration ->
+          NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
+              .webClient(webClient)
+              .build());
+
+      var oauth2AuthManager =
+          new OAuth2LoginReactiveAuthenticationManager(tokenResponseClient, oauth2UserService);
+
+      var delegatingAuthManager =
+          new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
+
+      builder.oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
+          .logout(spec -> spec.logoutSuccessHandler(logoutHandler));
+    }
+
+    if (isResourceServerUsable(properties.getResourceServer())) {
       OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
       if (resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null) {
         builder.oauth2ResourceServer(c -> c.jwt(j ->
@@ -185,20 +193,51 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
         });
   }
 
+  /**
+   * Absent (returns {@code null}) when only {@code auth.oauth2.resource-server} is configured
+   * and there are no {@code auth.oauth2.client.*} registrations — a valid setup for
+   * bearer/JWT-only (machine-to-machine) auth that doesn't need an interactive login client.
+   * Consumers that require interactive login (e.g. {@link #configure}) must treat a missing
+   * bean as "no client login configured", same as {@link AccessControlService} already does.
+   */
   @Bean
+  @Nullable
   public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
     final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
     final List<ClientRegistration> registrations =
         new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
     if (registrations.isEmpty()) {
-      throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
+      if (!isResourceServerUsable(properties.getResourceServer())) {
+        throw new IllegalArgumentException(
+            "OAuth2 authentication is enabled but neither a client registration nor a usable "
+                + "resource-server (jwt.jwk-set-uri or opaquetoken.introspection-uri) is configured.");
+      }
+      return null;
     }
     return new InMemoryReactiveClientRegistrationRepository(registrations);
   }
 
+  /**
+   * True when {@code resourceServer} has enough configuration to actually authenticate a
+   * request (JWT decoder or opaque-token introspector) — as opposed to merely being a
+   * non-null but effectively empty configuration block.
+   */
+  private static boolean isResourceServerUsable(@Nullable OAuth2ResourceServerProperties resourceServer) {
+    if (resourceServer == null) {
+      return false;
+    }
+    boolean hasJwt = resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null;
+    boolean hasOpaqueToken = resourceServer.getOpaquetoken() != null
+        && resourceServer.getOpaquetoken().getIntrospectionUri() != null;
+    return hasJwt || hasOpaqueToken;
+  }
+
   @Bean
-  public ServerLogoutSuccessHandler defaultOidcLogoutHandler(final ReactiveClientRegistrationRepository repository) {
-    return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+  public ServerLogoutSuccessHandler defaultOidcLogoutHandler(
+      final @Nullable ReactiveClientRegistrationRepository repository) {
+    return repository != null
+        ? new OidcClientInitiatedServerLogoutSuccessHandler(repository)
+        : (exchange, authentication) -> Mono.empty();
   }
 
   private ProviderAuthorityExtractor getExtractor(final OAuthProperties.OAuth2Provider provider,
