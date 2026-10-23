@@ -51,6 +51,7 @@ public class KafkaConnectService {
   private final KafkaConfigSanitizer kafkaConfigSanitizer;
   private final ClustersProperties clustersProperties;
   private final StatisticsCache statisticsCache;
+  private final int connectScrapeConcurrency;
 
   public KafkaConnectService(KafkaConnectMapper kafkaConnectMapper,
                              KafkaConfigSanitizer kafkaConfigSanitizer,
@@ -60,6 +61,7 @@ public class KafkaConnectService {
     this.kafkaConfigSanitizer = kafkaConfigSanitizer;
     this.clustersProperties = clustersProperties;
     this.statisticsCache = statisticsCache;
+    this.connectScrapeConcurrency = clustersProperties.getKafkaConnectClient().getScrapeConcurrency();
   }
 
   public Flux<ConnectDTO> getConnects(KafkaCluster cluster, boolean withStats) {
@@ -69,14 +71,15 @@ public class KafkaConnectService {
     if (withStats) {
       return connectClusters.map(connects ->
               Flux.fromIterable(connects).flatMap(c ->
-                  getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci))
+                  getClusterInfo(cluster, c.getName()).map(ci -> Tuples.of(c, ci)),
+                  connectScrapeConcurrency
               ).flatMap(tuple -> (
                   getConnectConnectors(cluster, tuple.getT1())
                       .collectList()
                       .map(connectors ->
                           kafkaConnectMapper.toKafkaConnect(tuple.getT1(), connectors, tuple.getT2(), true)
                       )
-              )
+              ), connectScrapeConcurrency
           )
       ).orElse(Flux.fromIterable(List.of()));
     } else {
@@ -84,7 +87,7 @@ public class KafkaConnectService {
           .flatMap(c ->
               getClusterInfo(cluster, c.getName()).map(info ->
                   kafkaConnectMapper.toKafkaConnect(c, List.of(), info, false)
-              )
+              ), connectScrapeConcurrency
           );
     }
   }
@@ -128,9 +131,10 @@ public class KafkaConnectService {
                               e.getKey()
                           ).map(topics ->
                               kafkaConnectMapper.fromClient(connect, e.getValue(), topics.getTopics())
-                          ).map(i -> checkConsumerGroup(cluster, i))
+                          ).map(i -> checkConsumerGroup(cluster, i)),
+                          connectScrapeConcurrency
                         )
-                )
+                ), connectScrapeConcurrency
         ).map(kafkaConnectMapper::fullConnectorInfo)
         .collectList()
         .map(lst -> filterConnectors(lst, search, fts))
@@ -145,7 +149,8 @@ public class KafkaConnectService {
     return Flux.fromIterable(connectClusters.orElse(List.of())).flatMap(c ->
         getClusterInfo(cluster, c.getName()).map(info ->
                 kafkaConnectMapper.toKafkaConnect(c, List.of(), info, false)
-        ).onErrorResume((_) -> Mono.just(new ConnectDTO().name(c.getName())))
+        ).onErrorResume((_) -> Mono.just(new ConnectDTO().name(c.getName()))),
+        connectScrapeConcurrency
     ).flatMap(connect ->
         getConnectorsWithErrorsSuppress(cluster, connect.getName())
             .onErrorResume(_ -> Mono.just(Map.of()))
@@ -158,9 +163,10 @@ public class KafkaConnectService {
                             e.getKey()
                         ).map(topics ->
                             kafkaConnectMapper.fromClient(connect, e.getValue(), topics.getTopics())
-                        )
+                        ), connectScrapeConcurrency
                     )
-            ).collectList().map(connectors -> kafkaConnectMapper.toScrapeState(connect, connectors))
+            ).collectList().map(connectors -> kafkaConnectMapper.toScrapeState(connect, connectors)),
+        connectScrapeConcurrency
     );
   }
 
@@ -391,7 +397,7 @@ public class KafkaConnectService {
                             ).map(i ->
                                 checkConsumerGroup(cluster, i)
                             ).map(kafkaConnectMapper::fullConnectorInfo).toList()
-                )
+                ), connectScrapeConcurrency
         ).flatMap(Flux::fromIterable);
   }
 

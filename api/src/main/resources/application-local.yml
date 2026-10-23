@@ -23,6 +23,12 @@ spring:
     group-filter-search-base: "ou=people,dc=planetexpress,dc=com"
 
 kafka:
+  # Kafka Connect client settings (applied to all connect clusters)
+  # kafka-connect-client:
+  #   scrape-concurrency: 4       # max parallel requests per connect cluster during scrape
+  #   max-retries: 5              # max retries on transient errors (502/503/429)
+  #   retry-base-delay-ms: 500    # initial backoff delay
+  #   retry-max-delay-ms: 10000   # max backoff delay
   clusters:
     - name: local
       bootstrapServers: localhost:9092

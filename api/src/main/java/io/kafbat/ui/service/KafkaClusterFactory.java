@@ -59,9 +59,11 @@ public class KafkaClusterFactory {
   private final DataSize webClientMaxBuffSize;
   private final Duration responseTimeout;
   private final JmxMetricsRetriever jmxMetricsRetriever;
+  private final ClustersProperties clustersProperties;
 
   public KafkaClusterFactory(WebclientProperties webclientProperties,
-                             JmxMetricsRetriever jmxMetricsRetriever) {
+                             JmxMetricsRetriever jmxMetricsRetriever,
+                             ClustersProperties clustersProperties) {
     this.webClientMaxBuffSize = Optional.ofNullable(webclientProperties.getMaxInMemoryBufferSize())
         .map(DataSize::parse)
         .orElse(DEFAULT_WEBCLIENT_BUFFER);
@@ -69,6 +71,7 @@ public class KafkaClusterFactory {
         .map(Duration::ofMillis)
         .orElse(DEFAULT_RESPONSE_TIMEOUT);
     this.jmxMetricsRetriever = jmxMetricsRetriever;
+    this.clustersProperties = clustersProperties;
   }
 
   public KafkaCluster create(ClustersProperties properties,
@@ -141,7 +144,8 @@ public class KafkaClusterFactory {
         connectClientsConfigured(clusterProperties)
             ? Flux.fromIterable(clusterProperties.getKafkaConnect())
             .flatMap(c ->
-                KafkaServicesValidation.validateConnect(() -> connectClient(clusterProperties, c))
+                KafkaServicesValidation.validateConnect(
+                    () -> connectClient(clusterProperties, c))
                     .map(r -> Tuples.of(c.getName(), r)))
             .collectMap(Tuple2::getT1, Tuple2::getT2)
             .map(Optional::of)
@@ -212,7 +216,8 @@ public class KafkaClusterFactory {
   private Map<String, ReactiveFailover<KafkaConnectClientApi>> connectClients(
       ClustersProperties.Cluster clusterProperties) {
     Map<String, ReactiveFailover<KafkaConnectClientApi>> connects = new HashMap<>();
-    clusterProperties.getKafkaConnect().forEach(c -> connects.put(c.getName(), connectClient(clusterProperties, c)));
+    clusterProperties.getKafkaConnect().forEach(
+        c -> connects.put(c.getName(), connectClient(clusterProperties, c)));
     return connects;
   }
 
@@ -231,7 +236,8 @@ public class KafkaClusterFactory {
             connectCluster.toBuilder().address(url).build(),
             cluster.getSsl(),
             webClientMaxBuffSize,
-            responseTimeout
+            responseTimeout,
+            clustersProperties.getKafkaConnectClient()
         ),
         ReactiveFailover.CONNECTION_REFUSED_EXCEPTION_FILTER,
         "No alive connect instances available",
