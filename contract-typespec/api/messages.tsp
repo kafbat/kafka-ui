@@ -18,6 +18,10 @@ interface MessagesApi {
     @path clusterName: string,
     @path topicName: string,
     @query use: SerdeUsage,
+    @doc("Key subject already chosen by the user, if any - used to resolve key parameter options (e.g. protobuf message names) that depend on it, instead of resolving them for every selectable subject.")
+    @query keySubject?: string,
+    @doc("Value subject already chosen by the user, if any - used to resolve value parameter options (e.g. protobuf message names) that depend on it, instead of resolving them for every selectable subject.")
+    @query valueSubject?: string,
   ): TopicSerdeSuggestion;
 
   @get

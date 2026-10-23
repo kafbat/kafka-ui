@@ -160,6 +160,8 @@ public class MessagesController extends AbstractController implements MessagesAp
   public Mono<ResponseEntity<TopicSerdeSuggestionDTO>> getSerdes(String clusterName,
                                                                  String topicName,
                                                                  SerdeUsageDTO use,
+                                                                 String keySubject,
+                                                                 String valueSubject,
                                                                  ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -167,13 +169,14 @@ public class MessagesController extends AbstractController implements MessagesAp
         .operationName("getSerdes")
         .build();
 
+    var cluster = getCluster(clusterName);
     TopicSerdeSuggestionDTO dto = new TopicSerdeSuggestionDTO()
         .key(use == SerdeUsageDTO.SERIALIZE
-            ? deserializationService.getSerdesForSerialize(getCluster(clusterName), topicName, Serde.Target.KEY)
-            : deserializationService.getSerdesForDeserialize(getCluster(clusterName), topicName, Serde.Target.KEY))
+            ? deserializationService.getSerdesForSerialize(cluster, topicName, Serde.Target.KEY, keySubject)
+            : deserializationService.getSerdesForDeserialize(cluster, topicName, Serde.Target.KEY, keySubject))
         .value(use == SerdeUsageDTO.SERIALIZE
-            ? deserializationService.getSerdesForSerialize(getCluster(clusterName), topicName, Serde.Target.VALUE)
-            : deserializationService.getSerdesForDeserialize(getCluster(clusterName), topicName, Serde.Target.VALUE));
+            ? deserializationService.getSerdesForSerialize(cluster, topicName, Serde.Target.VALUE, valueSubject)
+            : deserializationService.getSerdesForDeserialize(cluster, topicName, Serde.Target.VALUE, valueSubject));
 
     return validateAccess(context).then(
         Mono.just(dto)

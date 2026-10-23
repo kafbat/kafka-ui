@@ -190,10 +190,19 @@ export const useTopicMessages = ({
 };
 
 export function useSerdes(props: GetSerdesRequest) {
-  const { clusterName, topicName, use } = props;
+  const { clusterName, topicName, use, keySubject, valueSubject } = props;
 
   return useSuspenseQuery({
-    queryKey: ['clusters', clusterName, 'topics', topicName, 'serdes', use],
+    queryKey: [
+      'clusters',
+      clusterName,
+      'topics',
+      topicName,
+      'serdes',
+      use,
+      keySubject,
+      valueSubject,
+    ],
     queryFn: () => messagesApiClient.getSerdes(props),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
