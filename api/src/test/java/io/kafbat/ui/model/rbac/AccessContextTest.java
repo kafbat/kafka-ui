@@ -104,14 +104,17 @@ class AccessContextTest {
       assertThat(allowed).isFalse();
     }
 
+    /**
+     * Resolves the restart alias to OPERATE for a named Connect cluster.
+     */
     @Test
     void shouldMapActionAliases() {
       SingleResourceAccess sra =
-          new SingleResourceAccess(Resource.CONNECT, List.of(ConnectAction.OPERATE));
+          new SingleResourceAccess(CONNECT_NAME, Resource.CONNECT, List.of(ConnectAction.OPERATE));
 
       var allowed = sra.isAccessible(
           List.of(
-              permission(Resource.CONNECT, null, List.of("restart"))
+              permission(Resource.CONNECT, CONNECT_NAME, List.of("restart"))
           )
       );
 
