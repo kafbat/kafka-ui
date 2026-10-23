@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -35,7 +34,7 @@ class OAuthPkceTest {
         .build();
     var repo = new InMemoryReactiveClientRegistrationRepository(client);
     var resolver = new OAuthSecurityConfig(new OAuthProperties()).authorizationRequestResolver(repo);
-    ServerHttpRequest request = MockServerHttpRequest
+    MockServerHttpRequest request = MockServerHttpRequest
         .get("https://kafbat.example.test/oauth2/authorization/kafbat").build();
     return resolver.resolve(MockServerWebExchange.from(request)).block();
   }
