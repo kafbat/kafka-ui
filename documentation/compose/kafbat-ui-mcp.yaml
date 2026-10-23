@@ -1,0 +1,69 @@
+---
+# Example configuration that enables the built-in MCP (Model Context Protocol)
+# server so AI agents/clients (e.g. Claude Code, Cursor, opencode) can talk to
+# Kafbat UI.
+#
+# MCP options (Spring properties -> environment variables):
+#   mcp.enabled   -> MCP_ENABLED    Enable the MCP server (default: false).
+#   mcp.transport -> MCP_TRANSPORT  Which transport(s) to expose:
+#       STREAMABLE  Streamable HTTP (current MCP spec) - single endpoint:
+#                     POST/GET/DELETE http://<host>:8080/mcp
+#       SSE         Legacy HTTP+SSE transport (deprecated in MCP spec
+#                   2025-06-18) - two endpoints:
+#                     GET  http://<host>:8080/mcp/sse       (event stream)
+#                     POST http://<host>:8080/mcp/message   (client -> server)
+#       BOTH        Expose both transports simultaneously (default).
+#
+# These are ordinary Spring Boot properties, so they can be set either as the
+# environment variables used below or via a mounted config file, e.g.:
+#
+#   mcp:
+#     enabled: true
+#     transport: STREAMABLE   # STREAMABLE | SSE | BOTH (case-insensitive)
+#
+# Prefer STREAMABLE for modern clients: it is a single HTTP endpoint and lets
+# clients send an `Authorization` header on every request. SSE is kept only for
+# backwards compatibility with older clients.
+version: '2'
+services:
+
+  kafbat-ui:
+    container_name: kafbat-ui
+    image: ghcr.io/kafbat/kafka-ui:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - kafka0
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      # --- MCP server ---
+      MCP_ENABLED: 'true'
+      MCP_TRANSPORT: STREAMABLE   # STREAMABLE | SSE | BOTH
+
+  kafka0:
+    image: confluentinc/cp-kafka:7.8.0
+    hostname: kafka0
+    container_name: kafka0
+    ports:
+      - "9092:9092"
+      - "9997:9997"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka0:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka0:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka0:29092,CONTROLLER://kafka0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
