@@ -148,6 +148,15 @@ The info endpoint (build info) is located at `/actuator/info`.
 
 # Configuration options
 
+HTTP error responses redact stack traces by default. Set
+`http.error.excludeStackTraces: false` (environment variable
+`HTTP_ERROR_EXCLUDESTACKTRACES=false`) to include diagnostic stack traces.
+
+Breaking change: deployments that omit this property now receive the existing
+redaction marker in `stackTrace` rather than a Java stack trace. Explicit `true`
+and `false` settings retain their meaning. HTTP status codes and the other error
+response fields are unchanged.
+
 All environment variables and configuration properties can be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
 # Contributing

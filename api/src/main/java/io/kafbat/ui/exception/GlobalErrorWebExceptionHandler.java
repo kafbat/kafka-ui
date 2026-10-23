@@ -38,9 +38,16 @@ import reactor.core.publisher.Mono;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
 
-  @Value("${http.error.excludeStackTraces:false}")
+  @Value("${http.error.excludeStackTraces:true}")
   private boolean excludeStackTraces;
 
+  /**
+   * Creates the error handler with the application's configured response writers.
+   *
+   * @param errorAttributes stored errors associated with the current request
+   * @param applicationContext application context used by the reactive error handler
+   * @param codecConfigurer codecs used to encode error responses
+   */
   public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes,
                                         ApplicationContext applicationContext,
                                         ServerCodecConfigurer codecConfigurer) {
