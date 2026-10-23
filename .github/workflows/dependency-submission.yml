@@ -1,0 +1,34 @@
+name: "Infra: Dependency submission"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "**/*.gradle"
+      - "gradle/**"
+      - "gradle.properties"
+      - ".github/workflows/dependency-submission.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+
+      - name: Set up JDK
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # https://github.com/actions/setup-java/releases/tag/v4
+        with:
+          java-version-file: '.java-version'
+          distribution: 'zulu'
+
+      # api runtime classpath plus the published serde-api; everything else is build or test tooling.
+      - name: Submit dependency graph
+        uses: gradle/actions/dependency-submission@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # https://github.com/gradle/actions/releases/tag/v6.4.0
+        with:
+          dependency-graph-include-projects: '^:(api|serde-api)$'
+          dependency-graph-include-configurations: '^(productionRuntimeClasspath|runtimeClasspath)$'
