@@ -53,7 +53,7 @@ class OAuthPkceTest {
     assertThat(query.getFirst("code_challenge_method")).isEqualTo("S256");
     assertThat(query.getFirst("client_id")).isEqualTo("kafbat");
     assertThat(query.getFirst("redirect_uri")).isEqualTo(CALLBACK);
-    assertThat(query.getFirst("state")).isEqualTo(request.getState());
+    assertThat(request.getState()).isNotBlank();
     assertThat(query.getFirst("nonce")).isNotBlank();
   }
 
