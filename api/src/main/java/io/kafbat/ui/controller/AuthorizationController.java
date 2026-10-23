@@ -8,9 +8,11 @@ import io.kafbat.ui.model.ResourceTypeDTO;
 import io.kafbat.ui.model.UserInfoDTO;
 import io.kafbat.ui.model.UserPermissionDTO;
 import io.kafbat.ui.model.rbac.Permission;
+import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.service.ClustersStorage;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,22 +36,34 @@ public class AuthorizationController implements AuthorizationApi {
   private final ClustersStorage clustersStorage;
 
   public Mono<ResponseEntity<AuthenticationInfoDTO>> getUserAuthInfo(ServerWebExchange exchange) {
-    List<UserPermissionDTO> defaultRolePermissions = accessControlService.getDefaultRole() != null
-        ? mapPermissions(
-          accessControlService.getDefaultRole().getPermissions(),
-          clustersStorage.getKafkaClusters().stream().map(KafkaCluster::getName).toList())
-        : Collections.emptyList();
-
     Mono<List<UserPermissionDTO>> permissions = AccessControlService.getUser()
-        .map(user -> accessControlService.getRoles()
-            .stream()
-            .filter(role -> user.groups().contains(role.getName()))
-            .map(role -> mapPermissions(role.getPermissions(), role.getClusters()))
-            .flatMap(Collection::stream)
-            .toList()
-        )
-        // if no roles are found, return default role permissions
-        .map(userPermissions ->  userPermissions.isEmpty() ? defaultRolePermissions : userPermissions)
+        .map(user -> {
+          var matchingRoles = accessControlService.getRoles()
+              .stream()
+              .filter(role -> user.groups().contains(role.getName()))
+              .toList();
+          var userPermissions = new ArrayList<>(matchingRoles.stream()
+              .map(role -> mapPermissions(role.getPermissions(), role.getClusters()))
+              .flatMap(Collection::stream)
+              .toList());
+          var defaultRole = accessControlService.getDefaultRole();
+          if (defaultRole != null) {
+            var defaultRoleClusters = clustersStorage.getKafkaClusters().stream()
+                .map(KafkaCluster::getName)
+                .filter(cluster -> matchingRoles.stream().noneMatch(role ->
+                    role.getClusters().stream().anyMatch(cluster::equalsIgnoreCase)))
+                .toList();
+            if (!defaultRoleClusters.isEmpty()) {
+              // Global checks use matching roles regardless of their cluster assignments.
+              var defaultPermissions = defaultRole.getPermissions().stream()
+                  .filter(permission -> matchingRoles.isEmpty()
+                      || permission.getResource() != Resource.APPLICATIONCONFIG)
+                  .toList();
+              userPermissions.addAll(mapPermissions(defaultPermissions, defaultRoleClusters));
+            }
+          }
+          return List.copyOf(userPermissions);
+        })
         .switchIfEmpty(Mono.just(Collections.emptyList()));
 
     Mono<String> userName = ReactiveSecurityContextHolder.getContext()
