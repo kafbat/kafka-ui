@@ -27,6 +27,9 @@ public class Permission {
   @Nullable
   transient Pattern compiledValuePattern;
 
+  @Nullable
+  List<String> protectedPrincipals;
+
   @SuppressWarnings("unused")
   public void setResource(String resource) {
     this.resource = Resource.fromString(resource.toUpperCase());
@@ -40,6 +43,11 @@ public class Permission {
   @SuppressWarnings("unused")
   public void setActions(List<String> actions) {
     this.actions = actions;
+  }
+
+  @SuppressWarnings("unused")
+  public void setProtectedPrincipals(@Nullable List<String> protectedPrincipals) {
+    this.protectedPrincipals = protectedPrincipals;
   }
 
   public void validate() {
