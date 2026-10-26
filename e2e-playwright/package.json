@@ -24,7 +24,7 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "cross-env": "^7.0.3",
-    "dotenv": "^16.5.0",
+    "dotenv": "^18.0.9",
     "eslint": "^9.27.0",
     "fs-extra": "^11.3.0",
     "globals": "^16.1.0",
