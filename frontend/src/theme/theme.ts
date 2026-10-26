@@ -233,6 +233,9 @@ const baseTheme = {
       blank: Colors.neutral[10],
       custom: Colors.neutral[10],
     },
+    textColor: {
+      warning: Colors.neutral[90],
+    },
     shadow: Colors.transparency[20],
   },
   circularAlert: {
@@ -770,7 +773,7 @@ export const theme = {
       active: Colors.neutral[10],
     },
     color: {
-      normal: Colors.neutral[50],
+      normal: Colors.neutral[60],
       hover: Colors.neutral[90],
       active: Colors.neutral[90],
     },
@@ -1369,7 +1372,7 @@ export const darkTheme: ThemeType = {
       active: Colors.neutral[80],
     },
     color: {
-      normal: Colors.neutral[50],
+      normal: Colors.neutral[40],
       hover: Colors.neutral[0],
       active: Colors.neutral[0],
     },

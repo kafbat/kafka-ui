@@ -1,22 +1,27 @@
 import React from 'react';
-import EditorViewer from 'components/common/EditorViewer/EditorViewer';
 import {
   SchemaType,
   TopicMessage,
   TopicMessageTimestampTypeEnum,
 } from 'generated-sources';
-import ClipboardIcon from 'components/common/Icons/ClipboardIcon';
 import { Button } from 'components/common/Button/Button';
 import { formatTimestamp } from 'lib/dateTimeHelpers';
 import { useTimezone } from 'lib/hooks/useTimezones';
 import useDataSaver from 'lib/hooks/useDataSaver';
+import {
+  CONTENT_PREVIEW_LENGTH,
+  previewHeaders,
+} from 'components/Topics/Topic/Messages/preview';
 
+import ContentPreview from './ContentPreview';
 import * as S from './MessageContent.styled';
 import Serde from './components/Serde/Serde';
 
 type Tab = 'key' | 'content' | 'headers';
 
 export interface MessageContentProps {
+  downloadFilenamePrefix: string;
+  onDownload: () => void;
   messageKey?: string;
   messageContent?: string;
   headers?: { [key: string]: string | undefined };
@@ -31,6 +36,8 @@ export interface MessageContentProps {
 }
 
 const MessageContent: React.FC<MessageContentProps> = ({
+  downloadFilenamePrefix,
+  onDownload,
   messageKey,
   messageContent,
   headers,
@@ -46,6 +53,10 @@ const MessageContent: React.FC<MessageContentProps> = ({
   const { currentTimezone } = useTimezone();
 
   const [activeTab, setActiveTab] = React.useState<Tab>('content');
+  const headersPreview = React.useMemo(
+    () => previewHeaders(headers),
+    [headers]
+  );
   const activeTabContent = () => {
     switch (activeTab) {
       case 'content':
@@ -53,13 +64,27 @@ const MessageContent: React.FC<MessageContentProps> = ({
       case 'key':
         return messageKey;
       default:
-        return JSON.stringify(headers);
+        return headersPreview.text;
     }
   };
 
   const tabContent = activeTabContent() || '';
+  const activeFieldName = activeTab === 'content' ? 'value' : activeTab;
+  const isTruncated =
+    tabContent.length > CONTENT_PREVIEW_LENGTH ||
+    (activeTab === 'headers' && headersPreview.truncated);
+  const hasLargeContent =
+    (messageKey?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+    (messageContent?.length || 0) > CONTENT_PREVIEW_LENGTH ||
+    headersPreview.truncated;
 
-  const { copyToClipboard } = useDataSaver('topic-message', tabContent);
+  const { copyToClipboard, saveFile: downloadField } = useDataSaver(
+    `${downloadFilenamePrefix}-${activeFieldName}`,
+    () => {
+      if (activeTab === 'headers') return JSON.stringify(headers) || '';
+      return activeTab === 'key' ? messageKey || '' : messageContent || '';
+    }
+  );
 
   const handleKeyTabClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,7 +101,7 @@ const MessageContent: React.FC<MessageContentProps> = ({
     setActiveTab('headers');
   };
 
-  const trimmedContent = messageContent?.trim();
+  const trimmedContent = tabContent.slice(0, 512).trimStart();
   const contentType =
     trimmedContent &&
     (trimmedContent.startsWith('{') || trimmedContent.startsWith('['))
@@ -86,44 +111,72 @@ const MessageContent: React.FC<MessageContentProps> = ({
   return (
     <S.Wrapper>
       <td colSpan={10}>
-        <S.Section>
+        <S.Section $bounded={hasLargeContent}>
           <S.ContentBox>
             <S.Tabs>
-              <S.Tab
-                type="button"
-                $active={activeTab === 'key'}
-                onClick={handleKeyTabClick}
-              >
-                Key
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'content'}
-                type="button"
-                onClick={handleContentTabClick}
-              >
-                Value
-              </S.Tab>
-              <S.Tab
-                $active={activeTab === 'headers'}
-                type="button"
-                onClick={handleHeadersTabClick}
-              >
-                Headers
-              </S.Tab>
-              <Button
-                type="button"
-                buttonSize="M"
-                buttonType="text"
-                onClick={copyToClipboard}
-                aria-label={`Copy ${activeTab} to clipboard`}
-              >
-                <ClipboardIcon />
-              </Button>
+              <S.TabGroup role="group" aria-label="Message content fields">
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'key'}
+                  aria-pressed={activeTab === 'key'}
+                  onClick={handleKeyTabClick}
+                >
+                  Key
+                </S.Tab>
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'content'}
+                  aria-pressed={activeTab === 'content'}
+                  onClick={handleContentTabClick}
+                >
+                  Value
+                </S.Tab>
+                <S.Tab
+                  type="button"
+                  $active={activeTab === 'headers'}
+                  aria-pressed={activeTab === 'headers'}
+                  onClick={handleHeadersTabClick}
+                >
+                  Headers
+                </S.Tab>
+              </S.TabGroup>
+              <S.TabActions role="group" aria-label="Message actions">
+                <Button
+                  type="button"
+                  buttonSize="M"
+                  buttonType="text"
+                  onClick={copyToClipboard}
+                  aria-label={`Copy ${activeFieldName} to clipboard`}
+                >
+                  <S.CopyIcon />
+                  Copy {activeFieldName}
+                </Button>
+                <Button
+                  type="button"
+                  buttonSize="M"
+                  buttonType="text"
+                  onClick={downloadField}
+                >
+                  Download {activeFieldName}
+                </Button>
+                {!isTruncated && (
+                  <Button
+                    type="button"
+                    buttonSize="M"
+                    buttonType="text"
+                    onClick={onDownload}
+                  >
+                    Download full message
+                  </Button>
+                )}
+              </S.TabActions>
             </S.Tabs>
-            <EditorViewer
+            <ContentPreview
+              key={activeTab}
               data={tabContent}
-              maxLines={28}
               schemaType={contentType}
+              truncated={activeTab === 'headers' && headersPreview.truncated}
+              onDownload={onDownload}
             />
           </S.ContentBox>
           <S.MetadataWrapper>

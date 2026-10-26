@@ -60,6 +60,9 @@ describe('MessagesTable', () => {
 
     it('should check the render', () => {
       expect(screen.getByRole('table')).toBeInTheDocument();
+      expect(
+        screen.getByRole('region', { name: 'Messages table' })
+      ).toHaveStyleRule('overflow-x', 'auto');
     });
 
     it('should check preview buttons', async () => {

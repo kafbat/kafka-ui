@@ -1,11 +1,16 @@
 import React from 'react';
 import { ResourceType } from 'generated-sources';
 import Message, { Props } from 'components/Topics/Topic/Messages/Message';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import { render } from 'lib/testHelpers';
 import userEvent from '@testing-library/user-event';
+import { theme } from 'theme/theme';
 import useAppParams from 'lib/hooks/useAppParams';
 import { TopicActionsProvider } from 'components/contexts/TopicActionsContext';
+import {
+  CONTENT_PREVIEW_LENGTH,
+  ROW_PREVIEW_LENGTH,
+} from 'components/Topics/Topic/Messages/preview';
 import { formatTimestamp, timeAgo } from 'lib/dateTimeHelpers';
 import { getDefaultActionMessage } from 'components/common/ActionComponent/ActionComponent';
 import { UserInfoRolesAccessContext } from 'components/contexts/UserInfoRolesAccessContext';
@@ -94,6 +99,90 @@ describe('Message component', () => {
       screen.getByText(mockMessage.partition.toString())
     ).toBeInTheDocument();
   });
+
+  it('bounds large values and titles without evaluating JSONPath previews', () => {
+    const value = `{"large":"${'x'.repeat(CONTENT_PREVIEW_LENGTH * 2)}"}`;
+    renderComponent({
+      message: { ...mockMessage, value, key: value },
+      keyFilters: [mockKeyFilters],
+      contentFilters: [mockContentFilters],
+    });
+    const titledCells = screen
+      .getAllByRole('cell')
+      .filter((cell) => cell.hasAttribute('title'));
+    expect(titledCells).toHaveLength(2);
+    titledCells.forEach((cell) => {
+      expect(cell.getAttribute('title')!.length).toBeLessThanOrEqual(
+        ROW_PREVIEW_LENGTH
+      );
+      expect(cell).toHaveTextContent(
+        'JSONPath preview skipped for large content'
+      );
+      expect(cell.textContent!.length).toBeLessThan(ROW_PREVIEW_LENGTH + 160);
+    });
+    expect(screen.queryByText(value)).not.toBeInTheDocument();
+    expect(screen.getByRole('row')).toHaveStyleRule(
+      'background',
+      theme.alert.color.warning
+    );
+    expect(screen.getByText('Preview truncated')).toBeInTheDocument();
+    expect(
+      screen.getByText('Expand to inspect or download')
+    ).toBeInTheDocument();
+  });
+
+  it('requires confirmation to reproduce a large message without altering it', async () => {
+    const message = {
+      ...mockMessage,
+      value: 'x'.repeat(CONTENT_PREVIEW_LENGTH + 1),
+    };
+    renderComponent({ message }, mockRoles);
+    await userEvent.hover(screen.getByRole('row'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Dropdown Toggle' })
+    );
+    await userEvent.click(
+      screen.getByRole('menuitem', { name: 'Reproduce message' })
+    );
+    expect(mockOpenSidebarWithMessage).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', {
+      name: 'Open large message in producer editor?',
+    });
+    expect(dialog).toHaveTextContent('may make this tab slow or unresponsive');
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Open anyway' })
+    );
+    expect(mockOpenSidebarWithMessage).toHaveBeenCalledWith(message);
+  });
+
+  it.each(['Cancel', 'Escape'])(
+    'does not reproduce a large message on %s',
+    async (action) => {
+      renderComponent(
+        {
+          message: {
+            ...mockMessage,
+            headers: { large: 'x'.repeat(CONTENT_PREVIEW_LENGTH + 1) },
+          },
+        },
+        mockRoles
+      );
+      await userEvent.hover(screen.getByRole('row'));
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Dropdown Toggle' })
+      );
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Reproduce message' })
+      );
+      if (action === 'Cancel') {
+        await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      } else {
+        await userEvent.keyboard('{Escape}');
+      }
+      expect(mockOpenSidebarWithMessage).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    }
+  );
 
   it('shows timestamp by default', () => {
     renderComponent();
