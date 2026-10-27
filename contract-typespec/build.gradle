@@ -16,7 +16,6 @@ node {
     pnpmVersion = project.property("pnpm_version").toString()
 }
 
-def typeSpecVersion = "1.0.0"
 
 sourceSets {
     main {
@@ -34,20 +33,19 @@ typeSpecs.each { spec ->
 
     def buildDir = project.layout.buildDirectory.get().asFile
     def outputDir = new File(buildDir, "tsp${File.separator}${spec}")
-    def tspPath = "tsp --output-dir=\"${outputDir}\" compile ."
 
-    tasks.register("installDependencies_${spec}", NpmTask) {
+    tasks.register("installDependencies_${spec}", PnpmTask) {
         group = 'build'
-        npmCommand = ['install']
+        pnpmCommand = ['install', '--frozen-lockfile']
         workingDir = project.layout.projectDirectory.dir(spec).asFile
     }
 
-    tasks.register("generateOpenApi_${spec}", NpmTask) {
+    tasks.register("generateOpenApi_${spec}", PnpmTask) {
         group = 'build'
         dependsOn "installDependencies_${spec}"
-        npmCommand = ['exec']
+        pnpmCommand = ['exec']
         workingDir = project.layout.projectDirectory.dir(spec).asFile
-        args = ["--package=@typespec/compiler@${typeSpecVersion}", '-c', tspPath]
+        args = ['tsp', "--output-dir=${outputDir}", 'compile', '.']
     }
 
     tasks.register("cleanDependencies_${spec}", Delete) {
