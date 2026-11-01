@@ -128,6 +128,44 @@ updates:
         - "patch"
         - "minor"
 
+- package-ecosystem: npm
+  directory: "/contract-typespec/api"
+  schedule:
+    interval: weekly
+    time: "10:00"
+    timezone: Europe/London
+  open-pull-requests-limit: 5
+  versioning-strategy: increase-if-necessary
+  labels:
+    - "type/dependencies"
+    - "scope/backend"
+  groups:
+    typespec:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
+
+- package-ecosystem: npm
+  directory: "/e2e-playwright"
+  schedule:
+    interval: weekly
+    time: "10:00"
+    timezone: Europe/London
+  open-pull-requests-limit: 5
+  versioning-strategy: increase-if-necessary
+  labels:
+    - "type/dependencies"
+    - "scope/AQA"
+  groups:
+    e2e:
+      patterns:
+        - "*"
+      update-types:
+        - "patch"
+        - "minor"
+
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
