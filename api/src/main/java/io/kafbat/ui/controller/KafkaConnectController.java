@@ -75,9 +75,6 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .operationName("getConnectors")
         .build();
 
-    // The generated contract type is Flux<String>. WebFlux writes that as raw text chunks,
-    // which concatenates names instead of emitting the declared JSON array. Materialize the
-    // names and write them as one JSON array value.
     return validateAccess(context).then(
         kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
             .map(connectors -> List.copyOf(connectors.keySet()))
