@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2Clien
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -53,6 +54,7 @@ import org.springframework.security.oauth2.server.resource.introspection.SpringR
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -143,7 +145,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
           o.authenticationConverter((token, principal) -> Mono.just(new RbacBearerTokenAuthentication(
               RbacReactiveJwtAuthenticationConverter.toUser(
                   accessControlService, principal.getName(), principal.getName(), principal.getAuthorities()),
-              token)));
+              token, principal.getAuthorities())));
         }
       }));
     }
@@ -230,13 +232,18 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {
     var decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwt.getJwkSetUri())
         .webClient(webClient)
-        .jwsAlgorithms(algorithms -> jwt.getJwsAlgorithms().stream()
-            .map(SignatureAlgorithm::from)
-            .forEach(algorithms::add))
+        .jwsAlgorithms(algorithms -> jwt.getJwsAlgorithms().forEach(name -> {
+          var algorithm = SignatureAlgorithm.from(name);
+          if (algorithm == null) {
+            throw new InvalidConfigurationPropertyValueException(
+                "auth.oauth2.resource-server.jwt.jws-algorithms", name, "Unknown algorithm");
+          }
+          algorithms.add(algorithm);
+        }))
         .build();
 
     List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
-    validators.add(jwt.getIssuerUri() != null
+    validators.add(StringUtils.hasText(jwt.getIssuerUri())
         ? JwtValidators.createDefaultWithIssuer(jwt.getIssuerUri())
         : JwtValidators.createDefault());
     if (!CollectionUtils.isEmpty(jwt.getAudiences())) {

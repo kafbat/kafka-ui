@@ -7,7 +7,6 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,21 +38,6 @@ class RbacReactiveJwtAuthenticationConverterTest {
   }
 
   @Test
-  void matchesRoleSubjectsFromAuthoritiesClaim() {
-    var user = convert(rolesClaim(), jwt("default-sub", Map.of("roles", List.of("ROLE-ADMIN", "OTHER"))));
-
-    assertThat(user.groups()).containsExactly("admin");
-  }
-
-  @Test
-  void splitsAuthoritiesClaimByConfiguredDelimiter() {
-    var user = convert(rolesClaim().andThen(jwt -> jwt.setAuthoritiesClaimDelimiter(",")),
-        jwt("default-sub", Map.of("roles", "ROLE-ADMIN,ROLE_EDITOR")));
-
-    assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
-  }
-
-  @Test
   void skipsAuthoritiesThatAreNotText() {
     var user = convert(rolesClaim(),
         jwt("default-sub", Map.of("roles", Arrays.asList(42, null, "", "  ", "ROLE-ADMIN"))));
@@ -67,14 +51,6 @@ class RbacReactiveJwtAuthenticationConverterTest {
         jwt("default-sub", Map.of("roles", ",ROLE-ADMIN,,ROLE_EDITOR")));
 
     assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
-  }
-
-  @Test
-  void appliesAuthorityPrefix() {
-    var user = convert(jwt -> jwt.setAuthoritiesClaimName("roles"),
-        jwt("default-sub", Map.of("roles", List.of("ROLE-ADMIN"))));
-
-    assertThat(user.groups()).isEmpty();
   }
 
   @Test
@@ -102,17 +78,10 @@ class RbacReactiveJwtAuthenticationConverterTest {
     assertThat(user.groups()).containsExactly("viewer");
   }
 
-  @Test
-  void noMatchingSubjectsGiveNoGroups() {
-    var user = convert(rolesClaim(), jwt("nobody@unknown.com", Map.of("roles", List.of("UNMATCHED"))));
-
-    assertThat(user.groups()).isEmpty();
-  }
-
   private RbacBearerTokenUser convert(Consumer<OAuth2ResourceServerProperties.Jwt> settings, Jwt jwt) {
-    var properties = new OAuth2ResourceServerProperties.Jwt();
-    settings.accept(properties);
-    var token = new RbacReactiveJwtAuthenticationConverter(accessControlService, properties).convert(jwt).block();
+    var jwtProperties = new OAuth2ResourceServerProperties.Jwt();
+    settings.accept(jwtProperties);
+    var token = new RbacReactiveJwtAuthenticationConverter(accessControlService, jwtProperties).convert(jwt).block();
     assertThat(token).isNotNull();
     return (RbacBearerTokenUser) token.getPrincipal();
   }

@@ -1,15 +1,17 @@
 package io.kafbat.ui.config.auth;
 
+import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 
 public class RbacBearerTokenAuthentication extends AbstractAuthenticationToken {
 
   private final RbacBearerTokenUser principal;
   private final String token;
 
-  public RbacBearerTokenAuthentication(RbacBearerTokenUser principal, String token) {
-    super(principal.groups().stream().map(SimpleGrantedAuthority::new).toList());
+  public RbacBearerTokenAuthentication(RbacBearerTokenUser principal, String token,
+                                       Collection<? extends GrantedAuthority> authorities) {
+    super(authorities);
     this.principal = principal;
     this.token = token;
     setAuthenticated(true);

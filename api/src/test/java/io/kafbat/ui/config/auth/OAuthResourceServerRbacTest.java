@@ -38,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
     "auth.oauth2.resource-server.jwt.audiences[0]=" + OAuthResourceServerRbacTest.AUDIENCE,
     "auth.oauth2.resource-server.jwt.authorities-claim-name=roles",
     "auth.oauth2.resource-server.jwt.authority-prefix=",
-    "rbac.roles[0].name=config-viewer",
+    "rbac.roles[0].name=config-editor",
     "rbac.roles[0].clusters[0]=local",
     "rbac.roles[0].subjects[0].provider=oauth",
     "rbac.roles[0].subjects[0].type=role",

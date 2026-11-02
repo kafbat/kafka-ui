@@ -65,7 +65,7 @@ class OAuthSecurityConfigStartupTest {
   }
 
   @Test
-  void failsWithResourceServerWithoutUri() {
+  void failsWithIssuerUriOnly() {
     runner
         .withPropertyValues("auth.oauth2.resource-server.jwt.issuer-uri=http://localhost")
         .run(context -> assertThat(context).getFailure()

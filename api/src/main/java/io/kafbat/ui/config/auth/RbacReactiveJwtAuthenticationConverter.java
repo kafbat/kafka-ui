@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -35,15 +34,17 @@ public class RbacReactiveJwtAuthenticationConverter
   public RbacReactiveJwtAuthenticationConverter(AccessControlService accessControlService,
                                                 OAuth2ResourceServerProperties.Jwt jwt) {
     this.accessControlService = accessControlService;
-    this.authoritiesClaimName = jwt.getAuthoritiesClaimName();
-    this.authoritiesClaimDelimiter = Objects.requireNonNullElse(jwt.getAuthoritiesClaimDelimiter(), " ");
+    this.authoritiesClaimName =
+        StringUtils.hasText(jwt.getAuthoritiesClaimName()) ? jwt.getAuthoritiesClaimName() : null;
+    this.authoritiesClaimDelimiter =
+        StringUtils.hasLength(jwt.getAuthoritiesClaimDelimiter()) ? jwt.getAuthoritiesClaimDelimiter() : " ";
 
     var authoritiesConverter = new JwtGrantedAuthoritiesConverter();
     var map = PropertyMapper.get().alwaysApplyingWhenNonNull();
     map.from(jwt.getAuthorityPrefix()).to(authoritiesConverter::setAuthorityPrefix);
-    map.from(jwt.getAuthoritiesClaimDelimiter()).to(authoritiesConverter::setAuthoritiesClaimDelimiter);
-    map.from(jwt.getAuthoritiesClaimName()).to(authoritiesConverter::setAuthoritiesClaimName);
-    map.from(jwt.getPrincipalClaimName()).to(delegate::setPrincipalClaimName);
+    authoritiesConverter.setAuthoritiesClaimDelimiter(authoritiesClaimDelimiter);
+    map.from(authoritiesClaimName).to(authoritiesConverter::setAuthoritiesClaimName);
+    map.from(jwt.getPrincipalClaimName()).whenHasText().to(delegate::setPrincipalClaimName);
     delegate.setJwtGrantedAuthoritiesConverter(token -> authoritiesConverter.convert(withTextAuthorities(token)));
   }
 
@@ -52,7 +53,7 @@ public class RbacReactiveJwtAuthenticationConverter
     var token = delegate.convert(jwt);
     return Mono.just(new RbacBearerTokenAuthentication(
         toUser(accessControlService, token.getName(), jwt.getSubject(), token.getAuthorities()),
-        jwt.getTokenValue()));
+        jwt.getTokenValue(), token.getAuthorities()));
   }
 
   static RbacBearerTokenUser toUser(AccessControlService accessControlService, @Nullable String username,
