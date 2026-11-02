@@ -26,7 +26,12 @@ class OAuthSecurityConfigStartupTest {
   @Test
   void startsAsJwtResourceServerOnly() {
     runner
-        .withPropertyValues("auth.oauth2.resource-server.jwt.jwk-set-uri=http://localhost/jwks")
+        .withPropertyValues(
+            "auth.oauth2.resource-server.jwt.jwk-set-uri=http://localhost/jwks",
+            "auth.oauth2.resource-server.jwt.issuer-uri=",
+            "auth.oauth2.resource-server.jwt.principal-claim-name=",
+            "auth.oauth2.resource-server.jwt.authorities-claim-name=",
+            "auth.oauth2.resource-server.jwt.authorities-claim-delimiter=")
         .run(context -> assertThat(context).hasNotFailed().hasSingleBean(SecurityWebFilterChain.class));
   }
 

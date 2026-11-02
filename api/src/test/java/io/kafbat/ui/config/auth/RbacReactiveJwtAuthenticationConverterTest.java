@@ -7,6 +7,7 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,14 @@ class RbacReactiveJwtAuthenticationConverterTest {
         jwt("default-sub", Map.of("roles", ",ROLE-ADMIN,,ROLE_EDITOR")));
 
     assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
+  }
+
+  @Test
+  void appliesAuthorityPrefix() {
+    var user = convert(jwt -> jwt.setAuthoritiesClaimName("roles"),
+        jwt("default-sub", Map.of("roles", List.of("ROLE-ADMIN"))));
+
+    assertThat(user.groups()).isEmpty();
   }
 
   @Test
