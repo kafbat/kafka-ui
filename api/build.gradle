@@ -190,6 +190,12 @@ test {
         // print the exception message and the full stack trace for failed tests in the CI log
         exceptionFormat = 'full'
     }
+    // TEMPORARY diagnostics for CI: surface the Testcontainers docker detection log of the first container test
+    onOutput { descriptor, event ->
+        if (String.valueOf(descriptor.className).contains("ActiveDirectoryLdapTest")) {
+            logger.lifecycle("[tc-diag] " + event.message.trim())
+        }
+    }
     finalizedBy jacocoTestReport
 }
 
