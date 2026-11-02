@@ -6,6 +6,7 @@ import io.kafbat.ui.config.YamlPropertySourceFactory;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -48,6 +49,22 @@ class RbacReactiveJwtAuthenticationConverterTest {
   void splitsAuthoritiesClaimByConfiguredDelimiter() {
     var user = convert(rolesClaim().andThen(jwt -> jwt.setAuthoritiesClaimDelimiter(",")),
         jwt("default-sub", Map.of("roles", "ROLE-ADMIN,ROLE_EDITOR")));
+
+    assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
+  }
+
+  @Test
+  void skipsAuthoritiesThatAreNotText() {
+    var user = convert(rolesClaim(),
+        jwt("default-sub", Map.of("roles", Arrays.asList(42, null, "", "  ", "ROLE-ADMIN"))));
+
+    assertThat(user.groups()).containsExactly("admin");
+  }
+
+  @Test
+  void skipsEmptySegmentsOfDelimitedAuthoritiesClaim() {
+    var user = convert(rolesClaim().andThen(jwt -> jwt.setAuthoritiesClaimDelimiter(",")),
+        jwt("default-sub", Map.of("roles", ",ROLE-ADMIN,,ROLE_EDITOR")));
 
     assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
   }
