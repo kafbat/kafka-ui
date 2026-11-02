@@ -10,6 +10,7 @@ import { Action, ResourceType } from 'generated-sources';
 import { Dropdown } from 'components/common/Dropdown';
 import { useDeleteConsumerGroupOffsetsMutation } from 'lib/hooks/api/consumers';
 import { LagTrendComponent } from 'lib/consumerGroups';
+import ClusterContext from 'components/contexts/ClusterContext';
 
 type TopicNameProps = CellContext<
   ConsumerGroupTopicsTableRow,
@@ -46,6 +47,7 @@ type ActionsProps = CellContext<
 
 export const Actions = ({ getValue }: ActionsProps) => {
   const routeParams = useAppParams<ClusterGroupParam>();
+  const { isReadOnly } = React.useContext(ClusterContext);
   const topicName = getValue();
 
   const deleteOffsetMutation =
@@ -55,6 +57,8 @@ export const Actions = ({ getValue }: ActionsProps) => {
     if (topicName === undefined) return;
     deleteOffsetMutation.mutateAsync(topicName);
   };
+
+  if (isReadOnly) return null;
 
   return (
     <Dropdown>

@@ -6,22 +6,30 @@ import { render, WithRoute } from 'lib/testHelpers';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { consumerGroupPayload } from 'lib/fixtures/consumerGroups';
 import { getConsumerGroupTopicsTableColumns } from 'components/ConsumerGroups/Details/TopicsTable/lib/utils';
+import ClusterContext, {
+  initialValue,
+} from 'components/contexts/ClusterContext';
 
 const clusterName = 'cluster1';
 
-const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
+const renderComponent = (
+  topicPartitions: ConsumerGroupTopicPartition[] = [],
+  isReadOnly = false
+) =>
   render(
-    <WithRoute path={clusterConsumerGroupDetailsPath()}>
-      <table>
-        <tbody>
-          <TopicsTable
-            partitions={topicPartitions}
-            topicsLagInfo={{ lags: {}, trends: {} }}
-            partitionsLagInfo={{ lags: {}, trends: {} }}
-          />
-        </tbody>
-      </table>
-    </WithRoute>,
+    <ClusterContext.Provider value={{ ...initialValue, isReadOnly }}>
+      <WithRoute path={clusterConsumerGroupDetailsPath()}>
+        <table>
+          <tbody>
+            <TopicsTable
+              partitions={topicPartitions}
+              topicsLagInfo={{ lags: {}, trends: {} }}
+              partitionsLagInfo={{ lags: {}, trends: {} }}
+            />
+          </tbody>
+        </table>
+      </WithRoute>
+    </ClusterContext.Provider>,
     {
       initialEntries: [
         clusterConsumerGroupDetailsPath(
@@ -80,6 +88,25 @@ describe('TopicContent', () => {
     );
 
     expect(shownPartitions).toEqual(expectedPartitionIds);
+  });
+});
+
+describe('Delete offsets action', () => {
+  it('is offered when the cluster is writable', () => {
+    renderComponent(consumerGroupPayload.partitions, false);
+
+    expect(
+      screen.getAllByRole('button', { name: 'Dropdown Toggle' })
+    ).not.toHaveLength(0);
+  });
+
+  it('is hidden when the cluster is read-only', () => {
+    renderComponent(consumerGroupPayload.partitions, true);
+
+    expect(
+      screen.queryByRole('button', { name: 'Dropdown Toggle' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete offsets')).not.toBeInTheDocument();
   });
 });
 
