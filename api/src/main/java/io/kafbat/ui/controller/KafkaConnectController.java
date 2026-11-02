@@ -81,12 +81,8 @@ public class KafkaConnectController extends AbstractController implements KafkaC
     return validateAccess(context).then(
         kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
             .map(connectors -> List.copyOf(connectors.keySet()))
-            .map(names -> ResponseEntity.ok(Flux.just(toConnectorNamesArray(names))))
+            .map(names -> ResponseEntity.ok(Flux.just(OBJECT_MAPPER.valueToTree(names).toString())))
     ).doOnEach(sig -> audit(context, sig));
-  }
-
-  private static String toConnectorNamesArray(List<String> names) {
-    return OBJECT_MAPPER.valueToTree(names).toString();
   }
 
   @Override
