@@ -34,6 +34,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.util.context.Context;
@@ -243,7 +244,36 @@ class McpSpecificationGeneratorTest {
         .verifyComplete();
   }
 
+  @Test
+  void fluxHoldingJsonArrayStringProducesThatArray() {
+    assertFluxResult("[\"first\",\"second\"]", "[\"first\",\"second\"]");
+  }
+
+  @Test
+  void fluxHoldingOnePlainStringStaysAList() {
+    assertFluxResult("[\"not-json\"]", "not-json");
+  }
+
+  @Test
+  void fluxHoldingSeveralStringsStaysAList() {
+    assertFluxResult("[\"first\",\"second\"]", "first", "second");
+  }
+
   // --- helpers ---
+
+  private static void assertFluxResult(String expectedText, String... body) {
+    McpSpecificationGenerator generator = generatorWith(mock(ClustersStorage.class));
+    AsyncToolSpecification tool = findTool(generator.convertTool(new FluxBodyTool(body)), "fluxBody");
+
+    StepVerifier.create(invokeTool(tool, Map.of()))
+        .assertNext(result -> {
+          assertThat(result.isError()).isFalse();
+          assertThat(result.content()).singleElement()
+              .isInstanceOfSatisfying(McpSchema.TextContent.class,
+                  content -> assertThat(content.text()).isEqualTo(expectedText));
+        })
+        .verifyComplete();
+  }
 
   private static ClustersStorage readOnlyClusterStorage() {
     KafkaCluster readOnlyCluster = KafkaCluster.builder().name("readonly-cluster").readOnly(true).build();
@@ -274,6 +304,18 @@ class McpSpecificationGeneratorTest {
     @Override
     public Mono<ResponseEntity<Mono<Void>>> emptyMonoBody() {
       return Mono.just(ResponseEntity.ok(Mono.empty()));
+    }
+  }
+
+  interface FluxBodyApi {
+    @Operation(operationId = "fluxBody")
+    Mono<ResponseEntity<Flux<String>>> fluxBody();
+  }
+
+  record FluxBodyTool(String[] body) implements FluxBodyApi, McpTool {
+    @Override
+    public Mono<ResponseEntity<Flux<String>>> fluxBody() {
+      return Mono.just(ResponseEntity.ok(Flux.just(body)));
     }
   }
 }
