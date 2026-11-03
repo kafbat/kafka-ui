@@ -1,4 +1,4 @@
-This guide is an exact copy of the same documented located [in our official docs](https://ui.docs.kafbat.io/development/contributing). If there are any differences between the documents, the one located in our official docs should prevail.
+This guide is also published [in our docs](https://ui.docs.kafbat.io/development/contributing). This file is the source; if the two differ, this one prevails.
 
 This guide aims to walk you through the process of working on issues and Pull Requests (PRs).
 
@@ -120,4 +120,4 @@ Maintainers may close a PR without a full review if it breaks the rules above: n
 
 Send security findings through [private vulnerability reporting](SECURITY.md). Never use public issues or PRs, including "hardening" PRs that would reveal a problem while a report is being handled. Duplicate reports are closed. Credit goes to the first reporter.
 
-Information this repository already publishes is not a vulnerability: class names, dependency versions, stack traces of an open-source product. Severity is set by maintainers after verification; a scanner's or a model's rating is not evidence.
+Information this repository publishes on purpose is not a vulnerability: class names, dependency versions, stack traces of an open-source product. Severity is set by maintainers after verification; a scanner's or a model's rating is not evidence.
