@@ -30,18 +30,29 @@ Any issue should be properly triaged by the maintainers beforehand, which includ
 1. Having a proper milestone set
 2. Having required labels assigned: accepted label, scope labels, etc.
 
-Formally, if these triage conditions are met, you can start to work on the issue.
-
-With all these requirements met, feel free to pick the issue you want. Reach out to the maintainers if you have any questions.
+Start working on an issue only after a maintainer has **assigned it to you**. No assignee means not yet. Ask to be assigned in the issue, then wait. Opening the issue yourself does not change this, and bot-added labels do not count as triage.
 
 ## Working on the issue
 
-Every issue “in-progress” needs to be assigned to a corresponding person.
+Every issue marked “in-progress” is assigned to the person working on it.
 To keep the status of the issue clear to everyone, please keep the card's status updated ("project" card to the right of the issue should match the milestone’s name).
 
 ## Setting up a local development environment
 
 Please refer to [this guide](https://ui.docs.kafbat.io/development/contributing).
+
+# AI-assisted contributions
+
+Use whatever tools you like, on one condition: you could have made the change without them. If you do not know the language or this codebase well enough to write the change yourself, do not open the PR. The tool does not make you the author; it makes you a relay, and we do not review relays. When asked, you must be able to explain every line and design decision in your PR. "The tool did it" is not an answer. If you cannot answer a design question about your PR, we close it instead of iterating on it.
+
+In practice:
+- Explain **why** in your description; the diff shows what changed. If the description only narrates changes ("updated X to support Y") without giving a reason, it reads as generated, and we assume nobody read the diff.
+- Run the real build: `./gradlew build`, including checkstyle. "Tests pass" in the checklist means this repository's build passed on your machine. It is a statement of fact, not a ritual.
+- If you fix a bug, reproduce it by hand in a running application before writing code. A unit test written alongside the fix is not enough. You do not have to be affected by the bug yourself, but you must have seen it.
+- Fix the cause where it lives. A configuration option that hides a symptom is not a fix. Changing a default or an existing behavior breaks someone's setup; agree on it with a maintainer in the issue before writing it. Ticking the breaking-change box in the PR is disclosure, not approval.
+- Use comments for constraints the code cannot express. Comments that narrate the next line, restate a method name, or document test fixtures are removed in review. A PR made of them gets the `meta/slop` label and is closed.
+- Explain the root cause before tuning a performance problem. Measure changes on the workload described in the linked issue. Constants tuned on one setup are not evidence.
+- Test the behavior you changed, through its public surface. Tests that reach into internals by reflection or cover code the PR did not touch are padding, not coverage.
 
 # Pull Requests
 
@@ -81,6 +92,10 @@ When creating a PR please do the following:
 5. Assign the PR to yourself. A PR assignee is someone whose goal is to get the PR merged.
 6. Add reviewers. As a rule, reviewers' suggestions are pretty good; please use them.
 7. Upon merging the PR, please use a meaningful commit message, task name should be fine in this case.
+8. Keep each PR to one change. Do not bundle issues, stack branches that all target `main`, or slip refactoring into a bugfix. The diff is the smallest one that fixes the issue. If you rewrote a class to change a line, the rewrite is what gets reviewed, and it gets closed.
+9. Do not force-push a reviewed branch. That orphans every review comment. Add commits; we squash on merge.
+10. Do not open PRs in batches. We maintain this project in spare time. Five PRs in a day get paused until the queue clears, however good they are.
+11. Check open PRs before claiming an issue. Do not open a competing PR for an issue already being worked on.
 
 ### Pull Request checklist
 
@@ -90,8 +105,19 @@ exposed ports, useful file locations, and container parameters.
 
 ## Reviewing a PR
 
-WIP
+Maintainers may close a PR without a full review if it breaks the rules above: no assigned issue, a description that does not match the diff, unrequested scope, or an author who cannot explain the change. The `meta/slop` label marks a pattern, not a single mistake. A PR closed with that label will not be reopened with the same code.
 
 ### Pull Request reviewer checklist
 
-WIP
+1. The linked issue is assigned to the author.
+2. The description explains why and matches the diff.
+3. The PR contains one change within the issue's scope.
+4. The real build passes in CI, and checklist statements are true.
+5. Comments explain constraints, not the code they accompany.
+6. The author can answer design questions about every part of the diff.
+
+# Security
+
+Send security findings through [private vulnerability reporting](SECURITY.md). Never use public issues or PRs, including "hardening" PRs that would reveal a problem while a report is being handled. Duplicate reports are closed. Credit goes to the first reporter.
+
+Information this repository already publishes is not a vulnerability: class names, dependency versions, stack traces of an open-source product. Severity is set by maintainers after verification; a scanner's or a model's rating is not evidence.

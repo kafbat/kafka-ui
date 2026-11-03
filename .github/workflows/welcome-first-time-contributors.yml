@@ -20,20 +20,18 @@ jobs:
           issue-message: |
             Hi ${{ github.actor }}! 👋
 
-            Welcome, and thank you for opening your first issue in the repo!
+            Thanks for the report. A maintainer will triage it; until then there is nothing to do on your side.
 
-            Please wait for triaging by our maintainers.
+            Want to fix it yourself? Ask to be assigned here first and read [Contributing](https://github.com/kafbat/kafka-ui/blob/main/.github/CONTRIBUTING.md). PRs for unassigned issues wait.
 
-            As development is carried out in our spare time, you can support us by sponsoring our activities or even funding the development of specific issues.
-            [Sponsorship link](https://github.com/kafbat)
-
-            If you plan to raise a PR for this issue, please take a look at our [contributing guide](https://ui.docs.kafbat.io/development/contributing).
+            We work on this in our spare time. [Sponsoring](https://github.com/kafbat) helps.
 
           pr-message: |
             Hi ${{ github.actor }}! 👋
 
-            Welcome, and thank you for opening your first PR in the repo!
+            Thanks for your first PR here. Before a maintainer looks at it, two things from [Contributing](https://github.com/kafbat/kafka-ui/blob/main/.github/CONTRIBUTING.md):
 
-            Please wait for triaging by our maintainers.
+            - The linked issue must be assigned to you. No assignee means it is not triaged yet, and the PR waits.
+            - If a tool wrote this and you could not have written it yourself, close the PR now. It saves everyone a review.
 
-            Please take a look at our [contributing guide](https://ui.docs.kafbat.io/development/contributing).
+            We do this in our spare time. Reviews take days; pings do not make them faster. [Sponsoring](https://github.com/kafbat) helps.
