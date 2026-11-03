@@ -58,12 +58,11 @@ export const Actions = ({ getValue }: ActionsProps) => {
     deleteOffsetMutation.mutateAsync(topicName);
   };
 
-  if (isReadOnly) return null;
-
   return (
     <Dropdown>
       <ActionDropdownItem
         onClick={deleteOffsetHandler}
+        disabled={isReadOnly}
         danger
         confirm="Are you sure you want to delete offsets from the topic?"
         permission={{

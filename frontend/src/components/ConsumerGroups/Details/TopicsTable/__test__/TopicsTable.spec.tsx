@@ -1,6 +1,7 @@
 import React from 'react';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
 import { act, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TopicsTable } from 'components/ConsumerGroups/Details/TopicsTable/TopicsTable';
 import { render, WithRoute } from 'lib/testHelpers';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
@@ -92,21 +93,28 @@ describe('TopicContent', () => {
 });
 
 describe('Delete offsets action', () => {
-  it('is offered when the cluster is writable', () => {
+  it('is offered when the cluster is writable', async () => {
     renderComponent(consumerGroupPayload.partitions, false);
 
-    expect(
-      screen.getAllByRole('button', { name: 'Dropdown Toggle' })
-    ).not.toHaveLength(0);
+    const [toggle] = screen.getAllByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await userEvent.click(toggle);
+
+    const item = screen.getByRole('menuitem', { name: /Delete offsets/i });
+    expect(item).not.toHaveAttribute('aria-disabled');
   });
 
-  it('is hidden when the cluster is read-only', () => {
+  it('is disabled when the cluster is read-only', async () => {
     renderComponent(consumerGroupPayload.partitions, true);
 
-    expect(
-      screen.queryByRole('button', { name: 'Dropdown Toggle' })
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText('Delete offsets')).not.toBeInTheDocument();
+    const [toggle] = screen.getAllByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await userEvent.click(toggle);
+
+    const item = screen.getByRole('menuitem', { name: /Delete offsets/i });
+    expect(item).toHaveAttribute('aria-disabled');
   });
 });
 
