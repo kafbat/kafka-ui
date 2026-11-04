@@ -25,6 +25,7 @@ import { Button } from 'components/common/Button/Button';
 import Input from 'components/common/Input/Input';
 
 import * as S from './Table.styled';
+import { filterFns } from './filterFns';
 import updateSortingState from './utils/updateSortingState';
 import updatePaginationState from './utils/updatePaginationState';
 import ExpanderCell from './ExpanderCell';
@@ -193,7 +194,7 @@ function Table<TData>({
     [searchParams, location]
   );
 
-  // useMemo istead of useCallback for not to break default update filter state behaviour
+  // useMemo instead of useCallback for not to break default update filter state behaviour
   const onFilterChange = React.useMemo(() => {
     if (filterPersister) {
       return (updater: UpdaterFn<ColumnFiltersState>) => {
@@ -253,21 +254,7 @@ function Table<TData>({
     enableSorting,
     autoResetPageIndex: false,
     enableRowSelection,
-    filterFns: {
-      includesSome: (
-        row,
-        columnId,
-        filterValue: { label: string; value: string }[]
-      ) => {
-        if (filterValue.length === 0) {
-          return row.getValue(columnId);
-        }
-        return filterValue.includes(row.getValue(columnId));
-      },
-      noop: () => {
-        return true;
-      },
-    },
+    filterFns,
   });
 
   useEffect(() => {
