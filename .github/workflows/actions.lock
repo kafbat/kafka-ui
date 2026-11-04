@@ -37,7 +37,6 @@ workflows:
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
-        - 'github/codeql-action@v3.39.2'
         - 'github/codeql-action@v4.31.7'
     '.github/workflows/cve_checks.yml':
         - 'actions/checkout@v4.0.0'
@@ -264,11 +263,6 @@ dependencies:
         commit: 'sha1-de90cc6fb38fc0963ad72b210f1f284cd68cea36'
         owner_id: 1588572
         repo_id: 265601040
-    'github/codeql-action@v3.39.2':
-        ref: 'v3.39.2'
-        commit: 'sha1-a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126'
-        owner_id: 9919
-        repo_id: 259445878
     'github/codeql-action@v4.31.7':
         ref: 'v4.31.7'
         commit: 'sha1-cf1bb45a277cb3c205638b2cd5c984db1c46a412'

@@ -44,7 +44,7 @@ jobs:
           token: ${{ github.token }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.39.2
+        uses: github/codeql-action/init@v4.31.7
         with:
           languages: ${{ matrix.language }}
 
