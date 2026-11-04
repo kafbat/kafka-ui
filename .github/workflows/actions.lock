@@ -25,7 +25,7 @@ workflows:
     '.github/workflows/branch-remove.yml':
         - 'actions/checkout@v4.0.0'
     '.github/workflows/build-public-image.yml':
-        - 'actions/cache@v4.2.2'
+        - 'actions/cache@v4.3.0'
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
@@ -135,6 +135,11 @@ dependencies:
     'actions/cache@v4.2.2':
         ref: 'v4.2.2'
         commit: 'sha1-d4323d4df104b026a6aa633fdb11d772146be0bf'
+        owner_id: 44036562
+        repo_id: 215566462
+    'actions/cache@v4.3.0':
+        ref: 'v4.3.0'
+        commit: 'sha1-0057852bfaa89a56745cba8c7296529d2fc39830'
         owner_id: 44036562
         repo_id: 215566462
     'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8':
