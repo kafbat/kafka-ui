@@ -38,9 +38,10 @@ public class ClusterSerdes implements Closeable {
       var pattern = type == Serde.Target.KEY
           ? serdeInstance.topicKeyPattern
           : serdeInstance.topicValuePattern;
-      if (pattern != null
-          && pattern.matcher(topic).matches()
-          && additionalCheck.test(serdeInstance)) {
+      boolean topicMatches = pattern != null
+          ? pattern.matcher(topic).matches()
+          : serdeInstance.explicitlyConfigured;
+      if (topicMatches && additionalCheck.test(serdeInstance)) {
         return Optional.of(serdeInstance);
       }
     }

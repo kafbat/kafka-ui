@@ -1,6 +1,7 @@
 import React from 'react';
 import Query from 'components/KsqlDb/Query/Query';
 import useAppParams from 'lib/hooks/useAppParams';
+import { getKsqlDbPageTitle } from 'lib/pageTitles';
 import * as Metrics from 'components/common/Metrics';
 import {
   clusterKsqlDbQueryRelativePath,
@@ -12,7 +13,13 @@ import {
 } from 'lib/paths';
 import { ActionButton } from 'components/common/ActionComponent';
 import Navbar from 'components/common/Navigation/Navbar.styled';
-import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import {
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 import { Action, ResourceType } from 'generated-sources';
 import { useKsqlTables, useKsqlStreams } from 'lib/hooks/api/ksqlDb';
 import 'ace-builds/src-noconflict/ace';
@@ -24,6 +31,7 @@ import TableView from './TableView';
 
 const KsqlDb: React.FC = () => {
   const { clusterName } = useAppParams<ClusterNameRoute>();
+  const { pathname } = useLocation();
 
   const tables = useKsqlTables(clusterName);
   const streams = useKsqlStreams(clusterName);
@@ -38,7 +46,10 @@ const KsqlDb: React.FC = () => {
 
   return (
     <>
-      <ResourcePageHeading text="KSQL DB">
+      <ResourcePageHeading
+        text="KSQL DB"
+        documentTitle={getKsqlDbPageTitle(pathname, clusterName)}
+      >
         <ActionButton
           to={clusterKsqlDbQueryRelativePath}
           buttonType="primary"

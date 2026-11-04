@@ -33,6 +33,8 @@ public class SerdeInstance implements Closeable {
   @Nullable // will be set for custom serdes
   final ClassLoader classLoader;
 
+  final boolean explicitlyConfigured;
+
   private <T> T wrapWithClassloader(Supplier<T> call) {
     if (classLoader == null) {
       return call.get();

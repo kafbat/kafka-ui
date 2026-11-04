@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @Component
@@ -24,7 +25,11 @@ public class ClustersStatisticsScheduler {
         .flatMap(cluster -> {
           log.debug("Start getting metrics for kafkaCluster: {}", cluster.getName());
           return statisticsService.updateCache(cluster)
-              .doOnSuccess(m -> log.debug("Metrics updated for cluster: {}", cluster.getName()));
+              .doOnSuccess(m -> log.debug("Metrics updated for cluster: {}", cluster.getName()))
+              .onErrorResume(e -> {
+                log.error("Failed to update statistics for cluster: {}", cluster.getName(), e);
+                return Mono.empty();
+              });
         })
         .then()
         .block();
