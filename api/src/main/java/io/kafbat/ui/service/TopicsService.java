@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.Sets;
 import io.kafbat.ui.config.ClustersProperties;
+import io.kafbat.ui.exception.InternalTopicModificationException;
 import io.kafbat.ui.exception.TopicMetadataException;
 import io.kafbat.ui.exception.TopicNotFoundException;
 import io.kafbat.ui.exception.TopicRecreationException;
@@ -173,6 +174,20 @@ public class TopicsService {
             .doOnError(e -> adminClientService.invalidate(cluster, e));
   }
 
+  /**
+   * Internal topics are not editable via UI, so we're rejecting any modification attempt
+   * on API level as well, to keep the behaviour consistent for direct API/MCP calls.
+   */
+  private Mono<Void> validateTopicIsNotInternal(KafkaCluster cluster, String topicName) {
+    return adminClientService.get(cluster)
+        .flatMap(ac -> ac.describeTopic(topicName))
+        .switchIfEmpty(Mono.error(TopicNotFoundException::new))
+        .flatMap(description ->
+            InternalTopic.isInternal(description, clustersProperties.getInternalTopicPrefix())
+                ? Mono.error(new InternalTopicModificationException(topicName))
+                : Mono.<Void>empty());
+  }
+
   private Mono<InternalTopic> createTopic(KafkaCluster c, ReactiveAdminClient adminClient, TopicCreationDTO topicData) {
     return adminClient.createTopic(
             topicData.getName(),
@@ -191,7 +206,8 @@ public class TopicsService {
   }
 
   public Mono<InternalTopic> recreateTopic(KafkaCluster cluster, String topicName) {
-    return loadTopic(cluster, topicName)
+    return validateTopicIsNotInternal(cluster, topicName)
+        .then(loadTopic(cluster, topicName))
         .flatMap(t -> deleteTopic(cluster, topicName)
             .thenReturn(t)
             .delayElement(Duration.ofSeconds(recreateDelayInSeconds))
@@ -232,7 +248,8 @@ public class TopicsService {
 
   public Mono<InternalTopic> updateTopic(KafkaCluster cl, String topicName,
                                          Mono<TopicUpdateDTO> topicUpdate) {
-    return topicUpdate
+    return validateTopicIsNotInternal(cl, topicName)
+        .then(topicUpdate)
         .flatMap(t -> updateTopic(cl, topicName, t));
   }
 
@@ -253,7 +270,9 @@ public class TopicsService {
       KafkaCluster cluster,
       String topicName,
       ReplicationFactorChangeDTO replicationFactorChange) {
-    return loadTopic(cluster, topicName).flatMap(topic -> adminClientService.get(cluster)
+    return validateTopicIsNotInternal(cluster, topicName)
+        .then(loadTopic(cluster, topicName))
+        .flatMap(topic -> adminClientService.get(cluster)
         .flatMap(ac -> {
           Integer actual = topic.getReplicationFactor();
           Integer requested = replicationFactorChange.getTotalReplicationFactor();
@@ -409,7 +428,9 @@ public class TopicsService {
       KafkaCluster cluster,
       String topicName,
       PartitionsIncreaseDTO partitionsIncrease) {
-    return loadTopic(cluster, topicName).flatMap(topic ->
+    return validateTopicIsNotInternal(cluster, topicName)
+        .then(loadTopic(cluster, topicName))
+        .flatMap(topic ->
         adminClientService.get(cluster).flatMap(ac -> {
           Integer actualCount = topic.getPartitionCount();
           Integer requestedCount = partitionsIncrease.getTotalPartitionsCount();
@@ -440,17 +461,22 @@ public class TopicsService {
   }
 
   public Mono<Void> deleteTopic(KafkaCluster cluster, String topicName) {
-    if (statisticsCache.get(cluster).getFeatures().contains(ClusterFeature.TOPIC_DELETION)) {
-      return adminClientService.get(cluster).flatMap(c -> c.deleteTopic(topicName))
-          .doOnSuccess(t -> statisticsCache.onTopicDelete(cluster, topicName));
-    } else {
-      return Mono.error(new ValidationException("Topic deletion restricted"));
-    }
+    return validateTopicIsNotInternal(cluster, topicName)
+        .then(Mono.defer(() -> {
+          if (statisticsCache.get(cluster).getFeatures().contains(ClusterFeature.TOPIC_DELETION)) {
+            return adminClientService.get(cluster).flatMap(c -> c.deleteTopic(topicName))
+                .doOnSuccess(t -> statisticsCache.onTopicDelete(cluster, topicName));
+          } else {
+            return Mono.<Void>error(new ValidationException("Topic deletion restricted"));
+          }
+        }));
   }
 
   public Mono<InternalTopic> cloneTopic(
       KafkaCluster cluster, String topicName, String newTopicName) {
-    return loadTopic(cluster, topicName).flatMap(topic ->
+    return validateTopicIsNotInternal(cluster, topicName)
+        .then(loadTopic(cluster, topicName))
+        .flatMap(topic ->
         adminClientService.get(cluster)
             .flatMap(ac ->
                 ac.createTopic(

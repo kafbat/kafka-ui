@@ -11,10 +11,12 @@ import io.kafbat.ui.emitter.Cursor;
 import io.kafbat.ui.emitter.ForwardEmitter;
 import io.kafbat.ui.emitter.MessageFilters;
 import io.kafbat.ui.emitter.TailingEmitter;
+import io.kafbat.ui.exception.InternalTopicModificationException;
 import io.kafbat.ui.exception.TopicNotFoundException;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
+import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.PollingModeDTO;
 import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
@@ -69,6 +71,7 @@ public class MessagesService {
   private final ConsumerGroupService consumerGroupService;
   private final int maxPageSize;
   private final int defaultPageSize;
+  private final String internalTopicPrefix;
 
   private final Cache<String, Predicate<TopicMessageDTO>> registeredFilters = CacheBuilder.newBuilder()
       .maximumSize(PollingCursorsStorage.MAX_SIZE)
@@ -90,6 +93,7 @@ public class MessagesService {
         .orElse(DEFAULT_MAX_PAGE_SIZE);
     this.defaultPageSize = Optional.ofNullable(pollingProps.getDefaultPageSize())
         .orElse(DEFAULT_PAGE_SIZE);
+    this.internalTopicPrefix = properties.getInternalTopicPrefix();
   }
 
   private Mono<TopicDescription> withExistingTopic(KafkaCluster cluster, String topicName) {
@@ -132,8 +136,9 @@ public class MessagesService {
   public Mono<Void> deleteTopicMessages(KafkaCluster cluster, String topicName,
                                         List<Integer> partitionsToInclude) {
     return withExistingTopic(cluster, topicName)
-        .flatMap(td ->
-            offsetsForDeletion(cluster, topicName, partitionsToInclude)
+        .flatMap(td -> InternalTopic.isInternal(td, internalTopicPrefix)
+            ? Mono.<Void>error(new InternalTopicModificationException(topicName))
+            : offsetsForDeletion(cluster, topicName, partitionsToInclude)
                 .flatMap(offsets ->
                     adminClientService.get(cluster).flatMap(ac -> ac.deleteRecords(offsets))));
   }
