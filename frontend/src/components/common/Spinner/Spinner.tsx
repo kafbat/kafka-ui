@@ -12,7 +12,12 @@ const defaultProps: SpinnerProps = {
 };
 
 const Spinner: React.FC<SpinnerProps> = (props) => (
-  <S.Spinner role="progressbar" {...props} />
+  <S.Spinner role="progressbar" {...props}>
+    <span />
+    <span />
+    <span />
+    <span />
+  </S.Spinner>
 );
 
 Spinner.defaultProps = defaultProps;
