@@ -887,6 +887,14 @@ export const theme = {
       backgroundColor: Colors.neutral[3],
       color: Colors.neutral[80],
     },
+    tree: {
+      key: Colors.neutral[70],
+      string: Colors.green[70],
+      number: Colors.blue[50],
+      punctuation: Colors.neutral[40],
+      muted: Colors.neutral[40],
+      rowHover: Colors.neutral[5],
+    },
   },
   activeFilter: {
     color: Colors.neutral[70],
@@ -1495,6 +1503,14 @@ export const darkTheme: ThemeType = {
     wrapper: {
       backgroundColor: Colors.neutral[85],
       color: Colors.neutral[0],
+    },
+    tree: {
+      key: Colors.neutral[30],
+      string: Colors.green[40],
+      number: Colors.blue[30],
+      punctuation: Colors.neutral[50],
+      muted: Colors.neutral[50],
+      rowHover: Colors.neutral[80],
     },
   },
   activeFilter: {
