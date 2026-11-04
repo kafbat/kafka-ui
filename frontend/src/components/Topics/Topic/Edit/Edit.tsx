@@ -88,8 +88,10 @@ const Edit: React.FC = () => {
     <>
       <FormProvider {...methods}>
         <TopicForm
-          config={config.byName}
           topicName={topicName}
+          readOnlyConfigNames={topicConfig
+            ?.filter(({ isReadOnly }) => isReadOnly)
+            .map(({ name }) => name)}
           retentionBytes={defaultValues.retentionBytes}
           inSyncReplicas={Number(defaultValues.minInSyncReplicas)}
           isSubmitting={updateTopic.isPending}

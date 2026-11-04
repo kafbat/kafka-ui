@@ -7,6 +7,7 @@ import CustomParamsField, {
 import { FormProvider, useForm } from 'react-hook-form';
 import userEvent from '@testing-library/user-event';
 import { TOPIC_CUSTOM_PARAMS } from 'lib/constants';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 const isDisabled = false;
 const index = 0;
@@ -24,9 +25,12 @@ describe('CustomParamsField', () => {
   const remove = jest.fn();
   const setExistingFields = jest.fn();
 
-  const setupComponent = (props: Props) => {
+  const setupComponent = (
+    props: Props,
+    defaultValues: Partial<TopicFormData> = {}
+  ) => {
     const Wrapper: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
-      const methods = useForm();
+      const methods = useForm<TopicFormData>({ defaultValues });
       return <FormProvider {...methods}>{children}</FormProvider>;
     };
 
@@ -48,6 +52,7 @@ describe('CustomParamsField', () => {
   const getRemoveButton = () => screen.getByRole('button');
 
   const topicCustomParam1 = Object.keys(TOPIC_CUSTOM_PARAMS)[0];
+  const topicCustomParam2 = Object.keys(TOPIC_CUSTOM_PARAMS)[1];
 
   it('renders the component with its view correctly', async () => {
     setupComponent({
@@ -138,6 +143,122 @@ describe('CustomParamsField', () => {
       await selectOption(getCustomParamsList(), topicCustomParam1);
 
       expect(setExistingFields).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables read-only options', async () => {
+      setupComponent({
+        field,
+        isDisabled,
+        index,
+        remove,
+        existingFields,
+        readOnlyConfigNames: [topicCustomParam1],
+        setExistingFields,
+      });
+      await userEvent.click(getCustomParamInput());
+
+      expect(screen.getByText(topicCustomParam1)).toHaveStyleRule(
+        'cursor',
+        'not-allowed'
+      );
+    });
+
+    it('allows committing the current preset name', async () => {
+      const originalValue = 'custom-value';
+      const currentField = {
+        ...field,
+        name: topicCustomParam1,
+        value: originalValue,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: currentField,
+          isDisabled,
+          index,
+          remove,
+          existingFields: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: topicCustomParam1, value: originalValue }] }
+      );
+
+      await userEvent.clear(getCustomParamInput());
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+      await userEvent.keyboard('{Enter}');
+
+      expect(getCustomParamInput()).toHaveValue(topicCustomParam1);
+      expect(getValueInput()).toHaveValue(originalValue);
+    });
+
+    it('prevents editing or removing a read-only parameter', async () => {
+      const readOnlyField = {
+        ...field,
+        name: topicCustomParam1,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: readOnlyField,
+          isDisabled,
+          index,
+          remove,
+          existingFields,
+          readOnlyConfigNames: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: topicCustomParam1, value: 'gzip' }] }
+      );
+
+      expect(getCustomParamInput()).toBeDisabled();
+      expect(getValueInput()).toBeDisabled();
+      await userEvent.click(getRemoveButton());
+      expect(remove).not.toHaveBeenCalled();
+    });
+
+    it('keeps a new row removable when a read-only name is typed', async () => {
+      setupComponent({
+        field,
+        isDisabled,
+        index,
+        remove,
+        existingFields,
+        readOnlyConfigNames: [topicCustomParam1],
+        setExistingFields,
+      });
+
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+
+      expect(getCustomParamInput()).toBeEnabled();
+      await userEvent.click(getRemoveButton());
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves the original value when a disabled name is reverted', async () => {
+      const originalName = topicCustomParam2;
+      const originalValue = 'custom-value';
+      const existingField = {
+        ...field,
+        name: originalName,
+        value: originalValue,
+      } as Props['field'];
+      setupComponent(
+        {
+          field: existingField,
+          isDisabled,
+          index,
+          remove,
+          existingFields,
+          readOnlyConfigNames: [topicCustomParam1],
+          setExistingFields,
+        },
+        { customParams: [{ name: originalName, value: originalValue }] }
+      );
+
+      await userEvent.clear(getCustomParamInput());
+      await userEvent.type(getCustomParamInput(), topicCustomParam1);
+      await userEvent.click(document.body);
+
+      expect(getCustomParamInput()).toHaveValue(originalName);
+      expect(getValueInput()).toHaveValue(originalValue);
     });
   });
 });

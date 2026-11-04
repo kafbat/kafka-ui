@@ -8,17 +8,16 @@ import Input from 'components/common/Input/Input';
 import IconButtonWrapper from 'components/common/Icons/IconButtonWrapper';
 import CloseCircleIcon from 'components/common/Icons/CloseCircleIcon';
 import * as C from 'components/Topics/shared/Form/TopicForm.styled';
-import { ConfigSource } from 'generated-sources';
 import InputWithOptions from 'components/common/InputWithOptions/InputWithOptions';
-import { TopicConfigParams, TopicFormData } from 'lib/interfaces/topic';
+import { TopicFormData } from 'lib/interfaces/topic';
 
 import * as S from './CustomParams.styled';
 
 export interface Props {
-  config?: TopicConfigParams;
   isDisabled: boolean;
   index: number;
   existingFields: string[];
+  readOnlyConfigNames?: string[];
   field: FieldArrayWithId<TopicFormData, 'customParams', 'id'>;
   remove: (index: number) => void;
   setExistingFields: React.Dispatch<React.SetStateAction<string[]>>;
@@ -29,8 +28,8 @@ const CustomParamField: React.FC<Props> = ({
   isDisabled,
   index,
   remove,
-  config,
   existingFields,
+  readOnlyConfigNames,
   setExistingFields,
 }) => {
   const {
@@ -42,6 +41,7 @@ const CustomParamField: React.FC<Props> = ({
   } = useFormContext<TopicFormData>();
   const nameValue = watch(`customParams.${index}.name`);
   const prevName = useRef(nameValue);
+  const isReadOnly = readOnlyConfigNames?.includes(nameValue) ?? false;
 
   const options = Object.keys(TOPIC_CUSTOM_PARAMS)
     .sort()
@@ -49,9 +49,8 @@ const CustomParamField: React.FC<Props> = ({
       value: option,
       label: option,
       disabled:
-        (config &&
-          config[option]?.source !== ConfigSource.DYNAMIC_TOPIC_CONFIG) ||
-        existingFields.includes(option),
+        (existingFields.includes(option) && option !== nameValue) ||
+        (readOnlyConfigNames?.includes(option) ?? false),
     }));
 
   React.useEffect(() => {
@@ -83,6 +82,8 @@ const CustomParamField: React.FC<Props> = ({
               value={value}
               options={options}
               name={name}
+              disabled={isReadOnly}
+              deferChangeUntilCommit
               onChange={(s) => {
                 onChange(s);
                 trigger('customParams');
@@ -106,7 +107,7 @@ const CustomParamField: React.FC<Props> = ({
           placeholder="Value"
           defaultValue={field.value}
           autoComplete="off"
-          disabled={isDisabled}
+          disabled={isDisabled || isReadOnly}
         />
         <FormError>
           <ErrorMessage
@@ -118,11 +119,20 @@ const CustomParamField: React.FC<Props> = ({
 
       <S.DeleteButtonWrapper>
         <IconButtonWrapper
-          onClick={() => remove(index)}
+          onClick={() => !isReadOnly && remove(index)}
           onKeyDown={(e: React.KeyboardEvent) =>
-            e.code === 'Space' && remove(index)
+            e.code === 'Space' && !isReadOnly && remove(index)
           }
-          title={`Delete customParam field ${index}`}
+          aria-disabled={isReadOnly}
+          tabIndex={isReadOnly ? -1 : 0}
+          style={
+            isReadOnly ? { cursor: 'not-allowed', opacity: 0.5 } : undefined
+          }
+          title={
+            isReadOnly
+              ? `Custom parameter ${index} is read-only`
+              : `Delete customParam field ${index}`
+          }
         >
           <CloseCircleIcon aria-hidden />
         </IconButtonWrapper>
