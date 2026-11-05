@@ -104,7 +104,16 @@ export const BrokersMetrics = ({
         </Metrics.Indicator>
 
         <Metrics.Indicator label="Controller Type">
-          {controller === ControllerType.KRAFT ? 'KRaft' : 'ZooKeeper'}
+          {(() => {
+            switch (controller) {
+              case ControllerType.KRAFT:
+                return 'KRaft';
+              case ControllerType.ZOOKEEPER:
+                return 'ZooKeeper';
+              default:
+                return 'Unknown';
+            }
+          })()}
         </Metrics.Indicator>
       </Metrics.Section>
     </Metrics.Wrapper>

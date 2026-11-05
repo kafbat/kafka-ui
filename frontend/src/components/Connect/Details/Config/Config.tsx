@@ -55,7 +55,7 @@ const Config: React.FC = () => {
       const requestBody = JSON.parse(values.config.trim());
       await mutation.mutateAsync(requestBody);
       reset(values);
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };

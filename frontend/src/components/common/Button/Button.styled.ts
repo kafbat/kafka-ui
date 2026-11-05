@@ -56,6 +56,11 @@ const StyledButton = styled.button<ButtonProps>`
         ? theme.button[buttonType].color.disabled
         : theme.button[buttonType].color.normal};
   }
+
+  & svg[stroke],
+  & svg [stroke] {
+    stroke: currentColor;
+  }
 `;
 
 export default StyledButton;

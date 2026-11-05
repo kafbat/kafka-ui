@@ -25,7 +25,7 @@ export function useLocalStoragePersister(
       ) as TableColumnSizing;
       sizing = allTablesSizing[tableName] ?? {};
       refAllData.current = allTablesSizing;
-    } catch (e) {
+    } catch {
       return sizing;
     }
     return sizing;

@@ -1,6 +1,7 @@
 import React from 'react';
-import { NavLink, Route, Routes } from 'react-router-dom';
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import useAppParams from 'lib/hooks/useAppParams';
+import { getConnectDetailsPageTitle } from 'lib/pageTitles';
 import {
   clusterConnectConnectorConfigPath,
   clusterConnectConnectorConfigRelativePath,
@@ -25,6 +26,7 @@ import Topics from './Topics/Topics';
 const DetailsPage: React.FC = () => {
   const { clusterName, connectName, connectorName } =
     useAppParams<RouterParamsClusterConnectConnector>();
+  const { pathname } = useLocation();
 
   const connector = useConnector({ clusterName, connectName, connectorName });
   const tasks = useConnectorTasks({ clusterName, connectName, connectorName });
@@ -43,6 +45,12 @@ const DetailsPage: React.FC = () => {
         text={connectorName}
         backTo={clusterConnectorsPath(clusterName)}
         backText="Connectors"
+        documentTitle={getConnectDetailsPageTitle(
+          pathname,
+          clusterName,
+          connectName,
+          connectorName
+        )}
       >
         <Actions />
       </ResourcePageHeading>

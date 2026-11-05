@@ -141,7 +141,7 @@ public class McpSpecificationGenerator {
 
   private Mono<CallToolResult> toCallResult(Object result) {
     return switch (result) {
-      case Mono<?> mono -> mono.map(this::callToolResult);
+      case Mono<?> mono -> mono.map(this::callToolResult).defaultIfEmpty(callToolResult(null));
       case Flux<?> flux -> flux.collectList().map(this::callToolResult);
       case ResponseEntity<?> response -> reponseToCallResult(response);
       case null, default -> Mono.just(this.callToolResult(result));
@@ -151,7 +151,7 @@ public class McpSpecificationGenerator {
   private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {
     HttpStatusCode statusCode = response.getStatusCode();
     if (statusCode.is2xxSuccessful() || statusCode.is1xxInformational()) {
-      return Mono.just(this.callToolResult(response.getBody()));
+      return toCallResult(response.getBody());
     } else {
       try {
         return Mono.just(toErrorResult(objectMapper.writeValueAsString(response.getBody())));

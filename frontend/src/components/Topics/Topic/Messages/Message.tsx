@@ -75,7 +75,7 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   const getParsedJson = (jsonValue: string) => {
     try {
       return JSON.parse(jsonValue);
-    } catch (e) {
+    } catch {
       return {};
     }
   };

@@ -141,7 +141,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   @Bean
   public ReactiveOAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService(
       AccessControlService acs,
-      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService) {
+      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
+      @Qualifier("oauthWebClient") WebClient webClient) {
     final OidcReactiveOAuth2UserService delegate = new OidcReactiveOAuth2UserService();
 
     delegate.setOauth2UserService(oauth2UserService);
@@ -154,7 +155,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             return Mono.just(user);
           }
 
-          return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
+          return extractor.extract(acs, user, Map.of(
+                  "request", request,
+                  "provider", provider,
+                  ProviderAuthorityExtractor.OAUTH_WEB_CLIENT, webClient))
               .map(groups -> new RbacOidcUser(user, groups));
         });
   }
@@ -173,7 +177,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             return Mono.just(user);
           }
 
-          return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
+          return extractor.extract(acs, user, Map.of(
+                  "request", request,
+                  "provider", provider,
+                  ProviderAuthorityExtractor.OAUTH_WEB_CLIENT, webClient))
               .map(groups -> new RbacOAuth2User(user, groups));
         });
   }
@@ -209,4 +216,3 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
 }
-

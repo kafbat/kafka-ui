@@ -79,7 +79,7 @@ const Edit: React.FC = () => {
     try {
       await updateTopic.mutateAsync(newData);
       navigate('../');
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };

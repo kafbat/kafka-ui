@@ -7,7 +7,9 @@ const useDataSaver = (
   const copyToClipboard = () => {
     if (navigator.clipboard) {
       const str =
-        typeof data === 'string' ? String(data) : JSON.stringify(data);
+        typeof data === 'string'
+          ? String(data)
+          : JSON.stringify(data, null, '\t');
       navigator.clipboard.writeText(str);
       showSuccessAlert({
         id: subject,
