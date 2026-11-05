@@ -82,6 +82,43 @@ describe('Broker Component', () => {
     expect(screen.getByText(brokerInfo?.host || '')).toBeInTheDocument();
   });
 
+  it('shows N/A for segment count when metrics are not available', async () => {
+    (useClusterStats as jest.Mock).mockImplementation(() => ({
+      data: {
+        ...clusterStatsPayload,
+        diskUsage: clusterStatsPayload.diskUsage.map(
+          ({ brokerId: id, segmentSize }) => ({ brokerId: id, segmentSize })
+        ),
+      },
+      isSuccess: true,
+    }));
+    await renderComponent();
+
+    expect(screen.getByText('Segment Count')).toBeInTheDocument();
+    expect(screen.getByText('N/A')).toBeInTheDocument();
+  });
+
+  it('shows N/A for segment count when the API sends null', async () => {
+    (useClusterStats as jest.Mock).mockImplementation(() => ({
+      data: {
+        ...clusterStatsPayload,
+        diskUsage: clusterStatsPayload.diskUsage.map(
+          ({ brokerId: id, segmentSize }) => ({
+            brokerId: id,
+            segmentSize,
+            segmentCount: null,
+          })
+        ),
+      },
+      isSuccess: true,
+    }));
+    await renderComponent();
+
+    expect(screen.getByText('Segment Count')).toBeInTheDocument();
+    expect(screen.getByText('N/A')).toBeInTheDocument();
+    expect(screen.queryByText('null')).not.toBeInTheDocument();
+  });
+
   it('renders Broker Logdir', async () => {
     await renderComponent();
 
