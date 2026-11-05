@@ -47,6 +47,14 @@ class McpSpecificationGeneratorTest {
     return new SchemaGenerator(configBuilder.build());
   }
 
+  private static McpSchema.Tool tool(String name, String description, McpSchema.JsonSchema inputSchema) {
+    return McpSchema.Tool.builder()
+        .name(name)
+        .description(description)
+        .inputSchema(inputSchema)
+        .build();
+  }
+
   private static McpSpecificationGenerator generatorWith(ClustersStorage storage) {
     return new McpSpecificationGenerator(SCHEMA_GENERATOR, new ObjectMapper(), storage);
   }
@@ -66,7 +74,7 @@ class McpSpecificationGeneratorTest {
 
     assertThat(specifications).hasSize(17);
     List<McpSchema.Tool> tools = List.of(
-        new McpSchema.Tool(
+        tool(
             "recreateTopic",
             "recreateTopic",
             new McpSchema.JsonSchema("object", Map.of(
@@ -74,7 +82,7 @@ class McpSpecificationGeneratorTest {
                 "topicName", Map.of("type", "string")
             ), List.of("clusterName", "topicName"), false, null, null)
         ),
-        new McpSchema.Tool(
+        tool(
             "getTopicConfigs",
             "getTopicConfigs",
             new McpSchema.JsonSchema("object", Map.of(
@@ -82,7 +90,7 @@ class McpSpecificationGeneratorTest {
                 "topicName", Map.of("type", "string")
             ), List.of("clusterName", "topicName"), false, null, null)
         ),
-        new McpSchema.Tool(
+        tool(
             "cloneTopic",
             "cloneTopic",
             new McpSchema.JsonSchema("object", Map.of(
@@ -91,7 +99,7 @@ class McpSpecificationGeneratorTest {
                 "newTopicName", Map.of("type", "string")
             ), List.of("clusterName", "topicName", "newTopicName"), false, null, null)
         ),
-        new McpSchema.Tool(
+        tool(
             "getTopics",
             "getTopics",
             new McpSchema.JsonSchema("object", Map.of(
@@ -105,7 +113,7 @@ class McpSpecificationGeneratorTest {
                 "fts", Map.of("type", "boolean")
             ), List.of("clusterName"), false, null, null)
         ),
-        new McpSchema.Tool(
+        tool(
             "updateTopic",
             "updateTopic",
             new McpSchema.JsonSchema("object", Map.of(
@@ -260,8 +268,9 @@ class McpSpecificationGeneratorTest {
   }
 
   private static Mono<CallToolResult> invokeTool(AsyncToolSpecification spec, Map<String, Object> args) {
-    return spec.call()
-        .apply(mock(McpAsyncServerExchange.class), new HashMap<>(args))
+    return spec.callHandler()
+        .apply(mock(McpAsyncServerExchange.class),
+            new McpSchema.CallToolRequest(spec.tool().name(), new HashMap<>(args)))
         .contextWrite(Context.of(ServerWebExchange.class, mock(ServerWebExchange.class)));
   }
 
