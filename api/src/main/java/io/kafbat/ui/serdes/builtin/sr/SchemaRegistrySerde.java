@@ -323,8 +323,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return String.format(type == Target.KEY ? keySchemaNameTemplate : valueSchemaNameTemplate, topic);
   }
 
-  @SneakyThrows
-  List<String> getSchemaSubjects(String topic, Target type) {
+  private Collection<String> getAllSubjects() {
     var allSubjects = allSubjectsCache.get("all", k -> {
       try {
         return schemaRegistryClient.getAllSubjects();
@@ -332,7 +331,13 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         throw new RuntimeException("Error fetching all subjects from Schema Registry", e);
       }
     });
-    if (allSubjects == null || allSubjects.isEmpty()) {
+    return allSubjects == null ? List.of() : allSubjects;
+  }
+
+  @SneakyThrows
+  List<String> getSchemaSubjects(String topic, Target type) {
+    var allSubjects = getAllSubjects();
+    if (allSubjects.isEmpty()) {
       return List.of();
     }
 
@@ -398,7 +403,36 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @Override
   public boolean couldBePreferable(String topic, Target type) {
-    return getSchemaSubjects(topic, type).contains(schemaSubject(topic, type));
+    // SchemaRegistry should be the default serde when the registry has a subject that this topic
+    // could be using. A subject qualifies if it is:
+    //   1. this topic's TopicNameStrategy subject (<topic>-key / <topic>-value), or
+    //   2. this topic's TopicRecordNameStrategy subject (<topic>-<recordName>) - record names
+    //      contain no '-', so the part after the topic prefix must be hyphen-free to belong to
+    //      THIS topic and not a sibling topic that merely shares the name prefix, or
+    //   3. any RecordNameStrategy subject (a bare record name, no '-' at all). These aren't tied
+    //      to a topic, so their mere existence means the cluster uses SchemaRegistry and any topic
+    //      may carry such messages.
+    // We don't need to be certain: each message carries its schema id, so the deserializer's
+    // magic-byte check decodes real SR messages and the fallback serde handles the rest.
+    String defaultSubject = schemaSubject(topic, type);
+    String topicPrefix = topic + "-";
+    return getAllSubjects().stream().anyMatch(subject -> {
+      if (subject.equals(defaultSubject)) {
+        return true;
+      }
+      if (subject.indexOf('-') < 0) {
+        // RecordNameStrategy: bare record name, not tied to any topic.
+        return true;
+      }
+      if (subject.startsWith(topicPrefix)) {
+        String record = subject.substring(topicPrefix.length());
+        return !record.isEmpty()
+            && record.indexOf('-') < 0
+            && !record.equals("key")
+            && !record.equals("value");
+      }
+      return false;
+    });
   }
 
   private Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
