@@ -53,9 +53,6 @@ class RbacConnectorPermissionsTest {
   @Mock
   RbacUser user;
 
-  @Mock
-  org.springframework.core.env.Environment environment;
-
   @BeforeEach
   void setUp() {
     List<Role> roles = List.of(
@@ -68,7 +65,7 @@ class RbacConnectorPermissionsTest {
     RoleBasedAccessControlProperties properties = mock();
     when(properties.getRoles()).thenReturn(roles);
 
-    accessControlService = new AccessControlService(null, properties, environment);
+    accessControlService = new AccessControlService(properties);
     accessControlService.init();
 
     when(securityContext.getAuthentication()).thenReturn(authentication);
