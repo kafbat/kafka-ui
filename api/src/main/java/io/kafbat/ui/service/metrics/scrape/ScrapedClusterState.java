@@ -15,6 +15,7 @@ import io.kafbat.ui.service.index.LuceneTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.TimeoutException;
 import reactor.core.publisher.Mono;
 
 @Builder(toBuilder = true)
@@ -135,8 +137,19 @@ public class ScrapedClusterState implements AutoCloseable {
         ac.getTopicsConfig()
     ).flatMap(phase1 ->
         Mono.zip(
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
+            // https://github.com/kafbat/kafka-ui/issues/1852
+            // listOffsets() may time out on some clusters (e.g. Confluent Cloud); degrade
+            // gracefully instead of failing the whole scrape and losing topic/broker info
+            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest())
+                .onErrorResume(TimeoutException.class, e -> {
+                  log.warn("Failed to scrape latest offsets: {}", e.getMessage());
+                  return Mono.just(Collections.emptyMap());
+                }),
+            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest())
+                .onErrorResume(TimeoutException.class, e -> {
+                  log.warn("Failed to scrape earliest offsets: {}", e.getMessage());
+                  return Mono.just(Collections.emptyMap());
+                }),
             ac.describeConsumerGroups(phase1.getT2()),
             ac.listConsumerGroupOffsets(phase1.getT2(), null)
         ).map(phase2 ->
