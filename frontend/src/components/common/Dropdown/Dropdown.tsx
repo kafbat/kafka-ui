@@ -21,7 +21,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   onClose,
   ...props
 }) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLElement | null>(null);
   const { value: isOpen, setFalse, setTrue } = useBoolean(false);
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
@@ -43,7 +43,9 @@ const Dropdown: React.FC<DropdownProps> = ({
       ) : (
         <S.DropdownButton
           onClick={handleClick}
-          ref={ref}
+          ref={(element) => {
+            ref.current = element;
+          }}
           aria-label={props['aria-label'] || 'Dropdown Toggle'}
           disabled={disabled}
         >
@@ -59,8 +61,14 @@ const Dropdown: React.FC<DropdownProps> = ({
         anchorRef={ref}
         state={isOpen ? 'open' : 'closed'}
         onMouseLeave={setFalse}
-        onClose={() => {
+        onClose={(event) => {
           setFalse();
+          if (event.reason === 'click' || event.reason === 'cancel') {
+            const trigger = ref.current?.matches('button')
+              ? ref.current
+              : ref.current?.querySelector('button');
+            if (trigger) setTimeout(() => trigger.focus());
+          }
           onClose?.();
         }}
         align={props.align || 'end'}
