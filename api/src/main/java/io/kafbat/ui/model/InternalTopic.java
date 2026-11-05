@@ -214,7 +214,9 @@ public class InternalTopic {
 
   public @Nullable Long getMessagesCount() {
     Long result = null;
-    if (cleanUpPolicy.equals(CleanupPolicy.DELETE)) {
+    // offset-based count is misleading for compacted topics (#450), but when the cleanup policy can't be
+    // read (no DESCRIBE_CONFIGS permission, managed clusters hiding topic configs) fall back to it (#1509)
+    if (cleanUpPolicy == CleanupPolicy.DELETE || cleanUpPolicy == CleanupPolicy.UNKNOWN) {
       result = 0L;
       if (partitions != null && !partitions.isEmpty()) {
         for (InternalPartition partition : partitions.values()) {
