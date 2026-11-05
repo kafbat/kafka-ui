@@ -1,6 +1,7 @@
 package io.kafbat.ui.service.mcp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import io.kafbat.ui.exception.ReadOnlyModeException;
@@ -142,10 +143,24 @@ public class McpSpecificationGenerator {
   private Mono<CallToolResult> toCallResult(Object result) {
     return switch (result) {
       case Mono<?> mono -> mono.map(this::callToolResult).defaultIfEmpty(callToolResult(null));
-      case Flux<?> flux -> flux.collectList().map(this::callToolResult);
+      case Flux<?> flux -> flux.collectList().map(this::unwrapJsonArray).map(this::callToolResult);
       case ResponseEntity<?> response -> reponseToCallResult(response);
       case null, default -> Mono.just(this.callToolResult(result));
     };
+  }
+
+  private Object unwrapJsonArray(List<?> items) {
+    if (items.size() == 1 && items.getFirst() instanceof String body) {
+      try {
+        JsonNode node = objectMapper.readTree(body);
+        if (node != null && node.isArray()) {
+          return node;
+        }
+      } catch (JsonProcessingException e) {
+        return items;
+      }
+    }
+    return items;
   }
 
   private Mono<CallToolResult> reponseToCallResult(ResponseEntity<?> response) {

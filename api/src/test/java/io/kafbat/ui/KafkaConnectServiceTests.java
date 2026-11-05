@@ -186,8 +186,46 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .exchange()
         .expectStatus().isOk()
-        .expectBodyList(String.class)
-        .contains(connectorName);
+        .expectBody(new ParameterizedTypeReference<List<String>>() {
+        })
+        .value(names -> assertThat(names).contains(connectorName));
+  }
+
+  @Test
+  void shouldListMultipleConnectorsAsSeparateArrayElements() {
+    String secondConnectorName = UUID.randomUUID().toString();
+    webTestClient.post()
+        .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
+        .bodyValue(new NewConnectorDTO()
+            .name(secondConnectorName)
+            .config(Map.of(
+                "connector.class", "org.apache.kafka.connect.file.FileStreamSinkConnector",
+                "tasks.max", "1",
+                "topics", topicName,
+                "file", "/tmp/test-" + secondConnectorName,
+                "test.password", "test-credentials")))
+        .exchange()
+        .expectStatus().isOk();
+
+    try {
+      webTestClient.get()
+          .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(new ParameterizedTypeReference<List<String>>() {
+          })
+          .value(names -> {
+            assertThat(names).contains(connectorName, secondConnectorName);
+            assertThat(names).doesNotContain(connectorName + secondConnectorName);
+            assertThat(names).doesNotContain(secondConnectorName + connectorName);
+          });
+    } finally {
+      webTestClient.delete()
+          .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors/{connectorName}",
+              LOCAL, connectName, secondConnectorName)
+          .exchange()
+          .expectStatus().isOk();
+    }
   }
 
   @Test
