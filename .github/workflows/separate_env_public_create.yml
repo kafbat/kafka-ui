@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       ENV_NAME:
-        description: 'Will be used as subdomain in the public URL.'
+        description: "Will be used as subdomain in the public URL."
         required: true
-        default: 'demo'
+        default: "demo"
 
 permissions:
   contents: read
@@ -29,9 +29,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4.7.0
         with:
-          java-version-file: '.java-version'
-          distribution: 'zulu'
-          cache: 'gradle'
+          java-version-file: ".java-version"
+          distribution: "zulu"
+          cache: "gradle"
       - name: Build
         id: build
         run: |
@@ -45,7 +45,7 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3.10.0
       - name: Cache Docker layers
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.3.0
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}

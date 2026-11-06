@@ -13,7 +13,7 @@ workflows:
     '.github/workflows/block_merge.yml':
         - 'mheap/github-action-required-labels@5.5.0'
     '.github/workflows/branch-deploy.yml':
-        - 'actions/cache@v4.2.2'
+        - 'actions/cache@v4.3.0'
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
@@ -37,7 +37,7 @@ workflows:
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
-        - 'github/codeql-action@v4.31.7'
+        - 'github/codeql-action@v3.39.2'
     '.github/workflows/cve_checks.yml':
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
@@ -69,7 +69,7 @@ workflows:
     '.github/workflows/e2e-playwright-manual.yml': []
     '.github/workflows/e2e-playwright-pr.yml': []
     '.github/workflows/e2e-playwright-run.yml':
-        - 'actions/cache@v4.2.2'
+        - 'actions/cache@v4.3.0'
         - 'actions/checkout@v4.0.0'
         - 'actions/download-artifact@v4.1.9'
         - 'actions/setup-java@v4.7.0'
@@ -105,7 +105,7 @@ workflows:
     '.github/workflows/release_drafter.yml':
         - 'release-drafter/release-drafter@v6.0.0'
     '.github/workflows/separate_env_public_create.yml':
-        - 'actions/cache@v4.2.2'
+        - 'actions/cache@v4.3.0'
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
@@ -130,11 +130,6 @@ dependencies:
     'actions/cache@v4':
         ref: 'v4'
         commit: 'sha1-0057852bfaa89a56745cba8c7296529d2fc39830'
-        owner_id: 44036562
-        repo_id: 215566462
-    'actions/cache@v4.2.2':
-        ref: 'v4.2.2'
-        commit: 'sha1-d4323d4df104b026a6aa633fdb11d772146be0bf'
         owner_id: 44036562
         repo_id: 215566462
     'actions/cache@v4.3.0':
@@ -268,9 +263,9 @@ dependencies:
         commit: 'sha1-de90cc6fb38fc0963ad72b210f1f284cd68cea36'
         owner_id: 1588572
         repo_id: 265601040
-    'github/codeql-action@v4.31.7':
-        ref: 'v4.31.7'
-        commit: 'sha1-cf1bb45a277cb3c205638b2cd5c984db1c46a412'
+    'github/codeql-action@v3.39.2':
+        ref: 'v3.39.2'
+        commit: 'sha1-a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126'
         owner_id: 9919
         repo_id: 259445878
     'gradle/actions@v5.0.0':

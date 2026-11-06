@@ -26,9 +26,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4.7.0
         with:
-          java-version-file: '.java-version'
-          distribution: 'zulu'
-          cache: 'gradle'
+          java-version-file: ".java-version"
+          distribution: "zulu"
+          cache: "gradle"
 
       - name: Build with Gradle
         run: |
@@ -63,14 +63,14 @@ jobs:
         with:
           node-version: 18
           cache-dependency-path: ./e2e-playwright/package-lock.json
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install NPM dependencies
         working-directory: ./e2e-playwright
         run: npm install
 
       - name: Cache Playwright browser binaries
-        uses: actions/cache@v4.2.2
+        uses: actions/cache@v4.3.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
