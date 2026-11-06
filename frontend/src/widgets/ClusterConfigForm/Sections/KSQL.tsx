@@ -6,14 +6,19 @@ import SSLForm from 'widgets/ClusterConfigForm/common/SSLForm';
 import Credentials from 'widgets/ClusterConfigForm/common/Credentials';
 
 const KSQL = () => {
-  const { setValue, watch } = useFormContext();
-  const ksql = watch('ksql');
+  const { setValue } = useFormContext();
   const [configOpen, setConfigOpen] = useState(false);
   const toggleConfig = () => {
-    setConfigOpen((prevConfigOpen) => !prevConfigOpen);
+    // Branch on the direction of the toggle, not on whether `ksql` is already
+    // set. `ksql` stays truthy after a remove (it holds `{ isActive: false }`),
+    // so keying off it left the section inactive when it was reopened.
+    const willOpen = !configOpen;
+    setConfigOpen(willOpen);
     setValue(
       'ksql',
-      ksql ? { isActive: false } : { isActive: false, url: '', isAuth: false },
+      willOpen
+        ? { isActive: true, url: '', isAuth: false }
+        : { isActive: false },
       {
         shouldValidate: true,
         shouldDirty: true,
