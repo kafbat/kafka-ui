@@ -2,7 +2,7 @@
 # 1. Self Documentation: It is difficult to find out what the expected tag is given a sha alone
 # 2. Helps dependabot during discovery of upgrades
 # We include the SHA to ensure image immutability
-FROM azul/zulu-openjdk-alpine:25.0.5-25.38-jre-headless@sha256:c1d9d9ad161af00fba3b540b99dab278bde55be3f18f40cc78d0a79d138d70eb
+FROM azul/zulu-openjdk-alpine:25.0.5.0.3-25.38-jre-headless@sha256:2972031d84f984b910b6de0aca438e3c343b1bedaee48d71e3e6f9d6881a542c
 
 RUN apk upgrade --no-cache
 RUN apk add --no-cache \
