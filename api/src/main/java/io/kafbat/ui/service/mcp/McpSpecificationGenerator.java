@@ -73,7 +73,11 @@ public class McpSpecificationGenerator {
     Method interfaceMethod = findAnnotatedMethod(method, instance);
     boolean isWriteOperation = isWriteMethod(interfaceMethod, name);
     return new AsyncToolSpecification(
-        new McpSchema.Tool(name, description, operationSchema(method, interfaceMethod)),
+        McpSchema.Tool.builder()
+            .name(name)
+            .description(description)
+            .inputSchema(operationSchema(method, interfaceMethod))
+            .build(),
         methodCall(method, instance, isWriteOperation)
     );
   }
