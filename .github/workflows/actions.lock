@@ -18,9 +18,9 @@ workflows:
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
         - 'aws-actions/configure-aws-credentials@v4.0.2'
-        - 'docker/build-push-action@v6.15.0'
-        - 'docker/setup-buildx-action@v3.10.0'
-        - 'docker/setup-qemu-action@v3.6.0'
+        - 'docker/build-push-action@v6.18.0'
+        - 'docker/setup-buildx-action@v3.11.1'
+        - 'docker/setup-qemu-action@v3.7.0'
         - 'sibz/github-status-action@v1.1.6'
     '.github/workflows/branch-remove.yml':
         - 'actions/checkout@v4.0.0'
@@ -30,9 +30,9 @@ workflows:
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
         - 'aws-actions/configure-aws-credentials@v4.0.2'
-        - 'docker/build-push-action@v6.15.0'
-        - 'docker/setup-buildx-action@v3.10.0'
-        - 'docker/setup-qemu-action@v3.6.0'
+        - 'docker/build-push-action@v6.18.0'
+        - 'docker/setup-buildx-action@v3.11.1'
+        - 'docker/setup-qemu-action@v3.7.0'
         - 'peter-evans/create-or-update-comment@v4.0.0'
     '.github/workflows/codeql-analysis.yml':
         - 'actions/checkout@v4.0.0'
@@ -42,9 +42,9 @@ workflows:
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
         - 'aquasecurity/trivy-action@v0.35.0'
-        - 'docker/build-push-action@v6.15.0'
-        - 'docker/setup-buildx-action@v3.10.0'
-        - 'docker/setup-qemu-action@v3.6.0'
+        - 'docker/build-push-action@v6.18.0'
+        - 'docker/setup-buildx-action@v3.11.1'
+        - 'docker/setup-qemu-action@v3.7.0'
     '.github/workflows/delete-public-image.yml':
         - 'aws-actions/amazon-ecr-login@v2.0.1'
         - 'aws-actions/configure-aws-credentials@v4.0.2'
@@ -56,16 +56,16 @@ workflows:
         - 'actions/checkout@v4.0.0'
         - 'actions/download-artifact@v4.1.9'
         - 'actions/upload-artifact@v4.6.1'
-        - 'docker/build-push-action@v6.15.0'
-        - 'docker/setup-buildx-action@v3.10.0'
-        - 'docker/setup-docker-action@v4.5.0'
-        - 'docker/setup-qemu-action@v3.6.0'
+        - 'docker/build-push-action@v6.18.0'
+        - 'docker/setup-buildx-action@v3.11.1'
+        - 'docker/setup-docker-action@v4.6.0'
+        - 'docker/setup-qemu-action@v3.7.0'
     '.github/workflows/docker_publish.yml':
         - 'actions/download-artifact@v4.1.9'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
         - 'aws-actions/configure-aws-credentials@v4.0.2'
-        - 'docker/login-action@v3.4.0'
-        - 'docker/setup-docker-action@v4.5.0'
+        - 'docker/login-action@v3.6.0'
+        - 'docker/setup-docker-action@v4.6.0'
     '.github/workflows/e2e-playwright-manual.yml': []
     '.github/workflows/e2e-playwright-pr.yml': []
     '.github/workflows/e2e-playwright-run.yml':
@@ -75,7 +75,7 @@ workflows:
         - 'actions/setup-java@v4.7.0'
         - 'actions/setup-node@v3.9.1'
         - 'actions/upload-artifact@v4.6.1'
-        - 'awalsh128/cache-apt-pkgs-action@v1.4.3'
+        - 'awalsh128/cache-apt-pkgs-action@v1.6.0'
     '.github/workflows/frontend_main.yml': []
     '.github/workflows/frontend_pr.yml':
         - 'dorny/paths-filter@v3.0.2'
@@ -103,16 +103,16 @@ workflows:
         - 'peter-evans/repository-dispatch@v3.0.0'
         - 'svenstaro/upload-release-action@2.9.0'
     '.github/workflows/release_drafter.yml':
-        - 'release-drafter/release-drafter@v6.0.0'
+        - 'release-drafter/release-drafter@v6.1.0'
     '.github/workflows/separate_env_public_create.yml':
         - 'actions/cache@v4.3.0'
         - 'actions/checkout@v4.0.0'
         - 'actions/setup-java@v4.7.0'
         - 'aws-actions/amazon-ecr-login@v2.0.1'
         - 'aws-actions/configure-aws-credentials@v4.0.2'
-        - 'docker/build-push-action@v6.15.0'
-        - 'docker/setup-buildx-action@v3.10.0'
-        - 'docker/setup-qemu-action@v3.6.0'
+        - 'docker/build-push-action@v6.18.0'
+        - 'docker/setup-buildx-action@v3.11.1'
+        - 'docker/setup-qemu-action@v3.7.0'
     '.github/workflows/separate_env_public_remove.yml': []
     '.github/workflows/validate-gradle-wrapper.yml':
         - 'actions/checkout@v5.0.0'
@@ -122,14 +122,14 @@ workflows:
     '.github/workflows/workflow_linter.yml':
         - 'actions/checkout@v4.0.0'
 dependencies:
+    'actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830':
+        ref: 'v4.3.0'
+        commit: 'sha1-0057852bfaa89a56745cba8c7296529d2fc39830'
+        owner_id: 44036562
+        repo_id: 215566462
     'actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809':
         ref: 'v4.2.4'
         commit: 'sha1-0400d5f644dc74513175e3cd8d07132dd4860809'
-        owner_id: 44036562
-        repo_id: 215566462
-    'actions/cache@v4':
-        ref: 'v4'
-        commit: 'sha1-0057852bfaa89a56745cba8c7296529d2fc39830'
         owner_id: 44036562
         repo_id: 215566462
     'actions/cache@v4.3.0':
@@ -182,8 +182,8 @@ dependencies:
         commit: 'sha1-60edb5dd545a775178f52524783378180af0d1f8'
         owner_id: 44036562
         repo_id: 189476904
-    'actions/upload-artifact@v4':
-        ref: 'v4'
+    'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02':
+        ref: 'v4.6.2'
         commit: 'sha1-ea165f8d65b6e75b540449e92b4886f43607fa02'
         owner_id: 44036562
         repo_id: 192625955
@@ -208,14 +208,14 @@ dependencies:
         uses:
             - 'actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809'
             - 'aquasecurity/setup-trivy@e6c2c5e321ed9123bda567646e2f96565e34abe1'
-    'awalsh128/cache-apt-pkgs-action@v1.4.3':
-        ref: 'v1.4.3'
-        commit: 'sha1-5902b33ae29014e6ca012c5d8025d4346556bd40'
+    'awalsh128/cache-apt-pkgs-action@v1.6.0':
+        ref: 'v1.6.0'
+        commit: 'sha1-acb598e5ddbc6f68a970c5da0688d2f3a9f04d05'
         owner_id: 2087466
         repo_id: 408212054
         uses:
-            - 'actions/cache@v4'
-            - 'actions/upload-artifact@v4'
+            - 'actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830'
+            - 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
     'aws-actions/amazon-ecr-login@v2.0.1':
         ref: 'v2.0.1'
         commit: 'sha1-062b18b96a7aff071d4dc91bc00c4c1a7945b076'
@@ -233,29 +233,29 @@ dependencies:
         repo_id: 200299178
         uses:
             - 'actions/github-script@v7'
-    'docker/build-push-action@v6.15.0':
-        ref: 'v6.15.0'
-        commit: 'sha1-471d1dc4e07e5cdedd4c2171150001c434f0b7a4'
+    'docker/build-push-action@v6.18.0':
+        ref: 'v6.18.0'
+        commit: 'sha1-263435318d21b8e681c14492fe198d362a7d2c83'
         owner_id: 5429470
         repo_id: 241092383
-    'docker/login-action@v3.4.0':
-        ref: 'v3.4.0'
-        commit: 'sha1-74a5d142397b4f367a81961eba4e8cd7edddf772'
+    'docker/login-action@v3.6.0':
+        ref: 'v3.6.0'
+        commit: 'sha1-5e57cd118135c172c3672efd75eb46360885c0ef'
         owner_id: 5429470
         repo_id: 287743349
-    'docker/setup-buildx-action@v3.10.0':
-        ref: 'v3.10.0'
-        commit: 'sha1-b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2'
+    'docker/setup-buildx-action@v3.11.1':
+        ref: 'v3.11.1'
+        commit: 'sha1-e468171a9de216ec08956ac3ada2f0791b6bd435'
         owner_id: 5429470
         repo_id: 288485773
-    'docker/setup-docker-action@v4.5.0':
-        ref: 'v4.5.0'
-        commit: 'sha1-efe9e3891a4f7307e689f2100b33a155b900a608'
+    'docker/setup-docker-action@v4.6.0':
+        ref: 'v4.6.0'
+        commit: 'sha1-e61617a16c407a86262fb923c35a616ddbe070b3'
         owner_id: 5429470
         repo_id: 398780917
-    'docker/setup-qemu-action@v3.6.0':
-        ref: 'v3.6.0'
-        commit: 'sha1-29109295f81e9208d7d86ff1c6c12d2833863392'
+    'docker/setup-qemu-action@v3.7.0':
+        ref: 'v3.7.0'
+        commit: 'sha1-c7c53464625b32c7a7e944ae62b3e17d2b600130'
         owner_id: 5429470
         repo_id: 288487894
     'dorny/paths-filter@v3.0.2':
@@ -303,9 +303,9 @@ dependencies:
         commit: 'sha1-a7487c7e89a18df4991f7f222e4898a00d66ddda'
         owner_id: 21320719
         repo_id: 262289747
-    'release-drafter/release-drafter@v6.0.0':
-        ref: 'v6.0.0'
-        commit: 'sha1-3f0f87098bd6b5c5b9a36d49c41d998ea58f9348'
+    'release-drafter/release-drafter@v6.1.0':
+        ref: 'v6.1.0'
+        commit: 'sha1-b1476f6e6eb133afa41ed8589daba6dc69b4d3f5'
         owner_id: 58292376
         repo_id: 139022359
     'sibz/github-status-action@v1.1.6':

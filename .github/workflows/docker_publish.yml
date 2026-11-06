@@ -32,7 +32,7 @@ jobs:
 
       # setup containerd to preserve provenance attestations :https://docs.docker.com/build/attestations/#creating-attestations
       - name: Setup docker with containerd
-        uses: docker/setup-docker-action@v4.5.0
+        uses: docker/setup-docker-action@v4.6.0
         with:
           daemon-config: |
             {
@@ -47,7 +47,7 @@ jobs:
 
       - name: Login to docker.io
         if: matrix.registry == 'docker.io'
-        uses: docker/login-action@v3.4.0
+        uses: docker/login-action@v3.6.0
         with:
           registry: ${{ matrix.registry }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Login to ghcr.io
         if: matrix.registry == 'ghcr.io'
-        uses: docker/login-action@v3.4.0
+        uses: docker/login-action@v3.6.0
         with:
           registry: ${{ matrix.registry }}
           username: ${{ github.actor }}
