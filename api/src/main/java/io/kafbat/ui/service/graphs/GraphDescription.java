@@ -1,8 +1,8 @@
 package io.kafbat.ui.service.graphs;
 
+import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.util.Set;
-import javax.annotation.Nullable;
 import lombok.Builder;
 
 @Builder

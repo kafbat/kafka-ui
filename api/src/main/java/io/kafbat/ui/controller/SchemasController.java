@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +55,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   @Override
   public Mono<ResponseEntity<CompatibilityCheckResponseDTO>> checkSchemaCompatibility(
-      String clusterName, String subject, @Valid Mono<NewSchemaSubjectDTO> newSchemaSubjectMono,
+      String clusterName, String subject, Mono<NewSchemaSubjectDTO> newSchemaSubjectMono,
       ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -78,7 +77,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   @Override
   public Mono<ResponseEntity<SchemaSubjectDTO>> createNewSchema(
-      String clusterName, @Valid Mono<NewSchemaSubjectDTO> newSchemaSubjectMono,
+      String clusterName, Mono<NewSchemaSubjectDTO> newSchemaSubjectMono,
       ServerWebExchange exchange) {
     return newSchemaSubjectMono.flatMap(newSubject -> {
           var context = AccessContext.builder()
@@ -211,9 +210,9 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   @Override
   public Mono<ResponseEntity<SchemaSubjectsResponseDTO>> getSchemas(String clusterName,
-                                                                    @Valid Integer pageNum,
-                                                                    @Valid Integer perPage,
-                                                                    @Valid String search,
+                                                                    Integer pageNum,
+                                                                    Integer perPage,
+                                                                    String search,
                                                                     SchemaColumnsToSortDTO orderBy,
                                                                     SortOrderDTO sortOrder,
                                                                     Boolean fts,
@@ -292,7 +291,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
   }
 
   private Comparator<SubjectWithCompatibilityLevel> getComparatorForSchema(
-      @Valid SchemaColumnsToSortDTO orderBy) {
+      SchemaColumnsToSortDTO orderBy) {
     var defaultComparator = Comparator.comparing(
         SubjectWithCompatibilityLevel::getSubject,
         Comparator.nullsFirst(Comparator.naturalOrder())
@@ -327,7 +326,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   @Override
   public Mono<ResponseEntity<Void>> updateGlobalSchemaCompatibilityLevel(
-      String clusterName, @Valid Mono<CompatibilityLevelDTO> compatibilityLevelMono,
+      String clusterName, Mono<CompatibilityLevelDTO> compatibilityLevelMono,
       ServerWebExchange exchange) {
     var context = AccessContext.builder()
         .cluster(clusterName)
@@ -349,7 +348,7 @@ public class SchemasController extends AbstractController implements SchemasApi,
 
   @Override
   public Mono<ResponseEntity<Void>> updateSchemaCompatibilityLevel(
-      String clusterName, String subject, @Valid Mono<CompatibilityLevelDTO> compatibilityLevelMono,
+      String clusterName, String subject, Mono<CompatibilityLevelDTO> compatibilityLevelMono,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()

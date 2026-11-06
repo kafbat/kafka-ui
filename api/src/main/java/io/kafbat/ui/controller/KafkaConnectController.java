@@ -21,10 +21,10 @@ import io.kafbat.ui.model.rbac.permission.ConnectorAction;
 import io.kafbat.ui.service.KafkaConnectService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +63,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
   }
 
   @Override
-  public Mono<ResponseEntity<Flux<String>>> getConnectors(String clusterName, String connectName,
+  public Mono<ResponseEntity<List<String>>> getConnectors(String clusterName, String connectName,
                                                           ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -73,17 +73,14 @@ public class KafkaConnectController extends AbstractController implements KafkaC
         .build();
 
     return validateAccess(context)
-        .thenReturn(
-            ResponseEntity.ok(
-              kafkaConnectService.getConnectors(getCluster(clusterName), connectName)
-                  .flatMapMany(m -> Flux.fromIterable(m.keySet()))
-            )
-        ).doOnEach(sig -> audit(context, sig));
+        .then(kafkaConnectService.getConnectors(getCluster(clusterName), connectName))
+        .map(m -> ResponseEntity.ok(List.copyOf(m.keySet())))
+        .doOnEach(sig -> audit(context, sig));
   }
 
   @Override
   public Mono<ResponseEntity<ConnectorDTO>> createConnector(String clusterName, String connectName,
-                                                            @Valid Mono<NewConnectorDTO> connector,
+                                                            Mono<NewConnectorDTO> connector,
                                                             ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -282,7 +279,7 @@ public class KafkaConnectController extends AbstractController implements KafkaC
 
   @Override
   public Mono<ResponseEntity<ConnectorPluginConfigValidationResponseDTO>> validateConnectorPluginConfig(
-      String clusterName, String connectName, String pluginName, @Valid Mono<Map<String, Object>> requestBody,
+      String clusterName, String connectName, String pluginName, Mono<Map<String, Object>> requestBody,
       ServerWebExchange exchange) {
     return kafkaConnectService
         .validateConnectorPluginConfig(

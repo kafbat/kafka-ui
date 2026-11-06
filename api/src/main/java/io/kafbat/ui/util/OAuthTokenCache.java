@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.index.qual.NonNegative;
 import reactor.core.publisher.Mono;
 
 /**
@@ -40,13 +39,13 @@ public class OAuthTokenCache {
 
           @Override
           public long expireAfterUpdate(String key, TokenWithExpiry value,
-                                        long currentTime, @NonNegative long currentDuration) {
+                                        long currentTime, long currentDuration) {
             return expireAfterCreate(key, value, currentTime);
           }
 
           @Override
           public long expireAfterRead(String key, TokenWithExpiry value,
-                                      long currentTime, @NonNegative long currentDuration) {
+                                      long currentTime, long currentDuration) {
             return currentDuration;
           }
         })
