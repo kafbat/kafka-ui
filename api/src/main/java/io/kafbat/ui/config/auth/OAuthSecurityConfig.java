@@ -38,6 +38,9 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
@@ -76,6 +79,7 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       ServerHttpSecurity http,
       OAuthLogoutSuccessHandler logoutHandler,
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
+      ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
       ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
       ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
       @Qualifier("oauthWebClient") WebClient webClient
@@ -102,7 +106,9 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
+        .oauth2Login(oauth2 -> oauth2
+            .authorizationRequestResolver(authorizationRequestResolver)
+            .authenticationManager(delegatingAuthManager))
         .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
@@ -128,6 +134,14 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
 
     return builder.build();
+  }
+
+  @Bean
+  public ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(
+      ReactiveClientRegistrationRepository registrations) {
+    var resolver = new DefaultServerOAuth2AuthorizationRequestResolver(registrations);
+    resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+    return resolver;
   }
 
   @Bean
