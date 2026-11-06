@@ -13,6 +13,7 @@ import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.Metrics;
 import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.service.index.TopicsIndexRegistry;
 import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import java.util.List;
@@ -36,6 +37,7 @@ public class StatisticsService {
   private final KafkaConnectService kafkaConnectService;
   private final FeatureService featureService;
   private final StatisticsCache cache;
+  private final TopicsIndexRegistry topicsIndexRegistry;
   private final ClustersProperties clustersProperties;
   private final QuorumInfoMapper quorumInfoMapper;
 
@@ -53,7 +55,7 @@ public class StatisticsService {
                     .then(
                         Mono.zip(
                             featureService.getAvailableFeatures(ac, cluster, description),
-                            loadClusterState(description, ac),
+                            loadClusterState(cluster, description, ac),
                             loadKafkaConnects(cluster),
                             loadQuorumInfo(ac)
                                 .map(quorumInfo -> new LoadQuorumInfoResult(Optional.of(quorumInfo), KRAFT))
@@ -121,9 +123,11 @@ public class StatisticsService {
     return stats.build();
   }
 
-  private Mono<ScrapedClusterState> loadClusterState(ClusterDescription clusterDescription,
+  private Mono<ScrapedClusterState> loadClusterState(KafkaCluster cluster,
+                                                     ClusterDescription clusterDescription,
                                                      ReactiveAdminClient ac) {
-    return ScrapedClusterState.scrape(clusterDescription, ac, clustersProperties);
+    return ScrapedClusterState.scrape(clusterDescription, ac, clustersProperties,
+        topicsIndexRegistry.get(cluster.getName()));
   }
 
   private Mono<Metrics> scrapeMetrics(KafkaCluster cluster,

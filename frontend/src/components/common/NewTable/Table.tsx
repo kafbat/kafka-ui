@@ -84,6 +84,13 @@ export interface TableProps<TData> {
 
 type UpdaterFn<T> = (previousState: T) => T;
 
+/**
+ * How long the "Go to page" input waits before applying a number. Long enough that a
+ * multi digit page number is normally typed in full before it fires, short enough that
+ * the page updates on its own for anyone who does not press Enter.
+ */
+const GO_TO_PAGE_DELAY = 500;
+
 const getPaginationFromSearchParams = (searchParams: URLSearchParams) => {
   const page = searchParams.get('page');
   const perPage = searchParams.get('perPage');
@@ -273,6 +280,18 @@ function Table<TData>({
   useEffect(() => {
     ctx?.setTable(table);
   }, [table]);
+
+  // The pagination input applies its value on a timer instead of on every keystroke, so
+  // typing a multi digit page number does not navigate once per digit.
+  const goToPageTimeout = React.useRef<ReturnType<typeof setTimeout>>();
+  const goToPage = (value: string) => {
+    clearTimeout(goToPageTimeout.current);
+    goToPageTimeout.current = setTimeout(() => {
+      const index = value ? Number(value) - 1 : 0;
+      table.setPageIndex(index);
+    }, GO_TO_PAGE_DELAY);
+  };
+  useEffect(() => () => clearTimeout(goToPageTimeout.current), []);
 
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders();
@@ -528,10 +547,7 @@ function Table<TData>({
                 inputSize="M"
                 max={table.getPageCount()}
                 min={1}
-                onChange={({ target: { value } }) => {
-                  const index = value ? Number(value) - 1 : 0;
-                  table.setPageIndex(index);
-                }}
+                onChange={({ target: { value } }) => goToPage(value)}
               />
             </S.GoToPage>
           </S.Pages>
