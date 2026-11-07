@@ -40,18 +40,33 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
   private static final int MAX_RETRIES = 5;
   private static final Duration RETRIES_DELAY = Duration.ofMillis(200);
 
+  private final Retry transientErrorRetry;
+
   public RetryingKafkaConnectClient(ClustersProperties.ConnectCluster config,
                                     @Nullable ClustersProperties.TruststoreConfig truststoreConfig,
                                     DataSize maxBuffSize,
-                                    Duration responseTimeout) {
+                                    Duration responseTimeout,
+                                    ClustersProperties.KafkaConnect connectConfig) {
     super(new RetryingApiClient(config, truststoreConfig, maxBuffSize, responseTimeout));
+    this.transientErrorRetry = Retry
+        .backoff(connectConfig.getMaxRetries(), Duration.ofMillis(connectConfig.getRetryBaseDelayMs()))
+        .maxBackoff(Duration.ofMillis(connectConfig.getRetryMaxDelayMs()))
+        .filter(e -> e instanceof WebClientResponseException wce
+            && (wce.getStatusCode().value() == 502
+                || wce.getStatusCode().value() == 503
+                || wce.getStatusCode().value() == 429))
+        .doBeforeRetry(signal -> log.warn(
+            "Retrying Kafka Connect request after transient error (attempt {}): {}",
+            signal.totalRetries() + 1,
+            signal.failure().getMessage()))
+        .onRetryExhaustedThrow((ignoredSpec, signal) -> signal.failure());
   }
 
   private static Retry conflictCodeRetry() {
     return Retry
         .fixedDelay(MAX_RETRIES, RETRIES_DELAY)
         .filter(e -> e instanceof WebClientResponseException.Conflict)
-        .onRetryExhaustedThrow((spec, signal) ->
+        .onRetryExhaustedThrow((ignoredSpec, signal) ->
             new KafkaConnectConflictResponseException(
                 (WebClientResponseException.Conflict) signal.failure()));
   }
@@ -69,20 +84,24 @@ public class RetryingKafkaConnectClient extends KafkaConnectClientApi {
     });
   }
 
-  private static <T> Mono<T> withRetryOnConflictOrRebalance(Mono<T> publisher) {
+  private <T> Mono<T> withRetryOnConflictOrRebalance(Mono<T> publisher) {
     return publisher
         .retryWhen(retryOnRebalance())
-        .retryWhen(conflictCodeRetry());
+        .retryWhen(conflictCodeRetry())
+        .retryWhen(transientErrorRetry);
   }
 
-  private static <T> Flux<T> withRetryOnConflictOrRebalance(Flux<T> publisher) {
+  private <T> Flux<T> withRetryOnConflictOrRebalance(Flux<T> publisher) {
     return publisher
         .retryWhen(retryOnRebalance())
-        .retryWhen(conflictCodeRetry());
+        .retryWhen(conflictCodeRetry())
+        .retryWhen(transientErrorRetry);
   }
 
-  private static <T> Mono<T> withRetryOnRebalance(Mono<T> publisher) {
-    return publisher.retryWhen(retryOnRebalance());
+  private <T> Mono<T> withRetryOnRebalance(Mono<T> publisher) {
+    return publisher
+        .retryWhen(retryOnRebalance())
+        .retryWhen(transientErrorRetry);
   }
 
 
