@@ -1,6 +1,7 @@
 package io.kafbat.ui.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
@@ -73,6 +74,26 @@ class StringJackson2JsonEncoderTest {
         .expectBody(String.class).isEqualTo("ab");
   }
 
+  @Test
+  void fluxOfStringsWithNonAsciiInUtf8() {
+    client.get().uri("/accented")
+        .accept(MediaType.APPLICATION_JSON)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(String.class).isEqualTo("[\"café\"]");
+  }
+
+  @Test
+  void fluxOfStringsUsesRequestedNonUnicodeCharset() {
+    MediaType latin1 = new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.ISO_8859_1);
+    client.get().uri("/accented")
+        .accept(latin1)
+        .exchange()
+        .expectStatus().isOk()
+        .expectHeader().contentType(latin1)
+        .expectBody(byte[].class).isEqualTo("[\"caf\\u00E9\"]".getBytes(StandardCharsets.ISO_8859_1));
+  }
+
   @RestController
   static class TestController {
 
@@ -84,6 +105,11 @@ class StringJackson2JsonEncoderTest {
     @GetMapping("/empty")
     Flux<String> empty() {
       return Flux.empty();
+    }
+
+    @GetMapping("/accented")
+    Flux<String> accented() {
+      return Flux.just("café");
     }
 
     @GetMapping("/mono")
