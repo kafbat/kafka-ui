@@ -12,6 +12,7 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.kafbat.ui.serde.api.DeserializeResult;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -71,6 +72,33 @@ class SchemaRegistrySerdeTest {
     String topic = "test";
     assertThat(serde.getSchema(topic, Serde.Target.KEY)).isEmpty();
     assertThat(serde.getSchema(topic, Serde.Target.VALUE)).isEmpty();
+  }
+
+  @Test
+  @SneakyThrows
+  void getSchemaResolvesTheSelectedSubjectInsteadOfTheDefaultOne() {
+    String topic = "accounts";
+    int defaultSchemaId = registryClient.register(topic + "-value", new AvroSchema("\"int\""));
+    // selectable alongside the default subject (RecordNameStrategy: no -key/-value suffix)
+    int otherSchemaId = registryClient.register("test.OtherType", new AvroSchema("\"string\""));
+
+    var defaultSchema = serde.getSchema(topic, Serde.Target.VALUE, Map.of()).orElseThrow();
+    assertThat(defaultSchema.getAdditionalProperties())
+        .containsEntry("subject", topic + "-value")
+        .containsEntry("schemaId", defaultSchemaId);
+
+    var selectedSchema = serde.getSchema(topic, Serde.Target.VALUE,
+            Map.of(SUBJECT_PARAMETER_NAME, "test.OtherType")).orElseThrow();
+    assertThat(selectedSchema.getAdditionalProperties())
+        .containsEntry("subject", "test.OtherType")
+        .containsEntry("schemaId", otherSchemaId);
+
+    // a subject that isn't currently selectable falls back to the default rather than erroring
+    var fallbackSchema = serde.getSchema(topic, Serde.Target.VALUE,
+            Map.of(SUBJECT_PARAMETER_NAME, "not-a-real-subject")).orElseThrow();
+    assertThat(fallbackSchema.getAdditionalProperties())
+        .containsEntry("subject", topic + "-value")
+        .containsEntry("schemaId", defaultSchemaId);
   }
 
   @Test
@@ -839,6 +867,165 @@ class SchemaRegistrySerdeTest {
           () -> serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of("subject", nonexistentSubject))
       )).isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
           .hasMessageContaining(nonexistentSubject);
+    }
+
+    // Schema with several message definitions (exercises multi-message protobuf handling).
+    private static final ProtobufSchema MULTI_MESSAGE_PROTOBUF_SCHEMA = new ProtobufSchema(
+        """
+            syntax = "proto3";
+            package test.events;
+            message OrderPlacedEvent { string order_id = 1; }
+            message OrderShippedEvent { string order_id = 1; }
+            message AccountUpdatedEvent { string customer_id = 1; string strategy_id = 2; }
+            """
+    );
+
+    @Test
+    @SneakyThrows
+    void getParametersWithoutSubjectDoesNotExposeMessageTypes() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      // resolving message names for every selectable subject up front doesn't scale to registries
+      // with many subjects - they're only resolved once a subject is known, see below.
+      var parameters = serde.getParameters(topic, Serde.Target.VALUE);
+      assertThat(parameters).extracting(SerdeParameter::getName).containsExactly(SUBJECT_PARAMETER_NAME);
+    }
+
+    @Test
+    @SneakyThrows
+    void getParametersExposesProtobufMessageTypesForSelectedSubject() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      var messageNameParam = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, topic + "-value")).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+
+      assertThat(messageNameParam.getAllowedValues()).containsExactlyInAnyOrder(
+          "test.events.OrderPlacedEvent",
+          "test.events.OrderShippedEvent",
+          "test.events.AccountUpdatedEvent");
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerUsesChosenMessageTypeInsteadOfFirst() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      // this JSON only fits AccountUpdatedEvent, not the first message (OrderPlacedEvent)
+      String accountJson = "{\"customer_id\": \"c-1\", \"strategy_id\": \"s-1\"}";
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE,
+          java.util.Map.of(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.events.AccountUpdatedEvent"));
+      byte[] result = serializer.serialize(accountJson);
+
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerWithoutMessageNameFailsForNonFirstMessage() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      String accountJson = "{\"customer_id\": \"c-1\", \"strategy_id\": \"s-1\"}";
+
+      // no messageName -> falls back to the first message (OrderPlacedEvent), which has no customer_id
+      var serializer = serde.serializer(topic, Serde.Target.VALUE);
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> serializer.serialize(accountJson)))
+          .hasMessageContaining("customer_id");
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerThrowsForUnknownMessageName() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE,
+          java.util.Map.of(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.events.NoSuchEvent"));
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> serializer.serialize("{}")))
+          .isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
+          .hasMessageContaining("NoSuchEvent");
+    }
+
+    // Schema registered under a non-default subject, with messages the default subject doesn't define.
+    private static final ProtobufSchema OTHER_SUBJECT_PROTOBUF_SCHEMA = new ProtobufSchema(
+        """
+            syntax = "proto3";
+            package test.audit;
+            message AuditLogged { string audit_id = 1; }
+            message AuditReverted { string audit_id = 1; }
+            """
+    );
+
+    @Test
+    @SneakyThrows
+    void getParametersExposesMessageTypesOfWhicheverSubjectIsSelected() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      // selectable alongside the default subject (RecordNameStrategy: no -key/-value suffix)
+      registryClient.register("test.audit.AuditLogged", OTHER_SUBJECT_PROTOBUF_SCHEMA);
+
+      var subjectParam = serde.getParameters(topic, Serde.Target.VALUE).stream()
+          .filter(p -> p.getName().equals(SUBJECT_PARAMETER_NAME))
+          .findFirst().orElseThrow();
+      assertThat(subjectParam.getAllowedValues())
+          .contains(topic + "-value", "test.audit.AuditLogged");
+
+      // picking the default subject only resolves that subject's message names...
+      var defaultSubjectMessageNames = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, topic + "-value")).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+      assertThat(defaultSubjectMessageNames.getAllowedValues()).containsExactlyInAnyOrder(
+          "test.events.OrderPlacedEvent",
+          "test.events.OrderShippedEvent",
+          "test.events.AccountUpdatedEvent");
+
+      // ...and picking the other selectable subject resolves only its own message names.
+      var otherSubjectMessageNames = serde.getParameters(topic, Serde.Target.VALUE,
+              Map.of(SUBJECT_PARAMETER_NAME, "test.audit.AuditLogged")).stream()
+          .filter(p -> p.getName().equals(SchemaRegistrySerde.MESSAGE_NAME_PARAMETER))
+          .findFirst().orElseThrow();
+      assertThat(otherSubjectMessageNames.getAllowedValues()).containsExactlyInAnyOrder(
+          "test.audit.AuditLogged",
+          "test.audit.AuditReverted");
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerUsesMessageTypeOfExplicitNonDefaultSubject() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      registryClient.register("test.audit.AuditLogged", OTHER_SUBJECT_PROTOBUF_SCHEMA);
+
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of(
+          SchemaRegistrySerde.SUBJECT_PARAMETER_NAME, "test.audit.AuditLogged",
+          SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.audit.AuditReverted"));
+      byte[] result = serializer.serialize("{\"audit_id\": \"a-1\"}");
+
+      assertThat(result).isNotEmpty();
+      assertThat(result[0]).isEqualTo((byte) 0); // magic byte
+    }
+
+    @Test
+    @SneakyThrows
+    void serializerThrowsWhenMessageNameDoesNotBelongToChosenSubject() {
+      String topic = "accounts";
+      registryClient.register(topic + "-value", MULTI_MESSAGE_PROTOBUF_SCHEMA);
+      registryClient.register("test.audit.AuditLogged", OTHER_SUBJECT_PROTOBUF_SCHEMA);
+
+      // message name belongs to the default subject's schema, not to the chosen one
+      var serializer = serde.serializer(topic, Serde.Target.VALUE, java.util.Map.of(
+          SchemaRegistrySerde.SUBJECT_PARAMETER_NAME, "test.audit.AuditLogged",
+          SchemaRegistrySerde.MESSAGE_NAME_PARAMETER, "test.events.OrderPlacedEvent"));
+
+      assertThat(org.assertj.core.api.Assertions.catchThrowable(() -> serializer.serialize("{}")))
+          .isInstanceOf(io.kafbat.ui.exception.ValidationException.class)
+          .hasMessageContaining("test.events.OrderPlacedEvent");
     }
   }
 

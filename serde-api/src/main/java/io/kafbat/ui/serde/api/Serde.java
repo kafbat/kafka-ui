@@ -69,6 +69,22 @@ public interface Serde extends Closeable {
   Optional<SchemaDescription> getSchema(String topic, Target type);
 
   /**
+   * Get schema description for the specified topic's key/value, same as {@link #getSchema(String, Target)},
+   * but allows resolving the schema of another parameter's value the user has already chosen
+   * (e.g. an explicitly selected schema subject) instead of the default one.
+   * Default implementation ignores {@code knownValues} and delegates to {@link #getSchema(String, Target)}.
+   *
+   * @param topic       topic name
+   * @param type        {@code Target} for which {@code SchemaDescription} will be returned.
+   * @param knownValues values of other parameters already chosen by the user, if any
+   * @return SchemaDescription for the specified topic's key/value.
+   * {@code Optional.empty} if there is no information about the schema.
+   */
+  default Optional<SchemaDescription> getSchema(String topic, Target type, Map<String, Object> knownValues) {
+    return getSchema(topic, type);
+  }
+
+  /**
    * Checks if this Serde can be applied to the specified topic's key/value deserialization.
    * @param topic topic name
    * @param type  {@code Target} for which {@code Deserializer} will be applied.
@@ -129,6 +145,21 @@ public interface Serde extends Closeable {
    */
   default List<SerdeParameter> getParameters(String topic, Target type) {
     return List.of();
+  }
+
+  /**
+   * Returns a list of possible parameters, same as {@link #getParameters(String, Target)}, but
+   * allows resolving parameters whose options depend on another parameter's value the user has
+   * already chosen (e.g. a message name that depends on which schema subject was picked).
+   * Default implementation ignores {@code knownValues} and delegates to {@link #getParameters(String, Target)}.
+   *
+   * @param topic       topic name
+   * @param type        {@code Target} for which parameters will be returned.
+   * @param knownValues values of other parameters already chosen by the user, if any
+   * @return List of applicable parameters.
+   */
+  default List<SerdeParameter> getParameters(String topic, Target type, Map<String, Object> knownValues) {
+    return getParameters(topic, type);
   }
 
   /**
