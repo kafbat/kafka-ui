@@ -63,8 +63,9 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   };
 
   const savedMessage = JSON.stringify(savedMessageJson, null, '\t');
+  const sanitizedTopicName = topicName.replace(/[^a-zA-Z0-9._-]/g, '_');
   const { copyToClipboard, saveFile } = useDataSaver(
-    'topic-message',
+    `${sanitizedTopicName}-${partition}-${offset}.json`,
     savedMessage || ''
   );
 
