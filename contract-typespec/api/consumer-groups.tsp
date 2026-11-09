@@ -13,6 +13,7 @@ interface ConsumerGroupsApi {
   @route("/paged")
   @operationId("getConsumerGroupsPage")
   @summary("getConsumerGroupsPage")
+  @doc("List consumer groups in a Kafka cluster with pagination and search support.")
   getConsumerGroupsPage(
     @path clusterName: string,
     @query page?: int32,
@@ -28,6 +29,7 @@ interface ConsumerGroupsApi {
   @route("/lag")
   @operationId("getConsumerGroupsLag")
   @summary("getConsumerGroupsLag")
+  @doc("Get lag information for consumer groups.")
   getConsumerGroupsLag(
     @path clusterName: string,
     @query ids: Array<string>,
@@ -39,6 +41,7 @@ interface ConsumerGroupsApi {
   @route("/csv")
   @operationId("getConsumerGroupsCsv")
   @summary("getConsumerGroupsPage")
+  @doc("Export consumer groups data as CSV.")
   getConsumerGroupsCsv(
     @path clusterName: string,
     @query page?: int32,
@@ -54,6 +57,7 @@ interface ConsumerGroupsApi {
   @route("/{id}")
   @operationId("getConsumerGroup")
   @summary("getConsumerGroup")
+  @doc("Get detailed information about a specific consumer group including member assignments and lag.")
   getConsumerGroup(
     @path clusterName: string,
     @path id: string,
@@ -63,12 +67,14 @@ interface ConsumerGroupsApi {
   @route("/{id}")
   @operationId("deleteConsumerGroup")
   @summary("deleteConsumerGroup")
+  @doc("Delete a consumer group.")
   deleteConsumerGroup(@path clusterName: string, @path id: string): void;
 
   @post
   @route("/{id}/offsets")
   @operationId("resetConsumerGroupOffsets")
   @summary("resetConsumerGroupOffsets")
+  @doc("Reset consumer group offsets to a specific position.")
   resetConsumerGroupOffsets(
     @path clusterName: string,
     @path id: string,
@@ -79,6 +85,7 @@ interface ConsumerGroupsApi {
   @route("/{id}/topics/{topicName}")
   @operationId("deleteConsumerGroupOffsets")
   @summary("deleteConsumerGroupOffsets")
+  @doc("Delete committed offsets for specific topic partitions in a consumer group.")
   deleteConsumerGroupOffsets(
     @path clusterName: string,
     @path id: string,
@@ -92,6 +99,7 @@ interface TopicConsumerGroupsApi {
   @get
   @operationId("getTopicConsumerGroups")
   @summary("getTopicConsumerGroups")
+  @doc("Get consumer groups that are consuming from a specific topic.")
   getTopicConsumerGroups(
     @path clusterName: string,
     @path topicName: string,

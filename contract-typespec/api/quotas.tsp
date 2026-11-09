@@ -13,11 +13,13 @@ interface QuoatsApi {
   @get
   @summary("listQuotas")
   @operationId("listQuotas")
+  @doc("List all client quotas configured in a Kafka cluster.")
   listQuotas(@path clusterName: string): ClientQuotas[];
 
   @post
   @summary("upsertClientQuotas")
   @operationId("upsertClientQuotas")
+  @doc("Create or update client quotas in a Kafka cluster.")
   upsertClientQuotas(
     @path clusterName: string,
     @body quota: ClientQuotas,

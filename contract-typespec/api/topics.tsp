@@ -14,6 +14,7 @@ interface TopicsApi {
   @get
   @operationId("getTopics")
   @summary("getTopics")
+  @doc("List topics in a Kafka cluster with pagination, search, and sorting support.")
   getTopics(
     @path clusterName: string,
     @query page?: int32,
@@ -41,6 +42,7 @@ interface TopicsApi {
   @post
   @operationId("createTopic")
   @summary("createTopic")
+  @doc("Create a new topic in a Kafka cluster with specified partitions, replication factor, and configs.")
   createTopic(
     @path clusterName: string,
     @body topic: TopicCreation,
@@ -50,6 +52,7 @@ interface TopicsApi {
   @route("/{topicName}/clone")
   @operationId("cloneTopic")
   @summary("cloneTopic")
+  @doc("Clone an existing topic to a new topic with the same configuration.")
   cloneTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -60,6 +63,7 @@ interface TopicsApi {
   @route("/{topicName}/analysis")
   @operationId("getTopicAnalysis")
   @summary("getTopicAnalysis")
+  @doc("Get the analysis results for a specific topic.")
   getTopicAnalysis(
     @path clusterName: string,
     @path topicName: string,
@@ -69,6 +73,7 @@ interface TopicsApi {
   @route("/{topicName}/analysis")
   @operationId("analyzeTopic")
   @summary("analyzeTopic")
+  @doc("Start analysis of a topic to gather statistics about messages.")
   analyzeTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -78,6 +83,7 @@ interface TopicsApi {
   @route("/{topicName}/analysis")
   @operationId("cancelTopicAnalysis")
   @summary("cancelTopicAnalysis")
+  @doc("Cancel a running topic analysis.")
   cancelTopicAnalysis(
     @path clusterName: string,
     @path topicName: string,
@@ -87,6 +93,7 @@ interface TopicsApi {
   @route("/{topicName}")
   @operationId("getTopicDetails")
   @summary("getTopicDetails")
+  @doc("Get detailed information about a specific topic including partitions and configuration.")
   getTopicDetails(
     @path clusterName: string,
     @path topicName: string,
@@ -96,6 +103,7 @@ interface TopicsApi {
   @route("/{topicName}")
   @operationId("recreateTopic")
   @summary("recreateTopic")
+  @doc("Delete and recreate a topic with the same configuration.")
   recreateTopic(@path clusterName: string, @path topicName: string):
     | ApiCreatedResponse<Topic>
     | ApiTimeoutResponse
@@ -106,6 +114,7 @@ interface TopicsApi {
   @route("/{topicName}")
   @operationId("updateTopic")
   @summary("updateTopic")
+  @doc("Update the configuration of an existing topic.")
   updateTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -116,6 +125,7 @@ interface TopicsApi {
   @route("/{topicName}")
   @operationId("deleteTopic")
   @summary("deleteTopic")
+  @doc("Delete a topic from a Kafka cluster.")
   deleteTopic(
     @path clusterName: string,
     @path topicName: string,
@@ -125,6 +135,7 @@ interface TopicsApi {
   @route("/{topicName}/config")
   @operationId("getTopicConfigs")
   @summary("getTopicConfigs")
+  @doc("Get the configuration properties for a specific topic.")
   getTopicConfigs(
     @path clusterName: string,
     @path topicName: string,
@@ -134,6 +145,7 @@ interface TopicsApi {
   @route("/{topicName}/replications")
   @operationId("changeReplicationFactor")
   @summary("changeReplicationFactor")
+  @doc("Change the replication factor of a topic.")
   changeReplicationFactor(
     @path clusterName: string,
     @path topicName: string,
@@ -144,6 +156,7 @@ interface TopicsApi {
   @route("/{topicName}/activeproducers")
   @operationId("getActiveProducerStates")
   @summary("getActiveProducerStates")
+  @doc("Get active producer states for a specific topic.")
   getActiveProducerStates(
     @path clusterName: string,
     @path topicName: string,
@@ -152,6 +165,7 @@ interface TopicsApi {
   @patch(#{ implicitOptionality: true })
   @route("/{topicName}/partitions")
   @summary("increaseTopicPartitions")
+  @doc("Increase the number of partitions for a topic.")
   @operationId("increaseTopicPartitions")
   increaseTopicPartitions(
     @path clusterName: string,
@@ -163,6 +177,7 @@ interface TopicsApi {
   @route("/{topicName}/connectors")
   @operationId("getTopicConnectors")
   @summary("getTopicConnectors")
+  @doc("Get Kafka Connect connectors associated with a specific topic.")
   connectors(
     @path clusterName: string,
     @path topicName: string
@@ -171,6 +186,7 @@ interface TopicsApi {
   @get
   @route("/{topicName}/acls")
   @summary("listTopicAcls")
+  @doc("List ACL entries for a specific topic.")
   @operationId("listTopicAcls")
   listTopicAcls(
     @path clusterName: string,
