@@ -141,6 +141,10 @@ model ApplicationConfig {
         @format("duration")
         connectClusterCacheExpiry?: string;
       };
+      scrape?: {
+        @format("duration")
+        topicConfigsExpiry?: string;
+      };
       clusters?: {
         name?: string;
         bootstrapServers?: string;
@@ -227,6 +231,10 @@ model ApplicationConfig {
           topicAuditEnabled?: boolean;
           consoleAuditEnabled?: boolean;
           auditTopicProperties?: Record<string>;
+        };
+        scrape?: {
+          @format("duration")
+          topicConfigsExpiry?: string;
         };
       }[];
     };
