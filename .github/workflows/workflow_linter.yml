@@ -11,12 +11,13 @@ permissions:
 jobs:
   lint-workflows:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
 
     steps:
-      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # https://github.com/actions/checkout/releases/tag/v4.0.0
+      - uses: actions/checkout@v4.0.0
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
       - name: Install yamllint
@@ -24,3 +25,9 @@ jobs:
 
       - name: Validate workflow yaml files
         run: yamllint .github/workflows/. -d relaxed -f github --no-warnings
+
+      - name: Install actions-lock extension
+        run: gh extension install github/gh-actions-lock --pin v0.4.1
+
+      - name: Verify workflow lockfile
+        run: gh actions-lock --verify
