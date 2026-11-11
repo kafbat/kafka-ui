@@ -132,16 +132,21 @@ public interface Serde extends Closeable {
   }
 
   /**
-   * Indicates whether this serde is a preferable choice for the specified topic and target.
-   * Implementations can use this to influence serde selection when multiple candidates are available.
-   * Default implementation returns {@code true}.
+   * Indicates whether this serde should be auto-selected as the default for the specified topic
+   * and target when no explicit topic pattern or cluster default applies. Implementations should
+   * override this and return {@code true} only when they have positive, topic-specific evidence
+   * that they are a good default (e.g. a SchemaRegistry serde when the registry has an applicable
+   * subject). This is distinct from {@link #canSerialize}/{@link #canDeserialize}, which control
+   * whether the serde is selectable at all. The default implementation returns {@code false} so
+   * that serdes must opt in.
    *
    * @param topic topic name
    * @param type  {@code Target} for which preference is evaluated.
-   * @return {@code true} if this serde should be treated as preferable, otherwise {@code false}.
+   * @return {@code true} if this serde should be auto-selected for the topic/target, otherwise
+   *     {@code false}.
    */
   default boolean couldBePreferable(String topic, Target type) {
-    return true;
+    return false;
   }
 
   /**
