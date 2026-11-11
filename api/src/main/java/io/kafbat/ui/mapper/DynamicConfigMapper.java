@@ -66,6 +66,7 @@ public interface DynamicConfigMapper {
         Optional.ofNullable(source.getClientSecret()).ifPresent(opaquetoken::setClientSecret);
         Optional.ofNullable(source.getIntrospectionUri()).ifPresent(opaquetoken::setIntrospectionUri);
       }
+      return result;
     }
     return null;
   }
