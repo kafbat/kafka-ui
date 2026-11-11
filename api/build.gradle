@@ -9,17 +9,10 @@ plugins {
 }
 
 configurations.all {
+    // swagger-annotations and swagger-annotations-jakarta contain the same classes (same package);
+    // keep only the jakarta variant, which matches the swagger-core version used by springdoc
+    exclude group: 'io.swagger.core.v3', module: 'swagger-annotations'
     resolutionStrategy {
-        eachDependency { DependencyResolveDetails details ->
-            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
-            // uses independent versioning and should not be forced to the core Netty version
-            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
-            // so we can safely exclude it from the resolution strategy
-            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
-                details.useVersion(libs.versions.netty.get())
-                details.because("Revert when Spring Boot releases a version with the fix")
-            }
-        }
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
                 select(libs.lz4.yawk.get().toString())
@@ -31,9 +24,9 @@ configurations.all {
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-// Override the Jackson version managed by the Spring Boot BOM for CVE fixes
-// (2.21.4 -> 2.21.7). Revert when Spring Boot ships a BOM with a fixed Jackson.
-ext['jackson-bom.version'] = libs.versions.jackson.bom.get()
+// The Spring Boot BOM manages protobuf-java 4.x, which is incompatible with the protobuf-java 3.x
+// used by various dependencies of this project (see the micrometer/pushgateway exclusions below).
+ext['protobuf-java.version'] = libs.versions.protobuf.java.get()
 
 dependencies {
     implementation project(":contract")
@@ -42,8 +35,8 @@ dependencies {
     implementation libs.spring.starter.security
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
-    implementation libs.spring.starter.oauth2.client
-    implementation libs.spring.security.oauth2.resource.server
+    implementation libs.spring.starter.security.oauth2.client
+    implementation libs.spring.starter.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
     // For Swagger UI Webflux
@@ -78,7 +71,14 @@ dependencies {
     }
 
     implementation libs.jackson.databind.nullable
-    implementation libs.cel
+    // Spring Boot 4 defaults to Jackson 3. The codebase, generated clients and several dependencies
+    // (jackson-databind-nullable, msgpack, MCP SDK, schema registry client) still use Jackson 2,
+    // so keep Jackson 2 as the mapper for the web layer. See spring.http.codecs.preferred-json-mapper.
+    implementation libs.spring.boot.jackson2
+    implementation(libs.cel) {
+        // annotation processor, not needed at runtime; its shaded jar also embeds an old guava that trips CVE scans
+        exclude group: 'com.google.auto.value', module: 'auto-value'
+    }
     implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
@@ -102,10 +102,13 @@ dependencies {
 
     // CVE Fixes
     implementation libs.apache.commons.compress
+    implementation libs.guava
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
-    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.modelcontextprotocol.core
+    implementation libs.modelcontextprotocol.json.jackson2
+    implementation libs.spring.ai.mcp.webflux
     implementation libs.victools.jsonschema.generator
 
 
@@ -134,7 +137,7 @@ dependencies {
     testAnnotationProcessor libs.mapstruct.processor
 
     // Tests
-    testImplementation libs.spring.starter.test
+    testImplementation libs.spring.starter.webflux.test
     testImplementation libs.reactor.test
     testImplementation libs.testcontainers
     testImplementation libs.testcontainers.kafka
@@ -188,6 +191,10 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        // print the exception message and the full stack trace for failed tests in the CI log
+        exceptionFormat = 'full'
+    }
     finalizedBy jacocoTestReport
 }
 

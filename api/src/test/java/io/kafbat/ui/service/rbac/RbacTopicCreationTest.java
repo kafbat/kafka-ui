@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -54,6 +55,7 @@ class RbacTopicCreationTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     // Mock roles
     List<Role> roles = List.of(
         getRole()
