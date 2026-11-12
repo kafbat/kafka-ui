@@ -37,11 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -54,10 +52,7 @@ public class AccessControlService {
 
   private static final String ACCESS_DENIED = "Access denied";
 
-  @Nullable
-  private final InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
   private final RoleBasedAccessControlProperties properties;
-  private final Environment environment;
 
   @Getter
   private boolean rbacEnabled = false;
@@ -90,13 +85,6 @@ public class AccessControlService {
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
-
-    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
-    if (hasRolesConfigured
-        && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
-        && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
-      log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
-    }
   }
 
   public Mono<Void> validateAccess(AccessContext context) {
