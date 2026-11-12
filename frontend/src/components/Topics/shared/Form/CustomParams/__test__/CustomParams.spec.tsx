@@ -101,7 +101,7 @@ describe('CustomParams', () => {
         getCustomParamInput,
         getCustomParamsList,
         topicCustomParam1,
-        true
+        false
       );
 
       expect(getValueInput()).toHaveValue(
@@ -117,7 +117,7 @@ describe('CustomParams', () => {
         getCustomParamInput,
         getCustomParamsList,
         topicCustomParam1,
-        true
+        false
       );
 
       await selectOption(getCustomParamInput(), topicCustomParam2);
@@ -125,7 +125,7 @@ describe('CustomParams', () => {
         getCustomParamInput,
         getCustomParamsList,
         topicCustomParam2,
-        true
+        false
       );
 
       await userEvent.click(getAddNewFieldButton());
@@ -164,7 +164,7 @@ describe('CustomParams', () => {
         () => getAllCustomParamInputs()[0],
         getCustomParamsList,
         topicCustomParam1,
-        true
+        false
       );
 
       await expectOptionAvailability(
@@ -186,7 +186,7 @@ describe('CustomParams', () => {
         () => firstListBox,
         getCustomParamsList,
         topicCustomParam1,
-        true
+        false
       );
 
       await selectOption(secondListbox, topicCustomParam2);
@@ -194,7 +194,7 @@ describe('CustomParams', () => {
         () => secondListbox,
         getCustomParamsList,
         topicCustomParam2,
-        true
+        false
       );
 
       await selectOption(thirdListbox, topicCustomParam3);
@@ -202,7 +202,7 @@ describe('CustomParams', () => {
         () => thirdListbox,
         getCustomParamsList,
         topicCustomParam3,
-        true
+        false
       );
 
       const deleteSecondFieldsetButton = screen.getByTitle(
