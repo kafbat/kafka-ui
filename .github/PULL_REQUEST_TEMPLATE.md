@@ -1,31 +1,31 @@
-<!-- ignore-task-list-start -->
-- [ ] **Breaking change?** (if so, please describe the impact and migration path for existing application instances)
+<!--
+Read https://github.com/kafbat/kafka-ui/blob/main/.github/CONTRIBUTING.md first.
+PRs that break its rules are closed without review.
+Replace each prompt below with your answer. Nothing generic, nothing skipped.
+-->
 
+**Issue:** Fixes #
+<!-- The issue must be assigned to you. No issue, or not assigned to you: do not open the PR yet. -->
 
-<!-- ignore-task-list-end -->
-**What changes did you make?** (Give an overview)
+**Breaking change**
+<!-- "No", or a link to the maintainer comment that approved it beforehand, plus the migration path. -->
 
-**Is there anything you'd like reviewers to focus on?**
+**Why this change**
+<!-- What is wrong today and why this is the right fix. The diff shows what changed; do not narrate it. -->
 
+**Root cause and reproduction**
+<!-- Bug fixes only. What caused it, and the exact steps you ran against a live instance to see it before and after the fix. -->
 
-**How Has This Been Tested?** (put an "x" (case-sensitive!) next to an item)
-<!-- ignore-task-list-start -->
-- [ ] No need to
-- [ ] Manually (please, describe, if necessary)
-- [ ] Unit checks
-- [ ] Integration checks
-- [ ] Covered by existing automation
-<!-- ignore-task-list-end -->
+**Which test fails without this change**
+<!-- Name it. If none, say why no test can catch this. -->
 
-**Checklist** (put an "x" (case-sensitive!) next to all the items, otherwise the build will fail)
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation (e.g. **ENVIRONMENT VARIABLES**)
-- [ ] My changes generate no new warnings (e.g. Sonar is happy)
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged
+**Anything in the diff the issue did not ask for**
+<!-- Expected answer: nothing. Otherwise, why it is here and not in its own PR. -->
 
-Check out [Contributing](https://github.com/kafbat/kafka-ui/blob/main/.github/CONTRIBUTING.md) and [Code of Conduct](https://github.com/kafbat/kafka-ui/blob/main/.github/CODE-OF-CONDUCT.md)
+**Decisions a reviewer should question**
+<!-- Where you picked between options and why. You will be asked about every line regardless. -->
 
-**A picture of a cute animal (not mandatory but encouraged)**
+**Verification**
+<!-- `./gradlew build` on your machine: pass/fail. Docs PR link if config or env vars changed. -->
+
+**A picture of a cute animal** (not mandatory but encouraged)
