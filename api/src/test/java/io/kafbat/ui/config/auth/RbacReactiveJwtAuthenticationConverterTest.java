@@ -47,6 +47,14 @@ class RbacReactiveJwtAuthenticationConverterTest {
   }
 
   @Test
+  void skipsAuthoritiesThatAreNotTextInDefaultClaim() {
+    var user = convert(jwt -> jwt.setAuthorityPrefix(""),
+        jwt("default-sub", Map.of("scp", Arrays.asList(42, null, "", "ROLE-ADMIN"))));
+
+    assertThat(user.groups()).containsExactly("admin");
+  }
+
+  @Test
   void skipsEmptySegmentsOfDelimitedAuthoritiesClaim() {
     var user = convert(rolesClaim().andThen(jwt -> jwt.setAuthoritiesClaimDelimiter(",")),
         jwt("default-sub", Map.of("roles", ",ROLE-ADMIN,,ROLE_EDITOR")));

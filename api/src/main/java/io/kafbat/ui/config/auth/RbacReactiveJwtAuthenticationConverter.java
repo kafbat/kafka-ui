@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -66,11 +67,14 @@ public class RbacReactiveJwtAuthenticationConverter
   }
 
   private Jwt withTextAuthorities(Jwt jwt) {
-    if (authoritiesClaimName == null || !jwt.hasClaim(authoritiesClaimName)) {
+    var claimName = authoritiesClaimName != null
+        ? authoritiesClaimName
+        : Stream.of("scope", "scp").filter(jwt::hasClaim).findFirst().orElse(null);
+    if (claimName == null || !jwt.hasClaim(claimName)) {
       return jwt;
     }
     var claims = new HashMap<>(jwt.getClaims());
-    claims.put(authoritiesClaimName, textAuthorities(jwt.getClaim(authoritiesClaimName)));
+    claims.put(claimName, textAuthorities(jwt.getClaim(claimName)));
     return new Jwt(jwt.getTokenValue(), jwt.getIssuedAt(), jwt.getExpiresAt(), jwt.getHeaders(), claims);
   }
 
