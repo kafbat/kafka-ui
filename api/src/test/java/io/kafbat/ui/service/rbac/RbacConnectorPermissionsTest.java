@@ -260,10 +260,6 @@ class RbacConnectorPermissionsTest {
     });
   }
 
-  /**
-   * Test that connect-level VIEW permission alone does not allow editing a connector config
-   * via the connect fallback.
-   */
   @Test
   void validateAccess_editConnectorWithOnlyConnectViewPermission_denied() {
     withSecurityContext(() -> {
@@ -279,9 +275,6 @@ class RbacConnectorPermissionsTest {
     });
   }
 
-  /**
-   * Test that connect-level EDIT permission still allows editing a connector config via fallback.
-   */
   @Test
   void validateAccess_editConnectorFallsBackToConnectEditPermission_allowed() {
     withSecurityContext(() -> {
@@ -449,26 +442,16 @@ class RbacConnectorPermissionsTest {
     return role;
   }
 
-  /**
-   * Role with only connect-level VIEW permission and no connector-level permissions.
-   */
   public static Role getConnectViewOnlyRole() {
     return getConnectLevelRole(CONNECT_VIEW_ROLE_NAME, "connect.view.group",
         List.of(ConnectAction.VIEW.name()));
   }
 
-  /**
-   * Role with connect-level VIEW and EDIT permissions and no connector-level permissions.
-   */
   public static Role getConnectEditRole() {
     return getConnectLevelRole(CONNECT_EDIT_ROLE_NAME, "connect.edit.group",
         List.of(ConnectAction.VIEW.name(), ConnectAction.EDIT.name()));
   }
 
-  /**
-   * Builds a role with a single connect-level permission on {@code CONNECT_NAME}
-   * and no connector-level permissions.
-   */
   private static Role getConnectLevelRole(String roleName, String groupName, List<String> actions) {
     Role role = new Role();
     role.setName(roleName);
