@@ -34,17 +34,23 @@ public class AuthorizationController implements AuthorizationApi {
   private final ClustersStorage clustersStorage;
 
   public Mono<ResponseEntity<AuthenticationInfoDTO>> getUserAuthInfo(ServerWebExchange exchange) {
+    List<String> clusterNames = clustersStorage.getKafkaClusters().stream()
+        .map(KafkaCluster::getName)
+        .toList();
     List<UserPermissionDTO> defaultRolePermissions = accessControlService.getDefaultRole() != null
         ? mapPermissions(
           accessControlService.getDefaultRole().getPermissions(),
-          clustersStorage.getKafkaClusters().stream().map(KafkaCluster::getName).toList())
+          clusterNames)
         : Collections.emptyList();
 
     Mono<List<UserPermissionDTO>> permissions = AccessControlService.getUser()
         .map(user -> accessControlService.getRoles()
             .stream()
             .filter(role -> user.groups().contains(role.getName()))
-            .map(role -> mapPermissions(role.getPermissions(), role.getClusters()))
+            .map(role -> mapPermissions(
+                role.getPermissions(),
+                clusterNames.stream().filter(role::clusterMatches).toList()
+            ))
             .flatMap(Collection::stream)
             .toList()
         )
