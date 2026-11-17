@@ -47,12 +47,14 @@ import io.kafbat.ui.serde.api.PropertyResolver;
 import io.kafbat.ui.serde.api.RecordHeaders;
 import io.kafbat.ui.serde.api.SchemaDescription;
 import io.kafbat.ui.serde.api.Serde;
+import io.kafbat.ui.serde.api.SerdeParameter;
 import io.kafbat.ui.serdes.BuiltInSerde;
 import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.io.ByteArrayInputStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +72,8 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class ProtobufFileSerde implements BuiltInSerde {
   public static final String NAME = "ProtobufFile";
+
+  private static final String MESSAGE_NAME_PARAMETER = "messageName";
 
   private static final ProtobufSchemaConverter SCHEMA_CONVERTER = new ProtobufSchemaConverter();
 
@@ -138,11 +142,54 @@ public class ProtobufFileSerde implements BuiltInSerde {
     return descriptorFor(topic, type).isPresent();
   }
 
+  /**
+   * Builds a serializer for the message type configured for this topic/target.
+   */
   @Override
   public Serde.Serializer serializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();
+    return serializerForDescriptor(descriptor);
+  }
+
+  /**
+   * Builds a serializer, using the {@code messageName} property to pick a specific message type
+   * when the configured proto file defines more than one.
+   */
+  @Override
+  public Serde.Serializer serializer(String topic, Serde.Target type, Map<String, Object> properties) {
+    if (properties != null) {
+      Object messageNameObj = properties.get(MESSAGE_NAME_PARAMETER);
+      if (messageNameObj instanceof String messageName && !messageName.isBlank()) {
+        return serializerForDescriptor(resolveDescriptor(topic, type, messageName));
+      }
+    }
+    return serializer(topic, type);
+  }
+
+  /**
+   * Exposes the message types available for this topic/target so the UI can offer a choice.
+   */
+  @Override
+  public List<SerdeParameter> getParameters(String topic, Serde.Target type) {
+    return descriptorFor(topic, type)
+        .map(descriptor -> List.of(
+            new SerdeParameter(
+                MESSAGE_NAME_PARAMETER,
+                MESSAGE_NAME_PARAMETER,
+                collectMessageNames(descriptor.getFile()))))
+        .orElse(List.of());
+  }
+
+  /**
+   * Builds a serializer for the given descriptor, deduping it by full name so it doesn't clash
+   * with types already configured in the registry.
+   */
+  private Serde.Serializer serializerForDescriptor(Descriptor descriptor) {
+    Map<String, Descriptor> registryTypes = new HashMap<>();
+    descriptorPaths.keySet().forEach(d -> registryTypes.putIfAbsent(d.getFullName(), d));
+    registryTypes.putIfAbsent(descriptor.getFullName(), descriptor);
     TypeRegistry typeRegistry = TypeRegistry.newBuilder()
-        .add(descriptorPaths.keySet())
+        .add(registryTypes.values())
         .build();
 
     return new Serde.Serializer() {
@@ -158,6 +205,58 @@ public class ProtobufFileSerde implements BuiltInSerde {
     };
   }
 
+  /**
+   * Resolves a message type chosen by the user, restricted to the proto file configured for this
+   * topic/target.
+   */
+  private Descriptor resolveDescriptor(String topic, Serde.Target type, String messageName) {
+    Descriptors.FileDescriptor file = descriptorFor(topic, type)
+        .orElseThrow(() -> new ValidationException(
+            "No protobuf descriptor configured for topic '" + topic + "' " + type))
+        .getFile();
+    return collectDescriptors(file).stream()
+        .filter(d -> d.getFullName().equals(messageName) || d.getName().equals(messageName))
+        .findFirst()
+        .orElseThrow(() -> new ValidationException(
+            "Message type '" + messageName + "' not found in proto file '"
+                + file.getName() + "' used for topic '" + topic + "'"));
+  }
+
+  /**
+   * Returns the full names of all producible message types declared in the given proto file.
+   */
+  private static List<String> collectMessageNames(Descriptors.FileDescriptor file) {
+    return collectDescriptors(file).stream()
+        .map(Descriptor::getFullName)
+        .distinct()
+        .sorted()
+        .toList();
+  }
+
+  /**
+   * Returns all producible message descriptors declared in the given proto file, including nested ones.
+   */
+  private static List<Descriptor> collectDescriptors(Descriptors.FileDescriptor file) {
+    List<Descriptor> result = new ArrayList<>();
+    file.getMessageTypes().forEach(d -> collectNestedDescriptors(d, result));
+    return result;
+  }
+
+  /**
+   * Recursively collects {@code descriptor} and its nested types into {@code acc}, skipping
+   * synthetic map-entry types since they aren't real, producible message definitions.
+   */
+  private static void collectNestedDescriptors(Descriptor descriptor, List<Descriptor> acc) {
+    if (descriptor.getOptions().getMapEntry()) {
+      return;
+    }
+    acc.add(descriptor);
+    descriptor.getNestedTypes().forEach(nested -> collectNestedDescriptors(nested, acc));
+  }
+
+  /**
+   * Builds a deserializer using the message type configured for this topic/target.
+   */
   @Override
   public Serde.Deserializer deserializer(String topic, Serde.Target type) {
     var descriptor = descriptorFor(topic, type).orElseThrow();

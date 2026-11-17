@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.Descriptors;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
@@ -38,6 +39,7 @@ import io.kafbat.ui.util.jsonschema.ProtobufSchemaConverter;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +56,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   public static final String NAME = "SchemaRegistry";
   public static final String SUBJECT_PARAMETER_NAME = "subject";
+  public static final String MESSAGE_NAME_PARAMETER = "messageName";
   private static final byte SR_PAYLOAD_MAGIC_BYTE = 0x0;
   private static final int SR_PAYLOAD_PREFIX_LENGTH = 5;
 
@@ -71,6 +74,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   private Cache<Integer, List<String>> idToSubjectsCache;
   private Cache<String, Collection<String>> allSubjectsCache;
+  private Cache<String, List<String>> subjectMessageNamesCache;
 
   @Override
   public boolean canBeAutoConfigured(PropertyResolver kafkaClusterProperties,
@@ -194,6 +198,10 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .expireAfterWrite(Duration.ofSeconds(allSubjectsCacheTtlSeconds))
         .maximumSize(1)
         .build();
+    this.subjectMessageNamesCache = Caffeine.newBuilder()
+        .expireAfterWrite(Duration.ofSeconds(allSubjectsCacheTtlSeconds))
+        .maximumSize(maxSubjectsCacheSize)
+        .build();
   }
 
   private static SchemaRegistryClient createSchemaRegistryClient(List<String> urls,
@@ -262,7 +270,17 @@ public class SchemaRegistrySerde implements BuiltInSerde {
 
   @Override
   public Optional<SchemaDescription> getSchema(String topic, Target type) {
-    String subject = schemaSubject(topic, type);
+    return getSchema(topic, type, Map.of());
+  }
+
+  /**
+   * Resolves the schema of the subject the caller picked (via the {@code subject} entry in
+   * {@code knownValues}), falling back to the topic's default subject when none was picked, or
+   * when the given value isn't a currently selectable subject.
+   */
+  @Override
+  public Optional<SchemaDescription> getSchema(String topic, Target type, Map<String, Object> knownValues) {
+    String subject = resolveSubject(topic, type, knownValues);
     return getSchemaBySubject(subject)
         .flatMap(schemaMetadata ->
             //schema can be not-found, when schema contexts configured improperly
@@ -277,6 +295,15 @@ public class SchemaRegistrySerde implements BuiltInSerde {
                             "type", schemaMetadata.getSchemaType() // AVRO / PROTOBUF / JSON
                         )
                     )));
+  }
+
+  private String resolveSubject(String topic, Target type, Map<String, Object> knownValues) {
+    Object selectedSubject = knownValues.get(SUBJECT_PARAMETER_NAME);
+    if (selectedSubject instanceof String subject && !subject.isBlank()
+        && getSchemaSubjects(topic, type).contains(subject)) {
+      return subject;
+    }
+    return schemaSubject(topic, type);
   }
 
   @SneakyThrows
@@ -357,43 +384,64 @@ public class SchemaRegistrySerde implements BuiltInSerde {
         .toList();
   }
 
+  /**
+   * Builds a serializer for the default subject of this topic/target.
+   */
   @Override
   public Serializer serializer(String topic, Target type) {
-    String subject = schemaSubject(topic, type);
-    SchemaMetadata meta = getSchemaBySubject(subject)
-        .orElseThrow(() -> new ValidationException(
-            String.format("No schema for subject '%s' found", subject)));
-    ParsedSchema schema = getSchemaById(meta.getId())
-        .orElseThrow(() -> new IllegalStateException(
-            String.format("Schema found for id %s, subject '%s'", meta.getId(), subject)));
-    SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
-        .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
-    return switch (schemaType) {
-      case PROTOBUF -> input ->
-          serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
-      case AVRO -> input ->
-          serializeAvro((AvroSchema) schema, meta.getId(), input);
-      case JSON -> input ->
-          serializeJson((JsonSchema) schema, meta.getId(), input);
-    };
+    return buildSerializer(topic, type, schemaSubject(topic, type), null);
   }
 
+  /**
+   * Builds a serializer, honoring the {@code subject} and {@code messageName} properties when
+   * the caller picked an explicit subject and/or protobuf message type.
+   */
   @Override
   public Serializer serializer(String topic, Target type, Map<String, Object> properties) {
+    String subject = schemaSubject(topic, type);
+    String messageName = null;
     if (properties != null) {
       Object subjectObj = properties.get(SUBJECT_PARAMETER_NAME);
       if (subjectObj instanceof String explicitSubject && !explicitSubject.isEmpty()) {
-        return serializerWithSubject(topic, type, explicitSubject);
+        subject = explicitSubject;
+      }
+      Object messageNameObj = properties.get(MESSAGE_NAME_PARAMETER);
+      if (messageNameObj instanceof String explicitMessageName && !explicitMessageName.isBlank()) {
+        messageName = explicitMessageName;
       }
     }
-    return serializer(topic, type);
+    return buildSerializer(topic, type, subject, messageName);
   }
 
+  /**
+   * Exposes the selectable subjects. Message name options are resolved lazily, once a subject is
+   * known - see {@link #getParameters(String, Target, Map)} - since probing every selectable
+   * subject's schema up front doesn't scale to registries with many subjects.
+   */
   @Override
   public List<SerdeParameter> getParameters(String topic, Target type) {
-    return List.of(
-        new SerdeParameter(SUBJECT_PARAMETER_NAME, SUBJECT_PARAMETER_NAME, getSchemaSubjects(topic, type))
-    );
+    return getParameters(topic, type, Map.of());
+  }
+
+  /**
+   * Exposes the selectable subjects, and, once the caller has picked one (via the
+   * {@code subject} entry in {@code knownValues}), the message type names of that subject if it
+   * is a protobuf schema with multiple messages.
+   */
+  @Override
+  public List<SerdeParameter> getParameters(String topic, Target type, Map<String, Object> knownValues) {
+    List<SerdeParameter> parameters = new ArrayList<>();
+    List<String> subjects = getSchemaSubjects(topic, type);
+    parameters.add(new SerdeParameter(SUBJECT_PARAMETER_NAME, SUBJECT_PARAMETER_NAME, subjects));
+
+    Object selectedSubject = knownValues.get(SUBJECT_PARAMETER_NAME);
+    if (selectedSubject instanceof String subject && !subject.isBlank() && subjects.contains(subject)) {
+      List<String> messageNames = getProtobufMessageNames(subject);
+      if (!messageNames.isEmpty()) {
+        parameters.add(new SerdeParameter(MESSAGE_NAME_PARAMETER, MESSAGE_NAME_PARAMETER, messageNames));
+      }
+    }
+    return parameters;
   }
 
   @Override
@@ -401,23 +449,83 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     return getSchemaSubjects(topic, type).contains(schemaSubject(topic, type));
   }
 
-  private Serializer serializerWithSubject(String topic, Target type, String explicitSubject) {
-    SchemaMetadata meta = getSchemaBySubject(explicitSubject)
+  /**
+   * Builds a serializer for the given subject, passing {@code messageName} through for protobuf
+   * schemas so a specific message type can be chosen.
+   */
+  private Serializer buildSerializer(String topic, Target type, String subject, @Nullable String messageName) {
+    SchemaMetadata meta = getSchemaBySubject(subject)
         .orElseThrow(() -> new ValidationException(
-            String.format("No schema for subject '%s' found", explicitSubject)));
+            String.format("No schema for subject '%s' found", subject)));
     ParsedSchema schema = getSchemaById(meta.getId())
         .orElseThrow(() -> new IllegalStateException(
-            String.format("Schema not found for id %s, subject '%s'", meta.getId(), explicitSubject)));
+            String.format("Schema not found for id %s, subject '%s'", meta.getId(), subject)));
     SchemaType schemaType = SchemaType.fromString(meta.getSchemaType())
         .orElseThrow(() -> new UnknownSchemaTypeException(meta.getSchemaType()));
     return switch (schemaType) {
       case PROTOBUF -> input ->
-          serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(), input);
+          serializeProto(schemaRegistryClient, topic, type, (ProtobufSchema) schema, meta.getId(),
+              messageName, input);
       case AVRO -> input ->
           serializeAvro((AvroSchema) schema, meta.getId(), input);
       case JSON -> input ->
           serializeJson((JsonSchema) schema, meta.getId(), input);
     };
+  }
+
+  /**
+   * Returns all message type names for a protobuf subject (empty for non-protobuf or missing
+   * subjects). Cached, since resolving them costs a schema registry round trip per subject.
+   */
+  private List<String> getProtobufMessageNames(String subject) {
+    return subjectMessageNamesCache.get(subject, this::loadProtobufMessageNames);
+  }
+
+  /**
+   * Loads the message type names for a protobuf subject from the schema registry.
+   */
+  private List<String> loadProtobufMessageNames(String subject) {
+    try {
+      var metaOpt = getSchemaBySubject(subject);
+      if (metaOpt.isEmpty()
+          || SchemaType.fromString(metaOpt.get().getSchemaType()).orElse(null) != SchemaType.PROTOBUF) {
+        return List.of();
+      }
+      return getSchemaById(metaOpt.get().getId())
+          .filter(ProtobufSchema.class::isInstance)
+          .map(schema -> collectProtobufMessageNames((ProtobufSchema) schema))
+          .orElseGet(List::of);
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
+  /**
+   * Returns the full names of all producible message types declared in the schema's proto file.
+   */
+  private static List<String> collectProtobufMessageNames(ProtobufSchema schema) {
+    Descriptors.Descriptor first = schema.toDescriptor();
+    if (first == null) {
+      return List.of();
+    }
+    List<String> names = new ArrayList<>();
+    collectProtobufMessages(first.getFile().getMessageTypes(), names);
+    return names.stream().distinct().sorted().toList();
+  }
+
+  /**
+   * Recursively collects the full names of {@code descriptors} and their nested types into
+   * {@code acc}, skipping synthetic map-entry types since they aren't real, producible message
+   * definitions.
+   */
+  private static void collectProtobufMessages(List<Descriptors.Descriptor> descriptors, List<String> acc) {
+    for (Descriptors.Descriptor descriptor : descriptors) {
+      if (descriptor.getOptions().getMapEntry()) {
+        continue;
+      }
+      acc.add(descriptor.getFullName());
+      collectProtobufMessages(descriptor.getNestedTypes(), acc);
+    }
   }
 
   @Override

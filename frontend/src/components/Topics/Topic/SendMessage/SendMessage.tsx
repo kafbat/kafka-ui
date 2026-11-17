@@ -43,6 +43,13 @@ const getSerdeParameters = (
   return serde?.parameters ?? [];
 };
 
+// Params cleared back to "(default)" carry an empty value; drop them so an
+// unset parameter is indistinguishable from one that was never touched.
+const setParams = (
+  params: Record<string, string> | undefined
+): Record<string, string> =>
+  Object.fromEntries(Object.entries(params ?? {}).filter(([, v]) => v !== ''));
+
 const SendMessage: React.FC<SendMessageProps> = ({
   closeSidebar,
   messageData = null,
@@ -52,10 +59,25 @@ const SendMessage: React.FC<SendMessageProps> = ({
   const urlKeySerde = searchParams.get('keySerde');
   const urlValueSerde = searchParams.get('valueSerde');
   const { data: topic } = useTopicDetails({ clusterName, topicName });
+  const [selectedKeySubject, setSelectedKeySubjectState] = React.useState<
+    string | undefined
+  >(messageData?.keySerdeParams?.subject);
+  const [selectedValueSubject, setSelectedValueSubjectState] = React.useState<
+    string | undefined
+  >(messageData?.valueSerdeParams?.subject);
+  // useSerdes suspends on every queryKey change; without a transition, picking a
+  // subject would hide the whole form behind the Suspense fallback while it refetches.
+  const [, startSubjectTransition] = React.useTransition();
+  const setSelectedKeySubject = (subject: string | undefined) =>
+    startSubjectTransition(() => setSelectedKeySubjectState(subject));
+  const setSelectedValueSubject = (subject: string | undefined) =>
+    startSubjectTransition(() => setSelectedValueSubjectState(subject));
   const { data: serdes = {} } = useSerdes({
     clusterName,
     topicName,
     use: SerdeUsage.SERIALIZE,
+    keySubject: selectedKeySubject,
+    valueSubject: selectedValueSubject,
   });
   const sendMessage = useSendMessage({ clusterName, topicName });
   const defaultValues = React.useMemo(() => getDefaultValues(serdes), [serdes]);
@@ -103,6 +125,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
   React.useEffect(() => {
     if (prevKeySerde.current !== keySerde) {
       setValue('keySerdeParams', undefined);
+      setSelectedKeySubject(undefined);
       prevKeySerde.current = keySerde;
     }
   }, [keySerde, setValue]);
@@ -111,6 +134,7 @@ const SendMessage: React.FC<SendMessageProps> = ({
   React.useEffect(() => {
     if (prevValueSerde.current !== valueSerde) {
       setValue('valueSerdeParams', undefined);
+      setSelectedValueSubject(undefined);
       prevValueSerde.current = valueSerde;
     }
   }, [valueSerde, setValue]);
@@ -119,14 +143,23 @@ const SendMessage: React.FC<SendMessageProps> = ({
     parameters: SerdeParameter[],
     prefix: 'keySerdeParams' | 'valueSerdeParams'
   ) => {
+    const setSelectedSubject =
+      prefix === 'keySerdeParams'
+        ? setSelectedKeySubject
+        : setSelectedValueSubject;
     return parameters.map((param) => {
       if (!param.allowedValues || param.allowedValues.length === 0) return null;
       const fieldName = `${prefix}.${param.name}`;
       const label = param.visibleName || param.name;
-      const options = param.allowedValues.map((v) => ({
-        label: v,
-        value: v,
-      }));
+      // Serde parameters are optional: offer an explicit way back to "unset",
+      // otherwise a value can be picked but never cleared.
+      const options = [
+        { label: '(default)', value: '' },
+        ...param.allowedValues.map((v) => ({
+          label: v,
+          value: v,
+        })),
+      ];
       return (
         <div key={fieldName}>
           <InputLabel>{label}</InputLabel>
@@ -136,7 +169,18 @@ const SendMessage: React.FC<SendMessageProps> = ({
             render={({ field: { name, onChange, value } }) => (
               <InputWithOptions
                 name={name}
-                onChange={onChange}
+                onChange={(newValue) => {
+                  onChange(newValue);
+                  // "subject" drives which message names getSerdes offers - refetch on change.
+                  if (param.name === 'subject') {
+                    // the previous messageName may not exist in the new subject's schema
+                    setValue(
+                      `${prefix}.messageName` as keyof MessageFormData,
+                      ''
+                    );
+                    setSelectedSubject(newValue || undefined);
+                  }
+                }}
                 minWidth="100%"
                 options={options}
                 value={value as string}
@@ -209,11 +253,11 @@ const SendMessage: React.FC<SendMessageProps> = ({
         partition: partition || 0,
         keySerde: formKeySerde,
         valueSerde: formValueSerde,
-        ...(keySerdeParams && Object.keys(keySerdeParams).length > 0
-          ? { keySerdeProperties: keySerdeParams }
+        ...(Object.keys(setParams(keySerdeParams)).length > 0
+          ? { keySerdeProperties: setParams(keySerdeParams) }
           : {}),
-        ...(valueSerdeParams && Object.keys(valueSerdeParams).length > 0
-          ? { valueSerdeProperties: valueSerdeParams }
+        ...(Object.keys(setParams(valueSerdeParams)).length > 0
+          ? { valueSerdeProperties: setParams(valueSerdeParams) }
           : {}),
       });
       if (!keepContents) {
