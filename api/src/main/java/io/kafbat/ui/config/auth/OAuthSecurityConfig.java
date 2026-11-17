@@ -142,10 +142,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
                 .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
                 .build()));
         if (accessControlService.isRbacEnabled()) {
-          o.authenticationConverter((token, principal) -> Mono.just(new RbacBearerTokenAuthentication(
-              RbacReactiveJwtAuthenticationConverter.toUser(
-                  accessControlService, principal.getName(), principal.getName(), principal.getAuthorities()),
-              token, principal.getAuthorities())));
+          o.authenticationConverter((token, principal) ->
+              Mono.just(RbacBearerTokenAuthentication.of(accessControlService, token, principal)));
         }
       }));
     }
