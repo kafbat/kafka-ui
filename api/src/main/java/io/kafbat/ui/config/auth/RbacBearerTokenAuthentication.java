@@ -35,7 +35,7 @@ public class RbacBearerTokenAuthentication extends AbstractAuthenticationToken {
                                           Collection<? extends GrantedAuthority> authorities) {
     var roles = authorities.stream().map(GrantedAuthority::getAuthority).toList();
     Set<String> groups = Sets.union(
-        username == null ? Set.of() : extractUsernameRoles(accessControlService, username),
+        extractUsernameRoles(accessControlService, username),
         matchRoles(accessControlService, roles));
     var user = new RbacBearerTokenUser(username != null ? username : fallbackName, groups);
     return new RbacBearerTokenAuthentication(user, token, authorities);

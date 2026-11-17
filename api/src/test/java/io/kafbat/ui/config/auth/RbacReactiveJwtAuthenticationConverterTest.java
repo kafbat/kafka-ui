@@ -39,14 +39,17 @@ class RbacReactiveJwtAuthenticationConverterTest {
 
   @Test
   void splitsAuthoritiesClaimByConfiguredDelimiter() {
-    var user = convert(rolesClaim().andThen(jwt -> jwt.setAuthoritiesClaimDelimiter(",")),
-        jwt("default-sub", Map.of("roles", "ROLE-ADMIN,ROLE_EDITOR")));
+    var user = convert(jwt -> {
+      jwt.setAuthoritiesClaimName("roles");
+      jwt.setAuthorityPrefix("");
+      jwt.setAuthoritiesClaimDelimiter(",");
+    }, jwt("default-sub", Map.of("roles", "ROLE-ADMIN,ROLE_EDITOR")));
 
     assertThat(user.groups()).containsExactlyInAnyOrder("admin", "editor");
   }
 
   @Test
-  void appliesAuthorityPrefix() {
+  void rolesWithDefaultScopePrefixDoNotMatch() {
     var user = convert(jwt -> jwt.setAuthoritiesClaimName("roles"),
         jwt("default-sub", Map.of("roles", List.of("ROLE-ADMIN"))));
 
@@ -84,13 +87,6 @@ class RbacReactiveJwtAuthenticationConverterTest {
     var token = new RbacReactiveJwtAuthenticationConverter(accessControlService, jwtProperties).convert(jwt).block();
     assertThat(token).isNotNull();
     return (RbacBearerTokenUser) token.getPrincipal();
-  }
-
-  private static Consumer<OAuth2ResourceServerProperties.Jwt> rolesClaim() {
-    return jwt -> {
-      jwt.setAuthoritiesClaimName("roles");
-      jwt.setAuthorityPrefix("");
-    };
   }
 
   private static Jwt jwt(String subject, Map<String, Object> claims) {

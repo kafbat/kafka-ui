@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -53,6 +54,9 @@ class RbacConnectorPermissionsTest {
   @Mock
   RbacUser user;
 
+  @Mock
+  Environment environment;
+
   @BeforeEach
   void setUp() {
     List<Role> roles = List.of(
@@ -65,7 +69,7 @@ class RbacConnectorPermissionsTest {
     RoleBasedAccessControlProperties properties = mock();
     when(properties.getRoles()).thenReturn(roles);
 
-    accessControlService = new AccessControlService(properties);
+    accessControlService = new AccessControlService(properties, environment);
     accessControlService.init();
 
     when(securityContext.getAuthentication()).thenReturn(authentication);

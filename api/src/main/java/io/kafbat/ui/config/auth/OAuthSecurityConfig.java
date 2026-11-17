@@ -210,16 +210,16 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public ReactiveClientRegistrationRepository clientRegistrationRepository() {
-    if (!hasClientRegistrations()) {
-      if (!hasJwtResourceServer() && !hasOpaqueTokenResourceServer()) {
-        throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
-      }
-      return registrationId -> Mono.empty();
+    if (hasClientRegistrations()) {
+      final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
+      final List<ClientRegistration> registrations =
+          new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
+      return new InMemoryReactiveClientRegistrationRepository(registrations);
     }
-    final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
-    final List<ClientRegistration> registrations =
-        new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
-    return new InMemoryReactiveClientRegistrationRepository(registrations);
+    if (!hasJwtResourceServer() && !hasOpaqueTokenResourceServer()) {
+      throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
+    }
+    return (_) -> Mono.empty();
   }
 
   @Bean
@@ -253,21 +253,17 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
   private boolean hasClientRegistrations() {
-    return properties.getClient() != null && !properties.getClient().isEmpty();
+    return !properties.getClient().isEmpty();
   }
 
   private boolean hasJwtResourceServer() {
     var resourceServer = properties.getResourceServer();
-    return resourceServer != null
-        && resourceServer.getJwt() != null
-        && resourceServer.getJwt().getJwkSetUri() != null;
+    return resourceServer != null && resourceServer.getJwt().getJwkSetUri() != null;
   }
 
   private boolean hasOpaqueTokenResourceServer() {
     var resourceServer = properties.getResourceServer();
-    return resourceServer != null
-        && resourceServer.getOpaquetoken() != null
-        && resourceServer.getOpaquetoken().getIntrospectionUri() != null;
+    return resourceServer != null && resourceServer.getOpaquetoken().getIntrospectionUri() != null;
   }
 
   private ProviderAuthorityExtractor getExtractor(final OAuthProperties.OAuth2Provider provider,

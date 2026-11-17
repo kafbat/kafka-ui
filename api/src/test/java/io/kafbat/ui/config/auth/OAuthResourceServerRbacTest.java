@@ -14,48 +14,31 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import io.kafbat.ui.model.ApplicationConfigDTO;
-import io.kafbat.ui.model.ApplicationConfigPropertiesDTO;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
-@SpringBootTest
-@AutoConfigureWebTestClient
 @TestPropertySource(properties = {
-    "auth.type=OAUTH2",
     "auth.oauth2.resource-server.jwt.issuer-uri=" + OAuthResourceServerRbacTest.ISSUER,
     "auth.oauth2.resource-server.jwt.audiences[0]=" + OAuthResourceServerRbacTest.AUDIENCE,
     "auth.oauth2.resource-server.jwt.authorities-claim-name=roles",
     "auth.oauth2.resource-server.jwt.authority-prefix=",
-    "rbac.roles[0].name=config-editor",
-    "rbac.roles[0].clusters[0]=local",
     "rbac.roles[0].subjects[0].provider=oauth",
     "rbac.roles[0].subjects[0].type=role",
-    "rbac.roles[0].subjects[0].value=kafka-ui-config",
-    "rbac.roles[0].permissions[0].resource=applicationconfig",
-    "rbac.roles[0].permissions[0].actions[0]=edit"
+    "rbac.roles[0].subjects[0].value=kafka-ui-config"
 })
-class OAuthResourceServerRbacTest {
+class OAuthResourceServerRbacTest extends AbstractBearerTokenRbacTest {
 
   static final String ISSUER = "https://idp.example.com";
   static final String AUDIENCE = "kafbat-ui";
 
   private static final RSAKey KEY = generateKey();
   private static final WireMockServer JWKS = startJwks();
-
-  @Autowired
-  private WebTestClient webTestClient;
 
   @DynamicPropertySource
   static void jwkSetUri(DynamicPropertyRegistry registry) {
@@ -69,12 +52,12 @@ class OAuthResourceServerRbacTest {
 
   @Test
   void tokenWithMatchingRoleIsAllowed() throws JOSEException {
-    validateConfig(List.of("kafka-ui-config")).expectStatus().isOk();
+    validateConfig(token(List.of("kafka-ui-config"), ISSUER, AUDIENCE)).expectStatus().isOk();
   }
 
   @Test
   void tokenWithoutMatchingRoleIsForbidden() throws JOSEException {
-    validateConfig(List.of("other")).expectStatus().isForbidden();
+    validateConfig(token(List.of("other"), ISSUER, AUDIENCE)).expectStatus().isForbidden();
   }
 
   @Test
@@ -87,17 +70,6 @@ class OAuthResourceServerRbacTest {
   void tokenForAnotherAudienceIsRejected() throws JOSEException {
     validateConfig(token(List.of("kafka-ui-config"), ISSUER, "other"))
         .expectStatus().isUnauthorized();
-  }
-
-  private WebTestClient.ResponseSpec validateConfig(List<String> roles) throws JOSEException {
-    return validateConfig(token(roles, ISSUER, AUDIENCE));
-  }
-
-  private WebTestClient.ResponseSpec validateConfig(String token) {
-    return webTestClient.put().uri("/api/config/validated")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-        .bodyValue(new ApplicationConfigDTO().properties(new ApplicationConfigPropertiesDTO()))
-        .exchange();
   }
 
   private static String token(List<String> roles, String issuer, String audience) throws JOSEException {

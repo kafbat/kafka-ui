@@ -4,6 +4,7 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -32,7 +33,7 @@ public class RbacReactiveJwtAuthenticationConverter
   }
 
   @Override
-  public Mono<AbstractAuthenticationToken> convert(Jwt jwt) {
+  public Mono<AbstractAuthenticationToken> convert(@NonNull Jwt jwt) {
     var token = delegate.convert(jwt);
     return Mono.just(RbacBearerTokenAuthentication.of(
         accessControlService, jwt.getTokenValue(), token.getName(), jwt.getSubject(), token.getAuthorities()));

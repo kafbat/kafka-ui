@@ -1,5 +1,8 @@
 package io.kafbat.ui.service.rbac;
 
+import static io.kafbat.ui.model.AuthTypeDTO.DISABLED;
+import static io.kafbat.ui.model.AuthTypeDTO.LOGIN_FORM;
+
 import io.kafbat.ui.config.auth.AuthenticatedUser;
 import io.kafbat.ui.config.auth.RbacUser;
 import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
@@ -37,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -53,6 +57,7 @@ public class AccessControlService {
   private static final String ACCESS_DENIED = "Access denied";
 
   private final RoleBasedAccessControlProperties properties;
+  private final Environment environment;
 
   @Getter
   private boolean rbacEnabled = false;
@@ -85,6 +90,11 @@ public class AccessControlService {
             .collect(Collectors.toSet()))
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
+
+    var authType = environment.getProperty("auth.type");
+    if (DISABLED.getValue().equalsIgnoreCase(authType) || LOGIN_FORM.getValue().equalsIgnoreCase(authType)) {
+      log.error("Roles are configured, but auth type [{}] doesn't support RBAC.", authType);
+    }
   }
 
   public Mono<Void> validateAccess(AccessContext context) {
