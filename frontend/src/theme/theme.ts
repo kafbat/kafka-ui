@@ -312,7 +312,7 @@ const baseTheme = {
     },
     ftsIcon: {
       normal: Colors.neutral[30],
-      active: Colors.brand[70],
+      active: Colors.green[70],
     },
   },
   textArea: {
@@ -1565,8 +1565,8 @@ export const darkTheme: ThemeType = {
     },
     menuIcon: Colors.brand[0],
     ftsIcon: {
-      normal: Colors.neutral[50],
-      active: Colors.brand[10],
+      normal: Colors.neutral[20],
+      active: Colors.green[50],
     },
   },
   textArea: {
