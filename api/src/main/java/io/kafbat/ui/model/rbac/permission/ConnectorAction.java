@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 public enum ConnectorAction implements PermissibleAction {
 
   VIEW(ConnectAction.VIEW),
-  EDIT(ConnectAction.VIEW, VIEW),
+  EDIT(ConnectAction.EDIT, VIEW),
   CREATE(ConnectAction.CREATE, VIEW),
   OPERATE(ConnectAction.OPERATE, VIEW),
   DELETE(ConnectAction.DELETE, VIEW),
