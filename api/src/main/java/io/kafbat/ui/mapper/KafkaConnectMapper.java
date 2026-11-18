@@ -230,7 +230,9 @@ public interface KafkaConnectMapper {
         connector.getConnector().getName(),
         connector.getConnector().getType(),
         connector.getConnector().getStatus(),
-        connector.getTopics()
+        connector.getTopics(),
+        Optional.ofNullable(connector.getTasks()).orElse(List.of()).stream()
+            .map(TaskDTO::getStatus).filter(Objects::nonNull).toList()
     );
   }
 }

@@ -7,7 +7,15 @@ import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.NodeState;
 import static io.kafbat.ui.service.metrics.scrape.ScrapedClusterState.TopicState;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.kafbat.ui.model.ConnectorStateDTO;
+import io.kafbat.ui.model.ConnectorStatusDTO;
+import io.kafbat.ui.model.ConnectorTaskStatusDTO;
+import io.kafbat.ui.model.ConnectorTypeDTO;
+import io.kafbat.ui.model.TaskStatusDTO;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState.ConnectorState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
+import io.prometheus.metrics.model.snapshots.GaugeSnapshot;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +96,14 @@ class InferredMetricsScraperTest {
                     )
                 )
             )
-            .build()
+            .build(),
+        List.of()
     );
 
     StepVerifier.create(scraped)
         .assertNext(inferredMetrics ->
             assertThat(inferredMetrics.asStream().map(m -> m.getMetadata().getName())).containsExactlyInAnyOrder(
+                "connect_count",
                 "broker_count",
                 "broker_bytes_disk",
                 "broker_bytes_usable",
@@ -114,6 +124,41 @@ class InferredMetricsScraperTest {
                 "kafka_consumergroup_lag"
             )
         )
+        .verifyComplete();
+  }
+
+  @Test
+  void kafkaConnectMetricsScraped() {
+    var connect = KafkaConnectState.builder().name("connect1").connectors(List.of(
+        new ConnectorState("src1", ConnectorTypeDTO.SOURCE, new ConnectorStatusDTO().state(ConnectorStateDTO.RUNNING),
+            List.of("t1"), List.of(
+                new TaskStatusDTO().id(0).state(ConnectorTaskStatusDTO.RUNNING).workerId("w1"),
+                new TaskStatusDTO().id(1).state(ConnectorTaskStatusDTO.FAILED))),
+        new ConnectorState("sink1", ConnectorTypeDTO.SINK, new ConnectorStatusDTO().state(ConnectorStateDTO.FAILED),
+            List.of(), List.of())
+    )).build();
+
+    StepVerifier.create(scraper.scrape(ScrapedClusterState.empty(), List.of(connect)))
+        .assertNext(inferred -> {
+          var points = inferred.asStream()
+              .filter(m -> m.getMetadata().getName().startsWith("connect"))
+              .flatMap(m -> ((GaugeSnapshot) m).getDataPoints().stream()
+                  .map(dp -> m.getMetadata().getName() + dp.getLabels() + "=" + dp.getValue()))
+              .toList();
+          assertThat(points).hasSize(4 + 2 * ConnectorStateDTO.values().length
+              + 2 * ConnectorTaskStatusDTO.values().length);
+          assertThat(points).filteredOn(p -> !p.endsWith("=0.0")).containsExactlyInAnyOrder(
+              "connect_count{}=1.0",
+              "connector_count{connect=\"connect1\"}=2.0",
+              "connector_task_count{connect=\"connect1\",connector=\"src1\"}=2.0",
+              "connector_state{connect=\"connect1\",connector=\"src1\",connector_type=\"SOURCE\","
+                  + "state=\"RUNNING\"}=1.0",
+              "connector_state{connect=\"connect1\",connector=\"sink1\",connector_type=\"SINK\",state=\"FAILED\"}=1.0",
+              "connector_task_state{connect=\"connect1\",connector=\"src1\",state=\"RUNNING\",task=\"0\","
+                  + "worker_id=\"w1\"}=1.0",
+              "connector_task_state{connect=\"connect1\",connector=\"src1\",state=\"FAILED\",task=\"1\","
+                  + "worker_id=\"unknown\"}=1.0");
+        })
         .verifyComplete();
   }
 

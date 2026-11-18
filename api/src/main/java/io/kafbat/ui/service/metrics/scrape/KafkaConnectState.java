@@ -2,6 +2,7 @@ package io.kafbat.ui.service.metrics.scrape;
 
 import io.kafbat.ui.model.ConnectorStatusDTO;
 import io.kafbat.ui.model.ConnectorTypeDTO;
+import io.kafbat.ui.model.TaskStatusDTO;
 import java.time.Instant;
 import java.util.List;
 import lombok.Builder;
@@ -20,5 +21,6 @@ public class KafkaConnectState {
   public record ConnectorState(String name,
                                ConnectorTypeDTO connectorType,
                                ConnectorStatusDTO status,
-                               List<String> topics) {}
+                               List<String> topics,
+                               List<TaskStatusDTO> tasks) {}
 }

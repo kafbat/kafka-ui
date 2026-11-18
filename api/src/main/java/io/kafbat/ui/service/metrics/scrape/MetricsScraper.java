@@ -17,6 +17,7 @@ import io.kafbat.ui.service.metrics.sink.MetricsSink;
 import io.prometheus.metrics.model.snapshots.MetricSnapshot;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,8 +55,10 @@ public class MetricsScraper {
     );
   }
 
-  public Mono<Metrics> scrape(ScrapedClusterState clusterState, Collection<Node> nodes) {
-    Mono<InferredMetrics> inferred = inferredMetricsScraper.scrape(clusterState);
+  public Mono<Metrics> scrape(ScrapedClusterState clusterState,
+                              List<KafkaConnectState> connectStates,
+                              Collection<Node> nodes) {
+    Mono<InferredMetrics> inferred = inferredMetricsScraper.scrape(clusterState, connectStates);
     Mono<PerBrokerScrapedMetrics> brokerMetrics = scrapeBrokers(nodes);
     return inferred.zipWith(
         brokerMetrics,

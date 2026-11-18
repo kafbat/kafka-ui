@@ -117,4 +117,15 @@ class KafkaConnectMapperTest {
     assertThat(kafkaConnect).isEqualTo(connectDto);
 
   }
+
+  @Test
+  void toScrapeStateMapsTaskStatuses() {
+    var running = new TaskStatusDTO().id(0).state(ConnectorTaskStatusDTO.RUNNING).workerId("w1");
+    var connector = InternalConnectorInfo.builder()
+        .connector(new ConnectorDTO().name("conn1"))
+        .tasks(List.of(new TaskDTO().status(running), new TaskDTO()))
+        .topics(List.of())
+        .build();
+    assertThat(new KafkaConnectMapperImpl().toScrapeState(connector).tasks()).containsExactly(running);
+  }
 }
