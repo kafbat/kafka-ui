@@ -1,5 +1,8 @@
 package io.kafbat.ui.service.rbac;
 
+import static io.kafbat.ui.model.AuthTypeDTO.DISABLED;
+import static io.kafbat.ui.model.AuthTypeDTO.LOGIN_FORM;
+
 import io.kafbat.ui.config.auth.AuthenticatedUser;
 import io.kafbat.ui.config.auth.RbacUser;
 import io.kafbat.ui.config.auth.RoleBasedAccessControlProperties;
@@ -41,7 +44,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
@@ -54,8 +56,6 @@ public class AccessControlService {
 
   private static final String ACCESS_DENIED = "Access denied";
 
-  @Nullable
-  private final InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
   private final RoleBasedAccessControlProperties properties;
   private final Environment environment;
 
@@ -91,11 +91,9 @@ public class AccessControlService {
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
-    boolean hasRolesConfigured = !properties.getRoles().isEmpty() || properties.getDefaultRole() != null;
-    if (hasRolesConfigured
-        && "oauth2".equalsIgnoreCase(environment.getProperty("auth.type"))
-        && (clientRegistrationRepository == null || !clientRegistrationRepository.iterator().hasNext())) {
-      log.error("Roles are configured but no authentication methods are present. Authentication might fail.");
+    var authType = environment.getProperty("auth.type");
+    if (DISABLED.getValue().equalsIgnoreCase(authType) || LOGIN_FORM.getValue().equalsIgnoreCase(authType)) {
+      log.error("Roles are configured, but auth type [{}] doesn't support RBAC.", authType);
     }
   }
 
