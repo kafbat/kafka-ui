@@ -26,7 +26,7 @@ public interface DynamicConfigMapper {
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
   default String map(Resource resource) {
-    return resource.getFilename();
+    return resource == null ? null : resource.getFilename();
   }
 
   @Mapping(source = "metrics.store", target = "metrics.store", ignore = true)
