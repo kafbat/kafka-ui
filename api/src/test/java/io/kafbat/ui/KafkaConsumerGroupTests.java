@@ -21,6 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.utils.Bytes;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -264,11 +265,32 @@ class KafkaConsumerGroupTests extends AbstractIntegrationTest {
       try (val consumer1 = createTestConsumerWithGroupId(emptyGroup1)) {
         consumer1.subscribe(List.of(topicName));
         consumer1.poll(Duration.ofMillis(100));
+        consumer1.commitSync();
       }
       try (val consumer2 = createTestConsumerWithGroupId(emptyGroup2)) {
         consumer2.subscribe(List.of(topicName));
         consumer2.poll(Duration.ofMillis(100));
+        consumer2.commitSync();
       }
+
+      // Wait for consumer groups to transition to EMPTY state
+      Awaitility.await()
+          .atMost(Duration.ofSeconds(15))
+          .untilAsserted(() -> {
+            var response = webTestClient
+                .get()
+                .uri("/api/clusters/{clusterName}/consumer-groups/paged?search={prefix}&state=EMPTY",
+                    LOCAL, prefix)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(ConsumerGroupsPageResponseDTO.class)
+                .returnResult()
+                .getResponseBody();
+
+            assertThat(response).isNotNull();
+            assertThat(response.getConsumerGroups()).hasSizeGreaterThanOrEqualTo(2);
+          });
 
       // Test filtering by STABLE state
       webTestClient
