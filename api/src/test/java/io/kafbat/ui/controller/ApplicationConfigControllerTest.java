@@ -54,12 +54,9 @@ class ApplicationConfigControllerTest extends AbstractIntegrationTest {
   @TestPropertySource(properties = "dynamic.config.enabled=false")
   class DynamicConfigDisabledTest {
 
-    @Autowired
-    private WebTestClient webTestClient;
-
     @Test
-    void validateConfigReturnsErrorWhenDynamicConfigDisabled() {
-      webTestClient
+    void validateConfigReturnsErrorWhenDynamicConfigDisabled(@Autowired WebTestClient client) {
+      client
           .put()
           .uri("/api/config/validated")
           .bodyValue(new ApplicationConfigDTO().properties(new ApplicationConfigPropertiesDTO()))
