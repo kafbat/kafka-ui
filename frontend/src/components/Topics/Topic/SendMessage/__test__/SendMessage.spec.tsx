@@ -120,7 +120,7 @@ const renderComponent = async (
 ) => {
   const basePath = clusterTopicPath(clusterName, topicName);
   const path = searchParams ? `${basePath}?${searchParams}` : basePath;
-  render(
+  return render(
     <WithRoute path={clusterTopicPath()}>
       <SendMessage closeSidebar={mockOnSubmit} messageData={messageData} />
     </WithRoute>,
@@ -273,6 +273,82 @@ describe('SendMessage', () => {
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled();
       });
+    });
+    it('should refill the form when another message is reproduced', async () => {
+      const firstMessage: MessageFormData = {
+        ...messageData,
+        key: 'first-key',
+        content: 'first-content',
+      };
+      const secondMessage: MessageFormData = {
+        ...messageData,
+        key: 'second-key',
+        content: 'second-content',
+        partition: 1,
+      };
+
+      const { rerender } = await renderComponent(firstMessage);
+      expect(
+        screen.getByRole('listbox', { name: 'Partition' })
+      ).toHaveTextContent('Partition #3');
+
+      // Reproducing another message keeps the sidebar mounted and only
+      // replaces `messageData`.
+      rerender(
+        <WithRoute path={clusterTopicPath()}>
+          <SendMessage
+            closeSidebar={mockOnSubmit}
+            messageData={secondMessage}
+          />
+        </WithRoute>
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('listbox', { name: 'Partition' })
+        ).toHaveTextContent('Partition #1')
+      );
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Produce Message' })
+      );
+
+      expect(sendTopicMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          key: 'second-key',
+          value: 'second-content',
+          partition: 1,
+        })
+      );
+    });
+
+    it('should keep user edits when topic details are reloaded', async () => {
+      const { rerender } = await renderComponent(messageData);
+
+      await userEvent.click(screen.getByRole('listbox', { name: 'Partition' }));
+      const option = screen
+        .getAllByRole('option')
+        .find((o) => o.textContent === 'Partition #1');
+      expect(option).toBeDefined();
+      await userEvent.click(option as HTMLElement);
+      expect(
+        screen.getByRole('listbox', { name: 'Partition' })
+      ).toHaveTextContent('Partition #1');
+
+      // A refetch returns a new topic object, which recomputes the form
+      // defaults while `messageData` stays the same.
+      (useTopicDetails as jest.Mock).mockImplementation(() => ({
+        data: { ...topicPayloadMultiplePartitions },
+      }));
+      rerender(
+        <WithRoute path={clusterTopicPath()}>
+          <SendMessage closeSidebar={mockOnSubmit} messageData={messageData} />
+        </WithRoute>
+      );
+
+      expect(
+        screen.getByRole('listbox', { name: 'Partition' })
+      ).toHaveTextContent('Partition #1');
     });
   });
 
