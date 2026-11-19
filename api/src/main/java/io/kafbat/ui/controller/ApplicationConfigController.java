@@ -113,6 +113,7 @@ public class ApplicationConfigController extends AbstractController implements A
     return validateAccess(context)
         .then(configDto)
         .flatMap(config -> {
+          dynamicConfigOperations.checkIfDynamicConfigEnabled();
           DynamicConfigOperations.PropertiesStructure newConfig = configMapper.fromDto(config.getProperties());
           ClustersProperties clustersProperties = newConfig.getKafka();
           return validateClustersConfig(clustersProperties)

@@ -13,6 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @AutoConfigureWebTestClient
 @TestPropertySource(properties = {
     "auth.type=OAUTH2",
+    "dynamic.config.enabled=true",
     "rbac.roles[0].name=config-editor",
     "rbac.roles[0].clusters[0]=local",
     "rbac.roles[0].permissions[0].resource=applicationconfig",
