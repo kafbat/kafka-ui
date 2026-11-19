@@ -41,6 +41,9 @@ public class ClustersProperties {
   MetricsStorage defaultMetricsStorage = new MetricsStorage();
 
   CacheProperties cache = new CacheProperties();
+
+  ScrapeProperties scrape = new ScrapeProperties();
+
   ClusterFtsProperties fts = new ClusterFtsProperties();
 
   AdminClient adminClient = new AdminClient();
@@ -103,6 +106,8 @@ public class ClustersProperties {
     List<@Valid Masking> masking;
 
     AuditProperties audit;
+
+    ScrapeProperties scrape;
   }
 
   @Data
@@ -254,6 +259,21 @@ public class ClustersProperties {
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
+  public static class ScrapeProperties {
+    // How long topic configs scraped by ClustersStatisticsScheduler stay usable before being re-described.
+    // Topic configs are cold data - they only change by an explicit admin action - but describeConfigs() is
+    // charged per topic on managed Kafka (on AWS MSK every topic becomes its own
+    // DescribeTopicDynamicConfiguration CloudTrail event), so re-describing every topic every 30s is expensive.
+    // Zero or negative means re-describe on every scrape. Topics we have no configs for yet are always
+    // described, regardless of this setting, so a newly created topic never shows an unknown cleanup policy.
+    // Every on-demand path (the topics list, the topic details config tab, and the read-modify-write in
+    // updateTopicConfig) fetches configs live and is unaffected by this setting.
+    Duration topicConfigsExpiry = Duration.ZERO;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class CacheProperties {
     boolean enabled = true;
     Duration connectClusterCacheExpiry = Duration.ofHours(24);
@@ -289,6 +309,18 @@ public class ClustersProperties {
       }
       return false;
     }
+  }
+
+  // Cluster-level scrape settings win over the global ones; a mixed fleet routinely fronts one managed cluster
+  // that needs a long topic-configs expiry alongside self-managed ones that do not.
+  public Duration resolveTopicConfigsExpiry(@Nullable Cluster cluster) {
+    if (cluster != null && cluster.getScrape() != null && cluster.getScrape().getTopicConfigsExpiry() != null) {
+      return cluster.getScrape().getTopicConfigsExpiry();
+    }
+    if (scrape != null && scrape.getTopicConfigsExpiry() != null) {
+      return scrape.getTopicConfigsExpiry();
+    }
+    return Duration.ZERO;
   }
 
   @PostConstruct

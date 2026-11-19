@@ -276,10 +276,6 @@ public class ReactiveAdminClient implements Closeable {
         .then();
   }
 
-  public Mono<Map<String, List<ConfigEntry>>> getTopicsConfig() {
-    return listTopics(true).flatMap(topics -> getTopicsConfig(topics, false));
-  }
-
   /*
   NOTE: skips not-found topics (for which UnknownTopicOrPartitionException or UnknownServerException was thrown by
   AdminClient) and topics for which DESCRIBE_CONFIGS permission is not set (TopicAuthorizationException was thrown)
@@ -347,10 +343,6 @@ public class ReactiveAdminClient implements Closeable {
    */
   public Mono<Map<Integer, List<ConfigEntry>>> loadBrokersConfig(List<Integer> brokerIds) {
     return loadBrokersConfig(client, brokerIds);
-  }
-
-  public Mono<Map<String, TopicDescription>> describeTopics() {
-    return listTopics(true).flatMap(this::describeTopics);
   }
 
   public Mono<Map<String, TopicDescription>> describeTopics(Collection<String> topics) {
