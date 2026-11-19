@@ -1,6 +1,9 @@
 package io.kafbat.ui.service.metrics.scrape.inferred;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.kafbat.ui.model.ConnectorStateDTO;
+import io.kafbat.ui.model.ConnectorTaskStatusDTO;
+import io.kafbat.ui.service.metrics.scrape.KafkaConnectState;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.core.metrics.Metric;
@@ -9,7 +12,9 @@ import io.prometheus.metrics.model.snapshots.PrometheusNaming;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,20 +30,24 @@ public class InferredMetricsScraper {
   public static final String TOPIC_TAG = "topic";
   public static final String GROUP_TAG = "group";
   public static final String PARTITION_TAG = "partition";
+  public static final String CONNECT = "connect";
+  public static final String CONNECTOR = "connector";
   private ScrapedClusterState prevState = null;
 
-  public synchronized Mono<InferredMetrics> scrape(ScrapedClusterState newState) {
-    var inferred = infer(prevState, newState);
+  public synchronized Mono<InferredMetrics> scrape(ScrapedClusterState newState, List<KafkaConnectState> connects) {
+    var inferred = infer(prevState, newState, connects);
     this.prevState = newState;
     return Mono.just(inferred);
   }
 
   @VisibleForTesting
-  static InferredMetrics infer(@Nullable ScrapedClusterState prevState, ScrapedClusterState newState) {
+  static InferredMetrics infer(@Nullable ScrapedClusterState prevState, ScrapedClusterState newState,
+                               List<KafkaConnectState> connects) {
     var registry = new MetricsRegistry();
     fillNodesMetrics(registry, newState);
     fillTopicMetrics(registry, newState);
     fillConsumerGroupsMetrics(registry, newState);
+    fillKafkaConnectMetrics(registry, connects);
     List<MetricSnapshot> metrics = registry.metrics.values().stream().map(Metric::collect).toList();
     log.debug("{} metric families inferred from cluster state", metrics.size());
     return new InferredMetrics(metrics);
@@ -229,5 +238,41 @@ public class InferredMetricsScraper {
 
       });
     });
+  }
+
+  private static void fillKafkaConnectMetrics(MetricsRegistry registry, List<KafkaConnectState> connects) {
+    registry.gauge("connect_count", "Number of Kafka Connect clusters configured for the Kafka cluster",
+        List.of(), List.of(), connects.size());
+    connects.forEach(connect -> {
+      registry.gauge("connector_count", "Number of connectors in the Kafka Connect cluster",
+          List.of(CONNECT), List.of(connect.getName()), connect.getConnectors().size());
+      connect.getConnectors().forEach(c -> {
+        registry.gauge("connector_task_count", "Number of tasks of the connector",
+            List.of(CONNECT, CONNECTOR), List.of(connect.getName(), c.name()), c.tasks().size());
+        if (c.status() != null && c.status().getState() != null) {
+          String type = c.connectorType() != null ? c.connectorType().name() : "UNKNOWN";
+          fillStateSet(registry, "connector_state",
+              "State of the connector, value = 1 for the current state, 0 otherwise",
+              List.of(CONNECT, CONNECTOR, "connector_type", "state"),
+              List.of(connect.getName(), c.name(), type), ConnectorStateDTO.values(), c.status().getState());
+        }
+        c.tasks().stream().filter(t -> t.getState() != null).forEach(t ->
+            fillStateSet(registry, "connector_task_state",
+                "State of the connector task, value = 1 for the current state, 0 otherwise",
+                List.of(CONNECT, CONNECTOR, "task", "worker_id", "state"),
+                List.of(connect.getName(), c.name(), String.valueOf(t.getId()),
+                    Objects.requireNonNullElse(t.getWorkerId(), "unknown")),
+                ConnectorTaskStatusDTO.values(), t.getState()));
+      });
+    });
+  }
+
+  private static <E extends Enum<E>> void fillStateSet(MetricsRegistry registry, String name, String help,
+                                                       List<String> lbls, List<String> lblVals,
+                                                       E[] states, E current) {
+    for (E state : states) {
+      registry.gauge(name, help, lbls, Stream.concat(lblVals.stream(), Stream.of(state.name())).toList(),
+          state == current ? 1 : 0);
+    }
   }
 }

@@ -59,7 +59,7 @@ public class StatisticsService {
                                 .map(quorumInfo -> new LoadQuorumInfoResult(Optional.of(quorumInfo), KRAFT))
                                 .onErrorResume(StatisticsService::handleQuorumInfoErrors)))
                         .flatMap(t ->
-                            scrapeMetrics(cluster, t.getT2(), description)
+                            scrapeMetrics(cluster, t.getT2(), t.getT3(), description)
                                 .map(metrics -> createStats(description,
                                     t.getT1(),
                                     t.getT2(),
@@ -128,9 +128,10 @@ public class StatisticsService {
 
   private Mono<Metrics> scrapeMetrics(KafkaCluster cluster,
                                       ScrapedClusterState clusterState,
+                                      List<KafkaConnectState> connectStates,
                                       ClusterDescription clusterDescription) {
     return cluster.getMetricsScrapping()
-        .scrape(clusterState, clusterDescription.getNodes());
+        .scrape(clusterState, connectStates, clusterDescription.getNodes());
   }
 
   private Mono<List<KafkaConnectState>> loadKafkaConnects(KafkaCluster cluster) {
