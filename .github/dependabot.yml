@@ -103,7 +103,7 @@ updates:
   open-pull-requests-limit: 10
   ignore:
     # We handle Major Java updates manually
-  - dependency-name: "azul/zulu-openjdk-alpine"
+  - dependency-name: "azul-zulu"
     update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
