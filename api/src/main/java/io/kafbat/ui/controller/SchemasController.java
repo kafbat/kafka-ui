@@ -168,10 +168,17 @@ public class SchemasController extends AbstractController implements SchemasApi,
   @Override
   public Mono<ResponseEntity<CompatibilityLevelDTO>> getGlobalSchemaCompatibilityLevel(
       String clusterName, ServerWebExchange exchange) {
-    return schemaRegistryService.getGlobalSchemaCompatibilityLevel(getCluster(clusterName))
-        .map(c -> new CompatibilityLevelDTO().compatibility(kafkaSrMapper.toDto(c)))
-        .map(ResponseEntity::ok)
-        .defaultIfEmpty(ResponseEntity.notFound().build());
+    var context = AccessContext.builder()
+        .cluster(clusterName)
+        .operationName("getGlobalSchemaCompatibilityLevel")
+        .build();
+
+    return validateAccess(context).then(
+        schemaRegistryService.getGlobalSchemaCompatibilityLevel(getCluster(clusterName))
+            .map(c -> new CompatibilityLevelDTO().compatibility(kafkaSrMapper.toDto(c)))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build())
+    ).doOnEach(sig -> audit(context, sig));
   }
 
   @Override
