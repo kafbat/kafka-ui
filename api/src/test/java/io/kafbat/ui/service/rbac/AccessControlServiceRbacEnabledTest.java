@@ -119,6 +119,27 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void validateAccess_deniedPrincipalWithoutGroupMapping() {
+    withSecurityContext(() -> {
+      when(authentication.getPrincipal()).thenReturn(new Object());
+      AccessContext context = getAccessContext(PROD_CLUSTER, true);
+      Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+      StepVerifier.create(validateAccessMono)
+          .expectErrorMatches(e -> e instanceof AccessDeniedException)
+          .verify();
+    });
+  }
+
+  @Test
+  void validateAccess_deniedNoSecurityContext() {
+    AccessContext context = getAccessContext(PROD_CLUSTER, true);
+    Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+    StepVerifier.create(validateAccessMono)
+        .expectErrorMatches(e -> e instanceof AccessDeniedException)
+        .verify();
+  }
+
+  @Test
   void isClusterAccessible() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(ADMIN_ROLE));

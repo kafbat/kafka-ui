@@ -137,7 +137,8 @@ public class DynamicConfigOperations {
     }).subscribeOn(Schedulers.boundedElastic());
 
     return directoryCreationMono.flatMap(dir -> {
-      Path targetFilePath = dir.resolve(file.filename() + "-" + Instant.now().getEpochSecond());
+      String fileName = Path.of(file.filename()).getFileName().toString();
+      Path targetFilePath = dir.resolve(fileName + "-" + Instant.now().getEpochSecond());
       log.info("Uploading config-related file {}", targetFilePath);
       if (Files.exists(targetFilePath)) {
         log.info("File {} already exists, it will be overwritten", targetFilePath);
@@ -150,7 +151,7 @@ public class DynamicConfigOperations {
     });
   }
 
-  private void checkIfDynamicConfigEnabled() {
+  public void checkIfDynamicConfigEnabled() {
     if (!dynamicConfigEnabled()) {
       throw new ValidationException(
           "Dynamic config change is not allowed. "
