@@ -86,16 +86,22 @@ const Message: React.FC<Props> = ({ message, keyFilters, contentFilters }) => {
   ) => {
     if (!filters?.length || !jsonValue) return jsonValue;
     const parsedJson = getParsedJson(jsonValue);
+    const evaluatePath = (path: string) => {
+      try {
+        return JSON.stringify(
+          JSONPath({ path, json: parsedJson, wrap: false })
+        );
+      } catch (e) {
+        return e instanceof Error ? e.message : String(e);
+      }
+    };
 
     return (
       <>
         {filters.map((item) => {
           return (
             <div key={`${item.path}--${item.field}`}>
-              {item.field}:{' '}
-              {JSON.stringify(
-                JSONPath({ path: item.path, json: parsedJson, wrap: false })
-              )}
+              {item.field}: {evaluatePath(item.path)}
             </div>
           );
         })}
