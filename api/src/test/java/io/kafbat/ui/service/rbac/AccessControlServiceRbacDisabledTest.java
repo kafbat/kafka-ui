@@ -79,6 +79,15 @@ class AccessControlServiceRbacDisabledTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void validateAccess_noSecurityContext() {
+    AccessContext context = getAccessContext(PROD_CLUSTER, true);
+    Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+    StepVerifier.create(validateAccessMono)
+        .expectComplete()
+        .verify();
+  }
+
+  @Test
   void isClusterAccessible() {
     withSecurityContext(() -> {
       when(user.groups()).thenReturn(List.of(DEV_ROLE));
