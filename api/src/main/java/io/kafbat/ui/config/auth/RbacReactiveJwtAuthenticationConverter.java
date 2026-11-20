@@ -35,7 +35,8 @@ public class RbacReactiveJwtAuthenticationConverter
   @Override
   public Mono<AbstractAuthenticationToken> convert(@NonNull Jwt jwt) {
     var token = delegate.convert(jwt);
+    var username = StringUtils.hasText(token.getName()) ? token.getName() : null;
     return Mono.just(RbacBearerTokenAuthentication.of(
-        accessControlService, jwt.getTokenValue(), token.getName(), jwt.getSubject(), token.getAuthorities()));
+        accessControlService, jwt.getTokenValue(), username, jwt.getSubject(), token.getAuthorities()));
   }
 }
