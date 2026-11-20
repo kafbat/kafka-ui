@@ -25,6 +25,7 @@ import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
 import io.modelcontextprotocol.server.McpServerFeatures.AsyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema;
+import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
@@ -260,8 +261,8 @@ class McpSpecificationGeneratorTest {
   }
 
   private static Mono<CallToolResult> invokeTool(AsyncToolSpecification spec, Map<String, Object> args) {
-    return spec.call()
-        .apply(mock(McpAsyncServerExchange.class), new HashMap<>(args))
+    return spec.callHandler()
+        .apply(mock(McpAsyncServerExchange.class), new CallToolRequest(spec.tool().name(), new HashMap<>(args)))
         .contextWrite(Context.of(ServerWebExchange.class, mock(ServerWebExchange.class)));
   }
 

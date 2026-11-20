@@ -106,8 +106,9 @@ dependencies {
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
-    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.modelcontextprotocol.core
     implementation libs.modelcontextprotocol.json.jackson2
+    implementation libs.spring.ai.mcp.webflux
     implementation libs.victools.jsonschema.generator
 
 

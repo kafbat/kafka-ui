@@ -33,7 +33,9 @@ jackson-databind-nullable = '0.2.13'
 antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
-mcp = '0.18.5'
+mcp = '2.1.0'
+# Spring AI's MCP transports (the MCP SDK dropped mcp-spring-webflux in 1.0)
+spring-ai-mcp = '2.0.2'
 
 prometheus = '1.7.0'
 protobuf-java = '3.25.5'
@@ -131,8 +133,9 @@ bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1
 google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
 google-oauth-client = { module = 'com.google.oauth-client:google-oauth-client', version = '1.39.0' }
 
-modelcontextprotocol-spring-webflux = {module = 'io.modelcontextprotocol.sdk:mcp-spring-webflux', version.ref = 'mcp'}
+modelcontextprotocol-core = {module = 'io.modelcontextprotocol.sdk:mcp-core', version.ref = 'mcp'}
 modelcontextprotocol-json-jackson2 = {module = 'io.modelcontextprotocol.sdk:mcp-json-jackson2', version.ref = 'mcp'}
+spring-ai-mcp-webflux = {module = 'org.springframework.ai:mcp-spring-webflux', version.ref = 'spring-ai-mcp'}
 victools-jsonschema-generator = {module = 'com.github.victools:jsonschema-generator', version = '4.38.0'}
 
 prometheus-metrics-core = {module = 'io.prometheus:prometheus-metrics-core', version.ref = 'prometheus'}
