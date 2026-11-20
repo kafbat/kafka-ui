@@ -75,7 +75,10 @@ dependencies {
     // (jackson-databind-nullable, msgpack, MCP SDK, schema registry client) still use Jackson 2,
     // so keep Jackson 2 as the mapper for the web layer. See spring.http.codecs.preferred-json-mapper.
     implementation libs.spring.boot.jackson2
-    implementation libs.cel
+    implementation(libs.cel) {
+        // annotation processor, not needed at runtime; its shaded jar also embeds an old guava that trips CVE scans
+        exclude group: 'com.google.auto.value', module: 'auto-value'
+    }
     implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
