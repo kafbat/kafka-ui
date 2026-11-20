@@ -20,7 +20,12 @@ import io.kafbat.ui.model.ClusterDTO;
 import io.kafbat.ui.model.ConnectDTO;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.model.rbac.AccessContext;
+import io.kafbat.ui.model.rbac.Permission;
+import io.kafbat.ui.model.rbac.Resource;
 import io.kafbat.ui.model.rbac.Role;
+import io.kafbat.ui.model.rbac.Subject;
+import io.kafbat.ui.model.rbac.permission.TopicAction;
+import io.kafbat.ui.model.rbac.provider.Provider;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -315,6 +320,72 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
     assertThat(roles).hasSize(2)
         .anyMatch(role -> role.getName().equals(DEV_ROLE))
         .anyMatch(role -> role.getName().equals(ADMIN_ROLE));
+  }
+
+  @Test
+  void isClusterAccessible_wildcardCluster() {
+    Role wildcardRole = createTopicViewerRole("wildcard_role", List.of("*"));
+    RoleBasedAccessControlProperties customProperties = new RoleBasedAccessControlProperties();
+    customProperties.setRoles(List.of(wildcardRole));
+    ReflectionTestUtils.setField(accessControlService, "properties", customProperties);
+
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of("wildcard_role"));
+      for (String clusterName : List.of(PROD_CLUSTER, "dynamic-cluster-1")) {
+        ClusterDTO clusterDto = new ClusterDTO();
+        clusterDto.setName(clusterName);
+        StepVerifier.create(accessControlService.isClusterAccessible(clusterDto))
+            .expectNext(true)
+            .expectComplete()
+            .verify();
+      }
+    });
+  }
+
+  @Test
+  void validateAccess_regexCluster() {
+    Role prodRegexRole = createTopicViewerRole("prod_regex_role", List.of("prod-.*"));
+    RoleBasedAccessControlProperties customProperties = new RoleBasedAccessControlProperties();
+    customProperties.setRoles(List.of(prodRegexRole));
+    ReflectionTestUtils.setField(accessControlService, "properties", customProperties);
+
+    withSecurityContext(() -> {
+      when(user.groups()).thenReturn(List.of("prod_regex_role"));
+      AccessContext allowedContext = AccessContext.builder()
+          .cluster("prod-eu")
+          .topicActions("orders", TopicAction.VIEW)
+          .build();
+      StepVerifier.create(accessControlService.validateAccess(allowedContext))
+          .expectComplete()
+          .verify();
+
+      AccessContext deniedContext = AccessContext.builder()
+          .cluster("dev-eu")
+          .topicActions("orders", TopicAction.VIEW)
+          .build();
+      StepVerifier.create(accessControlService.validateAccess(deniedContext))
+          .expectErrorMatches(e -> e instanceof AccessDeniedException)
+          .verify();
+    });
+  }
+
+  private Role createTopicViewerRole(String roleName, List<String> clusters) {
+    Subject subject = new Subject();
+    subject.setProvider(Provider.LDAP);
+    subject.setType("group");
+    subject.setValue("kafbat.group");
+
+    Permission permission = new Permission();
+    permission.setResource(Resource.TOPIC.name());
+    permission.setValue(".*");
+    permission.setActions(List.of(TopicAction.VIEW.name()));
+
+    Role role = new Role();
+    role.setName(roleName);
+    role.setClusters(clusters);
+    role.setSubjects(List.of(subject));
+    role.setPermissions(List.of(permission));
+    return role;
   }
 
 }

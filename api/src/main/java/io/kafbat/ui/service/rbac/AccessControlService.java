@@ -121,7 +121,7 @@ public class AccessControlService {
     List<Role> filteredRoles = properties.getRoles()
             .stream()
             .filter(filterRole(user))
-            .filter(role -> clusterName == null || role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase))
+            .filter(role -> clusterName == null || role.clusterMatches(clusterName))
             .toList();
 
     // if no roles are found, check if default role is set
@@ -147,7 +147,7 @@ public class AccessControlService {
     boolean isAccessible = properties.getRoles()
         .stream()
         .filter(filterRole(user))
-        .anyMatch(role -> role.getClusters().stream().anyMatch(clusterName::equalsIgnoreCase));
+        .anyMatch(role -> role.clusterMatches(clusterName));
     
     return isAccessible || properties.getDefaultRole() != null;
   }
