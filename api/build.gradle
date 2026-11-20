@@ -186,6 +186,10 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        // print the exception message and the full stack trace for failed tests in the CI log
+        exceptionFormat = 'full'
+    }
     finalizedBy jacocoTestReport
 }
 
