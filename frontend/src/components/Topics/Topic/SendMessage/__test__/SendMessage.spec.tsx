@@ -11,15 +11,18 @@ import { useSerdes } from 'lib/hooks/api/topicMessages';
 import { serdesPayload } from 'lib/fixtures/topicMessages';
 import { MessageFormData } from 'lib/interfaces/message';
 import { TopicSerdeSuggestion } from 'generated-sources';
+import jsf from 'json-schema-faker';
 
 import Mock = jest.Mock;
 
+const mockGeneratedValue = {
+  f1: -93251214,
+  schema: 'enim sit in fugiat dolor',
+  f2: 'deserunt culpa sunt',
+};
+
 jest.mock('json-schema-faker', () => ({
-  generate: () => ({
-    f1: -93251214,
-    schema: 'enim sit in fugiat dolor',
-    f2: 'deserunt culpa sunt',
-  }),
+  generate: jest.fn(),
   option: jest.fn(),
 }));
 
@@ -155,6 +158,7 @@ describe('SendMessage', () => {
       data: serdesPayload,
     }));
     (validateBySchema as jest.Mock).mockImplementation(() => []);
+    (jsf.generate as Mock).mockImplementation(() => mockGeneratedValue);
   });
 
   describe('when schema is fetched', () => {
@@ -313,6 +317,28 @@ describe('SendMessage', () => {
           '{"f1":-93251214,"schema":"enim sit in fugiat dolor","f2":"deserunt culpa sunt"}',
         valueSerde: 'Int64',
       });
+    });
+
+    it('should generate new sample data for the next message after producing', async () => {
+      await renderComponent();
+      (jsf.generate as Mock).mockReturnValue({ f1: 42 });
+
+      const submitButton = screen.getByRole('button', {
+        name: 'Produce Message',
+      });
+      await userEvent.click(submitButton);
+      expect(sendTopicMessageMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ key: JSON.stringify(mockGeneratedValue) })
+      );
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Produce Message' })
+      );
+
+      expect(sendTopicMessageMock).toHaveBeenCalledTimes(2);
+      expect(sendTopicMessageMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ key: '{"f1":42}', value: '{"f1":42}' })
+      );
     });
 
     it('should submit with empty form successfully', async () => {
