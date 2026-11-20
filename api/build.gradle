@@ -99,6 +99,7 @@ dependencies {
 
     // CVE Fixes
     implementation libs.apache.commons.compress
+    implementation libs.guava
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
