@@ -4,7 +4,6 @@ auth:
 spring:
   http:
     codecs:
-      # Spring Boot 4 defaults to Jackson 3; the app and its generated API models still use Jackson 2
       preferred-json-mapper: jackson2
 
 management:

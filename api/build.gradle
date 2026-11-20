@@ -9,8 +9,6 @@ plugins {
 }
 
 configurations.all {
-    // swagger-annotations and swagger-annotations-jakarta contain the same classes (same package);
-    // keep only the jakarta variant, which matches the swagger-core version used by springdoc
     exclude group: 'io.swagger.core.v3', module: 'swagger-annotations'
     resolutionStrategy {
         capabilitiesResolution {
@@ -24,8 +22,7 @@ configurations.all {
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-// The Spring Boot BOM manages protobuf-java 4.x, which is incompatible with the protobuf-java 3.x
-// used by various dependencies of this project (see the micrometer/pushgateway exclusions below).
+// The BOM manages protobuf-java 4.x; confluent, cel and the google clients are built against 3.x. Drop once they move.
 ext['protobuf-java.version'] = libs.versions.protobuf.java.get()
 
 dependencies {
@@ -71,12 +68,8 @@ dependencies {
     }
 
     implementation libs.jackson.databind.nullable
-    // Spring Boot 4 defaults to Jackson 3. The codebase, generated clients and several dependencies
-    // (jackson-databind-nullable, msgpack, MCP SDK, schema registry client) still use Jackson 2,
-    // so keep Jackson 2 as the mapper for the web layer. See spring.http.codecs.preferred-json-mapper.
     implementation libs.spring.boot.jackson2
     implementation(libs.cel) {
-        // annotation processor, not needed at runtime; its shaded jar also embeds an old guava that trips CVE scans
         exclude group: 'com.google.auto.value', module: 'auto-value'
     }
     implementation libs.caffeine
@@ -192,7 +185,6 @@ checkstyle {
 test {
     useJUnitPlatform()
     testLogging {
-        // print the exception message and the full stack trace for failed tests in the CI log
         exceptionFormat = 'full'
     }
     finalizedBy jacocoTestReport

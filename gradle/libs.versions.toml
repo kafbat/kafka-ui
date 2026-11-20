@@ -34,7 +34,6 @@ antlr = '4.13.2'
 json-schema-validator = '2.2.14'
 checkstyle = '10.24.0'
 mcp = '2.1.0'
-# Spring AI's MCP transports (the MCP SDK dropped mcp-spring-webflux in 1.0)
 spring-ai-mcp = '2.0.2'
 
 prometheus = '1.7.0'
@@ -65,7 +64,6 @@ spring-starter-logging = { module = 'org.springframework.boot:spring-boot-starte
 spring-boot-actuator = { module = 'org.springframework.boot:spring-boot-actuator', version.ref = 'spring-boot' }
 spring-boot-devtools = { module = 'org.springframework.boot:spring-boot-devtools', version.ref = 'spring-boot' }
 spring-boot-configuration-processor = { module = 'org.springframework.boot:spring-boot-configuration-processor', version.ref = 'spring-boot' }
-# Jackson 2 support for Spring Boot 4 (deprecated upstream, remove once the codebase is migrated to Jackson 3)
 spring-boot-jackson2 = { module = 'org.springframework.boot:spring-boot-jackson2', version.ref = 'spring-boot' }
 spring-starter-webflux-test = { module = 'org.springframework.boot:spring-boot-starter-webflux-test', version.ref = 'spring-boot' }
 
@@ -107,7 +105,6 @@ testcontainers = { module = 'org.testcontainers:testcontainers', version.ref = '
 testcontainers-kafka = { module = 'org.testcontainers:kafka', version.ref = 'testcontainers' }
 testcontainers-jupiter = { module = 'org.testcontainers:junit-jupiter', version.ref = 'testcontainers' }
 
-# Versions of JUnit and Mockito are managed by the Spring Boot BOM
 junit-jupiter-engine = { module = 'org.junit.jupiter:junit-jupiter-engine' }
 
 mockito-core = { module = 'org.mockito:mockito-core' }
@@ -143,7 +140,7 @@ prometheus-metrics-textformats = { module = 'io.prometheus:prometheus-metrics-ex
 prometheus-metrics-exporter-pushgateway  = { module = 'io.prometheus:prometheus-metrics-exporter-pushgateway', version.ref = 'prometheus'}
 
 snappy = {module = 'org.xerial.snappy:snappy-java', version = '1.1.10.12'}
-# CVE-2026-102554 fix: guava is only a transitive dependency (confluent, cel, google clients)
+# CVE-2026-102554 fix, remove once the transitive users (confluent, cel, google clients) pull 33.7.2+
 guava = {module = 'com.google.guava:guava', version = '33.7.2-jre'}
 
 lucene = {module = 'org.apache.lucene:lucene-core', version.ref = 'lucene'}
