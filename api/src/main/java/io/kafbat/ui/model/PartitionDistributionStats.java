@@ -91,7 +91,7 @@ public class PartitionDistributionStats {
       return null;
     }
     value = value == null ? 0 : value;
-    return new BigDecimal((value - avgValue) / avgValue * 100.0)
+    return BigDecimal.valueOf((value - avgValue) / avgValue * 100.0)
         .setScale(1, RoundingMode.HALF_UP);
   }
 }

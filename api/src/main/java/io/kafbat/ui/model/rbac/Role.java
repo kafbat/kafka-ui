@@ -10,13 +10,13 @@ import lombok.Data;
 public class Role {
 
   String name;
-  List<String> clusters;
-  List<Subject> subjects;
+  List<String> clusters = new ArrayList<>();
+  List<Subject> subjects = new ArrayList<>();
   List<Permission> permissions = new ArrayList<>();
 
   public void validate() {
-    checkArgument(clusters != null && !clusters.isEmpty(), "Role clusters cannot be empty");
-    checkArgument(subjects != null && !subjects.isEmpty(), "Role subjects cannot be empty");
+    checkArgument(!clusters.isEmpty(), "Role clusters cannot be empty");
+    checkArgument(!subjects.isEmpty(), "Role subjects cannot be empty");
     permissions.forEach(Permission::validate);
     permissions.forEach(Permission::transform);
     subjects.forEach(Subject::validate);
