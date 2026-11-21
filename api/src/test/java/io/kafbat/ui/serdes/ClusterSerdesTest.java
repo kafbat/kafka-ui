@@ -16,6 +16,10 @@ class ClusterSerdesTest {
     return new SerdeInstance(name, stringSerde, null, null, null, false);
   }
 
+  private SerdeInstance autoConfiguredSerde(String name, Serde serde) {
+    return new SerdeInstance(name, serde, null, null, null, false);
+  }
+
   private SerdeInstance explicitSerdeNoPattern(String name, Serde serde) {
     return new SerdeInstance(name, serde, null, null, null, true);
   }
@@ -67,10 +71,84 @@ class ClusterSerdesTest {
         .isEqualTo(StringSerde.NAME);
   }
 
+  @Test
+  void autoConfiguredPreferableSerdeIsAutoSelectedOverString() {
+    // Regression pin for #1833: an auto-configured serde (no pattern, not explicitly configured)
+    // that opts in via couldBePreferable must still be auto-selected over String. This mirrors an
+    // auto-configured SchemaRegistry on a topic that has schemas.
+    var serdes = new LinkedHashMap<String, SerdeInstance>();
+    serdes.put(StringSerde.NAME, autoConfiguredSerde(StringSerde.NAME));
+    serdes.put("SchemaRegistry", autoConfiguredSerde("SchemaRegistry", new AlwaysPreferableSerde()));
+
+    var clusterSerdes = new ClusterSerdes(serdes, null, null, autoConfiguredSerde("Fallback"));
+
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.KEY).getName())
+        .isEqualTo("SchemaRegistry");
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.VALUE).getName())
+        .isEqualTo("SchemaRegistry");
+  }
+
+  @Test
+  void explicitClusterDefaultWinsOverPreferableSerde() {
+    // Pass 2 (cluster default) takes precedence over Pass 3 (couldBePreferable auto-detection).
+    var defaultValue = autoConfiguredSerde(StringSerde.NAME);
+    var serdes = new LinkedHashMap<String, SerdeInstance>();
+    serdes.put(StringSerde.NAME, defaultValue);
+    serdes.put("SchemaRegistry", autoConfiguredSerde("SchemaRegistry", new AlwaysPreferableSerde()));
+
+    var clusterSerdes = new ClusterSerdes(serdes, null, defaultValue, autoConfiguredSerde("Fallback"));
+
+    // VALUE has an explicit cluster default -> String wins.
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.VALUE).getName())
+        .isEqualTo(StringSerde.NAME);
+    // KEY has no cluster default -> preferable serde wins via Pass 3.
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.KEY).getName())
+        .isEqualTo("SchemaRegistry");
+  }
+
+  @Test
+  void preferableSerdeIsSkippedWhenItCannotDeserialize() {
+    var serdes = new LinkedHashMap<String, SerdeInstance>();
+    serdes.put("SchemaRegistry",
+        autoConfiguredSerde("SchemaRegistry", new PreferableButNotDeserializableSerde()));
+    serdes.put(StringSerde.NAME, autoConfiguredSerde(StringSerde.NAME));
+
+    var clusterSerdes = new ClusterSerdes(serdes, null, null, autoConfiguredSerde("Fallback"));
+
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.VALUE).getName())
+        .isEqualTo(StringSerde.NAME);
+  }
+
+  @Test
+  void firstRegisteredPreferableSerdeWins() {
+    // Pass 3 iterates in registration order; the first opted-in serde wins.
+    var serdes = new LinkedHashMap<String, SerdeInstance>();
+    serdes.put("FirstPreferable", autoConfiguredSerde("FirstPreferable", new AlwaysPreferableSerde()));
+    serdes.put("SecondPreferable", autoConfiguredSerde("SecondPreferable", new AlwaysPreferableSerde()));
+    serdes.put(StringSerde.NAME, autoConfiguredSerde(StringSerde.NAME));
+
+    var clusterSerdes = new ClusterSerdes(serdes, null, null, autoConfiguredSerde("Fallback"));
+
+    assertThat(clusterSerdes.suggestSerdeForDeserialize("any-topic", Serde.Target.VALUE).getName())
+        .isEqualTo("FirstPreferable");
+  }
+
   static class AlwaysPreferableSerde extends StringSerde {
     @Override
     public boolean couldBePreferable(String topic, Target type) {
       return true;
+    }
+  }
+
+  static class PreferableButNotDeserializableSerde extends StringSerde {
+    @Override
+    public boolean couldBePreferable(String topic, Target type) {
+      return true;
+    }
+
+    @Override
+    public boolean canDeserialize(String topic, Target type) {
+      return false;
     }
   }
 }
