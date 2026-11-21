@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # https://github.com/actions/checkout/releases/tag/v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # https://github.com/actions/checkout/releases/tag/v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
@@ -26,7 +26,7 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Set up JDK
-        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # https://github.com/actions/setup-java/releases/tag/v4.6.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # https://github.com/actions/setup-java/releases/tag/v6.3.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -43,14 +43,14 @@ jobs:
           -Pversion=$version
 
       - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@04733e069f2d7f7f0b4aebc4fbdbce8613b03ccd # https://github.com/svenstaro/upload-release-action/releases/tag/2.9.0
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # https://github.com/svenstaro/upload-release-action/releases/tag/2.11.5
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: api/build/libs/api-${{ steps.build.outputs.version }}.jar
           tag: ${{ github.event.release.tag_name }}
 
       - name: Archive JAR
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # https://github.com/actions/upload-artifact/releases/tag/v4.6.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # https://github.com/actions/upload-artifact/releases/tag/v7.0.2
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
@@ -81,7 +81,7 @@ jobs:
     needs: release
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@5fc4efd1a4797ddb68ffd0714a238564e4cc0e6f # https://github.com/peter-evans/repository-dispatch/releases/tag/v4.0.0
+        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # https://github.com/peter-evans/repository-dispatch/releases/tag/v4.0.1
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
           repository: kafbat/helm-charts
