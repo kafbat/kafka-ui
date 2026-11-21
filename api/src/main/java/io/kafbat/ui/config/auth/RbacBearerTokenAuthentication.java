@@ -5,9 +5,9 @@ import static io.kafbat.ui.service.rbac.extractor.OauthAuthorityExtractor.matchR
 
 import com.google.common.collect.Sets;
 import io.kafbat.ui.service.rbac.AccessControlService;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
-import javax.annotation.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;

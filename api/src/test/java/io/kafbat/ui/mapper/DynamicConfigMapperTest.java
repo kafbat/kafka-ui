@@ -6,7 +6,7 @@ import io.kafbat.ui.config.auth.OAuthProperties;
 import io.kafbat.ui.util.DynamicConfigOperations.PropertiesStructure;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.core.io.FileSystemResource;
 
 class DynamicConfigMapperTest {

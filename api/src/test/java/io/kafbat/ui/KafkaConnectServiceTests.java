@@ -186,8 +186,9 @@ class KafkaConnectServiceTests extends AbstractIntegrationTest {
         .uri("/api/clusters/{clusterName}/connects/{connectName}/connectors", LOCAL, connectName)
         .exchange()
         .expectStatus().isOk()
-        .expectBodyList(String.class)
-        .contains(connectorName);
+        .expectBody(new ParameterizedTypeReference<List<String>>() {
+        })
+        .value(connectors -> assertThat(connectors).contains(connectorName));
   }
 
   @Test
