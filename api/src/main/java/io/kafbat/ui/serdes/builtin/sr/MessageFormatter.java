@@ -17,6 +17,8 @@ import lombok.SneakyThrows;
 
 interface MessageFormatter {
 
+  String PLACEHOLDER_SCHEMA_REGISTRY_URL = "wontbeused";
+
   String format(String topic, byte[] value);
 
   static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
@@ -38,7 +40,7 @@ interface MessageFormatter {
       this.avroDeserializer = new KafkaAvroDeserializer(client);
       this.avroDeserializer.configure(
           Map.of(
-              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "wontbeused",
+              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL,
               KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, false,
               KafkaAvroDeserializerConfig.SCHEMA_REFLECTION_CONFIG, false,
               KafkaAvroDeserializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true
@@ -61,7 +63,7 @@ interface MessageFormatter {
     ProtobufMessageFormatter(SchemaRegistryClient client, boolean isKey) {
       this.protobufDeserializer = new KafkaProtobufDeserializer<>(client);
       this.protobufDeserializer.configure(
-          Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "wontbeused"),
+          Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL),
           isKey
       );
     }
@@ -85,7 +87,7 @@ interface MessageFormatter {
       this.jsonSchemaDeserializer = new KafkaJsonSchemaDeserializer<>(client);
       this.jsonSchemaDeserializer.configure(
           Map.of(
-              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "wontbeused",
+              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL,
               KafkaJsonSchemaDeserializerConfig.JSON_KEY_TYPE, JsonNode.class,
               KafkaJsonSchemaDeserializerConfig.JSON_VALUE_TYPE, JsonNode.class
           ),
