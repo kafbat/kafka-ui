@@ -4,6 +4,7 @@ import com.google.common.base.Throwables;
 import io.kafbat.ui.model.TopicAnalysisDTO;
 import io.kafbat.ui.model.TopicAnalysisProgressDTO;
 import io.kafbat.ui.model.TopicAnalysisResultDTO;
+import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.SneakyThrows;
 

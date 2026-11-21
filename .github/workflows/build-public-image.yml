@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event.label.name == 'status/image_testing' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.0.0
+      - uses: actions/checkout@v4.2.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
@@ -50,13 +50,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           aws-region: us-east-1
           role-to-assume: ${{ secrets.AWS_ROLE }}
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2.0.1
+        uses: aws-actions/amazon-ecr-login@v2.1.0
         with:
           registry-type: 'public'
       - name: Build and push

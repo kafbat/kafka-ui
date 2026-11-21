@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4.2.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ github.token }}
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4.1.9
+        uses: actions/download-artifact@v4.1.8
         with:
           name: kafbat-ui-${{ inputs.version }}
           path: api/build/libs
@@ -71,7 +71,7 @@ jobs:
           docker image save kafka-ui:temp > /tmp/image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: image
           path: /tmp/image.tar

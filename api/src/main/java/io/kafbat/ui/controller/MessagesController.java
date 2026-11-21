@@ -29,7 +29,6 @@ import io.kafbat.ui.service.MessagesService;
 import io.kafbat.ui.service.mcp.McpTool;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -50,7 +49,7 @@ public class MessagesController extends AbstractController implements MessagesAp
 
   @Override
   public Mono<ResponseEntity<Void>> deleteTopicMessages(
-      String clusterName, String topicName, @Valid List<Integer> partitions,
+      String clusterName, String topicName, List<Integer> partitions,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()
@@ -140,7 +139,7 @@ public class MessagesController extends AbstractController implements MessagesAp
 
   @Override
   public Mono<ResponseEntity<Void>> sendTopicMessages(
-      String clusterName, String topicName, @Valid Mono<CreateTopicMessageDTO> createTopicMessage,
+      String clusterName, String topicName, Mono<CreateTopicMessageDTO> createTopicMessage,
       ServerWebExchange exchange) {
 
     var context = AccessContext.builder()

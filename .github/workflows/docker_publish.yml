@@ -25,7 +25,7 @@ jobs:
     steps:
 
       - name: Download docker image
-        uses: actions/download-artifact@v4.1.9
+        uses: actions/download-artifact@v4.1.8
         with:
           name: image
           path: /tmp
@@ -63,7 +63,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: matrix.registry == 'ecr'
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           aws-region: us-east-1 # This region only for public ECR
           role-to-assume: ${{ secrets.AWS_ROLE }}
@@ -71,7 +71,7 @@ jobs:
       - name: Login to public ECR
         if: matrix.registry == 'ecr'
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v2.0.1
+        uses: aws-actions/amazon-ecr-login@v2.1.0
         with:
           registry-type: public
 

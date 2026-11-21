@@ -15,7 +15,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - uses: actions/checkout@v4.0.0
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
           token: ${{ github.token }}

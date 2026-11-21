@@ -18,7 +18,7 @@ jobs:
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
     steps:
-      - uses: dorny/paths-filter@v3.0.2
+      - uses: dorny/paths-filter@v3.0.3
         id: filter
         with:
           filters: |

@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{steps.build.outputs.version}}
     steps:
-      - uses: actions/checkout@v4.0.0
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
@@ -50,7 +50,7 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
 
       - name: Archive JAR
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: kafbat-ui-${{ steps.build.outputs.version }}
           path: api/build/libs/api-${{ steps.build.outputs.version }}.jar
@@ -81,7 +81,7 @@ jobs:
     needs: release
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v3.0.0
+        uses: peter-evans/repository-dispatch@v4.0.0
         with:
           token: ${{ secrets.CHARTS_ACTIONS_TOKEN }}
           repository: kafbat/helm-charts
