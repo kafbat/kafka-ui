@@ -4,6 +4,7 @@ import static io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde.SUBJECT_PARAMET
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.SneakyThrows;
 import net.bytebuddy.utility.RandomString;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -842,5 +844,65 @@ class SchemaRegistrySerdeTest {
     }
   }
 
-}
+  @Nested
+  class DeserializerLooksUpSchemaUsingKeyOrValueSubject {
 
+    private final List<String> requestedSubjects = new CopyOnWriteArrayList<>();
+
+    private final MockSchemaRegistryClient trackingClient = new MockSchemaRegistryClient() {
+      @Override
+      public ParsedSchema getSchemaBySubjectAndId(String subject, int id) throws IOException, RestClientException {
+        requestedSubjects.add(subject);
+        return super.getSchemaBySubjectAndId(subject, id);
+      }
+    };
+
+    private SchemaRegistrySerde trackingSerde;
+
+    @BeforeEach
+    void init() {
+      trackingSerde = new SchemaRegistrySerde();
+      trackingSerde.configure(List.of("wontbeused"), trackingClient, "%s-key", "%s-value", false);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "AVRO, KEY", "AVRO, VALUE",
+        "JSON, KEY", "JSON, VALUE",
+        "PROTOBUF, KEY", "PROTOBUF, VALUE"
+    })
+    @SneakyThrows
+    void usesSubjectMatchingTarget(SchemaType schemaType, Serde.Target target) {
+      String topic = "subject-lookup-" + RandomString.make(8);
+      String subject = topic + (target == Serde.Target.KEY ? "-key" : "-value");
+      trackingClient.register(subject, schemaOf(schemaType));
+
+      String jsonInput = "{\"field1\": \"some text\"}";
+      byte[] data = trackingSerde.serializer(topic, target).serialize(jsonInput);
+      requestedSubjects.clear();
+
+      var result = trackingSerde.deserializer(topic, target).deserialize(null, data);
+
+      assertJsonsEqual(jsonInput, result.getResult());
+      assertThat(result.getAdditionalProperties())
+          .containsEntry("type", schemaType.name())
+          .containsEntry("subjects", List.of(subject));
+      String oppositeSubject = topic + (target == Serde.Target.KEY ? "-value" : "-key");
+      assertThat(requestedSubjects)
+          .contains(subject)
+          .doesNotContain(oppositeSubject);
+    }
+
+    private ParsedSchema schemaOf(SchemaType schemaType) {
+      return switch (schemaType) {
+        case AVRO -> new AvroSchema(
+            "{\"type\":\"record\",\"name\":\"TestRecord\",\"fields\":[{\"name\":\"field1\",\"type\":\"string\"}]}");
+        case JSON -> new JsonSchema(
+            "{\"type\":\"object\",\"properties\":{\"field1\":{\"type\":\"string\"}}}");
+        case PROTOBUF -> new ProtobufSchema(
+            "syntax = \"proto3\"; message TestRecord { string field1 = 1; }");
+      };
+    }
+  }
+
+}

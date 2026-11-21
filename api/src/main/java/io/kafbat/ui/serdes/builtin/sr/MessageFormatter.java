@@ -9,6 +9,7 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer;
+import io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializerConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer;
 import io.kafbat.ui.util.jsonschema.JsonAvroConversion;
 import java.util.Map;
@@ -16,14 +17,17 @@ import lombok.SneakyThrows;
 
 interface MessageFormatter {
 
+  String PLACEHOLDER_SCHEMA_REGISTRY_URL = "wontbeused";
+
   String format(String topic, byte[] value);
 
   static Map<SchemaType, MessageFormatter> createMap(SchemaRegistryClient schemaRegistryClient,
-                                                     FormatterProperties formatterProperties) {
+                                                     FormatterProperties formatterProperties,
+                                                     boolean isKey) {
     return Map.of(
-        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, formatterProperties),
-        SchemaType.JSON, new JsonSchemaMessageFormatter(schemaRegistryClient),
-        SchemaType.PROTOBUF, new ProtobufMessageFormatter(schemaRegistryClient)
+        SchemaType.AVRO, new AvroMessageFormatter(schemaRegistryClient, formatterProperties, isKey),
+        SchemaType.JSON, new JsonSchemaMessageFormatter(schemaRegistryClient, isKey),
+        SchemaType.PROTOBUF, new ProtobufMessageFormatter(schemaRegistryClient, isKey)
     );
   }
 
@@ -31,17 +35,17 @@ interface MessageFormatter {
     private final KafkaAvroDeserializer avroDeserializer;
     private final FormatterProperties properties;
 
-    AvroMessageFormatter(SchemaRegistryClient client, FormatterProperties properties) {
+    AvroMessageFormatter(SchemaRegistryClient client, FormatterProperties properties, boolean isKey) {
       this.properties = properties != null ? properties : FormatterProperties.EMPTY;
       this.avroDeserializer = new KafkaAvroDeserializer(client);
       this.avroDeserializer.configure(
           Map.of(
-              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "wontbeused",
+              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL,
               KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, false,
               KafkaAvroDeserializerConfig.SCHEMA_REFLECTION_CONFIG, false,
               KafkaAvroDeserializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true
           ),
-          false
+          isKey
       );
     }
 
@@ -56,8 +60,12 @@ interface MessageFormatter {
   class ProtobufMessageFormatter implements MessageFormatter {
     private final KafkaProtobufDeserializer<?> protobufDeserializer;
 
-    ProtobufMessageFormatter(SchemaRegistryClient client) {
+    ProtobufMessageFormatter(SchemaRegistryClient client, boolean isKey) {
       this.protobufDeserializer = new KafkaProtobufDeserializer<>(client);
+      this.protobufDeserializer.configure(
+          Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL),
+          isKey
+      );
     }
 
     @Override
@@ -75,8 +83,16 @@ interface MessageFormatter {
   class JsonSchemaMessageFormatter implements MessageFormatter {
     private final KafkaJsonSchemaDeserializer<JsonNode> jsonSchemaDeserializer;
 
-    JsonSchemaMessageFormatter(SchemaRegistryClient client) {
+    JsonSchemaMessageFormatter(SchemaRegistryClient client, boolean isKey) {
       this.jsonSchemaDeserializer = new KafkaJsonSchemaDeserializer<>(client);
+      this.jsonSchemaDeserializer.configure(
+          Map.of(
+              AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, PLACEHOLDER_SCHEMA_REGISTRY_URL,
+              KafkaJsonSchemaDeserializerConfig.JSON_KEY_TYPE, JsonNode.class,
+              KafkaJsonSchemaDeserializerConfig.JSON_VALUE_TYPE, JsonNode.class
+          ),
+          isKey
+      );
     }
 
     @Override
