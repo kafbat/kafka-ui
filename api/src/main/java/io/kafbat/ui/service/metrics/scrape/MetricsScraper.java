@@ -63,6 +63,7 @@ public class MetricsScraper {
             Metrics.builder()
                 .inferredMetrics(inf)
                 .ioRates(ext.ioRates())
+                .segmentCounts(ext.segmentCounts())
                 .perBrokerScrapedMetrics(ext.perBrokerMetrics())
                 .build()
     ).doOnNext(this::sendMetricsToSink);

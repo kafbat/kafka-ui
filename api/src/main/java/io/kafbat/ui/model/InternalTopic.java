@@ -6,8 +6,10 @@ import com.google.common.primitives.Longs;
 import io.kafbat.ui.service.metrics.scrape.ScrapedClusterState;
 import io.kafbat.ui.util.annotation.CsvIgnore;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,10 +47,13 @@ public class InternalTopic {
 
   // from log dir data
   private final long segmentSize;
-  private final long segmentCount;
+
+  // from broker metrics (NumLogSegments), null when metrics are not configured
+  @Nullable
+  private final Integer segmentCount;
 
   public long getSize() {
-    return segmentSize * segmentCount;
+    return segmentSize;
   }
 
   public long getRetentionMs() {
@@ -88,8 +93,34 @@ public class InternalTopic {
     if (metrics != null) {
       builder.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(this.name));
       builder.bytesOutPerSec(metrics.getIoRates().topicBytesOutPerSec().get(this.name));
+      segmentCounts(metrics).ifPresent(counts -> {
+        Map<Integer, InternalPartition> updatedPartitions = partitions.values().stream()
+            .map(p -> p.toBuilder()
+                .segmentCount(counts.forPartition(new TopicPartition(name, p.getPartition()), p.getLeader()))
+                .build())
+            .collect(Collectors.toMap(InternalPartition::getPartition, Function.identity()));
+        builder.partitions(updatedPartitions);
+        builder.segmentCount(sumSegmentCount(updatedPartitions.values()));
+      });
     }
     return builder.build();
+  }
+
+  private static Optional<Metrics.SegmentCounts> segmentCounts(@Nullable Metrics metrics) {
+    return Optional.ofNullable(metrics).map(Metrics::getSegmentCounts);
+  }
+
+  /**
+   * Topic segment count is the sum over partitions; null if no partition has a known count
+   * (metrics not configured or the metric is not exposed).
+   */
+  @Nullable
+  private static Integer sumSegmentCount(Collection<InternalPartition> partitions) {
+    return partitions.stream()
+        .map(InternalPartition::getSegmentCount)
+        .filter(Objects::nonNull)
+        .reduce(Integer::sum)
+        .orElse(null);
   }
 
   public static InternalTopic from(TopicDescription topicDescription,
@@ -110,11 +141,14 @@ public class InternalTopic {
     );
     topic.name(topicDescription.name());
 
+    Optional<Metrics.SegmentCounts> segmentCounts = segmentCounts(metrics);
+
     List<InternalPartition> partitions = topicDescription.partitions().stream()
         .map(partition -> {
           var partitionDto = InternalPartition.builder();
 
-          partitionDto.leader(partition.leader() != null ? partition.leader().id() : null);
+          Integer leaderId = partition.leader() != null ? partition.leader().id() : null;
+          partitionDto.leader(leaderId);
           partitionDto.partition(partition.partition());
           partitionDto.inSyncReplicasCount(partition.isr().size());
           partitionDto.replicasCount(partition.replicas().size());
@@ -136,11 +170,10 @@ public class InternalTopic {
 
           Optional.ofNullable(partitionsSegmentStats)
               .flatMap(s -> Optional.ofNullable(s.get(partition.partition())))
-              .ifPresent(stats -> {
-                partitionDto.segmentCount(stats.getSegmentsCount());
-                partitionDto.segmentSize(stats.getSegmentSize());
-              });
+              .ifPresent(stats -> partitionDto.segmentSize(stats.getSegmentSize()));
 
+          segmentCounts.ifPresent(counts -> partitionDto.segmentCount(
+              counts.forPartition(new TopicPartition(topicDescription.name(), partition.partition()), leaderId)));
 
           return partitionDto.build();
         })
@@ -162,10 +195,8 @@ public class InternalTopic {
     );
 
     Optional.ofNullable(segmentStats)
-        .ifPresent(stats -> {
-          topic.segmentCount(stats.getSegmentsCount());
-          topic.segmentSize(stats.getSegmentSize());
-        });
+        .ifPresent(stats -> topic.segmentSize(stats.getSegmentSize()));
+    topic.segmentCount(sumSegmentCount(partitions));
 
     if (metrics != null) {
       topic.bytesInPerSec(metrics.getIoRates().topicBytesInPerSec().get(topicDescription.name()));

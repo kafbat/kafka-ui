@@ -68,6 +68,7 @@ export const getBrokersTableColumns = () => {
       meta: {
         csvFn: (row) => {
           if (row.size === undefined) return NA;
+          if (row.count == null) return formatBytes(row.size, 2);
 
           return `${formatBytes(row.size, 2)}, ${row.count} segment(s)`;
         },
