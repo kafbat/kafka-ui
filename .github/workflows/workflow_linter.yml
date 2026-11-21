@@ -29,4 +29,4 @@ jobs:
         run: gh extension install github/gh-actions-lock --pin v0.4.1
 
       - name: Verify workflow lockfile
-        run: gh actions-lock --verify
+        run: gh actions-lock --verify-local
