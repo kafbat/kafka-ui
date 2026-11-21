@@ -59,7 +59,7 @@ jobs:
           aws-region: eu-central-1
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@c75a9a1d9c6f7cf1e4cfb2966839b590c3d46865 # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.1.0
+        uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # https://github.com/aws-actions/amazon-ecr-login/releases/tag/v2.1.0
       - name: Build and push
         id: docker_build_and_push
         uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # https://github.com/docker/build-push-action/releases/tag/v6.18.0
