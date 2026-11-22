@@ -63,7 +63,8 @@ jobs:
     needs: [ jar-build, docker-build ]
     permissions:
       packages: write
-      id-token: write # Required to authenticate with OIDC for AWS
+      id-token: write # Required to authenticate with OIDC for AWS and to sign image attestations
+      attestations: write
     uses: ./.github/workflows/docker_publish.yml
     secrets: inherit
     with:
