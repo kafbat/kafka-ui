@@ -17,13 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up JDK
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version-file: ".java-version"
           distribution: "zulu"
@@ -40,7 +40,7 @@ jobs:
         run: docker image save ghcr.io/kafbat/kafka-ui:latest > /tmp/kafka-ui-e2e-image.tar
 
       - name: Upload docker image
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: kafka-ui-e2e-image
           path: /tmp/kafka-ui-e2e-image.tar
@@ -51,18 +51,18 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
         with:
           token: ${{ github.token }}
           ref: ${{ inputs.sha }}
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4.2.0
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: 10.26.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: "22.23.5"
           cache-dependency-path: ./e2e-playwright/pnpm-lock.yaml
@@ -73,7 +73,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browser binaries
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v6.1.0
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -84,7 +84,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Download docker image
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v8.0.2
         with:
           name: kafka-ui-e2e-image
           path: /tmp
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload report
         if: failure()
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: playwright-results
           path: ./e2e-playwright/test-results/
