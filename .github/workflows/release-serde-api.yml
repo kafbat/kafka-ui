@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           token: ${{ github.token }}
@@ -27,7 +27,7 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Set up JDK
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'

@@ -20,12 +20,12 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up JDK
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@v6.3.0
         with:
           java-version-file: '.java-version'
           distribution: 'zulu'
@@ -36,7 +36,7 @@ jobs:
           ./gradlew :api:check
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: api/build/reports/jacoco/test/jacocoTestReport.xml
