@@ -5,23 +5,23 @@ End-to-End UI test automation using **Playwright**, **Cucumber.js**, and **TypeS
 ## Prerequisites
 
 - **Node.js** >= 18  
-- **npm** or **yarn**
+- **pnpm**
 - Install dependencies and Playwright browsers:
 
 ```bash
 Local run:
 Run Kafbat (docker compose -f ./documentation/compose/e2e-tests.yaml up -d)
-npm install
-npx playwright install
+pnpm install --frozen-lockfile
+pnpm exec playwright install
 
 🔹 Normal Test Run
-npm test:stage
+pnpm test:stage
 
 🔹 Debug Mode (with Playwright Inspector)
-npm run debug
+pnpm run debug
 
 🔹 Rerun Failed Tests
-npm run test:failed
+pnpm run test:failed
 
 
 GitHub Actions CI example
@@ -46,11 +46,11 @@ jobs:
           node-version: 18
 
       - name: Install NPM dependencies
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install
+        run: pnpm exec playwright install
 
       - name: 🚀 Run tests with ENV=prod
-        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 npm run test
+        run: ENV=prod HEAD=false BASEURL=http://localhost:8080 pnpm test
 ```

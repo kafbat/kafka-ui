@@ -75,6 +75,7 @@ workflows:
         - 'actions/setup-java@v4.7.0'
         - 'actions/setup-node@v4.2.0'
         - 'actions/upload-artifact@v4.6.0'
+        - 'pnpm/action-setup@v4.2.0'
     '.github/workflows/frontend_main.yml': []
     '.github/workflows/frontend_pr.yml':
         - 'dorny/paths-filter@v3.0.3'
