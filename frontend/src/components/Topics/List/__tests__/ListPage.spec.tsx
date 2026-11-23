@@ -48,5 +48,14 @@ describe('ListPage Component', () => {
     it('renders the TopicsTable', () => {
       expect(screen.getByText('TopicTableMock')).toBeInTheDocument();
     });
+
+    it('renders the refresh control', () => {
+      expect(
+        screen.getByRole('button', { name: 'Refresh' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Auto refresh interval/ })
+      ).toBeInTheDocument();
+    });
   });
 });
