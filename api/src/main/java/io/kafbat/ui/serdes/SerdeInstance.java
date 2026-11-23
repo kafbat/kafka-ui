@@ -56,6 +56,15 @@ public class SerdeInstance implements Closeable {
     }
   }
 
+  public Optional<SchemaDescription> getSchema(String topic, Serde.Target type, Map<String, Object> knownValues) {
+    try {
+      return wrapWithClassloader(() -> serde.getSchema(topic, type, knownValues));
+    } catch (Exception e) {
+      log.warn("Error getting schema for '{}'({}) with serde '{}'", topic, type, name, e);
+      return Optional.empty();
+    }
+  }
+
   public Optional<String> description() {
     try {
       return wrapWithClassloader(serde::getDescription);
@@ -100,6 +109,15 @@ public class SerdeInstance implements Closeable {
   public List<SerdeParameter> getParameters(String topic, Serde.Target type) {
     try {
       return wrapWithClassloader(() -> serde.getParameters(topic, type));
+    } catch (Exception e) {
+      log.warn("Error getting parameters for '{}'({}) with serde '{}'", topic, type, name, e);
+      return List.of();
+    }
+  }
+
+  public List<SerdeParameter> getParameters(String topic, Serde.Target type, Map<String, Object> knownValues) {
+    try {
+      return wrapWithClassloader(() -> serde.getParameters(topic, type, knownValues));
     } catch (Exception e) {
       log.warn("Error getting parameters for '{}'({}) with serde '{}'", topic, type, name, e);
       return List.of();
