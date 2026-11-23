@@ -45,12 +45,14 @@ public class InternalClusterState {
     activeControllers = getActiveControllers(statistics);
     version = statistics.getVersion();
 
+    var segmentCounts = Optional.ofNullable(statistics.getMetrics().getSegmentCounts())
+        .orElse(Metrics.SegmentCounts.empty());
     diskUsage = statistics.getClusterState().getNodesStates().values().stream()
         .filter(n -> n.segmentStats() != null)
         .map(n -> new BrokerDiskUsageDTO()
             .brokerId(n.id())
             .segmentSize(n.segmentStats().getSegmentSize())
-            .segmentCount(n.segmentStats().getSegmentsCount()))
+            .segmentCount(segmentCounts.forBroker(n.id())))
         .collect(Collectors.toList());
 
     features = statistics.getFeatures();

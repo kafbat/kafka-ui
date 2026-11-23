@@ -71,8 +71,11 @@ const Broker: React.FC = () => {
                   precision={2}
                 />
               </Metrics.Indicator>
-              <Metrics.Indicator label="Segment Count">
-                {brokerDiskUsage?.segmentCount}
+              <Metrics.Indicator
+                label="Segment Count"
+                title="Taken from broker metrics; N/A when metrics are not configured"
+              >
+                {brokerDiskUsage?.segmentCount ?? 'N/A'}
               </Metrics.Indicator>
               <Metrics.Indicator label="Port">
                 {brokerItem?.port}

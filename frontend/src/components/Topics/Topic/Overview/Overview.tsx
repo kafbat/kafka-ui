@@ -133,8 +133,11 @@ const Overview: React.FC = () => {
           <Metrics.Indicator label="Segment Size" title="">
             <BytesFormatted value={data?.segmentSize} />
           </Metrics.Indicator>
-          <Metrics.Indicator label="Segment Count">
-            {data?.segmentCount}
+          <Metrics.Indicator
+            label="Segment Count"
+            title="Taken from broker metrics; N/A when metrics are not configured"
+          >
+            {data?.segmentCount ?? 'N/A'}
           </Metrics.Indicator>
           <Metrics.Indicator label="Clean Up Policy">
             <Tag color="gray">{data?.cleanUpPolicy || 'Unknown'}</Tag>
