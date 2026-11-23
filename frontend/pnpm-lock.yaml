@@ -101,8 +101,8 @@ importers:
         specifier: 4.3.4
         version: 4.3.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-router-dom:
-        specifier: 6.30.3
-        version: 6.30.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: 6.30.6
+        version: 6.30.6(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       sass:
         specifier: 1.98.0
         version: 1.98.0
@@ -1031,8 +1031,8 @@ packages:
     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  '@remix-run/router@1.23.2':
-    resolution: {integrity: sha512-Ic6m2U/rMjTkhERIa/0ZtXJP17QUi2CbWE7cqx4J58M8aA3QTfW+2UlQ4psvTX9IO1RfNVhK3pcpdjej7L+t2w==}
+  '@remix-run/router@1.23.4':
+    resolution: {integrity: sha512-q7j5geK7xs3UJSdm9/iytUNclBnLmYx1EnSeCFXHPeutdqgIMeFeHtUZgS3EhlKxdBEAu8OwtJCwmLrEzpSs7Q==}
     engines: {node: '>=14.0.0'}
 
   '@rolldown/pluginutils@1.0.0-beta.27':
@@ -3839,15 +3839,15 @@ packages:
       react: ^16 || ^17 || ^18
       react-dom: ^16 || ^17 || ^18
 
-  react-router-dom@6.30.3:
-    resolution: {integrity: sha512-pxPcv1AczD4vso7G4Z3TKcvlxK7g7TNt3/FNGMhfqyntocvYKj+GCatfigGDjbLozC4baguJ0ReCigoDJXb0ag==}
+  react-router-dom@6.30.6:
+    resolution: {integrity: sha512-0RHKZz7wwffvkU+2MFVT2NnjK44ssLEV+m0CAJaS2Ksmorrwj7WxH00jO0SOCW26/tINUnJHToXblDs33I38YQ==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
       react-dom: '>=16.8'
 
-  react-router@6.30.3:
-    resolution: {integrity: sha512-XRnlbKMTmktBkjCLE8/XcZFlnHvr2Ltdr1eJX4idL55/9BbORzyZEaIkBFDhFGCEWBBItsVrDxwx3gnisMitdw==}
+  react-router@6.30.6:
+    resolution: {integrity: sha512-5HfK7k5im7LTOB0EqCQmfvy4C13G92Ssj1VTmouTK3AJvyjKTnFuCV0vcMAD/JS+JC4DvDIBRrlAeJIFjh5VWg==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
@@ -5472,7 +5472,7 @@ snapshots:
 
   '@pkgr/core@0.3.6': {}
 
-  '@remix-run/router@1.23.2': {}
+  '@remix-run/router@1.23.4': {}
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
@@ -8745,16 +8745,16 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  react-router-dom@6.30.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  react-router-dom@6.30.6(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
-      '@remix-run/router': 1.23.2
+      '@remix-run/router': 1.23.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      react-router: 6.30.3(react@18.2.0)
+      react-router: 6.30.6(react@18.2.0)
 
-  react-router@6.30.3(react@18.2.0):
+  react-router@6.30.6(react@18.2.0):
     dependencies:
-      '@remix-run/router': 1.23.2
+      '@remix-run/router': 1.23.4
       react: 18.2.0
 
   react-transition-state@1.1.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
