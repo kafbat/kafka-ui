@@ -107,6 +107,7 @@ const MessagesTable: React.FC<MessagesTableProps> = ({
               }`}
               onPreview={() => setPreviewFor('content')}
             />
+            <TableHeaderCell title="Value Size" />
             <TableHeaderCell> </TableHeaderCell>
           </tr>
         </thead>
