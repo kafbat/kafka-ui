@@ -67,7 +67,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
   private String keySchemaNameTemplate;
   private boolean checkSchemaExistenceForDeserialize;
 
-  private Map<SchemaType, MessageFormatter> schemaRegistryFormatters;
+  private Map<SchemaType, MessageFormatter> keyFormatters;
+  private Map<SchemaType, MessageFormatter> valueFormatters;
 
   private Cache<Integer, List<String>> idToSubjectsCache;
   private Cache<String, Collection<String>> allSubjectsCache;
@@ -185,7 +186,8 @@ public class SchemaRegistrySerde implements BuiltInSerde {
     this.schemaRegistryClient = schemaRegistryClient;
     this.keySchemaNameTemplate = keySchemaNameTemplate;
     this.valueSchemaNameTemplate = valueSchemaNameTemplate;
-    this.schemaRegistryFormatters = MessageFormatter.createMap(schemaRegistryClient, formatterProperties);
+    this.keyFormatters = MessageFormatter.createMap(schemaRegistryClient, formatterProperties, true);
+    this.valueFormatters = MessageFormatter.createMap(schemaRegistryClient, formatterProperties, false);
     this.checkSchemaExistenceForDeserialize = checkTopicSchemaExistenceForDeserialize;
     this.idToSubjectsCache = Caffeine.newBuilder()
         .maximumSize(maxSubjectsCacheSize)
@@ -434,7 +436,7 @@ public class SchemaRegistrySerde implements BuiltInSerde {
       properties.setSubjects(subjects);
       properties.setType(format.name());
 
-      MessageFormatter formatter = schemaRegistryFormatters.get(format);
+      MessageFormatter formatter = (type == Target.KEY ? keyFormatters : valueFormatters).get(format);
 
       return new DeserializeResult(
           formatter.format(topic, data),
