@@ -103,7 +103,7 @@ updates:
   open-pull-requests-limit: 10
   ignore:
     # We handle Major Java updates manually
-  - dependency-name: "azul/zulu-openjdk-alpine"
+  - dependency-name: "azul-zulu"
     update-types: ["version-update:semver-major"]
   labels:
     - "type/dependencies"
@@ -127,6 +127,38 @@ updates:
       update-types:
         - "patch"
         - "minor"
+
+- package-ecosystem: npm
+  directory: "/contract-typespec/api"
+  schedule:
+    interval: monthly
+    time: "10:00"
+    timezone: Europe/London
+  open-pull-requests-limit: 1
+  versioning-strategy: increase-if-necessary
+  labels:
+    - "type/dependencies"
+    - "scope/backend"
+  groups:
+    typespec:
+      patterns:
+        - "*"
+
+- package-ecosystem: npm
+  directory: "/e2e-playwright"
+  schedule:
+    interval: monthly
+    time: "10:00"
+    timezone: Europe/London
+  open-pull-requests-limit: 1
+  versioning-strategy: increase-if-necessary
+  labels:
+    - "type/dependencies"
+    - "scope/AQA"
+  groups:
+    e2e:
+      patterns:
+        - "*"
 
 - package-ecosystem: "github-actions"
   directory: "/"

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -57,6 +58,7 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     // Mock roles
     List<Role> roles = List.of(
         MockedRbacUtils.getAdminRole(),
@@ -116,6 +118,27 @@ class AccessControlServiceRbacEnabledTest extends AbstractIntegrationTest {
           .expectErrorMatches(e -> e instanceof AccessDeniedException)
           .verify();
     });
+  }
+
+  @Test
+  void validateAccess_deniedPrincipalWithoutGroupMapping() {
+    withSecurityContext(() -> {
+      when(authentication.getPrincipal()).thenReturn(new Object());
+      AccessContext context = getAccessContext(PROD_CLUSTER, true);
+      Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+      StepVerifier.create(validateAccessMono)
+          .expectErrorMatches(e -> e instanceof AccessDeniedException)
+          .verify();
+    });
+  }
+
+  @Test
+  void validateAccess_deniedNoSecurityContext() {
+    AccessContext context = getAccessContext(PROD_CLUSTER, true);
+    Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+    StepVerifier.create(validateAccessMono)
+        .expectErrorMatches(e -> e instanceof AccessDeniedException)
+        .verify();
   }
 
   @Test

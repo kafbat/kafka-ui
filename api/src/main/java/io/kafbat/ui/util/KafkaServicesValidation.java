@@ -8,13 +8,13 @@ import io.kafbat.ui.prometheus.api.PrometheusClientApi;
 import io.kafbat.ui.service.ReactiveAdminClient;
 import io.kafbat.ui.service.ksql.KsqlApiClient;
 import io.kafbat.ui.sr.api.KafkaSrClientApi;
+import jakarta.annotation.Nullable;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import javax.net.ssl.TrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -38,7 +38,8 @@ public final class KafkaServicesValidation {
   }
 
   private static Mono<ApplicationPropertyValidationDTO> invalid(Throwable th) {
-    return Mono.just(new ApplicationPropertyValidationDTO().error(true).errorMessage(th.getMessage()));
+    log.error("Services validation error", th);
+    return invalid("Error validating service. See logs for details.");
   }
 
   /**
@@ -97,7 +98,7 @@ public final class KafkaServicesValidation {
       client = clientSupplier.get();
     } catch (Exception e) {
       log.error("Error creating Schema Registry client", e);
-      return invalid("Error creating Schema Registry client: " + e.getMessage());
+      return invalid("Error creating Schema Registry client. See logs for details.");
     }
     return client
         .mono(KafkaSrClientApi::getGlobalCompatibilityLevel)
@@ -112,7 +113,7 @@ public final class KafkaServicesValidation {
       client = clientSupplier.get();
     } catch (Exception e) {
       log.error("Error creating Connect client", e);
-      return invalid("Error creating Connect client: " + e.getMessage());
+      return invalid("Error creating Connect client. See logs for details.");
     }
     return client.flux(KafkaConnectClientApi::getConnectorPlugins)
         .collectList()
@@ -127,14 +128,17 @@ public final class KafkaServicesValidation {
       client = clientSupplier.get();
     } catch (Exception e) {
       log.error("Error creating Ksql client", e);
-      return invalid("Error creating Ksql client: " + e.getMessage());
+      return invalid("Error creating Ksql client. See logs for details.");
     }
     return client.flux(c -> c.execute("SHOW VARIABLES;", Map.of()))
         .collectList()
         .flatMap(ksqlResults ->
             Flux.fromIterable(ksqlResults)
                 .filter(KsqlApiClient.KsqlResponseTable::isError)
-                .flatMap(err -> invalid("Error response from ksql: " + err))
+                .flatMap(err -> {
+                  log.error("Error response from ksql: {}", err);
+                  return invalid("Error response from ksql. See logs for details.");
+                })
                 .next()
                 .switchIfEmpty(valid())
         )
@@ -148,7 +152,7 @@ public final class KafkaServicesValidation {
       client = clientSupplier.get();
     } catch (Exception e) {
       log.error("Error creating Prometheus client", e);
-      return invalid("Error creating Prometheus client: " + e.getMessage());
+      return invalid("Error creating Prometheus client. See logs for details.");
     }
     return client.mono(c -> c.query("1", null, null))
         .then(valid())

@@ -1,27 +1,36 @@
 import React from 'react';
 import { clusterConsumerGroupDetailsPath } from 'lib/paths';
 import { act, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TopicsTable } from 'components/ConsumerGroups/Details/TopicsTable/TopicsTable';
 import { render, WithRoute } from 'lib/testHelpers';
 import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { consumerGroupPayload } from 'lib/fixtures/consumerGroups';
 import { getConsumerGroupTopicsTableColumns } from 'components/ConsumerGroups/Details/TopicsTable/lib/utils';
+import ClusterContext, {
+  initialValue,
+} from 'components/contexts/ClusterContext';
 
 const clusterName = 'cluster1';
 
-const renderComponent = (topicPartitions: ConsumerGroupTopicPartition[] = []) =>
+const renderComponent = (
+  topicPartitions: ConsumerGroupTopicPartition[] = [],
+  isReadOnly = false
+) =>
   render(
-    <WithRoute path={clusterConsumerGroupDetailsPath()}>
-      <table>
-        <tbody>
-          <TopicsTable
-            partitions={topicPartitions}
-            topicsLagInfo={{ lags: {}, trends: {} }}
-            partitionsLagInfo={{ lags: {}, trends: {} }}
-          />
-        </tbody>
-      </table>
-    </WithRoute>,
+    <ClusterContext.Provider value={{ ...initialValue, isReadOnly }}>
+      <WithRoute path={clusterConsumerGroupDetailsPath()}>
+        <table>
+          <tbody>
+            <TopicsTable
+              partitions={topicPartitions}
+              topicsLagInfo={{ lags: {}, trends: {} }}
+              partitionsLagInfo={{ lags: {}, trends: {} }}
+            />
+          </tbody>
+        </table>
+      </WithRoute>
+    </ClusterContext.Provider>,
     {
       initialEntries: [
         clusterConsumerGroupDetailsPath(
@@ -80,6 +89,32 @@ describe('TopicContent', () => {
     );
 
     expect(shownPartitions).toEqual(expectedPartitionIds);
+  });
+});
+
+describe('Delete offsets action', () => {
+  it('is offered when the cluster is writable', async () => {
+    renderComponent(consumerGroupPayload.partitions, false);
+
+    const [toggle] = screen.getAllByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await userEvent.click(toggle);
+
+    const item = screen.getByRole('menuitem', { name: /Delete offsets/i });
+    expect(item).not.toHaveAttribute('aria-disabled');
+  });
+
+  it('is disabled when the cluster is read-only', async () => {
+    renderComponent(consumerGroupPayload.partitions, true);
+
+    const [toggle] = screen.getAllByRole('button', {
+      name: 'Dropdown Toggle',
+    });
+    await userEvent.click(toggle);
+
+    const item = screen.getByRole('menuitem', { name: /Delete offsets/i });
+    expect(item).toHaveAttribute('aria-disabled');
   });
 });
 

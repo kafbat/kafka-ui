@@ -1,21 +1,24 @@
 package io.kafbat.ui.util;
 
+import static io.kafbat.ui.util.DynamicConfigOperations.CONFIG_RELATED_UPLOADS_DIR_DEFAULT;
+import static io.kafbat.ui.util.DynamicConfigOperations.CONFIG_RELATED_UPLOADS_DIR_PROPERTY;
 import static io.kafbat.ui.util.DynamicConfigOperations.DYNAMIC_CONFIG_ENABLED_ENV_PROPERTY;
 import static io.kafbat.ui.util.DynamicConfigOperations.DYNAMIC_CONFIG_PATH_ENV_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.kafbat.ui.config.ClustersProperties;
+import jakarta.annotation.Nullable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,6 +30,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Mono;
 
 class DynamicConfigOperationsTest {
 
@@ -119,6 +124,21 @@ class DynamicConfigOperationsTest {
         .get()
         .extracting(ps -> ps.getProperty("kafka.clusters[0].name"))
         .isEqualTo("newName");
+  }
+
+  @Test
+  void uploadStripsDirectoriesFromFileName() {
+    when(envMock.getProperty(DYNAMIC_CONFIG_ENABLED_ENV_PROPERTY)).thenReturn("true");
+    when(envMock.getProperty(CONFIG_RELATED_UPLOADS_DIR_PROPERTY, CONFIG_RELATED_UPLOADS_DIR_DEFAULT))
+        .thenReturn(tmpDir.toString());
+    FilePart file = mock(FilePart.class);
+    when(file.filename()).thenReturn("../../evil.yaml");
+    when(file.transferTo(any(Path.class))).thenReturn(Mono.empty());
+
+    Path uploaded = ops.uploadConfigRelatedFile(file).block();
+
+    assertThat(uploaded.getParent()).isEqualTo(tmpDir);
+    assertThat(uploaded.getFileName().toString()).startsWith("evil.yaml-");
   }
 
   private void mockEnvWithVars(Map<String, Object> envVars) {

@@ -1,11 +1,11 @@
 package io.kafbat.ui.model;
 
+import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +91,7 @@ public class PartitionDistributionStats {
       return null;
     }
     value = value == null ? 0 : value;
-    return new BigDecimal((value - avgValue) / avgValue * 100.0)
+    return BigDecimal.valueOf((value - avgValue) / avgValue * 100.0)
         .setScale(1, RoundingMode.HALF_UP);
   }
 }
