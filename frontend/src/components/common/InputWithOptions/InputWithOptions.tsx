@@ -12,6 +12,7 @@ export interface InputWithOptionsProps extends Omit<
   options: SelectOption<string>[];
   value?: string;
   onChange?: (option: string) => void;
+  deferChangeUntilCommit?: boolean;
   inputSize?: 'S' | 'M' | 'L';
   minWidth?: string;
 }
@@ -20,6 +21,9 @@ const InputWithOptions = ({
   options = [],
   value = '',
   onChange,
+  onBlur,
+  onKeyDown,
+  deferChangeUntilCommit = false,
   inputSize = 'L',
   placeholder = '',
   minWidth,
@@ -27,6 +31,8 @@ const InputWithOptions = ({
 }: InputWithOptionsProps) => {
   const [selectedOption, setSelectedOption] = React.useState(value);
   const [showOptions, setShowOptions] = React.useState(false);
+  const editStartValue = useRef(value);
+  const isInputEditing = useRef(false);
 
   let filteredOptions = options.filter((option) =>
     option.value.includes(selectedOption.toLowerCase())
@@ -36,23 +42,35 @@ const InputWithOptions = ({
     filteredOptions = [{ value: selectedOption, label: selectedOption }];
   }
 
+  const isDisabledOption = (optionText: string) =>
+    options.some((option) => option.value === optionText && option.disabled);
+
+  const commitInput = () => {
+    if (!isInputEditing.current) return;
+
+    isInputEditing.current = false;
+    if (isDisabledOption(selectedOption)) {
+      setSelectedOption(editStartValue.current);
+      onChange?.(editStartValue.current);
+    } else if (showOptions) {
+      onChange?.(selectedOption);
+      editStartValue.current = selectedOption;
+    }
+  };
+
   const updateSelectedOption = (option: SelectOption<string>) => {
     if (!option.disabled) {
       setSelectedOption(option.value);
       onChange?.(option.value);
+      editStartValue.current = option.value;
+      isInputEditing.current = false;
       setShowOptions(false);
     }
   };
 
   const selectContainerRef = useRef(null);
   const clickOutsideHandler = () => {
-    const isDisabledOption = (optionText: string) =>
-      options.some((option) => option.value === optionText && option.disabled);
-
-    if (!isDisabledOption(value) && showOptions) {
-      onChange?.(selectedOption);
-    }
-
+    commitInput();
     setShowOptions(false);
   };
   useClickOutside(selectContainerRef, clickOutsideHandler);
@@ -63,13 +81,43 @@ const InputWithOptions = ({
         {...rest}
         role="listitem"
         value={selectedOption}
-        onFocus={() => setShowOptions(true)}
+        onFocus={() => {
+          if (!showOptions) {
+            editStartValue.current = value;
+          }
+          isInputEditing.current = true;
+          setShowOptions(true);
+        }}
         autoComplete="off"
         placeholder={placeholder}
         inputSize={inputSize}
+        onBlur={(event) => {
+          if (
+            !event.currentTarget.parentElement?.contains(
+              event.relatedTarget as Node | null
+            )
+          ) {
+            commitInput();
+          }
+          onBlur?.(event);
+        }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          if (event.key === 'Enter') {
+            commitInput();
+            setShowOptions(false);
+          }
+        }}
         onChange={(e) => {
-          onChange?.(e.target.value);
-          setSelectedOption(e.target.value);
+          const nextValue = e.target.value;
+          if (deferChangeUntilCommit && !isInputEditing.current) {
+            isInputEditing.current = true;
+            setShowOptions(true);
+          }
+          setSelectedOption(nextValue);
+          if (!deferChangeUntilCommit && !isDisabledOption(nextValue)) {
+            onChange?.(nextValue);
+          }
         }}
       />
       <DropdownArrowIcon isOpen={showOptions} />
