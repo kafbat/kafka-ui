@@ -38,7 +38,7 @@ spring-ai-mcp = '2.0.2'
 
 prometheus = '1.7.0'
 protobuf-java = '3.25.5'
-lucene = '10.3.2'
+lucene = '10.6.0'
 
 [plugins]
 spring-boot = { id = 'org.springframework.boot', version.ref = 'spring-boot' }
