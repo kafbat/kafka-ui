@@ -20,25 +20,6 @@ interface MessagesApi {
     @query use: SerdeUsage,
   ): TopicSerdeSuggestion;
 
-  @get
-  @route("/messages")
-  @operationId("getTopicMessages")
-  @summary("getTopicMessages")
-  getTopicMessages(
-    @path clusterName: string,
-    @path topicName: string,
-    @query mode?: PollingMode,
-    @query partitions?: int32[],
-    @query limit?: int32,
-    @query stringFilter?: string,
-    @query smartFilterId?: string,
-    @query offset?: int64,
-    @query timestamp?: int64,
-    @query keySerde?: string,
-    @query valueSerde?: string,
-    @query cursor?: string,
-  ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
-
   @delete
   @route("/messages")
   @operationId("deleteTopicMessages")
@@ -68,6 +49,25 @@ interface MessagesApi {
     @path topicName: string,
     @body registration: MessageFilterRegistration,
   ): MessageFilterId | ApiBadRequestResponse;
+
+  @get
+  @route("/messages/v2")
+  @operationId("getTopicMessagesV2")
+  @summary("getTopicMessagesV2")
+  getTopicMessagesV2(
+    @path clusterName: string,
+    @path topicName: string,
+    @query mode?: PollingMode,
+    @query partitions?: int32[],
+    @query limit?: int32,
+    @query stringFilter?: string,
+    @query smartFilterId?: string,
+    @query offset?: int64,
+    @query timestamp?: int64,
+    @query keySerde?: string,
+    @query valueSerde?: string,
+    @query cursor?: string,
+  ): SseResponse<TopicMessageEvent> | ApiBadRequestResponse;
 }
 
 @route("/api/smartfilters/testexecutions")

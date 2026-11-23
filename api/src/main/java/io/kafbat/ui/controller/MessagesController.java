@@ -71,7 +71,7 @@ public class MessagesController extends AbstractController implements MessagesAp
   }
 
   @Override
-  public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessages(String clusterName, String topicName,
+  public Mono<ResponseEntity<Flux<TopicMessageEventDTO>>> getTopicMessagesV2(String clusterName, String topicName,
                                                                              PollingModeDTO mode,
                                                                              List<Integer> partitions,
                                                                              Integer limit,
