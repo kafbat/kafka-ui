@@ -32,6 +32,7 @@ import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.ClusterAuthorizationException;
 import reactor.core.publisher.Mono;
 
 @Builder(toBuilder = true)
@@ -130,7 +131,19 @@ public class ScrapedClusterState implements AutoCloseable {
     return Mono.zip(
         ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
             .map(InternalLogDirStats::new),
-        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
+        ac.listConsumerGroups()
+            .map(l -> l.stream().map(ConsumerGroupListing::groupId).toList())
+            // Some managed Kafka offerings (e.g. Confluent Cloud) don't grant the cluster-wide
+            // ACLs needed to list consumer groups, even to an otherwise-valid API key. Without
+            // this, that single denial fails the whole Mono.zip() above, and thus the entire
+            // cluster scrape - topics, configs, everything - fails too. Degrade gracefully
+            // instead: skip consumer group info for this scrape rather than losing all of it.
+            // See https://github.com/kafbat/kafka-ui/issues/1852
+            .onErrorResume(ClusterAuthorizationException.class, th -> {
+              log.warn("Not enough permissions to list consumer groups, "
+                  + "proceeding without consumer group info for this scrape", th);
+              return Mono.just(List.of());
+            }),
         ac.describeTopics(),
         ac.getTopicsConfig()
     ).flatMap(phase1 ->
