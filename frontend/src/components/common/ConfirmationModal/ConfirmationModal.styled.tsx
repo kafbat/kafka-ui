@@ -31,6 +31,7 @@ export const Modal = styled.div(
     display: flex;
     flex-direction: column;
     width: 560px;
+    max-width: calc(100vw - 32px);
     border-radius: 8px;
 
     background-color: ${confirmModal.backgroundColor};

@@ -116,7 +116,7 @@ const Filters: React.FC<FiltersProps> = ({
 
   const { data: topic } = useTopicDetails({ clusterName, topicName });
   const [createdEditedSmartId, setCreatedEditedSmartId] = useState<string>();
-  const { json: exportedJson, csv: exportedCsv } = useMemo(() => {
+  const exportMessages = () => {
     const exported: MessageData[] = messages.map((message: TopicMessage) => ({
       Value: message.value,
       Offset: message.offset,
@@ -126,16 +126,17 @@ const Filters: React.FC<FiltersProps> = ({
       Timestamp: message.timestamp,
     }));
 
-    return {
-      json: JSON.stringify(exported, null, '\t'),
-      csv: convertToCSV(exported),
-    };
-  }, [messages]);
+    return exported;
+  };
 
   const baseFileName = `topic-messages_${fileNameTimestamp()}`;
 
-  const jsonSaver = useDataSaver(`${baseFileName}.json`, exportedJson);
-  const csvSaver = useDataSaver(`${baseFileName}.csv`, exportedCsv);
+  const jsonSaver = useDataSaver(`${baseFileName}.json`, () =>
+    JSON.stringify(exportMessages(), null, '\t')
+  );
+  const csvSaver = useDataSaver(`${baseFileName}.csv`, () =>
+    convertToCSV(exportMessages())
+  );
 
   const partitions = useMemo(() => {
     return (topic?.partitions || []).reduce<{

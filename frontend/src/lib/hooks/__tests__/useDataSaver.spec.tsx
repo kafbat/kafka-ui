@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useDataSaver from 'lib/hooks/useDataSaver';
-import { render } from '@testing-library/react';
+import { act, render, renderHook } from '@testing-library/react';
 import { showAlert } from 'lib/errorHandling';
 
 jest.mock('lib/errorHandling', () => ({
@@ -22,6 +22,7 @@ describe('useDataSaver hook', () => {
 
     it('downloads txt file', () => {
       global.URL.createObjectURL = jest.fn();
+      global.URL.revokeObjectURL = jest.fn();
       const link: HTMLAnchorElement = document.createElement('a');
       link.click = jest.fn();
 
@@ -41,6 +42,43 @@ describe('useDataSaver hook', () => {
       expect(link.click).toHaveBeenCalledTimes(1);
 
       mockCreate.mockRestore();
+    });
+
+    describe('lazy downloads', () => {
+      it('serializes only on click and downloads the complete payload', async () => {
+        const original = `${'x'.repeat(1024 * 1024)}😀end`;
+        const getter = jest.fn(() => original);
+        let downloadedBlob: Blob | undefined;
+        global.URL.createObjectURL = jest.fn((blob: Blob) => {
+          downloadedBlob = blob;
+          return 'blob:test-download';
+        });
+        global.URL.revokeObjectURL = jest.fn();
+        const click = jest
+          .spyOn(HTMLAnchorElement.prototype, 'click')
+          .mockImplementation();
+        const { result, rerender } = renderHook(() =>
+          useDataSaver('full-message', getter)
+        );
+        rerender();
+        expect(getter).not.toHaveBeenCalled();
+
+        act(() => result.current.saveFile());
+        expect(getter).toHaveBeenCalledTimes(1);
+        expect(click).toHaveBeenCalledTimes(1);
+        expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(
+          'blob:test-download'
+        );
+        expect(document.querySelector('a[download="full-message"]')).toBeNull();
+        const contents = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsText(downloadedBlob!);
+        });
+        expect(contents).toBe(original);
+        click.mockRestore();
+      });
     });
   });
   describe('copies the data to the clipboard', () => {
