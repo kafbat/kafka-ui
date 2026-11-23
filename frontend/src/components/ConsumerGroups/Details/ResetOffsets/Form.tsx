@@ -95,7 +95,6 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
 
   React.useEffect(() => {
     onSelectedPartitionsChange([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicValue]);
 
   const onSubmit = async (data: ConsumerGroupOffsetsReset) => {
@@ -144,6 +143,9 @@ const Form: React.FC<FormProps> = ({ defaultValues, partitions, topics }) => {
                   render={({ field: { onChange, onBlur, value, ref } }) => (
                     <S.DatePickerInput
                       ref={ref}
+                      showTimeInput
+                      timeInputLabel="Time:"
+                      dateFormat="MMMM d, yyyy h:mm aa"
                       selected={getDateInCurrentTimezone(
                         new Date(value as number)
                       )}

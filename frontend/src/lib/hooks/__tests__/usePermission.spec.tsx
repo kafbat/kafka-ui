@@ -30,8 +30,6 @@ describe('usePermission', () => {
   }) =>
     renderHook(() => usePermission(resource, action, value), {
       wrapper: ({ children }) => (
-        // eslint-disable-next-line react/react-in-jsx-scope
-
         // issue in initialProps of wrapper
         <UserInfoRolesAccessContext.Provider value={userInfo}>
           {children}

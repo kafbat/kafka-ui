@@ -44,6 +44,28 @@ const Metrics: React.FC = () => {
     return null;
   }
 
+  if (!data.progress && !data.result) {
+    return (
+      <S.ProgressContainer>
+        <ActionButton
+          onClick={async () => {
+            await analyzeTopic.mutateAsync();
+            setIsAnalyzing(true);
+          }}
+          buttonType="primary"
+          buttonSize="M"
+          permission={{
+            resource: ResourceType.TOPIC,
+            action: Action.ANALYSIS_RUN,
+            value: params.topicName,
+          }}
+        >
+          Start Analysis
+        </ActionButton>
+      </S.ProgressContainer>
+    );
+  }
+
   if (data.progress) {
     return (
       <S.ProgressContainer>
@@ -100,8 +122,10 @@ const Metrics: React.FC = () => {
     return null;
   }
 
-  const totalStats = data.result.totalStats || {};
+  const { totalStats } = data.result;
   const partitionStats = data.result.partitionStats || [];
+  const isEmptyTopic =
+    totalStats?.totalMsgs == null && partitionStats.length === 0;
 
   return (
     <>
@@ -128,16 +152,26 @@ const Metrics: React.FC = () => {
           Restart Analysis
         </ActionButton>
       </S.ActionsBar>
-      <Informers.Wrapper>
-        <Total {...totalStats} />
-        {totalStats.keySize && (
-          <SizeStats stats={totalStats.keySize} title="Key size" />
-        )}
-        {totalStats.valueSize && (
-          <SizeStats stats={totalStats.valueSize} title="Value size" />
-        )}
-      </Informers.Wrapper>
-      <PartitionTable data={partitionStats} />
+      {isEmptyTopic ? (
+        <Informers.Wrapper>
+          <Informers.LightText>
+            No data available. The topic appears to be empty.
+          </Informers.LightText>
+        </Informers.Wrapper>
+      ) : (
+        <>
+          <Informers.Wrapper>
+            <Total {...(totalStats || {})} />
+            {totalStats?.keySize && (
+              <SizeStats stats={totalStats.keySize} title="Key size" />
+            )}
+            {totalStats?.valueSize && (
+              <SizeStats stats={totalStats.valueSize} title="Value size" />
+            )}
+          </Informers.Wrapper>
+          <PartitionTable data={partitionStats} />
+        </>
+      )}
     </>
   );
 };

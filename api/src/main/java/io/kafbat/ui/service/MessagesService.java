@@ -24,6 +24,7 @@ import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.serdes.ConsumerRecordDeserializer;
 import io.kafbat.ui.serdes.ProducerRecordCreator;
 import io.kafbat.ui.util.KafkaClientSslPropertiesUtil;
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -36,7 +37,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
@@ -172,7 +172,9 @@ public class MessagesService {
             cluster,
             topicDescription.name(),
             msg.getKeySerde().get(),
-            msg.getValueSerde().get()
+            msg.getValueSerde().get(),
+            msg.getKeySerdeProperties(),
+            msg.getValueSerdeProperties()
         );
 
     try (KafkaProducer<byte[], byte[]> producer = createProducer(cluster, Map.of())) {
@@ -242,7 +244,7 @@ public class MessagesService {
         cursor.deserializer(),
         cursor.consumerPosition(),
         cursor.filter(),
-        cursor.limit()
+        fixPageSize(cursor.limit())
     );
   }
 

@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 public interface ProviderAuthorityExtractor {
 
   String TYPE = "type";
+  String OAUTH_WEB_CLIENT = "oauthWebClient";
 
   boolean isApplicable(String provider, Map<String, String> customParams);
 

@@ -1,6 +1,7 @@
 package io.kafbat.ui.service.metrics.scrape.jmx;
 
 import com.google.common.base.Preconditions;
+import jakarta.annotation.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -9,7 +10,6 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;

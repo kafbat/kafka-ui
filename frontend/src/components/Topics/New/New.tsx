@@ -42,7 +42,7 @@ const New: React.FC = () => {
     try {
       await createTopic.createResource(data);
       navigate(`../${data.name}`);
-    } catch (e) {
+    } catch {
       // do nothing
     }
   };

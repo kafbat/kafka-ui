@@ -1,6 +1,7 @@
 plugins {
     id 'antlr'
     id 'checkstyle'
+    id 'jacoco'
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.git.properties)
     alias(libs.plugins.docker.remote.api)
@@ -8,6 +9,7 @@ plugins {
 }
 
 configurations.all {
+    exclude group: 'io.swagger.core.v3', module: 'swagger-annotations'
     resolutionStrategy {
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
@@ -20,24 +22,18 @@ configurations.all {
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-dependencies {
-    implementation(libs.jackson.core){
-        because("Fixes GHSA-72hv-8253-57qq. Revert when Spring boot 3.5.13 is released. See https://github.com/spring-projects/spring-boot/issues/49365/")
-    }
+// The BOM manages protobuf-java 4.x; confluent, cel and the google clients are built against 3.x. Drop once they move.
+ext['protobuf-java.version'] = libs.versions.protobuf.java.get()
 
+dependencies {
     implementation project(":contract")
     implementation project(":serde-api")
     implementation libs.spring.starter.webflux
-    implementation(libs.spring.starter.security){
-        exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt' because("Temporary overwrite to fix CVE-2025-53864. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
-    }
-    implementation(libs.nimbus.jose.jwt){
-        because("Fixes CVE-2025-5386. See https://avd.aquasec.com/nvd/2025/cve-2025-53864/")
-    }
+    implementation libs.spring.starter.security
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
-    implementation libs.spring.starter.oauth2.client
-    implementation libs.spring.security.oauth2.resource.server
+    implementation libs.spring.starter.security.oauth2.client
+    implementation libs.spring.starter.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
     // For Swagger UI Webflux
@@ -63,13 +59,19 @@ dependencies {
     implementation libs.confluent.protobuf.serializer
     implementation libs.confluent.json.schema.serializer
 
+    implementation libs.msgpack.core
+    implementation libs.msgpack.jackson
+
     implementation libs.aws.msk.auth
     implementation(libs.azure.identity) {
         exclude group: 'io.netty', module: 'netty-tcnative-boringssl-static'
     }
 
     implementation libs.jackson.databind.nullable
-    implementation libs.cel
+    implementation libs.spring.boot.jackson2
+    implementation(libs.cel) {
+        exclude group: 'com.google.auto.value', module: 'auto-value'
+    }
     implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
@@ -93,10 +95,13 @@ dependencies {
 
     // CVE Fixes
     implementation libs.apache.commons.compress
+    implementation libs.guava
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
-    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.modelcontextprotocol.core
+    implementation libs.modelcontextprotocol.json.jackson2
+    implementation libs.spring.ai.mcp.webflux
     implementation libs.victools.jsonschema.generator
 
 
@@ -125,7 +130,7 @@ dependencies {
     testAnnotationProcessor libs.mapstruct.processor
 
     // Tests
-    testImplementation libs.spring.starter.test
+    testImplementation libs.spring.starter.webflux.test
     testImplementation libs.reactor.test
     testImplementation libs.testcontainers
     testImplementation libs.testcontainers.kafka
@@ -179,6 +184,16 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }
 
 springBoot {
@@ -197,16 +212,10 @@ tasks.register('buildDockerImageTask', DockerBuildImage) {
 tasks.register('copyOpenApiSpecForSwagger', Copy) {
     dependsOn ':contract-typespec:build'
 
-    if (useTypeSpec) {
-        inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
-    } else {
-        inputs.files(fileTree("../contract/src/main/resources/swagger/"))
-    }
+    inputs.files(project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml"))
     outputs.file("src/main/resources/static/openapi/kafbat-ui-api.yaml")
 
-    from useTypeSpec ?
-        project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get() :
-        fileTree("../contract/src/main/resources/swagger/").matching { include "kafbat-ui-api.yaml" }
+    from project(":contract-typespec").layout.buildDirectory.dir("tsp/api/openapi.yaml").get()
     into "src/main/resources/static/openapi/"
     rename { "kafbat-ui-api.yaml" }
 }

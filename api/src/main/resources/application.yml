@@ -1,6 +1,11 @@
 auth:
   type: DISABLED
 
+spring:
+  http:
+    codecs:
+      preferred-json-mapper: jackson2
+
 management:
   endpoint:
     info:

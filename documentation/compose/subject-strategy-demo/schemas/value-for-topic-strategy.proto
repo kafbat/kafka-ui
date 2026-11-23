@@ -1,0 +1,7 @@
+syntax = "proto3";
+package io.kafbat.test;
+
+message ProtoTopicValue {
+  string id = 1;
+  string message = 2;
+}

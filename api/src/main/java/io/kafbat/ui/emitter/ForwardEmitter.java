@@ -44,7 +44,7 @@ public class ForwardEmitter extends RangePollingEmitter {
       );
     }
 
-    int msgsToPollPerPartition = (int) Math.ceil((double) messagesPerPage / readFromOffsets.size());
+    int msgsToPollPerPartition = Math.max(1, (int) Math.ceil((double) messagesPerPage / readFromOffsets.size()));
     TreeMap<TopicPartition, FromToOffset> result = new TreeMap<>(Comparator.comparingInt(TopicPartition::partition));
     readFromOffsets.forEach((tp, fromOffset) -> {
       long tpEndOffset = seekOperations.getEndOffsets().get(tp);

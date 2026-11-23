@@ -1,6 +1,8 @@
 package io.kafbat.ui.serde.api;
 
 import java.io.Closeable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.kafka.common.header.Headers;
 
@@ -101,6 +103,46 @@ public interface Serde extends Closeable {
    * @return {@code Serializer} for the specified topic's key/value.
    */
   Serializer serializer(String topic, Target type);
+
+  /**
+   * Creates {@code Serializer} for the specified topic's key/value, with additional properties
+   * that may influence serialization (e.g. explicit schema subject).
+   * Default implementation ignores properties and delegates to {@link #serializer(String, Target)}.
+   *
+   * @param topic      topic name
+   * @param type       {@code Target} for which {@code Serializer} will be created.
+   * @param properties additional serde-specific properties (e.g. {"subject": "my-subject"})
+   * @return {@code Serializer} for the specified topic's key/value.
+   */
+  default Serializer serializer(String topic, Target type, Map<String, Object> properties) {
+    return serializer(topic, type);
+  }
+
+  /**
+   * Returns a list of possible parameters that this serde can use
+   * for the given topic and target. Used to populate UI dropdowns.
+   * Default implementation returns an empty list.
+   *
+   * @param topic topic name
+   * @param type  {@code Target} for which parameters will be returned.
+   * @return List of applicable parameters.
+   */
+  default List<SerdeParameter> getParameters(String topic, Target type) {
+    return List.of();
+  }
+
+  /**
+   * Indicates whether this serde is a preferable choice for the specified topic and target.
+   * Implementations can use this to influence serde selection when multiple candidates are available.
+   * Default implementation returns {@code true}.
+   *
+   * @param topic topic name
+   * @param type  {@code Target} for which preference is evaluated.
+   * @return {@code true} if this serde should be treated as preferable, otherwise {@code false}.
+   */
+  default boolean couldBePreferable(String topic, Target type) {
+    return true;
+  }
 
   /**
    * Creates {@code Deserializer} for the specified topic's key/value.

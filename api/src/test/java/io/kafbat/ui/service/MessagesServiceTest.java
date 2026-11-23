@@ -111,7 +111,7 @@ class MessagesServiceTest extends AbstractIntegrationTest {
 
   @ParameterizedTest
   @CsvSource({"EARLIEST", "LATEST"})
-  void cursorIsRegisteredAfterPollingIsDoneAndCanBeUsedForNextPagePolling(PollingModeDTO mode) {
+  void cursorIsRegisteredAfterPollingIsDoneAndCanBeUsedForNextPagePolling(PollingModeDTO mode) throws Exception {
     String testTopic = MessagesServiceTest.class.getSimpleName() + UUID.randomUUID();
     createTopicWithCleanup(new NewTopic(testTopic, 5, (short) 1));
 
@@ -119,9 +119,11 @@ class MessagesServiceTest extends AbstractIntegrationTest {
     int pageSize = (msgsToGenerate / 2) + 1;
 
     try (var producer = KafkaTestProducer.forKafka(kafka)) {
-      for (int i = 0; i < msgsToGenerate; i++) {
+      for (int i = 0; i < msgsToGenerate - 1; i++) {
         producer.send(testTopic, "message_" + i);
       }
+      // Wait for the last message to ensure all messages are visible before polling with LATEST mode
+      producer.send(testTopic, "message_" + (msgsToGenerate - 1)).get();
     }
 
     var cursorIdCatcher = new AtomicReference<String>();

@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "contract/**"
+      - "contract-typespec/**"
       - "frontend/**"
 
 permissions:
@@ -12,8 +13,10 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-and-test:
     uses: ./.github/workflows/frontend_tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

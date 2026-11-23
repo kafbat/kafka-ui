@@ -21,6 +21,7 @@ const Messages: React.FC = () => {
         isFetching={isFetching}
         phaseMessage={phase}
         abortFetchData={abortFetchData}
+        messages={messages}
       />
       <MessagesTable messages={messages} isFetching={isFetching} />
     </>

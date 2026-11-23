@@ -38,7 +38,7 @@ const EditorViewer: React.FC<EditorViewerProps> = ({
         />
       </S.Wrapper>
     );
-  } catch (e) {
+  } catch {
     return (
       <S.Wrapper>
         <p>{data}</p>

@@ -2,12 +2,12 @@ package io.kafbat.ui.serdes;
 
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
+import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +32,16 @@ public class ClusterSerdes implements Closeable {
                                                                Predicate<SerdeInstance> additionalCheck) {
     // iterating over serdes in the same order they were added in config
     for (SerdeInstance serdeInstance : serdes.values()) {
+      if (!serdeInstance.couldBePreferable(topic, type)) {
+        continue;
+      }
       var pattern = type == Serde.Target.KEY
           ? serdeInstance.topicKeyPattern
           : serdeInstance.topicValuePattern;
-      if (pattern != null
-          && pattern.matcher(topic).matches()
-          && additionalCheck.test(serdeInstance)) {
+      boolean topicMatches = pattern != null
+          ? pattern.matcher(topic).matches()
+          : serdeInstance.explicitlyConfigured;
+      if (topicMatches && additionalCheck.test(serdeInstance)) {
         return Optional.of(serdeInstance);
       }
     }

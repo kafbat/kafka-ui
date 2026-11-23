@@ -13,7 +13,7 @@ import io.kafbat.ui.util.DynamicConfigOperations;
 import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -26,7 +26,7 @@ public interface DynamicConfigMapper {
   ApplicationConfigPropertiesDTO toDto(DynamicConfigOperations.PropertiesStructure propertiesStructure);
 
   default String map(Resource resource) {
-    return resource.getFilename();
+    return resource == null ? null : resource.getFilename();
   }
 
   @Mapping(source = "metrics.store", target = "metrics.store", ignore = true)
@@ -66,6 +66,7 @@ public interface DynamicConfigMapper {
         Optional.ofNullable(source.getClientSecret()).ifPresent(opaquetoken::setClientSecret);
         Optional.ofNullable(source.getIntrospectionUri()).ifPresent(opaquetoken::setIntrospectionUri);
       }
+      return result;
     }
     return null;
   }

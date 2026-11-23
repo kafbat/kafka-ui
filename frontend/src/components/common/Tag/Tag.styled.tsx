@@ -38,3 +38,25 @@ export const MultiLineTag = styled.div.attrs({ role: 'widget' })<Props>`
   margin: 2px 0;
   white-space: pre-wrap;
 `;
+
+export const MultiLineChipTag = styled.div`
+  border: none;
+  border-radius: 16px;
+  height: fit-content;
+  line-height: 20px;
+  background-color: ${({ theme }) => theme.chips.backgroundColor.normal};
+  color: ${({ theme }) => theme.chips.color.normal};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.chips.backgroundColor.hover};
+    color: ${({ theme }) => theme.chips.color.hover};
+  }
+  font-size: 12px;
+  display: inline-block;
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+  text-align: center;
+  width: fit-content;
+  margin: 2px 0;
+  white-space: pre-wrap;
+`;

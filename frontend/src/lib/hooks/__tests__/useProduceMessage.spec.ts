@@ -72,6 +72,51 @@ describe('useProduceMessage', () => {
     });
   });
 
+  it('should extract serde params from deserialize properties', () => {
+    const { result } = renderHook(() => useProduceMessage());
+    const messageWithSubjects: TopicMessage = {
+      ...mockMessage,
+      valueSerde: 'SchemaRegistry',
+      keySerde: 'SchemaRegistry',
+      valueDeserializeProperties: {
+        subjects: ['test-topic-value'],
+        type: 'AVRO',
+        id: 1,
+      },
+      keyDeserializeProperties: {
+        subjects: ['test-topic-key'],
+        type: 'AVRO',
+        id: 2,
+      },
+    };
+
+    act(() => {
+      result.current.setMessage(messageWithSubjects);
+    });
+
+    expect(result.current.messageData?.keySerdeParams).toEqual({
+      subject: 'test-topic-key',
+    });
+    expect(result.current.messageData?.valueSerdeParams).toEqual({
+      subject: 'test-topic-value',
+    });
+  });
+
+  it('should handle empty subjects array in deserialize properties', () => {
+    const { result } = renderHook(() => useProduceMessage());
+    const messageWithEmptySubjects: TopicMessage = {
+      ...mockMessage,
+      valueSerde: 'SchemaRegistry',
+      valueDeserializeProperties: { subjects: [], type: 'AVRO', id: 1 },
+    };
+
+    act(() => {
+      result.current.setMessage(messageWithEmptySubjects);
+    });
+
+    expect(result.current.messageData?.valueSerdeParams).toBeUndefined();
+  });
+
   it('should clear message on callback', () => {
     const { result } = renderHook(() => useProduceMessage());
 

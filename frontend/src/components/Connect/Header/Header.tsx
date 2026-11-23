@@ -5,6 +5,7 @@ import ClusterContext from 'components/contexts/ClusterContext';
 import { ResourceType, Action } from 'generated-sources';
 import { useConnects } from 'lib/hooks/api/kafkaConnect';
 import useAppParams from 'lib/hooks/useAppParams';
+import { getKafkaConnectPageTitle } from 'lib/pageTitles';
 import {
   clusterConnectorNewPath,
   clusterConnectorsRelativePath,
@@ -48,7 +49,10 @@ const Header = () => {
   };
 
   return (
-    <ResourcePageHeading text="Kafka Connect">
+    <ResourcePageHeading
+      text="Kafka Connect"
+      documentTitle={getKafkaConnectPageTitle(currentPath, clusterName)}
+    >
       {!isReadOnly && (
         <Tooltip
           value={

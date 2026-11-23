@@ -2,6 +2,7 @@ package io.kafbat.ui.config;
 
 import static io.kafbat.ui.model.MetricsScrapeProperties.JMX_METRICS_TYPE;
 
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -166,6 +166,20 @@ public class ClustersProperties {
   public static class SchemaRegistryAuth {
     String username;
     String password;
+    OauthConfig oauth;
+  }
+
+  @Data
+  @ToString(exclude = {"clientSecret"})
+  public static class OauthConfig {
+    String tokenUrl;
+    String clientId;
+    String clientSecret;
+    String[] scopes;
+
+    Boolean tokenCacheEnabled = true;
+    Duration tokenRefreshBuffer = Duration.ofSeconds(60);
+    Integer maxRetries = 1;  // Max retries on 401 errors
   }
 
   @Data
@@ -329,12 +343,11 @@ public class ClustersProperties {
     for (Cluster clusterProperties : clusters) {
       if (!StringUtils.hasText(clusterProperties.getName())) {
         throw new IllegalStateException(
-            "Application config isn't valid. "
-                + "Cluster names should be provided in case of multiple clusters present");
+          "Application config isn't valid. " + "Cluster names should be provided in case of multiple clusters present"
+        );
       }
       if (!clusterNames.add(clusterProperties.getName())) {
-        throw new IllegalStateException(
-            "Application config isn't valid. Two clusters can't have the same name");
+        throw new IllegalStateException("Application config isn't valid. Two clusters can't have the same name");
       }
     }
   }

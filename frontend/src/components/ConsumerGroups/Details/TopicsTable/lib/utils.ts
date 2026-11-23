@@ -2,6 +2,7 @@ import { ConsumerGroupTopicPartition } from 'generated-sources';
 import { createColumnHelper } from '@tanstack/react-table';
 import { NA } from 'components/Brokers/BrokersList/lib';
 import * as Cell from 'components/ConsumerGroups/Details/TopicsTable/cells/cells';
+import { LagTrend } from 'lib/consumerGroups';
 
 import { ConsumerGroupTopicsTableRow } from './types';
 
@@ -22,18 +23,23 @@ const calculateConsumerLag = (lags: number[]) => {
 export const getConsumerGroupTopicsTableData = ({
   partitions = [],
   searchQuery,
+  lagTrends,
+  lags,
 }: {
   partitions: ConsumerGroupTopicPartition[];
   searchQuery: string;
+  lagTrends: Record<string, LagTrend>;
+  lags: Record<string, number | undefined> | undefined;
 }): ConsumerGroupTopicsTableRow[] => {
   if (partitions.length === 0) return [];
 
   const grouped = getConsumerLagByTopic(partitions);
   return Object.entries(grouped)
     .filter(([topic]) => topic.includes(searchQuery))
-    .map(([topic, lags]) => ({
+    .map(([topic, partitionLags]) => ({
       topicName: topic,
-      consumerLag: calculateConsumerLag(lags),
+      consumerLag: lags?.[topic] ?? calculateConsumerLag(partitionLags),
+      lagTrend: lagTrends?.[topic] ?? 'none',
     }));
 };
 
@@ -49,6 +55,7 @@ export const getConsumerGroupTopicsTableColumns = () => {
     columnHelper.accessor('consumerLag', {
       header: 'Consumer lag',
       cell: Cell.ConsumerLag,
+      meta: { csvFn: (row) => String(row.consumerLag) },
       size: 350,
     }),
     columnHelper.accessor('topicName', {

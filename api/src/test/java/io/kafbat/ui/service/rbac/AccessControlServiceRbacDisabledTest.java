@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -52,6 +53,7 @@ class AccessControlServiceRbacDisabledTest extends AbstractIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     // Mock security context
     when(securityContext.getAuthentication()).thenReturn(authentication);
     when(authentication.getPrincipal()).thenReturn(user);
@@ -76,6 +78,15 @@ class AccessControlServiceRbacDisabledTest extends AbstractIntegrationTest {
           .expectComplete()
           .verify();
     });
+  }
+
+  @Test
+  void validateAccess_noSecurityContext() {
+    AccessContext context = getAccessContext(PROD_CLUSTER, true);
+    Mono<Void> validateAccessMono = accessControlService.validateAccess(context);
+    StepVerifier.create(validateAccessMono)
+        .expectComplete()
+        .verify();
   }
 
   @Test

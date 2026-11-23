@@ -5,6 +5,7 @@ import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.service.rbac.extractor.ProviderAuthorityExtractor;
 import io.kafbat.ui.util.StaticFileWebFilter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,10 +13,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientPropertiesMapper;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -38,12 +40,21 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.SpringReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -78,7 +89,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
       ReactiveOAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient,
       ReactiveOAuth2UserService<OidcUserRequest, OidcUser> oidcUserService,
       ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
-      @Qualifier("oauthWebClient") WebClient webClient
+      @Qualifier("oauthWebClient") WebClient webClient,
+      AccessControlService accessControlService
   ) {
     log.info("Configuring OAUTH2 authentication.");
 
@@ -102,27 +114,38 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             .anyExchange()
             .authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager))
-        .logout(spec -> spec.logoutSuccessHandler(logoutHandler))
         .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
-    if (properties.getResourceServer() != null) {
-      OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
-      if (resourceServer.getJwt() != null && resourceServer.getJwt().getJwkSetUri() != null) {
-        builder.oauth2ResourceServer(c -> c.jwt(j ->
-            j.jwtDecoder(NimbusReactiveJwtDecoder.withJwkSetUri(resourceServer.getJwt().getJwkSetUri())
-                .webClient(webClient)
-                .build())));
-      } else if (resourceServer.getOpaquetoken() != null
-          && resourceServer.getOpaquetoken().getIntrospectionUri() != null) {
-        OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
-        builder.oauth2ResourceServer(c -> c.opaqueToken(o ->
-            o.introspector(new SpringReactiveOpaqueTokenIntrospector(
-                opaquetoken.getIntrospectionUri(),
-                webClient.mutate()
-                    .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
-                    .build()))));
-      }
+    if (hasClientRegistrations()) {
+      builder.oauth2Login(oauth2 -> oauth2.authenticationManager(delegatingAuthManager));
+      builder.logout(spec -> spec.logoutSuccessHandler(logoutHandler));
+    } else {
+      log.info("No OAuth2 client registrations, running in resource-server-only mode.");
+    }
+
+    OAuth2ResourceServerProperties resourceServer = properties.getResourceServer();
+    if (hasJwtResourceServer()) {
+      var jwtDecoder = jwtDecoder(resourceServer.getJwt(), webClient);
+      builder.oauth2ResourceServer(c -> c.jwt(j -> {
+        j.jwtDecoder(jwtDecoder);
+        if (accessControlService.isRbacEnabled()) {
+          j.jwtAuthenticationConverter(
+              new RbacReactiveJwtAuthenticationConverter(accessControlService, resourceServer.getJwt()));
+        }
+      }));
+    } else if (hasOpaqueTokenResourceServer()) {
+      OAuth2ResourceServerProperties.Opaquetoken opaquetoken = resourceServer.getOpaquetoken();
+      builder.oauth2ResourceServer(c -> c.opaqueToken(o -> {
+        o.introspector(new SpringReactiveOpaqueTokenIntrospector(
+            opaquetoken.getIntrospectionUri(),
+            webClient.mutate()
+                .defaultHeaders(h -> h.setBasicAuth(opaquetoken.getClientId(), opaquetoken.getClientSecret()))
+                .build()));
+        if (accessControlService.isRbacEnabled()) {
+          o.authenticationConverter((token, principal) ->
+              Mono.just(RbacBearerTokenAuthentication.of(accessControlService, token, principal)));
+        }
+      }));
     }
 
     builder.addFilterAt(new StaticFileWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
@@ -141,7 +164,8 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   @Bean
   public ReactiveOAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService(
       AccessControlService acs,
-      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService) {
+      ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService,
+      @Qualifier("oauthWebClient") WebClient webClient) {
     final OidcReactiveOAuth2UserService delegate = new OidcReactiveOAuth2UserService();
 
     delegate.setOauth2UserService(oauth2UserService);
@@ -154,7 +178,10 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             return Mono.just(user);
           }
 
-          return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
+          return extractor.extract(acs, user, Map.of(
+                  "request", request,
+                  "provider", provider,
+                  ProviderAuthorityExtractor.OAUTH_WEB_CLIENT, webClient))
               .map(groups -> new RbacOidcUser(user, groups));
         });
   }
@@ -173,25 +200,70 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
             return Mono.just(user);
           }
 
-          return extractor.extract(acs, user, Map.of("request", request, "provider", provider))
+          return extractor.extract(acs, user, Map.of(
+                  "request", request,
+                  "provider", provider,
+                  ProviderAuthorityExtractor.OAUTH_WEB_CLIENT, webClient))
               .map(groups -> new RbacOAuth2User(user, groups));
         });
   }
 
   @Bean
-  public InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
-    final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
-    final List<ClientRegistration> registrations =
-        new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
-    if (registrations.isEmpty()) {
+  public ReactiveClientRegistrationRepository clientRegistrationRepository() {
+    if (hasClientRegistrations()) {
+      final OAuth2ClientProperties props = OAuthPropertiesConverter.convertProperties(properties);
+      final List<ClientRegistration> registrations =
+          new ArrayList<>(new OAuth2ClientPropertiesMapper(props).asClientRegistrations().values());
+      return new InMemoryReactiveClientRegistrationRepository(registrations);
+    }
+    if (!hasJwtResourceServer() && !hasOpaqueTokenResourceServer()) {
       throw new IllegalArgumentException("OAuth2 authentication is enabled but no providers specified.");
     }
-    return new InMemoryReactiveClientRegistrationRepository(registrations);
+    return (_) -> Mono.empty();
   }
 
   @Bean
   public ServerLogoutSuccessHandler defaultOidcLogoutHandler(final ReactiveClientRegistrationRepository repository) {
     return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+  }
+
+  private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {
+    var decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwt.getJwkSetUri())
+        .webClient(webClient)
+        .jwsAlgorithms(algorithms -> jwt.getJwsAlgorithms().forEach(name -> {
+          var algorithm = SignatureAlgorithm.from(name);
+          if (algorithm == null) {
+            throw new InvalidConfigurationPropertyValueException(
+                "auth.oauth2.resource-server.jwt.jws-algorithms", name, "Unknown algorithm");
+          }
+          algorithms.add(algorithm);
+        }))
+        .build();
+
+    List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
+    validators.add(StringUtils.hasText(jwt.getIssuerUri())
+        ? JwtValidators.createDefaultWithIssuer(jwt.getIssuerUri())
+        : JwtValidators.createDefault());
+    if (!CollectionUtils.isEmpty(jwt.getAudiences())) {
+      validators.add(new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
+          aud -> aud != null && !Collections.disjoint(aud, jwt.getAudiences())));
+    }
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
+    return decoder;
+  }
+
+  private boolean hasClientRegistrations() {
+    return !properties.getClient().isEmpty();
+  }
+
+  private boolean hasJwtResourceServer() {
+    var resourceServer = properties.getResourceServer();
+    return resourceServer != null && resourceServer.getJwt().getJwkSetUri() != null;
+  }
+
+  private boolean hasOpaqueTokenResourceServer() {
+    var resourceServer = properties.getResourceServer();
+    return resourceServer != null && resourceServer.getOpaquetoken().getIntrospectionUri() != null;
   }
 
   private ProviderAuthorityExtractor getExtractor(final OAuthProperties.OAuth2Provider provider,
@@ -209,4 +281,3 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
   }
 
 }
-

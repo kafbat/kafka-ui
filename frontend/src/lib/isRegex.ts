@@ -3,7 +3,7 @@ function isRegex(value: string): boolean {
     const PATTERN = /\*|\(|\)|\[|\]|\[|\]|\?|\+|\||\//gm;
 
     return PATTERN.test(value);
-  } catch (e) {
+  } catch {
     return false;
   }
 }

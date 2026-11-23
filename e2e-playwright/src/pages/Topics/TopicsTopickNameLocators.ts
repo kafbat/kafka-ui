@@ -18,8 +18,8 @@ export default class TopicsTopickNameLocators {
     get headersButton():Locator { return this.page.getByRole('button', { name: 'Headers' }); }
     get dotsMenu():Locator {return this.page.locator('#root div').filter({ hasText: 'Edit settingsPay attention!' }).nth(3)}
 
-    get menuItemEditSettings():Locator { return this.page.getByRole('menuitem', { name: 'Edit settings Pay attention!' }) }
-    get menuItemClearMessages():Locator { return this.page.getByText('Clear messagesClearing') }
+    get menuItemEditSettings():Locator { return this.page.getByRole('menuitem', { name: 'Edit settings' }) }
+    get menuItemClearMessages():Locator { return this.page.getByRole('menuitem', { name: 'Clear messages' }) }
     get menuItemRecreateTopic():Locator { return this.page.getByText('Recreate Topic') }
     get confirm():Locator { return this.page.getByRole('button', { name: 'Confirm' }) }
 
