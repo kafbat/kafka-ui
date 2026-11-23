@@ -148,6 +148,17 @@ The info endpoint (build info) is located at `/actuator/info`.
 
 # Configuration options
 
+RBAC permissions for named resources (`topic`, `consumer`, `schema`, `connect`, and
+`connector`) require a non-empty `value` pattern. Use `value: '.*'` to match every
+name. `actions: [all]` expands actions only; it does not select resources.
+An entry containing only `schema:modify_global_compatibility` does not require a
+`value`, because it applies to the registry rather than a named schema.
+
+Migration: configurations that previously omitted `value` for named resources
+now fail validation with a configuration error. Add the intended resource pattern
+before upgrading. Global schema compatibility permissions should be configured
+in a separate entry without `value`.
+
 All environment variables and configuration properties can be found [here](https://ui.docs.kafbat.io/configuration/misc-configuration-properties).
 
 # Contributing
