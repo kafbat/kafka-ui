@@ -176,6 +176,20 @@ describe('Message component', () => {
     expect(keyFiltered).toBeInTheDocument();
   });
 
+  it('shows the error of a preview filter that fails on the message', () => {
+    renderComponent({
+      message: { ...mockMessage, value: mockMessageValue as string },
+      contentFilters: [
+        mockContentFilters,
+        { field: 'tier', path: "$[?(@.customer.tier == 'gold')]" },
+      ],
+    });
+    expect(screen.getByText('author: "DwaywelayTOP"')).toBeInTheDocument();
+    expect(
+      screen.getByText(/^tier: .*Cannot read properties of undefined/)
+    ).toBeInTheDocument();
+  });
+
   it('shows action options in dropdown on click', async () => {
     renderComponent();
     const trElement = screen.getByRole('row');
