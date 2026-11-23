@@ -20,23 +20,6 @@ interface MessagesApi {
     @query use: SerdeUsage,
   ): TopicSerdeSuggestion;
 
-  @get
-  @route("/messages")
-  @operationId("getTopicMessages")
-  @summary("getTopicMessages")
-  getTopicMessages(
-    @path clusterName: string,
-    @path topicName: string,
-    @query seekType?: SeekType,
-    @query seekTo?: string[],
-    @query limit?: int32,
-    @query q?: string,
-    @query filterQueryType?: MessageFilterType,
-    @query seekDirection?: SeekDirection,
-    @query keySerde?: string,
-    @query valueSerde?: string,
-  ): SseResponse<TopicMessageEvent>;
-
   @delete
   @route("/messages")
   @operationId("deleteTopicMessages")
@@ -167,13 +150,6 @@ model SchemaRegistryDeserializeProperties {
     subjects?: string[];
 }
 
-enum SeekType {
-  BEGINNING,
-  OFFSET,
-  TIMESTAMP,
-  LATEST,
-}
-
 model MessageFilterRegistration {
   filterCode?: string;
 }
@@ -189,17 +165,6 @@ enum PollingMode {
   TO_TIMESTAMP,
   LATEST,
   EARLIEST,
-  TAILING,
-}
-
-enum MessageFilterType {
-  STRING_CONTAINS,
-  CEL_SCRIPT,
-}
-
-enum SeekDirection {
-  FORWARD,
-  BACKWARD,
   TAILING,
 }
 
