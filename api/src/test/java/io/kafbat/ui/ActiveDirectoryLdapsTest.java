@@ -24,12 +24,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.shaded.org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.testcontainers.shaded.org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
 import org.testcontainers.shaded.org.bouncycastle.util.io.pem.PemWriter;
 
+@DirtiesContext
 @ContextConfiguration(initializers = {ActiveDirectoryLdapsTest.Initializer.class})
 public class ActiveDirectoryLdapsTest extends AbstractActiveDirectoryIntegrationTest {
   private static final ActiveDirectoryContainer ACTIVE_DIRECTORY = new ActiveDirectoryContainer(true);
