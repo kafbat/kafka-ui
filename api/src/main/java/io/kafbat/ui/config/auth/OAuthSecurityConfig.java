@@ -224,7 +224,12 @@ public class OAuthSecurityConfig extends AbstractAuthSecurityConfig {
 
   @Bean
   public ServerLogoutSuccessHandler defaultOidcLogoutHandler(final ReactiveClientRegistrationRepository repository) {
-    return new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+    OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler =
+        new OidcClientInitiatedServerLogoutSuccessHandler(repository);
+
+    oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
+
+    return oidcLogoutSuccessHandler;
   }
 
   private static NimbusReactiveJwtDecoder jwtDecoder(OAuth2ResourceServerProperties.Jwt jwt, WebClient webClient) {
