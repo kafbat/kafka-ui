@@ -15,10 +15,10 @@ export const useProduceMessage = (): UseProduceMessageReturn => {
   const setMessage = useCallback((message: TopicMessage) => {
     const data: Partial<MessageFormData> = {
       keepContents: false,
-      content: message.value || '',
+      content: message.value ?? '',
     };
 
-    if (message.key) {
+    if (message.key !== undefined && message.key !== null) {
       data.key = message.key;
     }
 
