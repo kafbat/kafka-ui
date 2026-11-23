@@ -11,9 +11,9 @@ apache-commons-pool2 = '2.13.0'
 apache-datasketches = '3.1.0'
 apache-commons-compress = '1.28.0'
 
-assertj = '3.25.3'
+assertj = '3.27.7'
 avro = '1.12.1'
-byte-buddy = '1.18.1'
+byte-buddy = '1.18.17'
 confluent = '7.9.10'
 confluent-ccs = '7.9.10-ccs'
 msgpack = "0.9.11"
@@ -24,7 +24,7 @@ odd-oddrn-generator = '0.1.17'
 odd-oddrn-client = '0.1.41'
 cel = '0.3.0'
 okhttp3 = '4.12.0'
-wiremock = '3.9.1'
+wiremock = '3.13.2'
 testcontainers = '1.21.4'
 swagger-integration-jakarta = '2.2.55'
 springdoc = '3.2.0'
@@ -124,7 +124,7 @@ assertj = { module = 'org.assertj:assertj-core', version.ref = 'assertj' }
 jsonschemavalidator = { module = 'com.github.java-json-tools:json-schema-validator', version.ref = 'json-schema-validator' }
 
 # test scope
-bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.80' }
+bouncycastle-bcpkix = { module = 'org.bouncycastle:bcpkix-jdk18on', version = '1.87' }
 
 # Google Managed Service for Apache Kafka support
 google-managed-kafka-login-handler = {module = 'com.google.cloud.hosted.kafka:managed-kafka-auth-login-handler', version = '1.0.5'}
