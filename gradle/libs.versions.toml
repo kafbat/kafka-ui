@@ -36,7 +36,7 @@ checkstyle = '10.24.0'
 mcp = '2.1.0'
 spring-ai-mcp = '2.0.2'
 
-prometheus = '1.7.0'
+prometheus = '1.10.0'
 protobuf-java = '3.25.5'
 lucene = '10.3.2'
 
