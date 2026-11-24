@@ -29,7 +29,6 @@ module.exports = {
         formatOptions: {
             snippetInterface: "async-await"
         },
-        publishQuiet: true,
         dryRun: false,
         require: [
             "src/steps/*.ts",
