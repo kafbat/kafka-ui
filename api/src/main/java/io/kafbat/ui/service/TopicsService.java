@@ -76,7 +76,7 @@ public class TopicsService {
             ac.describeTopics(topics).zipWith(ac.getTopicsConfig(topics, false),
                 (descriptions, configs) ->
                     getPartitionOffsets(descriptions, ac).map(offsets -> {
-                      statisticsCache.update(c, descriptions, configs, offsets, clustersProperties);
+                      statisticsCache.update(c, descriptions, configs, offsets);
                       var stats = statisticsCache.get(c);
                       return createList(
                           topics,
@@ -468,15 +468,30 @@ public class TopicsService {
   }
 
   public Mono<List<InternalTopic>> getTopics(KafkaCluster cluster, String search, Boolean showInternal, Boolean fts) {
+    return topics(cluster, search, showInternal, fts, false);
+  }
+
+  /**
+   * CSV export serializes the cached topics themselves, so it needs the rate metrics attached.
+   * Paginated listing rebuilds the visible topics from live Kafka data and does not need them.
+   */
+  public Mono<List<InternalTopic>> getTopicsWithMetrics(KafkaCluster cluster, String search,
+                                                        Boolean showInternal, Boolean fts) {
+    return topics(cluster, search, showInternal, fts, true);
+  }
+
+  private Mono<List<InternalTopic>> topics(KafkaCluster cluster, String search,
+                                           Boolean showInternal, Boolean fts, boolean withMetrics) {
     Statistics stats = statisticsCache.get(cluster);
     ScrapedClusterState clusterState = stats.getClusterState();
     boolean useFts = clustersProperties.getFts().use(fts);
     try {
-      return Mono.just(
+      Mono<List<InternalTopic>> result = Mono.just(
           clusterState.getTopicIndex().find(search, showInternal, useFts, null)
-      ).flatMap(lst -> filterExisting(cluster, lst)).map(lst ->
-        lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList()
-      );
+      ).flatMap(lst -> filterExisting(cluster, lst));
+      return withMetrics
+          ? result.map(lst -> lst.stream().map(t -> t.withMetrics(stats.getMetrics())).toList())
+          : result;
     } catch (Exception e) {
       return Mono.error(e);
     }

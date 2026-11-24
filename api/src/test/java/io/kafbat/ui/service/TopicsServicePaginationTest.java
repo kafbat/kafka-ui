@@ -26,8 +26,10 @@ import io.kafbat.ui.model.TopicDTO;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.audit.AuditService;
+import io.kafbat.ui.service.index.TopicsIndexRegistry;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +54,9 @@ class TopicsServicePaginationTest {
   private final AdminClientService adminClientService = Mockito.mock(AdminClientService.class);
   private final ReactiveAdminClient reactiveAdminClient = Mockito.mock(ReactiveAdminClient.class);
   private final ClustersStorage clustersStorage = Mockito.mock(ClustersStorage.class);
-  private final StatisticsCache statisticsCache = new StatisticsCache(clustersStorage);
   private final ClustersProperties clustersProperties = new ClustersProperties();
+  private final StatisticsCache statisticsCache = new StatisticsCache(
+      clustersStorage, new TopicsIndexRegistry(), clustersProperties);
   private final TopicsService topicsService = new TopicsService(
       adminClientService,
       statisticsCache,
@@ -106,8 +109,7 @@ class TopicsServicePaginationTest {
             .map(t ->
                 Map.entry(t.getKey(), List.of(new ConfigEntry(CLEANUP_POLICY_CONFIG, "delete")))
             ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-        new InternalPartitionsOffsets(offsets),
-        clustersProperties
+        new InternalPartitionsOffsets(offsets)
     );
     when(adminClientService.get(isA(KafkaCluster.class))).thenReturn(Mono.just(reactiveAdminClient));
     when(reactiveAdminClient.listTopics(anyBoolean())).thenReturn(Mono.just(topicsInCache.keySet()));
@@ -166,6 +168,25 @@ class TopicsServicePaginationTest {
 
     assertThat(topics.getBody().getPageCount()).isEqualTo(4);
     assertThat(topics.getBody().getTopics()).hasSize(25);
+    assertThat(topics.getBody().getTopics())
+        .isSortedAccordingTo(Comparator.comparing(TopicDTO::getName));
+  }
+
+  @Test
+  void shouldListByNameWhenFtsEnabledWithoutSearch() {
+    init(
+        IntStream.rangeClosed(1, 100).boxed()
+            .map(Objects::toString)
+            .map(name -> new TopicDescription(name, false, List.of()))
+            .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
+                Metrics.empty(), null, null, "_"))
+            .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
+    );
+
+    var topics = topicsController
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, null,
+            null, null, true, null).block();
+
     assertThat(topics.getBody().getTopics())
         .isSortedAccordingTo(Comparator.comparing(TopicDTO::getName));
   }
@@ -343,6 +364,31 @@ class TopicsServicePaginationTest {
             .limit(25)
             .collect(Collectors.toList())
     );
+  }
+
+  @Test
+  void paginatedListingDoesNotCopyRateMetricsForEveryTopic() {
+    init(Map.of("topic", InternalTopic.from(
+        new TopicDescription("topic", false, List.of()), List.of(), null,
+        Metrics.empty(), null, null, "_")));
+
+    KafkaCluster cluster = clustersStorage.getClusterByName(LOCAL_KAFKA_CLUSTER_NAME).orElseThrow();
+    Statistics statistics = statisticsCache.get(cluster);
+    var rates = Metrics.builder()
+        .ioRates(Metrics.IoRates.builder()
+            .topicBytesInPerSec(Map.of("topic", BigDecimal.ONE))
+            .topicBytesOutPerSec(Map.of("topic", BigDecimal.TEN))
+            .build())
+        .build();
+    statisticsCache.replace(cluster, statistics.toBuilder().metrics(rates).build());
+
+    var plain = topicsService.getTopics(cluster, null, null, false).block().getFirst();
+    assertThat(plain.getBytesInPerSec()).isNull();
+    assertThat(plain.getBytesOutPerSec()).isNull();
+
+    var withMetrics = topicsService.getTopicsWithMetrics(cluster, null, null, false).block().getFirst();
+    assertThat(withMetrics.getBytesInPerSec()).isEqualByComparingTo(BigDecimal.ONE);
+    assertThat(withMetrics.getBytesOutPerSec()).isEqualByComparingTo(BigDecimal.TEN);
   }
 
   @Test

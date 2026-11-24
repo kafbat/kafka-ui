@@ -37,7 +37,9 @@ import io.kafbat.ui.service.TopicsService;
 import io.kafbat.ui.service.acl.AclsService;
 import io.kafbat.ui.service.analyze.TopicAnalysisService;
 import io.kafbat.ui.service.mcp.McpTool;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -205,7 +207,10 @@ public class TopicsController extends AbstractController implements TopicsApi, M
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
           ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
           boolean useFts = ftsProperties.use(fts);
-          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, useFts);
+          // With an FTS query and no explicit ordering, Lucene relevance order must be preserved.
+          // With an empty query there is no relevance, so fall back to the default name sort.
+          boolean preserveFtsOrder = useFts && search != null && !search.isBlank();
+          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, preserveFtsOrder, topics);
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
               ? comparatorForTopic : comparatorForTopic.reversed();
 
@@ -242,13 +247,15 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .operationName("getTopicsCsv")
         .build();
 
-    ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
-    Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, ftsProperties.use(fts));
+    boolean useFts = clustersProperties.getFts().use(fts);
+    boolean preserveFtsOrder = useFts && search != null && !search.isBlank();
 
     return topicsService
-        .getTopics(getCluster(clusterName), search, showInternal, fts)
+        .getTopicsWithMetrics(getCluster(clusterName), search, showInternal, fts)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
-        .map(topics -> topics.stream().sorted(comparatorForTopic).toList())
+        .map(topics -> topics.stream()
+            .sorted(getComparatorForTopic(orderBy, preserveFtsOrder, topics))
+            .toList())
         .flatMap(topics -> responseToCsv(ResponseEntity.ok(Flux.fromIterable(topics))))
         .doOnEach(sig -> audit(context, sig));
   }
@@ -411,9 +418,10 @@ public class TopicsController extends AbstractController implements TopicsApi, M
 
   private Comparator<InternalTopic> getComparatorForTopic(
       TopicColumnsToSortDTO orderBy,
-      boolean ftsEnabled) {
+      boolean preserveFtsOrder,
+      Collection<InternalTopic> topics) {
     var defaultComparator = Comparator.comparing(InternalTopic::getName);
-    if (orderBy == null && ftsEnabled) {
+    if (orderBy == null && preserveFtsOrder) {
       return  (o1, o2) -> 0;
     } else if (orderBy == null) {
       return defaultComparator;
@@ -423,10 +431,16 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       case OUT_OF_SYNC_REPLICAS -> Comparator.comparing(t -> t.getReplicas() - t.getInSyncReplicas());
       case REPLICATION_FACTOR -> Comparator.comparing(InternalTopic::getReplicationFactor);
       case SIZE -> Comparator.comparing(InternalTopic::getSegmentSize);
-      case MESSAGES_COUNT ->  Comparator.comparing(
-          InternalTopic::getMessagesCount,
-          Comparator.nullsFirst(Long::compareTo)
-      );
+      case MESSAGES_COUNT -> {
+        // getMessagesCount() walks all partitions, so computing it once per topic is much cheaper
+        // than doing that on every comparison while sorting thousands of topics.
+        Map<String, Long> messagesByTopic = HashMap.newHashMap(topics.size());
+        topics.forEach(topic -> messagesByTopic.put(topic.getName(), topic.getMessagesCount()));
+        yield Comparator.comparing(
+            (InternalTopic topic) -> messagesByTopic.get(topic.getName()),
+            Comparator.nullsFirst(Long::compareTo)
+        );
+      }
       default -> defaultComparator;
     };
   }

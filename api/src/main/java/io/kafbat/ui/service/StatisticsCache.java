@@ -5,6 +5,7 @@ import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.KafkaCluster;
 import io.kafbat.ui.model.ServerStatusDTO;
 import io.kafbat.ui.model.Statistics;
+import io.kafbat.ui.service.index.TopicsIndexRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,9 +20,14 @@ import org.springframework.stereotype.Component;
 public class StatisticsCache {
 
   private final Map<String, Statistics> cache = new ConcurrentHashMap<>();
+  private final TopicsIndexRegistry topicsIndexRegistry;
+  private final ClustersProperties clustersProperties;
 
-  public StatisticsCache(ClustersStorage clustersStorage) {
+  public StatisticsCache(ClustersStorage clustersStorage, TopicsIndexRegistry topicsIndexRegistry,
+                         ClustersProperties clustersProperties) {
     Statistics initializing = Statistics.initializing();
+    this.topicsIndexRegistry = topicsIndexRegistry;
+    this.clustersProperties = clustersProperties;
     clustersStorage.getKafkaClusters().forEach(c -> cache.put(c.getName(), initializing));
   }
 
@@ -32,13 +38,13 @@ public class StatisticsCache {
   public synchronized void update(KafkaCluster c,
                                   Map<String, TopicDescription> descriptions,
                                   Map<String, List<ConfigEntry>> configs,
-                                  InternalPartitionsOffsets partitionsOffsets,
-                                  ClustersProperties clustersProperties) {
+                                  InternalPartitionsOffsets partitionsOffsets) {
     var stats = get(c);
+    var topicIndex = topicsIndexRegistry.get(c.getName());
     replace(
         c,
         stats.withClusterState(s ->
-            s.updateTopics(descriptions, configs, partitionsOffsets, clustersProperties)
+            s.updateTopics(descriptions, configs, partitionsOffsets, clustersProperties, topicIndex)
         )
     );
     try {
@@ -52,9 +58,10 @@ public class StatisticsCache {
 
   public synchronized void onTopicDelete(KafkaCluster c, String topic) {
     var stats = get(c);
+    var topicIndex = topicsIndexRegistry.get(c.getName());
     replace(
         c,
-        stats.withClusterState(s -> s.topicDeleted(topic))
+        stats.withClusterState(s -> s.topicDeleted(topic, clustersProperties, topicIndex))
     );
   }
 
