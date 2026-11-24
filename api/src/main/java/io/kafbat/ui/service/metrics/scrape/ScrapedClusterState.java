@@ -161,8 +161,7 @@ public class ScrapedClusterState implements AutoCloseable {
                     clusterDescription,
                     phase1.getT1(),
                     topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
-                    phase2.getT3(),
-                    phase2.getT4(),
+                    new ConsumerStates(phase2.getT3(), phase2.getT4()),
                     clustersProperties,
                     topicIndex,
                     previousTopicStates
@@ -198,23 +197,26 @@ public class ScrapedClusterState implements AutoCloseable {
     ));
   }
 
+  private record ConsumerStates(
+      Map<String, ConsumerGroupDescription> descriptions,
+      Table<String, TopicPartition, Long> offsets) {}
+
   private static ScrapedClusterState create(ClusterDescription clusterDescription,
                                             InternalLogDirStats segmentStats,
                                             Map<String, TopicState> topicStates,
-                                            Map<String, ConsumerGroupDescription> consumerDescriptions,
-                                            Table<String, TopicPartition, Long> consumerOffsets,
+                                            ConsumerStates consumerStates,
                                             ClustersProperties clustersProperties,
                                             LazyTopicsIndex topicIndex,
                                             Map<String, TopicState> previousTopicStates) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
-    consumerDescriptions.forEach((name, desc) ->
+    consumerStates.descriptions().forEach((name, desc) ->
         consumerGroupsStates.put(
             name,
             new ConsumerGroupState(
                 name,
                 desc,
-                consumerOffsets.row(name)
+                consumerStates.offsets().row(name)
             )));
 
     Map<Integer, NodeState> nodesStates = new HashMap<>();
