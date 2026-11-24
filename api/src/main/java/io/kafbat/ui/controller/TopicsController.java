@@ -207,7 +207,10 @@ public class TopicsController extends AbstractController implements TopicsApi, M
           var topicsToSkip = ((page != null && page > 0 ? page : 1) - 1) * pageSize;
           ClustersProperties.ClusterFtsProperties ftsProperties = clustersProperties.getFts();
           boolean useFts = ftsProperties.use(fts);
-          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, useFts, topics);
+          // With an FTS query and no explicit ordering, Lucene relevance order must be preserved.
+          // With an empty query there is no relevance, so fall back to the default name sort.
+          boolean preserveFtsOrder = useFts && search != null && !search.isBlank();
+          Comparator<InternalTopic> comparatorForTopic = getComparatorForTopic(orderBy, preserveFtsOrder, topics);
           var comparator = sortOrder == null || !sortOrder.equals(SortOrderDTO.DESC)
               ? comparatorForTopic : comparatorForTopic.reversed();
 
@@ -245,12 +248,13 @@ public class TopicsController extends AbstractController implements TopicsApi, M
         .build();
 
     boolean useFts = clustersProperties.getFts().use(fts);
+    boolean preserveFtsOrder = useFts && search != null && !search.isBlank();
 
     return topicsService
         .getTopicsWithMetrics(getCluster(clusterName), search, showInternal, fts)
         .flatMap(topics -> accessControlService.filterViewableTopics(topics, clusterName))
         .map(topics -> topics.stream()
-            .sorted(getComparatorForTopic(orderBy, useFts, topics))
+            .sorted(getComparatorForTopic(orderBy, preserveFtsOrder, topics))
             .toList())
         .flatMap(topics -> responseToCsv(ResponseEntity.ok(Flux.fromIterable(topics))))
         .doOnEach(sig -> audit(context, sig));
@@ -414,10 +418,10 @@ public class TopicsController extends AbstractController implements TopicsApi, M
 
   private Comparator<InternalTopic> getComparatorForTopic(
       TopicColumnsToSortDTO orderBy,
-      boolean ftsEnabled,
+      boolean preserveFtsOrder,
       Collection<InternalTopic> topics) {
     var defaultComparator = Comparator.comparing(InternalTopic::getName);
-    if (orderBy == null && ftsEnabled) {
+    if (orderBy == null && preserveFtsOrder) {
       return  (o1, o2) -> 0;
     } else if (orderBy == null) {
       return defaultComparator;

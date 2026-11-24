@@ -172,6 +172,25 @@ class TopicsServicePaginationTest {
         .isSortedAccordingTo(Comparator.comparing(TopicDTO::getName));
   }
 
+  @Test
+  void shouldListByNameWhenFtsEnabledWithoutSearch() {
+    init(
+        IntStream.rangeClosed(1, 100).boxed()
+            .map(Objects::toString)
+            .map(name -> new TopicDescription(name, false, List.of()))
+            .map(topicDescription -> InternalTopic.from(topicDescription, List.of(), null,
+                Metrics.empty(), null, null, "_"))
+            .collect(Collectors.toMap(InternalTopic::getName, Function.identity()))
+    );
+
+    var topics = topicsController
+        .getTopics(LOCAL_KAFKA_CLUSTER_NAME, null, null, null, null,
+            null, null, true, null).block();
+
+    assertThat(topics.getBody().getTopics())
+        .isSortedAccordingTo(Comparator.comparing(TopicDTO::getName));
+  }
+
   private KafkaCluster buildKafkaCluster(String clusterName) {
     return KafkaCluster.builder()
         .name(clusterName)
