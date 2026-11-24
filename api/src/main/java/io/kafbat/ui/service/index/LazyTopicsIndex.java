@@ -71,7 +71,7 @@ public class LazyTopicsIndex implements TopicsIndex {
    * data has not changed.
    */
   public Map<String, InternalTopic> topicByName() {
-    var map = new HashMap<String, InternalTopic>(topics.size());
+    var map = HashMap.<String, InternalTopic>newHashMap(topics.size());
     topics.forEach(topic -> map.put(topic.getName(), topic));
     return map;
   }
