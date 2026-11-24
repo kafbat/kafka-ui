@@ -127,7 +127,8 @@ public class StatisticsService {
                                                      ClusterDescription clusterDescription,
                                                      ReactiveAdminClient ac) {
     return ScrapedClusterState.scrape(clusterDescription, ac, clustersProperties,
-        topicsIndexRegistry.get(cluster.getName()));
+        topicsIndexRegistry.get(cluster.getName()),
+        cache.get(cluster).getClusterState().getTopicStates());
   }
 
   private Mono<Metrics> scrapeMetrics(KafkaCluster cluster,

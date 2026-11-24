@@ -14,6 +14,7 @@ import io.kafbat.ui.service.index.LazyTopicsIndex;
 import io.kafbat.ui.service.index.TopicsIndex;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,10 +111,18 @@ public class ScrapedClusterState implements AutoCloseable {
 
     // Only the topics that were actually fetched are rebuilt. Rebuilding all topics here made every
     // page listing pay for every partition in the cluster.
-    var changedTopics = descriptions.keySet().stream()
-        .map(updatedTopicStates::get)
-        .map(state -> buildInternalTopic(state, clustersProperties))
-        .toList();
+    var changedTopics = new ArrayList<InternalTopic>(descriptions.size());
+    var previousTopics = topicIndex.topicByName();
+    descriptions.forEach((topic, description) -> {
+      var newState = updatedTopicStates.get(topic);
+      var oldState = topicStates.get(topic);
+      // A page fetch can return exactly the same data as the cached snapshot. In that case the
+      // existing InternalTopic is still valid, so keep it instead of rebuilding it and its partitions.
+      if (oldState != null && oldState.equals(newState) && previousTopics.containsKey(topic)) {
+        return;
+      }
+      changedTopics.add(buildInternalTopic(newState, clustersProperties));
+    });
     topicIndex.updateTopics(changedTopics);
     return toBuilder()
         .topicStates(updatedTopicStates)
@@ -134,7 +143,8 @@ public class ScrapedClusterState implements AutoCloseable {
 
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
                                                  ReactiveAdminClient ac, ClustersProperties clustersProperties,
-                                                 LazyTopicsIndex topicIndex) {
+                                                 LazyTopicsIndex topicIndex,
+                                                 Map<String, TopicState> previousTopicStates) {
     // Both describeTopics() and getTopicsConfig() list all topic names on their own. Do it once and
     // share the result, so a scrape of a 15k-topic cluster does not fetch the full name list twice.
     return ac.listTopics(true).flatMap(topicNames ->
@@ -158,7 +168,8 @@ public class ScrapedClusterState implements AutoCloseable {
                     phase2.getT3(),
                     phase2.getT4(),
                     clustersProperties,
-                    topicIndex
+                    topicIndex,
+                    previousTopicStates
                 ))));
   }
 
@@ -197,7 +208,8 @@ public class ScrapedClusterState implements AutoCloseable {
                                             Map<String, ConsumerGroupDescription> consumerDescriptions,
                                             Table<String, TopicPartition, Long> consumerOffsets,
                                             ClustersProperties clustersProperties,
-                                            LazyTopicsIndex topicIndex) {
+                                            LazyTopicsIndex topicIndex,
+                                            Map<String, TopicState> previousTopicStates) {
 
     Map<String, ConsumerGroupState> consumerGroupsStates = new HashMap<>();
     consumerDescriptions.forEach((name, desc) ->
@@ -220,7 +232,8 @@ public class ScrapedClusterState implements AutoCloseable {
                 segmentStats.getBrokerDirsStats().get(node.id())
             )));
 
-    topicIndex.update(internalTopics(topicStates, clustersProperties));
+    topicIndex.update(internalTopics(topicStates, clustersProperties, previousTopicStates,
+        topicIndex.topicByName()));
 
     return new ScrapedClusterState(
         Instant.now(),
@@ -233,9 +246,28 @@ public class ScrapedClusterState implements AutoCloseable {
 
   private static List<InternalTopic> internalTopics(Map<String, TopicState> topicStates,
                                                    ClustersProperties clustersProperties) {
-    return topicStates.values().stream().map(
-        topicState -> buildInternalTopic(topicState, clustersProperties)
-    ).toList();
+    return internalTopics(topicStates, clustersProperties, Map.of(), Map.of());
+  }
+
+  /**
+   * Rebuilds only the topics whose source data changed. Offsets grow between scrapes, so this is not
+   * always possible, but idle topics and topics whose data was refreshed by a page request keep their
+   * existing {@link InternalTopic} objects along with all their partition structures.
+   */
+  private static List<InternalTopic> internalTopics(Map<String, TopicState> topicStates,
+                                                   ClustersProperties clustersProperties,
+                                                   Map<String, TopicState> previousTopicStates,
+                                                   Map<String, InternalTopic> existingTopics) {
+    return topicStates.values().stream().map(state -> {
+      var previous = previousTopicStates.get(state.name());
+      if (previous != null && previous.equals(state)) {
+        var existing = existingTopics.get(state.name());
+        if (existing != null) {
+          return existing;
+        }
+      }
+      return buildInternalTopic(state, clustersProperties);
+    }).toList();
   }
 
   /**
