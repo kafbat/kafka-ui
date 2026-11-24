@@ -81,7 +81,7 @@ public class LazyTopicsIndex implements TopicsIndex {
       return topics;
     }
     var merged = new ArrayList<InternalTopic>(topics.size() + updates.size());
-    var knownNames = new HashSet<String>(updates.size());
+    var knownNames = HashSet.<String>newHashSet(updates.size());
     for (var topic : topics) {
       var updated = updates.get(topic.getName());
       merged.add(updated != null ? updated : topic);
