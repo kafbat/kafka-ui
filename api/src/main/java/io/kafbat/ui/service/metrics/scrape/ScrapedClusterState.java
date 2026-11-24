@@ -7,6 +7,7 @@ import static io.kafbat.ui.service.ReactiveAdminClient.ClusterDescription;
 import com.google.common.collect.Table;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.InternalLogDirStats;
+import io.kafbat.ui.model.InternalPartition;
 import io.kafbat.ui.model.InternalPartitionsOffsets;
 import io.kafbat.ui.model.InternalTopic;
 import io.kafbat.ui.service.ReactiveAdminClient;
@@ -115,13 +116,8 @@ public class ScrapedClusterState implements AutoCloseable {
     var previousTopics = topicIndex.topicByName();
     descriptions.forEach((topic, description) -> {
       var newState = updatedTopicStates.get(topic);
-      var oldState = topicStates.get(topic);
-      // A page fetch can return exactly the same data as the cached snapshot. In that case the
-      // existing InternalTopic is still valid, so keep it instead of rebuilding it and its partitions.
-      if (oldState != null && oldState.equals(newState) && previousTopics.containsKey(topic)) {
-        return;
-      }
-      changedTopics.add(buildInternalTopic(newState, clustersProperties));
+      changedTopics.add(reusedOrBuiltTopic(newState, topicStates.get(topic),
+          previousTopics.get(topic), clustersProperties));
     });
     topicIndex.updateTopics(changedTopics);
     return toBuilder()
@@ -258,16 +254,68 @@ public class ScrapedClusterState implements AutoCloseable {
                                                    ClustersProperties clustersProperties,
                                                    Map<String, TopicState> previousTopicStates,
                                                    Map<String, InternalTopic> existingTopics) {
-    return topicStates.values().stream().map(state -> {
-      var previous = previousTopicStates.get(state.name());
-      if (previous != null && previous.equals(state)) {
-        var existing = existingTopics.get(state.name());
-        if (existing != null) {
-          return existing;
-        }
-      }
+    return topicStates.values().stream()
+        .map(state -> reusedOrBuiltTopic(state, previousTopicStates.get(state.name()),
+            existingTopics.get(state.name()), clustersProperties))
+        .toList();
+  }
+
+  /**
+   * Reuses the cached topic when its definition is unchanged, but refreshes the metric fields that
+   * are read from offsets and log dir stats. This keeps size/message-count sorting accurate without
+   * rebuilding every partition, replica and config object on every scrape.
+   */
+  static InternalTopic reusedOrBuiltTopic(TopicState state,
+                                          @Nullable TopicState previousState,
+                                          @Nullable InternalTopic existingTopic,
+                                          ClustersProperties clustersProperties) {
+    if (previousState == null || existingTopic == null || !sameTopicDefinition(previousState, state)) {
       return buildInternalTopic(state, clustersProperties);
-    }).toList();
+    }
+    return withRefreshedMetrics(existingTopic, state);
+  }
+
+  private static boolean sameTopicDefinition(TopicState previous, TopicState current) {
+    return previous.name().equals(current.name())
+        && previous.description().equals(current.description())
+        && configsByName(previous.configs()).equals(configsByName(current.configs()));
+  }
+
+  private static Map<String, String> configsByName(List<ConfigEntry> configs) {
+    Map<String, String> result = new HashMap<>(configs.size());
+    configs.forEach(config -> result.put(config.name(), config.value()));
+    return result;
+  }
+
+  private static InternalTopic withRefreshedMetrics(InternalTopic topic, TopicState state) {
+    var partitions = new HashMap<Integer, InternalPartition>();
+    if (topic.getPartitions() != null) {
+      partitions.putAll(topic.getPartitions());
+    }
+    var partitionsSegmentStats = state.partitionsSegmentStats();
+    state.description().partitions().forEach(partition -> {
+      int partitionId = partition.partition();
+      var cached = partitions.get(partitionId);
+      if (cached == null) {
+        return;
+      }
+      SegmentStats partitionStats = partitionsSegmentStats == null
+          ? null
+          : partitionsSegmentStats.get(partitionId);
+      partitions.put(partitionId, cached.toBuilder()
+          .offsetMin(state.startOffsets().get(partitionId))
+          .offsetMax(state.endOffsets().get(partitionId))
+          .segmentSize(partitionStats == null ? null : partitionStats.getSegmentSize())
+          .segmentCount(partitionStats == null ? null : partitionStats.getSegmentsCount())
+          .build());
+    });
+
+    SegmentStats topicStats = state.segmentStats();
+    return topic.toBuilder()
+        .partitions(partitions)
+        .segmentSize(topicStats == null ? 0 : topicStats.getSegmentSize())
+        .segmentCount(topicStats == null ? 0 : topicStats.getSegmentsCount())
+        .build();
   }
 
   /**
