@@ -346,7 +346,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
       int limit = count != null ? count : Math.max(1, searcher.getIndexReader().numDocs());
       TopDocs result = searcher.search(wrapped, limit, sort);
 
-      var topicMap = this.topicMap;
+      var currentTopicMap = this.topicMap;
       List<String> topics = new ArrayList<>();
       for (ScoreDoc scoreDoc : result.scoreDocs) {
         if (minScore > 0.00001f && scoreDoc.score < minScore) {
@@ -355,7 +355,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
         Document document = searcher.storedFields().document(scoreDoc.doc);
         topics.add(document.get(FIELD_NAME_RAW));
       }
-      return topics.stream().map(topicMap::get).filter(Objects::nonNull).toList();
+      return topics.stream().map(currentTopicMap::get).filter(Objects::nonNull).toList();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     } catch (ParseException e) {
