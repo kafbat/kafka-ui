@@ -29,6 +29,7 @@ import io.kafbat.ui.service.audit.AuditService;
 import io.kafbat.ui.service.index.TopicsIndexRegistry;
 import io.kafbat.ui.service.rbac.AccessControlService;
 import io.kafbat.ui.util.AccessControlServiceMock;
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -344,6 +345,31 @@ class TopicsServicePaginationTest {
             .limit(25)
             .collect(Collectors.toList())
     );
+  }
+
+  @Test
+  void paginatedListingDoesNotCopyRateMetricsForEveryTopic() {
+    init(Map.of("topic", InternalTopic.from(
+        new TopicDescription("topic", false, List.of()), List.of(), null,
+        Metrics.empty(), null, null, "_")));
+
+    KafkaCluster cluster = clustersStorage.getClusterByName(LOCAL_KAFKA_CLUSTER_NAME).orElseThrow();
+    Statistics statistics = statisticsCache.get(cluster);
+    var rates = Metrics.builder()
+        .ioRates(Metrics.IoRates.builder()
+            .topicBytesInPerSec(Map.of("topic", BigDecimal.ONE))
+            .topicBytesOutPerSec(Map.of("topic", BigDecimal.TEN))
+            .build())
+        .build();
+    statisticsCache.replace(cluster, statistics.toBuilder().metrics(rates).build());
+
+    var plain = topicsService.getTopics(cluster, null, null, false).block().getFirst();
+    assertThat(plain.getBytesInPerSec()).isNull();
+    assertThat(plain.getBytesOutPerSec()).isNull();
+
+    var withMetrics = topicsService.getTopicsWithMetrics(cluster, null, null, false).block().getFirst();
+    assertThat(withMetrics.getBytesInPerSec()).isEqualByComparingTo(BigDecimal.ONE);
+    assertThat(withMetrics.getBytesOutPerSec()).isEqualByComparingTo(BigDecimal.TEN);
   }
 
   @Test
