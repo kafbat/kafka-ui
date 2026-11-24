@@ -135,28 +135,31 @@ public class ScrapedClusterState implements AutoCloseable {
   public static Mono<ScrapedClusterState> scrape(ClusterDescription clusterDescription,
                                                  ReactiveAdminClient ac, ClustersProperties clustersProperties,
                                                  LazyTopicsIndex topicIndex) {
-    return Mono.zip(
-        ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
-            .map(InternalLogDirStats::new),
-        ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
-        ac.describeTopics(),
-        ac.getTopicsConfig()
-    ).flatMap(phase1 ->
+    // Both describeTopics() and getTopicsConfig() list all topic names on their own. Do it once and
+    // share the result, so a scrape of a 15k-topic cluster does not fetch the full name list twice.
+    return ac.listTopics(true).flatMap(topicNames ->
         Mono.zip(
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
-            ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
-            ac.describeConsumerGroups(phase1.getT2()),
-            ac.listConsumerGroupOffsets(phase1.getT2(), null)
-        ).map(phase2 ->
-            create(
-                clusterDescription,
-                phase1.getT1(),
-                topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
-                phase2.getT3(),
-                phase2.getT4(),
-                clustersProperties,
-                topicIndex
-            )));
+            ac.describeLogDirs(clusterDescription.getNodes().stream().map(Node::id).toList())
+                .map(InternalLogDirStats::new),
+            ac.listConsumerGroups().map(l -> l.stream().map(ConsumerGroupListing::groupId).toList()),
+            ac.describeTopics(topicNames),
+            ac.getTopicsConfig(topicNames, false)
+        ).flatMap(phase1 ->
+            Mono.zip(
+                ac.listOffsets(phase1.getT3().values(), OffsetSpec.latest()),
+                ac.listOffsets(phase1.getT3().values(), OffsetSpec.earliest()),
+                ac.describeConsumerGroups(phase1.getT2()),
+                ac.listConsumerGroupOffsets(phase1.getT2(), null)
+            ).map(phase2 ->
+                create(
+                    clusterDescription,
+                    phase1.getT1(),
+                    topicStateMap(phase1.getT1(), phase1.getT3(), phase1.getT4(), phase2.getT1(), phase2.getT2()),
+                    phase2.getT3(),
+                    phase2.getT4(),
+                    clustersProperties,
+                    topicIndex
+                ))));
   }
 
   static Map<String, TopicState> topicStateMap(
