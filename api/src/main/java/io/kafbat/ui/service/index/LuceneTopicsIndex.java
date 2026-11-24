@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +63,9 @@ public class LuceneTopicsIndex implements TopicsIndex {
   private final SearcherManager searcherManager;
   private final ReadWriteLock closeLock = new ReentrantReadWriteLock();
 
-  private volatile Map<String, InternalTopic> topicMap = Map.of();
-  private volatile Map<String, Long> fingerprints = Map.of();
+  private volatile Map<String, InternalTopic> topicMap = new ConcurrentHashMap<>();
+  private volatile Map<String, Long> fingerprints = new ConcurrentHashMap<>();
+  private volatile boolean needsFullSync;
   private UpdateStats lastUpdateStats = UpdateStats.EMPTY;
 
   public LuceneTopicsIndex(Collection<InternalTopic> topics) throws IOException {
@@ -90,7 +91,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
     closeLock.readLock().lock();
     try {
       var newTopicMap = byName(topics);
-      var newFingerprints = new HashMap<String, Long>(topics.size());
+      var newFingerprints = new ConcurrentHashMap<String, Long>(topics.size());
       for (InternalTopic topic : topics) {
         newFingerprints.put(topic.getName(), fingerprint(topic));
       }
@@ -121,6 +122,7 @@ public class LuceneTopicsIndex implements TopicsIndex {
 
       this.topicMap = newTopicMap;
       this.fingerprints = newFingerprints;
+      this.needsFullSync = false;
       this.lastUpdateStats = new UpdateStats(added, reindexed, removed);
       if (added > 0 || reindexed > 0 || removed > 0) {
         searcherManager.maybeRefresh();
@@ -144,12 +146,62 @@ public class LuceneTopicsIndex implements TopicsIndex {
    * generation of topics, their configs and their partitions, for as long as the index lives. On a
    * cluster with 15k topics that is tens of megabytes per cluster.
    */
-  void refreshTopics(Collection<InternalTopic> topics) {
+  synchronized void refreshTopics(Collection<InternalTopic> topics) {
     this.topicMap = byName(topics);
+    // documents still reflect the previous snapshot, so a full sync is due on the next FTS query
+    this.needsFullSync = true;
+  }
+
+  /**
+   * Brings only the given topics in line, which is the path used when a page of topics was fetched
+   * from Kafka. Untouched topics keep their existing documents and fingerprints.
+   */
+  synchronized void updateTopics(Collection<InternalTopic> topics) {
+    if (topics.isEmpty()) {
+      return;
+    }
+    closeLock.readLock().lock();
+    try {
+      int added = 0;
+      int reindexed = 0;
+      for (InternalTopic topic : topics) {
+        String name = topic.getName();
+        long fingerprint = fingerprint(topic);
+        Long previous = fingerprints.get(name);
+        topicMap.put(name, topic);
+        if (previous == null || previous != fingerprint) {
+          writer.updateDocument(new Term(FIELD_NAME_RAW, name), buildDocument(topic));
+          fingerprints.put(name, fingerprint);
+          if (previous == null) {
+            added++;
+          } else {
+            reindexed++;
+          }
+        }
+      }
+      if (added > 0 || reindexed > 0) {
+        searcherManager.maybeRefresh();
+        lastUpdateStats = new UpdateStats(added, reindexed, 0);
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } finally {
+      closeLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * A full sync is only needed after {@link #refreshTopics(Collection)} replaced the snapshot.
+   * Incremental page updates keep the documents in sync, so subsequent FTS queries skip it.
+   */
+  void updateIfStale(Collection<InternalTopic> topics) {
+    if (needsFullSync) {
+      update(topics);
+    }
   }
 
   private static Map<String, InternalTopic> byName(Collection<InternalTopic> topics) {
-    var map = new HashMap<String, InternalTopic>(topics.size());
+    var map = new ConcurrentHashMap<String, InternalTopic>(topics.size());
     for (InternalTopic topic : topics) {
       map.put(topic.getName(), topic);
     }

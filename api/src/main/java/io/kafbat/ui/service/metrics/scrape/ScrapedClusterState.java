@@ -108,7 +108,13 @@ public class ScrapedClusterState implements AutoCloseable {
       );
     });
 
-    topicIndex.update(internalTopics(updatedTopicStates, clustersProperties));
+    // Only the topics that were actually fetched are rebuilt. Rebuilding all topics here made every
+    // page listing pay for every partition in the cluster.
+    var changedTopics = descriptions.keySet().stream()
+        .map(updatedTopicStates::get)
+        .map(state -> buildInternalTopic(state, clustersProperties))
+        .toList();
+    topicIndex.updateTopics(changedTopics);
     return toBuilder()
         .topicStates(updatedTopicStates)
         .topicIndex(topicIndex)

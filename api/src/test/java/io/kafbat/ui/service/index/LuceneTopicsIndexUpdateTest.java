@@ -196,7 +196,7 @@ class LuceneTopicsIndexUpdateTest {
       index.refreshTopics(replacement);
 
       // searches resolve names against the current snapshot...
-      assertThat(index.currentTopics()).containsExactlyElementsOf(replacement);
+      assertThat(index.currentTopics()).containsExactlyInAnyOrderElementsOf(replacement);
       // ...while the documents are only brought in line by the next full text search
       assertThat(index.searchableDocCount()).isEqualTo(1);
     }

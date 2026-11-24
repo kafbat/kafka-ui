@@ -1,7 +1,14 @@
 package io.kafbat.ui.service.index;
 
 import io.kafbat.ui.model.InternalTopic;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,11 +24,12 @@ import lombok.extern.slf4j.Slf4j;
 public class LazyTopicsIndex implements TopicsIndex {
 
   private volatile List<InternalTopic> topics;
+  private final ConcurrentMap<String, InternalTopic> updates = new ConcurrentHashMap<>();
   private volatile LuceneTopicsIndex luceneIndex;
   private volatile boolean luceneUnavailable;
 
-  public LazyTopicsIndex(List<InternalTopic> topics) {
-    this.topics = topics;
+  public LazyTopicsIndex(Collection<InternalTopic> topics) {
+    this.topics = List.copyOf(topics);
   }
 
   /**
@@ -30,12 +38,61 @@ public class LazyTopicsIndex implements TopicsIndex {
    * deferred is following the topic objects themselves, see
    * {@link LuceneTopicsIndex#refreshTopics(Collection)}.
    */
-  public void update(List<InternalTopic> topics) {
-    this.topics = topics;
+  public synchronized void update(Collection<InternalTopic> topics) {
+    this.topics = List.copyOf(topics);
+    updates.clear();
     var index = luceneIndex;
     if (index != null) {
-      index.refreshTopics(topics);
+      index.refreshTopics(this.topics);
     }
+  }
+
+  /**
+   * Updates only the topics that were actually fetched, without rebuilding all the others.
+   *
+   * <p>The snapshot is republished as a list of references, so a topic listing with 10k+ topics no
+   * longer pays for converting every topic and every partition on every page request. New topics are
+   * appended, existing ones keep their position in the snapshot.
+   */
+  public synchronized void updateTopics(Collection<InternalTopic> changedTopics) {
+    if (changedTopics.isEmpty()) {
+      return;
+    }
+    changedTopics.forEach(topic -> updates.put(topic.getName(), topic));
+    var index = luceneIndex;
+    if (index != null) {
+      index.updateTopics(changedTopics);
+    }
+    this.topics = mergedTopics();
+  }
+
+  /**
+   * The currently visible topic objects keyed by name, so callers can reuse them when their source
+   * data has not changed.
+   */
+  public Map<String, InternalTopic> topicByName() {
+    var map = new HashMap<String, InternalTopic>(topics.size());
+    topics.forEach(topic -> map.put(topic.getName(), topic));
+    return map;
+  }
+
+  private List<InternalTopic> mergedTopics() {
+    if (updates.isEmpty()) {
+      return topics;
+    }
+    var merged = new ArrayList<InternalTopic>(topics.size() + updates.size());
+    var knownNames = new HashSet<String>(updates.size());
+    for (var topic : topics) {
+      var updated = updates.get(topic.getName());
+      merged.add(updated != null ? updated : topic);
+      knownNames.add(topic.getName());
+    }
+    updates.forEach((name, topic) -> {
+      if (!knownNames.contains(name)) {
+        merged.add(topic);
+      }
+    });
+    return List.copyOf(merged);
   }
 
   @Override
@@ -65,8 +122,7 @@ public class LazyTopicsIndex implements TopicsIndex {
     if (index == null) {
       return new FilterTopicIndex(topics);
     }
-    // idempotent, and a no-op when the topics did not change since the last search
-    index.update(topics);
+    index.updateIfStale(topics);
     return index;
   }
 
