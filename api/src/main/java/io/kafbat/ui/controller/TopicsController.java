@@ -434,7 +434,7 @@ public class TopicsController extends AbstractController implements TopicsApi, M
       case MESSAGES_COUNT -> {
         // getMessagesCount() walks all partitions, so computing it once per topic is much cheaper
         // than doing that on every comparison while sorting thousands of topics.
-        Map<String, Long> messagesByTopic = new HashMap<>(topics.size());
+        Map<String, Long> messagesByTopic = HashMap.newHashMap(topics.size());
         topics.forEach(topic -> messagesByTopic.put(topic.getName(), topic.getMessagesCount()));
         yield Comparator.comparing(
             (InternalTopic topic) -> messagesByTopic.get(topic.getName()),
