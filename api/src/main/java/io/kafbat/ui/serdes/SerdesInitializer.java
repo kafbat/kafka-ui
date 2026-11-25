@@ -27,9 +27,12 @@ import io.kafbat.ui.serdes.builtin.mm2.OffsetSyncSerde;
 import io.kafbat.ui.serdes.builtin.sr.SchemaRegistrySerde;
 import jakarta.annotation.Nullable;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -142,8 +145,50 @@ public class SerdesInitializer {
         Optional.ofNullable(clusterProperties.getDefaultValueSerde())
             .map(name -> Preconditions.checkNotNull(registeredSerdes.get(name), "Default value serde not found"))
             .orElse(null),
-        createFallbackSerde()
+        createFallbackSerde(),
+        createProduceRestrictions(clusterProperties.getProduceSerdes(), registeredSerdes)
     );
+  }
+
+  private List<ProduceRestriction> createProduceRestrictions(
+      @Nullable List<ClustersProperties.ProduceSerdesConfig> configs,
+      Map<String, SerdeInstance> registeredSerdes) {
+    if (configs == null) {
+      return List.of();
+    }
+    return configs.stream()
+        .map(config -> {
+          if (Strings.isNullOrEmpty(config.getTopicPattern())) {
+            throw new ValidationException("'topicPattern' property not set for produceSerdes entry: " + config);
+          }
+          Pattern pattern;
+          try {
+            pattern = Pattern.compile(config.getTopicPattern());
+          } catch (PatternSyntaxException e) {
+            throw new ValidationException(
+                "Invalid produceSerdes topicPattern '%s': %s".formatted(config.getTopicPattern(), e.getMessage()));
+          }
+          return new ProduceRestriction(
+              pattern,
+              allowedSerdeNames(config.getKeySerdes(), registeredSerdes),
+              allowedSerdeNames(config.getValueSerdes(), registeredSerdes)
+          );
+        })
+        .toList();
+  }
+
+  @Nullable
+  private Set<String> allowedSerdeNames(@Nullable List<String> names, Map<String, SerdeInstance> registeredSerdes) {
+    if (names == null || names.isEmpty()) {
+      return null;
+    }
+    names.stream()
+        .filter(name -> !registeredSerdes.containsKey(name))
+        .findFirst()
+        .ifPresent(name -> {
+          throw new ValidationException("Serde '%s' set in produceSerdes not found".formatted(name));
+        });
+    return Set.copyOf(names);
   }
 
   /**

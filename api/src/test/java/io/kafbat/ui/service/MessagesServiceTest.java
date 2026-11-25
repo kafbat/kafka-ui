@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.kafbat.ui.AbstractIntegrationTest;
 import io.kafbat.ui.exception.TopicNotFoundException;
+import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.model.ConsumerPosition;
 import io.kafbat.ui.model.CreateTopicMessageDTO;
 import io.kafbat.ui.model.KafkaCluster;
@@ -13,6 +14,7 @@ import io.kafbat.ui.model.SmartFilterTestExecutionDTO;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.model.TopicMessageEventDTO;
 import io.kafbat.ui.producer.KafkaTestProducer;
+import io.kafbat.ui.serdes.builtin.Int32Serde;
 import io.kafbat.ui.serdes.builtin.ProtobufFileSerde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.util.HashSet;
@@ -34,6 +36,8 @@ import reactor.test.StepVerifier;
 class MessagesServiceTest extends AbstractIntegrationTest {
 
   private static final String MASKED_TOPICS_PREFIX = "masking-test-";
+  // only Int32 values can be produced to these topics, see AbstractIntegrationTest
+  private static final String PRODUCE_RESTRICTED_TOPICS_PREFIX = "produce-restricted-";
   private static final String NON_EXISTING_TOPIC = UUID.randomUUID().toString();
 
   @Autowired
@@ -243,6 +247,59 @@ class MessagesServiceTest extends AbstractIntegrationTest {
         .expectNextMatches(metadata -> metadata.topic().equals(testTopic)
             && metadata.partition() == 0
             && metadata.offset() >= 0)
+        .verifyComplete();
+  }
+
+  @Test
+  void sendMessageRejectsValueSerdeNotAllowedForTopic() {
+    String testTopic = PRODUCE_RESTRICTED_TOPICS_PREFIX + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    var message = new CreateTopicMessageDTO()
+        .partition(0)
+        .key("key")
+        .keySerde(StringSerde.NAME)
+        .value("{\"id\": 1}")
+        .valueSerde(StringSerde.NAME);
+
+    StepVerifier.create(messagesService.sendMessage(cluster, testTopic, message))
+        .expectErrorSatisfies(e -> assertThat(e)
+            .isInstanceOf(ValidationException.class)
+            .hasMessageContaining("not allowed"))
+        .verify();
+  }
+
+  @Test
+  void sendMessageAcceptsAllowedValueSerdeAndUnrestrictedKeySerde() {
+    String testTopic = PRODUCE_RESTRICTED_TOPICS_PREFIX + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    var message = new CreateTopicMessageDTO()
+        .partition(0)
+        .key("key")
+        .keySerde(StringSerde.NAME)
+        .value("42")
+        .valueSerde(Int32Serde.NAME);
+
+    StepVerifier.create(messagesService.sendMessage(cluster, testTopic, message))
+        .expectNextMatches(metadata -> metadata.topic().equals(testTopic))
+        .verifyComplete();
+  }
+
+  @Test
+  void sendTombstoneIsAllowedWhateverTheValueSerde() {
+    String testTopic = PRODUCE_RESTRICTED_TOPICS_PREFIX + UUID.randomUUID();
+    createTopicWithCleanup(new NewTopic(testTopic, 1, (short) 1));
+
+    var tombstone = new CreateTopicMessageDTO()
+        .partition(0)
+        .key("key")
+        .keySerde(StringSerde.NAME)
+        .value(null)
+        .valueSerde(StringSerde.NAME);
+
+    StepVerifier.create(messagesService.sendMessage(cluster, testTopic, tombstone))
+        .expectNextMatches(metadata -> metadata.topic().equals(testTopic))
         .verifyComplete();
   }
 

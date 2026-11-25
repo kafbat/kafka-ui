@@ -64,6 +64,15 @@ public class DeserializationService implements Closeable {
       throw new ValidationException(
           String.format("Serde %s can't be applied for '%s' topic's %s serialization", serde, topic, type));
     }
+    if (!serdes.isAllowedForProduce(topic, type, serdeName)) {
+      // Checked on serialize(): null content (a null key or a tombstone) is never serialized,
+      // so it stays producible whatever serde is selected.
+      return input -> {
+        // kafbat's ValidationException (unlike the jakarta one used above) is rendered as HTTP 400
+        throw new io.kafbat.ui.exception.ValidationException(
+            String.format("Serde '%s' is not allowed for producing %s to topic '%s'", serdeName, type, topic));
+      };
+    }
     if (properties != null && !properties.isEmpty()) {
       return serde.serializer(topic, type, properties);
     }
@@ -122,14 +131,11 @@ public class DeserializationService implements Closeable {
   public List<SerdeDescriptionDTO> getSerdesForSerialize(KafkaCluster cluster,
                                                          String topic,
                                                          Serde.Target serdeType) {
-    var serdes = getSerdesFor(cluster);
-    var preferred = serdes.suggestSerdeForSerialize(topic, serdeType);
+    var serdes = getSerdesFor(cluster).serdesForSerialize(topic, serdeType);
     var result = new ArrayList<SerdeDescriptionDTO>();
-    result.add(toDto(preferred, topic, serdeType, true));
-    serdes.all()
-        .filter(s -> !s.getName().equals(preferred.getName()))
-        .filter(s -> s.canSerialize(topic, serdeType))
-        .forEach(s -> result.add(toDto(s, topic, serdeType, false)));
+    for (int i = 0; i < serdes.size(); i++) {
+      result.add(toDto(serdes.get(i), topic, serdeType, i == 0));
+    }
     return result;
   }
 

@@ -91,6 +91,7 @@ public class ClustersProperties {
     List<@Valid SerdeConfig> serde;
     String defaultKeySerde;
     String defaultValueSerde;
+    List<@Valid ProduceSerdesConfig> produceSerdes;
 
     MetricsConfig metrics;
     Map<String, Object> properties;
@@ -208,6 +209,18 @@ public class ClustersProperties {
     Map<String, Object> properties;
     String topicKeysPattern;
     String topicValuesPattern;
+  }
+
+  /**
+   * Restricts the serdes that can be used to produce messages to topics matching {@code topicPattern}.
+   * Null or empty {@code keySerdes}/{@code valueSerdes} leave that side unrestricted.
+   */
+  @Data
+  public static class ProduceSerdesConfig {
+    @NotBlank
+    String topicPattern;
+    List<String> keySerdes;
+    List<String> valueSerdes;
   }
 
   @Data

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.exception.ValidationException;
 import io.kafbat.ui.serde.api.PropertyResolver;
+import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.serdes.builtin.Int32Serde;
 import io.kafbat.ui.serdes.builtin.StringSerde;
 import java.net.URL;
@@ -115,6 +116,54 @@ class SerdesInitializerTest {
     SerdeInstance explicitlyConfiguredSerde = serdes.serdes.get("SomeSerde");
     verifyExplicitlyConfigured(explicitlyConfiguredSerde);
     verifyPatternsMatch(serdeConfig, explicitlyConfiguredSerde);
+  }
+
+  @Test
+  void produceSerdesRulesAreBuiltFromConfig() {
+    var properties = createProperties();
+    properties.getClusters().getFirst().setProduceSerdes(List.of(
+        produceSerdes("restricted-.*", List.of(Int32Serde.NAME), null)
+    ));
+
+    var serdes = initializer.init(env, properties, 0);
+
+    assertThat(serdes.isAllowedForProduce("restricted-topic", Serde.Target.KEY, Int32Serde.NAME)).isTrue();
+    assertThat(serdes.isAllowedForProduce("restricted-topic", Serde.Target.KEY, StringSerde.NAME)).isFalse();
+    assertThat(serdes.isAllowedForProduce("restricted-topic", Serde.Target.VALUE, StringSerde.NAME)).isTrue();
+    assertThat(serdes.isAllowedForProduce("other-topic", Serde.Target.KEY, StringSerde.NAME)).isTrue();
+  }
+
+  @Test
+  void produceSerdesWithUnknownSerdeNameFailsValidation() {
+    var properties = createProperties();
+    properties.getClusters().getFirst().setProduceSerdes(List.of(
+        produceSerdes(".*", null, List.of("SchemaRegistyr"))
+    ));
+
+    assertThatCode(() -> initializer.init(env, properties, 0))
+        .isInstanceOf(ValidationException.class)
+        .hasMessageContaining("SchemaRegistyr");
+  }
+
+  @Test
+  void produceSerdesWithInvalidTopicPatternFailsValidation() {
+    var properties = createProperties();
+    properties.getClusters().getFirst().setProduceSerdes(List.of(
+        produceSerdes("domain\\.(", List.of(StringSerde.NAME), null)
+    ));
+
+    assertThatCode(() -> initializer.init(env, properties, 0))
+        .isInstanceOf(ValidationException.class);
+  }
+
+  private ClustersProperties.ProduceSerdesConfig produceSerdes(String topicPattern,
+                                                               List<String> keySerdes,
+                                                               List<String> valueSerdes) {
+    var config = new ClustersProperties.ProduceSerdesConfig();
+    config.setTopicPattern(topicPattern);
+    config.setKeySerdes(keySerdes);
+    config.setValueSerdes(valueSerdes);
+    return config;
   }
 
   private ClusterSerdes init(ClustersProperties.SerdeConfig... serdeConfigs) {

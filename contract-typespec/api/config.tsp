@@ -210,6 +210,11 @@ model ApplicationConfig {
         }[];
         defaultKeySerde?: string;
         defaultValueSerde?: string;
+        produceSerdes?: {
+          topicPattern?: string;
+          keySerdes?: string[];
+          valueSerdes?: string[];
+        }[];
         masking?: {
           type?: "REMOVE" | "MASK" | "REPLACE";
           fields?: string[];
