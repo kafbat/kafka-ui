@@ -9,17 +9,8 @@ plugins {
 }
 
 configurations.all {
+    exclude group: 'io.swagger.core.v3', module: 'swagger-annotations'
     resolutionStrategy {
-        eachDependency { DependencyResolveDetails details ->
-            // The netty-tcnative-* family (native bindings for OpenSSL/BoringSSL)
-            // uses independent versioning and should not be forced to the core Netty version
-            // It is also not vulnerable to the CVEs fixed in the Netty version we are forcing
-            // so we can safely exclude it from the resolution strategy
-            if (details.requested.group == "io.netty" && !details.requested.name.startsWith("netty-tcnative-")) {
-                details.useVersion(libs.versions.netty.get())
-                details.because("Revert when Spring Boot releases a version with the fix")
-            }
-        }
         capabilitiesResolution {
             withCapability("org.lz4:lz4-java") {
                 select(libs.lz4.yawk.get().toString())
@@ -31,9 +22,8 @@ configurations.all {
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-// Override the Jackson version managed by the Spring Boot BOM for CVE fixes
-// (2.21.4 -> 2.21.7). Revert when Spring Boot ships a BOM with a fixed Jackson.
-ext['jackson-bom.version'] = libs.versions.jackson.bom.get()
+// The BOM manages protobuf-java 4.x; confluent, cel and the google clients are built against 3.x. Drop once they move.
+ext['protobuf-java.version'] = libs.versions.protobuf.java.get()
 
 dependencies {
     implementation project(":contract")
@@ -42,8 +32,8 @@ dependencies {
     implementation libs.spring.starter.security
     implementation libs.spring.starter.actuator
     implementation libs.spring.starter.logging
-    implementation libs.spring.starter.oauth2.client
-    implementation libs.spring.security.oauth2.resource.server
+    implementation libs.spring.starter.security.oauth2.client
+    implementation libs.spring.starter.security.oauth2.resource.server
     implementation libs.spring.boot.actuator
 
     // For Swagger UI Webflux
@@ -78,7 +68,10 @@ dependencies {
     }
 
     implementation libs.jackson.databind.nullable
-    implementation libs.cel
+    implementation libs.spring.boot.jackson2
+    implementation(libs.cel) {
+        exclude group: 'com.google.auto.value', module: 'auto-value'
+    }
     implementation libs.caffeine
     antlr libs.antlr
     implementation libs.antlr.runtime
@@ -102,10 +95,13 @@ dependencies {
 
     // CVE Fixes
     implementation libs.apache.commons.compress
+    implementation libs.guava
     implementation libs.okhttp3.logging.intercepter
     implementation libs.lz4.yawk
 
-    implementation libs.modelcontextprotocol.spring.webflux
+    implementation libs.modelcontextprotocol.core
+    implementation libs.modelcontextprotocol.json.jackson2
+    implementation libs.spring.ai.mcp.webflux
     implementation libs.victools.jsonschema.generator
 
 
@@ -134,7 +130,7 @@ dependencies {
     testAnnotationProcessor libs.mapstruct.processor
 
     // Tests
-    testImplementation libs.spring.starter.test
+    testImplementation libs.spring.starter.webflux.test
     testImplementation libs.reactor.test
     testImplementation libs.testcontainers
     testImplementation libs.testcontainers.kafka
@@ -188,6 +184,9 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
+    }
     finalizedBy jacocoTestReport
 }
 

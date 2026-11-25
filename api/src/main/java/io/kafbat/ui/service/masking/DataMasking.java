@@ -10,11 +10,11 @@ import io.kafbat.ui.config.ClustersProperties;
 import io.kafbat.ui.model.TopicMessageDTO;
 import io.kafbat.ui.serde.api.Serde;
 import io.kafbat.ui.service.masking.policies.MaskingPolicy;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 

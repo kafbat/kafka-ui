@@ -1,10 +1,10 @@
 package io.kafbat.ui.config.auth;
 
 import io.kafbat.ui.service.rbac.AccessControlService;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -23,7 +23,7 @@ public class RbacReactiveJwtAuthenticationConverter
     this.accessControlService = accessControlService;
 
     var authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    var map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+    var map = PropertyMapper.get();
     map.from(jwt.getAuthorityPrefix()).to(authoritiesConverter::setAuthorityPrefix);
     map.from(jwt.getAuthoritiesClaimDelimiter()).when(StringUtils::hasLength)
         .to(authoritiesConverter::setAuthoritiesClaimDelimiter);
@@ -35,7 +35,8 @@ public class RbacReactiveJwtAuthenticationConverter
   @Override
   public Mono<AbstractAuthenticationToken> convert(@NonNull Jwt jwt) {
     var token = delegate.convert(jwt);
+    var username = StringUtils.hasText(token.getName()) ? token.getName() : null;
     return Mono.just(RbacBearerTokenAuthentication.of(
-        accessControlService, jwt.getTokenValue(), token.getName(), jwt.getSubject(), token.getAuthorities()));
+        accessControlService, jwt.getTokenValue(), username, jwt.getSubject(), token.getAuthorities()));
   }
 }
