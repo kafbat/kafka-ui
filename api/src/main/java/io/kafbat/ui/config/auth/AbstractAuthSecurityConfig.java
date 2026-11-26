@@ -5,14 +5,14 @@ import java.net.URI;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 
-public abstract class AbstractAuthSecurityConfig {
+abstract class AbstractAuthSecurityConfig {
 
   protected AbstractAuthSecurityConfig() {
 
   }
 
   protected static final String LOGIN_URL = "/login";
-  public static final String LOGOUT_URL = "/auth?logout";
+  protected static final String LOGOUT_URL = "/auth?logout";
 
   protected static final String[] AUTH_WHITELIST = {
       /* STATIC */

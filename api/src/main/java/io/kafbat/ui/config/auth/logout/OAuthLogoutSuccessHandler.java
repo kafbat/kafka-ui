@@ -1,6 +1,5 @@
 package io.kafbat.ui.config.auth.logout;
 
-import io.kafbat.ui.config.auth.AbstractAuthSecurityConfig;
 import io.kafbat.ui.config.auth.OAuthProperties;
 import java.net.URI;
 import java.util.List;
@@ -31,7 +30,7 @@ public class OAuthLogoutSuccessHandler implements ServerLogoutSuccessHandler {
     this.logoutSuccessHandlers = logoutSuccessHandlers;
     this.defaultOidcLogoutHandler = handler;
     this.redirectLogoutSuccessHandler = new RedirectServerLogoutSuccessHandler();
-    this.redirectLogoutSuccessHandler.setLogoutSuccessUrl(URI.create(AbstractAuthSecurityConfig.LOGOUT_URL));
+    this.redirectLogoutSuccessHandler.setLogoutSuccessUrl(URI.create("/login?logout"));
   }
 
   @Override
